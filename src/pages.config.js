@@ -1,165 +1,167 @@
-import WalkerDetails from './pages/WalkerDetails';
-import MyBookings from './pages/MyBookings';
-import MyProfile from './pages/MyProfile';
-import EmergencyWalkDetails from './pages/EmergencyWalkDetails';
-import PostEmergency from './pages/PostEmergency';
-import Favorites from './pages/Favorites';
-import DogSittingServices from './pages/DogSittingServices';
-import ScheduledWalks from './pages/ScheduledWalks';
-import Notifications from './pages/Notifications';
-import WalkHistory from './pages/WalkHistory';
-import Subscriptions from './pages/Subscriptions';
-import LoyaltyRewards from './pages/LoyaltyRewards';
-import Partners from './pages/Partners';
-import PartnerDetails from './pages/PartnerDetails';
-import Trainers from './pages/Trainers';
-import TrainerDetails from './pages/TrainerDetails';
-import ManageAvailability from './pages/ManageAvailability';
-import OwnerSubscriptions from './pages/OwnerSubscriptions';
-import PartnerDashboard from './pages/PartnerDashboard';
-import LiveWalkTracking from './pages/LiveWalkTracking';
-import ProfessionalDashboard from './pages/ProfessionalDashboard';
-import Leaderboard from './pages/Leaderboard';
-import Community from './pages/Community';
-import SocialFeed from './pages/SocialFeed';
-import ForumTopicDetails from './pages/ForumTopicDetails';
-import AccountSettings from './pages/AccountSettings';
-import AdminDashboard from './pages/AdminDashboard';
-import TermsOfService from './pages/TermsOfService';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import CookiesPolicy from './pages/CookiesPolicy';
-import PaymentMethods from './pages/PaymentMethods';
-import PaymentSetup from './pages/PaymentSetup';
-import StripeConnectSetup from './pages/StripeConnectSetup';
-import ConnectedAccountStorefront from './pages/ConnectedAccountStorefront';
-import CheckoutSuccess from './pages/CheckoutSuccess';
+import AIMatches from './pages/AIMatches';
 import AboutUs from './pages/AboutUs';
-import Contact from './pages/Contact';
-import FAQ from './pages/FAQ';
-import Landing from './pages/Landing';
-import UserProfile from './pages/UserProfile';
-import SocialEvents from './pages/SocialEvents';
-import ModerationPanel from './pages/ModerationPanel';
-import PartnerServices from './pages/PartnerServices';
-import BookService from './pages/BookService';
-import VeterinaryDashboard from './pages/VeterinaryDashboard';
+import AccountSettings from './pages/AccountSettings';
+import ActiveRide from './pages/ActiveRide';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminFinanceDashboard from './pages/AdminFinanceDashboard';
+import AdminShelterVerification from './pages/AdminShelterVerification';
+import AdminShopHub from './pages/AdminShopHub';
+import AdoptionListingDetails from './pages/AdoptionListingDetails';
+import AdoptionListings from './pages/AdoptionListings';
+import AffiliateDashboard from './pages/AffiliateDashboard';
+import ApplyForAdoption from './pages/ApplyForAdoption';
 import ApproveAnnouncements from './pages/ApproveAnnouncements';
-import Gamification from './pages/Gamification';
+import BecomeProfessional from './pages/BecomeProfessional';
+import BookService from './pages/BookService';
+import Chat from './pages/Chat';
+import CheckoutSuccess from './pages/CheckoutSuccess';
+import Community from './pages/Community';
+import ConnectedAccountStorefront from './pages/ConnectedAccountStorefront';
+import Contact from './pages/Contact';
+import CookiesPolicy from './pages/CookiesPolicy';
+import CreateAdoptionListing from './pages/CreateAdoptionListing';
+import Dashboard from './pages/Dashboard';
 import DogConnectPremium from './pages/DogConnectPremium';
 import DogConnectRewards from './pages/DogConnectRewards';
-import AdoptionListingDetails from './pages/AdoptionListingDetails';
-import ApplyForAdoption from './pages/ApplyForAdoption';
-import MyAdoptionApplications from './pages/MyAdoptionApplications';
-import CreateAdoptionListing from './pages/CreateAdoptionListing';
-import ManageAdoptionListings from './pages/ManageAdoptionListings';
-import Sitemap from './pages/Sitemap';
-import Home from './pages/Home';
-import ShelterDashboard from './pages/ShelterDashboard';
-import AdminShelterVerification from './pages/AdminShelterVerification';
-import StaticExport from './pages/StaticExport';
-import ShelterRegister from './pages/ShelterRegister';
-import ShelterProfile from './pages/ShelterProfile';
+import DogSittingServices from './pages/DogSittingServices';
 import EditWalkerProfile from './pages/EditWalkerProfile';
-import WalkerTrack from './pages/WalkerTrack';
-import BecomeProfessional from './pages/BecomeProfessional';
-import ActiveRide from './pages/ActiveRide';
-import Chat from './pages/Chat';
-import RegisterCompany from './pages/RegisterCompany';
-import MyRedemptions from './pages/MyRedemptions';
-import AffiliateDashboard from './pages/AffiliateDashboard';
-import AIMatches from './pages/AIMatches';
-import AdoptionListings from './pages/AdoptionListings';
-import AdminShopHub from './pages/AdminShopHub';
-import TestPayments from './pages/TestPayments';
+import EmergencyWalkDetails from './pages/EmergencyWalkDetails';
 import EmployeeDashboard from './pages/EmployeeDashboard';
+import FAQ from './pages/FAQ';
+import Favorites from './pages/Favorites';
+import FiscalSettings from './pages/FiscalSettings';
+import ForumTopicDetails from './pages/ForumTopicDetails';
+import Gamification from './pages/Gamification';
+import Home from './pages/Home';
+import Landing from './pages/Landing';
+import Leaderboard from './pages/Leaderboard';
+import LiveWalkTracking from './pages/LiveWalkTracking';
+import LoyaltyRewards from './pages/LoyaltyRewards';
+import ManageAdoptionListings from './pages/ManageAdoptionListings';
+import ManageAvailability from './pages/ManageAvailability';
 import MembershipPlans from './pages/MembershipPlans';
 import MembershipSuccess from './pages/MembershipSuccess';
+import ModerationPanel from './pages/ModerationPanel';
+import MyAdoptionApplications from './pages/MyAdoptionApplications';
+import MyBookings from './pages/MyBookings';
+import MyProfile from './pages/MyProfile';
+import MyRedemptions from './pages/MyRedemptions';
 import MyWallet from './pages/MyWallet';
-import AdminFinanceDashboard from './pages/AdminFinanceDashboard';
-import FiscalSettings from './pages/FiscalSettings';
+import Notifications from './pages/Notifications';
+import OwnerSubscriptions from './pages/OwnerSubscriptions';
+import PartnerDashboard from './pages/PartnerDashboard';
+import PartnerDetails from './pages/PartnerDetails';
+import PartnerServices from './pages/PartnerServices';
+import Partners from './pages/Partners';
+import PaymentMethods from './pages/PaymentMethods';
+import PaymentSetup from './pages/PaymentSetup';
+import PostEmergency from './pages/PostEmergency';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import ProfessionalDashboard from './pages/ProfessionalDashboard';
+import RegisterCompany from './pages/RegisterCompany';
+import ScheduledWalks from './pages/ScheduledWalks';
+import ShelterDashboard from './pages/ShelterDashboard';
+import ShelterProfile from './pages/ShelterProfile';
+import ShelterRegister from './pages/ShelterRegister';
+import Sitemap from './pages/Sitemap';
+import SocialEvents from './pages/SocialEvents';
+import SocialFeed from './pages/SocialFeed';
+import StaticExport from './pages/StaticExport';
+import StripeConnectSetup from './pages/StripeConnectSetup';
+import Subscriptions from './pages/Subscriptions';
+import TermsOfService from './pages/TermsOfService';
+import TestPayments from './pages/TestPayments';
+import TrainerDetails from './pages/TrainerDetails';
+import Trainers from './pages/Trainers';
+import UserProfile from './pages/UserProfile';
+import VeterinaryDashboard from './pages/VeterinaryDashboard';
+import WalkHistory from './pages/WalkHistory';
+import WalkerDetails from './pages/WalkerDetails';
+import WalkerTrack from './pages/WalkerTrack';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "WalkerDetails": WalkerDetails,
-    "MyBookings": MyBookings,
-    "MyProfile": MyProfile,
-    "EmergencyWalkDetails": EmergencyWalkDetails,
-    "PostEmergency": PostEmergency,
-    "Favorites": Favorites,
-    "DogSittingServices": DogSittingServices,
-    "ScheduledWalks": ScheduledWalks,
-    "Notifications": Notifications,
-    "WalkHistory": WalkHistory,
-    "Subscriptions": Subscriptions,
-    "LoyaltyRewards": LoyaltyRewards,
-    "Partners": Partners,
-    "PartnerDetails": PartnerDetails,
-    "Trainers": Trainers,
-    "TrainerDetails": TrainerDetails,
-    "ManageAvailability": ManageAvailability,
-    "OwnerSubscriptions": OwnerSubscriptions,
-    "PartnerDashboard": PartnerDashboard,
-    "LiveWalkTracking": LiveWalkTracking,
-    "ProfessionalDashboard": ProfessionalDashboard,
-    "Leaderboard": Leaderboard,
-    "Community": Community,
-    "SocialFeed": SocialFeed,
-    "ForumTopicDetails": ForumTopicDetails,
-    "AccountSettings": AccountSettings,
-    "AdminDashboard": AdminDashboard,
-    "TermsOfService": TermsOfService,
-    "PrivacyPolicy": PrivacyPolicy,
-    "CookiesPolicy": CookiesPolicy,
-    "PaymentMethods": PaymentMethods,
-    "PaymentSetup": PaymentSetup,
-    "StripeConnectSetup": StripeConnectSetup,
-    "ConnectedAccountStorefront": ConnectedAccountStorefront,
-    "CheckoutSuccess": CheckoutSuccess,
+    "AIMatches": AIMatches,
     "AboutUs": AboutUs,
-    "Contact": Contact,
-    "FAQ": FAQ,
-    "Landing": Landing,
-    "UserProfile": UserProfile,
-    "SocialEvents": SocialEvents,
-    "ModerationPanel": ModerationPanel,
-    "PartnerServices": PartnerServices,
-    "BookService": BookService,
-    "VeterinaryDashboard": VeterinaryDashboard,
+    "AccountSettings": AccountSettings,
+    "ActiveRide": ActiveRide,
+    "AdminDashboard": AdminDashboard,
+    "AdminFinanceDashboard": AdminFinanceDashboard,
+    "AdminShelterVerification": AdminShelterVerification,
+    "AdminShopHub": AdminShopHub,
+    "AdoptionListingDetails": AdoptionListingDetails,
+    "AdoptionListings": AdoptionListings,
+    "AffiliateDashboard": AffiliateDashboard,
+    "ApplyForAdoption": ApplyForAdoption,
     "ApproveAnnouncements": ApproveAnnouncements,
-    "Gamification": Gamification,
+    "BecomeProfessional": BecomeProfessional,
+    "BookService": BookService,
+    "Chat": Chat,
+    "CheckoutSuccess": CheckoutSuccess,
+    "Community": Community,
+    "ConnectedAccountStorefront": ConnectedAccountStorefront,
+    "Contact": Contact,
+    "CookiesPolicy": CookiesPolicy,
+    "CreateAdoptionListing": CreateAdoptionListing,
+    "Dashboard": Dashboard,
     "DogConnectPremium": DogConnectPremium,
     "DogConnectRewards": DogConnectRewards,
-    "AdoptionListingDetails": AdoptionListingDetails,
-    "ApplyForAdoption": ApplyForAdoption,
-    "MyAdoptionApplications": MyAdoptionApplications,
-    "CreateAdoptionListing": CreateAdoptionListing,
-    "ManageAdoptionListings": ManageAdoptionListings,
-    "Sitemap": Sitemap,
-    "Home": Home,
-    "ShelterDashboard": ShelterDashboard,
-    "AdminShelterVerification": AdminShelterVerification,
-    "StaticExport": StaticExport,
-    "ShelterRegister": ShelterRegister,
-    "ShelterProfile": ShelterProfile,
+    "DogSittingServices": DogSittingServices,
     "EditWalkerProfile": EditWalkerProfile,
-    "WalkerTrack": WalkerTrack,
-    "BecomeProfessional": BecomeProfessional,
-    "ActiveRide": ActiveRide,
-    "Chat": Chat,
-    "RegisterCompany": RegisterCompany,
-    "MyRedemptions": MyRedemptions,
-    "AffiliateDashboard": AffiliateDashboard,
-    "AIMatches": AIMatches,
-    "AdoptionListings": AdoptionListings,
-    "AdminShopHub": AdminShopHub,
-    "TestPayments": TestPayments,
+    "EmergencyWalkDetails": EmergencyWalkDetails,
     "EmployeeDashboard": EmployeeDashboard,
+    "FAQ": FAQ,
+    "Favorites": Favorites,
+    "FiscalSettings": FiscalSettings,
+    "ForumTopicDetails": ForumTopicDetails,
+    "Gamification": Gamification,
+    "Home": Home,
+    "Landing": Landing,
+    "Leaderboard": Leaderboard,
+    "LiveWalkTracking": LiveWalkTracking,
+    "LoyaltyRewards": LoyaltyRewards,
+    "ManageAdoptionListings": ManageAdoptionListings,
+    "ManageAvailability": ManageAvailability,
     "MembershipPlans": MembershipPlans,
     "MembershipSuccess": MembershipSuccess,
+    "ModerationPanel": ModerationPanel,
+    "MyAdoptionApplications": MyAdoptionApplications,
+    "MyBookings": MyBookings,
+    "MyProfile": MyProfile,
+    "MyRedemptions": MyRedemptions,
     "MyWallet": MyWallet,
-    "AdminFinanceDashboard": AdminFinanceDashboard,
-    "FiscalSettings": FiscalSettings,
+    "Notifications": Notifications,
+    "OwnerSubscriptions": OwnerSubscriptions,
+    "PartnerDashboard": PartnerDashboard,
+    "PartnerDetails": PartnerDetails,
+    "PartnerServices": PartnerServices,
+    "Partners": Partners,
+    "PaymentMethods": PaymentMethods,
+    "PaymentSetup": PaymentSetup,
+    "PostEmergency": PostEmergency,
+    "PrivacyPolicy": PrivacyPolicy,
+    "ProfessionalDashboard": ProfessionalDashboard,
+    "RegisterCompany": RegisterCompany,
+    "ScheduledWalks": ScheduledWalks,
+    "ShelterDashboard": ShelterDashboard,
+    "ShelterProfile": ShelterProfile,
+    "ShelterRegister": ShelterRegister,
+    "Sitemap": Sitemap,
+    "SocialEvents": SocialEvents,
+    "SocialFeed": SocialFeed,
+    "StaticExport": StaticExport,
+    "StripeConnectSetup": StripeConnectSetup,
+    "Subscriptions": Subscriptions,
+    "TermsOfService": TermsOfService,
+    "TestPayments": TestPayments,
+    "TrainerDetails": TrainerDetails,
+    "Trainers": Trainers,
+    "UserProfile": UserProfile,
+    "VeterinaryDashboard": VeterinaryDashboard,
+    "WalkHistory": WalkHistory,
+    "WalkerDetails": WalkerDetails,
+    "WalkerTrack": WalkerTrack,
 }
 
 export const pagesConfig = {

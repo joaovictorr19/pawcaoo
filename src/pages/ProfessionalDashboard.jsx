@@ -51,6 +51,7 @@ export default function ProfessionalDashboard() {
   const [editingService, setEditingService] = useState(null);
   const [dateRange, setDateRange] = useState("7days");
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
+  const [selectedDayForTimeOff, setSelectedDayForTimeOff] = useState(null);
 
   // User and Profile queries with real-time updates
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -1615,47 +1616,132 @@ export default function ProfessionalDashboard() {
                     />
                   </div>
                   
-                  {/* Selected Date Details */}
+                  {/* Time Off Manager Panel */}
                   <AnimatePresence>
-                    {selectedCalendarDate && (
+                    {selectedDayForTimeOff && (
                       <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-6 border-t pt-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        className="mt-6 p-4 bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-xl shadow-lg"
                       >
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                            <CalendarIcon className="w-4 h-4 text-blue-600" />
-                            Reservas para {format(selectedCalendarDate, "d 'de' MMMM", { locale: ptBR })}
-                          </h3>
-                          <Button variant="ghost" size="sm" onClick={() => setSelectedCalendarDate(null)}>
-                            Fechar
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                          <div>
+                            <h3 className="font-bold text-gray-900 flex items-center gap-2 text-lg">
+                              <CalendarIcon className="w-5 h-5 text-red-600" />
+                              {format(selectedDayForTimeOff.date, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {selectedDayForTimeOff.status === 'day_off' ? '🚫 Dia marcado como folga' : 'Dia disponível'}
+                            </p>
+                          </div>
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedDayForTimeOff(null)}>
+                            ✕
                           </Button>
                         </div>
                         
-                        <div className="space-y-3">
-                          {allBookings
-                            .filter(b => {
-                              const d = new Date(b.walk_date || b.session_date);
-                              return format(d, 'yyyy-MM-dd') === format(selectedCalendarDate, 'yyyy-MM-dd') &&
-                                     b.status !== 'cancelled' && b.status !== 'rejected';
-                            })
-                            .map(booking => (
-                              <div key={booking.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border shadow-sm text-lg">
-                                    {booking.dog_size === 'small' ? '🐕' : '🦮'}
-                                  </div>
-                                  <div>
-                                    <p className="font-bold text-gray-900">{booking.dog_name}</p>
-                                    <p className="text-xs text-gray-600">{booking.walk_time || booking.session_time} • {booking.duration_hours}h • {booking.owner_name}</p>
-                                  </div>
+                        {/* Check bookings for this day */}
+                        {(() => {
+                          const dateStr = format(selectedDayForTimeOff.date, 'yyyy-MM-dd');
+                          const dayBookings = allBookings.filter(b => 
+                            (b.walk_date === dateStr || b.session_date === dateStr) &&
+                            (b.status !== 'cancelled' && b.status !== 'rejected')
+                          );
+                          
+                          if (dayBookings.length > 0) {
+                            return (
+                              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+                                <p className="text-sm font-semibold text-yellow-800 mb-2">
+                                  ⚠️ Este dia tem {dayBookings.length} reserva(s) ativa(s)
+                                </p>
+                                <p className="text-xs text-yellow-700">
+                                  Não é possível marcar folga. Cancele ou reagende as reservas primeiro.
+                                </p>
+                                <div className="mt-3 space-y-2">
+                                  {dayBookings.map(b => (
+                                    <div key={b.id} className="flex items-center gap-2 text-xs bg-white p-2 rounded border border-yellow-200">
+                                      <span className="font-bold">{b.dog_name}</span>
+                                      <span>•</span>
+                                      <span>{b.walk_time || b.session_time}</span>
+                                      <Badge className="ml-auto bg-yellow-100 text-yellow-800">{b.status}</Badge>
+                                    </div>
+                                  ))}
                                 </div>
-                                <Badge className="bg-white text-blue-700 hover:bg-white">{booking.status}</Badge>
                               </div>
-                            ))}
-                        </div>
+                            );
+                          }
+                          
+                          // No bookings - allow toggle
+                          return (
+                            <div className="space-y-3">
+                              {selectedDayForTimeOff.status === 'day_off' ? (
+                                <Button
+                                  onClick={async () => {
+                                    try {
+                                      const existingRecord = availability.find(a => a.date === dateStr);
+                                      if (existingRecord) {
+                                        await base44.entities.CalendarAvailability.delete(existingRecord.id);
+                                        toast.success('✅ Folga removida! Dia disponível para reservas.');
+                                        queryClient.invalidateQueries(['myAvailability']);
+                                        setSelectedDayForTimeOff(null);
+                                      }
+                                    } catch (err) {
+                                      console.error(err);
+                                      toast.error('Erro ao remover folga.');
+                                    }
+                                  }}
+                                  className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-bold shadow-lg"
+                                >
+                                  <CheckCircle className="w-5 h-5 mr-2" />
+                                  Remover Folga e Abrir Agenda
+                                </Button>
+                              ) : (
+                                <Button
+                                  onClick={async () => {
+                                    try {
+                                      const existingRecord = availability.find(a => a.date === dateStr);
+                                      
+                                      if (existingRecord) {
+                                        await base44.entities.CalendarAvailability.update(existingRecord.id, {
+                                          is_day_off: true,
+                                          is_fully_booked: true,
+                                          notes: 'Folga marcada pelo profissional'
+                                        });
+                                      } else {
+                                        await base44.entities.CalendarAvailability.create({
+                                          professional_email: user?.email,
+                                          professional_name: profile?.walker_name || profile?.trainer_name,
+                                          professional_type: walkerProfile ? 'walker' : 'trainer',
+                                          date: dateStr,
+                                          is_day_off: true,
+                                          is_fully_booked: true,
+                                          time_slots: [],
+                                          notes: 'Folga marcada pelo profissional'
+                                        });
+                                      }
+                                      
+                                      toast.success('🚫 Folga marcada! Dia bloqueado para clientes.');
+                                      queryClient.invalidateQueries(['myAvailability']);
+                                      setSelectedDayForTimeOff(null);
+                                    } catch (err) {
+                                      console.error(err);
+                                      toast.error('Erro ao marcar folga.');
+                                    }
+                                  }}
+                                  className="w-full bg-red-600 hover:bg-red-700 text-white h-12 text-base font-bold shadow-lg"
+                                >
+                                  🚫 Marcar Como Folga
+                                </Button>
+                              )}
+                              
+                              <p className="text-xs text-gray-600 text-center bg-white p-2 rounded border">
+                                {selectedDayForTimeOff.status === 'day_off' 
+                                  ? 'Este dia está bloqueado. Clientes não podem fazer reservas.' 
+                                  : 'Ao marcar folga, clientes não poderão reservar este dia.'}
+                              </p>
+                            </div>
+                          );
+                        })()}
                       </motion.div>
                     )}
                   </AnimatePresence>
