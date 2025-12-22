@@ -338,10 +338,7 @@ export default function Gamification() {
                 <Trophy className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 
-                  className="text-4xl md:text-6xl font-black tracking-tight"
-                  style={{ color: levelColor }}
-                >
+                <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-800">
                   Hall da Fama
                 </h1>
               </div>
