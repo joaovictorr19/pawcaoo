@@ -755,10 +755,10 @@ function LayoutContent({ children, currentPageName }) {
         className="hidden md:block fixed top-[10px] z-[99999] px-4 py-3 right-[15px]"
         style={{
           left: authUser ? '295px' : '15px',
-          background: colors?.isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.8)',
+          background: 'rgba(255, 255, 255, 0.85)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          border: colors?.isDarkMode ? '1px solid rgba(148, 163, 184, 0.2)' : '1px solid rgba(255, 255, 255, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.4)',
           borderRadius: '20px',
           boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
         }}
@@ -777,20 +777,20 @@ function LayoutContent({ children, currentPageName }) {
               {authUser ? (
                 // Menu completo para usuários logados
                 mainMenu.map((item) => (
-                  <Link
-                    key={item.url}
-                    id={item.id}
-                    to={item.url}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate(item.url);
-                    }}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
-                      isRouteActive(item.url)
-                        ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
-                        : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-700 hover:bg-gray-100")
-                    }`}
-                  >
+                <Link
+                  key={item.url}
+                  id={item.id}
+                  to={item.url}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(item.url);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                    isRouteActive(item.url)
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
                     <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
                     <span className="hidden lg:inline">{item.title}</span>
                   </Link>
@@ -862,10 +862,10 @@ function LayoutContent({ children, currentPageName }) {
       <header 
         className="md:hidden fixed top-0 left-0 right-0 z-[99999] px-4 py-2"
         style={{
-          background: colors?.isDarkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: colors?.isDarkMode ? '1px solid rgba(148, 163, 184, 0.2)' : '1px solid rgba(0, 0, 0, 0.05)',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
           boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
         }}
       >
@@ -917,20 +917,14 @@ function LayoutContent({ children, currentPageName }) {
         <div className="flex flex-1 w-full">
         {authUser && (
         <Sidebar 
-          className={`hidden md:flex border transition-colors duration-300 ml-4 mr-4 mb-4 rounded-[2rem] shadow-xl shadow-blue-900/5 overflow-hidden shrink-0 ${
-            colors?.isDarkMode 
-              ? 'border-slate-700/40' 
-              : 'border-white/40'
-          }`} 
+          className="hidden md:flex border transition-colors duration-300 ml-4 mr-4 mb-4 rounded-[2rem] shadow-xl shadow-blue-900/5 overflow-hidden shrink-0 border-white/40"
           style={{ 
             height: 'calc(100vh - 100px)',
-            background: colors?.isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.8)',
+            background: 'rgba(255, 255, 255, 0.85)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
           }}>
-          <SidebarHeader className={`border-b p-4 md:p-6 ${
-            colors?.isDarkMode ? 'border-slate-700/60' : 'border-white/30'
-          }`}>
+          <SidebarHeader className="border-b p-4 md:p-6 border-gray-200/50">
             <Link 
               to={createPageUrl("Home")} 
               className="block hover:opacity-80 transition-opacity"
