@@ -741,60 +741,77 @@ function LayoutContent({ children, currentPageName }) {
             </Link>
           </div>
 
-          {/* Menu de Navegação Desktop */}
-          <nav className="flex items-center justify-center flex-1 px-4">
-            <div className="flex items-center gap-1 lg:gap-2">
-              {mainMenu.map((item) => (
-                <Link
-                  key={item.url}
-                  id={item.id}
-                  to={item.url}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
-                    isRouteActive(item.url)
-                      ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
-                      : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-700 hover:bg-gray-100")
-                  }`}
-                >
-                  <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
-                  <span className="hidden lg:inline">{item.title}</span>
-                </Link>
-              ))}
-            </div>
-          </nav>
+          {/* Menu de Navegação Desktop - Apenas para usuários logados */}
+          {authUser && (
+            <nav className="flex items-center justify-center flex-1 px-4">
+              <div className="flex items-center gap-1 lg:gap-2">
+                {mainMenu.map((item) => (
+                  <Link
+                    key={item.url}
+                    id={item.id}
+                    to={item.url}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                      isRouteActive(item.url)
+                        ? `bg-gradient-to-r ${colors?.gradient || 'from-blue-600 to-indigo-600'} text-white shadow-md`
+                        : (colors?.isDarkMode ? "text-gray-300 hover:bg-slate-800" : "text-gray-700 hover:bg-gray-100")
+                    }`}
+                  >
+                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
+                    <span className="hidden lg:inline">{item.title}</span>
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          )}
 
           {/* Ações Direita - Limpo, sem XP */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {authUser && (
-              <Link 
-                to={createPageUrl("Gamification")}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-full border border-purple-200/30 hover:border-purple-400/50 transition-all hover:scale-105"
-              >
-                <Trophy className="w-4 h-4 text-purple-600" />
-                <span className="text-xs font-bold text-purple-700 hidden lg:inline">Hall da Fama</span>
-              </Link>
-            )}
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
-                  <Globe className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {authUser ? (
+              <>
+                <Link 
+                  to={createPageUrl("Gamification")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-full border border-purple-200/30 hover:border-purple-400/50 transition-all hover:scale-105"
+                >
+                  <Trophy className="w-4 h-4 text-purple-600" />
+                  <span className="text-xs font-bold text-purple-700 hidden lg:inline">Hall da Fama</span>
+                </Link>
 
-            {!authUser && (
-              <Button 
-                onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md text-sm px-4 h-9"
-                size="sm"
-              >
-                {getMenuText('login')}
-              </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
+                      <Globe className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Idioma">
+                      <Globe className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setLanguage('pt')}>🇵🇹 Português</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('es')}>🇪🇸 Español</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button 
+                  onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md text-sm px-4 h-9"
+                  size="sm"
+                >
+                  {getMenuText('login')}
+                </Button>
+              </>
             )}
           </div>
         </div>
