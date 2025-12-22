@@ -614,7 +614,8 @@ export default function Gamification() {
                   variant={activeCategory === cat ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveCategory(cat)}
-                  className={activeCategory === cat ? `bg-gradient-to-r ${colors?.gradient || 'from-purple-600 to-purple-600'} text-white border-0 shadow-lg font-bold` : "font-semibold"}
+                  className={activeCategory === cat ? "text-white border-0 shadow-lg font-bold" : "font-semibold"}
+                  style={activeCategory === cat ? { background: levelColor } : {}}
                 >
                   {cat === 'all' && 'Todos'}
                   {cat === 'social' && 'Social'}
