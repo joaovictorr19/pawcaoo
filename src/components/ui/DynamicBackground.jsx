@@ -18,37 +18,60 @@ export default function DynamicBackground() {
 
   const isLoggedIn = !!user;
 
-  // If not logged in, show real nature leaves background
+  // If not logged in, show sage green background with earthy pattern
   if (!isLoggedIn) {
     return (
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Real nature photo background */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1920&q=80)',
-          }}
-        />
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" style={{ backgroundColor: '#E8F5E9' }}>
+        {/* SVG Pattern with earthy tones */}
+        <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="nature-pattern" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+              {/* Paw prints */}
+              <g opacity="0.2" fill="#A1887F">
+                <circle cx="30" cy="30" r="8" />
+                <circle cx="50" cy="25" r="6" />
+                <circle cx="55" cy="40" r="6" />
+                <circle cx="35" cy="45" r="6" />
+                <ellipse cx="42" cy="35" rx="10" ry="12" />
+              </g>
+              
+              {/* Leaves */}
+              <g opacity="0.2" stroke="#A1887F" strokeWidth="1.5" fill="none">
+                <path d="M 120 80 Q 130 60, 140 80 Q 130 90, 120 80" />
+                <path d="M 130 80 L 130 100" />
+                <path d="M 160 120 Q 170 100, 180 120 Q 170 130, 160 120" />
+                <path d="M 170 120 L 170 140" />
+              </g>
+              
+              {/* More paw prints scattered */}
+              <g opacity="0.15" fill="#A1887F">
+                <circle cx="150" cy="50" r="7" />
+                <circle cx="165" cy="47" r="5" />
+                <circle cx="169" cy="58" r="5" />
+                <circle cx="153" cy="62" r="5" />
+                <ellipse cx="159" cy="54" rx="9" ry="11" />
+              </g>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#nature-pattern)" />
+        </svg>
         
-        {/* Soft green overlay for brand consistency */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2e7d32]/30 via-[#4caf50]/20 to-[#81c784]/30" />
-        
-        {/* Animated light spots (sun rays through leaves) */}
+        {/* Subtle animated light spots */}
         <div className="absolute inset-0">
           <div 
-            className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full mix-blend-soft-light filter blur-[100px] opacity-40 animate-blob-1"
-            style={{ backgroundColor: '#c8e6c9' }}
+            className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full mix-blend-soft-light filter blur-[100px] opacity-20 animate-blob-1"
+            style={{ backgroundColor: '#A1887F' }}
           />
           <div 
-            className="absolute bottom-[15%] right-[10%] w-[45vw] h-[45vw] rounded-full mix-blend-soft-light filter blur-[80px] opacity-35 animate-blob-2"
-            style={{ backgroundColor: '#a5d6a7' }}
+            className="absolute bottom-[15%] right-[10%] w-[45vw] h-[45vw] rounded-full mix-blend-soft-light filter blur-[80px] opacity-15 animate-blob-2"
+            style={{ backgroundColor: '#C8B8A8' }}
           />
         </div>
         
-        {/* Premium vignette for depth */}
+        {/* Soft vignette for depth */}
         <div className="absolute inset-0" 
           style={{
-            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.15) 100%)'
+            background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.08) 100%)'
           }}
         />
       </div>
