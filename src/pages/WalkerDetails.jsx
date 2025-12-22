@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown, User as UserIcon, MessageCircle, Heart, Info, Dog, Home } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown, User as UserIcon, MessageCircle, Heart, Info, Dog, Home, Cat, Bird } from "lucide-react";
+import { ReptileIcon, ArachnidIcon, RodentIcon } from "@/components/professionals/AnimalIcons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -476,9 +477,17 @@ export default function WalkerDetails() {
                     </h3>
                     <div className="grid gap-4">
                       {walker.services_offered.map((service, idx) => {
-                        const isBoarding = service.service_name?.toLowerCase().includes('boarding') || service.service_name?.toLowerCase().includes('alojamento');
-                        const isHouseSitting = service.service_name?.toLowerCase().includes('house') || service.service_name?.toLowerCase().includes('casa');
-                        const isDropIn = service.service_name?.toLowerCase().includes('drop') || service.service_name?.toLowerCase().includes('visita');
+                        const serviceName = service.service_name?.toLowerCase() || '';
+                        const isBoarding = serviceName.includes('boarding') || serviceName.includes('alojamento');
+                        const isHouseSitting = serviceName.includes('house') || serviceName.includes('casa');
+                        const isDropIn = serviceName.includes('drop') || serviceName.includes('visita');
+                        
+                        // Check animal type
+                        const isBird = serviceName.includes('ave') || serviceName.includes('bird');
+                        const isReptile = serviceName.includes('réptei') || serviceName.includes('reptil') || serviceName.includes('cobra');
+                        const isArachnid = serviceName.includes('aracní') || serviceName.includes('aranha') || serviceName.includes('spider');
+                        const isRodent = serviceName.includes('roedor') || serviceName.includes('rodent') || serviceName.includes('hamster') || serviceName.includes('coelho');
+                        const isCat = serviceName.includes('gato') || serviceName.includes('cat');
                         
                         let icon = <Dog className="w-6 h-6 text-gray-600" />;
                         let bgColor = "bg-gray-50";
@@ -496,6 +505,26 @@ export default function WalkerDetails() {
                           icon = <Clock className="w-6 h-6 text-green-600" />;
                           bgColor = "bg-green-50/50";
                           borderColor = "border-green-100";
+                        } else if (isBird) {
+                          icon = <Bird className="w-6 h-6 text-orange-600" />;
+                          bgColor = "bg-orange-50/50";
+                          borderColor = "border-orange-100";
+                        } else if (isReptile) {
+                          icon = <ReptileIcon className="w-6 h-6 text-green-600" />;
+                          bgColor = "bg-green-50/50";
+                          borderColor = "border-green-100";
+                        } else if (isArachnid) {
+                          icon = <ArachnidIcon className="w-6 h-6 text-purple-600" />;
+                          bgColor = "bg-purple-50/50";
+                          borderColor = "border-purple-100";
+                        } else if (isRodent) {
+                          icon = <RodentIcon className="w-6 h-6 text-pink-600" />;
+                          bgColor = "bg-pink-50/50";
+                          borderColor = "border-pink-100";
+                        } else if (isCat) {
+                          icon = <Cat className="w-6 h-6 text-indigo-600" />;
+                          bgColor = "bg-indigo-50/50";
+                          borderColor = "border-indigo-100";
                         }
 
                         return (
