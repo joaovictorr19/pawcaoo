@@ -775,12 +775,16 @@ function LayoutContent({ children, currentPageName }) {
             </div>
           </nav>
 
-          {/* Ações Direita + XP Badge */}
+          {/* Ações Direita - Limpo, sem XP */}
           <div className="flex items-center gap-2 flex-shrink-0">
             {authUser && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-full border border-purple-300/30">
-                <span className="text-xs font-bold text-purple-700">⚡ {authUser.gamification_xp || 0} XP</span>
-              </div>
+              <Link 
+                to={createPageUrl("Gamification")}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-full border border-purple-200/30 hover:border-purple-400/50 transition-all hover:scale-105"
+              >
+                <Trophy className="w-4 h-4 text-purple-600" />
+                <span className="text-xs font-bold text-purple-700 hidden lg:inline">Hall da Fama</span>
+              </Link>
             )}
             
             <DropdownMenu>
@@ -831,10 +835,10 @@ function LayoutContent({ children, currentPageName }) {
             </Link>
           </div>
 
-          {/* Centro - XP Badge (se logado) */}
+          {/* Centro - Hall da Fama Link (sem XP no header) */}
           {authUser && (
-            <Link to={createPageUrl("Gamification")} className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500/15 to-indigo-500/15 rounded-full border border-purple-200/50">
-              <span className="text-[10px] font-bold text-purple-600">⚡ {authUser.gamification_xp || 0}</span>
+            <Link to={createPageUrl("Gamification")} className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-full border border-purple-200/30 hover:border-purple-400/50 transition-all">
+              <Trophy className="w-3.5 h-3.5 text-purple-600" />
             </Link>
           )}
 
