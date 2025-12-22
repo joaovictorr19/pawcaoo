@@ -21,7 +21,7 @@ import {
   LineChart, Line, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell
 } from 'recharts';
-import { Download, ExternalLink, Share2, Calendar as CalendarIcon, FileText, QrCode } from "lucide-react";
+import { Download, ExternalLink, Share2, Calendar as CalendarIcon, FileText, QrCode, CreditCard } from "lucide-react";
 import { bookingToEvent, generateMultiICS, downloadICS } from "../components/calendar/calendarHelpers";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -42,6 +42,7 @@ import DigitalWalletPass from "../components/professionals/DigitalWalletPass";
 // TimeOffManager removed (integrated into calendar)
 import FiscalComplianceBanner from "../components/fiscal/FiscalComplianceBanner";
 import DataExportPanel from "../components/professionals/DataExportPanel";
+import StripeConnectSetup from "../components/professionals/StripeConnectSetup";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
@@ -1045,6 +1046,13 @@ export default function ProfessionalDashboard() {
                 {dt('digitalCard', language)}
               </TabsTrigger>
               <TabsTrigger 
+                value="payments" 
+                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+              >
+                <CreditCard className="w-4 h-4" />
+                Pagamentos
+              </TabsTrigger>
+              <TabsTrigger 
                 value="export" 
                 className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
               >
@@ -2035,6 +2043,11 @@ export default function ProfessionalDashboard() {
                 />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Payments Tab - Stripe Connect */}
+          <TabsContent value="payments">
+            <StripeConnectSetup />
           </TabsContent>
 
           {/* Data Export Tab */}
