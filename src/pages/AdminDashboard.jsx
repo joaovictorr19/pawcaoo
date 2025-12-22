@@ -2314,10 +2314,27 @@ export default function AdminDashboard() {
           <TabsContent value="services">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
-                <CardTitle>{t('allServices', language)} ({allPartnerServices.length})</CardTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  {pendingApprovalServices.length} {t('pendingApproval', language)} • {allPartnerServices.filter(s => s.moderation_status === 'approved' && s.is_active).length} {t('active', language).toLowerCase()}
-                </p>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>{t('allServices', language)} ({allPartnerServices.length})</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {pendingApprovalServices.length} {t('pendingApproval', language)} • {allPartnerServices.filter(s => s.moderation_status === 'approved' && s.is_active).length} {t('active', language).toLowerCase()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['allPartnerServices'] });
+                      toast.success("Serviços atualizados!");
+                    }}
+                    disabled={loadingServices}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loadingServices ? 'animate-spin' : ''}`} />
+                    Atualizar
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {loadingServices && allPartnerServices.length === 0 ? (
