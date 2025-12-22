@@ -26,8 +26,10 @@ export default function DigitalWalletPass({
   const tier = calculateTier(xp);
   const levelColor = getTierColor(tier.level);
 
-  // URL do perfil para o QR Code
-  const profileUrl = `${window.location.origin}/UserProfile?username=${username}`;
+  // URL do perfil para o QR Code - domínio oficial pawcao.net
+  const profileUrl = username 
+    ? `https://pawcao.net/UserProfile?username=${username}`
+    : `https://pawcao.net/WalkerDetails?id=${user?.id}`;
 
   // Título baseado no tipo e nível
   const getTitle = () => {
@@ -97,7 +99,7 @@ export default function DigitalWalletPass({
       >
         {/* === HEADER === */}
         <div 
-          className="relative h-[140px] px-5 pt-4 pb-16"
+          className="relative px-5 pt-4 pb-5"
           style={{ 
             background: `linear-gradient(135deg, ${levelColor}, ${levelColor}dd)`,
           }}
@@ -110,45 +112,41 @@ export default function DigitalWalletPass({
             }}
           />
           
-          {/* Logo Oficial + Badge Verificado */}
-          <div className="relative z-10 flex items-center justify-between">
-            {/* Logo real */}
+          {/* Linha 1: Logo + Badge Verificado */}
+          <div className="relative z-10 flex items-center justify-between mb-3">
+            {/* Logo com fallback de texto */}
             <div className="flex items-center gap-2">
-              <img 
-                src="/logo.png" 
-                alt="PawCão Logo"
-                className="h-8 w-auto object-contain"
-                crossOrigin="anonymous"
-              />
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                <span className="text-lg">🐾</span>
+              </div>
+              <span className="text-white font-bold text-base tracking-wide drop-shadow-sm">PawCão</span>
             </div>
             
             {isVerified ? (
-              <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
+              <div className="flex items-center gap-1 bg-white/25 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
                 <ShieldCheck className="w-3.5 h-3.5 text-white" />
                 <span className="text-white text-[10px] font-bold uppercase tracking-wider">Verificado</span>
               </div>
             ) : (
-              <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
+              <div className="flex items-center gap-1 bg-white/25 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
                 <Sparkles className="w-3.5 h-3.5 text-white" />
                 <span className="text-white text-[10px] font-bold uppercase tracking-wider">{tier.name}</span>
               </div>
             )}
           </div>
 
-          {/* Digital Pass - posicionado com z-index alto e espaço adequado */}
-          <div className="absolute bottom-4 left-5 z-30">
-            <div className="text-white font-bold text-sm uppercase tracking-[0.2em] drop-shadow-md">
+          {/* Linha 2: Digital Pass */}
+          <div className="relative z-10 text-center">
+            <div className="text-white/90 font-semibold text-xs uppercase tracking-[0.25em]">
               Digital Pass
             </div>
           </div>
         </div>
 
         {/* === BODY === */}
-        <div className="relative bg-gradient-to-b from-gray-50 to-white px-5 pt-20 pb-5">
-          {/* Foto flutuante (sobreposição) - posicionada abaixo do "Digital Pass" */}
-          <div 
-            className="absolute left-1/2 -translate-x-1/2 -top-12 z-10"
-          >
+        <div className="relative bg-gradient-to-b from-gray-50 to-white px-5 pt-6 pb-5">
+          {/* Foto de perfil - NÃO flutuante, dentro do body */}
+          <div className="flex justify-center mb-4">
             <div 
               className="w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white"
               style={{ 
@@ -174,7 +172,7 @@ export default function DigitalWalletPass({
           </div>
 
           {/* Nome e Título */}
-          <div className="text-center mt-0 mb-6">
+          <div className="text-center mb-5">
             <h1 className="text-2xl font-black text-gray-900 tracking-tight mb-1">
               {name}
             </h1>
@@ -233,8 +231,7 @@ export default function DigitalWalletPass({
 
         {/* Notch decorativo (estilo Apple) */}
         <div 
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-b-full"
-          style={{ backgroundColor: `${levelColor}40` }}
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1 rounded-b-full bg-black/20"
         ></div>
       </div>
 
