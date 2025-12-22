@@ -873,6 +873,14 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                   O valor fica retido até o profissional aceitar e completar o serviço.
                 </p>
               </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+                <p className="font-semibold text-amber-800 mb-1">⏰ Prazo de Pagamento</p>
+                <p className="text-amber-700 text-xs">
+                  O pagamento deve ser efetuado até <strong>2 horas antes</strong> do horário marcado. 
+                  Caso não seja pago a tempo, a reserva será automaticamente cancelada.
+                </p>
+              </div>
             </>
           )}
 
@@ -883,28 +891,25 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 type="button"
                 variant="outline"
                 onClick={() => setStep(step - 1)}
-                className="flex-1 h-10 text-sm"
+                className="flex-1 h-10 text-sm border-gray-300 text-gray-700 hover:bg-gray-50"
               >
-                Voltar
+                ← Voltar
               </Button>
             )}
             {step < 3 ? (
               <Button
                 type="button"
                 onClick={handleNextStep}
-                className="flex-1 h-10 text-sm text-white"
-                style={{
-                  background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
-                }}
+                className="flex-1 h-10 text-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
-                Continuar
+                Continuar →
               </Button>
             ) : (
               <Button
                 type="button"
                 onClick={handleStripeCheckout}
                 disabled={isPaymentProcessing}
-                className="flex-1 h-10 text-sm text-white hover:opacity-90 bg-gradient-to-r from-green-600 to-emerald-600"
+                className="flex-1 h-10 text-sm text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
               >
                 {isPaymentProcessing ? (
                   <>

@@ -13,6 +13,22 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
+    
+    // Calculate payment deadline (2 hours before walk time)
+    const walkDateTime = new Date(`${body.walk_date}T${body.walk_time.split(' ')[0] || body.walk_time}:00`);
+    const paymentDeadline = new Date(walkDateTime.getTime() - (2 * 60 * 60 * 1000)); // 2 hours before
+    const now = new Date();
+    
+    // Check if we still have time to pay
+    if (now >= paymentDeadline) {
+      return Response.json({ 
+        error: 'Prazo de pagamento expirado. O pagamento deve ser feito até 2 horas antes do horário marcado.' 
+      }, { status: 400 });
+    }
+    
+    // Calculate session expiry (minimum 30 min, max until deadline)
+    const timeUntilDeadline = Math.floor((paymentDeadline.getTime() - now.getTime()) / 1000);
+    const sessionExpiry = Math.min(Math.max(timeUntilDeadline, 1800), 86400); // Between 30min and 24h
     const {
       professional_id,
       professional_email,
@@ -57,11 +73,12 @@ Deno.serve(async (req) => {
     // Get app host for redirect URLs
     const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
 
-    // Create Stripe Checkout Session
+    // Create Stripe Checkout Session with expiry
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
       mode: 'payment',
+      expires_at: Math.floor(Date.now() / 1000) + sessionExpiry, // Expire at payment deadline
       line_items: [
         {
           price_data: {
@@ -102,15 +119,17 @@ Deno.serve(async (req) => {
         pickup_lng: pickup_lng?.toString() || '',
         owner_email: user.email,
         owner_name: user.full_name,
-        owner_phone: owner_phone || ''
+        owner_phone: owner_phone || '',
+        payment_deadline: paymentDeadline.toISOString()
       },
       success_url: `${origin}/CheckoutSuccess?session_id={CHECKOUT_SESSION_ID}&type=booking`,
       cancel_url: `${origin}/WalkerDetails?id=${professional_id}&cancelled=true`,
       payment_intent_data: {
-        capture_method: 'automatic', // Or 'manual' if you want to capture later
+        capture_method: 'automatic',
         metadata: {
           professional_email,
-          booking_type: 'service'
+          booking_type: 'service',
+          payment_deadline: paymentDeadline.toISOString()
         }
       }
     });
