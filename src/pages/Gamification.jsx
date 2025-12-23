@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/LanguageContext";
 import { toast } from "sonner";
+import { t } from "@/components/translations";
 
 // Missões/Provações
 const MISSIONS = [
@@ -520,19 +521,22 @@ export default function Gamification() {
 
       await base44.entities.Notification.create({
         recipient_email: targetEmail,
-        title: '🎉 Recebeste uma celebração!',
-        message: `${user.full_name} celebrou a tua conquista! +10 XP`,
+        title: `🎉 ${t('receivedCelebration', language)}`,
+        message: `${user.full_name} ${t('celebratedYourAchievement', language)}! +10 XP`,
         type: 'social'
       });
 
       return { success: true, targetName };
     },
     onSuccess: (data) => {
-      toast.success(`🎉 ${data.targetName} recebeu +10 XP!`);
+      toast.success(`🎉 ${data.targetName} ${t('celebrationSent', language)}`);
       queryClient.invalidateQueries(['allUsersRanking']);
     },
     onError: (error) => {
-      toast.error(error.message);
+      const errorMsg = error.message.includes('Já celebraste') 
+        ? t('alreadyCelebratedToday', language)
+        : error.message;
+      toast.error(errorMsg);
     }
   });
 
@@ -863,7 +867,7 @@ export default function Gamification() {
                 </Avatar>
                 <div className="flex-1">
                   <p className="text-white font-bold">{user?.full_name}</p>
-                  <p className="text-blue-400 text-sm">Você está aqui!</p>
+                  <p className="text-blue-400 text-sm">{t('youAreHere', language)}</p>
                 </div>
                 <Badge className="bg-blue-500/20 border border-blue-500/40 text-blue-300">
                   {currentXP.toLocaleString()} XP
@@ -882,7 +886,7 @@ export default function Gamification() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-amber-400 font-bold text-sm">
-                  {showFullRanking ? `Ranking Completo (${allUsers.length} utilizadores)` : 'Top 10'}
+                  {showFullRanking ? `${t('fullRanking', language)} (${allUsers.length} ${t('users', language)})` : 'Top 10'}
                 </h3>
                 <Button
                   variant="ghost"
@@ -893,7 +897,7 @@ export default function Gamification() {
                   }}
                   className="text-amber-400 hover:bg-amber-500/10 text-xs"
                 >
-                  {showFullRanking ? 'Ver Top 10' : 'Ver Todos'}
+                  {showFullRanking ? t('viewTop10', language) : t('viewAll', language)}
                 </Button>
               </div>
 
@@ -923,9 +927,9 @@ export default function Gamification() {
                     <div className="flex-1">
                       <p className="text-white font-medium text-sm flex items-center gap-2">
                         {profile.full_name}
-                        {isCurrentUser && <Badge className="bg-blue-500/20 text-blue-300 text-[10px]">Você</Badge>}
+                        {isCurrentUser && <Badge className="bg-blue-500/20 text-blue-300 text-[10px]">{language === 'pt' ? 'Você' : language === 'es' ? 'Tú' : language === 'fr' ? 'Vous' : language === 'de' ? 'Sie' : language === 'it' ? 'Tu' : 'You'}</Badge>}
                       </p>
-                      <p className="text-gray-600 text-xs">Nível {Math.floor((profile.gamification_xp || 0) / 100)}</p>
+                      <p className="text-gray-600 text-xs">{t('level', language)} {Math.floor((profile.gamification_xp || 0) / 100)}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge className="bg-black/50 border border-amber-500/20 text-amber-400/70 text-xs">
@@ -941,7 +945,7 @@ export default function Gamification() {
                           })}
                           disabled={celebrateMutation.isPending}
                           className="h-8 w-8 p-0 hover:bg-purple-500/20 text-purple-400"
-                          title="Celebrar conquista (+10 XP)"
+                          title={t('celebrateAchievement', language)}
                         >
                           <PartyPopper className="w-4 h-4" />
                         </Button>
@@ -964,7 +968,7 @@ export default function Gamification() {
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
                   <span className="text-amber-400 text-sm">
-                    Página {rankingPage} de {totalPages}
+                    {t('page', language)} {rankingPage} {language === 'pt' ? 'de' : language === 'es' ? 'de' : language === 'fr' ? 'de' : language === 'de' ? 'von' : language === 'it' ? 'di' : 'of'} {totalPages}
                   </span>
                   <Button
                     variant="outline"

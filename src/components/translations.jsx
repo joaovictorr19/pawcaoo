@@ -164,6 +164,194 @@ export const translations = {
     applyToAdopt: "Postuler pour Adopter",
   },
   
+  // ============ GERMAN TRANSLATIONS (de) ============
+  de: {
+    // Navigation
+    dashboard: "Dashboard",
+    findWalkers: "Gassigeher",
+    findTrainers: "Trainer",
+    postEmergency: "Notfall-Spaziergang",
+    dogSitting: "Hundebetreuung",
+    pawcaoShop: "PawCão Shop",
+    adoptAPet: "Adoptieren",
+    myFavorites: "Meine Favoriten",
+    myBookings: "Meine Buchungen",
+    scheduledWalks: "Geplante Spaziergänge",
+    walkHistory: "Spaziergang-Historie",
+    messages: "Nachrichten",
+    notifications: "Benachrichtigungen",
+    loyaltyRewards: "Belohnungen",
+    becomeWalker: "Gassigeher werden",
+    becomeTrainer: "Trainer werden",
+    manageAvailability: "Verfügbarkeit verwalten",
+    walkerSubscriptions: "Gassigeher-Abonnements",
+    ownerMembership: "Besitzer-Mitgliedschaft",
+    partnerDashboard: "Partner-Dashboard",
+    myProfile: "Mein Profil",
+    accountSettings: "Kontoeinstellungen",
+    adminDashboard: "Admin-Dashboard",
+    professionalDashboard: "Professionelles Dashboard",
+    leaderboard: "Rangliste",
+    
+    // Sidebar Groups
+    mainMenu: "HAUPTMENÜ",
+    myActivity: "MEINE AKTIVITÄT",
+    professionalServices: "PROFESSIONELLE DIENSTE",
+    account: "KONTO",
+    
+    // Common
+    search: "Suchen",
+    filter: "Filtern",
+    allSizes: "Alle Größen",
+    small: "Klein",
+    medium: "Mittel",
+    large: "Groß",
+    extraLarge: "Extra Groß",
+    anyTime: "Jederzeit",
+    morning: "Morgen",
+    afternoon: "Nachmittag",
+    evening: "Abend",
+    night: "Nacht",
+    location: "Standort",
+    price: "Preis",
+    rating: "Bewertung",
+    reviews: "Bewertungen",
+    bookNow: "Jetzt buchen",
+    viewDetails: "Details ansehen",
+    cancel: "Abbrechen",
+    save: "Speichern",
+    submit: "Senden",
+    edit: "Bearbeiten",
+    delete: "Löschen",
+    back: "Zurück",
+    next: "Weiter",
+    previous: "Zurück",
+    loading: "Lädt...",
+    noResults: "Keine Ergebnisse gefunden",
+    perHour: "pro Stunde",
+    month: "Monat",
+    year: "Jahr",
+    years: "Jahre",
+    verified: "Verifiziert",
+    experience: "Erfahrung",
+    walks: "Spaziergänge",
+    clients: "Kunden",
+    
+    // Footer
+    footerTagline: "Die führende Plattform für professionelle Hundebetreuung",
+    services: "Dienstleistungen",
+    forProfessionals: "Für Profis",
+    company: "Unternehmen",
+    aboutUs: "Über uns",
+    allRightsReserved: "Alle Rechte vorbehalten",
+    verifiedProfessionals: "Verifizierte Fachleute",
+    termsOfService: "Nutzungsbedingungen",
+    privacyPolicy: "Datenschutz",
+    cookiesPolicy: "Cookie-Richtlinie",
+    contactUs: "Kontaktieren Sie uns",
+    
+    // Status
+    pending: "Ausstehend",
+    confirmed: "Bestätigt",
+    inProgress: "In Bearbeitung",
+    completed: "Abgeschlossen",
+    cancelled: "Storniert",
+  },
+
+  // ============ ITALIAN TRANSLATIONS (it) ============
+  it: {
+    // Navigation
+    dashboard: "Dashboard",
+    findWalkers: "Dog Sitter",
+    findTrainers: "Addestratori",
+    postEmergency: "Passeggiata Urgente",
+    dogSitting: "Dog Sitting",
+    pawcaoShop: "Negozio PawCão",
+    adoptAPet: "Adotta",
+    myFavorites: "I Miei Preferiti",
+    myBookings: "Le Mie Prenotazioni",
+    scheduledWalks: "Passeggiate Programmate",
+    walkHistory: "Storico Passeggiate",
+    messages: "Messaggi",
+    notifications: "Notifiche",
+    loyaltyRewards: "Ricompense",
+    becomeWalker: "Diventa Dog Sitter",
+    becomeTrainer: "Diventa Addestratore",
+    manageAvailability: "Gestisci Disponibilità",
+    walkerSubscriptions: "Abbonamenti Dog Sitter",
+    ownerMembership: "Abbonamento Proprietari",
+    partnerDashboard: "Dashboard Partner",
+    myProfile: "Il Mio Profilo",
+    accountSettings: "Impostazioni Account",
+    adminDashboard: "Dashboard Admin",
+    professionalDashboard: "Dashboard Professionale",
+    leaderboard: "Classifica",
+    
+    // Sidebar Groups
+    mainMenu: "MENU PRINCIPALE",
+    myActivity: "LA MIA ATTIVITÀ",
+    professionalServices: "SERVIZI PROFESSIONALI",
+    account: "ACCOUNT",
+    
+    // Common
+    search: "Cerca",
+    filter: "Filtra",
+    allSizes: "Tutte le Taglie",
+    small: "Piccolo",
+    medium: "Medio",
+    large: "Grande",
+    extraLarge: "Extra Grande",
+    anyTime: "Qualsiasi Ora",
+    morning: "Mattina",
+    afternoon: "Pomeriggio",
+    evening: "Sera",
+    night: "Notte",
+    location: "Posizione",
+    price: "Prezzo",
+    rating: "Valutazione",
+    reviews: "Recensioni",
+    bookNow: "Prenota Ora",
+    viewDetails: "Vedi Dettagli",
+    cancel: "Annulla",
+    save: "Salva",
+    submit: "Invia",
+    edit: "Modifica",
+    delete: "Elimina",
+    back: "Indietro",
+    next: "Avanti",
+    previous: "Precedente",
+    loading: "Caricamento...",
+    noResults: "Nessun risultato trovato",
+    perHour: "all'ora",
+    month: "mese",
+    year: "anno",
+    years: "anni",
+    verified: "Verificato",
+    experience: "Esperienza",
+    walks: "Passeggiate",
+    clients: "Clienti",
+    
+    // Footer
+    footerTagline: "La piattaforma leader per servizi professionali di passeggiata cani",
+    services: "Servizi",
+    forProfessionals: "Per Professionisti",
+    company: "Azienda",
+    aboutUs: "Chi Siamo",
+    allRightsReserved: "Tutti i diritti riservati",
+    verifiedProfessionals: "Professionisti verificati",
+    termsOfService: "Termini di Servizio",
+    privacyPolicy: "Privacy Policy",
+    cookiesPolicy: "Cookie Policy",
+    contactUs: "Contattaci",
+    
+    // Status
+    pending: "In Attesa",
+    confirmed: "Confermato",
+    inProgress: "In Corso",
+    completed: "Completato",
+    cancelled: "Cancellato",
+  },
+
   // ============ EXISTING TRANSLATIONS CONTINUE BELOW ============
   pt: {
     // SEO
@@ -2907,7 +3095,40 @@ export const translations = {
     improve: "Mejorar",
     perfect: "Perfecto",
     vsLastPeriod: "vs período anterior",
+    
+    // Gamification - Ranking
+    hallOfFame: "Salón de la Fama",
+    topTitans: "Los Mejores Titanes",
+    fullRanking: "Ranking Completo",
+    viewTop10: "Ver Top 10",
+    viewAll: "Ver Todos",
+    youAreHere: "¡Estás aquí!",
+    celebrate: "Celebrar",
+    celebrateAchievement: "Celebrar logro (+10 XP)",
+    alreadyCelebratedToday: "Ya celebraste a este usuario hoy",
+    celebrationSent: "¡Celebración enviada!",
+    receivedCelebration: "Recibiste una celebración",
+    celebratedYourAchievement: "celebró tu logro",
+    page: "Página",
   }
+};
+
+// Adicionar traduções de Gamificação para todos os idiomas
+export const gamificationTranslations = {
+  hallOfFame: { pt: "Hall da Fama", en: "Hall of Fame", es: "Salón de la Fama", fr: "Panthéon", de: "Ruhmeshalle", it: "Sala della Fama" },
+  topTitans: { pt: "Os Maiores Titãs", en: "Top Titans", es: "Los Mejores Titanes", fr: "Meilleurs Titans", de: "Top Titanen", it: "I Migliori Titani" },
+  fullRanking: { pt: "Ranking Completo", en: "Full Ranking", es: "Ranking Completo", fr: "Classement Complet", de: "Vollständige Rangliste", it: "Classifica Completa" },
+  viewTop10: { pt: "Ver Top 10", en: "View Top 10", es: "Ver Top 10", fr: "Voir Top 10", de: "Top 10 anzeigen", it: "Vedi Top 10" },
+  viewAll: { pt: "Ver Todos", en: "View All", es: "Ver Todos", fr: "Tout Voir", de: "Alle anzeigen", it: "Vedi Tutti" },
+  youAreHere: { pt: "Você está aqui!", en: "You are here!", es: "¡Estás aquí!", fr: "Vous êtes ici!", de: "Sie sind hier!", it: "Sei qui!" },
+  celebrate: { pt: "Celebrar", en: "Celebrate", es: "Celebrar", fr: "Célébrer", de: "Feiern", it: "Celebrare" },
+  celebrateAchievement: { pt: "Celebrar conquista (+10 XP)", en: "Celebrate achievement (+10 XP)", es: "Celebrar logro (+10 XP)", fr: "Célébrer réussite (+10 XP)", de: "Leistung feiern (+10 XP)", it: "Celebrare conquista (+10 XP)" },
+  alreadyCelebratedToday: { pt: "Já celebraste este utilizador hoje!", en: "You already celebrated this user today!", es: "¡Ya celebraste a este usuario hoy!", fr: "Vous avez déjà célébré cet utilisateur aujourd'hui!", de: "Sie haben diesen Benutzer heute bereits gefeiert!", it: "Hai già celebrato questo utente oggi!" },
+  celebrationSent: { pt: "Celebração enviada!", en: "Celebration sent!", es: "¡Celebración enviada!", fr: "Célébration envoyée!", de: "Feier gesendet!", it: "Celebrazione inviata!" },
+  receivedCelebration: { pt: "Recebeste uma celebração!", en: "You received a celebration!", es: "¡Recibiste una celebración!", fr: "Vous avez reçu une célébration!", de: "Sie haben eine Feier erhalten!", it: "Hai ricevuto una celebrazione!" },
+  celebratedYourAchievement: { pt: "celebrou a tua conquista", en: "celebrated your achievement", es: "celebró tu logro", fr: "a célébré votre réussite", de: "feierte Ihre Leistung", it: "ha celebrato la tua conquista" },
+  page: { pt: "Página", en: "Page", es: "Página", fr: "Page", de: "Seite", it: "Pagina" },
+  users: { pt: "utilizadores", en: "users", es: "usuarios", fr: "utilisateurs", de: "Benutzer", it: "utenti" },
 };
 
 // Adoption System Translations
@@ -2978,7 +3199,6 @@ export const adoptionTranslations = {
 };
 
 export const t = (key, lang = 'pt') => {
-  // Supported languages with fallback chain
   const fallbackChain = {
     pt: ['pt', 'en'],
     en: ['en', 'pt'],
@@ -2990,13 +3210,13 @@ export const t = (key, lang = 'pt') => {
   
   const languages = fallbackChain[lang] || ['en', 'pt'];
   
-  // Try each language in the fallback chain
   for (const l of languages) {
-    // Check adoption translations
+    if (gamificationTranslations[key]?.[l]) {
+      return gamificationTranslations[key][l];
+    }
     if (adoptionTranslations[key]?.[l]) {
       return adoptionTranslations[key][l];
     }
-    // Check main translations (new structure with fr, de, it as top-level keys)
     if (translations[l]?.[key]) {
       return translations[l][key];
     }
