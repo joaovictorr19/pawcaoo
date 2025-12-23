@@ -673,16 +673,37 @@ function LayoutContent({ children, currentPageName }) {
           color: inherit !important;
         }
 
-        /* Sidebar links - force visibility on all states */
+        /* CRITICAL: Force ALL sidebar elements to stay 100% visible on ALL states */
+        [data-sidebar] a,
         [data-sidebar] a *,
         [data-sidebar] a span,
         [data-sidebar] a svg,
         [data-sidebar] a path,
+        [data-sidebar] button,
         [data-sidebar] button *,
         [data-sidebar] button span,
         [data-sidebar] button svg,
-        [data-sidebar] button path {
+        [data-sidebar] button path,
+        [data-sidebar] a:hover,
+        [data-sidebar] a:hover *,
+        [data-sidebar] a:active,
+        [data-sidebar] a:active *,
+        [data-sidebar] a:active span,
+        [data-sidebar] a:active svg,
+        [data-sidebar] a:active path,
+        [data-sidebar] a:focus,
+        [data-sidebar] a:focus *,
+        [data-sidebar] button:hover,
+        [data-sidebar] button:hover *,
+        [data-sidebar] button:active,
+        [data-sidebar] button:active *,
+        [data-sidebar] button:active span,
+        [data-sidebar] button:active svg,
+        [data-sidebar] button:active path,
+        [data-sidebar] button:focus,
+        [data-sidebar] button:focus * {
           opacity: 1 !important;
+          visibility: visible !important;
         }
 
         /* Links ativos na sidebar sempre com texto e ícones visíveis */
@@ -690,14 +711,17 @@ function LayoutContent({ children, currentPageName }) {
         [data-sidebar] a[class*="from-blue-600"] *,
         [data-sidebar] a[class*="from-blue-600"] span,
         [data-sidebar] a[class*="from-blue-600"] svg,
+        [data-sidebar] a[class*="from-blue-600"] path,
         [data-sidebar] a[class*="bg-gradient"],
         [data-sidebar] a[class*="bg-gradient"] *,
         [data-sidebar] a[class*="bg-gradient"] span,
         [data-sidebar] a[class*="bg-gradient"] svg,
+        [data-sidebar] a[class*="bg-gradient"] path,
         [data-sidebar] a[class*="bg-red-600"],
         [data-sidebar] a[class*="bg-red-600"] *,
         [data-sidebar] a[class*="bg-red-600"] span,
-        [data-sidebar] a[class*="bg-red-600"] svg {
+        [data-sidebar] a[class*="bg-red-600"] svg,
+        [data-sidebar] a[class*="bg-red-600"] path {
           opacity: 1 !important;
           color: white !important;
         }
