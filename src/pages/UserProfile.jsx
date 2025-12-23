@@ -28,7 +28,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
 import { calculateTier, getLevelFromXP, getXPForLevel } from "@/components/gamification/tierSystem";
-import DogCollar from "@/components/ui/DogCollar";
+import ProfileDogsBar from "@/components/profile/ProfileDogsBar";
 import DogManagerModal from "@/components/profile/DogManagerModal";
 
 const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => {
@@ -984,13 +984,7 @@ export default function UserProfile() {
               </div>
             )}
 
-            {/* DogCollar - Canto Superior Direito abaixo do botão editar */}
-            <div className="absolute top-4 right-16 z-20">
-              <DogCollar 
-                userEmail={profileEmail} 
-                onClick={() => isOwnProfile && setIsDogModalOpen(true)} 
-              />
-            </div>
+
 
             {isOwnProfile && (
               <Button
@@ -1253,6 +1247,13 @@ export default function UserProfile() {
                 <div className="text-[10px] md:text-sm text-gray-600">Seguindo</div>
               </div>
             </div>
+
+            {/* Barra de Cães do Utilizador */}
+            <ProfileDogsBar 
+              userEmail={profileEmail}
+              isOwnProfile={isOwnProfile}
+              onAddDog={() => setIsDogModalOpen(true)}
+            />
           </CardContent>
         </Card>
 
