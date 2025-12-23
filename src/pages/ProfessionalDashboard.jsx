@@ -715,11 +715,12 @@ export default function ProfessionalDashboard() {
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
         <DialogContent 
-          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0"
+          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white"
           style={{ 
-            background: 'white',
+            background: 'white !important',
             zIndex: 999999,
-            border: '2px solid #e5e7eb'
+            border: '2px solid #e5e7eb',
+            color: '#111827 !important'
           }}
         >
           {/* Header Fixo */}
