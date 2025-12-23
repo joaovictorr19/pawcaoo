@@ -3,22 +3,33 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Gift, TrendingUp, Sparkles, Target, ShoppingBag, Dog, Crown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Gift, TrendingUp, Target, ShoppingBag, Dog, Crown, Star, 
+  Clock, CheckCircle, ArrowRight, Info, Zap
+} from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import RewardCard from "../components/loyalty/RewardCard";
-import TierProgressCard from "../components/loyalty/TierProgressCard";
-import ActiveRedemptions from "../components/loyalty/ActiveRedemptions";
+import { motion } from "framer-motion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function LoyaltyRewards() {
   const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedReward, setSelectedReward] = useState(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: Infinity,
   });
 
   const { data: loyaltyPoints, isLoading } = useQuery({
@@ -30,7 +41,6 @@ export default function LoyaltyRewards() {
           total_earned: 0, 
           tier: 'bronze',
           achievements: [],
-          lifetime_bookings: 0,
           lifetime_redemptions: 0,
           total_redeemed: 0
         };
@@ -43,182 +53,142 @@ export default function LoyaltyRewards() {
         total_earned: 0, 
         tier: 'bronze',
         achievements: [],
-        lifetime_bookings: 0,
         lifetime_redemptions: 0,
         total_redeemed: 0
       };
     },
     enabled: !!user?.email,
-    staleTime: 0,
   });
 
-  const { data: transactions } = useQuery({
+  const { data: ownerSubscription } = useQuery({
+    queryKey: ['ownerSubscription', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const subs = await base44.entities.OwnerSubscription.filter({
+        owner_email: user.email,
+        is_active: true
+      });
+      return subs[0] || null;
+    },
+    enabled: !!user?.email,
+  });
+
+  const { data: transactions = [] } = useQuery({
     queryKey: ['pointsTransactions', user?.email],
     queryFn: () => base44.entities.PointsTransaction.filter(
       { user_email: user?.email },
-      '-created_date'
+      '-created_date',
+      20
     ),
     enabled: !!user?.email,
-    initialData: [],
   });
 
   const redeemMutation = useMutation({
     mutationFn: async (reward) => {
-      // Aplicar desconto do tier
       const tierDiscount = currentTier.discount || 0;
       const finalPoints = Math.round(reward.points * (1 - tierDiscount / 100));
       
-      // Criar código único de resgate
-      const redemptionCode = `PW${Date.now().toString(36).toUpperCase()}`;
-      
-      // Registar transação de pontos
-      await base44.entities.PointsTransaction.create({
-        user_email: user?.email,
-        transaction_type: 'redeemed',
-        points_amount: -finalPoints,
-        description: `Resgatado: ${reward.description} (${tierDiscount}% desconto tier)`,
-        balance_after: loyaltyPoints.points_balance - finalPoints
+      if (loyaltyPoints.points_balance < finalPoints) {
+        throw new Error('Pontos insuficientes');
+      }
+
+      // Calcular valor em euros: 400 pontos = €1
+      const euroValue = (finalPoints / 400).toFixed(2);
+
+      // Criar checkout via Stripe
+      const checkoutResponse = await base44.functions.invoke('createPawPointsCheckout', {
+        reward_id: reward.id,
+        final_points: finalPoints,
+        euro_value: parseFloat(euroValue),
+        description: reward.description,
+        tier_discount: tierDiscount
       });
 
-      // Atualizar pontos
-      const newBalance = loyaltyPoints.points_balance - finalPoints;
-      const newTotalRedeemed = (loyaltyPoints.total_redeemed || 0) + finalPoints;
-      const newRedemptions = (loyaltyPoints.lifetime_redemptions || 0) + 1;
-      
-      // Calcular novo tier baseado em total_earned
-      const newTier = calculateTier(loyaltyPoints.total_earned || 0);
-      
-      await base44.entities.LoyaltyPoints.update(loyaltyPoints.id, {
-        points_balance: newBalance,
-        total_redeemed: newTotalRedeemed,
-        lifetime_redemptions: newRedemptions,
-        tier: newTier
-      });
-
-      // Criar registo de resgate (para rastreamento e validação)
-      await base44.entities.Redemption.create({
-        user_email: user?.email,
-        user_name: user?.full_name,
-        product_id: reward.id,
-        product_name: reward.description,
-        partner_id: 'pawcao',
-        partner_name: 'PawCão',
-        points_spent: finalPoints,
-        euro_value: reward.value || 0,
-        status: 'confirmed',
-        redemption_code: redemptionCode
-      });
-
-      checkAchievements(newRedemptions, reward.category);
-      
-      return { code: redemptionCode, discount: tierDiscount, finalPoints };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['loyaltyPoints'] });
-      queryClient.invalidateQueries({ queryKey: ['pointsTransactions'] });
-      toast.success(`✅ Resgate confirmado! Código: ${data.code}`, {
-        description: data.discount > 0 ? `Desconto tier aplicado: ${data.discount}%` : undefined,
-        duration: 5000
-      });
+      if (checkoutResponse?.data?.url) {
+        window.location.href = checkoutResponse.data.url;
+      } else {
+        throw new Error('Erro ao criar sessão de pagamento');
+      }
     },
     onError: (error) => {
-      toast.error('Erro ao resgatar. Tente novamente.');
-      console.error('Redemption error:', error);
+      toast.error(error.message || 'Erro ao processar resgate');
     }
   });
-  
+
+  const handleRedeemClick = (reward) => {
+    setSelectedReward(reward);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmRedeem = () => {
+    setShowConfirmDialog(false);
+    redeemMutation.mutate(selectedReward);
+  };
+
   const calculateTier = (totalEarned) => {
     const tier = tiers.find(t => totalEarned >= t.min && totalEarned <= t.max);
     return tier?.name || 'bronze';
   };
 
-  const checkAchievements = async (redemptions, category) => {
-    const newAchievements = [];
-    const existingIds = loyaltyPoints.achievements?.map(a => a.achievement_id) || [];
-
-    if (redemptions === 1 && !existingIds.includes('first_redemption')) {
-      newAchievements.push({
-        achievement_id: 'first_redemption',
-        name: 'Primeiro Resgate',
-        description: 'Resgatou a primeira recompensa',
-        icon: '🎁',
-        earned_date: new Date().toISOString()
-      });
-    }
-
-    if (redemptions >= 5 && !existingIds.includes('frequent_redeemer')) {
-      newAchievements.push({
-        achievement_id: 'frequent_redeemer',
-        name: 'Resgatador Frequente',
-        description: 'Resgatou 5+ recompensas',
-        icon: '⭐',
-        earned_date: new Date().toISOString()
-      });
-    }
-    
-    if (redemptions >= 10 && !existingIds.includes('power_redeemer')) {
-      newAchievements.push({
-        achievement_id: 'power_redeemer',
-        name: 'Super Resgatador',
-        description: 'Resgatou 10+ recompensas',
-        icon: '💎',
-        earned_date: new Date().toISOString()
-      });
-    }
-    
-    if (category === 'subscription' && !existingIds.includes('subscriber')) {
-      newAchievements.push({
-        achievement_id: 'subscriber',
-        name: 'Membro Fiel',
-        description: 'Resgatou desconto de subscrição',
-        icon: '👑',
-        earned_date: new Date().toISOString()
-      });
-    }
-
-    if (newAchievements.length > 0) {
-      await base44.entities.LoyaltyPoints.update(loyaltyPoints.id, {
-        achievements: [...(loyaltyPoints.achievements || []), ...newAchievements]
-      });
-      toast.success(`🎉 Conquista desbloqueada: ${newAchievements[0].name}!`);
-    }
-  };
-
   const tiers = [
-    { name: "bronze", min: 0, max: 499, color: "from-orange-400 to-orange-600", icon: "🥉", benefits: ["1x pontos", "Resgates básicos"], multiplier: 1 },
-    { name: "silver", min: 500, max: 999, color: "from-gray-300 to-gray-500", icon: "🥈", benefits: ["1.2x pontos", "Suporte prioritário", "5% desconto resgates"], multiplier: 1.2, discount: 5 },
-    { name: "gold", min: 1000, max: 2499, color: "from-yellow-400 to-yellow-600", icon: "🥇", benefits: ["1.5x pontos", "Ofertas exclusivas", "10% desconto resgates"], multiplier: 1.5, discount: 10 },
-    { name: "platinum", min: 2500, max: 99999, color: "from-purple-400 to-purple-600", icon: "💎", benefits: ["2x pontos", "Acesso VIP", "15% desconto resgates"], multiplier: 2, discount: 15 }
+    { 
+      name: "bronze", 
+      min: 0, 
+      max: 499, 
+      color: "from-orange-400 to-orange-600", 
+      benefits: ["1x pontos", "Resgates básicos"], 
+      multiplier: 1 
+    },
+    { 
+      name: "silver", 
+      min: 500, 
+      max: 999, 
+      color: "from-gray-300 to-gray-500", 
+      benefits: ["1.2x pontos", "Suporte prioritário", "5% desconto resgates"], 
+      multiplier: 1.2, 
+      discount: 5 
+    },
+    { 
+      name: "gold", 
+      min: 1000, 
+      max: 2499, 
+      color: "from-yellow-400 to-yellow-600", 
+      benefits: ["1.5x pontos", "Ofertas exclusivas", "10% desconto resgates"], 
+      multiplier: 1.5, 
+      discount: 10 
+    },
+    { 
+      name: "platinum", 
+      min: 2500, 
+      max: 99999, 
+      color: "from-purple-400 to-purple-600", 
+      benefits: ["2x pontos", "Acesso VIP", "15% desconto resgates"], 
+      multiplier: 2, 
+      discount: 15 
+    }
   ];
 
   const currentTier = tiers.find(t => t.name === (loyaltyPoints?.tier || 'bronze')) || tiers[0];
   const currentTierIndex = tiers.findIndex(t => t.name === currentTier.name);
   const nextTier = tiers[currentTierIndex + 1];
-  
   const tierDiscount = currentTier.discount || 0;
 
+  // Rewards ajustados: 400 pontos = €1
   const allRewards = [
-    // Subscrições - Ajustado para nunca perder dinheiro (500 pontos = €2.50 de valor)
-    { id: 's1', category: "subscription", type: "subscription_discount", points: 1000, discount: "€2.50", description: "Desconto subscrição Basic", value: 2.50 },
-    { id: 's2', category: "subscription", type: "subscription_discount", points: 2000, discount: "€5", description: "Desconto subscrição Premium", value: 5 },
-    { id: 's3', category: "subscription", type: "subscription_discount", points: 3000, discount: "€7.50", description: "Desconto subscrição VIP", value: 7.50 },
+    { id: 's1', category: "subscription", points: 2000, description: "Desconto €5 subscrição", value: 5 },
+    { id: 's2', category: "subscription", points: 4000, description: "Desconto €10 subscrição", value: 10 },
+    { id: 's3', category: "subscription", points: 6000, description: "Desconto €15 subscrição", value: 15 },
     
-    // Produtos Loja - Ajustado (1 ponto = €0.0025)
-    { id: 'p1', category: "product", type: "product_discount", points: 2000, discount: "€5", description: "Desconto produtos loja", value: 5 },
-    { id: 'p2', category: "product", type: "product_discount", points: 4000, discount: "€10", description: "Desconto produtos premium", value: 10 },
-    { id: 'p3', category: "product", type: "product_discount", points: 6000, discount: "€15", description: "Vale compras loja", value: 15 },
+    { id: 'p1', category: "product", points: 2000, description: "Vale €5 loja", value: 5 },
+    { id: 'p2', category: "product", points: 4000, description: "Vale €10 loja", value: 10 },
+    { id: 'p3', category: "product", points: 8000, description: "Vale €20 loja", value: 20 },
     
-    // Serviços - Ajustado para garantir margem
-    { id: 'w1', category: "service", type: "walk_discount", points: 1000, discount: "€2.50", description: "Desconto próximo passeio", value: 2.50 },
-    { id: 'w2', category: "service", type: "walk_discount", points: 2000, discount: "€5", description: "Desconto qualquer passeio", value: 5 },
-    { id: 'w3', category: "service", type: "walk_discount", points: 3000, discount: "€7.50", description: "Desconto passeio premium", value: 7.50 },
-    { id: 't1', category: "service", type: "training_discount", points: 2000, discount: "€5", description: "Desconto treino", value: 5 },
-    { id: 't2', category: "service", type: "training_discount", points: 4000, discount: "€10", description: "Desconto sessão premium", value: 10 },
+    { id: 'w1', category: "service", points: 2000, description: "Desconto €5 passeio", value: 5 },
+    { id: 'w2', category: "service", points: 4000, description: "Desconto €10 passeio", value: 10 },
+    { id: 'w3', category: "service", points: 6000, description: "Desconto €15 passeio", value: 15 },
     
-    // Extras VIP - Valores simbólicos
-    { id: 'v1', category: "vip", type: "premium_feature", points: 2000, discount: "€5", description: "Crédito serviços premium", value: 5 },
-    { id: 'v2', category: "vip", type: "premium_feature", points: 3000, discount: "€7.50", description: "Vale serviços especiais", value: 7.50 },
-    { id: 'v3', category: "vip", type: "premium_feature", points: 4000, discount: "€10", description: "Crédito serviços VIP", value: 10 }
+    { id: 'v1', category: "vip", points: 4000, description: "Crédito €10 serviços VIP", value: 10 },
+    { id: 'v2', category: "vip", points: 8000, description: "Crédito €20 serviços premium", value: 20 },
   ];
 
   const filteredRewards = activeCategory === "all" 
@@ -226,145 +196,268 @@ export default function LoyaltyRewards() {
     : allRewards.filter(r => r.category === activeCategory);
 
   const progressToNext = nextTier 
-    ? ((loyaltyPoints?.total_earned || 0) / nextTier.min) * 100
+    ? Math.min(100, ((loyaltyPoints?.total_earned || 0) / nextTier.min) * 100)
     : 100;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-4 md:p-6">
-        <Skeleton className="h-48 md:h-64 rounded-2xl mb-6 md:mb-8" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-          {[1,2,3,4].map(i => <Skeleton key={i} className="h-48 md:h-64" />)}
+      <div className="min-h-screen p-6">
+        <Skeleton className="h-64 rounded-2xl mb-8" />
+        <div className="grid grid-cols-3 gap-6">
+          {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-64" />)}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-2 md:gap-3">
-            <Gift className="w-8 h-8 md:w-10 md:h-10 text-purple-600" />
-            PawPoints Rewards
+        {/* Header */}
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-4xl font-black text-gray-900 mb-2 flex items-center gap-3">
+            <Star className="w-10 h-10 text-purple-600" />
+            Resgatar PawPoints
           </h1>
-          <p className="text-sm md:text-lg text-gray-600">Earn points with every service</p>
-        </div>
+          <p className="text-lg text-gray-600">
+            Troque seus pontos por descontos e benefícios exclusivos
+          </p>
+        </motion.div>
 
-        <TierProgressCard 
-          currentTier={currentTier}
-          nextTier={nextTier}
-          loyaltyPoints={loyaltyPoints}
-          progressToNext={progressToNext}
-        />
+        {/* User Stats Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="border-0 shadow-2xl mb-8 overflow-hidden">
+            <div className={`bg-gradient-to-r ${currentTier.color} p-6 text-white`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/80 text-sm uppercase tracking-wider mb-1">Seu Saldo</p>
+                  <p className="text-5xl font-black">{loyaltyPoints?.points_balance?.toLocaleString() || 0}</p>
+                  <p className="text-white/90 text-sm mt-1">PawPoints disponíveis</p>
+                </div>
+                <div className="text-right">
+                  <Badge className="bg-white/20 text-white border-0 mb-2 text-sm px-3 py-1">
+                    Tier {currentTier.name.toUpperCase()}
+                  </Badge>
+                  {tierDiscount > 0 && (
+                    <p className="text-2xl font-bold">{tierDiscount}% OFF</p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Tier Progress */}
+              {nextTier && (
+                <div className="mt-6">
+                  <div className="flex justify-between text-sm text-white/80 mb-2">
+                    <span>Progresso para {nextTier.name}</span>
+                    <span>{loyaltyPoints?.total_earned || 0} / {nextTier.min} pts</span>
+                  </div>
+                  <div className="h-3 bg-white/20 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-white"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressToNext}%` }}
+                      transition={{ duration: 1, delay: 0.3 }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
 
-        {/* Active Redemptions */}
-        <ActiveRedemptions userEmail={user?.email} />
+            {/* Conversion Rate */}
+            <CardContent className="p-6 bg-blue-50">
+              <div className="flex items-center justify-center gap-4">
+                <div className="text-center">
+                  <p className="text-3xl font-black text-purple-600">400</p>
+                  <p className="text-xs text-gray-600">Pontos</p>
+                </div>
+                <ArrowRight className="w-6 h-6 text-gray-400" />
+                <div className="text-center">
+                  <p className="text-3xl font-black text-green-600">€1</p>
+                  <p className="text-xs text-gray-600">Em resgates</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        {/* Category Filters - Mobile Optimized */}
-        <div className="flex overflow-x-auto gap-2 md:gap-3 mb-4 md:mb-6 pb-2 scrollbar-hide">
+        {/* Category Filters */}
+        <motion.div 
+          className="flex gap-3 mb-8 overflow-x-auto pb-2"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           {[
-            { id: "all", label: "Todos", icon: Target },
-            { id: "subscription", label: "Subscrições", icon: Sparkles },
-            { id: "product", label: "Produtos", icon: ShoppingBag },
+            { id: "all", label: "Todas", icon: Target },
+            { id: "subscription", label: "Subscrições", icon: Crown },
+            { id: "product", label: "Loja", icon: ShoppingBag },
             { id: "service", label: "Serviços", icon: Dog },
-            { id: "vip", label: "VIP", icon: Crown }
+            { id: "vip", label: "VIP", icon: Star }
           ].map((cat) => (
             <Button
               key={cat.id}
               variant={activeCategory === cat.id ? "default" : "outline"}
               onClick={() => setActiveCategory(cat.id)}
-              className={`${activeCategory === cat.id ? "bg-gradient-to-r from-purple-600 to-indigo-600" : ""} whitespace-nowrap text-sm md:text-base h-9 md:h-10`}
+              className={activeCategory === cat.id ? "bg-purple-600 hover:bg-purple-700" : ""}
             >
-              <cat.icon className="w-4 h-4 mr-1" /> {cat.label}
+              <cat.icon className="w-4 h-4 mr-2" />
+              {cat.label}
             </Button>
           ))}
-        </div>
-        
-        {/* Tier Discount Banner */}
-        {tierDiscount > 0 && (
-          <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-400 rounded-2xl p-4 mb-6">
-            <p className="text-center font-bold text-green-700 flex items-center justify-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              Desconto Tier Ativo: <span className="text-2xl">{tierDiscount}%</span> em todos os resgates!
-            </p>
-          </div>
-        )}
+        </motion.div>
 
-        {/* Rewards Grid - Mobile Optimized */}
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Resgatar Pontos</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
-          {filteredRewards.map((reward, index) => (
-            <RewardCard
-              key={reward.id}
-              reward={reward}
-              index={index}
-              userPoints={loyaltyPoints?.points_balance || 0}
-              onRedeem={redeemMutation.mutate}
-              isRedeeming={redeemMutation.isPending}
-              tierDiscount={tierDiscount}
-            />
-          ))}
+        {/* Rewards Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {filteredRewards.map((reward, index) => {
+            const finalPoints = Math.round(reward.points * (1 - tierDiscount / 100));
+            const canAfford = (loyaltyPoints?.points_balance || 0) >= finalPoints;
+            const originalValue = reward.value;
+            const discountedValue = (originalValue * (1 - tierDiscount / 100)).toFixed(2);
+
+            return (
+              <motion.div
+                key={reward.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index }}
+              >
+                <Card className={`border-0 shadow-lg hover:shadow-2xl transition-all ${!canAfford && 'opacity-50'}`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        reward.category === 'subscription' ? 'bg-purple-100' :
+                        reward.category === 'product' ? 'bg-green-100' :
+                        reward.category === 'service' ? 'bg-blue-100' :
+                        'bg-yellow-100'
+                      }`}>
+                        {reward.category === 'subscription' && <Crown className="w-6 h-6 text-purple-600" />}
+                        {reward.category === 'product' && <ShoppingBag className="w-6 h-6 text-green-600" />}
+                        {reward.category === 'service' && <Dog className="w-6 h-6 text-blue-600" />}
+                        {reward.category === 'vip' && <Star className="w-6 h-6 text-yellow-600" />}
+                      </div>
+                      
+                      {tierDiscount > 0 && (
+                        <Badge className="bg-green-100 text-green-700 border-0">
+                          -{tierDiscount}%
+                        </Badge>
+                      )}
+                    </div>
+
+                    <h3 className="font-bold text-lg text-gray-900 mb-2">
+                      {reward.description}
+                    </h3>
+
+                    <div className="flex items-baseline gap-2 mb-4">
+                      <p className="text-3xl font-black text-purple-600">{finalPoints}</p>
+                      {tierDiscount > 0 && (
+                        <p className="text-sm text-gray-400 line-through">{reward.points}</p>
+                      )}
+                      <p className="text-sm text-gray-600">pontos</p>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                      <ArrowRight className="w-4 h-4" />
+                      <span>Vale €{discountedValue}</span>
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      disabled={!canAfford || redeemMutation.isPending}
+                      onClick={() => handleRedeemClick(reward)}
+                    >
+                      {!canAfford ? 'Pontos insuficientes' : 'Resgatar Agora'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
 
-        {/* How to Earn - Mobile Optimized */}
-        <Card className="glass-panel border-2 border-purple-200 mb-6 md:mb-8">
-          <CardContent className="p-4 md:p-8">
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
-              How to Earn Points
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-6">
+        {/* How to Earn */}
+        <Card className="border-0 shadow-xl mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-purple-600" />
+              Como Ganhar Pontos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="text-2xl md:text-4xl font-bold text-purple-600 mb-1 md:mb-2">10</div>
-                <p className="text-xs md:text-sm text-gray-700 font-semibold">Por €1 gasto</p>
+                <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <ShoppingBag className="w-8 h-8 text-purple-600" />
+                </div>
+                <p className="text-3xl font-black text-purple-600 mb-1">10</p>
+                <p className="text-sm text-gray-600">Pontos por cada €1 gasto</p>
               </div>
+              
               <div className="text-center">
-                <div className="text-2xl md:text-4xl font-bold text-purple-600 mb-1 md:mb-2">50</div>
-                <p className="text-xs md:text-sm text-gray-700 font-semibold">Deixar review</p>
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Star className="w-8 h-8 text-blue-600" />
+                </div>
+                <p className="text-3xl font-black text-blue-600 mb-1">50</p>
+                <p className="text-sm text-gray-600">Pontos por deixar review</p>
               </div>
+              
               <div className="text-center">
-                <div className="text-2xl md:text-4xl font-bold text-purple-600 mb-1 md:mb-2">100</div>
-                <p className="text-xs md:text-sm text-gray-700 font-semibold">Indicar amigo</p>
+                <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Gift className="w-8 h-8 text-green-600" />
+                </div>
+                <p className="text-3xl font-black text-green-600 mb-1">100</p>
+                <p className="text-sm text-gray-600">Pontos por indicar amigo</p>
               </div>
+              
               <div className="text-center">
-                <div className="text-2xl md:text-4xl font-bold text-purple-600 mb-1 md:mb-2">x{currentTier.multiplier}</div>
-                <p className="text-xs md:text-sm text-gray-700 font-semibold">Multiplicador tier</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-4xl font-bold text-purple-600 mb-1 md:mb-2">{tierDiscount}%</div>
-                <p className="text-xs md:text-sm text-gray-700 font-semibold">Desconto resgates</p>
+                <div className="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Zap className="w-8 h-8 text-yellow-600" />
+                </div>
+                <p className="text-3xl font-black text-yellow-600 mb-1">x{currentTier.multiplier}</p>
+                <p className="text-sm text-gray-600">Multiplicador do seu tier</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Transaction History - Mobile Optimized */}
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Points History</h2>
-        <Card className="glass-panel border-0 shadow-xl">
-          <CardContent className="p-3 md:p-6">
+        {/* Transaction History */}
+        <Card className="border-0 shadow-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="w-6 h-6 text-gray-600" />
+              Histórico de Pontos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             {transactions.length === 0 ? (
-              <div className="text-center py-8 md:py-12">
-                <Gift className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-3 md:mb-4" />
-                <p className="text-sm md:text-base text-gray-600">No transactions yet</p>
+              <div className="text-center py-12">
+                <Gift className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600">Nenhuma transação ainda</p>
               </div>
             ) : (
-              <div className="space-y-2 md:space-y-3">
-                {transactions.slice(0, 10).map((transaction) => (
-                  <div key={transaction.id} className="flex justify-between items-center p-3 md:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm md:text-base font-semibold text-gray-900 truncate">{transaction.description}</p>
-                      <p className="text-xs md:text-sm text-gray-600">
-                        {format(new Date(transaction.created_date), "MMM d, yyyy")}
+              <div className="space-y-3">
+                {transactions.map((tx) => (
+                  <div key={tx.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">{tx.description}</p>
+                      <p className="text-sm text-gray-600">
+                        {format(new Date(tx.created_date), "dd/MM/yyyy 'às' HH:mm")}
                       </p>
                     </div>
-                    <div className="text-right ml-3">
-                      <p className={`text-lg md:text-2xl font-bold ${
-                        transaction.transaction_type === 'earned' ? 'text-green-600' : 'text-red-600'
+                    <div className="text-right">
+                      <p className={`text-2xl font-bold ${
+                        tx.transaction_type === 'earned' ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {transaction.transaction_type === 'earned' ? '+' : '-'}{Math.abs(transaction.points_amount)}
+                        {tx.transaction_type === 'earned' ? '+' : '-'}{Math.abs(tx.points_amount)}
                       </p>
-                      <p className="text-xs md:text-sm text-gray-600">Bal: {transaction.balance_after}</p>
+                      <p className="text-xs text-gray-500">Saldo: {tx.balance_after}</p>
                     </div>
                   </div>
                 ))}
@@ -373,6 +466,54 @@ export default function LoyaltyRewards() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Resgate</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja resgatar esta recompensa?
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedReward && (
+            <div className="py-4">
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <p className="font-semibold text-gray-900 mb-2">{selectedReward.description}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">Custo:</p>
+                  <p className="text-xl font-bold text-purple-600">
+                    {Math.round(selectedReward.points * (1 - tierDiscount / 100))} pontos
+                  </p>
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-sm text-gray-600">Valor:</p>
+                  <p className="text-lg font-semibold text-green-600">
+                    €{(selectedReward.value * (1 - tierDiscount / 100)).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
+                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-900">
+                  Será redirecionado para o checkout seguro Stripe para confirmar o resgate.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmRedeem} disabled={redeemMutation.isPending}>
+              {redeemMutation.isPending ? 'Processando...' : 'Confirmar Resgate'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
