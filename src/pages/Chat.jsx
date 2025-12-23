@@ -1,80 +1,55 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import {
-  Send,
-  MapPin,
-  Image as ImageIcon,
-  CheckCircle2,
-  Navigation,
-  Clock,
   ChevronLeft,
-  Camera,
-  Upload,
+  MoreVertical,
+  Phone,
+  Video,
+  Pin,
+  VolumeX,
+  Trash2,
   AlertCircle,
-  Euro
+  MessageSquare,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import { AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/components/LanguageContext";
 
-// Fix Leaflet default icon
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
-// Helper: Calculate distance between two coordinates (Haversine formula)
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371e3; // Earth radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c; // Distance in meters
-}
+// Chat Components
+import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
+import ChatInput from "@/components/chat/ChatInput";
+import TypingIndicator from "@/components/chat/TypingIndicator";
+import ConversationList from "@/components/chat/ConversationList";
+import ImagePreviewModal from "@/components/chat/ImagePreviewModal";
 
 export default function Chat() {
   const [searchParams] = useSearchParams();
+  const conversationId = searchParams.get("conversationId");
   const bookingId = searchParams.get("bookingId");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollRef = useRef(null);
+  const { language } = useLanguage();
 
-  const [message, setMessage] = useState("");
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [sharingLocation, setSharingLocation] = useState(false);
-  const [showBehaviorForm, setShowBehaviorForm] = useState(false);
-  const [behaviorData, setBehaviorData] = useState({
-    mood: "happy",
-    energy_level: "normal",
-    bathroom_breaks: 0,
-    water_intake: false,
-    played_with_other_dogs: false,
-    special_notes: ""
-  });
-  const [trackingActive, setTrackingActive] = useState(false);
-  const watchIdRef = useRef(null);
-  const [elapsedTime, setElapsedTime] = useState(0);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [showConversationList, setShowConversationList] = useState(!conversationId && !bookingId);
 
   // Fetch current user
   const { data: user } = useQuery({
@@ -82,1235 +57,474 @@ export default function Chat() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch booking
-  const { data: booking, isLoading: loadingBooking } = useQuery({
-    queryKey: ["booking", bookingId],
+  // Fetch all conversations
+  const { data: conversations = [], isLoading: loadingConversations } = useQuery({
+    queryKey: ["conversations", user?.email],
     queryFn: async () => {
-      if (!bookingId) return null;
-      const bookings = await base44.entities.Booking.filter({ id: bookingId });
-      return bookings[0] || null;
-    },
-    enabled: !!bookingId,
-    refetchInterval: 5000, // Refresh every 5 seconds
-  });
-
-  // Fetch or create conversation
-  const { data: conversation, isLoading: loadingConvo } = useQuery({
-    queryKey: ["conversation", bookingId],
-    queryFn: async () => {
-      if (!bookingId || !booking) return null;
-
-      try {
-        // Check if conversation exists
-        const existing = await base44.entities.ChatConversation.filter({
-          booking_id: bookingId,
-        });
-
-        if (existing && existing.length > 0) {
-          return existing[0];
-        }
-
-        // Create new conversation with proper participant extraction
-        const ownerEmail = booking.created_by || booking.owner_email || user?.email;
-        const professionalEmail = booking.walker_email || booking.trainer_email;
-        
-        const participants = [ownerEmail, professionalEmail].filter(Boolean);
-
-        if (participants.length < 2) {
-          console.error("Insufficient participants for conversation", { booking, participants, ownerEmail, professionalEmail });
-          toast.error("Erro ao criar chat: dados de participantes incompletos");
-          return null;
-        }
-
-        const newConvo = await base44.entities.ChatConversation.create({
-          participants,
-          booking_id: bookingId,
-          tags: ["booking", booking.type || "walk"],
-          last_message: "Chat iniciado",
-          last_message_date: new Date().toISOString(),
-          unread_counts: {},
-        });
-
-        return newConvo;
-      } catch (error) {
-        console.error("Error fetching/creating conversation:", error);
-        return null;
-      }
-    },
-    enabled: !!bookingId && !!booking,
-    retry: 2,
-  });
-
-  // Fetch messages with real-time updates (1 second interval)
-  const { data: messages = [] } = useQuery({
-    queryKey: ["messages", conversation?.id],
-    queryFn: async () => {
-      if (!conversation?.id) return [];
-      const msgs = await base44.entities.ChatMessage.filter(
-        { conversation_id: conversation.id },
-        "created_date"
+      if (!user?.email) return [];
+      const convos = await base44.entities.ChatConversation.filter(
+        { participants: user.email },
+        "-last_message_date"
       );
-      return msgs;
+      return convos;
     },
-    enabled: !!conversation?.id,
-    refetchInterval: 1000, // Real-time polling every 1 second
-    refetchIntervalInBackground: true,
-  });
-
-  // Fetch checkpoints for GPS tracking
-  const { data: checkpoints = [] } = useQuery({
-    queryKey: ["checkpoints", bookingId],
-    queryFn: async () => {
-      if (!bookingId) return [];
-      return await base44.entities.WalkCheckpoint.filter(
-        { booking_id: bookingId },
-        "created_date"
-      );
-    },
-    enabled: !!bookingId,
+    enabled: !!user?.email,
     refetchInterval: 5000,
   });
 
-  // Send message mutation
-  const sendMessageMutation = useMutation({
-    mutationFn: async (messageData) => {
-      if (!conversation?.id) {
-        throw new Error("Chat não inicializado");
-      }
-      
-      // Get participants from conversation for RLS
-      const participants = conversation.participants || [
-        booking.created_by || booking.owner_email,
-        booking.walker_email || booking.trainer_email
-      ].filter(Boolean);
+  // Fetch or create conversation from booking
+  const { data: bookingConversation } = useQuery({
+    queryKey: ["bookingConversation", bookingId],
+    queryFn: async () => {
+      if (!bookingId || !user?.email) return null;
 
-      await base44.entities.ChatMessage.create({
-        conversation_id: conversation.id,
-        sender_email: user.email,
-        sender_name: user.full_name || user.email,
-        content: messageData.text,
-        participants: participants,
-        message_type: messageData.type || "text",
-        photo_url: messageData.photo_url,
-        location: messageData.location,
-        is_read: false,
-      });
-
-      // Update conversation
-      await base44.entities.ChatConversation.update(conversation.id, {
-        last_message: messageData.text || "📎 Anexo",
-        last_message_date: new Date().toISOString(),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["messages", conversation?.id]);
-      queryClient.invalidateQueries(["conversation", bookingId]);
-      setMessage("");
-    },
-    onError: (error) => {
-      console.error("Error sending message:", error);
-      toast.error("Erro ao enviar mensagem: " + (error.message || "Desconhecido"));
-    },
-  });
-
-  // Upload photo mutation
-  const uploadPhotoMutation = useMutation({
-    mutationFn: async (file) => {
-      setUploadingPhoto(true);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      // Create checkpoint with photo
-      await base44.entities.WalkCheckpoint.create({
+      // Check if conversation exists
+      const existing = await base44.entities.ChatConversation.filter({
         booking_id: bookingId,
-        walker_email: user.email,
-        checkpoint_type: "photo_update",
-        photo_url: file_url,
-        timestamp: new Date().toISOString(),
       });
 
-      // Send in chat
-      await sendMessageMutation.mutateAsync({
-        text: "📷 Foto enviada",
-        type: "photo",
-        photo_url: file_url,
-      });
-
-      return file_url;
-    },
-    onSuccess: () => {
-      setUploadingPhoto(false);
-      queryClient.invalidateQueries(["checkpoints", bookingId]);
-      toast.success("Foto enviada!");
-    },
-    onError: () => {
-      setUploadingPhoto(false);
-      toast.error("Erro ao enviar foto");
-    },
-  });
-
-  // Share location mutation
-  const shareLocationMutation = useMutation({
-    mutationFn: async () => {
-      setSharingLocation(true);
-      
-      return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude, accuracy } = position.coords;
-
-            // Calculate distance from previous checkpoint
-            let distanceKm = 0;
-            if (checkpoints.length > 0) {
-              const lastCheckpoint = checkpoints[checkpoints.length - 1];
-              if (lastCheckpoint.latitude && lastCheckpoint.longitude) {
-                const distanceM = calculateDistance(
-                  lastCheckpoint.latitude,
-                  lastCheckpoint.longitude,
-                  latitude,
-                  longitude
-                );
-                distanceKm = distanceM / 1000;
-              }
-            }
-
-            // Create checkpoint
-            await base44.entities.WalkCheckpoint.create({
-              booking_id: bookingId,
-              walker_email: user.email,
-              checkpoint_type: "midpoint",
-              latitude,
-              longitude,
-              distance_km: distanceKm,
-              timestamp: new Date().toISOString(),
-            });
-
-            // Update booking coordinates and total distance
-            const totalDistance = checkpoints.reduce((sum, c) => sum + (c.distance_km || 0), 0) + distanceKm;
-            
-            await base44.entities.Booking.update(bookingId, {
-              walker_lat: latitude,
-              walker_lng: longitude,
-              distance_km: totalDistance,
-              last_update: new Date().toISOString(),
-            });
-
-            // Send in chat
-            await sendMessageMutation.mutateAsync({
-              text: `📍 Localização partilhada • ${totalDistance.toFixed(2)}km percorridos`,
-              type: "location",
-              location: { latitude, longitude, accuracy },
-            });
-
-            resolve({ latitude, longitude });
-          },
-          (error) => {
-            reject(error);
-          }
-        );
-      });
-    },
-    onSuccess: () => {
-      setSharingLocation(false);
-      queryClient.invalidateQueries(["booking", bookingId]);
-      queryClient.invalidateQueries(["checkpoints", bookingId]);
-      toast.success("Localização partilhada!");
-    },
-    onError: () => {
-      setSharingLocation(false);
-      toast.error("Erro ao partilhar localização");
-    },
-  });
-
-  // Submit behavior update
-  const submitBehaviorMutation = useMutation({
-    mutationFn: async () => {
-      try {
-        // Try to get location, but don't block if it fails
-        let latitude = null;
-        let longitude = null;
-
-        try {
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 5000,
-              maximumAge: 30000
-            });
-          });
-          latitude = position.coords.latitude;
-          longitude = position.coords.longitude;
-        } catch (geoError) {
-          console.warn("Location not available:", geoError);
-        }
-
-        // Create checkpoint (with or without location)
-        await base44.entities.WalkCheckpoint.create({
-          booking_id: bookingId,
-          walker_email: user.email,
-          checkpoint_type: "behavior_note",
-          latitude,
-          longitude,
-          dog_behavior: behaviorData,
-          notes: behaviorData.special_notes || "Atualização de comportamento",
-          timestamp: new Date().toISOString(),
-        });
-
-        // Notify owner
-        await base44.entities.Notification.create({
-          recipient_email: booking.created_by || booking.owner_email,
-          title: "🐕 Atualização de Comportamento",
-          message: `${booking.dog_name} está ${behaviorData.mood} com energia ${behaviorData.energy_level}`,
-          type: "check_in",
-          related_id: bookingId,
-          priority: "normal",
-        });
-
-        // Send in chat
-        await sendMessageMutation.mutateAsync({
-          text: `🐕 Atualização: ${booking.dog_name} está ${behaviorData.mood} com energia ${behaviorData.energy_level}`,
-          type: "text",
-        });
-
-        return true;
-      } catch (error) {
-        console.error("Behavior submission error:", error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      toast.success("✅ Comportamento registrado e dono notificado!");
-      setShowBehaviorForm(false);
-      setBehaviorData({
-        mood: "happy",
-        energy_level: "normal",
-        bathroom_breaks: 0,
-        water_intake: false,
-        played_with_other_dogs: false,
-        special_notes: ""
-      });
-      queryClient.invalidateQueries(["checkpoints", bookingId]);
-      queryClient.invalidateQueries(["messages", conversation?.id]);
-    },
-    onError: (error) => {
-      console.error("Behavior error:", error);
-      toast.error("❌ Erro ao registrar: " + (error.message || "Tente novamente"));
-    },
-  });
-
-  // Start service (check-in)
-  const startServiceMutation = useMutation({
-    mutationFn: async () => {
-      // Request notification permission for walker
-      if ('Notification' in window && Notification.permission === 'default') {
-        const walkerPermission = await Notification.requestPermission();
-        if (walkerPermission === 'granted') {
-          toast.success("✅ Notificações ativadas!");
-        }
+      if (existing && existing.length > 0) {
+        return existing[0];
       }
 
-      // Request location permission explicitly
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-          toast.error("Geolocalização não suportada neste dispositivo");
-          reject(new Error("Geolocation not supported"));
-          return;
-        }
+      // Fetch booking to create conversation
+      const bookings = await base44.entities.Booking.filter({ id: bookingId });
+      const booking = bookings[0];
+      if (!booking) return null;
 
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
+      const ownerEmail = booking.created_by || booking.owner_email;
+      const professionalEmail = booking.walker_email || booking.trainer_email;
+      const participants = [ownerEmail, professionalEmail].filter(Boolean);
 
-            // Create check-in checkpoint
-            await base44.entities.WalkCheckpoint.create({
-              booking_id: bookingId,
-              walker_email: user.email,
-              checkpoint_type: "check_in",
-              latitude,
-              longitude,
-              timestamp: new Date().toISOString(),
-            });
+      if (participants.length < 2) {
+        toast.error("Dados insuficientes para criar conversa");
+        return null;
+      }
 
-            // Update booking status and location
-            await base44.entities.Booking.update(bookingId, {
-              status: "in_progress",
-              walker_lat: latitude,
-              walker_lng: longitude,
-              pickup_lat: latitude,
-              pickup_lng: longitude,
-              walk_start_time: new Date().toISOString(),
-              last_update: new Date().toISOString(),
-            });
-
-            // Notify owner with notification permission prompt
-            await base44.entities.Notification.create({
-              recipient_email: booking.created_by || booking.owner_email,
-              title: "🚶 Passeio Iniciado!",
-              message: `${booking.walker_name} iniciou o passeio com ${booking.dog_name}. Acompanhe em tempo real!`,
-              type: "check_in",
-              related_id: bookingId,
-              priority: "high",
-            });
-
-            // Send browser push to owner if permission granted
-            if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('🚶 Passeio Iniciado!', {
-                body: `${booking.walker_name} iniciou o passeio com ${booking.dog_name}`,
-                icon: '/logo.png',
-                badge: '/favicon.png',
-                tag: `start_${bookingId}`,
-                vibrate: [200, 100, 200]
-              });
-            }
-
-            toast.success("🎯 Rastreamento GPS ativado! A localização será atualizada automaticamente.");
-            resolve();
-          },
-          (error) => {
-            if (error.code === error.PERMISSION_DENIED) {
-              toast.error("⚠️ Permissão de localização negada. Por favor, autorize o acesso nas configurações do navegador para continuar.");
-            } else if (error.code === error.POSITION_UNAVAILABLE) {
-              toast.error("Localização não disponível. Verifique se o GPS está ativado.");
-            } else if (error.code === error.TIMEOUT) {
-              toast.error("Tempo de espera esgotado. Tente novamente.");
-            }
-            reject(error);
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0
-          }
-        );
+      // Create new conversation
+      const newConvo = await base44.entities.ChatConversation.create({
+        participants,
+        participant_names: {
+          [ownerEmail]: booking.owner_name,
+          [professionalEmail]: booking.walker_name || booking.trainer_name,
+        },
+        booking_id: bookingId,
+        tags: ["booking", booking.type || "walk"],
+        last_message: "Conversa iniciada",
+        last_message_date: new Date().toISOString(),
+        unread_counts: {},
       });
+
+      return newConvo;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["booking", bookingId]);
-      queryClient.invalidateQueries(["checkpoints", bookingId]);
-    },
-    onError: (error) => {
-      console.error("Start service error:", error);
-    },
+    enabled: !!bookingId && !!user?.email,
   });
 
-  // Finish walk with verification
-  const finishWalkMutation = useMutation({
-    mutationFn: async () => {
-      console.log("🎯 INICIANDO FINALIZAÇÃO", { bookingId, user: user?.email, booking });
-      
-      try {
-        // Get current location with timeout
-        console.log("📍 Pedindo localização GPS...");
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            resolve,
-            (error) => {
-              console.error("❌ Location error:", error);
-              toast.error("Erro ao obter localização. Continuando sem GPS...");
-              resolve(null); // Continue without GPS
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            }
-          );
-        });
-
-        const latitude = position?.coords?.latitude || null;
-        const longitude = position?.coords?.longitude || null;
-        let distance = 0;
-
-        console.log("📍 GPS obtido:", { latitude, longitude });
-
-        // Calculate distance from pickup location
-        if (booking.pickup_lat && booking.pickup_lng && latitude && longitude) {
-          distance = calculateDistance(
-            latitude,
-            longitude,
-            booking.pickup_lat,
-            booking.pickup_lng
-          );
-          console.log("📏 Distância calculada:", distance);
-        }
-
-        // Create final checkpoint
-        console.log("✅ Criando checkpoint final...");
-        await base44.entities.WalkCheckpoint.create({
-          booking_id: bookingId,
-          walker_email: user.email,
-          checkpoint_type: "check_out",
-          latitude,
-          longitude,
-          timestamp: new Date().toISOString(),
-        });
-        console.log("✅ Checkpoint criado");
-
-        // Update booking status
-        console.log("🔄 Atualizando status da reserva...");
-        await base44.entities.Booking.update(bookingId, {
-          status: "service_completed",
-          completed_date: new Date().toISOString(),
-          actual_delivery_distance: distance,
-        });
-        console.log("✅ Reserva atualizada");
-
-        // Release payment
-        if (booking.payment_id) {
-          console.log("💰 Liberando pagamento...", booking.payment_id);
-          await base44.entities.Payment.update(booking.payment_id, {
-            status: "released",
-            released_date: new Date().toISOString(),
-          });
-          console.log("✅ Pagamento liberado");
-        }
-
-        // Notify owner
-        console.log("📧 Enviando notificação...");
-        await base44.entities.Notification.create({
-          recipient_email: booking.created_by || booking.owner_email,
-          title: "✅ Serviço Concluído!",
-          message: `${booking.walker_name} concluiu o passeio com ${booking.dog_name}. Pagamento liberado automaticamente.`,
-          type: "check_out",
-          related_id: bookingId,
-          priority: "high",
-        });
-        console.log("✅ Notificação enviada");
-
-        console.log("🎉 FINALIZAÇÃO COMPLETA!");
-        return true;
-      } catch (error) {
-        console.error("❌ ERRO NA FINALIZAÇÃO:", error);
-        console.error("Detalhes do erro:", {
-          message: error.message,
-          stack: error.stack,
-          booking: booking,
-          bookingId: bookingId
-        });
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      console.log("✅ onSuccess chamado");
-      toast.success("✅ Serviço concluído e pagamento liberado!");
-      queryClient.invalidateQueries(["booking", bookingId]);
-      setTimeout(() => {
-        console.log("🔙 Navegando de volta...");
-        navigate(-1);
-      }, 1500);
-    },
-    onError: (error) => {
-      console.error("❌ onError chamado:", error);
-      toast.error(`Erro: ${error.message || "Erro desconhecido"}`);
-    },
-  });
-
-  // Handle photo upload
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Check camera permission if available
-    if ('permissions' in navigator) {
-      try {
-        const permission = await navigator.permissions.query({ name: 'camera' });
-        if (permission.state === 'denied') {
-          toast.error("⚠️ Permissão de câmera negada. Autorize nas configurações do navegador.");
-          return;
-        }
-      } catch (err) {
-        // Permission API not supported, continue anyway
-        console.log("Permission API not supported:", err);
-      }
-    }
-    
-    uploadPhotoMutation.mutate(file);
-  };
-
-  // Handle send message
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
-    
-    if (!conversation?.id) {
-      toast.error("Aguarde o carregamento do chat...");
-      return;
-    }
-    
-    if (!user?.email) {
-      toast.error("Usuário não autenticado");
-      return;
-    }
-    
-    console.log("Sending message:", { text: message, conversationId: conversation.id, userEmail: user.email });
-    sendMessageMutation.mutate({ text: message, type: "text" });
-  };
-
-  // Determine user role
-  const isProfessional = user?.email === booking?.walker_email || user?.email === booking?.trainer_email;
-  const isOwner = user?.email === booking?.created_by || user?.email === booking?.owner_email;
-
-  // Timer for walk duration
+  // Set selected conversation from URL params
   useEffect(() => {
-    if (!booking?.walk_start_time || booking?.status !== 'in_progress') {
-      setElapsedTime(0);
-      return;
+    if (conversationId) {
+      const conv = conversations.find((c) => c.id === conversationId);
+      if (conv) {
+        setSelectedConversation(conv);
+        setShowConversationList(false);
+      }
+    } else if (bookingConversation) {
+      setSelectedConversation(bookingConversation);
+      setShowConversationList(false);
     }
+  }, [conversationId, bookingConversation, conversations]);
 
-    const updateTimer = () => {
-      const start = new Date(booking.walk_start_time).getTime();
-      const now = Date.now();
-      const diff = Math.floor((now - start) / 1000);
-      setElapsedTime(diff);
+  // Fetch messages for selected conversation
+  const { data: messages = [], isLoading: loadingMessages } = useQuery({
+    queryKey: ["chatMessages", selectedConversation?.id],
+    queryFn: async () => {
+      if (!selectedConversation?.id) return [];
+      const msgs = await base44.entities.ChatMessage.filter(
+        { conversation_id: selectedConversation.id },
+        "created_date"
+      );
+      return msgs.filter((m) => !m.is_deleted);
+    },
+    enabled: !!selectedConversation?.id,
+    refetchInterval: 1000, // Real-time polling
+  });
+
+  // Mark messages as read
+  useEffect(() => {
+    if (!selectedConversation?.id || !user?.email || messages.length === 0) return;
+
+    const markAsRead = async () => {
+      const unreadMessages = messages.filter(
+        (m) => m.sender_email !== user.email && !m.is_read && !m.read_by?.includes(user.email)
+      );
+
+      if (unreadMessages.length > 0) {
+        // Update each unread message
+        for (const msg of unreadMessages) {
+          await base44.entities.ChatMessage.update(msg.id, {
+            is_read: true,
+            read_at: new Date().toISOString(),
+            read_by: [...(msg.read_by || []), user.email],
+          });
+        }
+
+        // Reset unread count in conversation
+        const newUnreadCounts = { ...(selectedConversation.unread_counts || {}) };
+        newUnreadCounts[user.email] = 0;
+        
+        await base44.entities.ChatConversation.update(selectedConversation.id, {
+          unread_counts: newUnreadCounts,
+        });
+
+        queryClient.invalidateQueries(["chatMessages", selectedConversation.id]);
+        queryClient.invalidateQueries(["conversations"]);
+      }
     };
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [booking?.walk_start_time, booking?.status]);
+    markAsRead();
+  }, [messages, selectedConversation?.id, user?.email, queryClient]);
 
-  const formatTime = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
-  // Auto scroll to bottom (smooth like WhatsApp)
+  // Auto scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       const scrollElement = scrollRef.current;
-      const isNearBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight < 100;
-      
+      const isNearBottom =
+        scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight < 150;
+
       if (isNearBottom || messages.length <= 1) {
         scrollElement.scrollTo({
           top: scrollElement.scrollHeight,
-          behavior: 'smooth'
+          behavior: "smooth",
         });
       }
     }
   }, [messages]);
 
-  // Continuous GPS tracking when service is in progress
-  useEffect(() => {
-    if (!isProfessional || booking?.status !== "in_progress" || !bookingId || !user?.email) {
-      // Stop tracking if conditions not met
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-        watchIdRef.current = null;
-        setTrackingActive(false);
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData) => {
+      if (!selectedConversation?.id || !user?.email) {
+        throw new Error("Conversa não selecionada");
       }
-      return;
-    }
 
-    // Start continuous tracking
-    if ('permissions' in navigator) {
-      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-        if (result.state === 'granted' || result.state === 'prompt') {
-          startContinuousTracking();
-        }
+      const participants = selectedConversation.participants || [];
+
+      // Create message
+      await base44.entities.ChatMessage.create({
+        conversation_id: selectedConversation.id,
+        sender_email: user.email,
+        sender_name: user.full_name || user.email.split("@")[0],
+        sender_photo_url: user.profile_photo_url,
+        participants,
+        content: messageData.content,
+        message_type: messageData.type || "text",
+        attachments: messageData.attachments || [],
+        location: messageData.location,
+        reply_to_id: messageData.replyToId,
+        reply_to_preview: messageData.replyToPreview,
+        is_read: false,
       });
-    } else {
-      startContinuousTracking();
-    }
 
-    function startContinuousTracking() {
-      setTrackingActive(true);
+      // Update conversation
+      const otherParticipants = participants.filter((p) => p !== user.email);
+      const newUnreadCounts = { ...(selectedConversation.unread_counts || {}) };
+      otherParticipants.forEach((p) => {
+        newUnreadCounts[p] = (newUnreadCounts[p] || 0) + 1;
+      });
 
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        async (position) => {
-          const { latitude, longitude, accuracy } = position.coords;
+      await base44.entities.ChatConversation.update(selectedConversation.id, {
+        last_message: messageData.content || "📎 Anexo",
+        last_message_date: new Date().toISOString(),
+        last_sender_email: user.email,
+        unread_counts: newUnreadCounts,
+        typing_users: [],
+      });
 
-          // Only update if accuracy is reasonable (< 50m)
-          if (accuracy > 50) return;
+      // Send push notification to other participants
+      for (const email of otherParticipants) {
+        await base44.entities.Notification.create({
+          recipient_email: email,
+          title: `💬 Nova mensagem de ${user.full_name || "Alguém"}`,
+          message: messageData.content?.substring(0, 100) || "Nova mensagem recebida",
+          type: "message",
+          related_id: selectedConversation.id,
+          action_url: createPageUrl(`Chat?conversationId=${selectedConversation.id}`),
+          priority: "normal",
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["chatMessages", selectedConversation?.id]);
+      queryClient.invalidateQueries(["conversations"]);
+      setReplyTo(null);
+    },
+    onError: (error) => {
+      console.error("Send message error:", error);
+      toast.error("Erro ao enviar mensagem");
+    },
+  });
 
-          try {
-            // Calculate distance from last checkpoint
-            let distanceKm = 0;
-            if (checkpoints.length > 0) {
-              const lastCheckpoint = checkpoints[checkpoints.length - 1];
-              if (lastCheckpoint.latitude && lastCheckpoint.longitude) {
-                const distanceM = calculateDistance(
-                  lastCheckpoint.latitude,
-                  lastCheckpoint.longitude,
-                  latitude,
-                  longitude
-                );
-                distanceKm = distanceM / 1000;
+  // Typing indicator mutation
+  const updateTypingMutation = useMutation({
+    mutationFn: async (isTyping) => {
+      if (!selectedConversation?.id || !user?.email) return;
 
-                // Only create checkpoint if moved more than 50m
-                if (distanceM < 50) {
-                  // Just update booking coordinates without checkpoint
-                  await base44.entities.Booking.update(bookingId, {
-                    walker_lat: latitude,
-                    walker_lng: longitude,
-                    last_update: new Date().toISOString(),
-                  });
-                  return;
-                }
-              }
-            }
+      const currentTyping = selectedConversation.typing_users || [];
+      let newTyping;
 
-            // Create automatic checkpoint
-            await base44.entities.WalkCheckpoint.create({
-              booking_id: bookingId,
-              walker_email: user.email,
-              checkpoint_type: "midpoint",
-              latitude,
-              longitude,
-              distance_km: distanceKm,
-              timestamp: new Date().toISOString(),
-            });
-
-            // Update booking
-            const totalDistance = checkpoints.reduce((sum, c) => sum + (c.distance_km || 0), 0) + distanceKm;
-            await base44.entities.Booking.update(bookingId, {
-              walker_lat: latitude,
-              walker_lng: longitude,
-              distance_km: totalDistance,
-              last_update: new Date().toISOString(),
-            });
-
-            // Invalidate queries to update UI
-            queryClient.invalidateQueries(["booking", bookingId]);
-            queryClient.invalidateQueries(["checkpoints", bookingId]);
-          } catch (error) {
-            console.error("Error updating GPS position:", error);
-          }
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          if (error.code === error.PERMISSION_DENIED) {
-            toast.error("Permissão de localização negada. Ative nas configurações do navegador.");
-          }
-          setTrackingActive(false);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
+      if (isTyping) {
+        if (!currentTyping.includes(user.email)) {
+          newTyping = [...currentTyping, user.email];
+        } else {
+          return; // Already typing
         }
+      } else {
+        newTyping = currentTyping.filter((e) => e !== user.email);
+      }
+
+      await base44.entities.ChatConversation.update(selectedConversation.id, {
+        typing_users: newTyping,
+        typing_updated_at: new Date().toISOString(),
+      });
+    },
+  });
+
+  // Pin/Mute conversation
+  const togglePinMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedConversation?.id || !user?.email) return;
+      
+      const pinnedBy = selectedConversation.pinned_by || [];
+      const isPinned = pinnedBy.includes(user.email);
+      
+      await base44.entities.ChatConversation.update(selectedConversation.id, {
+        pinned_by: isPinned 
+          ? pinnedBy.filter((e) => e !== user.email)
+          : [...pinnedBy, user.email],
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["conversations"]);
+      toast.success(
+        selectedConversation.pinned_by?.includes(user?.email)
+          ? "Conversa desafixada"
+          : "Conversa fixada"
+      );
+    },
+  });
+
+  const toggleMuteMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedConversation?.id || !user?.email) return;
+      
+      const isMuted = selectedConversation.is_muted || {};
+      
+      await base44.entities.ChatConversation.update(selectedConversation.id, {
+        is_muted: {
+          ...isMuted,
+          [user.email]: !isMuted[user.email],
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["conversations"]);
+      toast.success(
+        selectedConversation.is_muted?.[user?.email]
+          ? "Notificações ativadas"
+          : "Conversa silenciada"
+      );
+    },
+  });
+
+  // Get other participant info
+  const getOtherParticipant = useCallback(() => {
+    if (!selectedConversation || !user?.email) return null;
+    
+    const otherEmail = selectedConversation.participants?.find((p) => p !== user.email);
+    return {
+      email: otherEmail,
+      name: selectedConversation.participant_names?.[otherEmail] || otherEmail?.split("@")[0] || "Utilizador",
+      photo: selectedConversation.participant_photos?.[otherEmail],
+    };
+  }, [selectedConversation, user?.email]);
+
+  const otherParticipant = getOtherParticipant();
+
+  // Check if other user is typing
+  const isOtherTyping = selectedConversation?.typing_users?.some(
+    (e) => e !== user?.email
+  );
+
+  // Handle back button
+  const handleBack = () => {
+    if (showConversationList) {
+      navigate(-1);
+    } else {
+      setSelectedConversation(null);
+      setShowConversationList(true);
+      navigate(createPageUrl("Chat"), { replace: true });
+    }
+  };
+
+  // Render conversation list (mobile: full screen, desktop: sidebar)
+  const renderConversationList = () => (
+    <div className={`${showConversationList ? "block" : "hidden md:block"} md:w-80 md:border-r bg-white h-full`}>
+      <div className="p-4 border-b">
+        <h2 className="text-lg font-bold text-gray-900">
+          {language === "pt" ? "Mensagens" : "Messages"}
+        </h2>
+      </div>
+      <ConversationList
+        conversations={conversations}
+        currentUserId={user?.email}
+        selectedId={selectedConversation?.id}
+        onSelect={(conv) => {
+          setSelectedConversation(conv);
+          setShowConversationList(false);
+          navigate(createPageUrl(`Chat?conversationId=${conv.id}`), { replace: true });
+        }}
+        isLoading={loadingConversations}
+      />
+    </div>
+  );
+
+  // Render chat view
+  const renderChatView = () => {
+    if (!selectedConversation) {
+      return (
+        <div className="flex-1 hidden md:flex items-center justify-center bg-gray-50">
+          <div className="text-center text-gray-500">
+            <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg font-medium">Seleciona uma conversa</p>
+            <p className="text-sm">Escolhe uma conversa da lista para começar</p>
+          </div>
+        </div>
       );
     }
 
-    // Cleanup on unmount
-    return () => {
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-        watchIdRef.current = null;
-        setTrackingActive(false);
-      }
-    };
-  }, [isProfessional, booking?.status, bookingId, checkpoints, user?.email, queryClient]);
-
-  if (loadingBooking || loadingConvo) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" />
-      </div>
-    );
-  }
-
-  if (!booking || !conversation) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6">
-        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Chat não encontrado</h2>
-        <Button onClick={() => navigate(-1)}>Voltar</Button>
-      </div>
-    );
-  }
-
-  // Get GPS route coordinates
-  const routeCoords = checkpoints
-    .filter((c) => c.latitude && c.longitude)
-    .map((c) => [c.latitude, c.longitude]);
-
-  const lastKnownPosition =
-    routeCoords.length > 0 ? routeCoords[routeCoords.length - 1] : null;
-
-  return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      {/* Header */}
-      <div className="bg-white border-b px-3 py-2 md:px-4 md:py-3 flex items-center gap-2 md:gap-3 shadow-sm flex-shrink-0">
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={() => navigate(createPageUrl('MyBookings'))}
-          className="flex-shrink-0"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Button>
-
-        <Avatar className="h-8 w-8 md:h-10 md:w-10">
-          <AvatarImage
-            src={isProfessional ? booking.owner?.photo_url : booking.walker?.photo_url}
-          />
-          <AvatarFallback>
-            {(isProfessional ? booking.owner_name : booking.walker_name)?.[0]}
-          </AvatarFallback>
-        </Avatar>
-
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm md:text-base text-gray-900 truncate">
-            {isProfessional ? booking.owner_name : booking.walker_name}
-          </h3>
-          <p className="text-[10px] md:text-xs text-gray-500">
-            {booking.dog_name} • {format(new Date(booking.walk_date || booking.session_date), "dd MMM", { locale: pt })}
-          </p>
-        </div>
-
-        <Badge
-          className={
-            booking.status === "in_progress"
-              ? "bg-blue-100 text-blue-800"
-              : booking.status === "confirmed"
-              ? "bg-green-100 text-green-800"
-              : "bg-gray-100 text-gray-800"
-          }
-        >
-          {booking.status === "in_progress" ? "Em Andamento" : 
-           booking.status === "confirmed" ? "Confirmado" : "Pendente"}
-        </Badge>
-
-        {booking.total_amount && (
-          <div className="flex items-center gap-1 text-sm font-semibold text-gray-700">
-            <Euro className="w-4 h-4" />
-            {booking.total_amount}€
-          </div>
-        )}
-      </div>
-
-      {/* Walk Timer Bar */}
-      {booking.status === 'in_progress' && booking.walk_start_time && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b px-3 py-2 md:px-4 md:py-2.5 flex-shrink-0 sticky top-[60px] z-40">
-          <div className="flex items-center justify-center gap-2 text-sm md:text-base">
-            <Clock className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
-            <span className="font-mono font-bold text-blue-900">{formatTime(elapsedTime)}</span>
-            <span className="text-gray-600 text-xs md:text-sm">em andamento</span>
-          </div>
-        </div>
-      )}
-
-      {/* Payment Status Bar */}
-      {booking.payment_id && (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b px-3 py-1.5 md:px-4 md:py-2 flex-shrink-0">
-          <div className="flex items-center justify-between text-[10px] md:text-xs">
-            <span className="text-gray-600">Pagamento:</span>
-            <Badge className={
-              booking.payment_status === "released" 
-                ? "bg-green-100 text-green-800"
-                : booking.payment_status === "held"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-gray-100 text-gray-800"
-            }>
-              {booking.payment_status === "released" ? "✅ Liberado" :
-               booking.payment_status === "held" ? "🔒 Retido (Seguro)" : "⏳ Pendente"}
-            </Badge>
-          </div>
-        </div>
-      )}
-
-      {/* GPS Map (if service is in progress) */}
-      {booking.status === "in_progress" && routeCoords.length > 0 && (
-        <div className="h-64 md:h-48 relative flex-shrink-0">
-          <MapContainer
-            center={lastKnownPosition || [38.7223, -9.1393]}
-            zoom={16}
-            style={{ height: "100%", width: "100%" }}
-            className="z-0"
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenSM</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-
-            {/* Route polyline */}
-            {routeCoords.length > 1 && (
-              <Polyline positions={routeCoords} color="#3b82f6" weight={4} />
-            )}
-
-            {/* Current position marker */}
-            {lastKnownPosition && (
-              <Marker position={lastKnownPosition}>
-                <Popup>Posição Atual</Popup>
-              </Marker>
-            )}
-
-            {/* Destination (50m verification radius) */}
-            {booking.pickup_lat && booking.pickup_lng && (
-              <>
-                <Marker position={[booking.pickup_lat, booking.pickup_lng]}>
-                  <Popup>Destino</Popup>
-                </Marker>
-                <Circle
-                  center={[booking.pickup_lat, booking.pickup_lng]}
-                  radius={50}
-                  pathOptions={{ color: "#22c55e", fillOpacity: 0.1 }}
-                />
-              </>
-            )}
-          </MapContainer>
-
-          {/* GPS Status Badge */}
-          <div className="absolute top-2 left-2 z-[1000]">
-            <div className="bg-green-600 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 text-xs font-medium">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-              <span>GPS Ativo</span>
-            </div>
-          </div>
-
-          {/* Last Update Info */}
-          {booking.last_update && (
-            <div className="absolute top-2 right-2 z-[1000]">
-              <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg px-2 py-1 text-[10px] text-gray-600">
-                Atualizado há {Math.floor((Date.now() - new Date(booking.last_update).getTime()) / 1000)}s
-              </div>
-            </div>
-          )}
-
-          {/* Stats overlay */}
-          <div className="absolute bottom-2 left-2 right-2 flex gap-2 z-[1000]">
-            <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg px-3 py-2 flex-1">
-              <p className="text-[10px] text-gray-500">Percorrido</p>
-              <p className="text-sm font-bold text-blue-600">
-                {(booking.distance_km || 0).toFixed(2)}km
-              </p>
-            </div>
-            {lastKnownPosition && booking.pickup_lat && booking.pickup_lng && (
-              <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg px-3 py-2 flex-1">
-                <p className="text-[10px] text-gray-500">Até destino</p>
-                <p className="text-sm font-bold text-green-600">
-                  {Math.round(
-                    calculateDistance(
-                      lastKnownPosition[0],
-                      lastKnownPosition[1],
-                      booking.pickup_lat,
-                      booking.pickup_lng
-                    )
-                  )}m
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 py-2 md:px-4 md:py-4" ref={scrollRef}>
-        <div className="space-y-2 md:space-y-4 max-w-3xl mx-auto pb-2">
-          {/* Service Start Notification */}
-          {checkpoints.find(c => c.checkpoint_type === 'check_in') && (
-            <div className="flex justify-center">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-xs text-center">
-                <CheckCircle2 className="w-4 h-4 inline-block mr-1 text-blue-600" />
-                <span className="text-blue-800 font-medium">
-                  Serviço iniciado às {format(new Date(checkpoints.find(c => c.checkpoint_type === 'check_in').created_date), "HH:mm")}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {messages.map((msg) => {
-            const isMine = msg.sender_email === user?.email;
-            return (
-              <div
-                key={msg.id}
-                className={`flex ${isMine ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                    isMine
-                      ? "bg-blue-600 text-white"
-                      : "bg-white border border-gray-200 text-gray-900"
-                  }`}
-                >
-                  {msg.photo_url && (
-                    <img
-                      src={msg.photo_url}
-                      alt="Attached"
-                      className="rounded-lg mb-2 max-w-full"
-                    />
-                  )}
-                  {msg.location && (
-                    <div className="mb-2 p-2 bg-white/20 rounded-lg">
-                      <p className="text-xs flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        Localização partilhada
-                      </p>
-                    </div>
-                  )}
-                  <p className="text-sm">{msg.content}</p>
-                  <p
-                    className={`text-xs mt-1 flex items-center gap-1 ${
-                      isMine ? "text-blue-100" : "text-gray-500"
-                    }`}
-                  >
-                    {format(new Date(msg.created_date), "HH:mm")}
-                    {isMine && msg.is_read && <CheckCircle2 className="w-3 h-3" />}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Checkpoints Timeline */}
-          {checkpoints.filter(c => c.checkpoint_type !== 'check_in' && c.notes).map((checkpoint) => (
-            <div key={checkpoint.id} className="flex justify-center">
-              <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs max-w-[80%]">
-                <div className="flex items-center gap-2 mb-1">
-                  <Clock className="w-3 h-3 text-gray-500" />
-                  <span className="font-medium text-gray-700">
-                    {format(new Date(checkpoint.created_date), "HH:mm")}
-                  </span>
-                </div>
-                <p className="text-gray-600">{checkpoint.notes}</p>
-                {checkpoint.dog_behavior && (
-                  <div className="mt-2 pt-2 border-t border-gray-200">
-                    <p className="text-gray-500 text-[10px]">
-                      Humor: {checkpoint.dog_behavior.mood} • 
-                      Energia: {checkpoint.dog_behavior.energy_level}
-                      {checkpoint.dog_behavior.water_intake && " • 💧 Bebeu água"}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {/* Service End Notification */}
-          {checkpoints.find(c => c.checkpoint_type === 'check_out') && (
-            <div className="flex justify-center">
-              <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-xs text-center">
-                <CheckCircle2 className="w-4 h-4 inline-block mr-1 text-green-600" />
-                <span className="text-green-800 font-medium">
-                  Serviço concluído às {format(new Date(checkpoints.find(c => c.checkpoint_type === 'check_out').created_date), "HH:mm")}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Professional Actions Bar - Start Service */}
-      {isProfessional && booking.status === "confirmed" && (
-        <div className="bg-green-50 border-t border-green-200 px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
-          <Button
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
-            onClick={() => startServiceMutation.mutate()}
-            disabled={startServiceMutation.isPending}
-          >
-            <Navigation className="w-5 h-5 mr-2" />
-            {startServiceMutation.isPending ? "Iniciando..." : "Iniciar Serviço"}
-          </Button>
-          <p className="text-[10px] md:text-xs text-center text-green-700 mt-1.5">
-            ℹ️ Será pedida permissão de GPS para rastreamento automático
-          </p>
-        </div>
-      )}
-
-      {/* Professional Actions Bar - In Progress */}
-      {isProfessional && booking.status === "in_progress" && !showBehaviorForm && (
-        <div className="bg-white border-t px-3 py-2 md:px-4 md:py-3 space-y-2 flex-shrink-0">
-          {/* GPS Status Indicator */}
-          {trackingActive && (
-            <div className="flex items-center justify-center gap-2 bg-blue-50 rounded-lg p-1.5">
-              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse" />
-              <span className="text-xs text-blue-800">GPS Ativo</span>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => shareLocationMutation.mutate()}
-              disabled={sharingLocation}
-              className="flex-1 h-9"
-            >
-              <MapPin className="w-4 h-4 mr-1" />
-              {sharingLocation ? "..." : "Local"}
-            </Button>
-
-            <label htmlFor="photo-upload" className="flex-1">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={uploadingPhoto}
-                className="w-full h-9"
-                asChild
-              >
-                <span>
-                  <Camera className="w-4 h-4 mr-1" />
-                  {uploadingPhoto ? "..." : "Foto"}
-                </span>
-              </Button>
-              <input
-                id="photo-upload"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
-            </label>
-
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowBehaviorForm(true)}
-              className="flex-1 h-9"
-            >
-              <Clock className="w-4 h-4 mr-1" />
-              Info
-            </Button>
-          </div>
-
-          <Button
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => {
-              console.log("🔘 Botão concluir clicado");
-              finishWalkMutation.mutate();
-            }}
-            disabled={finishWalkMutation.isPending}
-          >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
-            {finishWalkMutation.isPending ? "Processando..." : "Concluir Serviço"}
-          </Button>
-          
-          <p className="text-[10px] text-center text-gray-600">
-            ✓ Pode concluir o serviço a partir de qualquer localização
-          </p>
-        </div>
-      )}
-
-      {/* Behavior Form */}
-      {isProfessional && showBehaviorForm && (
-        <div className="bg-white border-t px-3 py-3 md:px-4 md:py-4 space-y-3 flex-shrink-0 max-h-[50vh] overflow-y-auto">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-semibold text-gray-900">Como está {booking.dog_name}?</h3>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setShowBehaviorForm(false)}
-            >
-              ✕
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Humor</label>
-              <select
-                value={behaviorData.mood}
-                onChange={(e) => setBehaviorData({...behaviorData, mood: e.target.value})}
-                className="w-full text-sm border rounded-lg px-3 py-2"
-              >
-                <option value="happy">😊 Feliz</option>
-                <option value="calm">😌 Calmo</option>
-                <option value="excited">🤩 Animado</option>
-                <option value="anxious">😰 Ansioso</option>
-                <option value="tired">😴 Cansado</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-gray-700 mb-1 block">Energia</label>
-              <select
-                value={behaviorData.energy_level}
-                onChange={(e) => setBehaviorData({...behaviorData, energy_level: e.target.value})}
-                className="w-full text-sm border rounded-lg px-3 py-2"
-              >
-                <option value="low">🔵 Baixa</option>
-                <option value="normal">🟢 Normal</option>
-                <option value="high">🟡 Alta</option>
-                <option value="very_high">🟠 Muito Alta</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">Pausas para necessidades</label>
-            <input
-              type="number"
-              min="0"
-              value={behaviorData.bathroom_breaks}
-              onChange={(e) => setBehaviorData({...behaviorData, bathroom_breaks: parseInt(e.target.value)})}
-              className="w-full text-sm border rounded-lg px-3 py-2"
-            />
-          </div>
-
-          <div className="flex gap-3">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={behaviorData.water_intake}
-                onChange={(e) => setBehaviorData({...behaviorData, water_intake: e.target.checked})}
-                className="rounded"
-              />
-              💧 Bebeu água
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={behaviorData.played_with_other_dogs}
-                onChange={(e) => setBehaviorData({...behaviorData, played_with_other_dogs: e.target.checked})}
-                className="rounded"
-              />
-              🐕 Brincou c/ outros
-            </label>
-          </div>
-
-          <textarea
-            placeholder="Notas adicionais (opcional)..."
-            value={behaviorData.special_notes}
-            onChange={(e) => setBehaviorData({...behaviorData, special_notes: e.target.value})}
-            className="w-full text-sm border rounded-lg px-3 py-2 h-20 resize-none"
-          />
-
-          <Button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => submitBehaviorMutation.mutate()}
-            disabled={submitBehaviorMutation.isPending}
-          >
-            {submitBehaviorMutation.isPending ? "Enviando..." : "Registrar Comportamento"}
-          </Button>
-        </div>
-      )}
-
-      {/* Owner View - Payment Info */}
-      {isOwner && booking.status === "service_completed" && (
-        <div className="bg-green-50 border-t border-green-200 px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
-          <div className="text-center">
-            <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-green-800">
-              Serviço Concluído!
-            </p>
-            <p className="text-xs text-green-700 mt-1">
-              Pagamento de {booking.total_amount}€ liberado automaticamente para {booking.walker_name}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Message Input */}
-      <div className="bg-white border-t px-3 py-2 md:px-4 md:py-3 flex-shrink-0">
-        <div className="flex items-center gap-2 max-w-3xl mx-auto">
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-            placeholder="Escrever mensagem..."
-            className="flex-1"
-          />
+      <div className={`flex-1 flex flex-col h-full ${!showConversationList ? "block" : "hidden md:flex"}`}>
+        {/* Header */}
+        <div className="bg-white border-b px-3 py-2 flex items-center gap-3 flex-shrink-0">
           <Button
             size="icon"
-            onClick={handleSendMessage}
-            disabled={!message.trim() || sendMessageMutation.isPending || !conversation?.id}
-            className="bg-blue-600 hover:bg-blue-700"
+            variant="ghost"
+            onClick={handleBack}
+            className="md:hidden flex-shrink-0"
           >
-            <Send className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </Button>
+
+          <Avatar className="h-10 w-10 flex-shrink-0">
+            <AvatarImage src={otherParticipant?.photo} />
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+              {otherParticipant?.name?.[0]?.toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm text-gray-900 truncate">
+              {otherParticipant?.name}
+            </h3>
+            <p className="text-[10px] text-gray-500">
+              {isOtherTyping ? (
+                <span className="text-green-600">A escrever...</span>
+              ) : selectedConversation.booking_id ? (
+                "Reserva associada"
+              ) : (
+                "Online"
+              )}
+            </p>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => togglePinMutation.mutate()}>
+                <Pin className="w-4 h-4 mr-2" />
+                {selectedConversation.pinned_by?.includes(user?.email) ? "Desafixar" : "Fixar"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => toggleMuteMutation.mutate()}>
+                <VolumeX className="w-4 h-4 mr-2" />
+                {selectedConversation.is_muted?.[user?.email] ? "Ativar notificações" : "Silenciar"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-3 py-3 bg-gray-50" ref={scrollRef}>
+          {loadingMessages ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <p className="text-sm">Nenhuma mensagem ainda</p>
+              <p className="text-xs mt-1">Envia a primeira mensagem!</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {messages.map((msg, idx) => {
+                const isMine = msg.sender_email === user?.email;
+                const showAvatar = idx === 0 || messages[idx - 1]?.sender_email !== msg.sender_email;
+
+                return (
+                  <ChatMessageBubble
+                    key={msg.id}
+                    message={msg}
+                    isMine={isMine}
+                    showAvatar={showAvatar}
+                    onImageClick={setPreviewImage}
+                  />
+                );
+              })}
+
+              {/* Typing indicator */}
+              <AnimatePresence>
+                {isOtherTyping && (
+                  <TypingIndicator userName={otherParticipant?.name} />
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
+
+        {/* Input */}
+        <ChatInput
+          onSendMessage={(data) => sendMessageMutation.mutate(data)}
+          onTyping={(isTyping) => updateTypingMutation.mutate(isTyping)}
+          disabled={sendMessageMutation.isPending}
+          replyTo={replyTo}
+          onCancelReply={() => setReplyTo(null)}
+        />
       </div>
+    );
+  };
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-[calc(100vh-140px)] md:h-[calc(100vh-120px)] bg-white rounded-2xl overflow-hidden shadow-lg mx-2 md:mx-4 my-2">
+      {renderConversationList()}
+      {renderChatView()}
+
+      {/* Image Preview Modal */}
+      <ImagePreviewModal
+        imageUrl={previewImage}
+        isOpen={!!previewImage}
+        onClose={() => setPreviewImage(null)}
+      />
     </div>
   );
 }
