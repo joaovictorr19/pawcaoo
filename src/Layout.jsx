@@ -1033,8 +1033,8 @@ function LayoutContent({ children, currentPageName }) {
                       {isRouteActive(item.url) && (
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-blue-500" />
                       )}
-                      <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${item.icon === Zap ? 'text-red-500' : ''}`} />
-                      <span className="font-medium text-xs md:text-sm flex-1 min-w-0">
+                      <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${isRouteActive(item.url) ? 'text-white' : item.icon === Zap ? 'text-red-500' : ''}`} />
+                      <span className={`font-medium text-xs md:text-sm flex-1 min-w-0 ${isRouteActive(item.url) ? 'text-white' : ''}`}>
                         {item.title.length > 22 ? (
                           <span className="animate-marquee inline-block whitespace-nowrap">
                             {item.title}
@@ -1077,8 +1077,8 @@ function LayoutContent({ children, currentPageName }) {
                             {isRouteActive(item.url) && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500" />
                             )}
-                            <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${item.icon === Zap ? 'text-orange-600' : ''}`} />
-                            <span className="font-medium text-xs md:text-sm flex-1 min-w-0 truncate">{item.title}</span>
+                            <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${isRouteActive(item.url) ? 'text-white' : item.icon === Zap ? 'text-orange-600' : ''}`} />
+                            <span className={`font-medium text-xs md:text-sm flex-1 min-w-0 truncate ${isRouteActive(item.url) ? 'text-white' : ''}`}>{item.title}</span>
                             {item.hasNotifications && unreadCount > 0 && (
                               <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0">
                                 {unreadCount}
@@ -1122,8 +1122,8 @@ function LayoutContent({ children, currentPageName }) {
                                 className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500"
                               />
                             )}
-                            <item.icon className="w-4 h-4 md:w-4 md:h-4 flex-shrink-0" />
-                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${isRouteActive(item.url) ? 'text-white' : ''}`} />
+                            <span className={`font-medium text-xs md:text-sm truncate ${isRouteActive(item.url) ? 'text-white' : ''}`}>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -1157,8 +1157,8 @@ function LayoutContent({ children, currentPageName }) {
                               {isRouteActive(item.url) && (
                                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500" />
                               )}
-                              <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                              <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                              <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${isRouteActive(item.url) ? 'text-white' : ''}`} />
+                              <span className={`font-medium text-xs md:text-sm truncate ${isRouteActive(item.url) ? 'text-white' : ''}`}>{item.title}</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -1201,8 +1201,8 @@ function LayoutContent({ children, currentPageName }) {
                             {isRouteActive(item.url) && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-red-400" />
                             )}
-                            <item.icon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                            <span className="font-medium text-xs md:text-sm truncate">{item.title}</span>
+                            <item.icon className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${isRouteActive(item.url) ? 'text-white' : ''}`} />
+                            <span className={`font-medium text-xs md:text-sm truncate ${isRouteActive(item.url) ? 'text-white' : ''}`}>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
