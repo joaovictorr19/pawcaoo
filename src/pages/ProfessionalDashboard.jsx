@@ -707,7 +707,7 @@ export default function ProfessionalDashboard() {
 
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 md:p-6">
           <DialogHeader>
             <DialogTitle className="text-lg md:text-xl">
               {editingService ? 'Editar' : 'Adicionar'} Serviço
@@ -894,7 +894,7 @@ export default function ProfessionalDashboard() {
   }
 
   return (
-    <div className="min-h-screen p-3 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-3 md:p-6 pb-24 md:pb-6">
       <div className="max-w-7xl mx-auto">
         <ErrorBoundary>
         {/* Fiscal Compliance Banner - CRITICAL */}
@@ -994,21 +994,23 @@ export default function ProfessionalDashboard() {
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-3 border border-white/50">
-            <TabsList className="w-full bg-transparent flex flex-wrap gap-2 justify-start h-auto">
+          <div className="bg-white/90 backdrop-blur-lg shadow-xl rounded-2xl p-2 md:p-3 border border-white/50 overflow-x-auto">
+            <TabsList className="w-full bg-transparent flex flex-nowrap md:flex-wrap gap-1.5 md:gap-2 justify-start h-auto min-w-max md:min-w-0">
               <TabsTrigger 
                 value="overview" 
-                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+                className="rounded-xl text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-lg px-3 md:px-5 py-2.5 md:py-3 transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
               >
-                <BarChart3 className="w-4 h-4" />
-                {dt('overview', language)}
+                <BarChart3 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">{dt('overview', language)}</span>
+                <span className="sm:hidden">Resumo</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="bookings" 
-                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 relative transition-all flex items-center gap-2"
+                className="rounded-xl text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-3 md:px-5 py-2.5 md:py-3 relative transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
               >
-                <Calendar className="w-4 h-4" />
-                {dt('bookings', language)}
+                <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">{dt('bookings', language)}</span>
+                <span className="sm:hidden">Reservas</span>
                 {directRequests.length > 0 && (
                   <Badge className="ml-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full p-0 flex items-center justify-center animate-pulse shadow-lg">
                     {directRequests.length}
@@ -1017,52 +1019,59 @@ export default function ProfessionalDashboard() {
               </TabsTrigger>
               <TabsTrigger 
                 value="analytics" 
-                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+                className="rounded-xl text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-3 md:px-5 py-2.5 md:py-3 transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
               >
-                <TrendingUp className="w-4 h-4" />
-                {dt('analytics', language)}
+                <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">{dt('analytics', language)}</span>
+                <span className="sm:hidden">Stats</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="services" 
-                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+                className="rounded-xl text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-600 data-[state=active]:to-amber-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-3 md:px-5 py-2.5 md:py-3 transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
               >
-                <Package className="w-4 h-4" />
-                {dt('services', language)}
+                <Package className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">{dt('services', language)}</span>
+                <span className="sm:hidden">Serviços</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="calendar" 
-                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+                className="rounded-xl text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-3 md:px-5 py-2.5 md:py-3 transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
               >
-                <CalendarIcon className="w-4 h-4" />
-                {dt('schedule', language)}
+                <CalendarIcon className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">{dt('schedule', language)}</span>
+                <span className="sm:hidden">Agenda</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="reviews" 
-                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-yellow-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+                className="rounded-xl text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-yellow-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-3 md:px-5 py-2.5 md:py-3 transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
               >
-                <Star className="w-4 h-4" />
-                {dt('reviews', language)}
+                <Star className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">{dt('reviews', language)}</span>
+                <span className="sm:hidden">Reviews</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="qrcode" 
-                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+                className="rounded-xl text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-lg px-3 md:px-5 py-2.5 md:py-3 transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
               >
-                <QrCode className="w-4 h-4" />
-                {dt('digitalCard', language)}
+                <QrCode className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">{dt('digitalCard', language)}</span>
+                <span className="sm:hidden">QR</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="payments" 
-                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+                className="rounded-xl text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-3 md:px-5 py-2.5 md:py-3 transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
               >
-                <CreditCard className="w-4 h-4" />
-                Pagamentos
+                <CreditCard className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Pagamentos</span>
+                <span className="sm:hidden">€</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="export" 
-                className="rounded-xl text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-5 py-3 transition-all flex items-center gap-2"
+                className="rounded-xl text-xs md:text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg px-3 md:px-5 py-2.5 md:py-3 transition-all flex items-center gap-1.5 md:gap-2 whitespace-nowrap"
               >
-                <FileText className="w-4 h-4" />
-                Dados
+                <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Dados</span>
+                <span className="sm:hidden">Export</span>
               </TabsTrigger>
             </TabsList>
           </div>
