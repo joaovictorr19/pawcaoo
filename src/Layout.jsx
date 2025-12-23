@@ -885,31 +885,26 @@ function LayoutContent({ children, currentPageName }) {
           background: transparent !important;
         }
         
-        /* Default transparent background for non-active items */
-        [data-sidebar] button,
-        [data-sidebar] a {
+        /* CRITICAL: Remove any background overrides that might block gradients */
+        [data-sidebar] button[class*="bg-gradient"],
+        [data-sidebar] a[class*="bg-gradient"],
+        [data-sidebar] button[class*="from-"],
+        [data-sidebar] a[class*="from-"],
+        [data-sidebar] button[class*="bg-red"],
+        [data-sidebar] a[class*="bg-red"] {
+          background: revert !important;
+        }
+
+        /* Default state for non-gradient items */
+        [data-sidebar] button:not([class*="bg-gradient"]):not([class*="from-"]):not([class*="bg-red"]),
+        [data-sidebar] a:not([class*="bg-gradient"]):not([class*="from-"]):not([class*="bg-red"]) {
           background-color: transparent;
         }
 
-        [data-sidebar] button:hover,
-        [data-sidebar] a:hover {
+        /* Hover for non-gradient items */
+        [data-sidebar] button:not([class*="bg-gradient"]):not([class*="from-"]):not([class*="bg-red"]):hover,
+        [data-sidebar] a:not([class*="bg-gradient"]):not([class*="from-"]):not([class*="bg-red"]):hover {
           background-color: rgba(0, 0, 0, 0.05);
-        }
-
-        /* FORCE gradient backgrounds to render properly on active items */
-        [data-sidebar] [class*="bg-gradient-to-r"],
-        [data-sidebar] [class*="from-blue-600"],
-        [data-sidebar] [class*="from-red-6"],
-        [data-sidebar] [class*="bg-red-600"] {
-          background-color: initial !important;
-          background-image: initial !important;
-        }
-
-        /* Preserve hover states on gradient items */
-        [data-sidebar] [class*="bg-gradient-to-r"]:hover,
-        [data-sidebar] [class*="from-blue-600"]:hover,
-        [data-sidebar] [class*="from-red-6"]:hover {
-          background-color: initial !important;
         }
 
         .scrollbar-hide {
