@@ -49,7 +49,7 @@ import NotificationTriggers from "@/components/notifications/NotificationTrigger
 import DynamicBackground from "@/components/ui/DynamicBackground";
 import { useModalCleanup } from "@/components/ui/ModalCleanup";
 import SEOManager from "@/components/SEOManager";
-import PetCareAssistantButton from "@/components/ai/PetCareAssistantButton";
+
 import "./globals.css";
 
 // Query optimization configs - v1.1
@@ -1423,8 +1423,7 @@ function LayoutContent({ children, currentPageName }) {
               />
             )}
 
-            {/* AI Pet Care Assistant - Floating Button */}
-            <PetCareAssistantButton userDogs={[]} />
+
 
             {authUser && (
               <OnboardingWizard 
