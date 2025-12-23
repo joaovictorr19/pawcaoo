@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Gift, TrendingUp, Sparkles, Target } from "lucide-react";
+import { Gift, TrendingUp, Sparkles, Target, ShoppingBag, Dog, Crown } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -198,28 +198,27 @@ export default function LoyaltyRewards() {
   const tierDiscount = currentTier.discount || 0;
 
   const allRewards = [
-    // Subscrições
-    { id: 's1', category: "subscription", type: "subscription_discount", points: 500, discount: "€5", description: "Desconto subscrição Basic", icon: "💳", value: 5 },
-    { id: 's2', category: "subscription", type: "subscription_discount", points: 1000, discount: "€10", description: "Desconto subscrição Premium", icon: "⭐", value: 10 },
-    { id: 's3', category: "subscription", type: "subscription_discount", points: 1500, discount: "€15", description: "Desconto subscrição VIP", icon: "👑", value: 15 },
-    { id: 's4', category: "subscription", type: "free_month", points: 2000, discount: "Grátis", description: "1 mês grátis qualquer plano", icon: "🎁", value: 0 },
+    // Subscrições - Ajustado para nunca perder dinheiro (500 pontos = €2.50 de valor)
+    { id: 's1', category: "subscription", type: "subscription_discount", points: 1000, discount: "€2.50", description: "Desconto subscrição Basic", value: 2.50 },
+    { id: 's2', category: "subscription", type: "subscription_discount", points: 2000, discount: "€5", description: "Desconto subscrição Premium", value: 5 },
+    { id: 's3', category: "subscription", type: "subscription_discount", points: 3000, discount: "€7.50", description: "Desconto subscrição VIP", value: 7.50 },
     
-    // Produtos Loja
-    { id: 'p1', category: "product", type: "product_discount", points: 300, discount: "€10", description: "Desconto produtos loja", icon: "🛍️", value: 10 },
-    { id: 'p2', category: "product", type: "product_discount", points: 600, discount: "€25", description: "Desconto produtos premium", icon: "✨", value: 25 },
-    { id: 'p3', category: "product", type: "free_product", points: 1200, discount: "Grátis", description: "Produto grátis até €40", icon: "🎉", value: 40 },
+    // Produtos Loja - Ajustado (1 ponto = €0.0025)
+    { id: 'p1', category: "product", type: "product_discount", points: 2000, discount: "€5", description: "Desconto produtos loja", value: 5 },
+    { id: 'p2', category: "product", type: "product_discount", points: 4000, discount: "€10", description: "Desconto produtos premium", value: 10 },
+    { id: 'p3', category: "product", type: "product_discount", points: 6000, discount: "€15", description: "Vale compras loja", value: 15 },
     
-    // Serviços
-    { id: 'w1', category: "service", type: "walk_discount", points: 200, discount: "€5", description: "Desconto próximo passeio", icon: "🐕", value: 5 },
-    { id: 'w2', category: "service", type: "walk_discount", points: 400, discount: "€15", description: "Desconto qualquer passeio", icon: "🦮", value: 15 },
-    { id: 'w3', category: "service", type: "free_walk", points: 800, discount: "Grátis", description: "1 passeio grátis (até €20)", icon: "🌟", value: 20 },
-    { id: 't1', category: "service", type: "training_discount", points: 300, discount: "€10", description: "Desconto treino", icon: "🎓", value: 10 },
-    { id: 't2', category: "service", type: "training_discount", points: 700, discount: "€30", description: "Pacote 5 sessões", icon: "📚", value: 30 },
+    // Serviços - Ajustado para garantir margem
+    { id: 'w1', category: "service", type: "walk_discount", points: 1000, discount: "€2.50", description: "Desconto próximo passeio", value: 2.50 },
+    { id: 'w2', category: "service", type: "walk_discount", points: 2000, discount: "€5", description: "Desconto qualquer passeio", value: 5 },
+    { id: 'w3', category: "service", type: "walk_discount", points: 3000, discount: "€7.50", description: "Desconto passeio premium", value: 7.50 },
+    { id: 't1', category: "service", type: "training_discount", points: 2000, discount: "€5", description: "Desconto treino", value: 5 },
+    { id: 't2', category: "service", type: "training_discount", points: 4000, discount: "€10", description: "Desconto sessão premium", value: 10 },
     
-    // Extras VIP
-    { id: 'v1', category: "vip", type: "premium_feature", points: 400, discount: "Grátis", description: "GPS tracking 1 mês", icon: "📍", value: 0 },
-    { id: 'v2', category: "vip", type: "premium_feature", points: 500, discount: "Grátis", description: "Photo updates 1 mês", icon: "📸", value: 0 },
-    { id: 'v3', category: "vip", type: "free_service", points: 1500, discount: "Grátis", description: "1 banho profissional", icon: "🛁", value: 0 }
+    // Extras VIP - Valores simbólicos
+    { id: 'v1', category: "vip", type: "premium_feature", points: 2000, discount: "€5", description: "Crédito serviços premium", value: 5 },
+    { id: 'v2', category: "vip", type: "premium_feature", points: 3000, discount: "€7.50", description: "Vale serviços especiais", value: 7.50 },
+    { id: 'v3', category: "vip", type: "premium_feature", points: 4000, discount: "€10", description: "Crédito serviços VIP", value: 10 }
   ];
 
   const filteredRewards = activeCategory === "all" 
@@ -265,11 +264,11 @@ export default function LoyaltyRewards() {
         {/* Category Filters - Mobile Optimized */}
         <div className="flex overflow-x-auto gap-2 md:gap-3 mb-4 md:mb-6 pb-2 scrollbar-hide">
           {[
-            { id: "all", label: "Todos", icon: "🎯" },
-            { id: "subscription", label: "Subscrições", icon: "💳" },
-            { id: "product", label: "Produtos", icon: "🛍️" },
-            { id: "service", label: "Serviços", icon: "🐕" },
-            { id: "vip", label: "VIP", icon: "👑" }
+            { id: "all", label: "Todos", icon: Target },
+            { id: "subscription", label: "Subscrições", icon: Sparkles },
+            { id: "product", label: "Produtos", icon: ShoppingBag },
+            { id: "service", label: "Serviços", icon: Dog },
+            { id: "vip", label: "VIP", icon: Crown }
           ].map((cat) => (
             <Button
               key={cat.id}
@@ -277,7 +276,7 @@ export default function LoyaltyRewards() {
               onClick={() => setActiveCategory(cat.id)}
               className={`${activeCategory === cat.id ? "bg-gradient-to-r from-purple-600 to-indigo-600" : ""} whitespace-nowrap text-sm md:text-base h-9 md:h-10`}
             >
-              {cat.icon} {cat.label}
+              <cat.icon className="w-4 h-4 mr-1" /> {cat.label}
             </Button>
           ))}
         </div>
@@ -285,8 +284,9 @@ export default function LoyaltyRewards() {
         {/* Tier Discount Banner */}
         {tierDiscount > 0 && (
           <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-2 border-green-400 rounded-2xl p-4 mb-6">
-            <p className="text-center font-bold text-green-700">
-              ✨ Desconto Tier Ativo: <span className="text-2xl">{tierDiscount}%</span> em todos os resgates!
+            <p className="text-center font-bold text-green-700 flex items-center justify-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Desconto Tier Ativo: <span className="text-2xl">{tierDiscount}%</span> em todos os resgates!
             </p>
           </div>
         )}
