@@ -69,6 +69,16 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     queryFn: () => base44.auth.me(),
   });
 
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+      return profiles[0] || null;
+    },
+    enabled: !!user?.email
+  });
+
   const { data: myDogs = [] } = useQuery({
     queryKey: ['myDogs'],
     queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
@@ -82,13 +92,14 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
   // Update address and phone when user is loaded
   React.useEffect(() => {
-    if (user?.address || user?.location || user?.city) {
-        setPickupAddress(user.address || user.location || user.city || "");
+    if (user?.address || user?.location || user?.city || userProfile?.city) {
+        setPickupAddress(user.address || user.location || user.city || userProfile?.city || "");
     }
-    if (user?.phone) {
-        setFormData(prev => ({ ...prev, owner_phone: user.phone }));
+    const phoneNumber = user?.phone || userProfile?.phone || user?.mobile_phone || '';
+    if (phoneNumber && !formData.owner_phone) {
+        setFormData(prev => ({ ...prev, owner_phone: phoneNumber }));
     }
-  }, [user]);
+  }, [user, userProfile]);
 
   // ✅ GEOCODING: Capturar coordenadas atuais do usuário como "Casa"
   const captureCurrentLocation = () => {
