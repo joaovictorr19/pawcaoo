@@ -347,9 +347,9 @@ export default function PostEmergency() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="urgent">⚠️ {t('urgentTime', language)}</SelectItem>
-                    <SelectItem value="very_urgent">🔥 {t('veryUrgentTime', language)}</SelectItem>
-                    <SelectItem value="immediate">🚨 {t('immediateTime', language)}</SelectItem>
+                    <SelectItem value="urgent">{t('urgentTime', language)}</SelectItem>
+                    <SelectItem value="very_urgent">{t('veryUrgentTime', language)}</SelectItem>
+                    <SelectItem value="immediate">{t('immediateTime', language)}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -553,7 +553,7 @@ export default function PostEmergency() {
                 <Button
                   type="submit"
                   disabled={createEmergencyWalkMutation.isPending || uploading || !formData.owner_name || !formData.owner_phone || !formData.location || !formData.needed_time || !formData.offered_amount || (selectedDogs.length === 0 && !formData.dog_name)}
-                  className="flex-1 text-white h-10 text-sm font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-800 hover:bg-gray-900"
+                  className="flex-1 text-white h-10 text-sm font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700"
                 >
                   {createEmergencyWalkMutation.isPending ? (
                     <>
