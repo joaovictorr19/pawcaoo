@@ -101,17 +101,40 @@
   /* Sidebar glassmorphism - consistent across desktop and mobile */
   [data-sidebar="sidebar"],
   [data-sidebar="sidebar"] > div,
+  [data-sidebar="sidebar"] > div > div,
   aside[data-sidebar="sidebar"],
   [data-state="open"] aside,
+  [data-state="open"] [data-sidebar="sidebar"],
   [role="dialog"] aside,
-  [data-radix-scroll-area-viewport] {
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
+  [data-radix-scroll-area-viewport],
+  .peer\\/sidebar-wrapper,
+  [data-sidebar] {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    --sidebar-background: rgba(255, 255, 255, 0.95) !important;
+    --sidebar-background-mobile: rgba(255, 255, 255, 0.95) !important;
   }
 
-  [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img) {
+  /* Override any dark backgrounds on sidebar elements */
+  [data-sidebar="sidebar"] *,
+  [data-sidebar] * {
+    --sidebar-background: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img):not([class*="bg-"]) {
     background-color: transparent !important;
+  }
+
+  /* Mobile sidebar sheet/drawer override */
+  [data-state="open"][role="dialog"],
+  [data-state="open"][role="dialog"] > div,
+  .fixed.inset-0 + div[data-state="open"],
+  [vaul-drawer],
+  [vaul-drawer] > div {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
   }
 
   .dark-cosmos {
