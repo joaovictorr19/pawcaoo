@@ -724,6 +724,9 @@ function LayoutContent({ children, currentPageName }) {
         @media (max-width: 768px) {
           [data-sidebar="sidebar"] {
             width: 280px !important;
+            background: rgba(255, 255, 255, 0.98) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
           }
           input:not([type="checkbox"]):not([type="radio"]), select, textarea {
             width: 100% !important;
