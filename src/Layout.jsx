@@ -885,23 +885,31 @@ function LayoutContent({ children, currentPageName }) {
           background: transparent !important;
         }
         
-        /* Allow gradient backgrounds on active links */
-        [data-sidebar] button:not([class*="from-"]):not([class*="bg-gradient"]):not([class*="bg-red"]),
-        [data-sidebar] a:not([class*="from-"]):not([class*="bg-gradient"]):not([class*="bg-red"]) {
+        /* Default transparent background for non-active items */
+        [data-sidebar] button,
+        [data-sidebar] a {
           background-color: transparent;
         }
 
-        [data-sidebar] button:hover:not([class*="from-"]):not([class*="bg-gradient"]):not([class*="bg-red"]),
-        [data-sidebar] a:hover:not([class*="from-"]):not([class*="bg-gradient"]):not([class*="bg-red"]) {
+        [data-sidebar] button:hover,
+        [data-sidebar] a:hover {
           background-color: rgba(0, 0, 0, 0.05);
         }
 
-        /* Force gradient backgrounds to show */
-        [data-sidebar] a[class*="from-blue"],
-        [data-sidebar] a[class*="bg-gradient"],
-        [data-sidebar] a[class*="from-red"],
-        [data-sidebar] a[class*="bg-red-6"] {
-          background: inherit !important;
+        /* FORCE gradient backgrounds to render properly on active items */
+        [data-sidebar] [class*="bg-gradient-to-r"],
+        [data-sidebar] [class*="from-blue-600"],
+        [data-sidebar] [class*="from-red-6"],
+        [data-sidebar] [class*="bg-red-600"] {
+          background-color: initial !important;
+          background-image: initial !important;
+        }
+
+        /* Preserve hover states on gradient items */
+        [data-sidebar] [class*="bg-gradient-to-r"]:hover,
+        [data-sidebar] [class*="from-blue-600"]:hover,
+        [data-sidebar] [class*="from-red-6"]:hover {
+          background-color: initial !important;
         }
 
         .scrollbar-hide {
