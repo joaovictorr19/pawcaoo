@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { useTheme } from "../ThemeContext";
 
 // Raindrop component
 const Raindrop = ({ delay, left }) => (
@@ -295,28 +296,54 @@ export default function DynamicBackground() {
     );
   }
 
-  // Logged in users: clean light background with subtle orbs
+  // Logged in users: dynamic background based on level
+  const { colors } = useTheme();
+  
+  // Convert Tailwind classes to hex colors for orbs
+  const getOrbColor = (colorClass) => {
+    const colorMap = {
+      // Emerald/Forest (Tier 1)
+      'text-emerald-600': '#059669',
+      'text-emerald-900': '#064e3b',
+      // Blue/Navy (Tier 2)
+      'text-blue-700': '#1d4ed8',
+      'text-blue-950': '#172554',
+      // Rose/Wine (Tier 3)
+      'text-rose-700': '#be123c',
+      'text-rose-950': '#4c0519',
+      // Amber (Tier 4)
+      'text-amber-600': '#d97706',
+      'text-amber-900': '#78350f',
+      // Yellow/Gold (Tier 5)
+      'text-yellow-600': '#ca8a04',
+      'text-yellow-900': '#713f12'
+    };
+    return colorMap[colorClass] || '#059669';
+  };
+
+  const orbColor = getOrbColor(colors?.accent || 'text-emerald-600');
+
   return (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gray-50">
-      {/* Subtle animated orbs for visual interest */}
+      {/* Dynamic animated orbs based on user level */}
       <div className="absolute inset-0">
         
-        {/* Orb 1: Subtle green glow */}
+        {/* Orb 1: Primary tier color */}
         <div 
           className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full filter blur-[120px] opacity-20 animate-blob-1"
-          style={{ backgroundColor: 'var(--color-orb-2, #86efac)', transition: 'background-color 1s ease' }}
+          style={{ backgroundColor: orbColor, transition: 'background-color 1s ease' }}
         />
 
-        {/* Orb 2: Subtle accent */}
+        {/* Orb 2: Secondary accent */}
         <div 
           className="absolute bottom-[10%] right-[5%] w-[45vw] h-[45vw] rounded-full filter blur-[120px] opacity-15 animate-blob-2"
-          style={{ backgroundColor: 'var(--color-orb-1, #a7f3d0)', transition: 'background-color 1s ease' }}
+          style={{ backgroundColor: orbColor, transition: 'background-color 1s ease' }}
         />
 
-        {/* Orb 3: Very subtle depth */}
+        {/* Orb 3: Tertiary depth */}
         <div 
           className="absolute top-[50%] left-[50%] w-[40vw] h-[40vw] rounded-full filter blur-[100px] opacity-10 animate-blob-3"
-          style={{ backgroundColor: 'var(--color-primary, #6ee7b7)', transition: 'background-color 1s ease' }}
+          style={{ backgroundColor: orbColor, transition: 'background-color 1s ease' }}
         />
 
       </div>

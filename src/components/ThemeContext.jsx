@@ -7,14 +7,25 @@ const ThemeContext = createContext();
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
-  // 1. Buscar o Nível do Utilizador
+  // 1. Buscar o Nível do Utilizador do UserProfile (fonte única da verdade)
   const { data: user } = useQuery({
-    queryKey: ['currentUserTheme'],
+    queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: 1000 * 60 * 5, // Cache de 5 minutos
+    retry: false,
   });
 
-  const level = user?.gamification_level || 0;
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfileTheme', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+      return profiles[0] || null;
+    },
+    enabled: !!user?.email,
+    staleTime: 10 * 1000,
+  });
+
+  const level = userProfile?.gamification_level || 0;
 
   // 2. A Lógica das Cores (Jewel Tones / Tons de Joia)
   const getThemeByLevel = (lvl) => {
