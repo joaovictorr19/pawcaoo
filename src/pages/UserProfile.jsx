@@ -16,7 +16,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import AdminBadgeGlass from "@/components/ui/AdminBadgeGlass";
 import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
-import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
+import PawCaoEmployeeStamp from "@/components/ui/PawCaoEmployeeStamp";
 // ProfessionalRoleBadge removed from profile - too many badges already
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
