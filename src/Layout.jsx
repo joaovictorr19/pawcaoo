@@ -703,49 +703,37 @@ function LayoutContent({ children, currentPageName }) {
           visibility: visible !important;
         }
 
-        /* Force visibility on ALL interaction states */
+        /* Force visibility on interaction states - preserve text color */
         [data-sidebar] a:hover,
-        [data-sidebar] a:hover *,
         [data-sidebar] a:hover > *,
         [data-sidebar] a:hover span,
         [data-sidebar] a:hover svg,
         [data-sidebar] a:hover svg *,
         [data-sidebar] a:hover path,
-        [data-sidebar] a:active,
-        [data-sidebar] a:active *,
-        [data-sidebar] a:active > *,
-        [data-sidebar] a:active span,
-        [data-sidebar] a:active svg,
-        [data-sidebar] a:active svg *,
-        [data-sidebar] a:active path,
-        [data-sidebar] a:focus,
-        [data-sidebar] a:focus *,
-        [data-sidebar] a:focus > *,
         [data-sidebar] button:hover,
         [data-sidebar] button:hover *,
         [data-sidebar] button:hover > *,
-        [data-sidebar] button:active,
-        [data-sidebar] button:active *,
-        [data-sidebar] button:active > *,
-        [data-sidebar] button:active span,
-        [data-sidebar] button:active svg,
-        [data-sidebar] button:active svg *,
-        [data-sidebar] button:active path,
+        [data-sidebar] a:focus,
+        [data-sidebar] a:focus *,
+        [data-sidebar] a:focus > *,
         [data-sidebar] button:focus,
         [data-sidebar] button:focus *,
         [data-sidebar] button:focus > * {
           opacity: 1 !important;
           visibility: visible !important;
-          color: inherit !important;
         }
 
-        /* Prevent any transform or transition from affecting visibility */
+        /* Active state - only force visibility, not color */
         [data-sidebar] a:active,
-        [data-sidebar] button:active {
+        [data-sidebar] a:active > *,
+        [data-sidebar] button:active,
+        [data-sidebar] button:active > * {
+          opacity: 1 !important;
+          visibility: visible !important;
           transition: transform 0.1s !important;
         }
 
-        /* Links ativos na sidebar sempre com texto e ícones visíveis */
+        /* Links ativos na sidebar sempre com texto e ícones BRANCOS */
         [data-sidebar] a[class*="from-blue-600"],
         [data-sidebar] a[class*="from-blue-600"] *,
         [data-sidebar] a[class*="from-blue-600"] span,
@@ -755,12 +743,22 @@ function LayoutContent({ children, currentPageName }) {
         [data-sidebar] a[class*="bg-gradient"] *,
         [data-sidebar] a[class*="bg-gradient"] span,
         [data-sidebar] a[class*="bg-gradient"] svg,
-        [data-sidebar] a[class*="bg-gradient"] path,
-        [data-sidebar] a[class*="bg-red-600"],
-        [data-sidebar] a[class*="bg-red-600"] *,
-        [data-sidebar] a[class*="bg-red-600"] span,
-        [data-sidebar] a[class*="bg-red-600"] svg,
-        [data-sidebar] a[class*="bg-red-600"] path {
+        [data-sidebar] a[class*="bg-gradient"] path {
+          opacity: 1 !important;
+          color: white !important;
+        }
+
+        /* Links vermelhos (emergency) sempre com texto BRANCO quando ativos */
+        [data-sidebar] a[class*="from-red-"],
+        [data-sidebar] a[class*="from-red-"] *,
+        [data-sidebar] a[class*="from-red-"] span,
+        [data-sidebar] a[class*="from-red-"] svg,
+        [data-sidebar] a[class*="from-red-"] path,
+        [data-sidebar] a[class*="bg-red-6"],
+        [data-sidebar] a[class*="bg-red-6"] *,
+        [data-sidebar] a[class*="bg-red-6"] span,
+        [data-sidebar] a[class*="bg-red-6"] svg,
+        [data-sidebar] a[class*="bg-red-6"] path {
           opacity: 1 !important;
           color: white !important;
         }
