@@ -1113,39 +1113,6 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              {/* Tab Navigation Bar */}
-              <TabsList className="grid grid-cols-4 w-full mb-6 bg-white/90 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-gray-100 h-auto">
-                <TabsTrigger 
-                  value="walkers" 
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-gray-100"
-                >
-                  <Users className="w-4 h-4" />
-                  <span className="hidden sm:inline">{language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals'}</span>
-                  <span className="sm:hidden">Pro</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="shop" 
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-gray-100"
-                >
-                  <Store className="w-4 h-4" />
-                  <span>{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="adoption" 
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-600 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-gray-100"
-                >
-                  <Heart className="w-4 h-4" />
-                  <span>{language === 'pt' ? 'Adoção' : language === 'es' ? 'Adopción' : 'Adopt'}</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="emergency" 
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all text-orange-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-orange-50"
-                >
-                  <Zap className="w-4 h-4" />
-                  <span className="hidden sm:inline">{language === 'pt' ? 'Emergência' : language === 'es' ? 'Emergencia' : 'Emergency'}</span>
-                  <span className="sm:hidden">SOS</span>
-                </TabsTrigger>
-              </TabsList>
 
               <TabsContent value="walkers">
                 <div>
