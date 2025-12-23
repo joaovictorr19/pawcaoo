@@ -645,7 +645,7 @@ export default function ProfessionalDashboard() {
     }
   ];
 
-  // Service form for walkers/trainers - COMPLETAMENTE REDESENHADO
+  // Service form - REDESENHADO COMPLETAMENTE SEM LINHAS
   const ServiceForm = () => {
     const [formData, setFormData] = useState(editingService || {
       service_name: "",
@@ -714,66 +714,55 @@ export default function ProfessionalDashboard() {
 
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
-        <DialogContent 
-          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0"
-          style={{ 
-            background: 'white !important',
-            zIndex: 999999,
-            color: '#111827 !important',
-            border: 'none !important',
-            borderRadius: '12px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            outline: 'none'
-          }}
-        >
-          {/* Header Fixo */}
-          <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50" style={{ border: 'none !important', boxShadow: 'none !important', borderBottom: 'none !important' }}>
-            <h2 className="text-xl md:text-2xl font-bold" style={{ color: '#111827' }}>
-              {editingService ? '✏️ Editar' : '➕ Adicionar'} Serviço
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">Preencha os detalhes do serviço abaixo</p>
-          </div>
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] bg-white border border-gray-200 shadow-2xl p-0 overflow-hidden">
+          <div className="bg-white w-full h-full">
+            {/* Header */}
+            <div className="bg-white px-6 py-5 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {editingService ? '✏️ Editar' : '➕ Adicionar'} Serviço
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">Preencha os detalhes do serviço abaixo</p>
+            </div>
 
-          {/* Conteúdo Scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-4" style={{ border: 'none !important' }}>
-            <div className="space-y-6" style={{ border: 'none !important' }}>
-              
-              {/* SECÇÃO 1: Informações Básicas */}
-              <div className="bg-blue-50/50 rounded-xl p-4" style={{ border: 'none !important', boxShadow: 'none !important' }}>
-                <h3 className="text-base font-bold text-blue-900 mb-4">📝 Informações Básicas</h3>
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-semibold mb-1.5 block" style={{ color: '#111827' }}>
-                      Nome do Serviço <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      value={formData.service_name}
-                      onChange={(e) => setFormData({...formData, service_name: e.target.value})}
-                      placeholder="Ex: Passeio de 1 hora no parque"
-                      className="h-11 bg-white text-gray-900"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-sm font-semibold mb-1.5 block" style={{ color: '#111827' }}>
-                      Descrição (Opcional)
-                    </Label>
-                    <Textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      placeholder="Descreva o que está incluído no serviço..."
-                      rows={3}
-                      className="resize-none bg-white text-gray-900"
-                    />
+            {/* Content */}
+            <div className="overflow-y-auto px-6 py-6 bg-white" style={{ maxHeight: 'calc(90vh - 180px)' }}>
+              <div className="space-y-6 bg-white">
+                
+                {/* Info Básica */}
+                <div className="bg-white p-5 rounded-xl border border-blue-100">
+                  <h3 className="text-lg font-bold text-blue-900 mb-4">📝 Informações Básicas</h3>
+                  <div className="space-y-4 bg-white">
+                    <div className="bg-white">
+                      <Label className="text-sm font-semibold mb-2 block text-gray-900">
+                        Nome do Serviço <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        value={formData.service_name}
+                        onChange={(e) => setFormData({...formData, service_name: e.target.value})}
+                        placeholder="Ex: Passeio de 1 hora no parque"
+                        className="h-11 bg-white border-gray-300 text-gray-900"
+                      />
+                    </div>
+                    
+                    <div className="bg-white">
+                      <Label className="text-sm font-semibold mb-2 block text-gray-900">
+                        Descrição (Opcional)
+                      </Label>
+                      <Textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                        placeholder="Descreva o que está incluído no serviço..."
+                        rows={3}
+                        className="resize-none bg-white border-gray-300 text-gray-900"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* SECÇÃO 2: Tipo de Animal */}
-              <div className="bg-purple-50/50 rounded-xl p-4" style={{ border: 'none !important', boxShadow: 'none !important' }}>
-                <h3 className="text-base font-bold text-purple-900 mb-4">🐾 Tipo de Animal</h3>
-                <div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {/* Tipo Animal */}
+                <div className="bg-white p-5 rounded-xl border border-purple-100">
+                  <h3 className="text-lg font-bold text-purple-900 mb-4">🐾 Tipo de Animal</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 bg-white">
                     {[
                       { id: 'dogs', label: 'Cães', IconComponent: Dog },
                       { id: 'cats', label: 'Gatos', IconComponent: Cat },
@@ -788,11 +777,9 @@ export default function ProfessionalDashboard() {
                           key={animal.id}
                           type="button"
                           onClick={() => setFormData({...formData, animal_type: animal.id})}
-                          className="p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 hover:scale-105"
-                          style={{ 
-                            background: isSelected ? '#f0fdf4' : 'white',
-                            borderColor: isSelected ? '#22c55e' : '#d1d5db'
-                          }}
+                          className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 hover:scale-105 bg-white ${
+                            isSelected ? 'border-green-500 bg-green-50' : 'border-gray-200'
+                          }`}
                         >
                           <animal.IconComponent className={`w-8 h-8 ${isSelected ? 'text-green-700' : 'text-gray-700'}`} />
                           <span className={`text-sm font-bold ${isSelected ? 'text-green-900' : 'text-gray-900'}`}>{animal.label}</span>
@@ -801,148 +788,145 @@ export default function ProfessionalDashboard() {
                     })}
                   </div>
                 </div>
-              </div>
 
-              {/* SECÇÃO 3: Preço */}
-              <div className="bg-green-50/50 rounded-xl p-4" style={{ border: 'none !important', boxShadow: 'none !important' }}>
-                <h3 className="text-base font-bold text-green-900 mb-4">💰 Definir Preço</h3>
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-semibold mb-1.5 block" style={{ color: '#111827' }}>
-                      Preço <span className="text-red-500">*</span>
-                      <span className="text-xs text-gray-500 ml-2">
-                        ({['dogs', 'cats'].includes(formData.animal_type) ? 'por hora' : 'por visita'})
-                      </span>
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="1"
-                        value={formData.price}
-                        onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-                        placeholder={['dogs', 'cats'].includes(formData.animal_type) ? "10" : "20"}
-                        className="h-12 text-lg font-bold pl-8 bg-white text-gray-900"
+                {/* Preço */}
+                <div className="bg-white p-5 rounded-xl border border-green-100">
+                  <h3 className="text-lg font-bold text-green-900 mb-4">💰 Definir Preço</h3>
+                  <div className="space-y-4 bg-white">
+                    <div className="bg-white">
+                      <Label className="text-sm font-semibold mb-2 block text-gray-900">
+                        Preço <span className="text-red-500">*</span>
+                        <span className="text-xs text-gray-500 ml-2">
+                          ({['dogs', 'cats'].includes(formData.animal_type) ? 'por hora' : 'por visita'})
+                        </span>
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="1"
+                          value={formData.price}
+                          onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
+                          placeholder={['dogs', 'cats'].includes(formData.animal_type) ? "10" : "20"}
+                          className="h-12 text-lg font-bold pl-8 bg-white border-gray-300 text-gray-900"
+                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-600">€</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                      <input
+                        type="checkbox"
+                        id="customPricing"
+                        checked={formData.custom_pricing}
+                        onChange={(e) => setFormData({...formData, custom_pricing: e.target.checked})}
+                        className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                       />
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-600">€</span>
+                      <Label htmlFor="customPricing" className="text-sm font-medium cursor-pointer text-gray-900">
+                        Mostrar como "A partir de €{formData.price || 0}"
+                      </Label>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-                    <input
-                      type="checkbox"
-                      id="customPricing"
-                      checked={formData.custom_pricing}
-                      onChange={(e) => setFormData({...formData, custom_pricing: e.target.checked})}
-                      className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    />
-                    <Label htmlFor="customPricing" className="text-sm font-medium cursor-pointer" style={{ color: '#111827' }}>
-                      Mostrar como "A partir de €{formData.price || 0}"
-                    </Label>
-                  </div>
                 </div>
-              </div>
 
-              {/* SECÇÃO 4: Pacotes (Opcional) */}
-              <div className="bg-amber-50/50 rounded-xl p-4" style={{ border: 'none !important', boxShadow: 'none !important' }}>
-                <div className="mb-4">
-                  <h3 className="text-base font-bold text-amber-900">
+                {/* Pacotes */}
+                <div className="bg-white p-5 rounded-xl border border-amber-100">
+                  <h3 className="text-lg font-bold text-amber-900 mb-1">
                     🎁 Pacotes Promocionais <span className="text-xs font-normal text-gray-600">(Opcional)</span>
                   </h3>
-                  <p className="text-xs text-gray-600 mt-1">Ideal para treinos ou serviços recorrentes</p>
-                </div>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <Label className="text-xs font-semibold mb-1 block" style={{ color: '#111827' }}>Nome do Pacote</Label>
-                      <Input 
-                        placeholder="Ex: 5 Sessões" 
-                        value={newPackage.name}
-                        onChange={(e) => setNewPackage({...newPackage, name: e.target.value})}
-                        className="h-10 text-sm bg-white text-gray-900"
-                      />
+                  <p className="text-xs text-gray-600 mb-4">Ideal para treinos ou serviços recorrentes</p>
+                  <div className="space-y-4 bg-white">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-white">
+                      <div className="bg-white">
+                        <Label className="text-xs font-semibold mb-1 block text-gray-900">Nome do Pacote</Label>
+                        <Input 
+                          placeholder="Ex: 5 Sessões" 
+                          value={newPackage.name}
+                          onChange={(e) => setNewPackage({...newPackage, name: e.target.value})}
+                          className="h-10 text-sm bg-white border-gray-300 text-gray-900"
+                        />
+                      </div>
+                      <div className="bg-white">
+                        <Label className="text-xs font-semibold mb-1 block text-gray-900">Nº de Sessões</Label>
+                        <Input 
+                          placeholder="5" 
+                          type="number"
+                          value={newPackage.sessions}
+                          onChange={(e) => setNewPackage({...newPackage, sessions: parseInt(e.target.value)})}
+                          className="h-10 text-sm bg-white border-gray-300 text-gray-900"
+                        />
+                      </div>
+                      <div className="bg-white">
+                        <Label className="text-xs font-semibold mb-1 block text-gray-900">Preço Total (€)</Label>
+                        <Input 
+                          placeholder="100" 
+                          type="number"
+                          step="0.01"
+                          value={newPackage.price}
+                          onChange={(e) => setNewPackage({...newPackage, price: parseFloat(e.target.value)})}
+                          className="h-10 text-sm bg-white border-gray-300 text-gray-900"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-xs font-semibold mb-1 block" style={{ color: '#111827' }}>Nº de Sessões</Label>
-                      <Input 
-                        placeholder="5" 
-                        type="number"
-                        value={newPackage.sessions}
-                        onChange={(e) => setNewPackage({...newPackage, sessions: parseInt(e.target.value)})}
-                        className="h-10 text-sm bg-white text-gray-900"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-semibold mb-1 block" style={{ color: '#111827' }}>Preço Total (€)</Label>
-                      <Input 
-                        placeholder="100" 
-                        type="number"
-                        step="0.01"
-                        value={newPackage.price}
-                        onChange={(e) => setNewPackage({...newPackage, price: parseFloat(e.target.value)})}
-                        className="h-10 text-sm bg-white text-gray-900"
-                      />
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={addPackage} 
-                    size="sm" 
-                    variant="outline" 
-                    className="w-full border-2 border-dashed border-amber-400 text-amber-700 hover:bg-amber-100 h-10"
-                  >
-                    <Plus className="w-4 h-4 mr-2" /> Adicionar Pacote à Lista
-                  </Button>
+                    <Button 
+                      onClick={addPackage} 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full border-2 border-dashed border-amber-400 text-amber-700 hover:bg-amber-100 bg-white h-10"
+                    >
+                      <Plus className="w-4 h-4 mr-2" /> Adicionar Pacote à Lista
+                    </Button>
 
-                  {formData.package_options && formData.package_options.length > 0 && (
-                    <div className="space-y-2 pt-2">
-                      <p className="text-xs font-semibold text-amber-900 mb-2">Pacotes Adicionados:</p>
-                      {formData.package_options.map((pkg, idx) => (
-                        <div 
-                          key={idx} 
-                          className="flex justify-between items-center bg-white p-3 rounded-lg border-2 border-amber-200 shadow-sm"
-                        >
-                          <div>
-                            <p className="font-bold text-sm" style={{ color: '#111827' }}>{pkg.name}</p>
-                            <p className="text-xs text-gray-600">{pkg.sessions} sessões • €{pkg.price}</p>
-                          </div>
-                          <Button 
-                            onClick={() => removePackage(idx)} 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-8 w-8 p-0 text-red-500 hover:bg-red-100"
+                    {formData.package_options && formData.package_options.length > 0 && (
+                      <div className="space-y-2 pt-2 bg-white">
+                        <p className="text-xs font-semibold text-amber-900 mb-2">Pacotes Adicionados:</p>
+                        {formData.package_options.map((pkg, idx) => (
+                          <div 
+                            key={idx} 
+                            className="flex justify-between items-center bg-white p-3 rounded-lg border border-amber-200"
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                            <div>
+                              <p className="font-bold text-sm text-gray-900">{pkg.name}</p>
+                              <p className="text-xs text-gray-600">{pkg.sessions} sessões • €{pkg.price}</p>
+                            </div>
+                            <Button 
+                              onClick={() => removePackage(idx)} 
+                              size="sm" 
+                              variant="ghost" 
+                              className="h-8 w-8 p-0 text-red-500 hover:bg-red-100"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
               </div>
-
             </div>
-          </div>
 
-          {/* Footer Fixo com Botões */}
-          <div className="px-6 py-4 bg-gray-50 flex gap-3" style={{ border: 'none !important', boxShadow: 'none !important', borderTop: 'none !important' }}>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowServiceForm(false);
-                setEditingService(null);
-              }}
-              className="flex-1 h-12 text-base font-semibold"
-              style={{ background: 'white', color: '#111827', borderColor: '#d1d5db' }}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleSubmit}
-              disabled={!formData.service_name || !formData.price || !formData.animal_type}
-              className="flex-1 h-12 text-base font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {editingService ? 'Guardar Alterações' : 'Adicionar Serviço'}
-            </Button>
+            {/* Footer */}
+            <div className="bg-white px-6 py-4 border-t border-gray-100 flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowServiceForm(false);
+                  setEditingService(null);
+                }}
+                className="flex-1 h-12 text-base font-semibold bg-white text-gray-900 border-gray-300"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                disabled={!formData.service_name || !formData.price || !formData.animal_type}
+                className="flex-1 h-12 text-base font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+              >
+                {editingService ? 'Guardar Alterações' : 'Adicionar Serviço'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
