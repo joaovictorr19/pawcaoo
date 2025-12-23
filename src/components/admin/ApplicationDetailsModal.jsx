@@ -77,27 +77,33 @@ export default function ApplicationDetailsModal({
     return selectedApp.walker_name || selectedApp.trainer_name || selectedApp.shelter_name || 'Candidatura';
   };
 
+  // Verificar se é perfil já verificado (documentação) ou candidatura nova
+  const isExistingProfile = selectedApp.verification_status === 'verified';
+  const isDocumentUpdate = isExistingProfile;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-0">
-        <div className="sticky top-0 bg-white z-10 border-b px-6 py-4">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto p-0">
+        <div className="sticky top-0 bg-white z-10 border-b px-4 md:px-6 py-3 md:py-4">
           <DialogHeader>
-            <DialogTitle className="text-xl">Detalhes da Candidatura</DialogTitle>
-            <DialogDescription className="text-base font-medium text-gray-700">
+            <DialogTitle className="text-base md:text-xl">
+              {isDocumentUpdate ? 'Revisão de Documentos' : 'Detalhes da Candidatura'}
+            </DialogTitle>
+            <DialogDescription className="text-sm md:text-base font-medium text-gray-700">
               {getName()}
             </DialogDescription>
           </DialogHeader>
         </div>
 
-        <div className="px-6 py-4 space-y-6">
+        <div className="px-4 md:px-6 py-3 md:py-4 space-y-4 md:space-y-6">
           {/* Personal Info */}
           <Card className="border-2 border-blue-100 bg-blue-50/30">
-            <CardContent className="p-4 space-y-3">
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <Building className="w-5 h-5 text-blue-600" />
+            <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3">
+              <h3 className="font-bold text-gray-900 mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+                <Building className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
                 Informações Pessoais
               </h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-3 md:gap-4">
                 <div className="flex items-start gap-2">
                   <Mail className="w-4 h-4 text-gray-500 mt-1" />
                   <div>
@@ -141,9 +147,9 @@ export default function ApplicationDetailsModal({
           {/* Bank Details */}
           {!isShelter && (
             <Card className="border-2 border-green-100 bg-green-50/30">
-              <CardContent className="p-4 space-y-3">
-                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-green-600" />
+              <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3">
+                <h3 className="font-bold text-gray-900 mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+                  <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
                   Dados Bancários
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -166,9 +172,9 @@ export default function ApplicationDetailsModal({
 
           {/* Bio */}
           <Card className="border-2 border-purple-100 bg-purple-50/30">
-            <CardContent className="p-4">
-              <Label className="text-xs text-gray-500 mb-2 block">Biografia</Label>
-              <p className="text-sm text-gray-700 leading-relaxed bg-white p-3 rounded-lg">
+            <CardContent className="p-3 md:p-4">
+              <Label className="text-xs text-gray-500 mb-1.5 md:mb-2 block">Biografia</Label>
+              <p className="text-sm text-gray-700 leading-relaxed bg-white p-2.5 md:p-3 rounded-lg">
                 {selectedApp.bio || selectedApp.mission || 'Sem descrição disponível.'}
               </p>
             </CardContent>
@@ -176,16 +182,16 @@ export default function ApplicationDetailsModal({
 
           {/* Documents */}
           <Card className="border-2 border-indigo-100 bg-indigo-50/30">
-            <CardContent className="p-4 space-y-4">
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-indigo-600" />
-                Documentos de Verificação
+            <CardContent className="p-3 md:p-4 space-y-3 md:space-y-4">
+              <h3 className="font-bold text-gray-900 mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+                <FileText className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" />
+                {isDocumentUpdate ? 'Documentos Atualizados' : 'Documentos de Verificação'}
                 {uploadingDoc && (
                   <Loader2 className="w-4 h-4 animate-spin text-blue-600 ml-2" />
                 )}
               </h3>
 
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                 {/* ID Document */}
                 <div className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors">
                   <div className="flex items-center gap-2 mb-3">
@@ -236,10 +242,10 @@ export default function ApplicationDetailsModal({
                 </div>
 
                 {/* Address Proof */}
-                <div className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Building className="w-5 h-5 text-green-600" />
-                    <Label className="text-sm font-semibold">Comprov. Morada</Label>
+                <div className="bg-white border-2 border-gray-200 rounded-xl p-3 md:p-4 hover:border-blue-400 transition-colors">
+                  <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
+                    <Building className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
+                    <Label className="text-xs md:text-sm font-semibold">Comprov. Morada</Label>
                   </div>
                   {selectedApp.proof_of_address_url ? (
                     <div className="space-y-2">
@@ -285,10 +291,10 @@ export default function ApplicationDetailsModal({
                 </div>
 
                 {/* Criminal Record */}
-                <div className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors">
-                  <div className="flex items-center gap-2 mb-3">
-                    <ShieldCheck className="w-5 h-5 text-purple-600" />
-                    <Label className="text-sm font-semibold">Registo Criminal</Label>
+                <div className="bg-white border-2 border-gray-200 rounded-xl p-3 md:p-4 hover:border-blue-400 transition-colors">
+                  <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
+                    <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
+                    <Label className="text-xs md:text-sm font-semibold">Registo Criminal</Label>
                   </div>
                   {selectedApp.background_check_url ? (
                     <div className="space-y-2">
@@ -343,19 +349,19 @@ export default function ApplicationDetailsModal({
 
           {/* Photos and Video */}
           <Card className="border-2 border-pink-100 bg-pink-50/30">
-            <CardContent className="p-4">
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <Video className="w-5 h-5 text-pink-600" />
+            <CardContent className="p-3 md:p-4">
+              <h3 className="font-bold text-gray-900 mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
+                <Video className="w-4 h-4 md:w-5 md:h-5 text-pink-600" />
                 Fotos e Vídeo
               </h3>
-              <div className="flex gap-4 flex-wrap">
+              <div className="flex gap-3 md:gap-4 flex-wrap">
                 {selectedApp.photo_url && (
                   <div>
                     <Label className="text-xs text-gray-500 mb-1 block">Foto de Perfil</Label>
                     <img 
                       src={selectedApp.photo_url} 
                       alt="Profile" 
-                      className="w-32 h-32 object-cover rounded-xl border-2 border-white shadow-md" 
+                      className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-xl border-2 border-white shadow-md" 
                     />
                   </div>
                 )}
@@ -365,7 +371,7 @@ export default function ApplicationDetailsModal({
                     <img 
                       src={selectedApp.cover_photo_url} 
                       alt="Cover" 
-                      className="w-48 h-32 object-cover rounded-xl border-2 border-white shadow-md" 
+                      className="w-32 h-20 md:w-48 md:h-32 object-cover rounded-xl border-2 border-white shadow-md" 
                     />
                   </div>
                 )}
@@ -376,9 +382,9 @@ export default function ApplicationDetailsModal({
                       href={selectedApp.video_intro_url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center w-32 h-32 bg-black rounded-xl hover:opacity-80 transition-opacity"
+                      className="flex items-center justify-center w-24 h-24 md:w-32 md:h-32 bg-black rounded-xl hover:opacity-80 transition-opacity"
                     >
-                      <Video className="w-12 h-12 text-white" />
+                      <Video className="w-8 h-8 md:w-12 md:h-12 text-white" />
                     </a>
                   </div>
                 )}
@@ -388,69 +394,91 @@ export default function ApplicationDetailsModal({
 
           {/* Status Summary */}
           <Card className="border-2 border-yellow-100 bg-yellow-50/30">
-            <CardContent className="p-4">
-              <h3 className="font-bold text-gray-900 mb-3">Estado dos Documentos</h3>
+            <CardContent className="p-3 md:p-4">
+              <h3 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">
+                {isDocumentUpdate ? 'Resumo de Documentação' : 'Estado dos Documentos'}
+              </h3>
               <div className="space-y-2">
-                <div className="flex items-center justify-between p-2 bg-white rounded-lg">
-                  <span className="text-sm">Documento de Identidade</span>
+                <div className="flex items-center justify-between p-2 bg-white rounded-lg text-xs md:text-sm">
+                  <span>Documento de Identidade</span>
                   {selectedApp.id_document_url ? (
-                    <Badge className="bg-green-500">✓ Enviado</Badge>
+                    <Badge className="bg-green-500 text-xs">✓ Enviado</Badge>
                   ) : (
-                    <Badge className="bg-red-500">✗ Falta</Badge>
+                    <Badge className="bg-red-500 text-xs">✗ Falta</Badge>
                   )}
                 </div>
-                <div className="flex items-center justify-between p-2 bg-white rounded-lg">
-                  <span className="text-sm">Comprovativo de Morada</span>
+                <div className="flex items-center justify-between p-2 bg-white rounded-lg text-xs md:text-sm">
+                  <span>Comprovativo de Morada</span>
                   {selectedApp.proof_of_address_url ? (
-                    <Badge className="bg-green-500">✓ Enviado</Badge>
+                    <Badge className="bg-green-500 text-xs">✓ Enviado</Badge>
                   ) : (
-                    <Badge className="bg-red-500">✗ Falta</Badge>
+                    <Badge className="bg-red-500 text-xs">✗ Falta</Badge>
                   )}
                 </div>
-                <div className="flex items-center justify-between p-2 bg-white rounded-lg">
-                  <span className="text-sm">Registo Criminal (Opcional)</span>
+                <div className="flex items-center justify-between p-2 bg-white rounded-lg text-xs md:text-sm">
+                  <span>Registo Criminal (Opcional)</span>
                   {selectedApp.background_check_url ? (
-                    <Badge className="bg-green-500">✓ Enviado</Badge>
+                    <Badge className="bg-green-500 text-xs">✓ Enviado</Badge>
                   ) : (
-                    <Badge className="bg-gray-400">Não enviado</Badge>
+                    <Badge className="bg-gray-400 text-xs">Não enviado</Badge>
                   )}
                 </div>
               </div>
+              
+              {isDocumentUpdate && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs text-blue-800">
+                    ℹ️ Este profissional já está verificado. Documentos foram atualizados e estão disponíveis para revisão.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
         {/* Footer Actions */}
-        <div className="sticky bottom-0 bg-white border-t px-6 py-4">
-          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-            <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
-              Fechar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                const reason = prompt("Motivo da rejeição:");
-                if (reason) {
-                  onReject(type, selectedApp);
+        <div className="sticky bottom-0 bg-white border-t px-4 md:px-6 py-3 md:py-4">
+          {isDocumentUpdate ? (
+            // Para perfis já verificados - apenas fechar
+            <DialogFooter className="flex justify-end">
+              <Button onClick={onClose} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Documentos Revistos - Fechar
+              </Button>
+            </DialogFooter>
+          ) : (
+            // Para candidaturas novas - aprovar/rejeitar
+            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+              <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+                Fechar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  const reason = prompt("Motivo da rejeição:");
+                  if (reason) {
+                    onReject(type, selectedApp);
+                    onClose();
+                  }
+                }}
+                className="w-full sm:w-auto"
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                Rejeitar Candidatura
+              </Button>
+              <Button
+                className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                onClick={() => {
+                  onApprove(type, selectedApp);
                   onClose();
-                }
-              }}
-              className="w-full sm:w-auto"
-            >
-              <XCircle className="w-4 h-4 mr-2" />
-              Rejeitar
-            </Button>
-            <Button
-              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
-              onClick={() => {
-                onApprove(type, selectedApp);
-                onClose();
-              }}
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Aprovar Candidatura
-            </Button>
-          </DialogFooter>
+                }}
+                disabled={!selectedApp.id_document_url || !selectedApp.proof_of_address_url}
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Aprovar Candidatura
+              </Button>
+            </DialogFooter>
+          )}
         </div>
       </DialogContent>
     </Dialog>
