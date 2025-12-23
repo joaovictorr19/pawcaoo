@@ -64,6 +64,83 @@ const MISSIONS = [
     progress: 4,
     total: 6,
     rarity: 'legendary'
+  },
+  {
+    id: 'first_blood',
+    title: 'Primeiro Sangue',
+    description: 'Completa o teu primeiro passeio',
+    icon: Zap,
+    reward: 100,
+    rewardType: 'xp',
+    progress: 1,
+    total: 1,
+    rarity: 'common'
+  },
+  {
+    id: 'social_butterfly',
+    title: 'Borboleta Social',
+    description: 'Segue 20 utilizadores na comunidade',
+    icon: Heart,
+    reward: 300,
+    rewardType: 'xp',
+    progress: 12,
+    total: 20,
+    rarity: 'rare'
+  },
+  {
+    id: 'fire_streak',
+    title: 'Chama Imparável',
+    description: 'Faz passeios 7 dias seguidos',
+    icon: Flame,
+    reward: 800,
+    rewardType: 'xp',
+    progress: 3,
+    total: 7,
+    rarity: 'epic'
+  },
+  {
+    id: 'pack_leader',
+    title: 'Líder da Alcateia',
+    description: 'Indica 5 amigos para a PawCão',
+    icon: Crown,
+    reward: 'Badge Lendária',
+    rewardType: 'badge',
+    progress: 2,
+    total: 5,
+    rarity: 'legendary'
+  },
+  {
+    id: 'treasure_hunter',
+    title: 'Caçador de Tesouros',
+    description: 'Resgata 10 recompensas na loja',
+    icon: Star,
+    reward: 600,
+    rewardType: 'xp',
+    progress: 4,
+    total: 10,
+    rarity: 'rare'
+  },
+  {
+    id: 'emergency_hero',
+    title: 'Herói de Emergência',
+    description: 'Aceita 3 passeios de emergência',
+    icon: Zap,
+    reward: 'Título Herói',
+    rewardType: 'title',
+    progress: 1,
+    total: 3,
+    rarity: 'legendary'
+  },
+  {
+    id: 'perfect_score',
+    title: 'Pontuação Perfeita',
+    description: 'Recebe 5 avaliações de 5 estrelas',
+    icon: Star,
+    reward: 500,
+    rewardType: 'xp',
+    progress: 3,
+    total: 5,
+    rarity: 'epic'
   }
 ];
 
@@ -397,8 +474,12 @@ export default function Gamification() {
   const { data: topUsers = [] } = useQuery({
     queryKey: ['topUsersLeaderboard'],
     queryFn: async () => {
-      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 10);
-      return profiles.filter(p => p.gamification_xp > 0);
+      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 50);
+      // Ordenar por XP decrescente e filtrar quem tem XP > 0
+      return profiles
+        .filter(p => p.gamification_xp > 0)
+        .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0))
+        .slice(0, 10);
     },
   });
 
@@ -422,7 +503,7 @@ export default function Gamification() {
   const podiumOrder = [topUsers[1], topUsers[0], topUsers[2]].filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-neutral-950 relative overflow-hidden">
+    <div className="min-h-screen bg-neutral-950 relative overflow-hidden rounded-3xl mx-2 md:mx-4 my-2">
       {/* Nevoeiro laranja animado */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
