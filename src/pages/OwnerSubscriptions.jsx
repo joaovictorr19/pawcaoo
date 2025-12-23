@@ -413,7 +413,7 @@ export default function OwnerSubscriptions() {
                       transition={{ duration: 0.3 }}
                       className={idx === 1 ? '' : 'hidden md:block'}
                     >
-                      <div className={`relative w-80 h-[500px] rounded-2xl border-2 ${planStyle.border} bg-gradient-to-br ${planStyle.bg} shadow-2xl ${planStyle.glow} overflow-hidden`}>
+                      <div className={`relative w-80 min-h-[600px] rounded-2xl border-2 ${planStyle.border} bg-gradient-to-br ${planStyle.bg} shadow-2xl ${planStyle.glow} overflow-hidden`}>
                         {/* Padrão decorativo */}
                         <div className="absolute inset-0 opacity-10">
                           <div className="absolute top-4 left-4 w-8 h-8 border border-purple-500/50 rotate-45" />
