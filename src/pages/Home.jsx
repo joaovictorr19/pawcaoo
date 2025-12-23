@@ -1117,16 +1117,30 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 gap-2 bg-white/80 backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
-                <TabsTrigger value="professionals" className="rounded-lg text-sm md:text-base py-2 h-auto data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white transition-all">
-                  <Users className="w-4 h-4 mr-1.5 flex-shrink-0" />
+              <div className="flex items-center justify-center gap-3 max-w-md mx-auto bg-white/80 backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
+                <button
+                  onClick={() => setActiveTab('professionals')}
+                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-all flex-1 ${
+                    activeTab === 'professionals'
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Users className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
-                </TabsTrigger>
-                <TabsTrigger value="emergency" className="rounded-lg text-sm md:text-base py-2 h-auto data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-orange-600 data-[state=active]:text-white transition-all">
-                  <Zap className="w-4 h-4 mr-1.5 flex-shrink-0" />
+                </button>
+                <button
+                  onClick={() => setActiveTab('emergency')}
+                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-all flex-1 ${
+                    activeTab === 'emergency'
+                      ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Zap className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">SOS</span>
-                </TabsTrigger>
-              </TabsList>
+                </button>
+              </div>
 
               <TabsContent value="professionals">
                 <div>
