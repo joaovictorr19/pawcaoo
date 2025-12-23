@@ -312,7 +312,7 @@ export default function DynamicBackground() {
   const orbColors = getOrbColorsByTheme(colors?.name || 'forest');
 
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gray-50">
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gray-50 w-screen h-screen" style={{ minHeight: '100vh', minWidth: '100vw' }}>
       {/* Dynamic animated orbs based on user level */}
       <div className="absolute inset-0">
         
