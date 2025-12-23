@@ -10,7 +10,11 @@ export const ThemeProvider = ({ children }) => {
   // 1. Buscar o Nível do Utilizador do UserProfile (fonte única da verdade)
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: async () => {
+      const userData = await base44.auth.me();
+      console.log('👤 ThemeProvider - Auth User:', userData?.email, 'XP:', userData?.gamification_xp, 'Level:', userData?.gamification_level);
+      return userData;
+    },
     retry: false,
   });
 
@@ -18,7 +22,9 @@ export const ThemeProvider = ({ children }) => {
     queryKey: ['userProfileTheme', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
+      console.log('🔍 Fetching UserProfile for:', user.email);
       const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+      console.log('📊 UserProfile found:', profiles[0]?.gamification_level, 'XP:', profiles[0]?.gamification_xp);
       return profiles[0] || null;
     },
     enabled: !!user?.email,
@@ -26,14 +32,17 @@ export const ThemeProvider = ({ children }) => {
     refetchInterval: 10 * 1000,
   });
 
-  const level = userProfile?.gamification_level || 1;
+  // Prioridade: UserProfile > User > Default
+  const level = userProfile?.gamification_level ?? user?.gamification_level ?? 1;
   
-  console.log('🎨 ThemeContext - User:', user?.email, 'Level:', level, 'Profile:', userProfile);
+  console.log('🎨 ThemeContext FINAL - Level:', level, 'Source:', userProfile ? 'UserProfile' : user ? 'Auth User' : 'Default');
 
   // 2. A Lógica das Cores (Jewel Tones / Tons de Joia)
   const getThemeByLevel = (lvl) => {
-    // TIER 1 (0-19): VERDE FLORESTA (Deep Forest)
-    if (lvl < 20) return {
+    console.log('🎯 getThemeByLevel called with:', lvl);
+    
+    // TIER 1 (1-19): VERDE FLORESTA (Deep Forest)
+    if (lvl >= 1 && lvl < 20) return {
       name: 'forest',
       primary: 'bg-emerald-900',      // Botões e Fundos Escuros
       secondary: 'bg-emerald-100',    // Fundos Claros
@@ -81,6 +90,7 @@ export const ThemeProvider = ({ children }) => {
     };
 
     // TIER 5 (80+): LENDA DOURADA (Gold)
+    console.log('✨ Level 80+ detected - GOLD THEME');
     return {
       name: 'gold',
       primary: 'bg-yellow-600',
@@ -94,6 +104,7 @@ export const ThemeProvider = ({ children }) => {
   };
 
   const colors = getThemeByLevel(level);
+  console.log('🌈 Final theme selected:', colors.name);
 
   return (
     <ThemeContext.Provider value={{ colors, level }}>
