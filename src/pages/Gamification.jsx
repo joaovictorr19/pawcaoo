@@ -605,9 +605,10 @@ export default function Gamification() {
                 ))}
               </div>
 
-              {/* Avatar flutuante - fixo bem acima do totem */}
+              {/* Avatar flutuante - sobe junto com o progresso do nível */}
               <motion.div
-                className="absolute left-1/2 -translate-x-1/2 -top-14"
+                className="absolute left-1/2 -translate-x-1/2"
+                style={{ bottom: `${Math.min(95, progressInLevel + 5)}%` }}
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
