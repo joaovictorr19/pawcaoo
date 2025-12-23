@@ -558,7 +558,7 @@ export default function Gamification() {
             O Teu Legado
           </motion.h2>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-12">
+          <div className="flex flex-col items-center justify-center gap-8">
             {/* Totem de Poder */}
             <motion.div
               className="relative"
