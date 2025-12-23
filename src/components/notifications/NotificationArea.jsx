@@ -176,53 +176,55 @@ export default function NotificationArea({ isOpen, onClose }) {
       >
         {/* Header */}
         <div 
-          className="flex items-center justify-between p-3 border-b"
+          className="flex items-center justify-between p-4 border-b"
           style={{
-            background: 'rgba(255, 255, 255, 0.8)',
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)',
             borderColor: 'rgba(0, 0, 0, 0.05)'
           }}
         >
-          <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-sm">Notificações</span>
-            {unreadCount > 0 && (
-              <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 h-5">
-                {unreadCount}
-              </Badge>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-md">
+              <Bell className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <span className="font-bold text-base text-gray-900 block">Notificações</span>
+              {unreadCount > 0 && (
+                <span className="text-xs text-gray-500">{unreadCount} não lida{unreadCount > 1 ? 's' : ''}</span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => markAllRead.mutate()}
-                className="text-[10px] text-blue-600 h-7 px-2"
+                className="text-xs text-blue-600 h-8 px-3 rounded-lg hover:bg-blue-50 font-semibold"
               >
-                Marcar lidas
+                ✓ Lidas
               </Button>
             )}
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); forceClose(); }}
               onTouchStart={(e) => { e.preventDefault(); forceClose(); }}
-              className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200"
+              className="h-9 w-9 flex items-center justify-center rounded-xl hover:bg-gray-100 active:bg-gray-200 transition-colors"
               style={{ touchAction: 'manipulation' }}
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 text-gray-600" />
             </button>
           </div>
         </div>
 
         {/* Filter Pills */}
-        <div className="flex gap-1.5 p-2 border-b overflow-x-auto bg-gray-50">
+        <div className="flex gap-1.5 p-3 border-b overflow-x-auto scrollbar-hide">
           {filters.map(f => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shadow-sm ${
                 filter === f.key 
-                  ? "bg-blue-600 text-white" 
-                  : "bg-white text-gray-600 border hover:bg-gray-100"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white scale-105 shadow-md" 
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
               }`}
             >
               {f.label}
@@ -231,71 +233,108 @@ export default function NotificationArea({ isOpen, onClose }) {
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
+        <div className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="p-4 space-y-2">
-              {[1,2,3].map(i => (
-                <div key={i} className="h-16 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="p-3 space-y-2">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="h-20 bg-gray-100 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 text-gray-400">
-              <Bell className="w-10 h-10 mb-2 opacity-30" />
-              <p className="text-sm">Sem notificações</p>
+            <div className="flex flex-col items-center justify-center h-64 text-gray-400 px-6">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                <Bell className="w-8 h-8 text-gray-300" />
+              </div>
+              <p className="text-sm font-medium text-gray-600">Sem notificações</p>
+              <p className="text-xs text-gray-400 mt-1">Você está em dia!</p>
             </div>
           ) : (
-            <div className="p-2 space-y-1.5">
-              {filtered.map((n) => (
-                <div
+            <div className="p-3 space-y-2">
+              {filtered.map((n, idx) => (
+                <motion.div
                   key={n.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
                   onClick={() => handleClick(n)}
-                  className={`relative p-3 rounded-lg cursor-pointer transition-all ${
+                  className={`relative rounded-2xl cursor-pointer transition-all active:scale-[0.98] ${
                     !n.is_read 
-                      ? "bg-white border-l-3 border-l-blue-500 shadow-sm" 
-                      : "bg-white/70 hover:bg-white"
+                      ? "bg-gradient-to-br from-blue-50 to-indigo-50 shadow-md border-2 border-blue-200" 
+                      : "bg-white shadow-sm border border-gray-100 hover:shadow-md"
                   }`}
-                  style={{ borderLeftWidth: !n.is_read ? '3px' : '0' }}
                 >
-                  <div className="flex gap-2.5">
-                    <div className={`p-1.5 rounded-full flex-shrink-0 ${!n.is_read ? 'bg-blue-50' : 'bg-gray-100'}`}>
-                      {getIcon(n.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2 mb-0.5">
-                        <h4 className={`text-xs font-medium truncate ${!n.is_read ? 'text-gray-900' : 'text-gray-600'}`}>
-                          {n.title}
-                        </h4>
-                        <span className="text-[9px] text-gray-400 flex-shrink-0">
-                          {format(new Date(n.created_date), "dd/MM HH:mm")}
-                        </span>
+                  {/* Unread indicator */}
+                  {!n.is_read && (
+                    <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-r-full" />
+                  )}
+                  
+                  <div className="p-4">
+                    <div className="flex gap-3">
+                      {/* Icon */}
+                      <div className={`p-2.5 rounded-xl flex-shrink-0 shadow-sm ${
+                        !n.is_read 
+                          ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
+                          : 'bg-gray-100'
+                      }`}>
+                        <div className={!n.is_read ? 'text-white' : 'text-gray-500'}>
+                          {getIcon(n.type)}
+                        </div>
                       </div>
-                      <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
-                        {n.message}
-                      </p>
-                      <div className="flex items-center justify-between mt-1.5">
-                        <span className="text-[9px] text-gray-400 capitalize">{n.type}</span>
-                        <div className="flex gap-1">
-                          {!n.is_read && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); markAsRead.mutate(n); }}
-                              className="p-1 hover:bg-blue-100 rounded text-blue-600"
-                            >
-                              <Check className="w-3 h-3" />
-                            </button>
-                          )}
-                          {!n.is_system && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); deleteNotif.mutate(n.id); }}
-                              className="p-1 hover:bg-red-100 rounded text-red-500"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          )}
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                          <h4 className={`text-sm font-bold leading-tight ${
+                            !n.is_read ? 'text-gray-900' : 'text-gray-600'
+                          }`}>
+                            {n.title}
+                          </h4>
+                          <span className="text-[10px] text-gray-400 flex-shrink-0 font-medium">
+                            {format(new Date(n.created_date), "HH:mm")}
+                          </span>
+                        </div>
+                        
+                        <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed mb-2">
+                          {n.message}
+                        </p>
+                        
+                        {/* Footer with actions */}
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            n.type === 'emergency' ? 'bg-red-100 text-red-600' :
+                            n.type === 'payment' ? 'bg-green-100 text-green-600' :
+                            n.type === 'booking' ? 'bg-blue-100 text-blue-600' :
+                            'bg-purple-100 text-purple-600'
+                          }`}>
+                            {n.type === 'emergency' ? '🚨 Urgente' :
+                             n.type === 'payment' ? '💰 Pagamento' :
+                             n.type === 'booking' ? '📅 Reserva' :
+                             '📢 Sistema'}
+                          </span>
+                          
+                          <div className="flex gap-1">
+                            {!n.is_read && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); markAsRead.mutate(n); }}
+                                className="p-1.5 hover:bg-blue-100 rounded-lg text-blue-600 transition-colors active:scale-95"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {!n.is_system && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); deleteNotif.mutate(n.id); }}
+                                className="p-1.5 hover:bg-red-100 rounded-lg text-red-500 transition-colors active:scale-95"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
