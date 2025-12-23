@@ -268,8 +268,8 @@ const MissionCard = ({ mission, isFlipped, onFlip }) => {
 
 // Componente do Pedestal
 const PodiumPedestal = ({ user, position, delay }) => {
-  const heights = { 1: 'h-40', 2: 'h-28', 3: 'h-20' };
-  const sizes = { 1: 'w-24 h-24', 2: 'w-18 h-18', 3: 'w-16 h-16' };
+  const heights = { 1: 'h-24', 2: 'h-16', 3: 'h-12' };
+  const sizes = { 1: 'w-14 h-14', 2: 'w-12 h-12', 3: 'w-10 h-10' };
   const glowColors = { 1: 'shadow-amber-500/60', 2: 'shadow-gray-400/50', 3: 'shadow-orange-700/50' };
   const borderColors = { 1: 'border-amber-500', 2: 'border-gray-400', 3: 'border-orange-700' };
   const bgColors = { 1: 'from-amber-900/50 to-amber-950/80', 2: 'from-gray-800/50 to-gray-900/80', 3: 'from-orange-900/50 to-orange-950/80' };
@@ -292,11 +292,11 @@ const PodiumPedestal = ({ user, position, delay }) => {
       {/* Coroa para 1º lugar */}
       {position === 1 && (
         <motion.div
-          animate={{ y: [0, -5, 0], rotate: [-5, 5, -5] }}
+          animate={{ y: [0, -3, 0], rotate: [-3, 3, -3] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="mb-2"
+          className="mb-1"
         >
-          <Crown className="w-10 h-10 text-amber-400 drop-shadow-lg" />
+          <Crown className="w-6 h-6 text-amber-400 drop-shadow-lg" />
         </motion.div>
       )}
 
@@ -322,24 +322,24 @@ const PodiumPedestal = ({ user, position, delay }) => {
       </motion.div>
 
       {/* Nome e Título */}
-      <h4 className="text-white font-bold text-sm mb-1 text-center max-w-[120px] truncate">
+      <h4 className="text-white font-bold text-xs mb-0.5 text-center max-w-[80px] truncate">
         {user?.full_name || `Jogador ${position}`}
       </h4>
-      <p className="text-amber-500/70 text-[10px] uppercase tracking-wider text-center mb-2">
+      <p className="text-amber-500/70 text-[8px] uppercase tracking-wider text-center mb-1 max-w-[80px] truncate">
         {funnyTitles[position - 1]}
       </p>
 
       {/* XP */}
-      <Badge className="bg-black/50 border border-amber-500/30 text-amber-400 text-xs mb-4">
-        <Flame className="w-3 h-3 mr-1" />
-        {(user?.gamification_xp || 0).toLocaleString()} XP
+      <Badge className="bg-black/50 border border-amber-500/30 text-amber-400 text-[10px] mb-2 px-2 py-0.5">
+        <Flame className="w-2.5 h-2.5 mr-1" />
+        {(user?.gamification_xp || 0).toLocaleString()}
       </Badge>
 
       {/* Pedestal */}
       <motion.div
-        className={`${heights[position]} w-28 relative`}
+        className={`${heights[position]} w-20 relative`}
         initial={{ height: 0 }}
-        animate={{ height: position === 1 ? 160 : position === 2 ? 112 : 80 }}
+        animate={{ height: position === 1 ? 96 : position === 2 ? 64 : 48 }}
         transition={{ duration: 0.8, delay: delay + 0.3 }}
       >
         {/* Pedestal base */}
@@ -349,7 +349,7 @@ const PodiumPedestal = ({ user, position, delay }) => {
           
           {/* Número da posição */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className={`text-4xl font-black ${
+            <span className={`text-2xl font-black ${
               position === 1 ? 'text-amber-500' : 
               position === 2 ? 'text-gray-400' : 
               'text-orange-700'
@@ -466,10 +466,11 @@ export default function Gamification() {
               transition={{ duration: 0.8 }}
             >
               {/* Barra vertical do totem */}
-              <div className="relative w-20 h-72 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
-                {/* Preenchimento de lava */}
+              <div className="relative w-12 h-48 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
+                {/* Preenchimento de lava - começa de baixo */}
                 <motion.div
                   className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-700 via-orange-500 to-amber-400"
+                  style={{ height: `${progressInLevel}%` }}
                   initial={{ height: 0 }}
                   animate={{ height: `${progressInLevel}%` }}
                   transition={{ duration: 1.5, ease: "easeOut" }}
@@ -503,25 +504,26 @@ export default function Gamification() {
                 ))}
               </div>
 
-              {/* Avatar flutuante no topo */}
+              {/* Avatar flutuante - posição baseada no progresso */}
               <motion.div
-                className="absolute -top-16 left-1/2 -translate-x-1/2"
-                animate={{ y: [0, -8, 0] }}
+                className="absolute left-1/2 -translate-x-1/2"
+                style={{ bottom: `${Math.max(5, progressInLevel - 10)}%` }}
+                animate={{ y: [0, -4, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
                 {/* Aura */}
                 <motion.div
-                  className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-xl scale-150`}
+                  className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-lg scale-125`}
                   animate={{ 
-                    scale: [1.5, 1.8, 1.5], 
-                    opacity: [0.4, 0.7, 0.4] 
+                    scale: [1.25, 1.5, 1.25], 
+                    opacity: [0.4, 0.6, 0.4] 
                   }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 
-                <Avatar className="w-20 h-20 border-4 border-amber-500 shadow-2xl shadow-amber-500/50 relative z-10">
+                <Avatar className="w-10 h-10 border-2 border-amber-500 shadow-xl shadow-amber-500/50 relative z-10">
                   <AvatarImage src={user?.profile_photo_url} />
-                  <AvatarFallback className="bg-neutral-800 text-amber-500 text-2xl font-black">
+                  <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm font-black">
                     {user?.full_name?.[0] || '?'}
                   </AvatarFallback>
                 </Avatar>
@@ -657,8 +659,8 @@ export default function Gamification() {
       </section>
 
       {/* ========== SECÇÃO 3: O PÓDIO DOS TITÃS ========== */}
-      <section className="relative py-20 px-4">
-        <div className="max-w-4xl mx-auto">
+      <section className="relative py-12 px-4">
+        <div className="max-w-2xl mx-auto">
           <motion.h2
             className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-4"
             initial={{ opacity: 0 }}
@@ -667,12 +669,12 @@ export default function Gamification() {
           >
             O Pódio dos Titãs
           </motion.h2>
-          <p className="text-center text-gray-600 text-xs mb-16">
+          <p className="text-center text-gray-600 text-xs mb-8">
             Os guerreiros mais poderosos da Alcateia
           </p>
 
           {/* Pódio */}
-          <div className="flex items-end justify-center gap-4 md:gap-8">
+          <div className="flex items-end justify-center gap-2 md:gap-4">
             {/* 2º Lugar */}
             {podiumOrder[0] && (
               <PodiumPedestal user={podiumOrder[0]} position={2} delay={0.2} />
