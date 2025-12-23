@@ -20,7 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
-import PawStoreTab from "../components/store/PawStoreTab";
+
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
