@@ -1286,18 +1286,24 @@ function LayoutContent({ children, currentPageName }) {
                 steps={[
                   {
                     targetId: '#nav-home',
-                    title: 'Encontre Ajuda',
-                    content: 'Aqui podes encontrar passeadores e treinadores verificados perto de ti.'
-                  },
-                  {
-                    targetId: '#nav-gamification',
-                    title: 'Ganhe Prémios',
-                    content: 'Acumule XP em cada passeio e desbloqueie emblemas exclusivos para o teu perfil!'
+                    title: language === 'pt' ? 'Bem-vindo à PawCão! 🐾' : 'Welcome to PawCão! 🐾',
+                    content: language === 'pt' 
+                      ? 'Encontra passeadores e treinadores verificados perto de ti. Todos passam por verificação de segurança!'
+                      : 'Find verified walkers and trainers near you. All go through security verification!'
                   },
                   {
                     targetId: '#header-profile',
-                    title: 'O Teu Perfil',
-                    content: 'Aqui vês o teu nível, estatísticas e podes editar as tuas preferências.'
+                    title: language === 'pt' ? 'O Teu Perfil' : 'Your Profile',
+                    content: language === 'pt'
+                      ? 'Adiciona os teus cães, edita preferências e acompanha o teu nível e estatísticas.'
+                      : 'Add your dogs, edit preferences and track your level and stats.'
+                  },
+                  {
+                    targetId: '#nav-gamification',
+                    title: language === 'pt' ? 'Ganha Prémios! 🏆' : 'Earn Rewards! 🏆',
+                    content: language === 'pt'
+                      ? 'Acumula XP em cada passeio, desbloqueia emblemas e sobe no ranking da comunidade!'
+                      : 'Earn XP on every walk, unlock badges and climb the community ranking!'
                   }
                 ]}
               />

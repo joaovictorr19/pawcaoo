@@ -32,6 +32,7 @@ import FAQ from './pages/FAQ';
 import Favorites from './pages/Favorites';
 import FiscalSettings from './pages/FiscalSettings';
 import ForumTopicDetails from './pages/ForumTopicDetails';
+import Gamification from './pages/Gamification';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Leaderboard from './pages/Leaderboard';
@@ -80,7 +81,6 @@ import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
-import Gamification from './pages/Gamification';
 import __Layout from './Layout.jsx';
 
 
@@ -119,6 +119,7 @@ export const PAGES = {
     "Favorites": Favorites,
     "FiscalSettings": FiscalSettings,
     "ForumTopicDetails": ForumTopicDetails,
+    "Gamification": Gamification,
     "Home": Home,
     "Landing": Landing,
     "Leaderboard": Leaderboard,
@@ -167,7 +168,6 @@ export const PAGES = {
     "WalkHistory": WalkHistory,
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
-    "Gamification": Gamification,
 }
 
 export const pagesConfig = {
