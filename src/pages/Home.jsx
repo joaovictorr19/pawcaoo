@@ -1118,11 +1118,11 @@ export default function Home() {
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white/80 backdrop-blur-lg p-1.5 rounded-xl mb-6 border border-white/50 shadow-lg">
-                <TabsTrigger value="professionals" className="rounded-lg text-sm md:text-base py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white">
+                <TabsTrigger value="professionals" className="rounded-lg text-sm md:text-base py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white">
                   <Users className="w-4 h-4 mr-2 flex-shrink-0" />
                   <span className="truncate">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
                 </TabsTrigger>
-                <TabsTrigger value="emergency" className="rounded-lg text-sm md:text-base py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-orange-600 data-[state=active]:text-white">
+                <TabsTrigger value="emergency" className="rounded-lg text-sm md:text-base py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-orange-600 data-[state=active]:text-white">
                   <Zap className="w-4 h-4 mr-2 flex-shrink-0" />
                   <span className="truncate">SOS</span>
                 </TabsTrigger>
