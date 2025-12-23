@@ -28,8 +28,8 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
 import { calculateTier, getLevelFromXP, getXPForLevel } from "@/components/gamification/tierSystem";
-import ProfileAnimalsBar from "@/components/profile/ProfileAnimalsBar";
-import AnimalManagerModal from "@/components/profile/AnimalManagerModal";
+import ProfileAnimalsBar from "../components/profile/ProfileAnimalsBar";
+import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 
 const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => {
   return (
