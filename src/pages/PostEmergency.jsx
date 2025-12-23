@@ -122,23 +122,20 @@ export default function PostEmergency() {
 
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
-      // 1. Create emergency walk
       const walk = await base44.entities.EmergencyWalk.create({
         ...walkData,
         status: 'available',
         payment_status: 'pending'
       });
 
-      // 2. Calculate fees (15% platform fee as default)
       const serviceAmount = parseFloat(walkData.offered_amount) * 0.85;
       const platformFee = parseFloat(walkData.offered_amount) * 0.15;
 
-      // 3. Create payment record immediately to hold the transaction
       const payment = await base44.entities.Payment.create({
         emergency_walk_id: walk.id,
         payer_email: user.email,
         payer_name: walkData.owner_name,
-        recipient_email: null, // Will be filled when walker accepts
+        recipient_email: null,
         recipient_name: null,
         service_amount: serviceAmount,
         platform_fee: platformFee,
@@ -147,12 +144,10 @@ export default function PostEmergency() {
         payment_method: 'stripe'
       });
 
-      // 4. Link payment to emergency walk
       await base44.entities.EmergencyWalk.update(walk.id, {
         payment_id: payment.id
       });
 
-      // 5. Notify available walkers
       await NotificationService.emergencyWalkPosted({ walk });
 
       return { walk, payment };
@@ -160,8 +155,6 @@ export default function PostEmergency() {
     onSuccess: ({ walk }) => {
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
       toast.success('🚨 Emergência publicada! Agora proceda com o pagamento para ativar.');
-      
-      // Redirect to emergency details where payment can be made
       navigate(createPageUrl('Home?tab=emergency'));
     },
     onError: (error) => {
@@ -277,14 +270,14 @@ export default function PostEmergency() {
           <p className="text-gray-600 text-sm md:text-base">{t('findWalkerNow', language)}</p>
         </div>
 
-        <Card className="border border-gray-200 shadow-md rounded-2xl overflow-hidden bg-white !bg-white">
+        <Card className="border border-gray-200 shadow-md rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-white text-gray-900 border-b border-gray-200 py-4">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
               <Zap className="w-5 h-5 text-gray-700" />
               {t('postEmergency', language)}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 md:p-6">
+          <CardContent className="p-4 md:p-6 bg-white">
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Multi-Animal Selection */}
               {myDogs?.length > 0 && (
@@ -336,20 +329,20 @@ export default function PostEmergency() {
               )}
 
               {/* Urgency Level */}
-              <div>
-                <Label htmlFor="urgency_level" className="text-sm font-semibold mb-1.5 block">{t('urgencyLevel', language)} *</Label>
+              <div className="bg-white">
+                <Label htmlFor="urgency_level" className="text-sm font-semibold mb-1.5 block text-gray-900">{t('urgencyLevel', language)} *</Label>
                 <Select 
                   required
                   value={formData.urgency_level}
                   onValueChange={(value) => setFormData({...formData, urgency_level: value})}
                 >
-                  <SelectTrigger className="h-10">
-                    <SelectValue />
+                  <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-900">
+                    <SelectValue className="text-gray-900" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="urgent">{t('urgentTime', language)}</SelectItem>
-                    <SelectItem value="very_urgent">{t('veryUrgentTime', language)}</SelectItem>
-                    <SelectItem value="immediate">{t('immediateTime', language)}</SelectItem>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="urgent" className="text-gray-900">{t('urgentTime', language)}</SelectItem>
+                    <SelectItem value="very_urgent" className="text-gray-900">{t('veryUrgentTime', language)}</SelectItem>
+                    <SelectItem value="immediate" className="text-gray-900">{t('immediateTime', language)}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -377,49 +370,49 @@ export default function PostEmergency() {
                         accept="image/*"
                         onChange={handleFileUpload}
                         disabled={uploading}
-                        className="text-xs h-9"
+                        className="text-xs h-9 bg-white"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label htmlFor="dog_name" className="text-xs">Nome *</Label>
+                      <Label htmlFor="dog_name" className="text-xs text-gray-900">Nome *</Label>
                       <Input
                         id="dog_name"
                         value={formData.dog_name}
                         onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
                         placeholder="Max"
-                        className="h-9 text-sm"
+                        className="h-9 text-sm bg-white text-gray-900"
                       />
                     </div>
 
                     <div>
-                      <Label htmlFor="dog_size" className="text-xs">Tamanho *</Label>
+                      <Label htmlFor="dog_size" className="text-xs text-gray-900">Tamanho *</Label>
                       <Select 
                         value={formData.dog_size}
                         onValueChange={(value) => setFormData({...formData, dog_size: value})}
                       >
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="Tamanho" />
+                        <SelectTrigger className="h-9 text-sm bg-white text-gray-900">
+                          <SelectValue placeholder="Tamanho" className="text-gray-900" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="small">Pequeno</SelectItem>
-                          <SelectItem value="medium">Médio</SelectItem>
-                          <SelectItem value="large">Grande</SelectItem>
-                          <SelectItem value="extra_large">XL</SelectItem>
+                        <SelectContent className="bg-white">
+                          <SelectItem value="small" className="text-gray-900">Pequeno</SelectItem>
+                          <SelectItem value="medium" className="text-gray-900">Médio</SelectItem>
+                          <SelectItem value="large" className="text-gray-900">Grande</SelectItem>
+                          <SelectItem value="extra_large" className="text-gray-900">XL</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="col-span-2">
-                      <Label htmlFor="dog_breed" className="text-xs">Raça</Label>
+                      <Label htmlFor="dog_breed" className="text-xs text-gray-900">Raça</Label>
                       <Input
                         id="dog_breed"
                         value={formData.dog_breed}
                         onChange={(e) => setFormData({...formData, dog_breed: e.target.value})}
                         placeholder="Golden Retriever, SRD..."
-                        className="h-9 text-sm"
+                        className="h-9 text-sm bg-white text-gray-900"
                       />
                     </div>
                   </div>
@@ -431,24 +424,24 @@ export default function PostEmergency() {
                 <Label className="text-sm font-semibold block text-gray-700">Seus Dados</Label>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="owner_name" className="text-xs">Seu Nome *</Label>
+                    <Label htmlFor="owner_name" className="text-xs text-gray-900">Seu Nome *</Label>
                     <Input
                       id="owner_name"
                       value={formData.owner_name}
                       onChange={(e) => setFormData({...formData, owner_name: e.target.value})}
                       placeholder="João Silva"
-                      className="h-9 text-sm"
+                      className="h-9 text-sm bg-white text-gray-900"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="owner_phone" className="text-xs">Telefone *</Label>
+                    <Label htmlFor="owner_phone" className="text-xs text-gray-900">Telefone *</Label>
                     <Input
                       id="owner_phone"
                       value={formData.owner_phone}
                       onChange={(e) => setFormData({...formData, owner_phone: e.target.value})}
                       placeholder="+351 912 345 678"
-                      className="h-9 text-sm"
+                      className="h-9 text-sm bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -459,29 +452,29 @@ export default function PostEmergency() {
                 <Label className="text-sm font-semibold block text-gray-700">Detalhes do Passeio</Label>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div className="md:col-span-2">
-                    <Label htmlFor="location" className="text-xs">Local de Recolha *</Label>
+                    <Label htmlFor="location" className="text-xs text-gray-900">Local de Recolha *</Label>
                     <Input
                       id="location"
                       value={formData.location}
                       onChange={(e) => setFormData({...formData, location: e.target.value})}
                       placeholder="Morada completa..."
-                      className="h-9 text-sm"
+                      className="h-9 text-sm bg-white text-gray-900"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="needed_time" className="text-xs">Quando *</Label>
+                    <Label htmlFor="needed_time" className="text-xs text-gray-900">Quando *</Label>
                     <Input
                       id="needed_time"
                       value={formData.needed_time}
                       onChange={(e) => setFormData({...formData, needed_time: e.target.value})}
                       placeholder="Agora, 30min..."
-                      className="h-9 text-sm"
+                      className="h-9 text-sm bg-white text-gray-900"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="duration_hours" className="text-xs">Duração (h) *</Label>
+                    <Label htmlFor="duration_hours" className="text-xs text-gray-900">Duração (h) *</Label>
                     <Input
                       id="duration_hours"
                       type="number"
@@ -489,12 +482,12 @@ export default function PostEmergency() {
                       step="0.5"
                       value={formData.duration_hours}
                       onChange={(e) => setFormData({...formData, duration_hours: e.target.value})}
-                      className="h-9 text-sm"
+                      className="h-9 text-sm bg-white text-gray-900"
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <Label htmlFor="offered_amount" className="text-xs">Valor Oferecido (€) *</Label>
+                    <Label htmlFor="offered_amount" className="text-xs text-gray-900">Valor Oferecido (€) *</Label>
                     <Input
                       id="offered_amount"
                       type="number"
@@ -503,7 +496,7 @@ export default function PostEmergency() {
                       value={formData.offered_amount}
                       onChange={(e) => setFormData({...formData, offered_amount: e.target.value})}
                       placeholder="50"
-                      className="h-10 text-sm font-semibold"
+                      className="h-10 text-sm font-semibold bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -511,14 +504,14 @@ export default function PostEmergency() {
 
               {/* Special Notes */}
               <div>
-                <Label htmlFor="special_notes" className="text-sm font-semibold mb-1.5 block">Notas Especiais <span className="text-xs text-gray-500 font-normal">(opcional)</span></Label>
+                <Label htmlFor="special_notes" className="text-sm font-semibold mb-1.5 block text-gray-900">Notas Especiais <span className="text-xs text-gray-500 font-normal">(opcional)</span></Label>
                 <Textarea
                   id="special_notes"
                   value={formData.special_notes}
                   onChange={(e) => setFormData({...formData, special_notes: e.target.value})}
                   placeholder="Temperamento, cuidados especiais, medicamentos..."
                   rows={3}
-                  className="text-sm"
+                  className="text-sm bg-white text-gray-900"
                 />
               </div>
 
@@ -546,7 +539,7 @@ export default function PostEmergency() {
                   type="button"
                   variant="outline"
                   onClick={() => navigate(createPageUrl('Home'))}
-                  className="w-full md:w-auto h-10 text-sm"
+                  className="w-full md:w-auto h-10 text-sm text-gray-900 bg-white"
                 >
                   Cancelar
                 </Button>

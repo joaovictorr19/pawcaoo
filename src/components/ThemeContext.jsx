@@ -77,7 +77,7 @@ export const ThemeProvider = ({ children }) => {
           orb2: tier.orb2,
           text: tier.text,
           bg: tier.bg,
-          isDark: tier.isDark,
+          isDark: false, // FORÇA SEMPRE MODO CLARO
           isLegendary: tier.isLegendary
         },
         icon: tier.icon,
@@ -90,12 +90,8 @@ export const ThemeProvider = ({ children }) => {
       root.style.setProperty('--color-orb-2', tier.orb2 || tier.primary);
       root.style.setProperty('--color-primary', tier.primary);
 
-      // Apply dark mode for dark tiers (Obsidiana, Cosmos)
-      if (tier.isDark) {
-        document.documentElement.classList.add('dark-cosmos');
-      } else {
-        document.documentElement.classList.remove('dark-cosmos');
-      }
+      // REMOVE PERMANENTEMENTE O MODO ESCURO
+      document.documentElement.classList.remove('dark-cosmos');
 
       console.log(`🎨 Tema ${tier.name} (Nv.${tier.level}) aplicado | XP: ${xp} | Cores: ${tier.orb1}, ${tier.orb2}`);
     }
@@ -106,7 +102,7 @@ export const ThemeProvider = ({ children }) => {
     level: tierTheme.level || 1,
     colors: {
       ...tierTheme.colors,
-      isDarkMode: tierTheme.colors?.isDark || tierTheme.name === 'Cosmos' || tierTheme.name === 'Obsidiana'
+      isDarkMode: false // SEMPRE MODO CLARO
     },
     icon: tierTheme.icon,
     progress: tierTheme.progress || 0,
