@@ -339,7 +339,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
   const handleNextStep = () => {
     if (step === 1) {
-      if (!selectedDogId && !formData.dog_name) {
+      // Validar se selecionou um cão OU se preencheu manualmente
+      if (!selectedDogId && (!showManualInput || !formData.dog_name)) {
         toast.error('Selecione ou adicione um animal');
         return;
       }
@@ -397,11 +398,12 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         payment_status: 'pending'
       };
 
-      console.log('📝 Creating booking before checkout...');
+      console.log('📝 Creating booking before checkout...', bookingData);
       const booking = await createBookingMutation.mutateAsync(bookingData);
       console.log('✅ Booking created:', booking.id);
 
       // 2. Now create Stripe checkout session
+      console.log('💳 Calling createBookingCheckout...');
       const response = await base44.functions.invoke('createBookingCheckout', {
         booking_id: booking.id,
         professional_id: pro.id,
@@ -424,15 +426,18 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         owner_phone: formData.owner_phone
       });
 
-      if (response.data?.url) {
-        console.log('🔗 Redirecting to Stripe checkout...');
+      console.log('📦 Checkout response:', response);
+
+      if (response?.data?.url) {
+        console.log('🔗 Redirecting to Stripe checkout:', response.data.url);
         window.location.href = response.data.url;
       } else {
-        toast.error(language === 'pt' ? 'Erro ao criar sessão de pagamento' : 'Error creating payment session');
+        console.error('❌ No checkout URL in response:', response);
+        toast.error(language === 'pt' ? 'Erro ao criar sessão de pagamento. Por favor tente novamente.' : 'Error creating payment session');
       }
     } catch (error) {
-      console.error('Payment error:', error);
-      toast.error(language === 'pt' ? 'Erro ao processar pagamento' : 'Error processing payment');
+      console.error('❌ Payment error:', error);
+      toast.error(language === 'pt' ? `Erro ao processar pagamento: ${error.message || 'Tente novamente'}` : 'Error processing payment');
     } finally {
       setIsPaymentProcessing(false);
     }
