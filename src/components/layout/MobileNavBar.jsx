@@ -41,7 +41,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       label: language === 'pt' ? 'Painel' : language === 'es' ? 'Panel' : 'Panel',
       icon: Calendar,
       path: createPageUrl("ProfessionalDashboard"),
-      activeColor: "text-green-600"
+      activeColor: "text-blue-600"
     },
     {
       label: getLabel('hallOfFame'),
@@ -103,7 +103,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               {active && (
                 <div 
                   className="absolute -top-2 w-8 h-1 rounded-full opacity-60 blur-sm"
-                  style={{ backgroundColor: colors?.primary || '#16a34a' }}
+                  style={{ backgroundColor: colors?.primary || '#3b82f6' }}
                 />
               )}
 
@@ -111,7 +111,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
                 {item.isProfile && user ? (
                   <Avatar 
                     className={`w-5 h-5 ${active ? "ring-2 ring-offset-1" : ""}`}
-                    style={active ? { '--tw-ring-color': colors?.primary || '#16a34a' } : {}}
+                    style={active ? { '--tw-ring-color': colors?.primary || '#3b82f6' } : {}}
                   >
                     <AvatarImage src={user.profile_photo_url} className="aspect-square object-cover object-center" />
                     <AvatarFallback className="text-[8px] bg-gray-200">
@@ -121,7 +121,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
                 ) : (
                   <Icon 
                     className={`w-5 h-5 ${item.isSpecial && active ? "fill-current" : ""}`}
-                    style={active ? { color: colors?.primary || '#16a34a' } : {}}
+                    style={active ? { color: colors?.primary || '#3b82f6' } : {}}
                     strokeWidth={active ? 2.5 : 1.8}
                   />
                 )}
@@ -135,7 +135,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
               <span 
                 className={`text-[9px] mt-0.5 font-medium truncate max-w-[50px] ${!active && "text-gray-500"}`}
-                style={active ? { color: colors?.primary || '#16a34a' } : {}}
+                style={active ? { color: colors?.primary || '#3b82f6' } : {}}
               >
                 {item.label}
               </span>
