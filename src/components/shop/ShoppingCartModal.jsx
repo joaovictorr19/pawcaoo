@@ -223,8 +223,6 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                   ))}
                 </div>
 
-                <div className="my-4 h-px bg-gray-200" />
-
                 {/* Coupon Section */}
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold flex items-center gap-2">
@@ -264,9 +262,7 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                   )}
                 </div>
 
-                <div className="my-4 h-px bg-gray-200" />
-
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl space-y-2">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl space-y-2 mt-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal ({cart.total_items} {cart.total_items === 1 ? 'item' : 'itens'})</span>
                     <span className="font-semibold">€{subtotal.toFixed(2)}</span>
@@ -292,7 +288,7 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                       Faltam €{(50 - subtotal).toFixed(2)} para envio grátis
                     </p>
                   )}
-                  <div className="my-2 h-px bg-gray-300" />
+
                   <div className="flex justify-between text-xl font-bold">
                     <span>Total</span>
                     <span className="text-blue-600">€{total.toFixed(2)}</span>
@@ -379,7 +375,7 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                     <span className="text-gray-600">Envio</span>
                     <span className="font-semibold">{shipping === 0 ? 'Grátis' : `€${shipping.toFixed(2)}`}</span>
                   </div>
-                  <div className="my-2 h-px bg-gray-300" />
+
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
                     <span className="text-blue-600">€{total.toFixed(2)}</span>
@@ -462,7 +458,7 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                       <span className="text-gray-600">Envio</span>
                       <span className="font-semibold">{shipping === 0 ? 'Grátis' : `€${shipping.toFixed(2)}`}</span>
                     </div>
-                    <div className="my-2 h-px bg-gray-300" />
+  
                     <div className="flex justify-between text-2xl font-bold">
                       <span>Total a Pagar</span>
                       <span className="text-blue-600">€{total.toFixed(2)}</span>
