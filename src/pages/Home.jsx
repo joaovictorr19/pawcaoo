@@ -93,7 +93,7 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState(null);
   const [viewMode, setViewMode] = useState("list");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 12;
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -1233,8 +1233,8 @@ export default function Home() {
                   ) : ( 
                     <>
                       {loadingWalkers || loadingTrainers ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                          {[1, 2, 3, 4, 5, 6].map(i => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                             <div key={`skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
                               <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
                               <Skeleton className="h-5 w-3/4 bg-gray-200" />
@@ -1281,7 +1281,7 @@ export default function Home() {
                         </Card>
                       ) : (
                         <>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 mb-8">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
                             {paginatedProfessionals.map((pro) => (
                               <WalkerCard 
                                 key={pro.id} 
