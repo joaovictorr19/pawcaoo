@@ -272,16 +272,6 @@ function LayoutContent({ children, currentPageName }) {
       icon: ShoppingBag
     },
     { 
-      title: language === 'pt' ? 'Minhas Encomendas' : 'My Orders',
-      url: createPageUrl("MyOrders"),
-      icon: ShoppingBag
-    },
-    { 
-      title: language === 'pt' ? 'Lista de Desejos' : 'Wishlist',
-      url: createPageUrl("MyWishlist"),
-      icon: Heart
-    },
-    { 
       title: language === 'pt' ? 'Passeio de Emergência' : (t('postEmergency', language) || 'Emergency Walk'), 
       url: createPageUrl("PostEmergency"), 
       icon: Zap, 
@@ -310,6 +300,8 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
+    { title: language === 'pt' ? 'Minhas Encomendas' : 'My Orders', url: createPageUrl("MyOrders"), icon: ShoppingBag },
+    { title: language === 'pt' ? 'Lista de Desejos' : 'Wishlist', url: createPageUrl("MyWishlist"), icon: Heart },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
     { title: language === 'pt' ? 'Hall da Fama' : language === 'es' ? 'Salón de la Fama' : 'Hall of Fame', url: createPageUrl("Gamification"), icon: Trophy, id: "nav-gamification" },
     { title: language === 'pt' ? 'Programa Afiliados' : language === 'es' ? 'Programa de Afiliados' : 'Affiliate Program', url: createPageUrl("AffiliateDashboard"), icon: Users },
