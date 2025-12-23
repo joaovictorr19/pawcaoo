@@ -576,11 +576,30 @@ export default function PartnerDashboard() {
 
       {/* CRIAR SERVIÇO - COM FOTO E LOCALIZAÇÃO */}
       <Dialog open={showCreateService} onOpenChange={setShowCreateService}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent 
+          className="max-w-3xl max-h-[90vh] overflow-y-auto !bg-white"
+          style={{ 
+            background: '#ffffff !important',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <DialogHeader 
+            style={{ 
+              background: '#ffffff',
+              border: 'none',
+              borderBottom: 'none',
+              boxShadow: 'none'
+            }}
+          >
             <DialogTitle>Criar Serviço</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div 
+            className="space-y-4 py-4"
+            style={{ background: '#ffffff' }}
+          >
             {/* FOTO DO SERVIÇO */}
             <div>
               <Label>Foto do Serviço</Label>
@@ -725,11 +744,30 @@ export default function PartnerDashboard() {
 
       {/* CRIAR ANÚNCIO - COM FOTO */}
       <Dialog open={showCreateAnnouncement} onOpenChange={setShowCreateAnnouncement}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent 
+          className="max-w-3xl max-h-[90vh] overflow-y-auto !bg-white"
+          style={{ 
+            background: '#ffffff !important',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <DialogHeader 
+            style={{ 
+              background: '#ffffff',
+              border: 'none',
+              borderBottom: 'none',
+              boxShadow: 'none'
+            }}
+          >
             <DialogTitle>Criar Anúncio</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div 
+            className="space-y-4 py-4"
+            style={{ background: '#ffffff' }}
+          >
             {/* FOTO DO ANÚNCIO */}
             <div>
               <Label>Imagem do Anúncio *</Label>
@@ -860,11 +898,30 @@ export default function PartnerDashboard() {
 
       {/* CRIAR PRODUTO */}
       <Dialog open={showCreateProduct} onOpenChange={setShowCreateProduct}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent 
+          className="max-w-3xl max-h-[90vh] overflow-y-auto !bg-white"
+          style={{ 
+            background: '#ffffff !important',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <DialogHeader 
+            style={{ 
+              background: '#ffffff',
+              border: 'none',
+              borderBottom: 'none',
+              boxShadow: 'none'
+            }}
+          >
             <DialogTitle>Criar Produto para a Loja</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div 
+            className="space-y-4 py-4"
+            style={{ background: '#ffffff' }}
+          >
             <div>
               <Label>Imagem do Produto *</Label>
               {productForm.image_url && (
@@ -995,8 +1052,24 @@ export default function PartnerDashboard() {
 
       {/* MEUS SERVIÇOS */}
       <Dialog open={showMyServices} onOpenChange={setShowMyServices}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent 
+          className="max-w-4xl max-h-[90vh] overflow-y-auto !bg-white"
+          style={{ 
+            background: '#ffffff !important',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <DialogHeader 
+            style={{ 
+              background: '#ffffff',
+              border: 'none',
+              borderBottom: 'none',
+              boxShadow: 'none'
+            }}
+          >
             <DialogTitle>Meus Serviços ({myServices.length})</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -1052,12 +1125,31 @@ export default function PartnerDashboard() {
                     </Dialog>
 
                     {/* EDIT COMPANY PROFILE */}
-      <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Perfil da Empresa</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
+                    <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>
+                    <DialogContent 
+                    className="max-w-3xl max-h-[90vh] overflow-y-auto !bg-white"
+                    style={{ 
+                    background: '#ffffff !important',
+                    backdropFilter: 'none',
+                    WebkitBackdropFilter: 'none',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+                    }}
+                    >
+                    <DialogHeader 
+                    style={{ 
+                    background: '#ffffff',
+                    border: 'none',
+                    borderBottom: 'none',
+                    boxShadow: 'none'
+                    }}
+                    >
+                    <DialogTitle>Editar Perfil da Empresa</DialogTitle>
+                    </DialogHeader>
+                    <div 
+                    className="space-y-4 py-4"
+                    style={{ background: '#ffffff' }}
+                    >
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Serviços Oferecidos (Resumo)</Label>
@@ -1126,8 +1218,24 @@ export default function PartnerDashboard() {
 
       {/* MEUS PRODUTOS */}
       <Dialog open={showMyProducts} onOpenChange={setShowMyProducts}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent 
+          className="max-w-4xl max-h-[90vh] overflow-y-auto !bg-white"
+          style={{ 
+            background: '#ffffff !important',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <DialogHeader 
+            style={{ 
+              background: '#ffffff',
+              border: 'none',
+              borderBottom: 'none',
+              boxShadow: 'none'
+            }}
+          >
             <DialogTitle>Meus Produtos ({myProducts.length})</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -1210,8 +1318,24 @@ export default function PartnerDashboard() {
 
       {/* MEUS ANÚNCIOS */}
       <Dialog open={showMyAnnouncements} onOpenChange={setShowMyAnnouncements}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent 
+          className="max-w-4xl max-h-[90vh] overflow-y-auto !bg-white"
+          style={{ 
+            background: '#ffffff !important',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none',
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <DialogHeader 
+            style={{ 
+              background: '#ffffff',
+              border: 'none',
+              borderBottom: 'none',
+              boxShadow: 'none'
+            }}
+          >
             <DialogTitle>Meus Anúncios ({myAnnouncements.length})</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
