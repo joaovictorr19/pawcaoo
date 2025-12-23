@@ -104,6 +104,11 @@ export default function WalkerDetails() {
   
   const [selectedDate, setSelectedDate] = useState(null);
 
+  // Scroll to top on mount
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
   const urlParams = new URLSearchParams(window.location.search);
   const walkerId = urlParams.get('id') || urlParams.get('walker_id');
   const serviceParam = urlParams.get('service');
