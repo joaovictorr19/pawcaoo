@@ -384,13 +384,13 @@ export default function WalkerDetails() {
                       alt={walker.walker_name}
                       className={`w-24 h-24 rounded-full object-cover shadow-lg ${walker.cover_photo_url ? 'border-4 border-white' : 'border-4 border-gray-100'}`}
                     />
+                  </div>
+                  <div className="flex items-center gap-1.5 justify-center">
+                    <h1 className="text-xl font-bold text-gray-900">{walker.walker_name}</h1>
                     {walker.verification_status === 'verified' && (
-                      <div className="absolute -bottom-1 -right-1">
-                        <InstagramVerifiedBadge size="md" />
-                      </div>
+                      <InstagramVerifiedBadge size="md" />
                     )}
                   </div>
-                  <h1 className="text-xl font-bold text-gray-900">{walker.walker_name}</h1>
                   <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
                     <MapPin className="w-4 h-4" />
                     {walker.location}
@@ -447,21 +447,41 @@ export default function WalkerDetails() {
                   </div>
                 )}
 
-                <FavoriteButton walker={walker} user={user} />
+                <div className="flex justify-center">
+                  <FavoriteButton walker={walker} user={user} />
+                </div>
               </CardContent>
             </Card>
 
-            {/* Card Animais Aceites */}
+            {/* Card Animais Aceitos */}
             {walker.accepted_animals && walker.accepted_animals.length > 0 && (
               <Card className="bg-white shadow-sm border-0">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Dog className="w-4 h-4 text-green-600" />
-                    Animais Aceites
+                    Animais Aceitos
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <AnimalIconsWithLabels acceptedAnimals={walker.accepted_animals} language={language} />
+                  <div className="space-y-2">
+                    {walker.accepted_animals.map((animal) => {
+                      const animalData = {
+                        dogs: { emoji: '🐕', label: 'Cães' },
+                        cats: { emoji: '🐈', label: 'Gatos' },
+                        birds: { emoji: '🦜', label: 'Aves' },
+                        reptiles: { emoji: '🦎', label: 'Répteis' },
+                        arachnids: { emoji: '🕷️', label: 'Aracnídeos' },
+                        rodents: { emoji: '🐹', label: 'Roedores' }
+                      };
+                      const data = animalData[animal] || { emoji: '🐾', label: animal };
+                      return (
+                        <div key={animal} className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
+                          <span className="text-lg grayscale">{data.emoji}</span>
+                          <span className="text-sm font-medium text-gray-700">{data.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </CardContent>
               </Card>
             )}
