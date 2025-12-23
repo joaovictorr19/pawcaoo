@@ -519,11 +519,15 @@ export default function Home() {
       return true;
     }).sort((a, b) => {
       // Sort logic
-      // 1. Distance (if location set)
+      // 1. Featured first
+      if (a.is_featured && !b.is_featured) return -1;
+      if (!a.is_featured && b.is_featured) return 1;
+      
+      // 2. Distance (if location set)
       if (userLocation && a.distance !== null && b.distance !== null) {
         return a.distance - b.distance;
       }
-      // 2. Rating
+      // 3. Rating
       return (b.rating || 0) - (a.rating || 0);
     });
   }, [walkers, trainers, searchLocation, filterSize, filterTime, filterDogSitting, selectedServiceTypes, advancedFilters, trainerFilters, userLocation]);

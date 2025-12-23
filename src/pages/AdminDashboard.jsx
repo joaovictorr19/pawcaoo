@@ -1938,23 +1938,43 @@ export default function AdminDashboard() {
                           <div className="font-bold">{walker.walker_name}</div>
                           <div className="text-sm text-gray-500">{walker.created_by}</div>
                         </div>
-                        <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
-                          {walker.is_active ? t('active', language) : t('inactive', language)}
-                        </Badge>
+                        <div className="flex gap-1">
+                          <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
+                            {walker.is_active ? t('active', language) : t('inactive', language)}
+                          </Badge>
+                          {walker.is_featured && (
+                            <Badge className="bg-yellow-500">
+                              <Sparkles className="w-3 h-3 mr-1" />
+                              Destaque
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="text-sm space-y-1 mb-3">
                         <div>📍 {walker.location}</div>
                         <div>⭐ {walker.rating?.toFixed(1)}</div>
                         <div>💰 €{walker.total_earnings || 0}</div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}>
                           <Eye className="w-4 h-4 mr-2" /> {t('viewDetails', language)}
                         </Button>
                         <Button
                           size="sm"
+                          variant={walker.is_featured ? "default" : "outline"}
+                          className={walker.is_featured ? "bg-yellow-500 text-white" : "text-yellow-600 border-yellow-200"}
+                          onClick={() => {
+                            if(confirm(`${walker.is_featured ? 'Remover' : 'Adicionar'} destaque?`)) {
+                              updateWalkerMutation.mutate({ id: walker.id, data: { is_featured: !walker.is_featured } });
+                            }
+                          }}
+                        >
+                          <Sparkles className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
                           variant={walker.is_active ? "outline" : "default"}
-                          className={`flex-1 ${walker.is_active ? "text-orange-600 border-orange-200" : "bg-green-600"}`}
+                          className={`${walker.is_active ? "text-orange-600 border-orange-200" : "bg-green-600"}`}
                           onClick={() => {
                             if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
                               updateWalkerMutation.mutate({ id: walker.id, data: { is_active: !walker.is_active } });
@@ -2019,42 +2039,58 @@ export default function AdminDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
-                              >
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={walker.is_active ? "outline" : "default"}
-                                className={walker.is_active ? "text-orange-600 border-orange-200 hover:bg-orange-50" : "bg-green-600 hover:bg-green-700"}
-                                onClick={() => {
-                                  if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
-                                    updateWalkerMutation.mutate({
-                                      id: walker.id,
-                                      data: { is_active: !walker.is_active }
-                                    });
-                                  }
-                                }}
-                              >
-                                {walker.is_active ? t('pause', language) : t('activate', language)}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-red-600 border-red-200 hover:bg-red-50"
-                                onClick={() => {
-                                  if(confirm(`TEM CERTEZA? Isso apagará permanentemente o perfil de passeador de ${walker.walker_name}.\nEsta ação não pode ser desfeita.`)) {
-                                    deleteWalkerMutation.mutate(walker.id);
-                                  }
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
+                           <div className="flex gap-2">
+                             <Button
+                               size="sm"
+                               variant="outline"
+                               onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                             >
+                               <Eye className="w-4 h-4" />
+                             </Button>
+                             <Button
+                               size="sm"
+                               variant={walker.is_featured ? "default" : "outline"}
+                               className={walker.is_featured ? "bg-yellow-500 hover:bg-yellow-600 text-white" : "text-yellow-600 border-yellow-200 hover:bg-yellow-50"}
+                               onClick={() => {
+                                 if(confirm(`${walker.is_featured ? 'Remover' : 'Adicionar'} ${walker.walker_name} ${walker.is_featured ? 'dos' : 'aos'} destaques?`)) {
+                                   updateWalkerMutation.mutate({
+                                     id: walker.id,
+                                     data: { is_featured: !walker.is_featured }
+                                   });
+                                 }
+                               }}
+                               title={walker.is_featured ? "Remover destaque" : "Marcar como destaque"}
+                             >
+                               <Sparkles className="w-4 h-4" />
+                             </Button>
+                             <Button
+                               size="sm"
+                               variant={walker.is_active ? "outline" : "default"}
+                               className={walker.is_active ? "text-orange-600 border-orange-200 hover:bg-orange-50" : "bg-green-600 hover:bg-green-700"}
+                               onClick={() => {
+                                 if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
+                                   updateWalkerMutation.mutate({
+                                     id: walker.id,
+                                     data: { is_active: !walker.is_active }
+                                   });
+                                 }
+                               }}
+                             >
+                               {walker.is_active ? t('pause', language) : t('activate', language)}
+                             </Button>
+                             <Button
+                               size="sm"
+                               variant="outline"
+                               className="text-red-600 border-red-200 hover:bg-red-50"
+                               onClick={() => {
+                                 if(confirm(`TEM CERTEZA? Isso apagará permanentemente o perfil de passeador de ${walker.walker_name}.\nEsta ação não pode ser desfeita.`)) {
+                                   deleteWalkerMutation.mutate(walker.id);
+                                 }
+                               }}
+                             >
+                               <Trash2 className="w-4 h-4" />
+                             </Button>
+                           </div>
                           </TableCell>
                         </TableRow>
                       ))}
