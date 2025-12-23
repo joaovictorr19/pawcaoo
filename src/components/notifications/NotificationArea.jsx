@@ -175,7 +175,13 @@ export default function NotificationArea({ isOpen, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b bg-white">
+        <div 
+          className="flex items-center justify-between p-3 border-b"
+          style={{
+            background: 'rgba(255, 255, 255, 0.8)',
+            borderColor: 'rgba(0, 0, 0, 0.05)'
+          }}
+        >
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-blue-600" />
             <span className="font-semibold text-sm">Notificações</span>
