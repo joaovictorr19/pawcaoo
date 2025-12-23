@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 // Raindrop component
 const Raindrop = ({ delay, left }) => (
   <div
-    className="absolute w-0.5 h-4 bg-gradient-to-b from-transparent via-blue-300/60 to-blue-400/80 rounded-full animate-rain"
+    className="absolute w-0.5 h-4 bg-gradient-to-b from-transparent via-green-300/60 to-green-400/80 rounded-full animate-rain"
     style={{
       left: `${left}%`,
       animationDelay: `${delay}s`,
@@ -231,7 +231,7 @@ export default function DynamicBackground() {
           
           <div className="absolute top-[70%] right-[30%] w-7 h-7 rounded-full opacity-35 shadow-lg"
             style={{
-              background: 'radial-gradient(circle at 30% 30%, #42a5f5, #1565c0)',
+              background: 'radial-gradient(circle at 30% 30%, #4caf50, #2e7d32)',
               boxShadow: 'inset -2px -2px 4px rgba(0,0,0,0.2)'
             }}
           />
