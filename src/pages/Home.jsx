@@ -1378,8 +1378,8 @@ export default function Home() {
                       {language === 'pt' ? 'Ver Adoções' : 'View Adoptions'}
                     </Button>
                   </div>
-
-
+                </div>
+              </TabsContent>
 
               <TabsContent value="emergency">
                 <div>
