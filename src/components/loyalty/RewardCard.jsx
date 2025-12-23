@@ -4,12 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { useTheme } from "../ThemeContext";
+import { Gift, CreditCard, Star, Crown, ShoppingBag, Sparkles, Dog, GraduationCap, MapPin, Camera, Bath } from "lucide-react";
 
 export default function RewardCard({ reward, index, userPoints, onRedeem, isRedeeming, tierDiscount = 0 }) {
   const { colors, tier } = useTheme();
   const finalPoints = Math.round(reward.points * (1 - tierDiscount / 100));
   const canAfford = userPoints >= finalPoints;
   const savings = reward.points - finalPoints;
+
+  const getRewardIcon = () => {
+    const iconMap = {
+      's1': CreditCard, 's2': Star, 's3': Crown,
+      'p1': ShoppingBag, 'p2': Sparkles, 'p3': Gift,
+      'w1': Dog, 'w2': Dog, 'w3': Dog,
+      't1': GraduationCap, 't2': GraduationCap,
+      'v1': MapPin, 'v2': Camera, 'v3': Bath
+    };
+    return iconMap[reward.id] || Gift;
+  };
+
+  const IconComponent = getRewardIcon();
 
   return (
     <motion.div
@@ -29,7 +43,11 @@ export default function RewardCard({ reward, index, userPoints, onRedeem, isRede
           </Badge>
         )}
         <CardHeader className="text-center pb-3 md:pb-4 p-3 md:p-6">
-          <div className="text-3xl md:text-5xl lg:text-6xl mb-2 md:mb-3">{reward.icon}</div>
+          <div className="flex justify-center mb-2 md:mb-3">
+            <div className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br ${colors?.gradient || 'from-purple-600 to-indigo-600'} flex items-center justify-center shadow-lg`}>
+              <IconComponent className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 text-white" />
+            </div>
+          </div>
           <CardTitle className={`text-base md:text-xl lg:text-2xl font-bold leading-tight overflow-hidden`} style={{ color: colors?.primary || '#3b82f6' }}>
             {reward.discount.length > 30 ? (
               <span className="animate-marquee inline-block whitespace-nowrap">
