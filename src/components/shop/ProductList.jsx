@@ -175,7 +175,7 @@ export default function ProductList() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Produtos</h2>
-            <p className="text-sm text-gray-600">{filteredProducts.length} produtos encontrados</p>
+            <p className="text-sm text-gray-600">{filteredProducts.length} {filteredProducts.length === 1 ? 'produto' : 'produtos'}</p>
           </div>
           
           {user && (
