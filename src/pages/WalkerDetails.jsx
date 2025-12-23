@@ -70,15 +70,16 @@ function FavoriteButton({ walker, user }) {
   return (
       <Button
         variant="outline"
-        className="h-11 w-11 p-0 hover:opacity-80"
+        size="sm"
+        className="h-9 gap-2"
         style={{
           borderColor: isFavorite ? '#ef4444' : `${colors?.primary || '#3b82f6'}40`,
           color: isFavorite ? '#ef4444' : colors?.primary || '#3b82f6'
         }}
         onClick={() => toggleFavoriteMutation.mutate()}
-        title={isFavorite ? "Remover dos Favoritos" : "Adicionar aos Favoritos"}
       >
-         <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
+         <Heart className={`w-4 h-4 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
+         {isFavorite ? 'Remover' : 'Favoritar'}
       </Button>
   );
 }
@@ -104,7 +105,6 @@ export default function WalkerDetails() {
   const [selectedDate, setSelectedDate] = useState(null);
 
   const urlParams = new URLSearchParams(window.location.search);
-  // Support both 'id' and 'walker_id' parameters
   const walkerId = urlParams.get('id') || urlParams.get('walker_id');
   const serviceParam = urlParams.get('service');
   
@@ -125,20 +125,16 @@ export default function WalkerDetails() {
       if (!walkerId) return null;
 
       try {
-        // 1. Busca Prioritária: ID exato do WalkerProfile
         const results = await base44.entities.WalkerProfile.filter({ id: walkerId });
         if (results && results.length > 0) {
           return results[0];
         }
 
-        // 2. Fallback: Busca por user_id (Auth ID)
-        // Muitas vezes o ID passado é o ID do usuário, não do perfil
         const byUserId = await base44.entities.WalkerProfile.filter({ user_id: walkerId });
         if (byUserId && byUserId.length > 0) {
           return byUserId[0];
         }
 
-        // 3. Fallback Inteligente: Busca por Email (created_by)
         if (walkerId.includes('@')) {
           const byEmail = await base44.entities.WalkerProfile.filter({ created_by: walkerId });
           if (byEmail && byEmail.length > 0) {
@@ -149,20 +145,18 @@ export default function WalkerDetails() {
         return null;
       } catch (e) {
         console.error("Critical Error fetching walker profile:", e);
-        return null; // Evita crash, retorna null para ativar a UI de "Não encontrado"
+        return null;
       }
     },
     enabled: !!walkerId,
-    retry: 1, // Tenta apenas mais uma vez em caso de falha de rede
+    retry: 1,
   });
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
     queryKey: ['walkerReviews', walkerId],
     queryFn: async () => {
       if (!walkerId) return [];
-      console.log('🔍 Buscando reviews para walker_id:', walkerId);
       const allReviews = await base44.entities.Review.filter({ walker_id: walkerId }, '-created_date');
-      console.log('📊 Reviews encontradas:', allReviews.length, allReviews);
       return allReviews;
     },
     enabled: !!walkerId,
@@ -186,7 +180,6 @@ export default function WalkerDetails() {
     initialData: [],
   });
 
-  // FETCH USER PROFILE TO GET PINNED BADGES
   const { data: userProfile } = useQuery({
     queryKey: ['walkerUserProfile', walker?.created_by],
     queryFn: async () => {
@@ -197,13 +190,11 @@ export default function WalkerDetails() {
     enabled: !!walker?.created_by,
   });
 
-  // FETCH PINNED BADGES BASED ON USER PROFILE
   const { data: walkerBadges = [] } = useQuery({
     queryKey: ['walkerPinnedBadges', userProfile?.pinned_badge_ids, userProfile?.highlighted_emblem_id],
     queryFn: async () => {
       if (!userProfile) return [];
       
-      // Priority: highlighted_emblem_id for slot 0, then pinned_badge_ids
       const pinnedIds = [];
       if (userProfile.highlighted_emblem_id) {
         pinnedIds.push(userProfile.highlighted_emblem_id);
@@ -214,7 +205,6 @@ export default function WalkerDetails() {
       
       if (pinnedIds.length === 0) return [];
       
-      // Fetch only the pinned badges
       const allBadges = await base44.entities.UserBadge.filter({ user_email: walker.created_by });
       const badgeDefinitions = await base44.entities.BadgeDefinition.list();
       
@@ -235,16 +225,9 @@ export default function WalkerDetails() {
     setSelectedDate(date);
     if (!user) {
       toast.error(t('loginRequired', language) + ' - ' + t('loginToBook', language));
-    } else {
-      // Scroll to booking form on mobile
-      const formElement = document.getElementById('booking-form-section');
-      if (formElement && window.innerWidth < 1024) {
-        formElement.scrollIntoView({ behavior: 'smooth' });
-      }
     }
   };
 
-  // Redirect if walker not found
   React.useEffect(() => {
     if (!walkerId) {
       navigate(createPageUrl('Home'));
@@ -259,16 +242,13 @@ export default function WalkerDetails() {
     }
   }, [isLoading, walker, navigate, walkerId, isError]);
 
-  // Function to handle booking completion from BookingForm
   const handleBookingInitiated = async (booking) => {
-    setSelectedDate(null); // Reset selection
+    setSelectedDate(null);
 
-    // Create notifications asynchronously
     try {
-      // 1. Notify Walker
       createNotification.mutate({
         recipient_email: walker.created_by,
-        title: '📅 Nova Solicitação de Agendamento',
+        title: 'Nova Solicitação de Agendamento',
         message: `${user.full_name} solicitou um agendamento para ${booking.dog_name}. Aceite para liberar os detalhes de pagamento.`,
         type: 'booking',
         related_id: booking.id,
@@ -300,10 +280,7 @@ export default function WalkerDetails() {
           <p className="text-gray-600 mb-6">O perfil pode ter sido desativado ou o link pode estar incorreto.</p>
           <Button 
             onClick={() => navigate(createPageUrl('Home'))} 
-            className="text-white font-semibold px-6 hover:opacity-90"
-            style={{
-              background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
-            }}
+            className="bg-green-600 hover:bg-green-700 text-white"
           >
             Voltar à Busca
           </Button>
@@ -312,7 +289,6 @@ export default function WalkerDetails() {
     );
   }
 
-  // Se o perfil estiver inativo e o utilizador não for o dono nem admin, mostrar mensagem de indisponível
   if (!walker.is_active && user?.email !== walker.created_by && user?.role !== 'admin') {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
@@ -354,381 +330,178 @@ export default function WalkerDetails() {
   const currentLocale = locales[language] || pt;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       <Helmet>
         <title>{`Contrate ${walker.walker_name} no PawCão | ${walker.location}`}</title>
-        <meta name="description" content={`${walker.walker_name} - Passeador e Treinador avaliado com ${averageRating?.toFixed(1)} estrelas. ${walker.bio?.substring(0, 100) || 'Serviços profissionais de pet care.'}`} />
-        
-        {/* Open Graph para WhatsApp/Instagram/Facebook */}
+        <meta name="description" content={`${walker.walker_name} - Passeador avaliado com ${averageRating?.toFixed(1)} estrelas. ${walker.bio?.substring(0, 100) || 'Serviços profissionais de pet care.'}`} />
         <meta property="og:type" content="profile" />
-        <meta property="og:site_name" content="PawCão" />
         <meta property="og:title" content={`Contrate ${walker.walker_name} no PawCão`} />
-        <meta property="og:description" content={`Passeador e Treinador avaliado com ${averageRating?.toFixed(1)} estrelas ⭐ | ${walker.location}`} />
+        <meta property="og:description" content={`Passeador avaliado com ${averageRating?.toFixed(1)} estrelas | ${walker.location}`} />
         <meta property="og:image" content={walker.photo_url || 'https://pawcao.net/social-preview.jpg'} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:url" content={window.location.href} />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`Contrate ${walker.walker_name} no PawCão`} />
-        <meta name="twitter:description" content={`Avaliado com ${averageRating?.toFixed(1)} estrelas ⭐`} />
-        <meta name="twitter:image" content={walker.photo_url || 'https://pawcao.net/social-preview.jpg'} />
-        
-        {/* Schema.org JSON-LD */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "LocalBusiness",
-            "name": walker.walker_name,
-            "description": walker.bio,
-            "image": walker.photo_url,
-            "address": {
-              "@type": "PostalAddress",
-              "addressLocality": walker.location
-            },
-            "aggregateRating": averageRating > 0 ? {
-              "@type": "AggregateRating",
-              "ratingValue": averageRating.toFixed(1),
-              "reviewCount": reviews.length
-            } : undefined,
-            "priceRange": `€${walker.hourly_rate}/hora`
-          })}
-        </script>
       </Helmet>
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8">
-        {/* Botão Voltar - Fixo no mobile para melhor UX */}
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Header com Voltar */}
         <Button
-          variant="outline"
-          className="mb-4 md:mb-6 glass-panel shadow-lg hover:shadow-xl transition-all duration-300 border-white/60 hover:scale-105 active:scale-95 px-4 py-2.5 h-auto"
+          variant="ghost"
+          className="mb-4 hover:bg-white/50"
           onClick={() => navigate(createPageUrl('Home'))}
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          <span className="font-semibold">{t('backToWalkers', language)}</span>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
         </Button>
 
-        {/* Profile Header - Full Width */}
-        <div className="mb-6 md:mb-8">
-            <div className="glass-panel rounded-2xl shadow-lg overflow-hidden border border-white/40">
-              <ProfessionalProfileHeader 
-                professional={walker} 
-                type="walker" 
-                reviews={reviews}
-                averageRating={averageRating}
-                customBadges={
-                  <>
-                    {walker.verification_status === 'verified' && <InstagramVerifiedBadge size="lg" />}
-                    {walker.is_pawcao_employee && <GoldEmployeeBadge size="md" />}
-                  </>
-                }
-              />
-
-              {/* Selo de Verificação em Destaque */}
-              {walker.verification_status === "verified" && (
-                <div className="px-3 sm:px-5 pt-2 pb-0">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-2.5 sm:p-3 flex items-center gap-2 sm:gap-3">
-                    <div className="bg-green-100 p-2 rounded-full">
-                      <ShieldCheck className="w-6 h-6 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-green-800 text-sm">Perfil Verificado pela PawCão</h3>
-                      <p className="text-xs text-green-700">Identidade e documentos verificados.</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Emblemas Conquistados (Sincronizado) */}
-              {walkerBadges.length > 0 && (
-                <div className="px-3 sm:px-5 pt-3 sm:pt-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">
-                      Conquistas ({walkerBadges.length})
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-                    {walkerBadges.slice(0, 4).map((badge) => (
-                      <div 
-                        key={badge.id} 
-                        className="flex flex-col items-center text-center p-2 bg-purple-50 rounded-lg border border-purple-100 hover:shadow-sm transition-all" 
-                        title={badge.description}
-                      >
-                        <div className="text-2xl mb-1 h-8 w-8 flex items-center justify-center">
-                          {/* Prioritize image_png_file */}
-                          {badge.image_png_file ? (
-                            <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" loading="lazy" />
-                          ) : badge.image_url ? (
-                            <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover rounded" style={{imageRendering: 'pixelated'}} loading="lazy" />
-                          ) : (
-                            badge.icon
-                          )}
-                        </div>
-                        <span className="text-[10px] font-medium text-purple-900 leading-tight line-clamp-2">
-                          {badge.name}
-                        </span>
+        {/* Layout em 2 Colunas: Perfil | Calendário + Formulário */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* COLUNA ESQUERDA: Perfil Compacto */}
+          <div className="lg:col-span-1 space-y-4">
+            
+            {/* Card Perfil */}
+            <Card className="bg-white shadow-sm border-0">
+              <CardContent className="p-5">
+                {/* Foto + Nome */}
+                <div className="flex flex-col items-center text-center mb-4">
+                  <div className="relative mb-3">
+                    <img 
+                      src={walker.photo_url || 'https://via.placeholder.com/150'} 
+                      alt={walker.walker_name}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                    {walker.verification_status === 'verified' && (
+                      <div className="absolute -bottom-1 -right-1">
+                        <InstagramVerifiedBadge size="md" />
                       </div>
+                    )}
+                  </div>
+                  <h1 className="text-xl font-bold text-gray-900">{walker.walker_name}</h1>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                    <MapPin className="w-4 h-4" />
+                    {walker.location}
+                  </div>
+                  {averageRating > 0 && (
+                    <div className="flex items-center gap-1 mt-2">
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <span className="font-semibold">{averageRating.toFixed(1)}</span>
+                      <span className="text-xs text-gray-500">({reviews.length})</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bio */}
+                {walker.bio && (
+                  <p className="text-sm text-gray-600 leading-relaxed mb-4 text-center">
+                    {walker.bio}
+                  </p>
+                )}
+
+                {/* Preços */}
+                <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Tarifa por hora</span>
+                    <span className="font-bold text-lg text-green-600">€{walker.hourly_rate}</span>
+                  </div>
+                  {walker.exotic_rate && (
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200">
+                      <span className="text-sm text-gray-600">Animais exóticos</span>
+                      <span className="font-bold text-green-600">€{walker.exotic_rate}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Badges */}
+                {walkerBadges.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                      <Award className="w-3 h-3" />
+                      Conquistas
+                    </h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {walkerBadges.map((badge) => (
+                        <div key={badge.id} className="flex flex-col items-center p-1.5 bg-purple-50 rounded-lg border border-purple-100">
+                          <div className="text-xl w-6 h-6 flex items-center justify-center">
+                            {badge.image_png_file ? (
+                              <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" />
+                            ) : badge.icon}
+                          </div>
+                          <span className="text-[9px] text-purple-900 line-clamp-1">{badge.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <FavoriteButton walker={walker} user={user} />
+              </CardContent>
+            </Card>
+
+            {/* Card Animais Aceites */}
+            {walker.accepted_animals && walker.accepted_animals.length > 0 && (
+              <Card className="bg-white shadow-sm border-0">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Dog className="w-4 h-4 text-green-600" />
+                    Animais Aceites
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <AnimalIconsWithLabels acceptedAnimals={walker.accepted_animals} language={language} />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Card Horários */}
+            {walker.availability && walker.availability.length > 0 && (
+              <Card className="bg-white shadow-sm border-0">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-blue-600" />
+                    Disponibilidade
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex flex-wrap gap-1.5">
+                    {walker.availability.map(time => (
+                      <Badge key={time} className="bg-blue-50 text-blue-700 text-xs">
+                        {getTimeLabel(time)}
+                      </Badge>
                     ))}
                   </div>
-                </div>
-              )}
-              
-              <div className="px-3 sm:px-5 pb-4 sm:pb-5 pt-4 sm:pt-5">
-                {/* Vídeo de Apresentação */}
-                {walker.video_intro_url && (
-                  <div className="mb-6 sm:mb-8">
-                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2">
-                      <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                      Apresentação em Vídeo
-                    </h2>
-                    <div className="rounded-xl overflow-hidden shadow-lg bg-black aspect-video relative group max-w-2xl">
-                      <video 
-                        src={walker.video_intro_url} 
-                        controls 
-                        className="w-full h-full object-cover"
-                        poster={walker.photo_url}
-                      >
-                        Seu navegador não suporta o elemento de vídeo.
-                      </video>
-                    </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Card Tamanhos */}
+            {walker.dog_sizes && walker.dog_sizes.length > 0 && (
+              <Card className="bg-white shadow-sm border-0">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Tamanhos Aceites</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex flex-wrap gap-1.5">
+                    {walker.dog_sizes.map(size => (
+                      <Badge key={size} className="bg-gray-100 text-gray-700 text-xs">
+                        {getSizeLabel(size)}
+                      </Badge>
+                    ))}
                   </div>
-                )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
 
-                {walker.services_offered?.length > 0 && (
-                  <div className="mb-6 sm:mb-8 space-y-3 sm:space-y-4">
-                    <h3 className="font-bold text-gray-900 flex items-center gap-2 text-base sm:text-lg">
-                      <Award className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
-                      Serviços Disponíveis
-                    </h3>
-                    <div className="grid gap-3 sm:gap-4">
-                      {walker.services_offered.map((service, idx) => {
-                        const serviceName = service.service_name?.toLowerCase() || '';
-                        const isBoarding = serviceName.includes('boarding') || serviceName.includes('alojamento');
-                        const isHouseSitting = serviceName.includes('house') || serviceName.includes('casa');
-                        const isDropIn = serviceName.includes('drop') || serviceName.includes('visita');
-                        
-                        // Check animal type
-                        const isBird = serviceName.includes('ave') || serviceName.includes('bird');
-                        const isReptile = serviceName.includes('réptei') || serviceName.includes('reptil') || serviceName.includes('cobra');
-                        const isArachnid = serviceName.includes('aracní') || serviceName.includes('aranha') || serviceName.includes('spider');
-                        const isRodent = serviceName.includes('roedor') || serviceName.includes('rodent') || serviceName.includes('hamster') || serviceName.includes('coelho');
-                        const isCat = serviceName.includes('gato') || serviceName.includes('cat');
-                        
-                        let icon = <Dog className="w-6 h-6 text-gray-600" />;
-                        let bgColor = "bg-gray-50";
-                        let borderColor = "border-gray-200";
-
-                        if (isBoarding) {
-                          icon = <Home className="w-6 h-6 text-purple-600" />;
-                          bgColor = "bg-purple-50/50";
-                          borderColor = "border-purple-100";
-                        } else if (isHouseSitting) {
-                          icon = <ShieldCheck className="w-6 h-6 text-blue-600" />;
-                          bgColor = "bg-blue-50/50";
-                          borderColor = "border-blue-100";
-                        } else if (isDropIn) {
-                          icon = <Clock className="w-6 h-6 text-green-600" />;
-                          bgColor = "bg-green-50/50";
-                          borderColor = "border-green-100";
-                        } else if (isBird) {
-                          icon = <Bird className="w-6 h-6 text-orange-600" />;
-                          bgColor = "bg-orange-50/50";
-                          borderColor = "border-orange-100";
-                        } else if (isReptile) {
-                          icon = <ReptileIcon className="w-6 h-6 text-green-600" />;
-                          bgColor = "bg-green-50/50";
-                          borderColor = "border-green-100";
-                        } else if (isArachnid) {
-                          icon = <ArachnidIcon className="w-6 h-6 text-purple-600" />;
-                          bgColor = "bg-purple-50/50";
-                          borderColor = "border-purple-100";
-                        } else if (isRodent) {
-                          icon = <RodentIcon className="w-6 h-6 text-pink-600" />;
-                          bgColor = "bg-pink-50/50";
-                          borderColor = "border-pink-100";
-                        } else if (isCat) {
-                          icon = <Cat className="w-6 h-6 text-indigo-600" />;
-                          bgColor = "bg-indigo-50/50";
-                          borderColor = "border-indigo-100";
-                        }
-
-                        return (
-                          <div 
-                            key={idx} 
-                            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 md:p-4 rounded-xl border transition-all ${bgColor} ${borderColor}`}
-                          >
-                            <div className="flex gap-2 md:gap-3 items-start flex-1 min-w-0">
-                              <div className="mt-0.5 bg-white p-2 rounded-lg shadow-sm border border-gray-100 flex-shrink-0">
-                                {React.cloneElement(icon, { className: 'w-4 h-4 md:w-5 md:h-5' })}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold text-gray-900 text-sm md:text-base truncate">{service.service_name}</p>
-                                <p className="text-xs md:text-sm text-gray-600 mt-0.5 line-clamp-2">
-                                  {service.description || (isBoarding 
-                                    ? "O cão fica na casa do profissional com cuidado 24/7." 
-                                    : isHouseSitting 
-                                    ? "O profissional vai à sua casa cuidar do cão."
-                                    : isDropIn 
-                                    ? "Visita rápida de 30-60 min para alimentação e medicação." 
-                                    : "Passeio profissional.")}
-                                </p>
-                                {service.duration_options?.length > 0 && (
-                                  <div className="flex gap-1 mt-1.5 flex-wrap">
-                                    {service.duration_options.slice(0, 2).map((dur, i) => (
-                                      <Badge key={i} variant="secondary" className="bg-white/80 text-[10px] border border-gray-200 h-5">
-                                        {dur}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            <div className="mt-3 sm:mt-0 flex-shrink-0">
-                              <div className="bg-white px-3 py-1 rounded-lg shadow-sm border border-gray-100 text-center">
-                                <span className="block font-black text-lg md:text-xl text-gray-900">€{service.price}</span>
-                                <span className="text-[9px] md:text-[10px] text-gray-500">por sessão</span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Compact Details Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-5 sm:mb-6">
-                  {/* Service Areas & Map */}
-                  <div className="space-y-2 sm:space-y-3">
-                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-green-600" />
-                      {t('serviceAreas', language)}
-                    </h2>
-                    <div className="h-40 sm:h-48 rounded-lg overflow-hidden border border-gray-200">
-                      <Suspense fallback={<Skeleton className="h-48 w-full rounded-lg" />}>
-                        <ServiceAreaMap walker={walker} />
-                      </Suspense>
-                    </div>
-                    {walker.service_areas && walker.service_areas.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {walker.service_areas.map((area, idx) => (
-                          <Badge key={idx} variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            {area.area_name} ({area.radius_km}km)
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Preferences & Capabilities */}
-                  <div className="space-y-4">
-                    {/* Animais Aceites */}
-                    {walker.accepted_animals && walker.accepted_animals.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-2">Animais Aceites</h3>
-                        <AnimalIconsWithLabels acceptedAnimals={walker.accepted_animals} language={language} />
-                        {walker.exotic_rate && walker.accepted_animals.some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
-                          <div className="mt-2 bg-purple-50 border border-purple-200 rounded-lg p-2">
-                            <p className="text-xs text-purple-700">
-                              <span className="font-bold">Preço Exóticos:</span> €{walker.exotic_rate}/visita
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {walker.dog_sizes && walker.dog_sizes.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{t('dogSizesHandle', language)}</h3>
-                        <div className="flex flex-wrap gap-1.5">
-                          {walker.dog_sizes.map(size => (
-                            <Badge key={size} className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-0 text-xs">
-                              {getSizeLabel(size)}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {walker.availability && walker.availability.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{t('availability', language)}</h3>
-                        <div className="flex flex-wrap gap-1.5">
-                          {walker.availability.map(time => (
-                            <Badge key={time} className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-0 text-xs">
-                              {getTimeLabel(time)}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {walker.dog_breeds_handled && walker.dog_breeds_handled.length > 0 && (
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-1.5">{t('breedsWorkWith', language)}</h3>
-                        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
-                          {walker.dog_breeds_handled.map(breed => (
-                            <Badge 
-                              key={breed}
-                              variant="outline"
-                              className={`${walker.breed_specialization?.includes(breed) ? 'bg-green-50 border-green-600 text-green-700 font-medium' : 'text-gray-600'} text-[10px]`}
-                            >
-                              {breed}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="mt-2 px-1">
-                    <p className="text-[10px] text-gray-500 italic flex items-center gap-1">
-                      <Info className="w-3 h-3" />
-                      Caso a localização no mapa não esteja precisa, recomendamos compartilhar a localização em tempo real pelo WhatsApp.
-                    </p>
-                  </div>
-                </div>
-
-                {/* FAQ Section */}
-                {walker.faq && walker.faq.length > 0 && (
-                  <div className="mb-6 border-t border-gray-100 pt-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <HelpCircle className="w-5 h-5 text-blue-600" />
-                      Perguntas Frequentes
-                    </h2>
-                    <Accordion type="single" collapsible className="w-full">
-                      {walker.faq.map((item, idx) => (
-                        <AccordionItem key={idx} value={`item-${idx}`}>
-                          <AccordionTrigger className="text-left font-medium text-gray-800 hover:text-blue-600">
-                            {item.question}
-                          </AccordionTrigger>
-                          <AccordionContent className="text-gray-600">
-                            {item.answer}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </div>
-                )}
-
-                <div className="flex gap-3 flex-wrap mt-4">
-                  <FavoriteButton walker={walker} user={user} />
-                </div>
-              </div>
-            </div>
-        </div>
-
-        {/* BOOKING SECTION - SPLIT LAYOUT */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8" id="booking-section">
-            {/* LEFT: CALENDAR */}
-            <Card className="glass-panel border-0 shadow-lg h-fit">
-              <CardHeader className="py-3 sm:py-4 px-3 sm:px-5">
-                <CardTitle className="text-lg flex items-center gap-2">
+          {/* COLUNA DIREITA: Calendário + Formulário */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Calendário */}
+            <Card className="bg-white shadow-sm border-0">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-green-600" />
-                  {t('availability', language)}
+                  Selecione uma Data
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 sm:p-5 pt-0">
+              <CardContent>
                 <AvailabilityCalendar
                   availabilityData={availability}
                   bookings={walkerBookings}
@@ -741,120 +514,84 @@ export default function WalkerDetails() {
               </CardContent>
             </Card>
 
-            {/* RIGHT: BOOKING FORM (Compact) */}
-            <div className="space-y-4 sm:space-y-5" id="booking-form-section">
-                {selectedDate ? (
-                    <BookingForm
-                        professional={walker}
-                        onClose={handleBookingInitiated}
-                        initialDate={selectedDate}
-                        selectedServiceType={serviceParam}
-                        key={selectedDate?.toISOString()} // Force re-render on date change
-                    />
-                ) : (
-                    <Card className="glass-panel border-dashed border-2 border-gray-200/50 shadow-none h-full min-h-[250px] sm:min-h-[300px] flex flex-col items-center justify-center text-center p-4 sm:p-6">
-                        <div className="bg-white/80 p-3 sm:p-4 rounded-full shadow-sm mb-3 sm:mb-4">
-                            <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
-                        </div>
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Selecione uma data</h3>
-                        <p className="text-sm sm:text-base text-gray-500 max-w-xs">
-                            Clique em um dia disponível (verde) no calendário {window.innerWidth < 1024 ? 'acima' : 'à esquerda'} para iniciar o agendamento.
-                        </p>
-                        {serviceParam && (
-                          <div className="mt-4">
-                            <Badge className="bg-blue-500 text-white">
-                              Serviço selecionado: {
-                                serviceParam === 'boarding' ? '🏠 Alojamento' :
-                                serviceParam === 'house_sitting' ? '🏡 House Sitting' :
-                                serviceParam === 'drop_in_feeding' ? '🚪 Visitas Rápidas' : serviceParam
-                              }
-                            </Badge>
-                          </div>
-                        )}
-                    </Card>
-                )}
-
-                {/* Recurring Option */}
-                {userDogs.length > 0 && (
-                  <Card className="border border-purple-200 shadow-sm bg-gradient-to-br from-purple-50 to-blue-50">
-                    <CardHeader className="py-3 px-5">
-                      <CardTitle className="text-base flex items-center gap-2 text-purple-800">
-                        <Repeat className="w-4 h-4" />
-                        {t('recurringWalks', language)}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-5 pt-0">
-                      <p className="text-xs text-gray-600 mb-3">Garanta o mesmo passeador toda semana com desconto.</p>
-                      <Select
-                        value={selectedDogForRecurring?.id || ""}
-                        onValueChange={(dogId) => {
-                          const dog = userDogs.find(d => d.id === dogId);
-                          setSelectedDogForRecurring(dog);
-                        }}
-                      >
-                        <SelectTrigger className="h-9 text-xs">
-                          <SelectValue placeholder={t('selectPet', language)} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {userDogs.map((dog) => (
-                            <SelectItem key={dog.id} value={dog.id}>
-                              🐕 {dog.dog_name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Button
-                        onClick={() => setShowRecurringModal(true)}
-                        disabled={!selectedDogForRecurring || walker.verification_status !== "verified"}
-                        className="w-full mt-3 text-white h-9 text-xs hover:opacity-90"
-                        style={{
-                          background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
-                        }}
-                        size="sm"
-                      >
-                        {t('setupSchedule', language)}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
+            {/* Formulário de Reserva */}
+            <div id="booking-form-section">
+              {selectedDate ? (
+                <BookingForm
+                  professional={walker}
+                  onClose={handleBookingInitiated}
+                  initialDate={selectedDate}
+                  selectedServiceType={serviceParam}
+                  key={selectedDate?.toISOString()}
+                />
+              ) : (
+                <Card className="bg-white shadow-sm border-2 border-dashed border-gray-300">
+                  <CardContent className="py-12 text-center">
+                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Selecione uma data</h3>
+                    <p className="text-sm text-gray-500">
+                      Clique em um dia disponível no calendário acima
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-        </div>
 
-        {/* BOTTOM: REVIEWS */}
-        <Card className="glass-panel border-0 shadow-lg">
-          <CardHeader className="py-3 sm:py-4 px-3 sm:px-5 bg-white/50 border-b border-gray-100">
-            <CardTitle className="text-base sm:text-lg flex items-center gap-2 flex-wrap">
-              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
-              <span>{t('reviews', language)} ({reviews.length})</span>
-              {averageRating > 0 && <span className="text-xs sm:text-sm font-normal text-gray-500">Média: {averageRating.toFixed(1)}</span>}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-6">
-            {loadingReviews ? (
-              <div className="grid md:grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map(i => (
-                  <Skeleton key={i} className="h-32 rounded-lg" />
-                ))}
-              </div>
-            ) : reviews.length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <Star className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">{t('noReviewsYet', language)}</h3>
-                <p className="text-sm sm:text-base text-gray-600">{t('beFirstReview', language)}</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                {reviews.map((review) => (
-                  <ReviewCard key={review.id} review={review} />
-                ))}
-              </div>
+            {/* Serviços Oferecidos */}
+            {walker.services_offered?.length > 0 && (
+              <Card className="bg-white shadow-sm border-0">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Award className="w-5 h-5 text-indigo-600" />
+                    Serviços Disponíveis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {walker.services_offered.map((service, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-3 rounded-lg bg-gray-50 border border-gray-100">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900 text-sm">{service.service_name}</p>
+                          <p className="text-xs text-gray-500 line-clamp-1">{service.description}</p>
+                        </div>
+                        <span className="font-bold text-green-600 ml-4">€{service.price}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
+
+            {/* Reviews */}
+            <Card className="bg-white shadow-sm border-0">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-500" />
+                  Avaliações ({reviews.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingReviews ? (
+                  <Skeleton className="h-32" />
+                ) : reviews.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-sm text-gray-500">Nenhuma avaliação ainda</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.slice(0, 3).map((review) => (
+                      <ReviewCard key={review.id} review={review} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
 
-      {/* Recurring Booking Modal */}
+      {/* Recurring Modal */}
       <AnimatePresence>
         {showRecurringModal && selectedDogForRecurring && (
           <RecurringBookingModal
@@ -863,7 +600,7 @@ export default function WalkerDetails() {
             onClose={() => setShowRecurringModal(false)}
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ['scheduledAppointments'] });
-              toast.success("Agendamento recorrente criado! Seu agendamento recorrente foi configurado com sucesso.");
+              toast.success("Agendamento recorrente criado!");
             }}
           />
         )}
