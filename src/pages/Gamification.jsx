@@ -1,211 +1,391 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  Trophy, Award, Lock, Sparkles, 
-  Star, TrendingUp, Users, ChevronRight, Wallet
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/LanguageContext";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { useTheme } from "@/components/ThemeContext";
-import { calculateTier, getTierColor, TIER_COLORS_BY_LEVEL } from "@/components/gamification/tierSystem";
-import LevelDonut from "@/components/gamification/LevelDonut";
-import PodiumDisplay from "@/components/gamification/PodiumDisplay";
-import RankingList from "@/components/gamification/RankingList";
+
+// Missões/Provações
+const MISSIONS = [
+  {
+    id: 'night_walker',
+    title: 'O Passeador Noturno',
+    description: 'Completa 3 passeios após as 20h',
+    icon: Moon,
+    reward: 500,
+    rewardType: 'xp',
+    progress: 1,
+    total: 3,
+    rarity: 'epic'
+  },
+  {
+    id: 'elite_client',
+    title: 'Cliente de Elite',
+    description: 'Faz 3 compras na loja PawCão',
+    icon: ShoppingBag,
+    reward: 'Badge Rara',
+    rewardType: 'badge',
+    progress: 2,
+    total: 3,
+    rarity: 'legendary'
+  },
+  {
+    id: 'marathon_walker',
+    title: 'Maratonista Canino',
+    description: 'Acumula 50km em passeios',
+    icon: Footprints,
+    reward: 1000,
+    rewardType: 'xp',
+    progress: 32,
+    total: 50,
+    rarity: 'rare'
+  },
+  {
+    id: 'heart_of_gold',
+    title: 'Coração de Ouro',
+    description: 'Deixa 10 avaliações 5 estrelas',
+    icon: Heart,
+    reward: 750,
+    rewardType: 'xp',
+    progress: 7,
+    total: 10,
+    rarity: 'epic'
+  },
+  {
+    id: 'guardian',
+    title: 'Guardião Fiel',
+    description: 'Mantém subscrição activa por 6 meses',
+    icon: Shield,
+    reward: 'Título Exclusivo',
+    rewardType: 'title',
+    progress: 4,
+    total: 6,
+    rarity: 'legendary'
+  }
+];
+
+// Títulos baseados em nível
+const LEVEL_TITLES = {
+  1: 'Iniciado das Sombras',
+  10: 'Caçador de Alcateia',
+  20: 'Lobo Solitário',
+  30: 'Mestre das Patas',
+  40: 'Guardião do Fogo',
+  50: 'Senhor da Alcateia',
+  60: 'Lenda Imortal',
+  70: 'Titã Ancestral',
+  80: 'Deus do Templo',
+  90: 'O Supremo',
+  100: 'Entidade Cósmica'
+};
+
+const getTitle = (level) => {
+  const titles = Object.entries(LEVEL_TITLES).reverse();
+  for (const [minLevel, title] of titles) {
+    if (level >= parseInt(minLevel)) return title;
+  }
+  return 'Iniciado das Sombras';
+};
+
+// Cores da aura baseadas no nível
+const getAuraColor = (level) => {
+  if (level >= 90) return 'from-violet-500 via-fuchsia-500 to-pink-500';
+  if (level >= 70) return 'from-amber-400 via-yellow-300 to-amber-500';
+  if (level >= 50) return 'from-orange-500 via-red-500 to-orange-600';
+  if (level >= 30) return 'from-blue-500 via-cyan-400 to-blue-600';
+  if (level >= 10) return 'from-emerald-500 via-green-400 to-emerald-600';
+  return 'from-gray-500 via-gray-400 to-gray-600';
+};
+
+// Componente da Carta de Missão
+const MissionCard = ({ mission, isFlipped, onFlip }) => {
+  const rarityColors = {
+    common: 'border-gray-600 bg-gray-900/80',
+    rare: 'border-blue-500 bg-blue-950/80',
+    epic: 'border-purple-500 bg-purple-950/80',
+    legendary: 'border-amber-500 bg-amber-950/80'
+  };
+
+  const rarityGlow = {
+    common: '',
+    rare: 'shadow-blue-500/30',
+    epic: 'shadow-purple-500/30',
+    legendary: 'shadow-amber-500/50'
+  };
+
+  const Icon = mission.icon;
+  const progressPercent = (mission.progress / mission.total) * 100;
+
+  return (
+    <motion.div
+      className="relative w-64 h-96 cursor-pointer perspective-1000"
+      onClick={onFlip}
+      whileHover={{ scale: 1.05, y: -10 }}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div
+        className="relative w-full h-full"
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6 }}
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        {/* Frente da Carta */}
+        <div 
+          className={`absolute inset-0 rounded-2xl border-2 ${rarityColors[mission.rarity]} shadow-2xl ${rarityGlow[mission.rarity]} backface-hidden overflow-hidden`}
+          style={{ backfaceVisibility: 'hidden' }}
+        >
+          {/* Padrão decorativo */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-4 left-4 w-8 h-8 border border-amber-500/50 rotate-45" />
+            <div className="absolute top-4 right-4 w-8 h-8 border border-amber-500/50 rotate-45" />
+            <div className="absolute bottom-4 left-4 w-8 h-8 border border-amber-500/50 rotate-45" />
+            <div className="absolute bottom-4 right-4 w-8 h-8 border border-amber-500/50 rotate-45" />
+          </div>
+
+          {/* Conteúdo */}
+          <div className="relative h-full flex flex-col items-center justify-between p-6">
+            {/* Raridade */}
+            <Badge className={`uppercase tracking-widest text-[10px] font-bold ${
+              mission.rarity === 'legendary' ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-black' :
+              mission.rarity === 'epic' ? 'bg-purple-600 text-white' :
+              mission.rarity === 'rare' ? 'bg-blue-600 text-white' :
+              'bg-gray-600 text-white'
+            }`}>
+              {mission.rarity}
+            </Badge>
+
+            {/* Ícone Central */}
+            <motion.div 
+              className={`w-24 h-24 rounded-full flex items-center justify-center ${
+                mission.rarity === 'legendary' ? 'bg-gradient-to-br from-amber-500/30 to-orange-600/30 border-2 border-amber-500' :
+                mission.rarity === 'epic' ? 'bg-gradient-to-br from-purple-500/30 to-pink-600/30 border-2 border-purple-500' :
+                'bg-gradient-to-br from-blue-500/30 to-cyan-600/30 border-2 border-blue-500'
+              }`}
+              animate={{ 
+                boxShadow: mission.rarity === 'legendary' 
+                  ? ['0 0 20px rgba(245,158,11,0.5)', '0 0 40px rgba(245,158,11,0.8)', '0 0 20px rgba(245,158,11,0.5)']
+                  : ['0 0 10px rgba(255,255,255,0.2)', '0 0 20px rgba(255,255,255,0.4)', '0 0 10px rgba(255,255,255,0.2)']
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Icon className={`w-12 h-12 ${
+                mission.rarity === 'legendary' ? 'text-amber-400' :
+                mission.rarity === 'epic' ? 'text-purple-400' :
+                'text-blue-400'
+              }`} />
+            </motion.div>
+
+            {/* Título */}
+            <div className="text-center">
+              <h3 className="text-lg font-black text-white tracking-wide uppercase mb-2">
+                {mission.title}
+              </h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                {mission.description}
+              </p>
+            </div>
+
+            {/* Recompensa */}
+            <div className="flex items-center gap-2 bg-black/50 rounded-full px-4 py-2 border border-amber-500/30">
+              {mission.rewardType === 'xp' ? (
+                <>
+                  <Flame className="w-4 h-4 text-orange-500" />
+                  <span className="text-amber-400 font-bold">{mission.reward} XP</span>
+                </>
+              ) : mission.rewardType === 'badge' ? (
+                <>
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  <span className="text-purple-400 font-bold">{mission.reward}</span>
+                </>
+              ) : (
+                <>
+                  <Crown className="w-4 h-4 text-amber-400" />
+                  <span className="text-amber-400 font-bold">{mission.reward}</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Verso da Carta (Progresso) */}
+        <div 
+          className={`absolute inset-0 rounded-2xl border-2 ${rarityColors[mission.rarity]} shadow-2xl ${rarityGlow[mission.rarity]} overflow-hidden`}
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+        >
+          <div className="relative h-full flex flex-col items-center justify-center p-6 bg-gradient-to-b from-black/50 to-black/80">
+            {/* Símbolo central */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 opacity-10">
+              <Icon className="w-full h-full text-amber-500" />
+            </div>
+
+            <h4 className="text-amber-400 font-black uppercase tracking-widest text-sm mb-8 relative z-10">
+              Progresso
+            </h4>
+
+            {/* Barra de progresso vertical estilo totem */}
+            <div className="relative w-16 h-48 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden mb-6">
+              <motion.div 
+                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-orange-600 via-amber-500 to-yellow-400"
+                initial={{ height: 0 }}
+                animate={{ height: `${progressPercent}%` }}
+                transition={{ duration: 1, delay: 0.3 }}
+              >
+                {/* Efeito de lava */}
+                <div className="absolute inset-0 bg-gradient-to-t from-red-600/50 to-transparent animate-pulse" />
+              </motion.div>
+              
+              {/* Marcadores */}
+              {[25, 50, 75].map((mark) => (
+                <div 
+                  key={mark} 
+                  className="absolute left-0 right-0 h-0.5 bg-amber-500/30"
+                  style={{ bottom: `${mark}%` }}
+                />
+              ))}
+            </div>
+
+            <div className="text-center relative z-10">
+              <p className="text-3xl font-black text-white mb-1">
+                {mission.progress}/{mission.total}
+              </p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                {Math.round(progressPercent)}% Completo
+              </p>
+            </div>
+
+            <p className="text-xs text-gray-600 mt-4 text-center relative z-10">
+              Clica para voltar
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Componente do Pedestal
+const PodiumPedestal = ({ user, position, delay }) => {
+  const heights = { 1: 'h-40', 2: 'h-28', 3: 'h-20' };
+  const sizes = { 1: 'w-24 h-24', 2: 'w-18 h-18', 3: 'w-16 h-16' };
+  const glowColors = { 1: 'shadow-amber-500/60', 2: 'shadow-gray-400/50', 3: 'shadow-orange-700/50' };
+  const borderColors = { 1: 'border-amber-500', 2: 'border-gray-400', 3: 'border-orange-700' };
+  const bgColors = { 1: 'from-amber-900/50 to-amber-950/80', 2: 'from-gray-800/50 to-gray-900/80', 3: 'from-orange-900/50 to-orange-950/80' };
+
+  const funnyTitles = [
+    'O Destruidor de Brinquedos',
+    'Rei dos Passeios',
+    'Mestre das Guloseimas',
+    'Senhor das Patinhas',
+    'Guardião do Sofá'
+  ];
+
+  return (
+    <motion.div
+      className="flex flex-col items-center"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay }}
+    >
+      {/* Coroa para 1º lugar */}
+      {position === 1 && (
+        <motion.div
+          animate={{ y: [0, -5, 0], rotate: [-5, 5, -5] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="mb-2"
+        >
+          <Crown className="w-10 h-10 text-amber-400 drop-shadow-lg" />
+        </motion.div>
+      )}
+
+      {/* Avatar */}
+      <motion.div
+        className={`relative ${sizes[position]} mb-4`}
+        whileHover={{ scale: 1.1 }}
+      >
+        <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${bgColors[position]} blur-xl`} />
+        <Avatar className={`${sizes[position]} border-4 ${borderColors[position]} shadow-2xl ${glowColors[position]} relative z-10`}>
+          <AvatarImage src={user?.profile_photo_url} />
+          <AvatarFallback className="bg-neutral-800 text-amber-500 text-xl font-bold">
+            {user?.full_name?.[0] || position}
+          </AvatarFallback>
+        </Avatar>
+        
+        {/* Aura animada */}
+        <motion.div
+          className={`absolute inset-0 rounded-full border-2 ${borderColors[position]} opacity-50`}
+          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
+      </motion.div>
+
+      {/* Nome e Título */}
+      <h4 className="text-white font-bold text-sm mb-1 text-center max-w-[120px] truncate">
+        {user?.full_name || `Jogador ${position}`}
+      </h4>
+      <p className="text-amber-500/70 text-[10px] uppercase tracking-wider text-center mb-2">
+        {funnyTitles[position - 1]}
+      </p>
+
+      {/* XP */}
+      <Badge className="bg-black/50 border border-amber-500/30 text-amber-400 text-xs mb-4">
+        <Flame className="w-3 h-3 mr-1" />
+        {(user?.gamification_xp || 0).toLocaleString()} XP
+      </Badge>
+
+      {/* Pedestal */}
+      <motion.div
+        className={`${heights[position]} w-28 relative`}
+        initial={{ height: 0 }}
+        animate={{ height: position === 1 ? 160 : position === 2 ? 112 : 80 }}
+        transition={{ duration: 0.8, delay: delay + 0.3 }}
+      >
+        {/* Pedestal base */}
+        <div className={`absolute inset-0 bg-gradient-to-t ${bgColors[position]} rounded-t-lg border-x-2 border-t-2 ${borderColors[position]}`}>
+          {/* Linhas decorativas */}
+          <div className="absolute inset-x-2 top-2 bottom-2 border border-amber-500/20 rounded" />
+          
+          {/* Número da posição */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className={`text-4xl font-black ${
+              position === 1 ? 'text-amber-500' : 
+              position === 2 ? 'text-gray-400' : 
+              'text-orange-700'
+            } opacity-30`}>
+              {position}
+            </span>
+          </div>
+        </div>
+
+        {/* Efeito de néon na base */}
+        <motion.div
+          className={`absolute bottom-0 left-0 right-0 h-1 ${
+            position === 1 ? 'bg-amber-500' : 
+            position === 2 ? 'bg-gray-400' : 
+            'bg-orange-700'
+          }`}
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        />
+      </motion.div>
+    </motion.div>
+  );
+};
 
 export default function Gamification() {
-  const navigate = useNavigate();
-  const { colors } = useTheme();
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [activeRanking, setActiveRanking] = useState("global"); // global, walkers, quality
+  const { language } = useLanguage();
+  const [flippedCard, setFlippedCard] = useState(null);
+  const [carouselIndex, setCarouselIndex] = useState(0);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch wallet data for cashback display
-  const { data: userWallet } = useQuery({
-    queryKey: ['userWallet', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
-      return wallets[0] || null;
-    },
-    enabled: !!user?.email,
-  });
-
-  // Fetch all users for Global Ranking - UserProfile is single source of truth
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ['leaderboard'],
-    queryFn: async () => {
-      // UserProfile is the ONLY source of truth for XP
-      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 500);
-      
-      return profiles
-        .filter(p => (p.gamification_xp || 0) > 0)
-        .map(p => ({
-          email: p.user_email,
-          full_name: p.full_name,
-          profile_photo_url: p.profile_photo_url,
-          gamification_xp: p.gamification_xp || 0,
-          gamification_level: p.gamification_level || 1,
-          id: p.user_id || p.id
-        }))
-        .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
-    },
-    enabled: activeRanking === 'global',
-  });
-
-  // Fetch walker profiles for Walker Rankings - NOVO: Baseado em Serviços Concluídos + Avaliações
-  const { data: walkerProfiles = [] } = useQuery({
-    queryKey: ['walkerProfiles'],
-    queryFn: async () => {
-      const profiles = await base44.entities.WalkerProfile.list('-rating', 500);
-      return profiles.filter(p => p.is_active || p.total_walks > 0);
-    },
-    enabled: activeRanking === 'walkers',
-  });
-
-  // Fetch ALL completed bookings for accurate counting
-  const { data: allBookings = [] } = useQuery({
-    queryKey: ['allBookingsHallOfFame'],
-    queryFn: async () => {
-      const bookings = await base44.entities.Booking.filter({ status: 'completed' });
-      return bookings;
-    },
-    enabled: activeRanking === 'walkers' || activeRanking === 'quality',
-  });
-
-  // Fetch reviews for quality ranking
-  const { data: allReviews = [] } = useQuery({
-    queryKey: ['allReviewsHallOfFame'],
-    queryFn: async () => {
-      const reviews = await base44.entities.Review.list('-created_date', 1000);
-      return reviews;
-    },
-    enabled: activeRanking === 'walkers',
-  });
-
-  // Fetch dog profiles for Happy Dogs ranking
-  const { data: dogProfiles = [] } = useQuery({
-    queryKey: ['dogProfiles'],
-    queryFn: async () => {
-      const dogs = await base44.entities.DogProfile.list('-created_date', 500);
-      return dogs;
-    },
-    enabled: activeRanking === 'quality',
-  });
-
-  // Process data based on active ranking
-  // HALL DA FAMA: Pódio baseado em Serviços Concluídos, Cães Únicos Ajudados e Média de Avaliações
-  const rankedData = React.useMemo(() => {
-    if (activeRanking === 'global') {
-      // Global: Ordenar por XP
-      return allUsers.map(u => ({
-        ...u,
-        tier: calculateTier(u.gamification_xp || 0)
-      }));
-    }
-
-    if (activeRanking === 'walkers') {
-      // NOVO: Ranking baseado em Score Composto
-      // Score = (Serviços Concluídos * 10) + (Cães Únicos * 20) + (Média Avaliações * 50)
-      
-      const walkerStats = {};
-      
-      // Contar serviços e cães únicos por walker
-      allBookings.forEach(booking => {
-        const walkerEmail = booking.walker_email;
-        if (!walkerEmail) return;
-        
-        if (!walkerStats[walkerEmail]) {
-          walkerStats[walkerEmail] = {
-            completedServices: 0,
-            uniqueDogs: new Set(),
-            totalRating: 0,
-            reviewCount: 0
-          };
-        }
-        
-        walkerStats[walkerEmail].completedServices++;
-        if (booking.dog_name) {
-          walkerStats[walkerEmail].uniqueDogs.add(booking.dog_name);
-        }
-      });
-      
-      // Adicionar avaliações
-      allReviews.forEach(review => {
-        const walkerEmail = walkerProfiles.find(w => w.id === review.walker_id)?.created_by;
-        if (walkerEmail && walkerStats[walkerEmail]) {
-          walkerStats[walkerEmail].totalRating += review.rating || 0;
-          walkerStats[walkerEmail].reviewCount++;
-        }
-      });
-      
-      // Calcular score e mapear para profiles
-      return walkerProfiles
-        .map(profile => {
-          const stats = walkerStats[profile.created_by] || { completedServices: 0, uniqueDogs: new Set(), totalRating: 0, reviewCount: 0 };
-          const avgRating = stats.reviewCount > 0 ? stats.totalRating / stats.reviewCount : profile.rating || 5;
-          const uniqueDogsCount = stats.uniqueDogs.size;
-          
-          // Score composto
-          const score = (stats.completedServices * 10) + (uniqueDogsCount * 20) + (avgRating * 50);
-          
-          return {
-            ...profile,
-            completed_rides: stats.completedServices,
-            unique_dogs: uniqueDogsCount,
-            avg_rating: avgRating,
-            hall_score: Math.round(score),
-            full_name: profile.walker_name,
-            profile_photo_url: profile.photo_url,
-            email: profile.created_by
-          };
-        })
-        .filter(w => w.completed_rides > 0 || w.total_walks > 0)
-        .sort((a, b) => b.hall_score - a.hall_score);
-    }
-
-    if (activeRanking === 'quality') {
-      // CÃES FELIZES: Ordenar por número de passeios
-      const dogBookingsCount = {};
-      allBookings.forEach(booking => {
-        const dogName = booking.dog_name;
-        const ownerEmail = booking.created_by;
-        const dogKey = `${ownerEmail}-${dogName}`;
-        if (dogName) {
-          dogBookingsCount[dogKey] = (dogBookingsCount[dogKey] || 0) + 1;
-        }
-      });
-
-      return dogProfiles
-        .map(dog => {
-          const dogKey = `${dog.owner_email || dog.created_by}-${dog.dog_name}`;
-          return {
-            ...dog,
-            full_name: dog.dog_name,
-            profile_photo_url: dog.photo_url,
-            email: dog.owner_email || dog.created_by,
-            total_walks: dogBookingsCount[dogKey] || 0
-          };
-        })
-        .filter(d => d.total_walks > 0)
-        .sort((a, b) => b.total_walks - a.total_walks);
-    }
-
-    return [];
-  }, [activeRanking, allUsers, walkerProfiles, allBookings, allReviews, dogProfiles]);
-
-  // Fetch current user's XP from UserProfile (single source of truth)
-  const { data: currentUserProfile } = useQuery({
-    queryKey: ['currentUserProfile', user?.email],
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfileGamification', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
       const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
@@ -214,674 +394,339 @@ export default function Gamification() {
     enabled: !!user?.email,
   });
 
-  const currentXP = currentUserProfile?.gamification_xp || 0;
-  const currentTier = calculateTier(currentXP);
-  
-  // SISTEMA LINEAR: 100 XP = 1 Nível
-  // level = floor(XP / 100), progress = XP % 100
-  const currentLevel = currentTier.level;
-  const tierProgressPercentage = currentTier.progress; // 0-99 (XP dentro do nível)
-  const xpRemainingForNextLevel = currentTier.xpToNextLevel; // 100 - progress
-
-  // DEBUG: Log tier info
-  console.log('🎯 Gamification Debug (Linear):', {
-    currentXP,
-    currentLevel,
-    progress: tierProgressPercentage,
-    xpToNext: xpRemainingForNextLevel,
-    tierName: currentTier.name,
-    // Exemplos de teste:
-    // XP=150 → Nível 1, progress=50, xpToNext=50
-    // XP=5000 → Nível 50, progress=0, xpToNext=100
-    // XP=5099 → Nível 50, progress=99, xpToNext=1
+  const { data: topUsers = [] } = useQuery({
+    queryKey: ['topUsersLeaderboard'],
+    queryFn: async () => {
+      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 10);
+      return profiles.filter(p => p.gamification_xp > 0);
+    },
   });
 
-  // Badges
-  const allEarnedBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
-  const earnedBadgeIds = allEarnedBadges.map(b => b.badge_id);
+  const currentXP = userProfile?.gamification_xp || 0;
+  const currentLevel = userProfile?.gamification_level || Math.floor(currentXP / 1000) + 1;
+  const xpForCurrentLevel = (currentLevel - 1) * 1000;
+  const xpForNextLevel = currentLevel * 1000;
+  const progressInLevel = ((currentXP - xpForCurrentLevel) / (xpForNextLevel - xpForCurrentLevel)) * 100;
+  const title = getTitle(currentLevel);
+  const auraColor = getAuraColor(currentLevel);
 
-  const allPossibleBadges = [
-    { id: "welcome", name: "Bem-vindo", desc: "Junte-se à comunidade", icon: "🎉", category: "milestone", rarity: "common" },
-    { id: "first_post", name: "Primeiro Post", desc: "Publique seu primeiro post", icon: "📝", category: "social", rarity: "common" },
-    { id: "social_butterfly", name: "Social Butterfly", desc: "50+ posts publicados", icon: "🦋", category: "social", rarity: "rare" },
-    { id: "popular", name: "Popular", desc: "Receba 100+ curtidas", icon: "❤️", category: "social", rarity: "rare" },
-    { id: "influencer", name: "Influencer", desc: "500+ curtidas recebidas", icon: "⭐", category: "social", rarity: "epic" },
-    { id: "first_booking", name: "Primeira Reserva", desc: "Faça sua primeira reserva", icon: "🎫", category: "activity", rarity: "common" },
-    { id: "regular_user", name: "Utilizador Regular", desc: "10+ reservas realizadas", icon: "📅", category: "activity", rarity: "rare" },
-    { id: "profile_complete", name: "Perfil Completo", desc: "Complete 100% do perfil", icon: "✅", category: "milestone", rarity: "common" },
-    { id: "streak_starter", name: "Streak Starter", desc: "7 dias consecutivos", icon: "🔥", category: "activity", rarity: "common" },
-    { id: "streak_master", name: "Streak Master", desc: "30 dias consecutivos", icon: "🔥", category: "activity", rarity: "epic" },
-    { id: "adoption_hero", name: "Herói de Adoção", desc: "Adote um pet resgatado", icon: "🏠", category: "milestone", rarity: "epic" },
-    { id: "community_legend", name: "Lenda Comunitária", desc: "Membro lendário", icon: "👑", category: "special", rarity: "legendary" },
-  ];
-
-  // Combine system badges with earned custom badges for display (remove duplicates by id)
-  const customEarnedBadges = (user?.public_badges || []).map(badge => ({
-    id: badge.badge_id,
-    name: badge.name,
-    desc: badge.description,
-    icon: badge.icon,
-    image_url: badge.image_url,
-    category: badge.category || 'special',
-    rarity: badge.rarity || 'rare'
-  }));
-
-  // Remove duplicates - keep only unique badge IDs
-  const uniqueCustomBadges = customEarnedBadges.filter((badge, index, self) => 
-    index === self.findIndex(b => b.id === badge.id)
-  );
-
-  const allBadgesForDisplay = [...allPossibleBadges, ...uniqueCustomBadges];
-
-  // Filter by category
-  const filteredBadges = activeCategory === "all" 
-    ? allBadgesForDisplay 
-    : allBadgesForDisplay.filter(b => b.category === activeCategory);
-
-  // User rank
-  const userRank = rankedData.findIndex(u => u.email === user?.email) + 1;
-
-  // Ranking configuration - ATUALIZADO com Hall Score
-  const rankingConfig = {
-    global: {
-      title: 'Rank Global',
-      podiumColor: 'from-yellow-400 to-yellow-600',
-      accentColor: 'text-blue-600',
-      bgGradient: 'from-yellow-50 to-orange-50',
-      metricKey: 'gamification_xp',
-      metricLabel: 'XP',
-      formatMetric: (value) => `${(value || 0).toLocaleString('pt-PT')} XP`
-    },
-    walkers: {
-      title: 'Hall da Fama',
-      podiumColor: 'from-green-400 to-green-600',
-      accentColor: 'text-green-600',
-      bgGradient: 'from-green-50 to-emerald-50',
-      metricKey: 'hall_score',
-      metricLabel: 'Score',
-      formatMetric: (value, item) => {
-        if (item?.completed_rides !== undefined) {
-          return `${item.completed_rides} 🐕 ${item.unique_dogs || 0} ⭐ ${(item.avg_rating || 5).toFixed(1)}`;
-        }
-        return `${value || 0} pts`;
-      }
-    },
-    quality: {
-      title: 'Cães Felizes',
-      podiumColor: 'from-pink-400 to-pink-600',
-      accentColor: 'text-pink-600',
-      bgGradient: 'from-pink-50 to-rose-50',
-      metricKey: 'total_walks',
-      metricLabel: 'Passeios',
-      formatMetric: (value) => `${value || 0} 🦴`
-    }
+  const nextCard = () => {
+    setCarouselIndex((prev) => (prev + 1) % MISSIONS.length);
   };
 
-  const currentConfig = rankingConfig[activeRanking];
+  const prevCard = () => {
+    setCarouselIndex((prev) => (prev - 1 + MISSIONS.length) % MISSIONS.length);
+  };
 
-  // Cor do nível atual usando o novo sistema Espectro
-  const levelColor = getTierColor(currentLevel);
+  // Ordenar top 3 para o pódio (2º, 1º, 3º)
+  const podiumOrder = [topUsers[1], topUsers[0], topUsers[2]].filter(Boolean);
 
   return (
-    <div className="min-h-screen pb-8 relative">
-    {/* 1. HERO SECTION - Modern Transparent */}
-    <div className="relative overflow-hidden mb-8">
-        {/* Transparent glass background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-purple-50/10 to-blue-50/10"></div>
-        
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-16 relative z-10">
-          {/* Header Title - Compacto Mobile */}
-          <motion.div 
-            className="text-center mb-6 md:mb-12"
+    <div className="min-h-screen bg-neutral-950 relative overflow-hidden">
+      {/* Nevoeiro laranja animado */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div
+          className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[150px]"
+          animate={{ 
+            x: [0, 100, 0], 
+            y: [0, 50, 0],
+            opacity: [0.1, 0.2, 0.1] 
+          }}
+          transition={{ duration: 15, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[150px]"
+          animate={{ 
+            x: [0, -80, 0], 
+            y: [0, -60, 0],
+            opacity: [0.1, 0.15, 0.1] 
+          }}
+          transition={{ duration: 12, repeat: Infinity, delay: 2 }}
+        />
+      </div>
+
+      {/* ========== SECÇÃO 1: O TEU LEGADO ========== */}
+      <section className="relative pt-12 pb-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Título da secção */}
+          <motion.h2
+            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-12"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            {/* Carteira flutuante - fora do fluxo do título */}
-            <motion.button
-              onClick={() => navigate(createPageUrl('MyWallet'))}
-              className="absolute right-4 md:right-8 top-6 md:top-8 flex items-center gap-2 px-3 py-2 rounded-full shadow-lg border-2 backdrop-blur-sm z-30"
-              style={{ 
-                background: 'rgba(255,255,255,0.95)', 
-                borderColor: `${levelColor}40`
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Wallet className="w-4 h-4" style={{ color: levelColor }} />
-              <span className="text-sm font-black" style={{ color: levelColor }}>
-                €{(userWallet?.cashback_balance || 0).toFixed(2)}
-              </span>
-            </motion.button>
+            O Teu Legado
+          </motion.h2>
 
-            <div className="flex items-center justify-center gap-2 md:gap-3 mb-2 md:mb-4 pt-2">
-              <div 
-                className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg"
-                style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
-              >
-                <Trophy className="w-5 h-5 md:w-7 md:h-7 text-white" />
-              </div>
-              <h1 className="text-2xl md:text-6xl font-black tracking-tight text-slate-800">
-                Hall da Fama
-              </h1>
-            </div>
-            
-            <p className="text-xs md:text-base text-gray-600 font-medium max-w-2xl mx-auto">
-              Recompensas e Rankings da Comunidade
-            </p>
-          </motion.div>
-
-          {/* MOBILE: Layout Compacto em 1 Card Principal */}
-          <div className="md:hidden mb-6">
-            <motion.div 
-              className="rounded-3xl relative overflow-hidden shadow-2xl"
-              style={{ 
-                background: `linear-gradient(135deg, ${levelColor}15, white 40%, ${levelColor}08)`,
-                border: `2px solid ${levelColor}30`
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-12">
+            {/* Totem de Poder */}
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8 }}
             >
-              {/* Glow effects */}
-              <div className="absolute top-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-30" 
-                   style={{ background: levelColor }}></div>
-              <div className="absolute bottom-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20" 
-                   style={{ background: levelColor }}></div>
-              
-              <div className="relative z-10 p-5">
-                {/* Linha Principal: Donut + Info */}
-                <div className="flex items-center gap-4">
-                  {/* Mini Donut */}
-                  <div className="flex-shrink-0">
-                    <LevelDonut 
-                      level={currentLevel} 
-                      progress={tierProgressPercentage} 
-                      size={100}
-                      strokeWidth={10}
-                    />
-                  </div>
-                  
-                  {/* Info Stack */}
-                  <div className="flex-1 min-w-0">
-                    {/* Tier Name */}
-                    <div 
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black mb-2"
-                      style={{ background: `${levelColor}20`, color: levelColor }}
-                    >
-                      <Star className="w-3 h-3" />
-                      {currentTier.name}
-                    </div>
-                    
-                    {/* XP Display */}
-                    <div className="mb-2">
-                      <div className="text-3xl font-black tracking-tight" style={{ color: levelColor }}>
-                        {currentXP.toLocaleString('pt-PT')} <span className="text-lg opacity-70">XP</span>
-                      </div>
-                      <div className="text-[10px] text-gray-500 font-semibold">
-                        +{xpRemainingForNextLevel} XP para Nível {currentLevel + 1}
-                      </div>
-                    </div>
-                    
-                    {/* Progress Bar Mini */}
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ 
-                          width: `${tierProgressPercentage}%`,
-                          background: `linear-gradient(90deg, ${levelColor}, ${levelColor}cc)`
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Linha de Conquistas */}
-                <div className="mt-4 pt-4 border-t" style={{ borderColor: `${levelColor}20` }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-10 h-10 rounded-xl flex items-center justify-center"
-                        style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
-                      >
-                        <Award className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500 font-semibold">Conquistas</div>
-                        <div className="text-lg font-black" style={{ color: levelColor }}>
-                          {allEarnedBadges.length}<span className="text-sm text-gray-400 font-medium">/{allPossibleBadges.length}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Preview das últimas 3 badges */}
-                    <div className="flex -space-x-2">
-                      {allEarnedBadges.slice(0, 3).map((badge, idx) => (
-                        <div 
-                          key={idx}
-                          className="w-8 h-8 rounded-lg bg-white border-2 flex items-center justify-center text-lg shadow-sm"
-                          style={{ borderColor: `${levelColor}30` }}
-                        >
-                          {badge.icon || '🏆'}
-                        </div>
-                      ))}
-                      {allEarnedBadges.length > 3 && (
-                        <div 
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold shadow-sm"
-                          style={{ background: levelColor, color: 'white' }}
-                        >
-                          +{allEarnedBadges.length - 3}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* DESKTOP: Grid de 4 Cards (mantém original mas melhorado) */}
-          <div className="hidden md:grid md:grid-cols-4 gap-6 items-stretch mb-8 max-w-6xl mx-auto">
-            {/* Card 1: Donut Chart de Nível */}
-            <motion.div 
-              className="rounded-3xl relative overflow-hidden shadow-xl"
-              style={{ 
-                background: `linear-gradient(145deg, white, ${levelColor}08)`,
-                border: `2px solid ${levelColor}25`
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-25" 
-                   style={{ background: levelColor }}></div>
-              <div className="relative z-10 p-7">
-                <h3 className="text-sm font-black mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
-                  <Star className="w-5 h-5" />
-                  Nível Atual
-                </h3>
-                
-                <div className="flex justify-center">
-                  <LevelDonut 
-                    level={currentLevel} 
-                    progress={tierProgressPercentage} 
-                    size={140}
-                    strokeWidth={12}
+              {/* Barra vertical do totem */}
+              <div className="relative w-20 h-72 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
+                {/* Preenchimento de lava */}
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-700 via-orange-500 to-amber-400"
+                  initial={{ height: 0 }}
+                  animate={{ height: `${progressInLevel}%` }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                >
+                  {/* Efeito de lava borbulhante */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-t from-red-600/80 via-orange-400/50 to-yellow-300/30"
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 1, repeat: Infinity }}
                   />
-                </div>
-
-                <div className="mt-4 text-center">
-                  <div 
-                    className="text-sm font-bold truncate px-4 py-1.5 rounded-full inline-block"
-                    style={{ color: levelColor, backgroundColor: `${levelColor}15` }}
-                  >
-                    {currentTier.name}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    +{xpRemainingForNextLevel} XP → Nível {currentLevel + 1}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Card 2: XP Total */}
-            <motion.div 
-              className="rounded-3xl relative overflow-hidden shadow-xl"
-              style={{ 
-                background: `linear-gradient(145deg, white, ${levelColor}08)`,
-                border: `2px solid ${levelColor}25`
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-            >
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20" 
-                   style={{ background: levelColor }}></div>
-              <div className="relative z-10 p-7">
-                <h3 className="text-sm font-black mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
-                  <Sparkles className="w-5 h-5" />
-                  Experiência
-                </h3>
-                
-                <div 
-                  className="text-center rounded-2xl p-5 mb-3"
-                  style={{ background: `linear-gradient(135deg, ${levelColor}12, ${levelColor}05)` }}
-                >
-                  <div className="text-4xl font-black tracking-tighter leading-none" style={{ color: levelColor }}>
-                    {currentXP.toLocaleString('pt-PT')}
-                  </div>
-                  <div className="text-xs text-gray-600 font-bold uppercase tracking-wide mt-2">XP Total</div>
-                </div>
-                
-                {/* Progress bar */}
-                <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{ 
-                      width: `${tierProgressPercentage}%`,
-                      background: `linear-gradient(90deg, ${levelColor}, ${levelColor}aa)`
-                    }}
+                  {/* Bolhas */}
+                  <motion.div
+                    className="absolute top-2 left-3 w-2 h-2 bg-yellow-300 rounded-full"
+                    animate={{ y: [-5, -15, -5], opacity: [1, 0, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
                   />
-                </div>
-                <div className="text-xs text-gray-500 mt-2 text-center font-semibold">
-                  {tierProgressPercentage}/100 XP neste nível
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Card 3: Carteira */}
-            <motion.div 
-              className="rounded-3xl relative overflow-hidden shadow-xl cursor-pointer group"
-              style={{ 
-                background: `linear-gradient(145deg, white, ${levelColor}08)`,
-                border: `2px solid ${levelColor}25`
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              onClick={() => navigate(createPageUrl('MyWallet'))}
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-20" style={{ background: levelColor }}></div>
-              <div className="relative z-10 p-7">
-                <h3 className="text-sm font-black mb-5 flex items-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
-                  <Wallet className="w-5 h-5" />
-                  Carteira
-                </h3>
-                
-                <div 
-                  className="text-center rounded-2xl p-5"
-                  style={{ background: `linear-gradient(135deg, ${levelColor}12, ${levelColor}05)` }}
-                >
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-2xl font-black" style={{ color: levelColor }}>€</span>
-                    <span className="text-5xl font-black tracking-tighter" style={{ color: levelColor }}>
-                      {Math.floor(userWallet?.cashback_balance || 0)}
-                    </span>
-                    <span className="text-2xl font-bold opacity-60" style={{ color: levelColor }}>
-                      .{((userWallet?.cashback_balance || 0) % 1).toFixed(2).substring(2)}
-                    </span>
-                  </div>
-                  <div className="text-xs font-bold uppercase tracking-wide mt-2 opacity-70" style={{ color: levelColor }}>
-                    Cashback
-                  </div>
-                </div>
-                
-                <div className="mt-4 text-center">
-                  <span className="text-xs text-gray-500 group-hover:text-gray-700 transition-colors font-semibold flex items-center justify-center gap-1">
-                    Ver Carteira <ChevronRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Card 4: Badges */}
-            <motion.div 
-              className="rounded-3xl text-center relative overflow-hidden shadow-xl"
-              style={{ 
-                background: `linear-gradient(145deg, white, ${levelColor}08)`,
-                border: `2px solid ${levelColor}25`
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-            >
-              <div className="absolute top-0 left-0 w-40 h-40 rounded-full blur-3xl opacity-20" style={{ background: levelColor }}></div>
-              <div className="relative z-10 p-7">
-                <h3 className="text-sm font-black mb-5 flex items-center justify-center gap-2 uppercase tracking-wide" style={{ color: levelColor }}>
-                  <Award className="w-5 h-5" />
-                  Conquistas
-                </h3>
-                
-                <motion.div 
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 relative shadow-xl"
-                  style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
-                  whileHover={{ scale: 1.05, rotate: 5 }}
-                >
-                  <div className="absolute inset-0 bg-white opacity-20 rounded-2xl"></div>
-                  <Trophy className="w-10 h-10 text-white relative z-10" />
+                  <motion.div
+                    className="absolute top-4 right-4 w-1.5 h-1.5 bg-yellow-200 rounded-full"
+                    animate={{ y: [-5, -20, -5], opacity: [1, 0, 1] }}
+                    transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+                  />
                 </motion.div>
+
+                {/* Marcadores de nível */}
+                {[25, 50, 75].map((mark) => (
+                  <div 
+                    key={mark} 
+                    className="absolute left-0 right-0 h-0.5 bg-amber-500/20"
+                    style={{ bottom: `${mark}%` }}
+                  />
+                ))}
+              </div>
+
+              {/* Avatar flutuante no topo */}
+              <motion.div
+                className="absolute -top-16 left-1/2 -translate-x-1/2"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                {/* Aura */}
+                <motion.div
+                  className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-xl scale-150`}
+                  animate={{ 
+                    scale: [1.5, 1.8, 1.5], 
+                    opacity: [0.4, 0.7, 0.4] 
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
                 
-                <div className="text-5xl font-black tracking-tighter mb-1" style={{ color: levelColor }}>
-                  {allEarnedBadges.length}
-                </div>
-                <p className="text-xs text-gray-500 font-semibold">de {allPossibleBadges.length} emblemas</p>
+                <Avatar className="w-20 h-20 border-4 border-amber-500 shadow-2xl shadow-amber-500/50 relative z-10">
+                  <AvatarImage src={user?.profile_photo_url} />
+                  <AvatarFallback className="bg-neutral-800 text-amber-500 text-2xl font-black">
+                    {user?.full_name?.[0] || '?'}
+                  </AvatarFallback>
+                </Avatar>
+              </motion.div>
+
+              {/* XP atual na base */}
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                <Badge className="bg-black border border-amber-500/50 text-amber-400">
+                  <Flame className="w-3 h-3 mr-1" />
+                  {currentXP.toLocaleString()} XP
+                </Badge>
+              </div>
+            </motion.div>
+
+            {/* Info do Nível */}
+            <motion.div
+              className="text-center md:text-left"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <motion.div
+                className="inline-flex items-center gap-2 bg-black/50 border border-amber-500/30 rounded-full px-4 py-1 mb-4"
+                animate={{ boxShadow: ['0 0 10px rgba(245,158,11,0.2)', '0 0 20px rgba(245,158,11,0.4)', '0 0 10px rgba(245,158,11,0.2)'] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Star className="w-4 h-4 text-amber-400" />
+                <span className="text-amber-400 text-sm font-bold uppercase tracking-wider">
+                  Nível {currentLevel}
+                </span>
+              </motion.div>
+
+              <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">
+                {title}
+              </h1>
+
+              <p className="text-gray-500 text-sm mb-6">
+                Faltam <span className="text-amber-400 font-bold">{(xpForNextLevel - currentXP).toLocaleString()} XP</span> para o próximo nível
+              </p>
+
+              {/* Mini barra de progresso */}
+              <div className="w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-amber-500/20">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-orange-600 to-amber-400"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressInLevel}%` }}
+                  transition={{ duration: 1, delay: 0.5 }}
+                />
               </div>
             </motion.div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* 2. TAB SWITCHER - Sistema de Abas (Mobile Friendly) */}
-        <div className="flex justify-center overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-          <div className="inline-flex bg-white rounded-2xl p-1.5 md:p-2 shadow-xl border border-gray-200 min-w-max">
-            <button
-              onClick={() => setActiveRanking('global')}
-              className={`px-4 md:px-8 py-2.5 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
-                activeRanking === 'global'
-                  ? `bg-gradient-to-r ${colors?.gradient || 'from-yellow-400 to-orange-500'} text-white shadow-lg`
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
+      {/* ========== SECÇÃO 2: AS PROVAÇÕES ========== */}
+      <section className="relative py-16 px-4 border-y border-amber-500/10">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-4"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            As Provações
+          </motion.h2>
+          <p className="text-center text-gray-600 text-xs mb-12">
+            Completa missões para ganhar XP e recompensas exclusivas
+          </p>
+
+          {/* Carrossel de Cartas */}
+          <div className="relative">
+            {/* Botões de navegação */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={prevCard}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 h-12 w-12 rounded-full"
             >
-              🏆 Global
-            </button>
-            <button
-              onClick={() => setActiveRanking('walkers')}
-              className={`px-4 md:px-8 py-2.5 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
-                activeRanking === 'walkers'
-                  ? 'bg-gradient-to-r from-green-400 to-green-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
+              <ChevronLeft className="w-6 h-6" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextCard}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 h-12 w-12 rounded-full"
             >
-              🐕 Passeadores
-            </button>
-            <button
-              onClick={() => setActiveRanking('quality')}
-              className={`px-4 md:px-8 py-2.5 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${
-                activeRanking === 'quality'
-                  ? 'bg-gradient-to-r from-pink-400 to-pink-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              🦴 Cães Felizes
-            </button>
-          </div>
-        </div>
+              <ChevronRight className="w-6 h-6" />
+            </Button>
 
-        {/* 3. PÓDIO ADAPTATIVO - NOVO DESIGN */}
-        <Card className="glass-panel border-0 shadow-2xl overflow-hidden">
-          <CardHeader className="border-b bg-white/50 backdrop-blur-sm">
-            <CardTitle className="flex items-center gap-3 text-2xl">
-              <Trophy className={`w-7 h-7 ${currentConfig.accentColor}`} />
-              {currentConfig.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 md:p-8">
-            {/* Pódio Visual - Novo Componente */}
-            {rankedData.length === 0 ? (
-              <div className="text-center py-16">
-                <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg font-semibold">Nenhum dado disponível para este ranking</p>
-              </div>
-            ) : (
-              <>
-                <PodiumDisplay 
-                  rankedData={rankedData}
-                  rankingType={activeRanking}
-                  formatMetric={(user) => currentConfig.formatMetric(user[currentConfig.metricKey], user)}
-                />
-
-                {/* Lista 4º-10º - Novo Componente */}
-                {rankedData.length > 3 && (
-                  <RankingList
-                    rankedData={rankedData}
-                    startRank={4}
-                    endRank={10}
-                    rankingType={activeRanking}
-                    formatMetric={(user) => currentConfig.formatMetric(user[currentConfig.metricKey], user)}
-                    metricLabel={currentConfig.metricLabel}
-                  />
-                )}
-              </>
-            )}
-
-            {/* Posição do Usuário (se fora do Top 10) */}
-            {rankedData.length > 0 && userRank > 10 && (
-              <div 
-                className="mt-6 text-white rounded-xl p-4 shadow-lg"
-                style={{ background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)` }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-bold">
-                    {userRank}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold">Você está em {userRank}º lugar</p>
-                    <p className="text-sm opacity-90">{currentXP.toLocaleString('pt-PT')} XP</p>
-                  </div>
-                  <TrendingUp className="w-6 h-6" />
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 3. GALERIA DE EMBLEMAS */}
-        <Card className="glass-panel border-0 shadow-2xl">
-          <CardHeader className="border-b bg-gradient-to-r from-purple-50 to-pink-50">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-3 text-2xl">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-                  <Award className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-black tracking-tight text-gray-900">Galeria de Emblemas</h2>
-                  <p className="text-xs text-gray-600 font-medium">Desbloqueie conquistas através das suas atividades</p>
-                </div>
-              </CardTitle>
-              <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 shadow-lg px-4 py-2 text-sm font-bold">
-                {allEarnedBadges.length}/{allPossibleBadges.length}
-              </Badge>
+            {/* Container das cartas */}
+            <div className="flex justify-center items-center gap-4 overflow-hidden px-16 py-8">
+              <AnimatePresence mode="popLayout">
+                {MISSIONS.slice(carouselIndex, carouselIndex + 3).concat(
+                  MISSIONS.slice(0, Math.max(0, carouselIndex + 3 - MISSIONS.length))
+                ).slice(0, 3).map((mission, idx) => (
+                  <motion.div
+                    key={mission.id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ 
+                      opacity: idx === 1 ? 1 : 0.6, 
+                      scale: idx === 1 ? 1 : 0.85,
+                      zIndex: idx === 1 ? 10 : 0
+                    }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.3 }}
+                    className={idx === 1 ? '' : 'hidden md:block'}
+                  >
+                    <MissionCard
+                      mission={mission}
+                      isFlipped={flippedCard === mission.id}
+                      onFlip={() => setFlippedCard(flippedCard === mission.id ? null : mission.id)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
-            <div className="flex gap-2 mt-4 flex-wrap">
-              {['all', 'social', 'activity', 'milestone', 'special'].map(cat => (
-                <Button
-                  key={cat}
-                  variant={activeCategory === cat ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveCategory(cat)}
-                  className={activeCategory === cat ? "text-white border-0 shadow-lg font-bold" : "font-semibold"}
-                  style={activeCategory === cat ? { background: levelColor } : {}}
-                >
-                  {cat === 'all' && 'Todos'}
-                  {cat === 'social' && 'Social'}
-                  {cat === 'activity' && 'Atividade'}
-                  {cat === 'milestone' && 'Marcos'}
-                  {cat === 'special' && 'Especial'}
-                </Button>
+
+            {/* Indicadores */}
+            <div className="flex justify-center gap-2 mt-6">
+              {MISSIONS.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCarouselIndex(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    idx === carouselIndex ? 'bg-amber-500 w-6' : 'bg-neutral-700 hover:bg-neutral-600'
+                  }`}
+                />
               ))}
             </div>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
-              {filteredBadges.map((badge) => {
-                const isEarned = earnedBadgeIds.includes(badge.id);
-                const earnedBadge = allEarnedBadges.find(b => b.badge_id === badge.id);
-                
-                return (
-                  <motion.div
-                    key={badge.id}
-                    whileHover={{ scale: isEarned ? 1.05 : 1 }}
-                    className={`relative group ${!isEarned ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                  >
-                    <div className={`p-4 rounded-2xl text-center transition-all ${
-                      isEarned 
-                        ? 'bg-gradient-to-br from-white to-purple-50 border-2 border-purple-300 shadow-md hover:shadow-xl' 
-                        : 'bg-gray-100 border-2 border-gray-300 grayscale opacity-50'
-                    }`}>
-                      {/* Lock icon for locked badges */}
-                      {!isEarned && (
-                        <div className="absolute top-2 right-2 w-6 h-6 bg-gray-600 rounded-full flex items-center justify-center">
-                          <Lock className="w-4 h-4 text-white" />
-                        </div>
-                      )}
-                      
-                      <div className="w-16 h-16 mx-auto mb-2 flex items-center justify-center">
-                        {badge.image_url ? (
-                          <img src={badge.image_url} className="w-full h-full rounded-lg object-cover" alt={badge.name} />
-                        ) : (
-                          <div className="text-4xl">{badge.icon}</div>
-                        )}
-                      </div>
-                      <p className="font-bold text-xs mb-1 line-clamp-1">{badge.name}</p>
-                      
-                      {/* Rarity Badge */}
-                      <Badge className={`text-[10px] ${
-                        badge.rarity === 'legendary' ? 'bg-gradient-to-r from-yellow-400 to-orange-500' :
-                        badge.rarity === 'epic' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
-                        badge.rarity === 'rare' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                        'bg-gray-400'
-                      } text-white border-0`}>
-                        {badge.rarity}
-                      </Badge>
-                      
-                      {/* Tooltip on hover */}
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                        <div className="bg-gray-900 text-white text-xs rounded-lg p-3 shadow-xl max-w-[200px]">
-                          <p className="font-bold mb-1">{badge.name}</p>
-                          <p className="text-[10px] opacity-90 mb-2">{badge.desc}</p>
-                          {isEarned && earnedBadge?.earned_date && (
-                            <p className="text-[10px] text-green-300">
-                              ✓ Conquistado: {new Date(earnedBadge.earned_date).toLocaleDateString('pt-PT')}
-                            </p>
-                          )}
-                          {!isEarned && (
-                            <p className="text-[10px] text-yellow-300">
-                              🔒 Como ganhar: {badge.desc}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Call to Actions - Professional */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group" onClick={() => navigate(createPageUrl('SocialFeed'))}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-black text-lg mb-1 text-gray-900">Explorar Comunidade</h3>
-                  <p className="text-sm text-gray-600 font-medium">Interaja e ganhe experiência</p>
-                </div>
-                <ChevronRight className="w-6 h-6 text-gray-400 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group" onClick={() => navigate(createPageUrl('Home'))}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <Star className="w-8 h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-black text-lg mb-1 text-gray-900">Agendar Passeio</h3>
-                  <p className="text-sm text-gray-600 font-medium">+100 XP por passeio completo</p>
-                </div>
-                <ChevronRight className="w-6 h-6 text-gray-400 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </CardContent>
-          </Card>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ========== SECÇÃO 3: O PÓDIO DOS TITÃS ========== */}
+      <section className="relative py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <motion.h2
+            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-4"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            O Pódio dos Titãs
+          </motion.h2>
+          <p className="text-center text-gray-600 text-xs mb-16">
+            Os guerreiros mais poderosos da Alcateia
+          </p>
+
+          {/* Pódio */}
+          <div className="flex items-end justify-center gap-4 md:gap-8">
+            {/* 2º Lugar */}
+            {podiumOrder[0] && (
+              <PodiumPedestal user={podiumOrder[0]} position={2} delay={0.2} />
+            )}
+
+            {/* 1º Lugar */}
+            {podiumOrder[1] && (
+              <PodiumPedestal user={podiumOrder[1]} position={1} delay={0} />
+            )}
+
+            {/* 3º Lugar */}
+            {podiumOrder[2] && (
+              <PodiumPedestal user={podiumOrder[2]} position={3} delay={0.4} />
+            )}
+          </div>
+
+          {/* Lista dos restantes */}
+          {topUsers.length > 3 && (
+            <motion.div
+              className="mt-12 bg-neutral-900/50 rounded-2xl border border-amber-500/10 p-4"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              {topUsers.slice(3, 10).map((profile, idx) => (
+                <div 
+                  key={profile.id}
+                  className="flex items-center gap-4 py-3 border-b border-amber-500/5 last:border-0"
+                >
+                  <span className="text-amber-500/50 font-bold w-8 text-center">
+                    {idx + 4}º
+                  </span>
+                  <Avatar className="w-10 h-10 border border-amber-500/20">
+                    <AvatarImage src={profile.profile_photo_url} />
+                    <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm">
+                      {profile.full_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="text-white font-medium text-sm">{profile.full_name}</p>
+                    <p className="text-gray-600 text-xs">Nível {profile.gamification_level || 1}</p>
+                  </div>
+                  <Badge className="bg-black/50 border border-amber-500/20 text-amber-400/70 text-xs">
+                    {(profile.gamification_xp || 0).toLocaleString()} XP
+                  </Badge>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </div>
+      </section>
+
+      {/* Decoração inferior - Chamas */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-orange-950/30 to-transparent pointer-events-none" />
     </div>
   );
 }
