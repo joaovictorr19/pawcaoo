@@ -1,131 +1,154 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Loader2, ArrowDown } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Loader2, RefreshCw } from 'lucide-react';
 
 export default function PullToRefresh({ children, onRefresh }) {
-  const [startY, setStartY] = useState(0);
   const [pulling, setPulling] = useState(false);
   const [distance, setDistance] = useState(0);
   const [loading, setLoading] = useState(false);
-  const contentRef = useRef(null);
+  const containerRef = useRef(null);
+  const startYRef = useRef(0);
+  const currentDistanceRef = useRef(0);
+  const isPullingRef = useRef(false);
   
-  const THRESHOLD = 80; // Distance to trigger refresh
-  const MAX_PULL = 160; // Maximum drag distance
+  const THRESHOLD = 70;
+  const MAX_PULL = 120;
+
+  const doRefresh = useCallback(async () => {
+    setLoading(true);
+    setDistance(50);
+    
+    try {
+      if (onRefresh) {
+        await onRefresh();
+      } else {
+        // Force page reload
+        await new Promise(resolve => setTimeout(resolve, 300));
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Refresh error:', error);
+      // Still reload on error
+      window.location.reload();
+    } finally {
+      setLoading(false);
+      setDistance(0);
+      currentDistanceRef.current = 0;
+      isPullingRef.current = false;
+      setPulling(false);
+    }
+  }, [onRefresh]);
 
   useEffect(() => {
-    let touchStartY = 0;
-    let isPulling = false;
-    let currentDistance = 0;
+    const container = containerRef.current;
+    if (!container) return;
 
     const handleTouchStart = (e) => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      if (scrollTop <= 5 && !loading) {
-        touchStartY = e.touches[0].clientY;
-        isPulling = true;
-        setStartY(touchStartY);
+      // Check if we're at the top of the page
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
+      
+      if (scrollTop <= 0 && !loading) {
+        startYRef.current = e.touches[0].clientY;
+        isPullingRef.current = true;
         setPulling(true);
       }
     };
 
     const handleTouchMove = (e) => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      if (!isPulling || scrollTop > 5 || loading) return;
+      if (!isPullingRef.current || loading) return;
       
-      const currentY = e.touches[0].clientY;
-      const diff = currentY - touchStartY;
-
-      if (diff > 0 && diff < MAX_PULL) {
-        currentDistance = Math.min(diff * 0.5, MAX_PULL);
-        setDistance(currentDistance);
-      } else if (diff <= 0) {
-        currentDistance = 0;
-        setDistance(0);
-      }
-    };
-
-    const handleTouchEnd = async () => {
-      if (!isPulling || loading) {
-        isPulling = false;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
+      if (scrollTop > 0) {
+        isPullingRef.current = false;
         setPulling(false);
         setDistance(0);
         return;
       }
       
-      if (currentDistance > THRESHOLD) {
-        setLoading(true);
-        setDistance(THRESHOLD);
-        
-        try {
-          if (onRefresh) {
-            await onRefresh();
-          } else {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            window.location.reload();
-          }
-        } catch (error) {
-          console.error('Refresh error:', error);
-        } finally {
-          setLoading(false);
-          setDistance(0);
-          currentDistance = 0;
-          isPulling = false;
-          setPulling(false);
-        }
+      const currentY = e.touches[0].clientY;
+      const diff = currentY - startYRef.current;
+
+      if (diff > 0) {
+        // Prevent default scroll when pulling down
+        e.preventDefault();
+        const newDistance = Math.min(diff * 0.4, MAX_PULL);
+        currentDistanceRef.current = newDistance;
+        setDistance(newDistance);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (!isPullingRef.current || loading) {
+        isPullingRef.current = false;
+        setPulling(false);
+        return;
+      }
+      
+      if (currentDistanceRef.current >= THRESHOLD) {
+        doRefresh();
       } else {
         setDistance(0);
-        currentDistance = 0;
-        isPulling = false;
+        currentDistanceRef.current = 0;
+        isPullingRef.current = false;
         setPulling(false);
       }
     };
 
-    const handleTouchCancel = () => {
-      isPulling = false;
-      currentDistance = 0;
-      setPulling(false);
-      setDistance(0);
-    };
-
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: true });
-    document.addEventListener('touchend', handleTouchEnd, { passive: true });
-    document.addEventListener('touchcancel', handleTouchCancel, { passive: true });
+    // Use container for events, not document
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-      document.removeEventListener('touchcancel', handleTouchCancel);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [loading, onRefresh]);
+  }, [loading, doRefresh]);
+
+  const progress = Math.min(distance / THRESHOLD, 1);
 
   return (
-    <div ref={contentRef} className="min-h-screen relative">
+    <div ref={containerRef} className="min-h-screen relative touch-pan-y">
       {/* Refresh Indicator */}
       <div 
-        className="fixed left-0 right-0 flex justify-center z-50 pointer-events-none"
+        className="fixed left-1/2 -translate-x-1/2 z-[9999] pointer-events-none"
         style={{ 
-          top: '80px', // Below header
-          transform: `translateY(${distance > 0 ? distance - 60 : -100}px)`,
-          opacity: distance > 0 ? 1 : 0,
-          transition: pulling ? 'none' : 'all 0.3s ease-out'
+          top: '70px',
+          opacity: distance > 10 ? 1 : 0,
+          transform: `translateY(${Math.min(distance, 60)}px)`,
+          transition: pulling ? 'opacity 0.1s' : 'all 0.3s ease-out'
         }}
       >
-        <div className="bg-white rounded-full p-2 shadow-xl border border-gray-100 flex items-center justify-center w-10 h-10">
+        <div 
+          className={`bg-white rounded-full p-3 shadow-2xl border-2 flex items-center justify-center w-12 h-12 ${
+            distance >= THRESHOLD ? 'border-green-400 bg-green-50' : 'border-gray-200'
+          }`}
+        >
           {loading ? (
-            <Loader2 className="w-5 h-5 text-green-600 animate-spin" />
+            <Loader2 className="w-6 h-6 text-green-600 animate-spin" />
           ) : (
-            <ArrowDown 
-              className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${distance > THRESHOLD ? 'rotate-180 text-green-600' : ''}`} 
+            <RefreshCw 
+              className={`w-6 h-6 transition-all duration-200 ${
+                distance >= THRESHOLD ? 'text-green-600' : 'text-gray-400'
+              }`}
+              style={{ 
+                transform: `rotate(${progress * 180}deg)`,
+              }}
             />
           )}
         </div>
+        {distance > 20 && !loading && (
+          <p className="text-xs text-center mt-1 text-gray-500 font-medium">
+            {distance >= THRESHOLD ? 'Soltar para atualizar' : 'Puxar para atualizar'}
+          </p>
+        )}
       </div>
 
-      {/* Content Container */}
+      {/* Content */}
       <div 
         style={{ 
-          transform: `translateY(${distance}px)`,
-          transition: pulling ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)'
+          transform: `translateY(${distance * 0.3}px)`,
+          transition: pulling ? 'none' : 'transform 0.3s ease-out'
         }}
       >
         {children}
