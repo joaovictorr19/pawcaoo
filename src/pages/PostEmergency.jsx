@@ -267,20 +267,20 @@ export default function PostEmergency() {
   };
 
   return (
-    <div className="min-h-screen p-3 md:p-6 relative">
+    <div className="min-h-screen bg-gray-50 p-3 md:p-6 relative">
       <div className="max-w-2xl mx-auto relative z-10">
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-            <Zap className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 bg-white border-2 border-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
+            <Zap className="w-8 h-8 text-gray-700" />
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{t('emergencyWalkRequest', language)}</h1>
           <p className="text-gray-600 text-sm md:text-base">{t('findWalkerNow', language)}</p>
         </div>
 
-        <Card className="border border-orange-200 shadow-xl rounded-2xl overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4">
+        <Card className="border border-gray-200 shadow-md rounded-2xl overflow-hidden bg-white">
+          <CardHeader className="bg-white text-gray-900 border-b border-gray-200 py-4">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-              <Zap className="w-5 h-5" />
+              <Zap className="w-5 h-5 text-gray-700" />
               {t('postEmergency', language)}
             </CardTitle>
           </CardHeader>
@@ -288,9 +288,9 @@ export default function PostEmergency() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Multi-Animal Selection */}
               {myDogs?.length > 0 && (
-                <div className="bg-green-50 border border-green-300 rounded-xl p-3 md:p-4">
-                  <Label className="font-semibold text-green-900 text-sm mb-2 block flex items-center gap-2">
-                    Meus Animais {selectedDogs.length > 0 && <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">{selectedDogs.length}</span>}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4">
+                  <Label className="font-semibold text-gray-700 text-sm mb-2 block flex items-center gap-2">
+                    Meus Animais {selectedDogs.length > 0 && <span className="text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full">{selectedDogs.length}</span>}
                   </Label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {myDogs.map((dog) => {
@@ -301,19 +301,19 @@ export default function PostEmergency() {
                           onClick={() => toggleDog(dog)}
                           className={`cursor-pointer transition-all rounded-lg p-2 border ${
                             isSelected 
-                              ? 'bg-green-600 border-green-700 shadow-md scale-105' 
-                              : 'bg-white border-green-300 hover:border-green-500 hover:shadow-sm'
+                              ? 'bg-gray-700 border-gray-800 text-white shadow-md scale-105' 
+                              : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
                           }`}
                         >
                           <div className="flex items-center gap-2">
                             <div className={`w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border ${
-                              isSelected ? 'border-white' : 'border-green-200'
+                              isSelected ? 'border-white' : 'border-gray-200'
                             }`}>
                               {dog.photo_url ? (
                                 <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
                               ) : (
                                 <div className={`w-full h-full flex items-center justify-center text-sm font-bold ${
-                                  isSelected ? 'bg-white text-green-600' : 'bg-green-200 text-green-700'
+                                  isSelected ? 'bg-white text-gray-700' : 'bg-gray-100 text-gray-600'
                                 }`}>
                                   {dog.dog_name?.charAt(0)}
                                 </div>
@@ -323,7 +323,7 @@ export default function PostEmergency() {
                               <p className={`font-bold text-xs truncate ${isSelected ? 'text-white' : 'text-gray-900'}`}>
                                 {dog.dog_name}
                               </p>
-                              <p className={`text-[10px] truncate ${isSelected ? 'text-green-100' : 'text-gray-600'}`}>
+                              <p className={`text-[10px] truncate ${isSelected ? 'text-gray-300' : 'text-gray-600'}`}>
                                 {dog.breed || 'SRD'}
                               </p>
                             </div>
@@ -364,11 +364,11 @@ export default function PostEmergency() {
                       <img
                         src={formData.dog_photo_url}
                         alt="Dog preview"
-                        className="w-16 h-16 rounded-lg object-cover border-2 border-orange-300"
+                        className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center border-2 border-orange-300">
-                        <Upload className="w-6 h-6 text-orange-400" />
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
+                        <Upload className="w-6 h-6 text-gray-400" />
                       </div>
                     )}
                     <div className="flex-1">
@@ -427,8 +427,8 @@ export default function PostEmergency() {
               )}
 
               {/* Owner Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 md:p-4 space-y-3">
-                <Label className="text-sm font-semibold block text-blue-900">Seus Dados</Label>
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 space-y-3">
+                <Label className="text-sm font-semibold block text-gray-700">Seus Dados</Label>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="owner_name" className="text-xs">Seu Nome *</Label>
@@ -455,8 +455,8 @@ export default function PostEmergency() {
               </div>
 
               {/* Walk Details */}
-              <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 md:p-4 space-y-3">
-                <Label className="text-sm font-semibold block text-orange-900">Detalhes do Passeio</Label>
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 space-y-3">
+                <Label className="text-sm font-semibold block text-gray-700">Detalhes do Passeio</Label>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div className="md:col-span-2">
                     <Label htmlFor="location" className="text-xs">Local de Recolha *</Label>
@@ -524,18 +524,18 @@ export default function PostEmergency() {
 
               {/* Info Alert + Refund Policy */}
               <div className="space-y-2">
-                <div className="bg-blue-50 border border-blue-300 rounded-lg p-3">
+                <div className="bg-gray-50 border border-gray-300 rounded-lg p-3">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-blue-900">
+                    <AlertCircle className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-gray-700">
                       {t('emergencyWalkDisclaimer', language)}
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-green-50 border border-green-300 rounded-lg p-3">
-                  <p className="text-xs text-green-800 font-semibold mb-1">Reembolso Garantido</p>
-                  <p className="text-xs text-green-700">
+                <div className="bg-gray-50 border border-gray-300 rounded-lg p-3">
+                  <p className="text-xs text-gray-700 font-semibold mb-1">Reembolso Garantido</p>
+                  <p className="text-xs text-gray-600">
                     Cancelamento antes de aceite: <strong>100% reembolso</strong>
                   </p>
                 </div>
@@ -553,7 +553,7 @@ export default function PostEmergency() {
                 <Button
                   type="submit"
                   disabled={createEmergencyWalkMutation.isPending || uploading || !formData.owner_name || !formData.owner_phone || !formData.location || !formData.needed_time || !formData.offered_amount || (selectedDogs.length === 0 && !formData.dog_name)}
-                  className="flex-1 text-white h-10 text-sm font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-br from-orange-500 to-orange-600"
+                  className="flex-1 text-white h-10 text-sm font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-800 hover:bg-gray-900"
                 >
                   {createEmergencyWalkMutation.isPending ? (
                     <>
