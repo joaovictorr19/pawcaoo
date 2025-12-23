@@ -393,11 +393,45 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     }
   };
 
-  // Stripe Checkout
-  const handleStripeCheckout = async () => {
+  // Handle payment - create booking first, then checkout
+  const handlePayment = async () => {
     setIsPaymentProcessing(true);
     try {
+      // 1. Create booking first
+      const bookingData = {
+        walker_id: isWalker ? pro.id : undefined, 
+        walker_name: proName,
+        walker_email: pro.created_by,
+        walker_payment_contact: pro.whatsapp_number || pro.phone,
+        
+        owner_name: user.full_name,
+        owner_phone: formData.owner_phone,
+        owner_email: user.email,
+        dog_name: formData.dog_name,
+        dog_size: formData.dog_size,
+        walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
+        walk_time: formData.walk_time,
+        duration_hours: formData.duration_hours,
+        service_amount: amounts.walkerReceives,
+        platform_fee: amounts.platformFee,
+        total_amount: amounts.totalAmount,
+        special_notes: formData.special_notes,
+        pickup_address: pickupAddress,
+        pickup_lat: pickupCoords.lat,
+        pickup_lng: pickupCoords.lng,
+        professional_type: isWalker ? 'walker' : 'trainer',
+        professional_id: pro.id,
+        status: 'pending',
+        payment_status: 'pending'
+      };
+
+      console.log('📝 Creating booking before checkout...');
+      const booking = await createBookingMutation.mutateAsync(bookingData);
+      console.log('✅ Booking created:', booking.id);
+
+      // 2. Now create Stripe checkout session
       const response = await base44.functions.invoke('createBookingCheckout', {
+        bookingId: booking.id,
         professional_id: pro.id,
         professional_email: pro.created_by,
         professional_name: proName,
@@ -406,26 +440,19 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         service_amount: amounts.walkerReceives,
         platform_fee: amounts.platformFee,
         total_amount: amounts.totalAmount,
-        dog_name: formData.dog_name,
-        dog_size: formData.dog_size,
-        walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
-        walk_time: formData.walk_time,
-        duration_hours: formData.duration_hours,
-        special_notes: formData.special_notes,
-        pickup_address: pickupAddress,
-        pickup_lat: pickupCoords.lat,
-        pickup_lng: pickupCoords.lng,
-        owner_phone: formData.owner_phone
+        successUrl: `${window.location.origin}${createPageUrl('CheckoutSuccess')}?booking_id=${booking.id}`,
+        cancelUrl: `${window.location.origin}${createPageUrl('MyBookings')}`
       });
 
       if (response.data?.url) {
+        console.log('🔗 Redirecting to Stripe checkout...');
         window.location.href = response.data.url;
       } else {
-        toast.error('Erro ao criar sessão de pagamento');
+        toast.error(language === 'pt' ? 'Erro ao criar sessão de pagamento' : 'Error creating payment session');
       }
     } catch (error) {
-      console.error('Checkout error:', error);
-      toast.error('Erro ao processar pagamento');
+      console.error('Payment error:', error);
+      toast.error(language === 'pt' ? 'Erro ao processar pagamento' : 'Error processing payment');
     } finally {
       setIsPaymentProcessing(false);
     }
@@ -956,18 +983,18 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             ) : (
               <Button
                 type="button"
-                onClick={handleStripeCheckout}
+                onClick={handlePayment}
                 disabled={isPaymentProcessing}
                 className="flex-1 h-10 text-sm text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
               >
                 {isPaymentProcessing ? (
                   <>
                     <Clock className="w-4 h-4 mr-2 animate-spin" />
-                    {t('processing', language)}...
+                    {language === 'pt' ? 'A processar' : language === 'es' ? 'Procesando' : language === 'fr' ? 'Traitement' : 'Processing'}...
                   </>
                 ) : (
                   <>
-                    💳 {t('payNow', language)} {formatCurrency(amounts.totalAmount)}
+                    💳 {language === 'pt' ? 'Pagar Agora' : language === 'es' ? 'Pagar Ahora' : language === 'fr' ? 'Payer Maintenant' : 'Pay Now'} {formatCurrency(amounts.totalAmount)}
                   </>
                 )}
               </Button>
