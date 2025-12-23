@@ -1117,18 +1117,14 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-3 bg-white/60 backdrop-blur-sm p-1 rounded-xl mb-6 border border-white/40">
-                <TabsTrigger value="professionals" className="rounded-lg">
-                  <Users className="w-4 h-4 mr-2" />
-                  {language === 'pt' ? 'Profissionais' : 'Professionals'}
+              <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white/80 backdrop-blur-lg p-1.5 rounded-xl mb-6 border border-white/50 shadow-lg">
+                <TabsTrigger value="professionals" className="rounded-lg text-sm md:text-base py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white">
+                  <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
                 </TabsTrigger>
-                <TabsTrigger value="shop" className="rounded-lg">
-                  <ShoppingBag className="w-4 h-4 mr-2" />
-                  {language === 'pt' ? 'Loja' : 'Shop'}
-                </TabsTrigger>
-                <TabsTrigger value="emergency" className="rounded-lg">
-                  <Zap className="w-4 h-4 mr-2" />
-                  SOS
+                <TabsTrigger value="emergency" className="rounded-lg text-sm md:text-base py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-orange-600 data-[state=active]:text-white">
+                  <Zap className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">SOS</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -1344,23 +1340,6 @@ export default function Home() {
                       )}
                     </>
                   )}
-                </div>
-              </TabsContent>
-
-              {/* Trainers Tab Content Removed */}
-
-              <TabsContent value="shop">
-                <div className="text-center py-8">
-                  <ShoppingBag className="w-16 h-16 text-purple-300 mx-auto mb-4" />
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    {language === 'pt' ? 'Descubra Produtos & Parceiros' : 'Discover Products & Partners'}
-                  </h3>
-                  <Button
-                    onClick={() => navigate(createPageUrl('Shop'))}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-12 px-8"
-                  >
-                    {language === 'pt' ? 'Ir para Loja' : 'Go to Shop'}
-                  </Button>
                 </div>
               </TabsContent>
 
