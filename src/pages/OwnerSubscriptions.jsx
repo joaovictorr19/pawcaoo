@@ -369,28 +369,32 @@ export default function OwnerSubscriptions() {
         </div>
 
         <div className="relative">
-          {/* Botões de navegação */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={prevCard}
-            className="absolute left-0 md:-left-4 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-white/30 text-white hover:bg-white/20 h-10 w-10 md:h-12 md:w-12 rounded-full"
-          >
-            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-          </Button>
+          {/* Botões de navegação - fora do container para não bloquear */}
+          <div className="absolute left-4 md:left-0 top-1/2 -translate-y-1/2 z-30">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={prevCard}
+              className="bg-black/50 border border-white/30 text-white hover:bg-white/20 h-10 w-10 md:h-12 md:w-12 rounded-full"
+            >
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+            </Button>
+          </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={nextCard}
-            className="absolute right-0 md:-right-4 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-white/30 text-white hover:bg-white/20 h-10 w-10 md:h-12 md:w-12 rounded-full"
-          >
-            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-          </Button>
+          <div className="absolute right-4 md:right-0 top-1/2 -translate-y-1/2 z-30">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextCard}
+              className="bg-black/50 border border-white/30 text-white hover:bg-white/20 h-10 w-10 md:h-12 md:w-12 rounded-full"
+            >
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+            </Button>
+          </div>
 
           {/* Container das cartas - efeito de profundidade */}
-          <div className="flex justify-center items-center gap-4 overflow-hidden px-4 md:px-12 py-8">
-            <AnimatePresence mode="popLayout">
+          <div className="flex justify-center items-center overflow-visible px-16 py-8 min-h-[600px]">
+            <AnimatePresence mode="sync">
               {plans.map((plan, idx) => {
                 const position = (idx - currentIndex + plans.length) % plans.length;
                 const isCurrent = position === 0;
@@ -410,29 +414,45 @@ export default function OwnerSubscriptions() {
                     key={plan.type}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ 
-                      opacity: isCurrent ? 1 : 0.4,
+                      opacity: isCurrent ? 1 : 0.5,
                       scale: isCurrent ? 1 : 0.85,
-                      zIndex: isCurrent ? 10 : 0,
-                      x: isPrev ? -40 : isNext ? 40 : 0
+                      zIndex: isCurrent ? 10 : 5,
+                      x: isPrev ? -60 : isNext ? 60 : 0
                     }}
                     exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3 }}
-                    className={!isCurrent ? 'hidden md:block' : ''}
+                    transition={{ duration: 0.4 }}
+                    className={`absolute left-1/2 -translate-x-1/2 ${!isCurrent ? 'hidden md:block pointer-events-none' : ''}`}
                   >
-                    <div className={`relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 border-2 ${planStyle.border} shadow-2xl ${planStyle.glow} w-72 md:w-80`}>
+                    <div className={`relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 border-2 ${planStyle.border} shadow-2xl ${planStyle.glow} w-80 md:w-96`}>
+                      {/* Padrão decorativo */}
+                      <div className="absolute inset-0 opacity-10 pointer-events-none">
+                        <div className="absolute top-4 left-4 w-8 h-8 border border-white/50 rotate-45" />
+                        <div className="absolute top-4 right-4 w-8 h-8 border border-white/50 rotate-45" />
+                        <div className="absolute bottom-4 left-4 w-8 h-8 border border-white/50 rotate-45" />
+                        <div className="absolute bottom-4 right-4 w-8 h-8 border border-white/50 rotate-45" />
+                      </div>
+
                       <div className={`absolute inset-0 bg-gradient-to-r ${planStyle.shine} opacity-0 hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none`}></div>
                       
                       <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${plan.gradient}`}></div>
 
                       {planIsActive && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 text-xs font-bold shadow-lg border-0">
                           Plano Atual
-                        </div>
+                        </Badge>
                       )}
 
-                      <div className={`w-20 h-20 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-4 shadow-xl mx-auto`}>
+                      <div className={`w-20 h-20 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-4 shadow-xl mx-auto relative z-10`}>
                         <PlanIcon className="w-10 h-10 text-white" />
                       </div>
+
+                      <Badge className={`uppercase tracking-widest text-[10px] font-bold mb-3 block text-center ${
+                        plan.rarity === 'legendary' ? 'bg-gradient-to-r from-yellow-500 to-orange-400 text-black' :
+                        plan.rarity === 'rare' ? 'bg-purple-600 text-white' :
+                        'bg-blue-600 text-white'
+                      }`}>
+                        {plan.rarity}
+                      </Badge>
 
                       <h2 className="text-3xl font-black text-white text-center mb-2">
                         {plan.name}
@@ -443,7 +463,7 @@ export default function OwnerSubscriptions() {
                           {getPrice(plan)}
                         </div>
                         {planSavings && (
-                          <Badge className="mt-2 bg-green-500 text-white">
+                          <Badge className="mt-2 bg-green-500 text-white border-0">
                             Poupe €{planSavings}
                           </Badge>
                         )}
