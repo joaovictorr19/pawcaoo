@@ -287,8 +287,28 @@ export default function OwnerSubscriptions() {
   const style = rarityStyles[currentPlan.rarity];
 
   return (
-    <div className="min-h-screen p-4 flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMS0xLjc5LTQtNC00cy00IDEuNzktNCA0IDEuNzkgNCA0IDQgNC0xLjc5IDQtNHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30"></div>
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden bg-neutral-950">
+      {/* Nevoeiro animado */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div
+          className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[150px]"
+          animate={{ 
+            x: [0, 100, 0], 
+            y: [0, 50, 0],
+            opacity: [0.1, 0.2, 0.1] 
+          }}
+          transition={{ duration: 15, repeat: Infinity }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[150px]"
+          animate={{ 
+            x: [0, -80, 0], 
+            y: [0, -60, 0],
+            opacity: [0.1, 0.15, 0.1] 
+          }}
+          transition={{ duration: 12, repeat: Infinity, delay: 2 }}
+        />
+      </div>
 
       <Button
         variant="ghost"
