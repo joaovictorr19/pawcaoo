@@ -645,7 +645,7 @@ export default function ProfessionalDashboard() {
     }
   ];
 
-  // Service form for walkers/trainers
+  // Service form for walkers/trainers - COMPLETAMENTE REDESENHADO
   const ServiceForm = () => {
     const [formData, setFormData] = useState(editingService || {
       service_name: "",
@@ -654,18 +654,22 @@ export default function ProfessionalDashboard() {
       duration_options: ["30min", "1h", "2h"],
       custom_pricing: false,
       package_options: [],
-      animal_type: "dogs" // Default to dogs
+      animal_type: "dogs"
     });
 
     const [newPackage, setNewPackage] = useState({ name: "", sessions: "", price: "" });
 
     const addPackage = () => {
-      if (!newPackage.name || !newPackage.price) return;
+      if (!newPackage.name || !newPackage.price) {
+        toast.error('Preencha o nome e preço do pacote');
+        return;
+      }
       setFormData({
         ...formData,
         package_options: [...(formData.package_options || []), newPackage]
       });
       setNewPackage({ name: "", sessions: "", price: "" });
+      toast.success('Pacote adicionado!');
     };
 
     const removePackage = (idx) => {
@@ -676,14 +680,17 @@ export default function ProfessionalDashboard() {
     };
 
     const handleSubmit = async () => {
+      if (!formData.service_name || !formData.price || !formData.animal_type) {
+        toast.error('Preencha os campos obrigatórios (Nome, Animal, Preço)');
+        return;
+      }
+
       try {
-        // Calculate updated services
         const currentServices = (walkerProfile || trainerProfile)?.services_offered || [];
         const updatedServices = editingService 
           ? currentServices.map(s => s === editingService ? formData : s)
           : [...currentServices, formData];
 
-        // Create edit request instead of updating directly
         const currentUser = await base44.auth.me();
         const activeProfile = walkerProfile || trainerProfile;
         
@@ -697,7 +704,7 @@ export default function ProfessionalDashboard() {
         });
 
         queryClient.invalidateQueries(['profileEditRequests']);
-        toast.success("✅ Serviço enviado para aprovação do administrador!", { duration: 4000 });
+        toast.success("✅ Serviço enviado para aprovação!", { duration: 4000 });
         setShowServiceForm(false);
         setEditingService(null);
       } catch (error) {
@@ -707,159 +714,243 @@ export default function ProfessionalDashboard() {
 
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
-        <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 md:p-6" style={{ background: 'white', color: '#111827' }}>
-          <DialogHeader>
-            <DialogTitle className="text-lg md:text-xl" style={{ color: '#111827' }}>
-              {editingService ? 'Editar' : 'Adicionar'} Serviço
+        <DialogContent 
+          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0"
+          style={{ 
+            background: 'white',
+            zIndex: 999999,
+            border: '2px solid #e5e7eb'
+          }}
+        >
+          {/* Header Fixo */}
+          <DialogHeader className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+            <DialogTitle className="text-xl md:text-2xl font-bold" style={{ color: '#111827' }}>
+              {editingService ? '✏️ Editar' : '➕ Adicionar'} Serviço
             </DialogTitle>
+            <p className="text-sm text-gray-600 mt-1">Preencha os detalhes do serviço abaixo</p>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <Label className="text-sm md:text-base" style={{ color: '#111827' }}>Nome do Serviço *</Label>
-              <Input
-                value={formData.service_name}
-                onChange={(e) => setFormData({...formData, service_name: e.target.value})}
-                placeholder="Ex: Passeio de 30 minutos"
-                className="h-11 md:h-10"
-                style={{ background: 'white', color: '#111827' }}
-              />
-            </div>
-            <div>
-              <Label className="text-sm md:text-base" style={{ color: '#111827' }}>Descrição</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Descreva o serviço oferecido..."
-                rows={3}
-                className="resize-none"
-                style={{ background: 'white', color: '#111827' }}
-              />
-            </div>
-            
-            {/* Animal Type Selector */}
-            <div className="space-y-2">
-              <Label className="text-sm md:text-base font-semibold" style={{ color: '#111827' }}>Tipo de Animal *</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {[
-                  { id: 'dogs', label: 'Cães', IconComponent: Dog },
-                  { id: 'cats', label: 'Gatos', IconComponent: Cat },
-                  { id: 'reptiles', label: 'Répteis', IconComponent: ReptileIcon },
-                  { id: 'arachnids', label: 'Aracnídeos', IconComponent: ArachnidIcon },
-                  { id: 'rodents', label: 'Roedores', IconComponent: RodentIcon },
-                  { id: 'birds', label: 'Aves', IconComponent: Bird }
-                ].map(animal => (
-                  <button
-                    key={animal.id}
-                    type="button"
-                    onClick={() => setFormData({...formData, animal_type: animal.id})}
-                    className={`p-3 rounded-lg border-2 transition-all flex items-center gap-2 ${
-                      formData.animal_type === animal.id 
-                        ? 'border-green-500 bg-green-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    style={{ background: formData.animal_type === animal.id ? '#f0fdf4' : 'white' }}
-                  >
-                    <animal.IconComponent className="w-5 h-5 text-gray-700 flex-shrink-0" />
-                    <span className="text-sm font-medium" style={{ color: '#111827' }}>{animal.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm md:text-base" style={{ color: '#111827' }}>
-                  Preço (€) * 
-                  <span className="text-xs text-gray-500 ml-1">
-                    {['dogs', 'cats'].includes(formData.animal_type) ? '/hora' : '/visita'}
-                  </span>
-                </Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
-                  placeholder={
-                    ['dogs', 'cats'].includes(formData.animal_type) 
-                      ? "Ex: 10€ (por hora)" 
-                      : "Ex: 20€ (por visita)"
-                  }
-                  className="h-11 md:h-10"
-                  style={{ background: 'white', color: '#111827' }}
-                />
-              </div>
-              <div className="flex items-center space-x-2 pt-8">
-                <input
-                  type="checkbox"
-                  id="customPricing"
-                  checked={formData.custom_pricing}
-                  onChange={(e) => setFormData({...formData, custom_pricing: e.target.checked})}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <Label htmlFor="customPricing" className="text-sm cursor-pointer" style={{ color: '#111827' }}>
-                  Preço "A partir de"
-                </Label>
-              </div>
-            </div>
-
-            {/* Packages Section - Great for Trainers */}
-            <div className="border-t border-gray-200 pt-4 mt-4">
-              <Label className="text-sm md:text-base mb-2 block font-semibold" style={{ color: '#111827' }}>
-                Pacotes Promocionais (Opcional)
-              </Label>
-              <div className="bg-gray-50 p-3 rounded-lg space-y-3">
-                <div className="grid grid-cols-3 gap-2">
-                  <Input 
-                    placeholder="Nome (Ex: 5 Sessões)" 
-                    value={newPackage.name}
-                    onChange={(e) => setNewPackage({...newPackage, name: e.target.value})}
-                    className="text-sm"
-                    style={{ background: 'white', color: '#111827' }}
-                  />
-                  <Input 
-                    placeholder="Sessões" 
-                    type="number"
-                    value={newPackage.sessions}
-                    onChange={(e) => setNewPackage({...newPackage, sessions: parseInt(e.target.value)})}
-                    className="text-sm"
-                    style={{ background: 'white', color: '#111827' }}
-                  />
-                  <Input 
-                    placeholder="Preço (€)" 
-                    type="number"
-                    value={newPackage.price}
-                    onChange={(e) => setNewPackage({...newPackage, price: parseFloat(e.target.value)})}
-                    className="text-sm"
-                    style={{ background: 'white', color: '#111827' }}
-                  />
-                </div>
-                <Button onClick={addPackage} size="sm" variant="outline" className="w-full border-dashed border-purple-300 text-purple-700">
-                  <Plus className="w-4 h-4 mr-2" /> Adicionar Pacote
-                </Button>
-
-                {formData.package_options && formData.package_options.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    {formData.package_options.map((pkg, idx) => (
-                      <div key={idx} className="flex justify-between items-center bg-white p-2 rounded border border-gray-200 text-sm">
-                        <span>{pkg.name} ({pkg.sessions}x) - <b>€{pkg.price}</b></span>
-                        <Button onClick={() => removePackage(idx)} size="sm" variant="ghost" className="h-6 w-6 p-0 text-red-500">
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
+          {/* Conteúdo Scrollable */}
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-6">
+              
+              {/* SECÇÃO 1: Informações Básicas */}
+              <Card className="border-2 border-blue-200 bg-blue-50/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-bold text-blue-900">📝 Informações Básicas</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-semibold mb-1.5 block" style={{ color: '#111827' }}>
+                      Nome do Serviço <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      value={formData.service_name}
+                      onChange={(e) => setFormData({...formData, service_name: e.target.value})}
+                      placeholder="Ex: Passeio de 1 hora no parque"
+                      className="h-11"
+                      style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                    />
                   </div>
-                )}
-              </div>
-            </div>
+                  
+                  <div>
+                    <Label className="text-sm font-semibold mb-1.5 block" style={{ color: '#111827' }}>
+                      Descrição (Opcional)
+                    </Label>
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      placeholder="Descreva o que está incluído no serviço..."
+                      rows={3}
+                      className="resize-none"
+                      style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-            <div className="grid grid-cols-2 gap-2 pt-4">
-              <Button variant="outline" onClick={() => setShowServiceForm(false)} className="h-11 md:h-10">
-                Cancelar
-              </Button>
-              <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700 h-11 md:h-10">
-                Guardar
-              </Button>
+              {/* SECÇÃO 2: Tipo de Animal */}
+              <Card className="border-2 border-purple-200 bg-purple-50/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-bold text-purple-900">🐾 Tipo de Animal</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      { id: 'dogs', label: 'Cães', IconComponent: Dog },
+                      { id: 'cats', label: 'Gatos', IconComponent: Cat },
+                      { id: 'birds', label: 'Aves', IconComponent: Bird },
+                      { id: 'reptiles', label: 'Répteis', IconComponent: ReptileIcon },
+                      { id: 'arachnids', label: 'Aracnídeos', IconComponent: ArachnidIcon },
+                      { id: 'rodents', label: 'Roedores', IconComponent: RodentIcon }
+                    ].map(animal => {
+                      const isSelected = formData.animal_type === animal.id;
+                      return (
+                        <button
+                          key={animal.id}
+                          type="button"
+                          onClick={() => setFormData({...formData, animal_type: animal.id})}
+                          className="p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 hover:scale-105"
+                          style={{ 
+                            background: isSelected ? '#f0fdf4' : 'white',
+                            borderColor: isSelected ? '#22c55e' : '#d1d5db'
+                          }}
+                        >
+                          <animal.IconComponent className="w-8 h-8 text-gray-700" />
+                          <span className="text-sm font-bold" style={{ color: '#111827' }}>{animal.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* SECÇÃO 3: Preço */}
+              <Card className="border-2 border-green-200 bg-green-50/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-bold text-green-900">💰 Definir Preço</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-semibold mb-1.5 block" style={{ color: '#111827' }}>
+                      Preço <span className="text-red-500">*</span>
+                      <span className="text-xs text-gray-500 ml-2">
+                        ({['dogs', 'cats'].includes(formData.animal_type) ? 'por hora' : 'por visita'})
+                      </span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="1"
+                        value={formData.price}
+                        onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
+                        placeholder={['dogs', 'cats'].includes(formData.animal_type) ? "10" : "20"}
+                        className="h-12 text-lg font-bold pl-8"
+                        style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-600">€</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <input
+                      type="checkbox"
+                      id="customPricing"
+                      checked={formData.custom_pricing}
+                      onChange={(e) => setFormData({...formData, custom_pricing: e.target.checked})}
+                      className="h-5 w-5 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    />
+                    <Label htmlFor="customPricing" className="text-sm font-medium cursor-pointer" style={{ color: '#111827' }}>
+                      Mostrar como "A partir de €{formData.price || 0}"
+                    </Label>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* SECÇÃO 4: Pacotes (Opcional) */}
+              <Card className="border-2 border-amber-200 bg-amber-50/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-bold text-amber-900">
+                    🎁 Pacotes Promocionais <span className="text-xs font-normal text-gray-600">(Opcional)</span>
+                  </CardTitle>
+                  <p className="text-xs text-gray-600 mt-1">Ideal para treinos ou serviços recorrentes</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <Label className="text-xs font-semibold mb-1 block" style={{ color: '#111827' }}>Nome do Pacote</Label>
+                      <Input 
+                        placeholder="Ex: 5 Sessões" 
+                        value={newPackage.name}
+                        onChange={(e) => setNewPackage({...newPackage, name: e.target.value})}
+                        className="h-10 text-sm"
+                        style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-semibold mb-1 block" style={{ color: '#111827' }}>Nº de Sessões</Label>
+                      <Input 
+                        placeholder="5" 
+                        type="number"
+                        value={newPackage.sessions}
+                        onChange={(e) => setNewPackage({...newPackage, sessions: parseInt(e.target.value)})}
+                        className="h-10 text-sm"
+                        style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-semibold mb-1 block" style={{ color: '#111827' }}>Preço Total (€)</Label>
+                      <Input 
+                        placeholder="100" 
+                        type="number"
+                        step="0.01"
+                        value={newPackage.price}
+                        onChange={(e) => setNewPackage({...newPackage, price: parseFloat(e.target.value)})}
+                        className="h-10 text-sm"
+                        style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={addPackage} 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full border-2 border-dashed border-amber-400 text-amber-700 hover:bg-amber-100 h-10"
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Adicionar Pacote à Lista
+                  </Button>
+
+                  {formData.package_options && formData.package_options.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-amber-200">
+                      <p className="text-xs font-semibold text-amber-900 mb-2">Pacotes Adicionados:</p>
+                      {formData.package_options.map((pkg, idx) => (
+                        <div 
+                          key={idx} 
+                          className="flex justify-between items-center bg-white p-3 rounded-lg border-2 border-amber-200 shadow-sm"
+                        >
+                          <div>
+                            <p className="font-bold text-sm" style={{ color: '#111827' }}>{pkg.name}</p>
+                            <p className="text-xs text-gray-600">{pkg.sessions} sessões • €{pkg.price}</p>
+                          </div>
+                          <Button 
+                            onClick={() => removePackage(idx)} 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-8 w-8 p-0 text-red-500 hover:bg-red-100"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
             </div>
+          </div>
+
+          {/* Footer Fixo com Botões */}
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowServiceForm(false);
+                setEditingService(null);
+              }}
+              className="flex-1 h-12 text-base font-semibold"
+              style={{ background: 'white', color: '#111827', borderColor: '#d1d5db' }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!formData.service_name || !formData.price || !formData.animal_type}
+              className="flex-1 h-12 text-base font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {editingService ? 'Guardar Alterações' : 'Adicionar Serviço'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
