@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
 import SubscriptionManager from "../components/subscriptions/SubscriptionManager";
-import DogManagerModal from "../components/profile/DogManagerModal";
+import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 
 export default function AccountSettings() {
   const queryClient = useQueryClient();
@@ -30,7 +30,7 @@ export default function AccountSettings() {
   const [activeSection, setActiveSection] = useState(tabFromUrl || "profile");
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [showDogModal, setShowDogModal] = useState(false);
+  const [showAnimalModal, setShowAnimalModal] = useState(false);
   const coverInputRef = React.useRef(null);
 
   const { data: user, isLoading } = useQuery({
@@ -412,7 +412,7 @@ export default function AccountSettings() {
                 className="rounded-full"
               >
                 <Dog className="w-4 h-4 mr-2" />
-                Meus Cães
+                Meus Animais
               </Button>
             </div>
           </div>
@@ -473,7 +473,7 @@ export default function AccountSettings() {
                     onClick={() => setActiveSection("dogs")}
                   >
                     <Dog className="w-4 h-4 mr-2" />
-                    Meus Cães
+                    Meus Animais
                   </Button>
                 </nav>
               </CardContent>
@@ -994,18 +994,18 @@ export default function AccountSettings() {
                 <Card className="border-gray-200 shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Dog className="w-6 h-6 text-orange-600" />
-                      Meus Cães
+                      <Dog className="w-6 h-6 text-pink-600" />
+                      Meus Animais
                     </CardTitle>
-                    <p className="text-sm text-gray-600">Gerencie os perfis dos seus cães</p>
+                    <p className="text-sm text-gray-600">Gerencie os perfis dos seus animais</p>
                   </CardHeader>
                   <CardContent>
                     <Button
-                      onClick={() => setShowDogModal(true)}
-                      className="w-full bg-orange-600 hover:bg-orange-700 text-white h-14 text-lg"
+                      onClick={() => setShowAnimalModal(true)}
+                      className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white h-14 text-lg"
                     >
                       <Dog className="w-5 h-5 mr-2" />
-                      Gerir Meus Cães
+                      Gerir Meus Animais
                     </Button>
                   </CardContent>
                 </Card>
@@ -1015,10 +1015,10 @@ export default function AccountSettings() {
         </div>
       </div>
 
-      {showDogModal && (
-        <DogManagerModal
-          isOpen={showDogModal}
-          onClose={() => setShowDogModal(false)}
+      {showAnimalModal && (
+        <AnimalManagerModal
+          isOpen={showAnimalModal}
+          onClose={() => setShowAnimalModal(false)}
           userEmail={user?.email}
         />
       )}
