@@ -164,7 +164,7 @@ export default function Gamification() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 relative overflow-hidden px-3 py-4 md:px-6 md:py-8">
+    <div className="min-h-screen bg-neutral-950 relative overflow-hidden px-3 py-4 md:px-6 md:py-8 w-full max-w-full">
       {/* Nevoeiro */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-64 h-64 bg-orange-600/10 rounded-full blur-[100px]" />
