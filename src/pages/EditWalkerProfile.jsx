@@ -51,20 +51,52 @@ export default function EditWalkerProfile() {
 
   const submitEditRequestMutation = useMutation({
     mutationFn: async (changes) => {
-      const currentUser = await base44.auth.me();
-      await base44.entities.ProfileEditRequest.create({
-        profile_id: walkerProfile.id,
-        profile_type: 'walker',
-        professional_name: walkerProfile.walker_name,
-        professional_email: currentUser.email,
-        requested_changes: changes,
-        original_data: walkerProfile,
-        status: 'pending'
+      // Separar mudanças sensíveis (precisam aprovação) vs não-sensíveis (aplicar direto)
+      const sensitiveFields = ['hourly_rate', 'exotic_rate', 'services_offered'];
+      const sensitiveChanges = {};
+      const nonSensitiveChanges = {};
+
+      Object.keys(changes).forEach(key => {
+        if (sensitiveFields.includes(key)) {
+          sensitiveChanges[key] = changes[key];
+        } else {
+          nonSensitiveChanges[key] = changes[key];
+        }
       });
+
+      // Aplicar mudanças não-sensíveis imediatamente (fotos, bio, nome, etc.)
+      if (Object.keys(nonSensitiveChanges).length > 0) {
+        await base44.entities.WalkerProfile.update(walkerProfile.id, nonSensitiveChanges);
+      }
+
+      // Criar pedido de aprovação apenas para mudanças sensíveis
+      if (Object.keys(sensitiveChanges).length > 0) {
+        const currentUser = await base44.auth.me();
+        await base44.entities.ProfileEditRequest.create({
+          profile_id: walkerProfile.id,
+          profile_type: 'walker',
+          professional_name: walkerProfile.walker_name,
+          professional_email: currentUser.email,
+          requested_changes: sensitiveChanges,
+          original_data: walkerProfile,
+          status: 'pending'
+        });
+      }
+
+      return { hasSensitive: Object.keys(sensitiveChanges).length > 0, hasNonSensitive: Object.keys(nonSensitiveChanges).length > 0 };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
-      toast.success('✅ Alterações enviadas para aprovação!');
+      queryClient.invalidateQueries({ queryKey: ['myWalkerProfile'] });
+      
+      if (result.hasSensitive && result.hasNonSensitive) {
+        toast.success('Perfil atualizado! Mudanças de preço enviadas para aprovação.');
+      } else if (result.hasSensitive) {
+        toast.success('Alterações enviadas para aprovação!');
+      } else {
+        toast.success('Perfil atualizado com sucesso!');
+      }
+      
       setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 1500);
     },
     onError: (error) => {

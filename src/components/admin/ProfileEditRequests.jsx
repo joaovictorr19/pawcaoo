@@ -30,37 +30,72 @@ export default function ProfileEditRequests() {
 
   const approveMutation = useMutation({
     mutationFn: async (request) => {
-      // 1. Update the profile (Walker or Trainer) with the requested changes
-      if (request.requested_changes) {
-        if (request.profile_type === 'walker' || request.walker_id) {
-          const profileId = request.profile_id || request.walker_id;
-          await base44.entities.WalkerProfile.update(profileId, request.requested_changes);
-        } else if (request.profile_type === 'trainer' || request.trainer_id) {
-          const profileId = request.profile_id || request.trainer_id;
-          await base44.entities.TrainerProfile.update(profileId, request.requested_changes);
-        }
+      if (!request.requested_changes) {
+        throw new Error('Nenhuma alteração para aplicar');
       }
-      // 2. Mark request as approved
+
+      // Aplicar mudanças APENAS ao perfil existente (NÃO criar novo)
+      const profileId = request.profile_id || request.walker_id || request.trainer_id;
+      
+      if (!profileId) {
+        throw new Error('ID do perfil não encontrado');
+      }
+
+      if (request.profile_type === 'walker' || request.walker_id) {
+        // Atualizar perfil de walker existente
+        await base44.entities.WalkerProfile.update(profileId, request.requested_changes);
+      } else if (request.profile_type === 'trainer' || request.trainer_id) {
+        // Atualizar perfil de trainer existente
+        await base44.entities.TrainerProfile.update(profileId, request.requested_changes);
+      } else {
+        throw new Error('Tipo de perfil desconhecido');
+      }
+
+      // Marcar pedido como aprovado
       await base44.entities.ProfileEditRequest.update(request.id, { 
         status: 'approved',
-        admin_notes: 'Aprovado pelo administrador'
+        admin_notes: 'Aprovado e aplicado',
+        approved_date: new Date().toISOString()
+      });
+
+      // Notificar o profissional
+      await base44.entities.Notification.create({
+        recipient_email: request.professional_email,
+        title: 'Alterações Aprovadas',
+        message: `As alterações solicitadas no seu perfil foram aprovadas e publicadas.`,
+        type: 'system',
+        priority: 'normal'
       });
     },
     onSuccess: () => {
-      toast.success("Alterações aprovadas e aplicadas!");
+      toast.success("Alterações aprovadas e aplicadas ao perfil existente!");
       queryClient.invalidateQueries(['profileEditRequests']);
       queryClient.invalidateQueries(['allWalkersAdmin']);
       queryClient.invalidateQueries(['allTrainersAdmin']);
+      queryClient.invalidateQueries(['walkers']);
+      queryClient.invalidateQueries(['trainers']);
       setSelectedRequest(null);
     },
-    onError: () => toast.error("Erro ao aprovar alterações.")
+    onError: (error) => {
+      toast.error("Erro ao aprovar: " + error.message);
+    }
   });
 
   const rejectMutation = useMutation({
     mutationFn: async (request) => {
       await base44.entities.ProfileEditRequest.update(request.id, { 
         status: 'rejected',
-        admin_notes: 'Rejeitado pelo administrador'
+        admin_notes: 'Rejeitado pelo administrador',
+        rejected_date: new Date().toISOString()
+      });
+
+      // Notificar o profissional
+      await base44.entities.Notification.create({
+        recipient_email: request.professional_email,
+        title: 'Alterações Rejeitadas',
+        message: `As alterações solicitadas no seu perfil foram rejeitadas. Entre em contato para mais informações.`,
+        type: 'system',
+        priority: 'normal'
       });
     },
     onSuccess: () => {
@@ -68,7 +103,9 @@ export default function ProfileEditRequests() {
       queryClient.invalidateQueries(['profileEditRequests']);
       setSelectedRequest(null);
     },
-    onError: () => toast.error("Erro ao rejeitar.")
+    onError: (error) => {
+      toast.error("Erro ao rejeitar: " + error.message);
+    }
   });
 
   if (isLoading) return <div>Carregando solicitações...</div>;
