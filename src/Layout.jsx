@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate, NavLink } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, Megaphone, ShoppingBag, Sparkles, LogOut, Building2, Download, MessageCircle, Users, CreditCard, AlertCircle } from "lucide-react";
+import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, Megaphone, ShoppingBag, Sparkles, LogOut, Building2, Download, MessageCircle, Users, CreditCard, AlertCircle, Search } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +32,8 @@ import CountrySelector from "@/components/ui/CountrySelector";
 import { getAvailableLanguages } from "@/components/translations";
 import { t } from "@/components/translations";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import GlobalSearch from "@/components/search/GlobalSearch";
+import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 import { ToastProvider } from "@/components/notifications/NotificationToast";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
@@ -132,6 +134,7 @@ function LayoutContent({ children, currentPageName }) {
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = React.useState(false);
   const [newBadge, setNewBadge] = React.useState(null);
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
 
   // CRITICAL: Global modal cleanup to prevent frozen UI
   useModalCleanup();
@@ -253,10 +256,23 @@ function LayoutContent({ children, currentPageName }) {
   // ✅ Sistema de Notificações em Tempo Real
   useRealtimeNotifications(authUser);
 
-  // CRITICAL: Close notification panel on route change
+  // CRITICAL: Close notification panel and search on route change
   React.useEffect(() => {
     setIsNotificationPanelOpen(false);
+    setIsSearchOpen(false);
   }, [location.pathname]);
+
+  // Keyboard shortcut for search (Ctrl/Cmd + K)
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Definição clara dos grupos de menu para evitar problemas de índice
   const mainMenu = [
@@ -886,6 +902,15 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Ações Direita */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSearchOpen(true)}
+              className="h-9 w-9 rounded-xl"
+              aria-label="Search"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
             {!authUser && (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
@@ -928,8 +953,21 @@ function LayoutContent({ children, currentPageName }) {
             </Link>
           </div>
 
-          {/* Direita - Login/Notificações */}
+          {/* Direita - Pesquisa, Login/Notificações */}
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSearchOpen(true)}
+              className="h-9 w-9 rounded-xl"
+              style={{
+                background: 'rgba(255, 255, 255, 0.6)',
+                border: '1px solid rgba(0, 0, 0, 0.05)'
+              }}
+              aria-label="Search"
+            >
+              <Search className="w-4 h-4 text-gray-700" />
+            </Button>
             {authUser ? (
               <Button 
                 variant="ghost" 
@@ -1255,6 +1293,9 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Main Content Area with bottom padding for mobile nav */}
           <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
+            {/* Breadcrumbs */}
+            <Breadcrumbs />
+
             <div className="flex-1 relative pb-24 md:pb-8 px-0">
               <div className="md:hidden">
                 <PullToRefresh>
@@ -1272,6 +1313,12 @@ function LayoutContent({ children, currentPageName }) {
 
             {/* Mobile Navigation Bar */}
             <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
+
+            {/* Global Search Modal */}
+            <GlobalSearch 
+              isOpen={isSearchOpen}
+              onClose={() => setIsSearchOpen(false)}
+            />
 
             <NotificationArea 
               isOpen={isNotificationPanelOpen} 
