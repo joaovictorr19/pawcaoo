@@ -25,7 +25,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   const queryClient = useQueryClient();
   const createNotification = useCreateNotification();
   const { colors } = useTheme();
-  const { formatCurrency, formatDate, formatTime, getPaymentDeadline, country } = useLocalization();
+  const { formatCurrency, formatDate, formatTime, country } = useLocalization();
   const { language } = useLanguage();
   
   // Support both legacy 'walker' prop and new generic 'professional' prop
@@ -247,13 +247,13 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       // 1. Criar RESERVA DIRETA com Walker Específico - SEMPRE VISÍVEL
       const booking = await base44.entities.Booking.create({
         ...bookingData,
-        status: 'pending', // Aguardando aprovação - MAS JÁ EXISTE NA DB
-        payment_status: 'pending', // Pagamento pendente - não bloqueia visibilidade
+        status: 'pending', // Aguardando pagamento
+        payment_status: 'pending',
         walker_email: pro.created_by,
         walker_id: pro.id,
         walker_name: proName
       });
-      console.log('✅ RESERVA criada e VISÍVEL para Walker:', proName, 'ID:', booking.id);
+      console.log('✅ RESERVA criada:', booking.id);
 
       // 2. Atualizar Disponibilidade (Reservar Horário)
       try {
@@ -288,22 +288,19 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
       // 3. Criar/Atualizar Conversa de Chat (Sincronização)
       try {
-        // Verificar se já existe conversa entre estes dois
-        const conversations = await base44.entities.ChatConversation.filter({}); // Filtragem no cliente pois arrays são complexos
+        const conversations = await base44.entities.ChatConversation.filter({});
         let conversation = conversations.find(c => 
           c.participants?.includes(user.email) && 
           c.participants?.includes(pro.created_by)
         );
 
         if (conversation) {
-          // Atualizar existente com booking_id
           await base44.entities.ChatConversation.update(conversation.id, {
             booking_id: booking.id,
             last_message: `Nova reserva iniciada: ${bookingData.dog_name} - ${bookingData.walk_date}`,
             last_message_date: new Date().toISOString()
           });
         } else {
-          // Criar nova conversa
           await base44.entities.ChatConversation.create({
             participants: [user.email, pro.created_by],
             booking_id: booking.id,
@@ -318,45 +315,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         console.error("Erro ao sincronizar chat:", err);
       }
 
-      // 4. NOTIFICAÇÃO PARA O PROFISSIONAL (In-App + Email)
-      try {
-        await base44.functions.invoke('sendNotification', {
-          recipient_email: pro.created_by,
-          type: 'booking_request',
-          title: 'Nova Solicitação de Reserva',
-          message: `${user.full_name} solicitou o seu serviço para ${bookingData.dog_name} no dia ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')} às ${bookingData.walk_time}.`,
-          link: '/ProfessionalDashboard?tab=bookings',
-          send_email: true,
-          email_subject: `Nova Reserva - ${bookingData.dog_name}`,
-          email_body: `Olá ${proName},\n\nVocê recebeu uma nova solicitação de reserva!\n\nCliente: ${user.full_name}\nCão: ${bookingData.dog_name}\nData: ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')}\nHorário: ${bookingData.walk_time}\nLocal: ${pickupAddress}\n\nAcesse o painel para aceitar ou recusar:\n${window.location.origin}/ProfessionalDashboard?tab=bookings\n\nObrigado,\nEquipa PawCão`
-        });
-        console.log('✅ Notificação enviada para profissional:', pro.created_by);
-      } catch (err) {
-        console.error("Erro ao notificar profissional:", err);
-      }
-
-      // 5. NOTIFICAÇÃO PARA O CLIENTE (In-App + Email)
-      try {
-        await base44.functions.invoke('sendNotification', {
-          recipient_email: user.email,
-          type: 'booking_request',
-          title: 'Reserva Enviada',
-          message: `A sua reserva com ${proName} para ${bookingData.dog_name} foi enviada. Aguarde a confirmação do profissional.`,
-          link: '/MyBookings',
-          send_email: true,
-          email_subject: `Reserva Iniciada - ${proName}`,
-          email_body: `Olá ${user.full_name},\n\nA sua reserva foi iniciada com sucesso!\n\nProfissional: ${proName}\nCão: ${formData.dog_name}\nData: ${format(new Date(bookingData.walk_date), 'dd/MM/yyyy')}\nHorário: ${bookingData.walk_time}\nLocal: ${pickupAddress}\n\nAguarde a confirmação do profissional. Será notificado assim que a reserva for confirmada.\n\nObrigado,\nEquipa PawCão`
-        });
-        console.log('✅ Notificação enviada para cliente:', user.email);
-      } catch (err) {
-        console.error("Erro ao notificar cliente:", err);
-      }
-
       return booking;
-    },
-    onSuccess: (booking) => {
-      // Pass booking to parent for checkout
-      if (onClose) onClose(booking);
     },
     onError: (error) => {
       console.error('Erro ao criar booking:', error);
@@ -368,7 +327,6 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
   const handleNextStep = () => {
     if (step === 1) {
-      // Validate step 1
       if (!selectedDogId && !formData.dog_name) {
         toast.error('Selecione ou adicione um cão');
         return;
@@ -377,10 +335,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         toast.error('Selecione a data do passeio');
         return;
       }
-      // Service selection is optional but recommended
       setStep(2);
     } else if (step === 2) {
-      // Validate step 2
       if (!pickupAddress) {
         toast.error('Indique o local de recolha');
         return;
@@ -431,7 +387,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
       // 2. Now create Stripe checkout session
       const response = await base44.functions.invoke('createBookingCheckout', {
-        bookingId: booking.id,
+        booking_id: booking.id,
         professional_id: pro.id,
         professional_email: pro.created_by,
         professional_name: proName,
@@ -440,8 +396,16 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         service_amount: amounts.walkerReceives,
         platform_fee: amounts.platformFee,
         total_amount: amounts.totalAmount,
-        successUrl: `${window.location.origin}${createPageUrl('CheckoutSuccess')}?booking_id=${booking.id}`,
-        cancelUrl: `${window.location.origin}${createPageUrl('MyBookings')}`
+        dog_name: formData.dog_name,
+        dog_size: formData.dog_size,
+        walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
+        walk_time: formData.walk_time,
+        duration_hours: formData.duration_hours,
+        special_notes: formData.special_notes,
+        pickup_address: pickupAddress,
+        pickup_lat: pickupCoords.lat,
+        pickup_lng: pickupCoords.lng,
+        owner_phone: formData.owner_phone
       });
 
       if (response.data?.url) {
@@ -458,91 +422,6 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Final validations
-    if (!formData.dog_name) {
-      toast.error('Digite o nome do cão');
-      return;
-    }
-    if (!formData.walk_date) {
-      toast.error('Selecione a data do passeio');
-      return;
-    }
-    if (!pickupAddress) {
-      toast.error('Por favor, indique o local de recolha');
-      return;
-    }
-    if (!formData.owner_phone) {
-      toast.error('Número de telefone obrigatório');
-      return;
-    }
-
-    // CRITICAL: Validate date is not a day-off (extra security layer)
-    const dateStr = format(formData.walk_date, 'yyyy-MM-dd');
-    const dayAvailability = availability.find(a => 
-      a.date === dateStr && a.professional_email === pro?.created_by
-    );
-    
-    if (dayAvailability?.is_day_off) {
-      toast.error('Este profissional não está disponível nesta data. Por favor, escolha outra data.');
-      return;
-    }
-    
-    if (dayAvailability?.is_fully_booked) {
-      toast.error('Esta data está totalmente reservada. Por favor, escolha outra data.');
-      return;
-    }
-
-    setIsProcessing(true);
-
-    try {
-      const bookingData = {
-        walker_id: isWalker ? pro.id : undefined, 
-        walker_name: proName,
-        walker_email: pro.created_by,
-        walker_payment_contact: pro.whatsapp_number || pro.phone,
-        
-        // Common fields
-        owner_name: user.full_name,
-        owner_phone: user.phone || '',
-        owner_email: user.email,
-        dog_name: formData.dog_name,
-        dog_size: formData.dog_size,
-        walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
-        walk_time: formData.walk_time,
-        duration_hours: formData.duration_hours,
-        service_amount: amounts.walkerReceives,
-        platform_fee: amounts.platformFee,
-        total_amount: amounts.totalAmount,
-        special_notes: formData.special_notes,
-        pickup_address: pickupAddress,
-        
-        // ✅ COORDENADAS DO DESTINO (Ancoragem)
-        pickup_lat: pickupCoords.lat,
-        pickup_lng: pickupCoords.lng,
-        
-        professional_type: isWalker ? 'walker' : 'trainer',
-        professional_id: pro.id
-      };
-
-      // Note: The mutation above calls `base44.entities.Booking.create`. 
-      // If this is for a Trainer, we might strictly want `TrainingBooking`.
-      // However, to keep it simple and "revise duplicates", maybe we just use `Booking` for all?
-      // No, schema is different.
-      // Let's just pass the data to `onClose` if it's provided, effectively skipping the internal mutation if handled externally?
-      // But `handleSubmit` calls `createBookingMutation`.
-      
-      // If we are in TrainerDetails, we might want to use the form just for UI and handle submission in parent?
-      // WalkerDetails uses internal mutation then onClose.
-      
-      await createBookingMutation.mutateAsync(bookingData);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   // Check if dog profile is complete
   const isDogProfileComplete = (dogId) => {
     const dog = myDogs.find(d => d.id === dogId);
@@ -550,7 +429,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={(e) => e.preventDefault()}>
       <Card className="glass-panel border-0 shadow-xl rounded-2xl">
         <CardHeader 
           className="text-white py-3 md:py-4 px-4 md:px-6"
@@ -730,7 +609,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               {/* Service Selection */}
               {availableServices.length > 0 && (
                 <div>
-                  <Label className="text-sm font-semibold mb-2 block">Tipo de Servico</Label>
+                  <Label className="text-sm font-semibold mb-2 block">Tipo de Serviço</Label>
                   <div className="grid gap-2">
                     {availableServices.map((service, idx) => (
                       <div
@@ -889,7 +768,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                     <span className="font-medium">{formData.walk_date ? format(formData.walk_date, 'dd/MM') : ''} às {formData.walk_time}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-green-100">
-                    <span className="text-gray-600">Servico</span>
+                    <span className="text-gray-600">Serviço</span>
                     <span className="font-medium">{amounts.serviceName}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-green-100">
@@ -921,42 +800,12 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                <p className="font-semibold text-blue-800 mb-1">Pagamento Seguro</p>
+                <p className="font-semibold text-blue-800 mb-1">💳 Pagamento Imediato</p>
                 <p className="text-blue-700 text-xs">
-                  Ao clicar em "Pagar", será redirecionado para o Stripe. 
-                  O valor fica retido até o profissional aceitar e completar o serviço.
+                  O pagamento é realizado agora e fica retido até o serviço ser concluído. 
+                  Cancelamento com 24h de antecedência: reembolso de 100%.
                 </p>
               </div>
-
-              {(() => {
-                const deadline = getPaymentDeadline(
-                  formData.walk_date ? format(formData.walk_date, 'yyyy-MM-dd') : null, 
-                  formData.walk_time, 
-                  24
-                );
-                return (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
-                    <p className="font-semibold text-amber-800 mb-1">
-                      ⏰ {language === 'fr' ? 'Date limite de paiement' : language === 'es' ? 'Plazo de pago' : 'Prazo de Pagamento'}
-                    </p>
-                    <p className="text-amber-700 text-xs">
-                      {language === 'fr' 
-                        ? `Le paiement doit être effectué avant le ${deadline?.formatted || '...'} à ${deadline?.time || '...'}. Sinon, la réservation sera annulée.`
-                        : language === 'es'
-                        ? `El pago debe realizarse antes del ${deadline?.formatted || '...'} a las ${deadline?.time || '...'}. De lo contrario, la reserva será cancelada.`
-                        : language === 'en'
-                        ? `Payment must be made by ${deadline?.formatted || '...'} at ${deadline?.time || '...'}. Otherwise, the booking will be cancelled.`
-                        : `O pagamento deve ser efetuado até ${deadline?.formatted || '...'} às ${deadline?.time || '...'}. Caso não seja pago a tempo, a reserva será cancelada.`
-                      }
-                    </p>
-                    {deadline?.isExpired && (
-                      <p className="text-red-600 font-bold mt-1 text-xs">
-                        ⚠️ {language === 'fr' ? 'Délai expiré!' : language === 'es' ? '¡Plazo expirado!' : 'Prazo expirado!'}
-                      </p>
-                    )}
-                  </div>
-                );
-              })()}
             </>
           )}
 
@@ -1000,8 +849,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               </Button>
             )}
           </div>
-          </CardContent>
-          </Card>
-          </form>
-          );
-          }
+        </CardContent>
+      </Card>
+    </form>
+  );
+}

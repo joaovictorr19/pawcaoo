@@ -14,22 +14,11 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     
-    // Calculate payment deadline (24 hours before walk time)
-    const walkDateTime = new Date(`${body.walk_date}T${body.walk_time.split(' ')[0] || body.walk_time}:00`);
-    const paymentDeadline = new Date(walkDateTime.getTime() - (24 * 60 * 60 * 1000)); // 24 hours before
-    const now = new Date();
+    // Payment is immediate - no deadline check
+    const sessionExpiry = 1800; // 30 minutes for checkout session
     
-    // Check if we still have time to pay
-    if (now >= paymentDeadline) {
-      return Response.json({ 
-        error: 'Prazo de pagamento expirado. O pagamento deve ser feito até 24 horas antes do horário marcado.' 
-      }, { status: 400 });
-    }
-    
-    // Calculate session expiry (minimum 30 min, max until deadline)
-    const timeUntilDeadline = Math.floor((paymentDeadline.getTime() - now.getTime()) / 1000);
-    const sessionExpiry = Math.min(Math.max(timeUntilDeadline, 1800), 86400); // Between 30min and 24h
     const {
+      booking_id,
       professional_id,
       professional_email,
       professional_name,
@@ -95,12 +84,12 @@ Deno.serve(async (req) => {
     // Get app host for redirect URLs
     const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
 
-    // Create Stripe Checkout Session with expiry
+    // Create Stripe Checkout Session - immediate payment
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
       mode: 'payment',
-      expires_at: Math.floor(Date.now() / 1000) + sessionExpiry, // Expire at payment deadline
+      expires_at: Math.floor(Date.now() / 1000) + sessionExpiry, // 30 min expiry
       line_items: [
         {
           price_data: {
@@ -122,6 +111,7 @@ Deno.serve(async (req) => {
       ],
       metadata: {
         type: 'booking',
+        booking_id: booking_id || '',
         professional_id,
         professional_email,
         professional_name,
@@ -141,18 +131,17 @@ Deno.serve(async (req) => {
         pickup_lng: pickup_lng?.toString() || '',
         owner_email: user.email,
         owner_name: user.full_name,
-        owner_phone: owner_phone || '',
-        payment_deadline: paymentDeadline.toISOString()
+        owner_phone: owner_phone || ''
       },
       success_url: `${origin}/CheckoutSuccess?session_id={CHECKOUT_SESSION_ID}&type=booking`,
-      cancel_url: `${origin}/WalkerDetails?id=${professional_id}&cancelled=true`,
-      locale: body.locale || 'auto', // Stripe will auto-detect or use provided locale
+      cancel_url: `${origin}/MyBookings?cancelled=true`,
+      locale: body.locale || 'auto',
       payment_intent_data: {
-        capture_method: 'automatic',
+        capture_method: 'automatic', // Immediate capture
         metadata: {
           professional_email,
           booking_type: 'service',
-          payment_deadline: paymentDeadline.toISOString()
+          booking_id: booking_id || ''
         }
       }
     });
