@@ -6,8 +6,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
 import { 
-  FileText, Download, Calendar, Euro, TrendingUp, 
-  Loader2, ChevronDown, ChevronUp, Receipt
+  FileText, Download, Calendar, Euro, 
+  Loader2, ChevronDown, ChevronUp, Receipt, TrendingUp
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
