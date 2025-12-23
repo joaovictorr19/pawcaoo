@@ -1464,35 +1464,25 @@ export default function Home() {
 
           {/* Trust Badges Section */}
           <div className="mt-12 mb-8">
-          <div className="grid grid-cols-3 gap-3 md:gap-6 max-w-3xl mx-auto px-2">
+          <div className="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto px-4">
             <motion.div 
               whileHover={{ scale: 1.05, y: -4 }}
-              className="flex flex-col items-center gap-2 cursor-default group"
+              className="flex flex-col items-center gap-3 cursor-default group"
             >
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                <Shield className="w-6 h-6 md:w-8 md:h-8 text-white" />
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                <Shield className="w-8 h-8 md:w-10 md:h-10 text-white" />
               </div>
-              <span className="text-xs md:text-sm font-bold text-white text-center leading-tight drop-shadow-md">{t('verifiedProfessionals', language)}</span>
+              <span className="text-sm md:text-base font-bold text-white text-center leading-tight drop-shadow-md">{t('verifiedProfessionals', language)}</span>
             </motion.div>
 
             <motion.div 
               whileHover={{ scale: 1.05, y: -4 }}
-              className="flex flex-col items-center gap-2 cursor-default group"
+              className="flex flex-col items-center gap-3 cursor-default group"
             >
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                <ShieldCheck className="w-6 h-6 md:w-8 md:h-8 text-white" />
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+                <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-white" />
               </div>
-              <span className="text-xs md:text-sm font-bold text-white text-center leading-tight drop-shadow-md">{t('securePayment', language)}</span>
-            </motion.div>
-
-            <motion.div 
-              whileHover={{ scale: 1.05, y: -4 }}
-              className="flex flex-col items-center gap-2 cursor-default group"
-            >
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
-                <MessageCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
-              </div>
-              <span className="text-xs md:text-sm font-bold text-white text-center leading-tight drop-shadow-md">{t('support247', language)}</span>
+              <span className="text-sm md:text-base font-bold text-white text-center leading-tight drop-shadow-md">{t('securePayment', language)}</span>
             </motion.div>
           </div>
           </div>
