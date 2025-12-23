@@ -278,7 +278,7 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
             </MapContainer>
             <div className="absolute bottom-2 right-2 bg-white/90 px-2 py-1 rounded text-xs z-[1000] shadow text-right">
                 <p>Azul: Nova Área | Verde: Áreas Salvas</p>
-                <p className="font-semibold text-blue-600">Clique no mapa ou arraste o marcador para ajustar</p>
+                <p className="font-semibold text-green-600">Clique no mapa ou arraste o marcador para ajustar</p>
             </div>
         </div>
       </div>
