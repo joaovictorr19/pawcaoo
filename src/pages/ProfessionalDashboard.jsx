@@ -749,8 +749,7 @@ export default function ProfessionalDashboard() {
                       value={formData.service_name}
                       onChange={(e) => setFormData({...formData, service_name: e.target.value})}
                       placeholder="Ex: Passeio de 1 hora no parque"
-                      className="h-11"
-                      style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                      className="h-11 bg-white text-gray-900"
                     />
                   </div>
                   
@@ -763,8 +762,7 @@ export default function ProfessionalDashboard() {
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
                       placeholder="Descreva o que está incluído no serviço..."
                       rows={3}
-                      className="resize-none"
-                      style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                      className="resize-none bg-white text-gray-900"
                     />
                   </div>
                 </CardContent>
@@ -827,8 +825,7 @@ export default function ProfessionalDashboard() {
                         value={formData.price}
                         onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
                         placeholder={['dogs', 'cats'].includes(formData.animal_type) ? "10" : "20"}
-                        className="h-12 text-lg font-bold pl-8"
-                        style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                        className="h-12 text-lg font-bold pl-8 bg-white text-gray-900"
                       />
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-gray-600">€</span>
                     </div>
@@ -865,8 +862,7 @@ export default function ProfessionalDashboard() {
                         placeholder="Ex: 5 Sessões" 
                         value={newPackage.name}
                         onChange={(e) => setNewPackage({...newPackage, name: e.target.value})}
-                        className="h-10 text-sm"
-                        style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                        className="h-10 text-sm bg-white text-gray-900"
                       />
                     </div>
                     <div>
@@ -876,8 +872,7 @@ export default function ProfessionalDashboard() {
                         type="number"
                         value={newPackage.sessions}
                         onChange={(e) => setNewPackage({...newPackage, sessions: parseInt(e.target.value)})}
-                        className="h-10 text-sm"
-                        style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                        className="h-10 text-sm bg-white text-gray-900"
                       />
                     </div>
                     <div>
@@ -888,8 +883,7 @@ export default function ProfessionalDashboard() {
                         step="0.01"
                         value={newPackage.price}
                         onChange={(e) => setNewPackage({...newPackage, price: parseFloat(e.target.value)})}
-                        className="h-10 text-sm"
-                        style={{ background: 'white', color: '#111827', border: '1px solid #d1d5db' }}
+                        className="h-10 text-sm bg-white text-gray-900"
                       />
                     </div>
                   </div>
