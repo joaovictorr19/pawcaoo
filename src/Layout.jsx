@@ -1243,7 +1243,7 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
           {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent">
+          <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
             <div className="flex-1 relative pb-24 md:pb-8 px-0">
               <div className="md:hidden">
                 <PullToRefresh>
