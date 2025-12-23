@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/dialog";
 import { 
   CheckCircle, XCircle, Eye, Upload, Loader2, MapPin, Phone,
-  Mail, Building, CreditCard, FileText, ShieldCheck, Video
+  Mail, Building, CreditCard, FileText, ShieldCheck, Video, AlertCircle
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 export default function ApplicationDetailsModal({ 
   application, 
@@ -35,6 +35,20 @@ export default function ApplicationDetailsModal({
   React.useEffect(() => {
     setSelectedApp(application);
   }, [application]);
+
+  // Fetch tax data for this professional
+  const { data: taxData } = useQuery({
+    queryKey: ['taxData', selectedApp?.created_by || selectedApp?.contact_email],
+    queryFn: async () => {
+      const email = selectedApp?.created_by || selectedApp?.contact_email;
+      if (!email) return null;
+      const records = await base44.entities.ProfessionalTaxData.filter({ 
+        professional_email: email 
+      });
+      return records[0] || null;
+    },
+    enabled: isOpen && !!(selectedApp?.created_by || selectedApp?.contact_email)
+  });
 
   if (!selectedApp) return null;
 
@@ -144,15 +158,84 @@ export default function ApplicationDetailsModal({
             </CardContent>
           </Card>
 
+          {/* Tax Data - NEW */}
+          {!isShelter && taxData && (
+            <Card className="border-2 border-orange-100 bg-orange-50/30">
+              <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3">
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <h3 className="font-bold text-gray-900 flex items-center gap-2 text-sm md:text-base">
+                    <FileText className="w-4 h-4 md:w-5 md:h-5 text-orange-600" />
+                    Dados Fiscais
+                  </h3>
+                  <Badge className={
+                    taxData.status === 'verified' ? 'bg-green-500' :
+                    taxData.status === 'pending_verification' ? 'bg-yellow-500' :
+                    taxData.status === 'rejected' ? 'bg-red-500' :
+                    'bg-gray-400'
+                  }>
+                    {taxData.status === 'verified' ? '✓ Verificado' :
+                     taxData.status === 'pending_verification' ? '⏳ Pendente' :
+                     taxData.status === 'rejected' ? '✗ Rejeitado' :
+                     'Incompleto'}
+                  </Badge>
+                </div>
+                <div className="grid md:grid-cols-2 gap-3 md:gap-4">
+                  <div>
+                    <Label className="text-xs text-gray-500">NIF / Tax ID</Label>
+                    <p className="text-sm font-medium">{taxData.tax_id || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">Nome Legal</Label>
+                    <p className="text-sm font-medium">{taxData.legal_name || 'N/A'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label className="text-xs text-gray-500">Morada Fiscal</Label>
+                    <p className="text-sm font-medium">
+                      {taxData.fiscal_address || 'N/A'}
+                      {taxData.fiscal_postal_code && `, ${taxData.fiscal_postal_code}`}
+                      {taxData.fiscal_city && `, ${taxData.fiscal_city}`}
+                    </p>
+                  </div>
+                  {taxData.bank_iban && (
+                    <div className="md:col-span-2">
+                      <Label className="text-xs text-gray-500">IBAN</Label>
+                      <p className="text-sm font-mono">{taxData.bank_iban}</p>
+                    </div>
+                  )}
+                  {taxData.is_vat_registered && (
+                    <div>
+                      <Label className="text-xs text-gray-500">IVA</Label>
+                      <p className="text-sm font-medium">{taxData.vat_rate}%</p>
+                    </div>
+                  )}
+                  {taxData.vat_exemption_reason && (
+                    <div>
+                      <Label className="text-xs text-gray-500">Isenção IVA</Label>
+                      <p className="text-sm font-medium">{taxData.vat_exemption_reason}</p>
+                    </div>
+                  )}
+                </div>
+                {taxData.status === 'pending_verification' && (
+                  <div className="mt-3 bg-yellow-100 border border-yellow-300 rounded-lg p-3">
+                    <p className="text-xs text-yellow-800 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      Aguarda verificação pelo administrador
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Bank Details */}
           {!isShelter && (
             <Card className="border-2 border-green-100 bg-green-50/30">
               <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3">
                 <h3 className="font-bold text-gray-900 mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base">
                   <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
-                  Dados Bancários
+                  Dados Bancários (Perfil)
                 </h3>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-3 md:gap-4">
                   <div>
                     <Label className="text-xs text-gray-500">Titular da Conta</Label>
                     <p className="text-sm font-medium">{selectedApp.bank_account_holder || 'N/A'}</p>
@@ -451,12 +534,83 @@ export default function ApplicationDetailsModal({
         {/* Footer Actions */}
         <div className="sticky bottom-0 bg-white border-t px-4 md:px-6 py-3 md:py-4">
           {isDocumentUpdate ? (
-            // Para perfis já verificados - apenas fechar
-            <DialogFooter className="flex justify-end">
-              <Button onClick={onClose} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Documentos Revistos - Fechar
+            // Para perfis já verificados - opções para dados fiscais
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+                Fechar
               </Button>
+              {taxData && taxData.status === 'pending_verification' && (
+                <>
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      const reason = prompt("Motivo da rejeição dos dados fiscais:");
+                      if (!reason) return;
+                      
+                      try {
+                        await base44.entities.ProfessionalTaxData.update(taxData.id, {
+                          status: 'rejected',
+                          rejection_reason: reason
+                        });
+                        
+                        await base44.entities.Notification.create({
+                          recipient_email: taxData.professional_email,
+                          title: 'Dados Fiscais Rejeitados',
+                          message: `Os seus dados fiscais foram rejeitados. Motivo: ${reason}`,
+                          type: 'system',
+                          priority: 'high'
+                        });
+
+                        queryClient.invalidateQueries(['taxData']);
+                        toast.success("Dados fiscais rejeitados.");
+                        onClose();
+                      } catch (error) {
+                        toast.error("Erro ao rejeitar dados fiscais.");
+                      }
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Rejeitar Dados Fiscais
+                  </Button>
+                  <Button
+                    className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                    onClick={async () => {
+                      try {
+                        await base44.entities.ProfessionalTaxData.update(taxData.id, {
+                          status: 'verified',
+                          tax_id_verified: true,
+                          verified_at: new Date().toISOString(),
+                          verified_by: (await base44.auth.me()).email
+                        });
+                        
+                        await base44.entities.Notification.create({
+                          recipient_email: taxData.professional_email,
+                          title: 'Dados Fiscais Verificados',
+                          message: 'Os seus dados fiscais foram verificados com sucesso!',
+                          type: 'system',
+                          priority: 'normal'
+                        });
+
+                        queryClient.invalidateQueries(['taxData']);
+                        toast.success("Dados fiscais verificados!");
+                        onClose();
+                      } catch (error) {
+                        toast.error("Erro ao verificar dados fiscais.");
+                      }
+                    }}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Aprovar Dados Fiscais
+                  </Button>
+                </>
+              )}
+              {(!taxData || taxData.status !== 'pending_verification') && (
+                <Button onClick={onClose} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Fechar
+                </Button>
+              )}
             </DialogFooter>
           ) : (
             // Para candidaturas novas - aprovar/rejeitar
