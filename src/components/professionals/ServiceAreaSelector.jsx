@@ -142,10 +142,10 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
     <div className="space-y-4">
       <div className="grid md:grid-cols-2 gap-4">
         {/* Input Form */}
-        <Card className="border-2 border-blue-200 bg-blue-50 h-fit">
+        <Card className="border-2 border-green-200 bg-green-50 h-fit">
           <CardContent className="p-4 space-y-4">
             <h4 className="font-semibold text-gray-900 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-600" />
+              <MapPin className="w-5 h-5 text-green-600" />
               Adicionar Área de Serviço
             </h4>
             
@@ -197,7 +197,7 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
               type="button"
               onClick={handleAddArea}
               disabled={!newArea.area_name.trim()}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-green-600 hover:bg-green-700"
             >
               <Plus className="w-4 h-4 mr-2" />
               Adicionar Área

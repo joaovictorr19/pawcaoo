@@ -174,7 +174,7 @@ export default function BreedSelector({ selectedBreeds = [], onChange, specializ
         </Button>
       </div>
       
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800">
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs text-green-800">
         💡 <strong>Dica:</strong> Digite qualquer raça e pressione Enter para adicionar manualmente. Use a busca ou clique nas sugestões.
       </div>
 
