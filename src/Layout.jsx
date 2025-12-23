@@ -734,35 +734,39 @@ function LayoutContent({ children, currentPageName }) {
           }
         }
         
-        /* Sidebar glassmorphism - same style for desktop and mobile */
-        [data-sidebar="sidebar"],
-        [data-sidebar="sidebar"] > div,
-        [data-sidebar="sidebar"] > div > div,
-        aside[data-sidebar],
-        aside[data-sidebar] > div,
-        [data-state="open"] [data-sidebar="sidebar"],
-        [data-radix-scroll-area-viewport],
-        [data-sidebar],
-        [data-sidebar] > div {
-          background: rgba(255, 255, 255, 0.95) !important;
-          backdrop-filter: blur(20px) !important;
-          -webkit-backdrop-filter: blur(20px) !important;
-          --sidebar-background: rgba(255, 255, 255, 0.95) !important;
+        /* Sidebar glassmorphism - consistent across all devices */
+        [data-sidebar="sidebar"] {
+          background: rgba(255, 255, 255, 0.92) !important;
+          backdrop-filter: blur(24px) !important;
+          -webkit-backdrop-filter: blur(24px) !important;
         }
         
-        /* Mobile sidebar drawer/sheet */
-        [data-state="open"][role="dialog"],
-        [data-state="open"][role="dialog"] > div,
-        [vaul-drawer],
-        [vaul-drawer] > div {
-          background: rgba(255, 255, 255, 0.98) !important;
-          backdrop-filter: blur(20px) !important;
-          -webkit-backdrop-filter: blur(20px) !important;
+        /* Mobile sidebar sheet/drawer - extra specificity */
+        [data-state="open"][role="dialog"] {
+          background: transparent !important;
         }
         
-        /* Force transparent background on sidebar children */
-        [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img) {
-          background-color: transparent !important;
+        [data-state="open"][role="dialog"] > div:last-child,
+        [vaul-drawer] {
+          background: rgba(255, 255, 255, 0.96) !important;
+          backdrop-filter: blur(24px) !important;
+          -webkit-backdrop-filter: blur(24px) !important;
+        }
+        
+        /* Sidebar scroll area */
+        [data-radix-scroll-area-viewport] {
+          background: transparent !important;
+        }
+        
+        /* Prevent dark backgrounds on internal elements */
+        [data-sidebar] button,
+        [data-sidebar] a {
+          background-color: transparent;
+        }
+        
+        [data-sidebar] button:hover,
+        [data-sidebar] a:hover {
+          background-color: rgba(0, 0, 0, 0.05) !important;
         }
 
         .scrollbar-hide {
