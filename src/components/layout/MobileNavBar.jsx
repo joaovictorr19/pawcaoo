@@ -110,24 +110,24 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               <div className="relative">
                 {item.isProfile && user ? (
                   <Avatar 
-                    className={`w-6 h-6 ${active ? "ring-2 ring-offset-1" : ""}`}
+                    className={`w-5 h-5 ${active ? "ring-2 ring-offset-1" : ""}`}
                     style={active ? { '--tw-ring-color': colors?.primary || '#3b82f6' } : {}}
                   >
                     <AvatarImage src={user.profile_photo_url} className="aspect-square object-cover object-center" />
-                    <AvatarFallback className={`text-[9px] ${isDarkMode ? 'bg-slate-700 text-white' : 'bg-gray-200'}`}>
+                    <AvatarFallback className="text-[8px] bg-gray-200">
                       {user.full_name?.[0] || "EU"}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
                   <Icon 
-                    className={`w-6 h-6 ${item.isSpecial && active ? "fill-current" : ""}`}
+                    className={`w-5 h-5 ${item.isSpecial && active ? "fill-current" : ""}`}
                     style={active ? { color: colors?.primary || '#3b82f6' } : {}}
-                    strokeWidth={active ? 2.5 : 2}
+                    strokeWidth={active ? 2.5 : 1.8}
                   />
                 )}
 
                 {item.badge && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white animate-bounce border-2 border-white">
+                  <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white border border-white">
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 )}
