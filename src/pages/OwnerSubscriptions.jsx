@@ -3,18 +3,16 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Heart, Star, Zap, Check, ArrowLeft, ChevronLeft, ChevronRight, CheckCircle, CreditCard } from "lucide-react";
+import { Crown, Heart, Star, Check, ArrowLeft, ChevronLeft, ChevronRight, CheckCircle, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { useTheme } from "@/components/ThemeContext";
 
 export default function OwnerSubscriptions() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { colors } = useTheme();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const [billingCycle, setBillingCycle] = useState("monthly");
 
   React.useEffect(() => {
@@ -243,28 +241,28 @@ export default function OwnerSubscriptions() {
 
   const rarityStyles = {
     common: {
-      border: "border-blue-400/50",
-      glow: "shadow-blue-500/20",
-      shine: "from-blue-400/20 via-white/40 to-blue-400/20"
+      border: "border-blue-500/50",
+      glow: "shadow-blue-500/30",
+      bg: "from-blue-950/80 to-slate-900/80"
     },
     rare: {
-      border: "border-purple-400/50",
+      border: "border-purple-500/50",
       glow: "shadow-purple-500/30",
-      shine: "from-purple-400/20 via-white/40 to-purple-400/20"
+      bg: "from-purple-950/80 to-slate-900/80"
     },
     legendary: {
-      border: "border-yellow-400/50",
-      glow: "shadow-yellow-500/40",
-      shine: "from-yellow-400/20 via-white/40 to-yellow-400/20"
+      border: "border-amber-500/50",
+      glow: "shadow-amber-500/50",
+      bg: "from-amber-950/80 to-slate-900/80"
     }
   };
 
   const nextCard = () => {
-    setCurrentIndex((prev) => (prev + 1) % plans.length);
+    setCarouselIndex((prev) => (prev + 1) % plans.length);
   };
 
   const prevCard = () => {
-    setCurrentIndex((prev) => (prev - 1 + plans.length) % plans.length);
+    setCarouselIndex((prev) => (prev - 1 + plans.length) % plans.length);
   };
 
   const getPrice = (plan) => {
@@ -280,14 +278,8 @@ export default function OwnerSubscriptions() {
     return savings;
   };
 
-  const currentPlan = plans[currentIndex];
-  const Icon = currentPlan.icon;
-  const isCurrentPlan = subscription?.plan_type === currentPlan.type;
-  const savings = getSavings(currentPlan);
-  const style = rarityStyles[currentPlan.rarity];
-
   return (
-    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden bg-neutral-950">
+    <div className="min-h-screen bg-neutral-950 relative overflow-hidden">
       {/* Nevoeiro animado */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
@@ -310,6 +302,7 @@ export default function OwnerSubscriptions() {
         />
       </div>
 
+      {/* Botão Voltar */}
       <Button
         variant="ghost"
         onClick={() => navigate(-1)}
@@ -319,6 +312,7 @@ export default function OwnerSubscriptions() {
         Voltar
       </Button>
 
+      {/* Plano Atual Badge */}
       {subscription && (
         <div className="absolute top-4 right-4 z-20">
           <Badge className="bg-white/20 backdrop-blur text-white border-white/40">
@@ -339,194 +333,192 @@ export default function OwnerSubscriptions() {
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-3xl md:text-4xl font-black text-white mb-2">Planos Premium</h1>
-          <p className="text-white/80 text-sm">Deslize para ver os planos</p>
-        </motion.div>
-
-        <div className="flex justify-center gap-2 mb-6">
-          <Button
-            variant={billingCycle === "monthly" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setBillingCycle("monthly")}
-            className={billingCycle === "monthly" ? "bg-white text-purple-900" : "text-white hover:bg-white/10"}
+      {/* Conteúdo Principal */}
+      <section className="relative pt-12 pb-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Título */}
+          <motion.h2
+            className="text-center text-purple-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-4"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            Mensal
-          </Button>
-          <Button
-            variant={billingCycle === "annual" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setBillingCycle("annual")}
-            className={billingCycle === "annual" ? "bg-white text-purple-900" : "text-white hover:bg-white/10"}
-          >
-            Anual <Badge className="ml-1 bg-green-500 text-white text-xs">-17%</Badge>
-          </Button>
-        </div>
+            Planos Premium
+          </motion.h2>
+          <p className="text-center text-gray-600 text-xs mb-8">
+            Deslize para ver os planos disponíveis
+          </p>
 
-        <div className="relative">
-          {/* Botões de navegação - fora do container para não bloquear */}
-          <div className="absolute left-4 md:left-0 top-1/2 -translate-y-1/2 z-30">
+          {/* Seletor de Ciclo */}
+          <div className="flex justify-center gap-2 mb-12">
+            <Button
+              variant={billingCycle === "monthly" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setBillingCycle("monthly")}
+              className={billingCycle === "monthly" ? "bg-white text-purple-900" : "text-white hover:bg-white/10"}
+            >
+              Mensal
+            </Button>
+            <Button
+              variant={billingCycle === "annual" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setBillingCycle("annual")}
+              className={billingCycle === "annual" ? "bg-white text-purple-900" : "text-white hover:bg-white/10"}
+            >
+              Anual <Badge className="ml-1 bg-green-500 text-white text-xs">-17%</Badge>
+            </Button>
+          </div>
+
+          {/* Carrossel de Planos */}
+          <div className="relative">
+            {/* Botões de navegação */}
             <Button
               variant="ghost"
               size="icon"
               onClick={prevCard}
-              className="bg-black/50 border border-white/30 text-white hover:bg-white/20 h-10 w-10 md:h-12 md:w-12 rounded-full"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 h-12 w-12 rounded-full"
             >
-              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+              <ChevronLeft className="w-6 h-6" />
             </Button>
-          </div>
 
-          <div className="absolute right-4 md:right-0 top-1/2 -translate-y-1/2 z-30">
             <Button
               variant="ghost"
               size="icon"
               onClick={nextCard}
-              className="bg-black/50 border border-white/30 text-white hover:bg-white/20 h-10 w-10 md:h-12 md:w-12 rounded-full"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 h-12 w-12 rounded-full"
             >
-              <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+              <ChevronRight className="w-6 h-6" />
             </Button>
-          </div>
 
-          {/* Container das cartas - efeito de profundidade */}
-          <div className="flex justify-center items-center overflow-visible px-16 py-8 min-h-[600px]">
-            <AnimatePresence mode="sync">
-              {plans.map((plan, idx) => {
-                const position = (idx - currentIndex + plans.length) % plans.length;
-                const isCurrent = position === 0;
-                const isNext = position === 1;
-                const isPrev = position === plans.length - 1;
-                const isVisible = isCurrent || isNext || isPrev;
+            {/* Container das cartas */}
+            <div className="flex justify-center items-center gap-4 overflow-hidden px-16 py-8">
+              <AnimatePresence mode="popLayout">
+                {plans.slice(carouselIndex, carouselIndex + 3).concat(
+                  plans.slice(0, Math.max(0, carouselIndex + 3 - plans.length))
+                ).slice(0, 3).map((plan, idx) => {
+                  const PlanIcon = plan.icon;
+                  const planStyle = rarityStyles[plan.rarity];
+                  const planIsActive = subscription?.plan_type === plan.type;
+                  const planSavings = getSavings(plan);
 
-                if (!isVisible) return null;
-
-                const PlanIcon = plan.icon;
-                const planStyle = rarityStyles[plan.rarity];
-                const planIsActive = subscription?.plan_type === plan.type;
-                const planSavings = getSavings(plan);
-
-                return (
-                  <motion.div
-                    key={plan.type}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ 
-                      opacity: isCurrent ? 1 : 0.5,
-                      scale: isCurrent ? 1 : 0.85,
-                      zIndex: isCurrent ? 10 : 5,
-                      x: isPrev ? -60 : isNext ? 60 : 0
-                    }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.4 }}
-                    className={`absolute left-1/2 -translate-x-1/2 ${!isCurrent ? 'hidden md:block pointer-events-none' : ''}`}
-                  >
-                    <div className={`relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 border-2 ${planStyle.border} shadow-2xl ${planStyle.glow} w-80 md:w-96`}>
-                      {/* Padrão decorativo */}
-                      <div className="absolute inset-0 opacity-10 pointer-events-none">
-                        <div className="absolute top-4 left-4 w-8 h-8 border border-white/50 rotate-45" />
-                        <div className="absolute top-4 right-4 w-8 h-8 border border-white/50 rotate-45" />
-                        <div className="absolute bottom-4 left-4 w-8 h-8 border border-white/50 rotate-45" />
-                        <div className="absolute bottom-4 right-4 w-8 h-8 border border-white/50 rotate-45" />
-                      </div>
-
-                      <div className={`absolute inset-0 bg-gradient-to-r ${planStyle.shine} opacity-0 hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none`}></div>
-                      
-                      <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${plan.gradient}`}></div>
-
-                      {planIsActive && (
-                        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 text-xs font-bold shadow-lg border-0">
-                          Plano Atual
-                        </Badge>
-                      )}
-
-                      <div className={`w-20 h-20 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-4 shadow-xl mx-auto relative z-10`}>
-                        <PlanIcon className="w-10 h-10 text-white" />
-                      </div>
-
-                      <Badge className={`uppercase tracking-widest text-[10px] font-bold mb-3 block text-center ${
-                        plan.rarity === 'legendary' ? 'bg-gradient-to-r from-yellow-500 to-orange-400 text-black' :
-                        plan.rarity === 'rare' ? 'bg-purple-600 text-white' :
-                        'bg-blue-600 text-white'
-                      }`}>
-                        {plan.rarity}
-                      </Badge>
-
-                      <h2 className="text-3xl font-black text-white text-center mb-2">
-                        {plan.name}
-                      </h2>
-
-                      <div className="text-center mb-6">
-                        <div className="text-4xl font-black text-white">
-                          {getPrice(plan)}
+                  return (
+                    <motion.div
+                      key={plan.type}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ 
+                        opacity: idx === 1 ? 1 : 0.6, 
+                        scale: idx === 1 ? 1 : 0.85,
+                        zIndex: idx === 1 ? 10 : 0
+                      }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.3 }}
+                      className={idx === 1 ? '' : 'hidden md:block'}
+                    >
+                      <div className={`relative w-80 h-[500px] rounded-2xl border-2 ${planStyle.border} bg-gradient-to-br ${planStyle.bg} shadow-2xl ${planStyle.glow} overflow-hidden`}>
+                        {/* Padrão decorativo */}
+                        <div className="absolute inset-0 opacity-10">
+                          <div className="absolute top-4 left-4 w-8 h-8 border border-purple-500/50 rotate-45" />
+                          <div className="absolute top-4 right-4 w-8 h-8 border border-purple-500/50 rotate-45" />
+                          <div className="absolute bottom-4 left-4 w-8 h-8 border border-purple-500/50 rotate-45" />
+                          <div className="absolute bottom-4 right-4 w-8 h-8 border border-purple-500/50 rotate-45" />
                         </div>
-                        {planSavings && (
-                          <Badge className="mt-2 bg-green-500 text-white border-0">
-                            Poupe €{planSavings}
+
+                        {/* Conteúdo */}
+                        <div className="relative h-full flex flex-col items-center p-6">
+                          {/* Raridade */}
+                          <Badge className={`uppercase tracking-widest text-[10px] font-bold mb-4 ${
+                            plan.rarity === 'legendary' ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-black' :
+                            plan.rarity === 'rare' ? 'bg-purple-600 text-white' :
+                            'bg-blue-600 text-white'
+                          }`}>
+                            {plan.rarity}
                           </Badge>
-                        )}
-                      </div>
 
-                      {plan.cashbackRate > 0 && (
-                        <div className="mb-4 p-3 bg-green-500/20 border border-green-400/50 rounded-xl backdrop-blur">
-                          <p className="text-sm font-bold text-green-300 text-center">
-                            {plan.cashbackRate}% Cashback
-                          </p>
-                        </div>
-                      )}
+                          {planIsActive && (
+                            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 text-xs font-bold shadow-lg border-0">
+                              Plano Atual
+                            </Badge>
+                          )}
 
-                      {plan.freeWalksPerMonth > 0 && (
-                        <div className="mb-4 p-3 bg-blue-500/20 border border-blue-400/50 rounded-xl backdrop-blur">
-                          <p className="text-sm font-bold text-blue-300 text-center">
-                            {plan.freeWalksPerMonth} Passeio{plan.freeWalksPerMonth > 1 ? 's' : ''} Grátis/Mês
-                          </p>
-                        </div>
-                      )}
+                          {/* Ícone Central */}
+                          <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center mb-4 shadow-xl`}>
+                            <PlanIcon className="w-10 h-10 text-white" />
+                          </div>
 
-                      <ul className="space-y-2 mb-6">
-                        {plan.features.map((feature, featureIdx) => (
-                          <motion.li
-                            key={featureIdx}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: featureIdx * 0.05 }}
-                            className="flex items-start gap-2 text-sm text-white/90"
+                          {/* Título */}
+                          <h2 className="text-3xl font-black text-white text-center mb-4">
+                            {plan.name}
+                          </h2>
+
+                          {/* Preço */}
+                          <div className="text-center mb-4">
+                            <div className="text-4xl font-black text-white">
+                              {getPrice(plan)}
+                            </div>
+                            {planSavings && (
+                              <Badge className="mt-2 bg-green-500 text-white border-0">
+                                Poupe €{planSavings}
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Benefícios Destacados */}
+                          {plan.cashbackRate > 0 && (
+                            <div className="mb-3 p-3 bg-green-500/20 border border-green-400/50 rounded-xl backdrop-blur w-full">
+                              <p className="text-sm font-bold text-green-300 text-center">
+                                {plan.cashbackRate}% Cashback
+                              </p>
+                            </div>
+                          )}
+
+                          {plan.freeWalksPerMonth > 0 && (
+                            <div className="mb-4 p-3 bg-blue-500/20 border border-blue-400/50 rounded-xl backdrop-blur w-full">
+                              <p className="text-sm font-bold text-blue-300 text-center">
+                                {plan.freeWalksPerMonth} Passeio{plan.freeWalksPerMonth > 1 ? 's' : ''} Grátis/Mês
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Features */}
+                          <ul className="space-y-2 mb-6 flex-1">
+                            {plan.features.map((feature, featureIdx) => (
+                              <li key={featureIdx} className="flex items-start gap-2 text-sm text-white/90">
+                                <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+
+                          {/* Botão */}
+                          <Button
+                            className={`w-full bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white font-bold h-12 rounded-xl shadow-xl`}
+                            onClick={() => subscribeMutation.mutate({ plan, billingCycle })}
+                            disabled={planIsActive || subscribeMutation.isPending}
                           >
-                            <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-                            <span>{feature}</span>
-                          </motion.li>
-                        ))}
-                      </ul>
+                            {planIsActive ? 'Plano Atual' : subscribeMutation.isPending ? 'Processando...' : 'Subscrever'}
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
 
-                      <Button
-                        className={`w-full bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white font-bold h-12 rounded-xl shadow-xl`}
-                        onClick={() => subscribeMutation.mutate({ plan, billingCycle })}
-                        disabled={planIsActive || subscribeMutation.isPending}
-                      >
-                        {planIsActive ? 'Plano Atual' : subscribeMutation.isPending ? 'Processando...' : 'Subscrever'}
-                      </Button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+            {/* Indicadores */}
+            <div className="flex justify-center gap-2 mt-6">
+              {plans.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCarouselIndex(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    idx === carouselIndex ? 'bg-purple-500 w-6' : 'bg-neutral-700 hover:bg-neutral-600'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-
-        <div className="flex justify-center gap-2 mt-6">
-          {plans.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentIndex(idx)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                idx === currentIndex ? 'bg-white w-8' : 'bg-white/30'
-              }`}
-            />
-          ))}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

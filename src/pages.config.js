@@ -4,6 +4,7 @@ import AccountSettings from './pages/AccountSettings';
 import ActiveRide from './pages/ActiveRide';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminFinanceDashboard from './pages/AdminFinanceDashboard';
+import AdminProductManagement from './pages/AdminProductManagement';
 import AdminShelterVerification from './pages/AdminShelterVerification';
 import AdminShopHub from './pages/AdminShopHub';
 import AdoptionListingDetails from './pages/AdoptionListingDetails';
@@ -47,10 +48,13 @@ import MembershipSuccess from './pages/MembershipSuccess';
 import ModerationPanel from './pages/ModerationPanel';
 import MyAdoptionApplications from './pages/MyAdoptionApplications';
 import MyBookings from './pages/MyBookings';
+import MyOrders from './pages/MyOrders';
 import MyProfile from './pages/MyProfile';
 import MyRedemptions from './pages/MyRedemptions';
 import MyWallet from './pages/MyWallet';
+import MyWishlist from './pages/MyWishlist';
 import Notifications from './pages/Notifications';
+import OrderSuccess from './pages/OrderSuccess';
 import OwnerSubscriptions from './pages/OwnerSubscriptions';
 import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerDetails from './pages/PartnerDetails';
@@ -67,6 +71,7 @@ import ScheduledWalks from './pages/ScheduledWalks';
 import ShelterDashboard from './pages/ShelterDashboard';
 import ShelterProfile from './pages/ShelterProfile';
 import ShelterRegister from './pages/ShelterRegister';
+import Shop from './pages/Shop';
 import Sitemap from './pages/Sitemap';
 import SocialEvents from './pages/SocialEvents';
 import SocialFeed from './pages/SocialFeed';
@@ -82,11 +87,6 @@ import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
-import Shop from './pages/Shop';
-import MyOrders from './pages/MyOrders';
-import AdminProductManagement from './pages/AdminProductManagement';
-import MyWishlist from './pages/MyWishlist';
-import OrderSuccess from './pages/OrderSuccess';
 import __Layout from './Layout.jsx';
 
 
@@ -97,6 +97,7 @@ export const PAGES = {
     "ActiveRide": ActiveRide,
     "AdminDashboard": AdminDashboard,
     "AdminFinanceDashboard": AdminFinanceDashboard,
+    "AdminProductManagement": AdminProductManagement,
     "AdminShelterVerification": AdminShelterVerification,
     "AdminShopHub": AdminShopHub,
     "AdoptionListingDetails": AdoptionListingDetails,
@@ -140,10 +141,13 @@ export const PAGES = {
     "ModerationPanel": ModerationPanel,
     "MyAdoptionApplications": MyAdoptionApplications,
     "MyBookings": MyBookings,
+    "MyOrders": MyOrders,
     "MyProfile": MyProfile,
     "MyRedemptions": MyRedemptions,
     "MyWallet": MyWallet,
+    "MyWishlist": MyWishlist,
     "Notifications": Notifications,
+    "OrderSuccess": OrderSuccess,
     "OwnerSubscriptions": OwnerSubscriptions,
     "PartnerDashboard": PartnerDashboard,
     "PartnerDetails": PartnerDetails,
@@ -160,6 +164,7 @@ export const PAGES = {
     "ShelterDashboard": ShelterDashboard,
     "ShelterProfile": ShelterProfile,
     "ShelterRegister": ShelterRegister,
+    "Shop": Shop,
     "Sitemap": Sitemap,
     "SocialEvents": SocialEvents,
     "SocialFeed": SocialFeed,
@@ -175,11 +180,6 @@ export const PAGES = {
     "WalkHistory": WalkHistory,
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
-    "Shop": Shop,
-    "MyOrders": MyOrders,
-    "AdminProductManagement": AdminProductManagement,
-    "MyWishlist": MyWishlist,
-    "OrderSuccess": OrderSuccess,
 }
 
 export const pagesConfig = {
