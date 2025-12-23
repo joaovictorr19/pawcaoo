@@ -605,9 +605,9 @@ export default function Gamification() {
                 ))}
               </div>
 
-              {/* Avatar flutuante - fixo no topo do totem */}
+              {/* Avatar flutuante - fixo bem acima do totem */}
               <motion.div
-                className="absolute left-1/2 -translate-x-1/2 -top-6"
+                className="absolute left-1/2 -translate-x-1/2 -top-14"
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
