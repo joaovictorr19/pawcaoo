@@ -1,38 +1,28 @@
-css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
- 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
- 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
- 
     --primary: 142 76% 36%;
     --primary-foreground: 0 0% 100%;
- 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
- 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
- 
     --accent: 142 76% 92%;
     --accent-foreground: 142 76% 20%;
- 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
- 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 142 76% 36%;
- 
     --radius: 0.5rem;
   }
 
@@ -46,12 +36,10 @@ css
     background: #f8fafc !important;
   }
 
-  /* Force white/light backgrounds on form elements */
   input, textarea, select, [role="dialog"], [role="combobox"], [data-radix-popper-content-wrapper] {
     background-color: white !important;
   }
 
-  /* Cards and form containers */
   .card, [data-slot="card"], form {
     background-color: white !important;
   }
@@ -73,7 +61,6 @@ css
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
   }
 
-  /* Sidebar glassmorphism - consistent across desktop and mobile */
   [data-sidebar="sidebar"],
   [data-sidebar="sidebar"] > div,
   [data-sidebar="sidebar"] > div > div,
@@ -90,7 +77,6 @@ css
     --sidebar-background-mobile: rgba(255, 255, 255, 0.95) !important;
   }
 
-  /* Override any dark backgrounds on sidebar elements */
   [data-sidebar="sidebar"] *,
   [data-sidebar] * {
     --sidebar-background: rgba(255, 255, 255, 0.95) !important;
@@ -100,7 +86,6 @@ css
     background-color: transparent !important;
   }
 
-  /* Mobile sidebar sheet/drawer override */
   [data-state="open"][role="dialog"],
   [data-state="open"][role="dialog"] > div,
   [vaul-drawer],
@@ -110,7 +95,6 @@ css
     -webkit-backdrop-filter: blur(20px) !important;
   }
 
-  /* Force dialog/modal content to be white */
   [role="dialog"] > div,
   [data-state="open"] > div[role="dialog"],
   .dialog-content,
@@ -119,28 +103,16 @@ css
     background: white !important;
   }
 
-  /* Dropdown and popover backgrounds */
   [data-radix-popper-content-wrapper] > div,
   [role="listbox"],
   [role="menu"] {
     background: white !important;
   }
 
-  .dark-cosmos {
-    background: linear-gradient(to bottom right, rgb(15, 23, 42), rgb(88, 28, 135), rgb(0, 0, 0));
-  }
-  
-  .dark-cosmos .glass-panel {
-    background: rgba(30, 41, 59, 0.4);
-    border: 1px solid rgba(147, 51, 234, 0.3);
-    border-radius: 1.5rem;
-  }
-  
   img, video {
     @apply max-w-full h-auto;
   }
 
-  /* Mobile table optimization */
   @media (max-width: 768px) {
     .table-container {
       overflow-x: auto;
@@ -152,7 +124,6 @@ css
     }
   }
 
-  /* === TEXT SAFETY & MARQUEE EFFECT === */
   @keyframes scroll-text {
     0% { transform: translateX(0%); }
     100% { transform: translateX(-100%); }
@@ -168,14 +139,10 @@ css
     animation-play-state: paused;
   }
 
-  /* Curve-safe padding utility */
   .curve-safe-padding {
     @apply px-6;
   }
 
-  /* === MOTOR DE ANIMAÇÃO AURORA (Manual) === */
-
-  /* 1. Definir o movimento de rotação (Swirl) */
   @keyframes spin-slow {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
@@ -185,7 +152,6 @@ css
     animation: spin-slow 60s linear infinite;
   }
 
-  /* 2. Definir o movimento da bolha (Blob) */
   @keyframes blob {
     0% { transform: translate(0px, 0px) scale(1); }
     33% { transform: translate(30px, -50px) scale(1.1); }
@@ -197,7 +163,6 @@ css
     animation: blob 7s infinite;
   }
 
-  /* 3. Variações de tempo para as 3 Orbs (GRANDE DESLOCAMENTO) */
   @keyframes blob-rotate {
     0% { transform: translate(0px, 0px) rotate(0deg) scale(1); }
     25% { transform: translate(500px, 300px) rotate(90deg) scale(1.1); }
@@ -235,21 +200,10 @@ css
     animation: shimmer 3s infinite;
   }
 
-  /* 4. Glassmorphism Premium */
-  .glass-panel {
-    background: rgba(255, 255, 255, 0.92) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
-  }
-
-  /* Override any blue/dark backgrounds on content areas */
   main, section, article, .content-area {
     background: transparent;
   }
 
-  /* Ensure TabsContent has proper background */
   [role="tabpanel"] {
     background: transparent;
   }
