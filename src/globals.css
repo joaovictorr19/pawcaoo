@@ -107,7 +107,6 @@
   [data-state="open"] [data-sidebar="sidebar"],
   [role="dialog"] aside,
   [data-radix-scroll-area-viewport],
-  .peer\\/sidebar-wrapper,
   [data-sidebar] {
     background: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(20px) !important;
@@ -122,14 +121,13 @@
     --sidebar-background: rgba(255, 255, 255, 0.95) !important;
   }
 
-  [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img):not([class*="bg-"]) {
+  [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img) {
     background-color: transparent !important;
   }
 
   /* Mobile sidebar sheet/drawer override */
   [data-state="open"][role="dialog"],
   [data-state="open"][role="dialog"] > div,
-  .fixed.inset-0 + div[data-state="open"],
   [vaul-drawer],
   [vaul-drawer] > div {
     background: rgba(255, 255, 255, 0.98) !important;
