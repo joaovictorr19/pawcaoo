@@ -233,38 +233,39 @@ export default function EditWalkerProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-3 md:p-6">
       <div className="max-w-4xl mx-auto">
         <Button
           variant="outline"
           onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
-          className="mb-6"
+          className="mb-4 md:mb-6"
+          size="sm"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
 
-        <Alert className="mb-6 border-orange-200 bg-orange-50">
-          <AlertCircle className="h-5 w-5 text-orange-600" />
-          <AlertDescription className="text-orange-900">
-            <strong>⚠️ Todas as alterações requerem aprovação:</strong> Qualquer edição (nome, bio, fotos, serviços, preços) será enviada para revisão do administrador antes de ser publicada.
+        <Alert className="mb-4 md:mb-6 border-orange-200 bg-orange-50">
+          <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-orange-600" />
+          <AlertDescription className="text-orange-900 text-xs md:text-sm">
+            <strong>⚠️ Aprovação necessária:</strong> Todas as edições serão enviadas para revisão do administrador.
           </AlertDescription>
         </Alert>
 
-        <Card className="border-0 shadow-2xl">
-          <CardHeader className="bg-gradient-to-r from-green-600 to-green-500 text-white">
-            <CardTitle className="text-2xl">Editar Perfil de Passeador</CardTitle>
+        <Card className="glass-panel border-0 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-2xl">
+            <CardTitle className="text-xl md:text-2xl">Editar Perfil de Passeador</CardTitle>
           </CardHeader>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="p-4 md:p-8 bg-white">
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
               {/* Photo */}
-              <div className="space-y-2">
-                <Label>Foto de Perfil</Label>
-                <div className="flex flex-col md:flex-row items-start gap-6">
+              <div className="space-y-3">
+                <Label className="text-sm md:text-base font-semibold">Fotos do Perfil</Label>
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6">
                   {/* Profile Photo */}
-                  <div className="flex flex-col items-center gap-2">
-                    <Label className="text-sm font-medium">Foto de Perfil</Label>
-                    <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-green-100 group shadow-lg">
+                  <div className="flex flex-col items-center gap-3 w-full md:w-auto">
+                    <Label className="text-xs md:text-sm font-medium text-gray-700">Foto de Perfil</Label>
+                    <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-green-200 group shadow-lg bg-white">
                       {formData.photo_url ? (
                         <img
                           src={formData.photo_url}
@@ -280,9 +281,9 @@ export default function EditWalkerProfile() {
                           <Upload className="w-8 h-8 text-gray-400" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <label htmlFor="photo" className="cursor-pointer p-2 bg-white/20 rounded-full hover:bg-white/40 transition-colors">
-                          <Upload className="w-5 h-5 text-white" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <label htmlFor="photo" className="cursor-pointer p-3 bg-white/90 rounded-full hover:bg-white transition-colors shadow-lg">
+                          <Upload className="w-5 h-5 text-green-600" />
                         </label>
                       </div>
                     </div>
@@ -301,15 +302,16 @@ export default function EditWalkerProfile() {
                       }}
                       className="hidden"
                     />
-                    <Button variant="outline" size="sm" onClick={() => document.getElementById('photo').click()}>
+                    <Button variant="outline" size="sm" onClick={() => document.getElementById('photo').click()} className="w-full md:w-auto">
+                      <Upload className="w-4 h-4 mr-2" />
                       Alterar Foto
                     </Button>
                   </div>
 
                   {/* Cover Photo */}
-                  <div className="flex-1 w-full space-y-2">
-                    <Label className="text-sm font-medium">Foto de Capa</Label>
-                    <div className="relative w-full h-32 md:h-40 rounded-xl overflow-hidden border-2 border-gray-100 bg-gray-50 group shadow-md">
+                  <div className="flex-1 w-full space-y-3">
+                    <Label className="text-xs md:text-sm font-medium text-gray-700">Foto de Capa</Label>
+                    <div className="relative w-full h-40 md:h-48 rounded-2xl overflow-hidden border-2 border-gray-200 bg-gradient-to-br from-green-50 to-blue-50 group shadow-md">
                       {formData.cover_photo_url ? (
                         <img
                           src={formData.cover_photo_url}
@@ -326,9 +328,9 @@ export default function EditWalkerProfile() {
                           <span>Adicionar Capa</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <label htmlFor="cover" className="cursor-pointer p-3 bg-white/20 rounded-full hover:bg-white/40 transition-colors">
-                          <Upload className="w-6 h-6 text-white" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <label htmlFor="cover" className="cursor-pointer p-3 bg-white/90 rounded-full hover:bg-white transition-colors shadow-lg">
+                          <Upload className="w-6 h-6 text-green-600" />
                         </label>
                       </div>
                     </div>
@@ -347,18 +349,17 @@ export default function EditWalkerProfile() {
                       }}
                       className="hidden"
                     />
-                    <div className="flex justify-end">
-                         <Button variant="outline" size="sm" onClick={() => document.getElementById('cover').click()}>
-                            Alterar Capa
-                         </Button>
-                    </div>
+                    <Button variant="outline" size="sm" onClick={() => document.getElementById('cover').click()} className="w-full md:w-auto">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Alterar Capa
+                    </Button>
                   </div>
                 </div>
               </div>
 
               {/* Video */}
-              <div className="space-y-2">
-                <Label>Vídeo de Apresentação</Label>
+              <div className="space-y-3">
+                <Label className="text-sm md:text-base font-semibold">Vídeo de Apresentação</Label>
                 {formData.video_intro_url && (
                   <video src={formData.video_intro_url} controls className="w-full max-w-md rounded-xl mb-2" />
                 )}
@@ -371,74 +372,82 @@ export default function EditWalkerProfile() {
               </div>
 
               {/* Basic Info */}
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
-                  <Label>Nome</Label>
+                  <Label className="text-sm font-medium text-gray-700">Nome</Label>
                   <Input
                     value={formData.walker_name || ""}
                     onChange={(e) => setFormData({...formData, walker_name: e.target.value})}
+                    className="h-10 md:h-11"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Localização</Label>
+                  <Label className="text-sm font-medium text-gray-700">Localização</Label>
                   <Input
                     value={formData.location || ""}
                     onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    className="h-10 md:h-11"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Preço Base - Cães/Gatos (€/hora)</Label>
+                  <Label className="text-sm font-medium text-gray-700">Preço Base - Cães/Gatos (€/hora)</Label>
                   <Input
                     type="number"
                     step="0.01"
                     value={formData.hourly_rate || ""}
                     onChange={(e) => setFormData({...formData, hourly_rate: parseFloat(e.target.value)})}
-                    placeholder="Ex: 10€ (Média para cães)"
+                    placeholder="Ex: 10€"
+                    className="h-10 md:h-11"
                   />
                 </div>
 
                 {/* Exotic Rate - Only show if accepts exotic animals */}
                 {(formData.accepted_animals || []).some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
                   <div className="space-y-2">
-                    <Label>Preço Exóticos - Répteis/Aracnídeos/Outros (€/visita)</Label>
+                    <Label className="text-sm font-medium text-gray-700">Preço Exóticos (€/visita)</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={formData.exotic_rate || ""}
                       onChange={(e) => setFormData({...formData, exotic_rate: parseFloat(e.target.value)})}
-                      placeholder="Ex: 20€ (Taxa por visita a animais especiais)"
+                      placeholder="Ex: 20€"
+                      className="h-10 md:h-11"
                     />
                   </div>
                 )}
 
                 <div className="space-y-2">
-                  <Label>WhatsApp</Label>
+                  <Label className="text-sm font-medium text-gray-700">WhatsApp</Label>
                   <Input
                     value={formData.whatsapp_number || ""}
                     onChange={(e) => setFormData({...formData, whatsapp_number: e.target.value.replace(/\D/g, '')})}
                     placeholder="351912345678"
+                    className="h-10 md:h-11"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>MBWay (Pagamentos)</Label>
+                  <Label className="text-sm font-medium text-gray-700">MBWay (Pagamentos)</Label>
                   <Input
                     value={formData.mbway_number || ""}
                     onChange={(e) => setFormData({...formData, mbway_number: e.target.value})}
                     placeholder="912345678"
+                    className="h-10 md:h-11"
                   />
                 </div>
               </div>
 
               {/* Bio */}
-              <div className="space-y-2">
-                <Label>Sobre Você</Label>
+              <div className="space-y-3">
+                <Label className="text-sm md:text-base font-semibold text-gray-700">Sobre Você</Label>
                 <Textarea
                   value={formData.bio || ""}
                   onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                  rows={5}
+                  rows={4}
+                  className="resize-none"
+                  placeholder="Conte um pouco sobre sua experiência..."
                 />
               </div>
 
@@ -452,47 +461,50 @@ export default function EditWalkerProfile() {
               </div>
 
               {/* Services - Structured */}
-              <div className="border-t-2 border-green-100 pt-6 space-y-4">
-                <Label className="text-xl font-bold">Serviços Oferecidos</Label>
+              <div className="border-t-2 border-gray-100 pt-4 md:pt-6 space-y-4">
+                <Label className="text-base md:text-xl font-bold text-gray-800">Serviços Oferecidos</Label>
                 
 
 
                 {/* Display Current Services */}
                 {(formData.services_offered || []).map((service, index) => (
-                  <Card key={index} className="p-4 bg-green-50 border-2 border-green-200">
-                    <div className="space-y-4">
+                  <Card key={index} className="p-3 md:p-4 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 shadow-sm">
+                    <div className="space-y-3 md:space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-semibold">{service.service_name}</h4>
+                        <h4 className="font-semibold text-sm md:text-base text-gray-800">{service.service_name || 'Novo Serviço'}</h4>
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => removeService(index)}
-                          className="text-red-600"
+                          className="text-red-600 h-8"
                         >
                           Remover
                         </Button>
                       </div>
                       
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid md:grid-cols-2 gap-3 md:gap-4">
                         <Input
                           placeholder="Nome do Serviço"
                           value={service.service_name || ""}
                           onChange={(e) => updateService(index, 'service_name', e.target.value)}
+                          className="h-10"
                         />
                         <Input
                           type="number"
                           placeholder="Preço (€)"
                           value={service.price || ""}
                           onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                          className="h-10"
                         />
                       </div>
 
                       <Textarea
-                        placeholder="Descrição"
+                        placeholder="Descrição do serviço"
                         value={service.description || ""}
                         onChange={(e) => updateService(index, 'description', e.target.value)}
                         rows={2}
+                        className="resize-none text-sm"
                       />
                     </div>
                   </Card>
@@ -506,20 +518,20 @@ export default function EditWalkerProfile() {
 
               {/* Dog Sizes */}
               <div className="space-y-3">
-                <Label>Tamanhos de Cães</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Label className="text-sm md:text-base font-semibold text-gray-700">Tamanhos de Cães</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                   {[
                     { value: "small", label: "Pequeno" },
                     { value: "medium", label: "Médio" },
                     { value: "large", label: "Grande" },
                     { value: "extra_large", label: "Extra Grande" },
                   ].map(size => (
-                    <div key={size.value} className="flex items-center space-x-2">
+                    <div key={size.value} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
                       <Checkbox
                         checked={(formData.dog_sizes || []).includes(size.value)}
                         onCheckedChange={() => toggleArrayItem('dog_sizes', size.value)}
                       />
-                      <label className="text-sm font-medium cursor-pointer">
+                      <label className="text-xs md:text-sm font-medium cursor-pointer text-gray-700">
                         {size.label}
                       </label>
                     </div>
@@ -528,8 +540,8 @@ export default function EditWalkerProfile() {
               </div>
 
               {/* Dog Breeds */}
-              <div className="space-y-2">
-                <Label>Raças com Experiência</Label>
+              <div className="space-y-3">
+                <Label className="text-sm md:text-base font-semibold text-gray-700">Raças com Experiência</Label>
                 <BreedSelector
                   selectedBreeds={formData.dog_breeds_handled || []}
                   onChange={(breeds) => setFormData({...formData, dog_breeds_handled: breeds})}
@@ -540,21 +552,21 @@ export default function EditWalkerProfile() {
 
               {/* Availability */}
               <div className="space-y-3">
-                <Label>Disponibilidade</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Label className="text-sm md:text-base font-semibold text-gray-700">Disponibilidade</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                   {[
-                    { value: "morning", label: "Manhã" },
-                    { value: "afternoon", label: "Tarde" },
-                    { value: "evening", label: "Noite" },
-                    { value: "night", label: "Madrugada" },
+                    { value: "morning", label: "Manhã", icon: "🌅" },
+                    { value: "afternoon", label: "Tarde", icon: "☀️" },
+                    { value: "evening", label: "Noite", icon: "🌙" },
+                    { value: "night", label: "Madrugada", icon: "🌃" },
                   ].map(time => (
-                    <div key={time.value} className="flex items-center space-x-2">
+                    <div key={time.value} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
                       <Checkbox
                         checked={(formData.availability || []).includes(time.value)}
                         onCheckedChange={() => toggleArrayItem('availability', time.value)}
                       />
-                      <label className="text-sm font-medium cursor-pointer">
-                        {time.label}
+                      <label className="text-xs md:text-sm font-medium cursor-pointer text-gray-700">
+                        {time.icon} {time.label}
                       </label>
                     </div>
                   ))}
@@ -563,32 +575,44 @@ export default function EditWalkerProfile() {
 
               {/* Animais Aceites */}
               <div className="space-y-3">
-                <Label>Animais Aceites</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Label className="text-sm md:text-base font-semibold text-gray-700">Animais Aceites</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                   {[
-                    { value: "dogs", label: "Cães" },
-                    { value: "cats", label: "Gatos" },
-                    { value: "reptiles", label: "Répteis" },
-                    { value: "arachnids", label: "Aracnídeos" },
-                    { value: "rodents", label: "Roedores" },
-                    { value: "birds", label: "Aves" },
+                    { value: "dogs", label: "Cães", icon: "🐕" },
+                    { value: "cats", label: "Gatos", icon: "🐈" },
+                    { value: "reptiles", label: "Répteis", icon: "🦎" },
+                    { value: "arachnids", label: "Aracnídeos", icon: "🕷️" },
+                    { value: "rodents", label: "Roedores", icon: "🐹" },
+                    { value: "birds", label: "Aves", icon: "🦜" },
                   ].map(animal => (
-                    <div key={animal.value} className="flex items-center space-x-2">
+                    <div key={animal.value} className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
                       <Checkbox
                         checked={(formData.accepted_animals || ['dogs']).includes(animal.value)}
                         onCheckedChange={() => toggleArrayItem('accepted_animals', animal.value)}
                       />
-                      <label className="text-sm font-medium cursor-pointer">
-                        {animal.label}
+                      <label className="text-xs md:text-sm font-medium cursor-pointer text-gray-700">
+                        {animal.icon} {animal.label}
                       </label>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* Bio */}
+              <div className="space-y-3 border-t-2 border-gray-100 pt-4 md:pt-6">
+                <Label className="text-sm md:text-base font-semibold text-gray-700">Sobre Você</Label>
+                <Textarea
+                  value={formData.bio || ""}
+                  onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                  rows={5}
+                  className="resize-none"
+                  placeholder="Conte sobre sua experiência e paixão por animais..."
+                />
+              </div>
+
               {/* Portfolio */}
-              <div className="space-y-2 border-t-2 border-green-100 pt-6">
-                <Label className="block text-base font-semibold">Portfolio de Trabalhos</Label>
+              <div className="space-y-3 border-t-2 border-gray-100 pt-4 md:pt-6">
+                <Label className="block text-sm md:text-base font-semibold text-gray-700">Portfolio de Trabalhos</Label>
                 <OptimizedImageUpload
                   onImagesChange={(urls) => {
                     const portfolio = urls.map(url => ({
@@ -607,22 +631,22 @@ export default function EditWalkerProfile() {
                 />
               </div>
 
-              <div className="flex gap-3 pt-6 border-t">
+              <div className="flex flex-col md:flex-row gap-3 pt-6 border-t-2 border-gray-100 sticky bottom-0 bg-white pb-2 md:pb-0 md:static">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
-                  className="flex-1"
+                  className="flex-1 h-11 md:h-10 order-2 md:order-1"
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
                   disabled={submitEditRequestMutation.isPending || uploading}
-                  className="flex-1 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600"
+                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 h-11 md:h-10 order-1 md:order-2 shadow-lg"
                 >
-                  <Save className="w-5 h-5 mr-2" />
-                  {submitEditRequestMutation.isPending ? 'Enviando para aprovação...' : 'Enviar para Aprovação'}
+                  <Save className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                  {submitEditRequestMutation.isPending ? 'Enviando...' : 'Enviar para Aprovação'}
                 </Button>
               </div>
             </form>
