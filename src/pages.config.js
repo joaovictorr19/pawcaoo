@@ -83,6 +83,10 @@ import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import Shop from './pages/Shop';
+import MyOrders from './pages/MyOrders';
+import AdminProductManagement from './pages/AdminProductManagement';
+import MyWishlist from './pages/MyWishlist';
+import OrderSuccess from './pages/OrderSuccess';
 import __Layout from './Layout.jsx';
 
 
@@ -172,6 +176,10 @@ export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
     "Shop": Shop,
+    "MyOrders": MyOrders,
+    "AdminProductManagement": AdminProductManagement,
+    "MyWishlist": MyWishlist,
+    "OrderSuccess": OrderSuccess,
 }
 
 export const pagesConfig = {

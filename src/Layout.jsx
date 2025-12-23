@@ -272,6 +272,16 @@ function LayoutContent({ children, currentPageName }) {
       icon: ShoppingBag
     },
     { 
+      title: language === 'pt' ? 'Minhas Encomendas' : 'My Orders',
+      url: createPageUrl("MyOrders"),
+      icon: ShoppingBag
+    },
+    { 
+      title: language === 'pt' ? 'Lista de Desejos' : 'Wishlist',
+      url: createPageUrl("MyWishlist"),
+      icon: Heart
+    },
+    { 
       title: language === 'pt' ? 'Passeio de Emergência' : (t('postEmergency', language) || 'Emergency Walk'), 
       url: createPageUrl("PostEmergency"), 
       icon: Zap, 
@@ -310,10 +320,11 @@ function LayoutContent({ children, currentPageName }) {
   ];
 
   const adminMenu = authUser?.role === 'admin' ? [
-    { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
-    { title: "Teste Pagamentos", url: createPageUrl("TestPayments"), icon: CreditCard },
-    { title: getMenuText('verifyWalkers'), url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
-    { title: "Shop Hub", url: createPageUrl("AdminShopHub"), icon: Store },
+          { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
+          { title: "Teste Pagamentos", url: createPageUrl("TestPayments"), icon: CreditCard },
+          { title: getMenuText('verifyWalkers'), url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
+          { title: "Shop Hub", url: createPageUrl("AdminShopHub"), icon: Store },
+          { title: language === 'pt' ? 'Gestão de Loja' : 'Shop Management', url: createPageUrl("AdminProductManagement"), icon: ShoppingBag },
     { title: getMenuText('approveAds'), url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
     { title: getMenuText('paymentSetup'), url: createPageUrl("PaymentSetup"), icon: Shield },
     { title: getMenuText('verifyShelters'), url: createPageUrl("AdminShelterVerification"), icon: Building2 },
