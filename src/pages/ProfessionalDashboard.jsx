@@ -707,36 +707,38 @@ export default function ProfessionalDashboard() {
 
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
-        <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 md:p-6 bg-white border border-gray-200">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 md:p-6" style={{ background: 'white', color: '#111827' }}>
           <DialogHeader>
-            <DialogTitle className="text-lg md:text-xl text-gray-900">
+            <DialogTitle className="text-lg md:text-xl" style={{ color: '#111827' }}>
               {editingService ? 'Editar' : 'Adicionar'} Serviço
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label className="text-sm md:text-base text-gray-900">Nome do Serviço *</Label>
+              <Label className="text-sm md:text-base" style={{ color: '#111827' }}>Nome do Serviço *</Label>
               <Input
                 value={formData.service_name}
                 onChange={(e) => setFormData({...formData, service_name: e.target.value})}
                 placeholder="Ex: Passeio de 30 minutos"
                 className="h-11 md:h-10"
+                style={{ background: 'white', color: '#111827' }}
               />
             </div>
             <div>
-              <Label className="text-sm md:text-base text-gray-900">Descrição</Label>
+              <Label className="text-sm md:text-base" style={{ color: '#111827' }}>Descrição</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 placeholder="Descreva o serviço oferecido..."
                 rows={3}
-                className="resize-none bg-white text-gray-900"
+                className="resize-none"
+                style={{ background: 'white', color: '#111827' }}
               />
             </div>
             
             {/* Animal Type Selector */}
             <div className="space-y-2">
-              <Label className="text-sm md:text-base font-semibold text-gray-900">Tipo de Animal *</Label>
+              <Label className="text-sm md:text-base font-semibold" style={{ color: '#111827' }}>Tipo de Animal *</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {[
                   { id: 'dogs', label: 'Cães', IconComponent: Dog },
@@ -755,9 +757,10 @@ export default function ProfessionalDashboard() {
                         ? 'border-green-500 bg-green-50' 
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
+                    style={{ background: formData.animal_type === animal.id ? '#f0fdf4' : 'white' }}
                   >
                     <animal.IconComponent className="w-5 h-5 text-gray-700 flex-shrink-0" />
-                    <span className="text-sm font-medium">{animal.label}</span>
+                    <span className="text-sm font-medium" style={{ color: '#111827' }}>{animal.label}</span>
                   </button>
                 ))}
               </div>
@@ -765,7 +768,7 @@ export default function ProfessionalDashboard() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm md:text-base text-gray-900">
+                <Label className="text-sm md:text-base" style={{ color: '#111827' }}>
                   Preço (€) * 
                   <span className="text-xs text-gray-500 ml-1">
                     {['dogs', 'cats'].includes(formData.animal_type) ? '/hora' : '/visita'}
@@ -781,7 +784,8 @@ export default function ProfessionalDashboard() {
                       ? "Ex: 10€ (por hora)" 
                       : "Ex: 20€ (por visita)"
                   }
-                  className="h-11 md:h-10 bg-white text-gray-900"
+                  className="h-11 md:h-10"
+                  style={{ background: 'white', color: '#111827' }}
                 />
               </div>
               <div className="flex items-center space-x-2 pt-8">
@@ -792,7 +796,7 @@ export default function ProfessionalDashboard() {
                   onChange={(e) => setFormData({...formData, custom_pricing: e.target.checked})}
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
-                <Label htmlFor="customPricing" className="text-sm cursor-pointer">
+                <Label htmlFor="customPricing" className="text-sm cursor-pointer" style={{ color: '#111827' }}>
                   Preço "A partir de"
                 </Label>
               </div>
@@ -800,7 +804,7 @@ export default function ProfessionalDashboard() {
 
             {/* Packages Section - Great for Trainers */}
             <div className="border-t border-gray-200 pt-4 mt-4">
-              <Label className="text-sm md:text-base mb-2 block font-semibold text-gray-900">
+              <Label className="text-sm md:text-base mb-2 block font-semibold" style={{ color: '#111827' }}>
                 Pacotes Promocionais (Opcional)
               </Label>
               <div className="bg-gray-50 p-3 rounded-lg space-y-3">
@@ -810,6 +814,7 @@ export default function ProfessionalDashboard() {
                     value={newPackage.name}
                     onChange={(e) => setNewPackage({...newPackage, name: e.target.value})}
                     className="text-sm"
+                    style={{ background: 'white', color: '#111827' }}
                   />
                   <Input 
                     placeholder="Sessões" 
@@ -817,6 +822,7 @@ export default function ProfessionalDashboard() {
                     value={newPackage.sessions}
                     onChange={(e) => setNewPackage({...newPackage, sessions: parseInt(e.target.value)})}
                     className="text-sm"
+                    style={{ background: 'white', color: '#111827' }}
                   />
                   <Input 
                     placeholder="Preço (€)" 
@@ -824,6 +830,7 @@ export default function ProfessionalDashboard() {
                     value={newPackage.price}
                     onChange={(e) => setNewPackage({...newPackage, price: parseFloat(e.target.value)})}
                     className="text-sm"
+                    style={{ background: 'white', color: '#111827' }}
                   />
                 </div>
                 <Button onClick={addPackage} size="sm" variant="outline" className="w-full border-dashed border-purple-300 text-purple-700">
