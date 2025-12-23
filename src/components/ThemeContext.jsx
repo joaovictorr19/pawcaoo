@@ -12,11 +12,11 @@ export const useTheme = () => {
     return {
       tier: 'Safira',
       colors: {
-        primary: 'blue-600',
-        gradient: 'from-blue-500 to-indigo-600',
-        glass_border: 'border-blue-200/50',
-        text: 'text-blue-600',
-        bg: 'bg-blue-50',
+        primary: 'green-600',
+              gradient: 'from-green-500 to-emerald-600',
+              glass_border: 'border-green-200/50',
+              text: 'text-green-600',
+              bg: 'bg-green-50',
         isDarkMode: false
       },
       icon: '💎',
@@ -30,11 +30,11 @@ export const ThemeProvider = ({ children }) => {
   const [tierTheme, setTierTheme] = useState({
     name: 'Safira',
     colors: {
-      primary: 'blue-600',
-      gradient: 'from-blue-500 to-indigo-600',
-      glass_border: 'border-blue-200/50',
-      text: 'text-blue-600',
-      bg: 'bg-blue-50'
+      primary: 'green-600',
+      gradient: 'from-green-500 to-emerald-600',
+      glass_border: 'border-green-200/50',
+      text: 'text-green-600',
+      bg: 'bg-green-50'
     }
   });
 
