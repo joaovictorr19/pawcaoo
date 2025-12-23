@@ -25,7 +25,7 @@ export default function PetCareAssistantButton({ userDogs = [] }) {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed bottom-4 right-4 z-[9998]"
+            className="fixed bottom-24 md:bottom-4 right-4 z-[9998]"
           >
             <Button
               onClick={() => setIsOpen(true)}
@@ -33,7 +33,6 @@ export default function PetCareAssistantButton({ userDogs = [] }) {
             >
               <div className="relative z-10 flex items-center justify-center">
                 <Bot className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
-                <Sparkles className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1" />
               </div>
             </Button>
             
