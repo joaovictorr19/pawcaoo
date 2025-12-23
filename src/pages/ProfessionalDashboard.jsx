@@ -981,8 +981,8 @@ export default function ProfessionalDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-3 md:p-6 pb-24 md:pb-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-transparent p-3 md:p-6 pb-24 md:pb-8">
+      <div className="w-full max-w-7xl mx-auto">
         <ErrorBoundary>
         {/* Fiscal Compliance Banner - CRITICAL */}
         <FiscalComplianceBanner />
