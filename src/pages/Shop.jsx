@@ -16,14 +16,14 @@ export default function Shop() {
         </h1>
 
         <Tabs defaultValue="partners" className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white/60 backdrop-blur-sm p-1 rounded-xl mb-8 border border-white/40">
-            <TabsTrigger value="partners" className="rounded-lg">
-              <Store className="w-4 h-4 mr-2" />
-              {language === 'pt' ? 'Parceiros & Serviços' : 'Partners & Services'}
+          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-2 bg-white/60 backdrop-blur-sm p-1.5 rounded-xl mb-8 border border-white/40">
+            <TabsTrigger value="partners" className="rounded-lg text-xs md:text-sm py-2.5">
+              <Store className="w-4 h-4 mr-1.5 flex-shrink-0" />
+              <span className="truncate">{language === 'pt' ? 'Parceiros' : 'Partners'}</span>
             </TabsTrigger>
-            <TabsTrigger value="products" className="rounded-lg">
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              {language === 'pt' ? 'Produtos' : 'Products'}
+            <TabsTrigger value="products" className="rounded-lg text-xs md:text-sm py-2.5">
+              <ShoppingBag className="w-4 h-4 mr-1.5 flex-shrink-0" />
+              <span className="truncate">{language === 'pt' ? 'Produtos' : 'Products'}</span>
             </TabsTrigger>
           </TabsList>
 
