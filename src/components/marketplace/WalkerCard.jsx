@@ -101,7 +101,6 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
               src={walker.photo_url}
               alt={`Photo of ${walker.walker_name}, Dog Walker in ${walker.location}`}
               loading="lazy"
-              decoding="async"
               className="w-full h-full aspect-square object-cover object-center transition-transform duration-300 group-hover:scale-110 bg-gray-200"
               onError={(e) => {
                 e.target.onerror = null;

@@ -180,16 +180,24 @@ function LayoutContent({ children, currentPageName }) {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
+        console.log('👤 Fetching user...');
         const userData = await base44.auth.me();
+        console.log('✅ User fetched:', userData?.email || 'not logged in');
+
+        // XP is managed in UserProfile entity only - read from there
         if (userData?.email) {
           try {
             const profiles = await base44.entities.UserProfile.filter({ user_email: userData.email });
             if (profiles.length > 0) {
+              // Always use UserProfile as source of truth
               userData.gamification_xp = profiles[0].gamification_xp || 0;
               userData.gamification_level = profiles[0].gamification_level || 1;
             }
-          } catch (e) {}
+          } catch (e) {
+            console.log('XP read skipped');
+          }
         }
+
         return userData;
       } catch (err) {
         return null;
@@ -207,9 +215,10 @@ function LayoutContent({ children, currentPageName }) {
         const allNotifications = await base44.entities.Notification.filter({ 
           recipient_email: authUser.email,
           is_read: false 
-        }, '-created_date', 20);
+        });
         return Array.isArray(allNotifications) ? allNotifications : [];
       } catch (error) {
+        console.error("Notifications fetch error:", error);
         return [];
       }
     },

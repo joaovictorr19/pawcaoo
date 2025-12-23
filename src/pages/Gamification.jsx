@@ -476,10 +476,13 @@ export default function Gamification() {
   const { data: topUsers = [] } = useQuery({
     queryKey: ['topUsersLeaderboard'],
     queryFn: async () => {
-      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 10);
-      return profiles.filter(p => p.gamification_xp > 0).slice(0, 10);
+      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 50);
+      // Ordenar por XP decrescente e filtrar quem tem XP > 0
+      return profiles
+        .filter(p => p.gamification_xp > 0)
+        .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0))
+        .slice(0, 10);
     },
-    staleTime: 120000,
   });
 
   const currentXP = userProfile?.gamification_xp || 0;

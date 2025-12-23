@@ -214,19 +214,12 @@ const handleOrders = async (base44, method, id, query, body, permissions, partne
       return jsonResponse({ success: true, data: orders[0] });
     }
 
-    // List orders for this partner with advanced filtering
+    // List orders for this partner
     const limit = parseInt(query.limit) || 50;
     const status = query.status;
-    const customerEmail = query.customer_email;
-    const externalOrderId = query.external_order_id;
-    const startDate = query.start_date;
-    const endDate = query.end_date;
-    const exportFormat = query.export; // csv or json
 
     let filter = { partner_id: partnerId };
     if (status) filter.status = status;
-    if (customerEmail) filter.customer_email = customerEmail;
-    if (externalOrderId) filter.external_order_id = externalOrderId;
 
     const orders = await base44.asServiceRole.entities.PartnerOrder.filter(
       filter,
@@ -234,59 +227,10 @@ const handleOrders = async (base44, method, id, query, body, permissions, partne
       limit
     );
 
-    // Apply date range filtering
-    let filtered = orders;
-    if (startDate || endDate) {
-      filtered = orders.filter(order => {
-        const orderDate = new Date(order.created_date);
-        if (startDate && orderDate < new Date(startDate)) return false;
-        if (endDate && orderDate > new Date(endDate)) return false;
-        return true;
-      });
-    }
-
-    // Export as CSV if requested
-    if (exportFormat === 'csv') {
-      const csvHeaders = ['Order ID', 'External ID', 'Customer', 'Email', 'Total', 'Status', 'Payment', 'Date'];
-      const csvRows = filtered.map(o => [
-        o.order_id,
-        o.external_order_id || '',
-        o.customer_name || '',
-        o.customer_email,
-        o.total_amount?.toFixed(2) || '0.00',
-        o.status,
-        o.payment_status,
-        new Date(o.created_date).toISOString()
-      ]);
-      
-      const csvContent = [
-        csvHeaders.join(','),
-        ...csvRows.map(row => row.map(cell => `"${cell}"`).join(','))
-      ].join('\n');
-
-      return new Response(csvContent, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': `attachment; filename="orders_${Date.now()}.csv"`,
-          'Access-Control-Allow-Origin': '*'
-        }
-      });
-    }
-
     return jsonResponse({
       success: true,
-      data: filtered,
-      pagination: { 
-        total: filtered.length, 
-        limit,
-        filters_applied: {
-          status: status || null,
-          customer_email: customerEmail || null,
-          external_order_id: externalOrderId || null,
-          date_range: startDate || endDate ? { start: startDate, end: endDate } : null
-        }
-      }
+      data: orders,
+      pagination: { total: orders.length, limit }
     });
   }
 
@@ -363,8 +307,6 @@ const handleOrders = async (base44, method, id, query, body, permissions, partne
       return errorResponse('Order not found', 404, 'NOT_FOUND');
     }
 
-    const currentOrder = orders[0];
-
     // Only allow updating specific fields
     const allowedUpdates = ['status', 'payment_status', 'tracking_number', 'notes', 'metadata'];
     const updates = {};
@@ -375,31 +317,6 @@ const handleOrders = async (base44, method, id, query, body, permissions, partne
     }
 
     const updated = await base44.asServiceRole.entities.PartnerOrder.update(id, updates);
-
-    // Send webhook notification if status changed and webhook URL configured
-    if (updates.status && updates.status !== currentOrder.status) {
-      try {
-        const apiKeys = await base44.asServiceRole.entities.PartnerApiKey.filter({ partner_id: partnerId });
-        if (apiKeys[0]?.webhook_url) {
-          // Fire and forget webhook call
-          fetch(apiKeys[0].webhook_url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              event: 'order.status_updated',
-              order_id: updated.order_id,
-              external_order_id: updated.external_order_id,
-              old_status: currentOrder.status,
-              new_status: updated.status,
-              tracking_number: updated.tracking_number,
-              timestamp: new Date().toISOString()
-            })
-          }).catch(err => console.error('Webhook failed:', err));
-        }
-      } catch (e) {
-        console.error('Webhook notification error:', e);
-      }
-    }
 
     return jsonResponse({
       success: true,

@@ -38,7 +38,7 @@ import {
   Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
   CheckCircle2, FileText, Download, Trash2, User, Plus, Edit, Send, ShoppingBag,
   XCircle, Upload, Eye,
-  RefreshCw, Loader2, ArrowLeft, Zap, TrendingUp
+  RefreshCw, Loader2, ArrowLeft, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -3507,7 +3507,7 @@ export default function AdminDashboard() {
 
         {/* User Edit Dialog */}
         <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{t('editUser', language)}</DialogTitle>
             </DialogHeader>
@@ -3515,24 +3515,22 @@ export default function AdminDashboard() {
               <div className="space-y-4 py-4">
                 <div>
                   <Label>Email</Label>
-                  <Input value={selectedUser.email} disabled className="bg-gray-50 text-gray-900" />
+                  <Input value={selectedUser.email} disabled className="bg-gray-50" />
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label>Nome</Label>
                     <Input
-                      value={userFormData.full_name || ""}
+                      value={userFormData.full_name}
                       onChange={(e) => setUserFormData({...userFormData, full_name: e.target.value})}
-                      className="bg-white text-gray-900"
                     />
                   </div>
                   <div>
                     <Label>Telefone</Label>
                     <Input
-                      value={userFormData.phone || ""}
+                      value={userFormData.phone}
                       onChange={(e) => setUserFormData({...userFormData, phone: e.target.value})}
-                      className="bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -3541,17 +3539,15 @@ export default function AdminDashboard() {
                   <div>
                     <Label>Cidade</Label>
                     <Input
-                      value={userFormData.city || ""}
+                      value={userFormData.city}
                       onChange={(e) => setUserFormData({...userFormData, city: e.target.value})}
-                      className="bg-white text-gray-900"
                     />
                   </div>
                   <div>
                     <Label>Código Postal</Label>
                     <Input
-                      value={userFormData.postal_code || ""}
+                      value={userFormData.postal_code}
                       onChange={(e) => setUserFormData({...userFormData, postal_code: e.target.value})}
-                      className="bg-white text-gray-900"
                     />
                   </div>
                 </div>
@@ -3559,22 +3555,22 @@ export default function AdminDashboard() {
                 <div>
                   <Label>Morada</Label>
                   <Input
-                    value={userFormData.address || ""}
+                    value={userFormData.address}
                     onChange={(e) => setUserFormData({...userFormData, address: e.target.value})}
-                    className="bg-white text-gray-900"
                   />
                 </div>
 
+                {/* NOVO: Tipo de Conta */}
                 <div>
                   <Label>Tipo de Conta</Label>
                   <Select
                     value={userFormData.account_type || 'owner'}
                     onValueChange={(value) => setUserFormData({...userFormData, account_type: value})}
                   >
-                    <SelectTrigger className="bg-white text-gray-900">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent>
                       <SelectItem value="owner">Cliente / Dono</SelectItem>
                       <SelectItem value="walker">Passeador</SelectItem>
                       <SelectItem value="trainer">Treinador</SelectItem>
@@ -3584,32 +3580,34 @@ export default function AdminDashboard() {
                   </Select>
                 </div>
 
+                {/* NOVO: Role (Admin/User) */}
                 <div>
                   <Label>{t('roleSystem', language)}</Label>
                   <Select
                     value={userFormData.role || 'user'}
                     onValueChange={(value) => setUserFormData({...userFormData, role: value})}
                   >
-                    <SelectTrigger className="bg-white text-gray-900">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent>
                       <SelectItem value="user">User (Normal)</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
+                {/* NOVO: Social Role */}
                 <div>
                   <Label>{t('socialRole', language)}</Label>
                   <Select
                     value={userFormData.social_role || 'user'}
                     onValueChange={(value) => setUserFormData({...userFormData, social_role: value})}
                   >
-                    <SelectTrigger className="bg-white text-gray-900">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent>
                       <SelectItem value="user">User</SelectItem>
                       <SelectItem value="moderator">Moderador</SelectItem>
                       <SelectItem value="admin">Admin Social</SelectItem>
@@ -3617,6 +3615,7 @@ export default function AdminDashboard() {
                   </Select>
                 </div>
 
+                {/* NOVO: Se for empresa, mostrar tipo de empresa */}
                 {userFormData.account_type === 'company' && (
                   <div>
                     <Label>Tipo de Empresa</Label>
@@ -3624,10 +3623,10 @@ export default function AdminDashboard() {
                       value={userFormData.company_type || 'pet_store'}
                       onValueChange={(value) => setUserFormData({...userFormData, company_type: value})}
                     >
-                      <SelectTrigger className="bg-white text-gray-900">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-white">
+                      <SelectContent>
                         <SelectItem value="veterinary">Veterinária</SelectItem>
                         <SelectItem value="pet_store">Pet Shop</SelectItem>
                         <SelectItem value="grooming">Grooming</SelectItem>
@@ -3648,14 +3647,14 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            <DialogFooter className="mt-4">
-              <Button variant="outline" onClick={() => setShowUserDialog(false)} className="bg-white text-gray-900">
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowUserDialog(false)}>
                 Cancelar
               </Button>
               <Button
                 onClick={handleSaveUser}
                 disabled={updateUserMutation.isPending}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600"
               >
                 Guardar
               </Button>

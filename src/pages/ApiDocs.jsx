@@ -284,8 +284,8 @@ export default function ApiDocs() {
             />
             <EndpointCard
               method="GET"
-              path="/api/partnerApi/orders?status=pending&customer_email=cliente@email.com"
-              description="Lista pedidos com filtros avançados (status, customer_email, external_order_id, start_date, end_date)"
+              path="/api/partnerApi/orders"
+              description="Lista pedidos do parceiro"
               responseExample={{
                 success: true,
                 data: [
@@ -293,34 +293,17 @@ export default function ApiDocs() {
                     id: "ord_789",
                     order_id: "ORD-1703345678-ABC123",
                     customer_name: "João Silva",
-                    customer_email: "cliente@email.com",
                     total_amount: 91.98,
-                    status: "pending",
+                    status: "confirmed",
                     created_date: "2024-12-23T10:30:00Z"
                   }
-                ],
-                pagination: {
-                  total: 1,
-                  limit: 50,
-                  filters_applied: {
-                    status: "pending",
-                    customer_email: "cliente@email.com"
-                  }
-                }
-              }}
-            />
-            <EndpointCard
-              method="GET"
-              path="/api/partnerApi/orders?export=csv&start_date=2024-12-01&end_date=2024-12-31"
-              description="Exporta relatório de pedidos em CSV por período"
-              responseExample={{
-                note: "Retorna arquivo CSV com colunas: Order ID, External ID, Customer, Email, Total, Status, Payment, Date"
+                ]
               }}
             />
             <EndpointCard
               method="PATCH"
               path="/api/partnerApi/orders/:id"
-              description="Atualiza status de um pedido (envia webhook se configurado)"
+              description="Atualiza status de um pedido"
               requestBody={{
                 status: "shipped",
                 tracking_number: "CTT123456789PT"
@@ -335,27 +318,6 @@ export default function ApiDocs() {
                 message: "Order updated successfully"
               }}
             />
-
-            <Card className="mt-6 bg-purple-50 border-purple-200">
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-purple-600" />
-                  Webhooks de Pedidos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-gray-700 space-y-2">
-                <p>Configure um webhook_url na sua API Key para receber notificações automáticas quando o status de um pedido mudar.</p>
-                <CodeBlock code={JSON.stringify({
-                  event: "order.status_updated",
-                  order_id: "ORD-1703345678-ABC123",
-                  external_order_id: "LOJA-001234",
-                  old_status: "pending",
-                  new_status: "shipped",
-                  tracking_number: "CTT123456789PT",
-                  timestamp: "2024-12-23T14:30:00Z"
-                }, null, 2)} />
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="bookings" className="mt-6">

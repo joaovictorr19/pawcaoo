@@ -452,25 +452,53 @@ export default function UserProfile() {
   const galleryBadges = React.useMemo(() => {
     if (!earnedBadges || earnedBadges.length === 0) return [];
     
+    const processedDefinitions = allBadgeDefinitions.map((def, idx) => {
+      const earnedMatch = earnedBadges.find(b => 
+        (b.badge_id && b.badge_id === def.id) || 
+        (b.name && b.name === def.name)
+      );
+      return {
+        ...def,
+        _uniqueKey: `def-${def.id}-${idx}`,
+        isEarned: !!earnedMatch,
+        earnedDate: earnedMatch?.earned_date || null
+      };
+    }).filter(b => b.isEarned);
+
+    const definitionIds = new Set(allBadgeDefinitions.map(d => d.id));
+    const definitionNames = new Set(allBadgeDefinitions.map(d => d.name.toLowerCase().trim()));
     const uniqueLegacyMap = new Map();
+
     earnedBadges.forEach((b, idx) => {
-      const key = b.badge_id || b.name?.toLowerCase().trim() || `b-${idx}`;
-      if (!uniqueLegacyMap.has(key)) {
-        uniqueLegacyMap.set(key, {
-          ...b,
-          _uniqueKey: `badge-${key}-${idx}`,
-          isEarned: true,
-          rarity: b.rarity || 'common',
-          xp: b.xp || 0
-        });
+      const matchId = b.badge_id && definitionIds.has(b.badge_id);
+      const matchName = b.name && definitionNames.has(b.name.toLowerCase().trim());
+      
+      if (!matchId && !matchName) {
+        const key = b.badge_id || b.name?.toLowerCase().trim() || `unique-${idx}-${Date.now()}`;
+        if (!uniqueLegacyMap.has(key)) {
+          uniqueLegacyMap.set(key, {
+            ...b,
+            id: b.badge_id || `legacy-${idx}-${key.replace(/\s+/g, '-')}`,
+            _uniqueKey: `legacy-${key}-${idx}`,
+            isEarned: true,
+            rarity: b.rarity || 'common',
+            description: b.description || 'Emblema Especial',
+            xp: b.xp || 0
+          });
+        }
       }
     });
-    
-    return Array.from(uniqueLegacyMap.values()).sort((a, b) => {
+    const legacyBadges = Array.from(uniqueLegacyMap.values());
+
+    const combined = [...legacyBadges, ...processedDefinitions];
+    return combined.sort((a, b) => {
       const rarityOrder = { legendary: 3, epic: 2, rare: 1, common: 0 };
-      return (rarityOrder[b.rarity?.toLowerCase()] || 0) - (rarityOrder[a.rarity?.toLowerCase()] || 0);
+      const rA = rarityOrder[a.rarity?.toLowerCase()] || 0;
+      const rB = rarityOrder[b.rarity?.toLowerCase()] || 0;
+      if (rA !== rB) return rB - rA;
+      return (b.xp || 0) - (a.xp || 0);
     });
-  }, [earnedBadges]);
+  }, [allBadgeDefinitions, earnedBadges, activeTab]);
 
   // Optimized Badge Synchronization
   React.useEffect(() => {
