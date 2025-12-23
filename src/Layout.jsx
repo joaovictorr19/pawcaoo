@@ -798,15 +798,8 @@ function LayoutContent({ children, currentPageName }) {
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
-          {/* Logo */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <Link to={createPageUrl("Home")} className="flex-shrink-0 hover:opacity-80 transition-opacity">
-              <PawCaoLogo size="small" showText={true} />
-            </Link>
-          </div>
-
           {/* Menu de Navegação Desktop */}
-          <nav className="flex items-center justify-center flex-1 px-4">
+          <nav className="flex items-center justify-center flex-1 px-2">
             <div className="flex items-center gap-1 lg:gap-2">
               {authUser ? (
                 // Menu completo para usuários logados
