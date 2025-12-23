@@ -148,10 +148,10 @@ export default function DynamicBackground() {
           className="absolute inset-0"
           style={{
             background: weather === 'rainy' 
-              ? 'linear-gradient(135deg, rgba(27,94,32,0.92) 0%, rgba(46,125,50,0.88) 50%, rgba(56,142,60,0.90) 100%)'
+              ? 'linear-gradient(135deg, rgba(27,94,32,0.96) 0%, rgba(46,125,50,0.94) 50%, rgba(56,142,60,0.95) 100%)'
               : weather === 'sunny'
-              ? 'linear-gradient(135deg, rgba(46,125,50,0.85) 0%, rgba(56,142,60,0.80) 50%, rgba(76,175,80,0.82) 100%)'
-              : 'linear-gradient(135deg, rgba(37,105,42,0.88) 0%, rgba(51,130,55,0.85) 50%, rgba(66,155,70,0.87) 100%)'
+              ? 'linear-gradient(135deg, rgba(46,125,50,0.92) 0%, rgba(56,142,60,0.88) 50%, rgba(76,175,80,0.90) 100%)'
+              : 'linear-gradient(135deg, rgba(37,105,42,0.94) 0%, rgba(51,130,55,0.92) 50%, rgba(66,155,70,0.93) 100%)'
           }}
         />
         
@@ -318,19 +318,19 @@ export default function DynamicBackground() {
         
         {/* Orb 1: Primary tier color */}
         <div 
-          className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full filter blur-[120px] opacity-20 animate-blob-1"
+          className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full filter blur-[120px] opacity-30 animate-blob-1"
           style={{ backgroundColor: orbColors.primary, transition: 'background-color 1s ease' }}
         />
 
         {/* Orb 2: Secondary accent */}
         <div 
-          className="absolute bottom-[10%] right-[5%] w-[45vw] h-[45vw] rounded-full filter blur-[120px] opacity-15 animate-blob-2"
+          className="absolute bottom-[10%] right-[5%] w-[45vw] h-[45vw] rounded-full filter blur-[120px] opacity-25 animate-blob-2"
           style={{ backgroundColor: orbColors.secondary, transition: 'background-color 1s ease' }}
         />
 
         {/* Orb 3: Tertiary depth */}
         <div 
-          className="absolute top-[50%] left-[50%] w-[40vw] h-[40vw] rounded-full filter blur-[100px] opacity-10 animate-blob-3"
+          className="absolute top-[50%] left-[50%] w-[40vw] h-[40vw] rounded-full filter blur-[100px] opacity-18 animate-blob-3"
           style={{ backgroundColor: orbColors.tertiary, transition: 'background-color 1s ease' }}
         />
 
