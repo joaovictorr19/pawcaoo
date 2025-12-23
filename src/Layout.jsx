@@ -658,20 +658,40 @@ function LayoutContent({ children, currentPageName }) {
         button:active:not(:disabled) {
           transform: translateY(1px) !important;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-          filter: brightness(0.95);
-          background-color: inherit !important;
         }
 
-        /* Garante que texto em links ativos permaneça visível */
-        button:active:not(:disabled) * {
+        /* CRITICAL: Garante que todos os elementos dentro de botões/links ativos permaneçam 100% visíveis */
+        button:active:not(:disabled) *,
+        button:active:not(:disabled) span,
+        button:active:not(:disabled) svg,
+        a:active *,
+        a:active span,
+        a:active svg {
           opacity: 1 !important;
+          color: inherit !important;
         }
 
-        /* Links ativos na sidebar sempre com texto visível */
+        /* Links ativos na sidebar sempre com texto e ícones visíveis */
+        [data-sidebar] a[class*="from-blue-600"],
+        [data-sidebar] a[class*="from-blue-600"] *,
         [data-sidebar] a[class*="from-blue-600"] span,
-        [data-sidebar] a[class*="bg-red-600"] span {
+        [data-sidebar] a[class*="from-blue-600"] svg,
+        [data-sidebar] a[class*="bg-gradient"],
+        [data-sidebar] a[class*="bg-gradient"] *,
+        [data-sidebar] a[class*="bg-gradient"] span,
+        [data-sidebar] a[class*="bg-gradient"] svg,
+        [data-sidebar] a[class*="bg-red-600"],
+        [data-sidebar] a[class*="bg-red-600"] *,
+        [data-sidebar] a[class*="bg-red-600"] span,
+        [data-sidebar] a[class*="bg-red-600"] svg {
           opacity: 1 !important;
           color: white !important;
+        }
+
+        /* Badge de notificação sempre visível */
+        .bg-red-500,
+        .bg-red-500 * {
+          opacity: 1 !important;
         }
 
         /* Estado Disabled: Mantém visibilidade */
@@ -1127,9 +1147,9 @@ function LayoutContent({ children, currentPageName }) {
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500" />
                             )}
                             <item.icon className={`w-4 h-4 md:w-4 md:h-4 flex-shrink-0 ${isRouteActive(item.url) ? 'text-white' : item.icon === Zap ? 'text-orange-600' : ''}`} />
-                            <span className={`font-medium text-xs md:text-sm flex-1 min-w-0 truncate ${isRouteActive(item.url) ? 'text-white' : ''}`}>{item.title}</span>
+                            <span className={`font-medium text-xs md:text-sm flex-1 min-w-0 truncate ${isRouteActive(item.url) ? 'text-white' : ''}`} style={{ opacity: 1 }}>{item.title}</span>
                             {item.hasNotifications && unreadCount > 0 && (
-                              <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0">
+                              <Badge className="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 flex-shrink-0" style={{ opacity: 1 }}>
                                 {unreadCount}
                               </Badge>
                             )}
