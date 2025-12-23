@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight, Wallet } from "lucide-react";
+import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight, Wallet, PartyPopper, ArrowDown, ArrowUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/LanguageContext";
+import { toast } from "sonner";
 
 // Missões/Provações
 const MISSIONS = [
@@ -455,8 +456,12 @@ const PodiumPedestal = ({ user, position, delay }) => {
 
 export default function Gamification() {
   const { language } = useLanguage();
+  const queryClient = useQueryClient();
   const [flippedCard, setFlippedCard] = useState(null);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [showFullRanking, setShowFullRanking] = useState(false);
+  const [rankingPage, setRankingPage] = useState(1);
+  const rankingPerPage = 20;
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -473,15 +478,62 @@ export default function Gamification() {
     enabled: !!user?.email,
   });
 
-  const { data: topUsers = [] } = useQuery({
-    queryKey: ['topUsersLeaderboard'],
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['allUsersRanking'],
     queryFn: async () => {
       const profiles = await base44.entities.UserProfile.list('-gamification_xp', 1000);
       return profiles
         .filter(p => (p.gamification_xp || 0) > 0)
-        .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0))
-        .slice(0, 10);
+        .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
     },
+  });
+
+  const topUsers = allUsers.slice(0, 10);
+  const userRank = allUsers.findIndex(p => p.user_email === user?.email) + 1;
+
+  const celebrateMutation = useMutation({
+    mutationFn: async ({ targetEmail, targetName }) => {
+      const today = new Date().toISOString().split('T')[0];
+      const existing = await base44.entities.UserCelebration.filter({
+        from_email: user.email,
+        to_email: targetEmail,
+        created_date: { '$gte': today }
+      });
+
+      if (existing.length > 0) {
+        throw new Error('Já celebraste este utilizador hoje!');
+      }
+
+      await base44.entities.UserCelebration.create({
+        from_email: user.email,
+        to_email: targetEmail,
+        celebration_type: 'congrats',
+        xp_bonus_given: 10
+      });
+
+      const targetProfile = await base44.entities.UserProfile.filter({ user_email: targetEmail });
+      if (targetProfile[0]) {
+        await base44.entities.UserProfile.update(targetProfile[0].id, {
+          gamification_xp: (targetProfile[0].gamification_xp || 0) + 10
+        });
+      }
+
+      await base44.entities.Notification.create({
+        recipient_email: targetEmail,
+        title: '🎉 Recebeste uma celebração!',
+        message: `${user.full_name} celebrou a tua conquista! +10 XP`,
+        type: 'social'
+      });
+
+      return { success: true, targetName };
+    },
+    onSuccess: (data) => {
+      toast.success(`🎉 ${data.targetName} recebeu +10 XP!`);
+      queryClient.invalidateQueries(['allUsersRanking']);
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
   });
 
   const currentXP = userProfile?.gamification_xp || 0;
@@ -501,13 +553,17 @@ export default function Gamification() {
     setCarouselIndex((prev) => (prev - 1 + MISSIONS.length) % MISSIONS.length);
   };
 
-  // Ordenar top 3 para o pódio (2º, 1º, 3º) - com placeholders se não houver utilizadores suficientes
   const top3 = topUsers.slice(0, 3);
-  // Preencher com placeholders se necessário
   while (top3.length < 3) {
     top3.push({ id: `placeholder-${top3.length}`, full_name: '???', gamification_xp: 0, isPlaceholder: true });
   }
   const podiumOrder = [top3[1], top3[0], top3[2]];
+
+  const paginatedUsers = showFullRanking 
+    ? allUsers.slice((rankingPage - 1) * rankingPerPage, rankingPage * rankingPerPage)
+    : allUsers.slice(3, 10);
+  
+  const totalPages = Math.ceil(allUsers.length / rankingPerPage);
 
   return (
     <div className="min-h-screen bg-neutral-950 relative overflow-hidden rounded-3xl mx-2 md:mx-4 my-2">
@@ -784,37 +840,143 @@ export default function Gamification() {
             <PodiumPedestal user={podiumOrder[2]} position={3} delay={0.4} />
           </div>
 
+          {/* Indicador "Você está aqui" */}
+          {userRank > 3 && (
+            <motion.div
+              className="mt-8 bg-gradient-to-r from-blue-900/30 via-purple-900/30 to-blue-900/30 rounded-xl border-2 border-blue-500/30 p-4"
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <ArrowDown className="w-5 h-5 text-blue-400 animate-bounce" />
+                  <span className="text-blue-400 font-bold text-lg">
+                    #{userRank}
+                  </span>
+                </div>
+                <Avatar className="w-12 h-12 border-2 border-blue-500 ring-4 ring-blue-500/20">
+                  <AvatarImage src={user?.profile_photo_url} />
+                  <AvatarFallback className="bg-neutral-800 text-blue-400 font-bold">
+                    {user?.full_name?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="text-white font-bold">{user?.full_name}</p>
+                  <p className="text-blue-400 text-sm">Você está aqui!</p>
+                </div>
+                <Badge className="bg-blue-500/20 border border-blue-500/40 text-blue-300">
+                  {currentXP.toLocaleString()} XP
+                </Badge>
+              </div>
+            </motion.div>
+          )}
+
           {/* Lista dos restantes */}
-          {topUsers.length > 3 && (
+          {allUsers.length > 3 && (
             <motion.div
               className="mt-12 bg-neutral-900/50 rounded-2xl border border-amber-500/10 p-4"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              {topUsers.slice(3, 10).map((profile, idx) => (
-                <div 
-                  key={profile.id}
-                  className="flex items-center gap-4 py-3 border-b border-amber-500/5 last:border-0"
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-amber-400 font-bold text-sm">
+                  {showFullRanking ? `Ranking Completo (${allUsers.length} utilizadores)` : 'Top 10'}
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowFullRanking(!showFullRanking);
+                    setRankingPage(1);
+                  }}
+                  className="text-amber-400 hover:bg-amber-500/10 text-xs"
                 >
-                  <span className="text-amber-500/50 font-bold w-8 text-center">
-                    {idx + 4}º
-                  </span>
-                  <Avatar className="w-10 h-10 border border-amber-500/20">
-                    <AvatarImage src={profile.profile_photo_url} />
-                    <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm">
-                      {profile.full_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="text-white font-medium text-sm">{profile.full_name}</p>
-                    <p className="text-gray-600 text-xs">Nível {profile.gamification_level || 1}</p>
+                  {showFullRanking ? 'Ver Top 10' : 'Ver Todos'}
+                </Button>
+              </div>
+
+              {paginatedUsers.map((profile, idx) => {
+                const actualRank = showFullRanking ? (rankingPage - 1) * rankingPerPage + idx + 1 : idx + 4;
+                const isCurrentUser = profile.user_email === user?.email;
+                const canCelebrate = user?.email && !isCurrentUser && profile.user_email;
+
+                return (
+                  <div 
+                    key={profile.id}
+                    className={`flex items-center gap-4 py-3 border-b border-amber-500/5 last:border-0 ${
+                      isCurrentUser ? 'bg-blue-500/10 -mx-4 px-4 rounded-lg border-2 border-blue-500/30' : ''
+                    }`}
+                  >
+                    <span className={`font-bold w-8 text-center ${
+                      isCurrentUser ? 'text-blue-400' : 'text-amber-500/50'
+                    }`}>
+                      {actualRank}º
+                    </span>
+                    <Avatar className="w-10 h-10 border border-amber-500/20">
+                      <AvatarImage src={profile.profile_photo_url} />
+                      <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm">
+                        {profile.full_name?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="text-white font-medium text-sm flex items-center gap-2">
+                        {profile.full_name}
+                        {isCurrentUser && <Badge className="bg-blue-500/20 text-blue-300 text-[10px]">Você</Badge>}
+                      </p>
+                      <p className="text-gray-600 text-xs">Nível {Math.floor((profile.gamification_xp || 0) / 100)}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-black/50 border border-amber-500/20 text-amber-400/70 text-xs">
+                        {(profile.gamification_xp || 0).toLocaleString()} XP
+                      </Badge>
+                      {canCelebrate && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => celebrateMutation.mutate({ 
+                            targetEmail: profile.user_email, 
+                            targetName: profile.full_name 
+                          })}
+                          disabled={celebrateMutation.isPending}
+                          className="h-8 w-8 p-0 hover:bg-purple-500/20 text-purple-400"
+                          title="Celebrar conquista (+10 XP)"
+                        >
+                          <PartyPopper className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <Badge className="bg-black/50 border border-amber-500/20 text-amber-400/70 text-xs">
-                    {(profile.gamification_xp || 0).toLocaleString()} XP
-                  </Badge>
+                );
+              })}
+
+              {/* Paginação */}
+              {showFullRanking && totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-amber-500/10">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRankingPage(p => Math.max(1, p - 1))}
+                    disabled={rankingPage === 1}
+                    className="bg-black/50 border-amber-500/20 text-amber-400 hover:bg-amber-500/10"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <span className="text-amber-400 text-sm">
+                    Página {rankingPage} de {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setRankingPage(p => Math.min(totalPages, p + 1))}
+                    disabled={rankingPage === totalPages}
+                    className="bg-black/50 border-amber-500/20 text-amber-400 hover:bg-amber-500/10"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
                 </div>
-              ))}
+              )}
             </motion.div>
           )}
         </div>
