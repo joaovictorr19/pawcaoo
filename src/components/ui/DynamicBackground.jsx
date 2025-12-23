@@ -299,29 +299,19 @@ export default function DynamicBackground() {
   // Logged in users: dynamic background based on level
   const { colors } = useTheme();
   
-  // Convert Tailwind classes to hex colors for orbs
-  const getOrbColor = (colorClass) => {
-    const colorMap = {
-      // Emerald/Forest (Tier 1)
-      'text-emerald-600': '#059669',
-      'text-emerald-900': '#064e3b',
-      // Blue/Navy (Tier 2)
-      'text-blue-700': '#1d4ed8',
-      'text-blue-950': '#172554',
-      // Rose/Wine (Tier 3)
-      'text-rose-700': '#be123c',
-      'text-rose-950': '#4c0519',
-      // Amber (Tier 4)
-      'text-amber-600': '#d97706',
-      'text-amber-900': '#78350f',
-      // Yellow/Gold (Tier 5)
-      'text-yellow-600': '#ca8a04',
-      'text-yellow-900': '#713f12'
+  // Get orb color based on theme name (more reliable)
+  const getOrbColorsByTheme = (themeName) => {
+    const themeMap = {
+      'forest': { primary: '#059669', secondary: '#10b981', tertiary: '#34d399' },  // Emerald greens
+      'navy': { primary: '#1e3a8a', secondary: '#3b82f6', tertiary: '#60a5fa' },     // Royal blues
+      'wine': { primary: '#9f1239', secondary: '#e11d48', tertiary: '#fb7185' },     // Deep reds
+      'amber': { primary: '#d97706', secondary: '#f59e0b', tertiary: '#fbbf24' },    // Rich ambers
+      'gold': { primary: '#eab308', secondary: '#facc15', tertiary: '#fde047' }      // Brilliant golds
     };
-    return colorMap[colorClass] || '#059669';
+    return themeMap[themeName] || themeMap['forest'];
   };
 
-  const orbColor = getOrbColor(colors?.accent || 'text-emerald-600');
+  const orbColors = getOrbColorsByTheme(colors?.name || 'forest');
 
   return (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gray-50">
@@ -331,19 +321,19 @@ export default function DynamicBackground() {
         {/* Orb 1: Primary tier color */}
         <div 
           className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full filter blur-[120px] opacity-20 animate-blob-1"
-          style={{ backgroundColor: orbColor, transition: 'background-color 1s ease' }}
+          style={{ backgroundColor: orbColors.primary, transition: 'background-color 1s ease' }}
         />
 
         {/* Orb 2: Secondary accent */}
         <div 
           className="absolute bottom-[10%] right-[5%] w-[45vw] h-[45vw] rounded-full filter blur-[120px] opacity-15 animate-blob-2"
-          style={{ backgroundColor: orbColor, transition: 'background-color 1s ease' }}
+          style={{ backgroundColor: orbColors.secondary, transition: 'background-color 1s ease' }}
         />
 
         {/* Orb 3: Tertiary depth */}
         <div 
           className="absolute top-[50%] left-[50%] w-[40vw] h-[40vw] rounded-full filter blur-[100px] opacity-10 animate-blob-3"
-          style={{ backgroundColor: orbColor, transition: 'background-color 1s ease' }}
+          style={{ backgroundColor: orbColors.tertiary, transition: 'background-color 1s ease' }}
         />
 
       </div>
