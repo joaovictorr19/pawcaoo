@@ -737,11 +737,9 @@ export default function ProfessionalDashboard() {
             <div className="space-y-6">
               
               {/* SECÇÃO 1: Informações Básicas */}
-              <Card className="border-2 border-blue-200 bg-blue-50/50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-bold text-blue-900">📝 Informações Básicas</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <div className="bg-blue-50/50 rounded-xl p-4 border-none">
+                <h3 className="text-base font-bold text-blue-900 mb-4">📝 Informações Básicas</h3>
+                <div className="space-y-4">
                   <div>
                     <Label className="text-sm font-semibold mb-1.5 block" style={{ color: '#111827' }}>
                       Nome do Serviço <span className="text-red-500">*</span>
@@ -766,15 +764,13 @@ export default function ProfessionalDashboard() {
                       className="resize-none bg-white text-gray-900"
                     />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* SECÇÃO 2: Tipo de Animal */}
-              <Card className="border-2 border-purple-200 bg-purple-50/50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-bold text-purple-900">🐾 Tipo de Animal</CardTitle>
-                </CardHeader>
-                <CardContent>
+              <div className="bg-purple-50/50 rounded-xl p-4 border-none">
+                <h3 className="text-base font-bold text-purple-900 mb-4">🐾 Tipo de Animal</h3>
+                <div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {[
                       { id: 'dogs', label: 'Cães', IconComponent: Dog },
@@ -802,15 +798,13 @@ export default function ProfessionalDashboard() {
                       );
                     })}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* SECÇÃO 3: Preço */}
-              <Card className="border-2 border-green-200 bg-green-50/50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-bold text-green-900">💰 Definir Preço</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <div className="bg-green-50/50 rounded-xl p-4 border-none">
+                <h3 className="text-base font-bold text-green-900 mb-4">💰 Definir Preço</h3>
+                <div className="space-y-4">
                   <div>
                     <Label className="text-sm font-semibold mb-1.5 block" style={{ color: '#111827' }}>
                       Preço <span className="text-red-500">*</span>
@@ -844,18 +838,18 @@ export default function ProfessionalDashboard() {
                       Mostrar como "A partir de €{formData.price || 0}"
                     </Label>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* SECÇÃO 4: Pacotes (Opcional) */}
-              <Card className="border-2 border-amber-200 bg-amber-50/50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-bold text-amber-900">
+              <div className="bg-amber-50/50 rounded-xl p-4 border-none">
+                <div className="mb-4">
+                  <h3 className="text-base font-bold text-amber-900">
                     🎁 Pacotes Promocionais <span className="text-xs font-normal text-gray-600">(Opcional)</span>
-                  </CardTitle>
+                  </h3>
                   <p className="text-xs text-gray-600 mt-1">Ideal para treinos ou serviços recorrentes</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                </div>
+                <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <Label className="text-xs font-semibold mb-1 block" style={{ color: '#111827' }}>Nome do Pacote</Label>
@@ -921,8 +915,8 @@ export default function ProfessionalDashboard() {
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
             </div>
           </div>
