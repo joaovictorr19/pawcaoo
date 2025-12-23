@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
@@ -757,29 +757,37 @@ export default function Home() {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-2 w-full">
+                    <div className="grid grid-cols-4 gap-2 w-full">
                       <button
                         onClick={() => navigate(createPageUrl('Favorites'))}
-                        className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
                       >
-                        <Heart className="w-4 h-4 md:w-5 md:h-5 text-green-600" strokeWidth={1.5} />
-                        <span className="text-[10px] md:text-xs font-semibold text-slate-700">Favoritos</span>
+                        <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
+                        <span className="text-[9px] font-semibold text-slate-700">Favoritos</span>
+                      </button>
+
+                      <button
+                        onClick={() => navigate(createPageUrl('MyWallet'))}
+                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                      >
+                        <Wallet className="w-4 h-4 text-green-600" strokeWidth={2} />
+                        <span className="text-[9px] font-semibold text-slate-700">Wallet</span>
                       </button>
 
                       <button
                         onClick={() => navigate(createPageUrl('Gamification'))}
-                        className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
                       >
-                        <Trophy className="w-4 h-4 md:w-5 md:h-5 text-purple-600" strokeWidth={1.5} />
-                        <span className="text-[10px] md:text-xs font-semibold text-slate-700">Hall da Fama</span>
+                        <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
+                        <span className="text-[9px] font-semibold text-slate-700">Hall da Fama</span>
                       </button>
 
                       <button
                         onClick={() => navigate(createPageUrl('MyBookings'))}
-                        className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
                       >
-                        <Calendar className="w-4 h-4 md:w-5 md:h-5 text-green-600" strokeWidth={1.5} />
-                        <span className="text-[10px] md:text-xs font-semibold text-slate-700">Histórico</span>
+                        <Calendar className="w-4 h-4 text-blue-600" strokeWidth={2} />
+                        <span className="text-[9px] font-semibold text-slate-700">Histórico</span>
                       </button>
                     </div>
                   </div>
