@@ -476,20 +476,18 @@ export default function Gamification() {
   const { data: topUsers = [] } = useQuery({
     queryKey: ['topUsersLeaderboard'],
     queryFn: async () => {
-      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 50);
-      // Ordenar por XP decrescente e filtrar quem tem XP > 0
+      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 1000);
       return profiles
-        .filter(p => p.gamification_xp > 0)
+        .filter(p => (p.gamification_xp || 0) > 0)
         .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0))
         .slice(0, 10);
     },
   });
 
   const currentXP = userProfile?.gamification_xp || 0;
-  // Nível sempre calculado do XP: 100 XP = 1 nível
-  const currentLevel = Math.max(1, Math.floor(currentXP / 100) + 1);
-  const xpForCurrentLevel = (currentLevel - 1) * 100;
-  const xpForNextLevel = currentLevel * 100;
+  const currentLevel = Math.max(1, Math.floor(currentXP / 100));
+  const xpForCurrentLevel = currentLevel * 100;
+  const xpForNextLevel = (currentLevel + 1) * 100;
   const xpNeeded = Math.max(0, xpForNextLevel - currentXP);
   const progressInLevel = Math.min(100, Math.max(0, ((currentXP - xpForCurrentLevel) / 100) * 100));
   const title = getTitle(currentLevel);

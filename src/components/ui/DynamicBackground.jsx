@@ -296,19 +296,15 @@ export default function DynamicBackground() {
     );
   }
 
-  // Logged in users: dynamic background based on level
   const { colors, level } = useTheme();
   
-  console.log('🌈 DynamicBackground - Theme:', colors?.name, 'Level:', level);
-  
-  // Get orb color based on theme name (more reliable)
   const getOrbColorsByTheme = (themeName) => {
     const themeMap = {
-      'forest': { primary: '#059669', secondary: '#10b981', tertiary: '#34d399' },  // Emerald greens
-      'navy': { primary: '#1e3a8a', secondary: '#3b82f6', tertiary: '#60a5fa' },     // Royal blues
-      'wine': { primary: '#9f1239', secondary: '#e11d48', tertiary: '#fb7185' },     // Deep reds
-      'amber': { primary: '#d97706', secondary: '#f59e0b', tertiary: '#fbbf24' },    // Rich ambers
-      'gold': { primary: '#eab308', secondary: '#facc15', tertiary: '#fde047' }      // Brilliant golds
+      'forest': { primary: '#059669', secondary: '#10b981', tertiary: '#34d399' },
+      'navy': { primary: '#1e3a8a', secondary: '#3b82f6', tertiary: '#60a5fa' },
+      'wine': { primary: '#9f1239', secondary: '#e11d48', tertiary: '#fb7185' },
+      'amber': { primary: '#d97706', secondary: '#f59e0b', tertiary: '#fbbf24' },
+      'gold': { primary: '#eab308', secondary: '#facc15', tertiary: '#fde047' }
     };
     return themeMap[themeName] || themeMap['forest'];
   };
