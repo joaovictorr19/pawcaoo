@@ -295,34 +295,31 @@ export default function DynamicBackground() {
     );
   }
 
-  // Logged in users: dynamic tier-based background
+  // Logged in users: clean light background with subtle orbs
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-slate-900">
-      {/* Wrapper que roda lentamente tudo (Efeito Galáxia) */}
-      <div className="absolute inset-0 animate-spin-slow">
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gray-50">
+      {/* Subtle animated orbs for visual interest */}
+      <div className="absolute inset-0">
         
-        {/* Orb 1: COR MAIS CLARA (Brilho) - Use ORB-2 */}
+        {/* Orb 1: Subtle green glow */}
         <div 
-          className="absolute top-[10%] left-[15%] w-[90vw] h-[90vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-70 animate-blob-1"
-          style={{ backgroundColor: 'var(--color-orb-2, #fdba74)', transition: 'background-color 1s ease' }}
+          className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full filter blur-[120px] opacity-20 animate-blob-1"
+          style={{ backgroundColor: 'var(--color-orb-2, #86efac)', transition: 'background-color 1s ease' }}
         />
 
-        {/* Orb 2: COR BASE DA TIER - Use ORB-1 */}
+        {/* Orb 2: Subtle accent */}
         <div 
-          className="absolute bottom-[15%] right-[10%] w-[85vw] h-[85vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-75 animate-blob-2"
-          style={{ backgroundColor: 'var(--color-orb-1, #fb923c)', transition: 'background-color 1s ease' }}
+          className="absolute bottom-[10%] right-[5%] w-[45vw] h-[45vw] rounded-full filter blur-[120px] opacity-15 animate-blob-2"
+          style={{ backgroundColor: 'var(--color-orb-1, #a7f3d0)', transition: 'background-color 1s ease' }}
         />
 
-        {/* Orb 3: COR DE PROFUNDIDADE (A mais escura) - Use PRIMARY */}
+        {/* Orb 3: Very subtle depth */}
         <div 
-          className="absolute top-[40%] left-[40%] w-[95vw] h-[95vw] rounded-full mix-blend-multiply filter blur-[140px] opacity-65 animate-blob-3"
-          style={{ backgroundColor: 'var(--color-primary, #f97316)', transition: 'background-color 1s ease' }}
+          className="absolute top-[50%] left-[50%] w-[40vw] h-[40vw] rounded-full filter blur-[100px] opacity-10 animate-blob-3"
+          style={{ backgroundColor: 'var(--color-primary, #6ee7b7)', transition: 'background-color 1s ease' }}
         />
 
       </div>
-      
-      {/* Gradient Overlay for depth */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-white/20" />
     </div>
   );
 }
