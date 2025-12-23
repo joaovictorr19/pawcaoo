@@ -664,11 +664,25 @@ function LayoutContent({ children, currentPageName }) {
         button:active:not(:disabled) *,
         button:active:not(:disabled) span,
         button:active:not(:disabled) svg,
+        button:active:not(:disabled) path,
         a:active *,
         a:active span,
-        a:active svg {
+        a:active svg,
+        a:active path {
           opacity: 1 !important;
           color: inherit !important;
+        }
+
+        /* Sidebar links - force visibility on all states */
+        [data-sidebar] a *,
+        [data-sidebar] a span,
+        [data-sidebar] a svg,
+        [data-sidebar] a path,
+        [data-sidebar] button *,
+        [data-sidebar] button span,
+        [data-sidebar] button svg,
+        [data-sidebar] button path {
+          opacity: 1 !important;
         }
 
         /* Links ativos na sidebar sempre com texto e ícones visíveis */
