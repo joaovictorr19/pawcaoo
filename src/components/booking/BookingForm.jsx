@@ -89,6 +89,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   const [pickupAddress, setPickupAddress] = useState(""); 
   const [pickupCoords, setPickupCoords] = useState({ lat: null, lng: null });
   const [selectedDogId, setSelectedDogId] = useState("");
+  const [showManualInput, setShowManualInput] = useState(false);
 
   // Update address and phone when user is loaded
   React.useEffect(() => {
@@ -339,11 +340,15 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   const handleNextStep = () => {
     if (step === 1) {
       if (!selectedDogId && !formData.dog_name) {
-        toast.error('Selecione ou adicione um cão');
+        toast.error('Selecione ou adicione um animal');
         return;
       }
       if (!formData.walk_date) {
-        toast.error('Selecione a data do passeio');
+        toast.error('Selecione a data');
+        return;
+      }
+      if (!formData.walk_time) {
+        toast.error('Selecione o horário');
         return;
       }
       setStep(2);
@@ -484,7 +489,10 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       return (
                         <div
                           key={dog.id}
-                          onClick={() => setSelectedDogId(dog.id)}
+                          onClick={() => {
+                            setSelectedDogId(dog.id);
+                            setShowManualInput(false);
+                          }}
                           className={`flex-shrink-0 cursor-pointer transition-all ${
                             isSelected ? 'scale-110' : 'opacity-70 hover:opacity-100'
                           }`}
@@ -514,7 +522,46 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                         </div>
                       );
                     })}
+                    <div
+                      onClick={() => {
+                        setShowManualInput(true);
+                        setSelectedDogId("");
+                      }}
+                      className={`flex-shrink-0 cursor-pointer transition-all ${
+                        showManualInput ? 'scale-110' : 'opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <div className={`w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-2xl ${
+                        showManualInput ? 'ring-4 ring-blue-500' : 'ring-2 ring-blue-200'
+                      }`}>
+                        +
+                      </div>
+                    </div>
                   </div>
+                  {showManualInput && (
+                    <div className="bg-blue-50 rounded-lg p-3 space-y-2 border border-blue-200">
+                      <Input
+                        value={formData.dog_name}
+                        onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
+                        placeholder="Nome do animal"
+                        className="h-8 text-sm"
+                      />
+                      <Select
+                        value={formData.dog_size}
+                        onValueChange={(value) => setFormData({...formData, dog_size: value})}
+                      >
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Tamanho" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">Pequeno</SelectItem>
+                          <SelectItem value="medium">Médio</SelectItem>
+                          <SelectItem value="large">Grande</SelectItem>
+                          <SelectItem value="extra_large">XL</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>
