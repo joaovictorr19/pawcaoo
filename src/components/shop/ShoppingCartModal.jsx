@@ -1,12 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Trash2, Plus, Minus, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, Ticket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
+import { useLanguage } from "@/components/LanguageContext";
 
 export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuantity, onRemoveItem, onCheckout }) {
+  const { language } = useLanguage();
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [shippingAddress, setShippingAddress] = useState({
+    street: "",
+    city: "",
+    postal_code: "",
+    country: "Portugal"
+  });
+  
+  const verifyCouponMutation = useMutation({
+    mutationFn: async (code) => {
+      const coupons = await base44.entities.Coupon.filter({ code, is_active: true });
+      return coupons[0];
+    },
+    onSuccess: (coupon) => {
+      if (!coupon) {
+        toast.error(language === 'pt' ? 'Cupom inválido' : 'Invalid coupon');
+        return;
+      }
+      setAppliedCoupon(coupon);
+      toast.success(language === 'pt' ? 'Cupom aplicado!' : 'Coupon applied!');
+    },
+  });
+
   const subtotal = cart?.items?.reduce((sum, item) => sum + (item.total_price || 0), 0) || 0;
+  
+  let discount = 0;
+  if (appliedCoupon) {
+    if (subtotal >= appliedCoupon.min_purchase) {
+      if (appliedCoupon.discount_type === 'percentage') {
+        discount = (subtotal * appliedCoupon.discount_value) / 100;
+      } else {
+        discount = appliedCoupon.discount_value;
+      }
+    }
+  }
+
+  const shipping = 5;
+  const total = subtotal - discount + shipping;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -85,19 +130,54 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
 
             <Separator />
 
+            {/* Coupon Section */}
+            <div className="space-y-3 pt-4">
+              <Label className="text-sm font-semibold">{language === 'pt' ? 'Código de Desconto' : 'Coupon Code'}</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder={language === 'pt' ? 'Digite o código' : 'Enter code'}
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  className="flex-1"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => verifyCouponMutation.mutate(couponCode)}
+                  disabled={!couponCode}
+                  size="sm"
+                >
+                  <Ticket className="w-4 h-4 mr-1" />
+                  {language === 'pt' ? 'Aplicar' : 'Apply'}
+                </Button>
+              </div>
+              {appliedCoupon && (
+                <div className="bg-green-50 p-2 rounded text-sm text-green-700">
+                  ✓ {appliedCoupon.code} - {appliedCoupon.discount_type === 'percentage' ? `${appliedCoupon.discount_value}%` : `€${appliedCoupon.discount_value}`} {language === 'pt' ? 'de desconto' : 'off'}
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
             <div className="space-y-2 pt-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal</span>
                 <span className="font-semibold">€{subtotal.toFixed(2)}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>{language === 'pt' ? 'Desconto' : 'Discount'}</span>
+                  <span>-€{discount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Envio</span>
-                <span className="text-green-600 font-semibold">Grátis</span>
+                <span className="font-semibold">€{shipping.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
                 <span>Total</span>
-                <span className="text-blue-600">€{subtotal.toFixed(2)}</span>
+                <span className="text-blue-600">€{total.toFixed(2)}</span>
               </div>
             </div>
 

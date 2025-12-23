@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Heart, Star, Truck } from "lucide-react";
 import { motion } from "framer-motion";
+import WishlistButton from "./WishlistButton";
 
 export default function ProductCard({ product, onAddToCart, onToggleFavorite, isFavorite, averageRating, reviewCount }) {
   return (
@@ -11,7 +12,9 @@ export default function ProductCard({ product, onAddToCart, onToggleFavorite, is
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
+      className="relative"
     >
+      <WishlistButton product={{ id: product.id, name: product.title, image_url: product.image, price: product.price }} />
       <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all bg-white h-full">
         <div className="relative aspect-square overflow-hidden bg-gray-100">
           <img 
