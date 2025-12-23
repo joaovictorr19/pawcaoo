@@ -948,7 +948,7 @@ export default function Home() {
                   <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
                     <motion.div 
                       whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
+                      className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
                       onClick={() => setActiveTab('walkers')}
                     >
                       <Users className="w-4 h-4" />
