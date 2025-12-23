@@ -715,16 +715,15 @@ export default function ProfessionalDashboard() {
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
         <DialogContent 
-          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white"
+          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white border-0"
           style={{ 
             background: 'white !important',
             zIndex: 999999,
-            border: '2px solid #e5e7eb',
             color: '#111827 !important'
           }}
         >
           {/* Header Fixo */}
-          <DialogHeader className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50">
+          <DialogHeader className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-0">
             <DialogTitle className="text-xl md:text-2xl font-bold" style={{ color: '#111827' }}>
               {editingService ? '✏️ Editar' : '➕ Adicionar'} Serviço
             </DialogTitle>
@@ -897,7 +896,7 @@ export default function ProfessionalDashboard() {
                   </Button>
 
                   {formData.package_options && formData.package_options.length > 0 && (
-                    <div className="space-y-2 pt-2 border-t border-amber-200">
+                    <div className="space-y-2 pt-2">
                       <p className="text-xs font-semibold text-amber-900 mb-2">Pacotes Adicionados:</p>
                       {formData.package_options.map((pkg, idx) => (
                         <div 
@@ -927,7 +926,7 @@ export default function ProfessionalDashboard() {
           </div>
 
           {/* Footer Fixo com Botões */}
-          <div className="px-6 py-4 bg-gray-50 flex gap-3">
+          <div className="px-6 py-4 bg-gray-50 flex gap-3 border-0">
             <Button 
               variant="outline" 
               onClick={() => {
