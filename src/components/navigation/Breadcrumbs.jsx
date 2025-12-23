@@ -5,6 +5,8 @@ import { ChevronRight, Home } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function Breadcrumbs() {
+  return null; // Breadcrumbs removidos
+  
   const location = useLocation();
   const { language } = useLanguage();
 
