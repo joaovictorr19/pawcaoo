@@ -724,7 +724,7 @@ export default function ProfessionalDashboard() {
           }}
         >
           {/* Header Fixo */}
-          <DialogHeader className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+          <DialogHeader className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50">
             <DialogTitle className="text-xl md:text-2xl font-bold" style={{ color: '#111827' }}>
               {editingService ? '✏️ Editar' : '➕ Adicionar'} Serviço
             </DialogTitle>
@@ -795,8 +795,8 @@ export default function ProfessionalDashboard() {
                             borderColor: isSelected ? '#22c55e' : '#d1d5db'
                           }}
                         >
-                          <animal.IconComponent className="w-8 h-8 text-gray-700" />
-                          <span className="text-sm font-bold" style={{ color: '#111827' }}>{animal.label}</span>
+                          <animal.IconComponent className={`w-8 h-8 ${isSelected ? 'text-green-700' : 'text-gray-700'}`} />
+                          <span className={`text-sm font-bold ${isSelected ? 'text-green-900' : 'text-gray-900'}`}>{animal.label}</span>
                         </button>
                       );
                     })}
@@ -927,7 +927,7 @@ export default function ProfessionalDashboard() {
           </div>
 
           {/* Footer Fixo com Botões */}
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex gap-3">
+          <div className="px-6 py-4 bg-gray-50 flex gap-3">
             <Button 
               variant="outline" 
               onClick={() => {
