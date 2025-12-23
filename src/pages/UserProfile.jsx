@@ -8,8 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin, Calendar, Heart, Camera, Edit, Share2,
-  Award, TrendingUp, Bookmark, Grid, ArrowLeft, Dog, Zap, Crown,
-  CheckCircle, Shield, ShieldCheck, Users, User, Plus, MessageCircle
+  Award, Bookmark, Grid, ArrowLeft, Dog, Zap, Crown,
+  CheckCircle, Shield, ShieldCheck, Users, User, Plus, MessageCircle, BarChart2
 } from "lucide-react";
 import { t } from "@/components/translations";
 import { useLanguage } from "@/components/LanguageContext";
@@ -1272,7 +1272,7 @@ export default function UserProfile() {
               <span className="hidden md:inline">XP</span>
             </TabsTrigger>
             <TabsTrigger value="activity" className="text-xs md:text-sm">
-              <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
+              <BarChart2 className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden md:inline">Stats</span>
             </TabsTrigger>
           </TabsList>
