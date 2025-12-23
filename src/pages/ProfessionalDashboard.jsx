@@ -715,13 +715,15 @@ export default function ProfessionalDashboard() {
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
         <DialogContent 
-          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white"
+          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0"
           style={{ 
             background: 'white !important',
             zIndex: 999999,
             color: '#111827 !important',
-            border: 'none',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            border: 'none !important',
+            borderRadius: '12px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            outline: 'none'
           }}
         >
           {/* Header Fixo */}
@@ -733,11 +735,11 @@ export default function ProfessionalDashboard() {
           </div>
 
           {/* Conteúdo Scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto px-6 py-4" style={{ border: 'none !important' }}>
+            <div className="space-y-6" style={{ border: 'none !important' }}>
               
               {/* SECÇÃO 1: Informações Básicas */}
-              <div className="bg-blue-50/50 rounded-xl p-4 border-none">
+              <div className="bg-blue-50/50 rounded-xl p-4" style={{ border: 'none !important', boxShadow: 'none !important' }}>
                 <h3 className="text-base font-bold text-blue-900 mb-4">📝 Informações Básicas</h3>
                 <div className="space-y-4">
                   <div>
@@ -768,7 +770,7 @@ export default function ProfessionalDashboard() {
               </div>
 
               {/* SECÇÃO 2: Tipo de Animal */}
-              <div className="bg-purple-50/50 rounded-xl p-4 border-none">
+              <div className="bg-purple-50/50 rounded-xl p-4" style={{ border: 'none !important', boxShadow: 'none !important' }}>
                 <h3 className="text-base font-bold text-purple-900 mb-4">🐾 Tipo de Animal</h3>
                 <div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -802,7 +804,7 @@ export default function ProfessionalDashboard() {
               </div>
 
               {/* SECÇÃO 3: Preço */}
-              <div className="bg-green-50/50 rounded-xl p-4 border-none">
+              <div className="bg-green-50/50 rounded-xl p-4" style={{ border: 'none !important', boxShadow: 'none !important' }}>
                 <h3 className="text-base font-bold text-green-900 mb-4">💰 Definir Preço</h3>
                 <div className="space-y-4">
                   <div>
@@ -842,7 +844,7 @@ export default function ProfessionalDashboard() {
               </div>
 
               {/* SECÇÃO 4: Pacotes (Opcional) */}
-              <div className="bg-amber-50/50 rounded-xl p-4 border-none">
+              <div className="bg-amber-50/50 rounded-xl p-4" style={{ border: 'none !important', boxShadow: 'none !important' }}>
                 <div className="mb-4">
                   <h3 className="text-base font-bold text-amber-900">
                     🎁 Pacotes Promocionais <span className="text-xs font-normal text-gray-600">(Opcional)</span>
