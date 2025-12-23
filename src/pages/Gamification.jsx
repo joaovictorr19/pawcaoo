@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight, Wallet } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -484,10 +486,12 @@ export default function Gamification() {
   });
 
   const currentXP = userProfile?.gamification_xp || 0;
-  const currentLevel = userProfile?.gamification_level || Math.floor(currentXP / 1000) + 1;
-  const xpForCurrentLevel = (currentLevel - 1) * 1000;
-  const xpForNextLevel = currentLevel * 1000;
-  const progressInLevel = ((currentXP - xpForCurrentLevel) / (xpForNextLevel - xpForCurrentLevel)) * 100;
+  // Nível sempre calculado do XP: 100 XP = 1 nível
+  const currentLevel = Math.max(1, Math.floor(currentXP / 100) + 1);
+  const xpForCurrentLevel = (currentLevel - 1) * 100;
+  const xpForNextLevel = currentLevel * 100;
+  const xpNeeded = Math.max(0, xpForNextLevel - currentXP);
+  const progressInLevel = Math.min(100, Math.max(0, ((currentXP - xpForCurrentLevel) / 100) * 100));
   const title = getTitle(currentLevel);
   const auraColor = getAuraColor(currentLevel);
 
@@ -499,11 +503,27 @@ export default function Gamification() {
     setCarouselIndex((prev) => (prev - 1 + MISSIONS.length) % MISSIONS.length);
   };
 
-  // Ordenar top 3 para o pódio (2º, 1º, 3º)
-  const podiumOrder = [topUsers[1], topUsers[0], topUsers[2]].filter(Boolean);
+  // Ordenar top 3 para o pódio (2º, 1º, 3º) - com placeholders se não houver utilizadores suficientes
+  const top3 = topUsers.slice(0, 3);
+  // Preencher com placeholders se necessário
+  while (top3.length < 3) {
+    top3.push({ id: `placeholder-${top3.length}`, full_name: '???', gamification_xp: 0, isPlaceholder: true });
+  }
+  const podiumOrder = [top3[1], top3[0], top3[2]];
 
   return (
     <div className="min-h-screen bg-neutral-950 relative overflow-hidden rounded-3xl mx-2 md:mx-4 my-2">
+      {/* Link Carteira/Planos - Topo Direito */}
+      <div className="absolute top-4 right-4 z-30">
+        <Link 
+          to={createPageUrl("OwnerSubscriptions")}
+          className="flex items-center gap-2 bg-black/40 hover:bg-black/60 border border-amber-500/30 rounded-full px-4 py-2 text-amber-400 text-sm font-medium transition-all hover:scale-105"
+        >
+          <Wallet className="w-4 h-4" />
+          <span className="hidden sm:inline">Gerir Plano</span>
+        </Link>
+      </div>
+
       {/* Nevoeiro laranja animado */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
@@ -642,7 +662,7 @@ export default function Gamification() {
               </h1>
 
               <p className="text-gray-500 text-sm mb-6">
-                Faltam <span className="text-amber-400 font-bold">{(xpForNextLevel - currentXP).toLocaleString()} XP</span> para o próximo nível
+                Faltam <span className="text-amber-400 font-bold">{xpNeeded.toLocaleString()} XP</span> para o próximo nível
               </p>
 
               {/* Mini barra de progresso */}
@@ -757,19 +777,13 @@ export default function Gamification() {
           {/* Pódio */}
           <div className="flex items-end justify-center gap-2 md:gap-4">
             {/* 2º Lugar */}
-            {podiumOrder[0] && (
-              <PodiumPedestal user={podiumOrder[0]} position={2} delay={0.2} />
-            )}
+            <PodiumPedestal user={podiumOrder[0]} position={2} delay={0.2} />
 
             {/* 1º Lugar */}
-            {podiumOrder[1] && (
-              <PodiumPedestal user={podiumOrder[1]} position={1} delay={0} />
-            )}
+            <PodiumPedestal user={podiumOrder[1]} position={1} delay={0} />
 
             {/* 3º Lugar */}
-            {podiumOrder[2] && (
-              <PodiumPedestal user={podiumOrder[2]} position={3} delay={0.4} />
-            )}
+            <PodiumPedestal user={podiumOrder[2]} position={3} delay={0.4} />
           </div>
 
           {/* Lista dos restantes */}
