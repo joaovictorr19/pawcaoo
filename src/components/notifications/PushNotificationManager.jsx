@@ -5,6 +5,7 @@ import { Bell, BellOff, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import ServiceWorkerRegistration from './ServiceWorkerRegistration';
 
 export default function PushNotificationManager({ user }) {
   const [permission, setPermission] = useState(
@@ -12,25 +13,7 @@ export default function PushNotificationManager({ user }) {
   );
   const [showBanner, setShowBanner] = useState(false);
 
-  // Registrar Service Worker
-  useEffect(() => {
-    if (!user) return;
-    
-    const registerServiceWorker = async () => {
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.register('/sw.js', {
-            scope: '/'
-          });
-          console.log('✅ Service Worker registrado:', registration);
-        } catch (error) {
-          console.error('❌ Erro ao registrar Service Worker:', error);
-        }
-      }
-    };
 
-    registerServiceWorker();
-  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -175,6 +158,7 @@ export default function PushNotificationManager({ user }) {
 
   return (
     <>
+      <ServiceWorkerRegistration />
       <AnimatePresence>
         {showBanner && (
           <motion.div
