@@ -89,7 +89,7 @@ export default function Home() {
 
   // Check URL for tab parameter
   const urlTabParam = new URLSearchParams(window.location.search).get('tab');
-  const [activeTab, setActiveTab] = useState(urlTabParam || "walkers");
+  const [activeTab, setActiveTab] = useState(urlTabParam || "professionals");
 
   const [userLocation, setUserLocation] = useState(null);
   const [viewMode, setViewMode] = useState("list");
@@ -1117,8 +1117,22 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full max-w-3xl mx-auto grid-cols-3 bg-white/60 backdrop-blur-sm p-1 rounded-xl mb-6 border border-white/40">
+                <TabsTrigger value="professionals" className="rounded-lg">
+                  <Users className="w-4 h-4 mr-2" />
+                  {language === 'pt' ? 'Profissionais' : 'Professionals'}
+                </TabsTrigger>
+                <TabsTrigger value="shop" className="rounded-lg">
+                  <ShoppingBag className="w-4 h-4 mr-2" />
+                  {language === 'pt' ? 'Loja' : 'Shop'}
+                </TabsTrigger>
+                <TabsTrigger value="emergency" className="rounded-lg">
+                  <Zap className="w-4 h-4 mr-2" />
+                  SOS
+                </TabsTrigger>
+              </TabsList>
 
-              <TabsContent value="walkers">
+              <TabsContent value="professionals">
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
@@ -1336,150 +1350,36 @@ export default function Home() {
               {/* Trainers Tab Content Removed */}
 
               <TabsContent value="shop">
-                <PawStoreTab />
+                <div className="text-center py-8">
+                  <ShoppingBag className="w-16 h-16 text-purple-300 mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    {language === 'pt' ? 'Descubra Produtos & Parceiros' : 'Discover Products & Partners'}
+                  </h3>
+                  <Button
+                    onClick={() => navigate(createPageUrl('Shop'))}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-12 px-8"
+                  >
+                    {language === 'pt' ? 'Ir para Loja' : 'Go to Shop'}
+                  </Button>
+                </div>
               </TabsContent>
 
               <TabsContent value="adoption">
                 <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
-                        {language === 'pt' ? 'Pets Disponíveis para Adoção' : 'Pets Available for Adoption'}
-                      </h2>
-                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1">
-                        {adoptionListings.length} {language === 'pt' ? 'pets esperando por um lar' : 'pets waiting for a home'}
-                      </p>
-                    </div>
+                  <div className="text-center py-8">
+                    <Heart className="w-16 h-16 text-pink-300 mx-auto mb-4 fill-pink-300" />
+                    <h3 className="text-2xl font-bold text-white mb-4">
+                      {language === 'pt' ? 'Adote um Pet' : 'Adopt a Pet'}
+                    </h3>
                     <Button
-                      variant="outline"
-                      onClick={() => navigate(createPageUrl('CreateAdoptionListing'))}
-                      className="bg-white/90 hover:bg-white"
+                      onClick={() => navigate(createPageUrl('AdoptionListings'))}
+                      className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 h-12 px-8"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      {language === 'pt' ? 'Adicionar' : 'Add'}
+                      {language === 'pt' ? 'Ver Adoções' : 'View Adoptions'}
                     </Button>
                   </div>
 
-                  {loadingAdoptions ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {[1, 2, 3, 4, 5, 6].map(i => (
-                        <Skeleton key={i} className="h-96 rounded-2xl" />
-                      ))}
-                    </div>
-                  ) : adoptionListings.length === 0 ? (
-                    <div className="text-center py-16">
-                      <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Heart className="w-10 h-10 text-pink-400" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-gray-700 mb-2">
-                        {language === 'pt' ? 'Nenhum pet disponível no momento' : 'No pets available at the moment'}
-                      </h3>
-                      <p className="text-gray-600">
-                        {language === 'pt' ? 'Volte em breve para ver novos amigos!' : 'Check back soon for new friends!'}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {adoptionListings.map((pet, idx) => (
-                        <motion.div
-                          key={pet.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                        >
-                          <Card 
-                            className="overflow-hidden hover:shadow-2xl transition-all cursor-pointer group border-2 border-gray-100"
-                            onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${pet.id}`))}
-                          >
-                            <div className="relative h-64 bg-gray-200 overflow-hidden">
-                              {pet.primary_photo_url || pet.photos?.[0] ? (
-                                <img
-                                  src={pet.primary_photo_url || pet.photos[0]}
-                                  alt={pet.pet_name}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
-                                  <Heart className="w-20 h-20 text-pink-300" />
-                                </div>
-                              )}
-                              
-                              {pet.adoption_id && (
-                                <Badge className="absolute top-3 left-3 bg-white/95 text-gray-800 shadow-lg">
-                                  ID: {pet.adoption_id}
-                                </Badge>
-                              )}
 
-                              {pet.urgency_level !== 'normal' && (
-                                <Badge className="absolute top-3 right-3 bg-red-500 text-white shadow-lg">
-                                  <AlertCircle className="w-3 h-3 mr-1" />
-                                  {pet.urgency_level === 'urgent' ? 'Urgente' : 'Crítico'}
-                                </Badge>
-                              )}
-
-                              {pet.is_verified && (
-                                <Badge className="absolute bottom-3 right-3 bg-green-500 text-white shadow-lg">
-                                  ✓ Verificado
-                                </Badge>
-                              )}
-                            </div>
-
-                            <CardContent className="p-5">
-                              <div className="mb-3">
-                                <h3 className="text-xl font-bold text-gray-900 mb-1">
-                                  {pet.pet_name || (language === 'pt' ? 'Nome a definir' : 'To be named')}
-                                </h3>
-                                <p className="text-sm text-gray-600">
-                                  {pet.breed || pet.pet_type}
-                                  {pet.mixed_breed && ' • Mix'}
-                                </p>
-                              </div>
-
-                              <div className="space-y-2 mb-4">
-                                <div className="flex items-center gap-2 text-sm text-gray-700">
-                                  <Calendar className="w-4 h-4 text-green-500" />
-                                  {(() => {
-                                    const years = pet.age_years || 0;
-                                    const months = pet.age_months || 0;
-                                    if (!years && !months) return language === 'pt' ? 'Idade desconhecida' : 'Unknown age';
-                                    const parts = [];
-                                    if (years) parts.push(`${years} ${language === 'pt' ? (years === 1 ? 'ano' : 'anos') : (years === 1 ? 'year' : 'years')}`);
-                                    if (months) parts.push(`${months} ${language === 'pt' ? (months === 1 ? 'mês' : 'meses') : (months === 1 ? 'month' : 'months')}`);
-                                    return parts.join(' ');
-                                  })()}
-                                </div>
-                                
-                                <div className="flex items-center gap-2 text-sm text-gray-700">
-                                  <MapPin className="w-4 h-4 text-pink-500" />
-                                  {pet.location_city}
-                                </div>
-                              </div>
-
-                              {pet.description && (
-                                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                                  {pet.description}
-                                </p>
-                              )}
-
-                              <div className="flex items-center justify-between">
-                                <span className="text-lg font-bold text-pink-600">
-                                  €{pet.adoption_fee || 0}
-                                </span>
-                                <Button
-                                  size="sm"
-                                  className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
-                                >
-                                  {language === 'pt' ? 'Ver Detalhes' : 'View Details'}
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
 
               <TabsContent value="emergency">
                 <div>
