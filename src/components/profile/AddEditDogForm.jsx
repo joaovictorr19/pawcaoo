@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dog, Upload, X, Plus, Save, Heart, Camera } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Heart as HeartIcon, Upload, X, Plus, Save, Heart, Camera } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +29,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
   // Define default values for all possible fields
   const defaultFormData = {
     dog_name: "",
-    pet_type: "dog",
+    animal_type: "dog",
     breed: "",
     age: "",
     date_of_birth: "",
@@ -60,6 +61,9 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
     behavioral_notes: "",
     favorite_toys: "",
     favorite_treats: "",
+    special_care_notes: "",
+    habitat_requirements: "",
+    feeding_instructions: "",
     emergency_contact_name: "",
     emergency_contact_phone: "",
     emergency_contact_relationship: "",
@@ -101,8 +105,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
       // Clean payload: remove undefined values and empty strings for optional fields
       const cleanPayload = Object.entries(data).reduce((acc, [key, value]) => {
         // Keep required fields even if empty
-        if (['dog_name', 'size', 'owner_email', 'pet_type'].includes(key)) {
-          acc[key] = value || (key === 'pet_type' ? 'dog' : key === 'size' ? 'medium' : '');
+        if (['dog_name', 'owner_email', 'animal_type'].includes(key)) {
+          acc[key] = value || (key === 'animal_type' ? 'dog' : '');
         }
         // For owner_phone and default_pickup_address, include even if empty string
         else if (['owner_phone', 'default_pickup_address'].includes(key)) {
@@ -126,8 +130,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
       const payload = {
         ...cleanPayload,
         owner_email: user.email,
-        pet_type: cleanPayload.pet_type || 'dog',
-        size: cleanPayload.size || 'medium',
+        animal_type: cleanPayload.animal_type || 'dog',
         owner_phone: data.owner_phone || '',
         default_pickup_address: data.default_pickup_address || ''
       };
@@ -186,32 +189,34 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.dog_name || !formData.size || !formData.pet_type) {
-      toast.error("Preencha os campos obrigatórios (Nome do Pet, Tipo de Animal, Tamanho)");
+    if (!formData.dog_name || !formData.animal_type) {
+      toast.error("Preencha os campos obrigatórios (Nome do Pet, Tipo de Animal)");
       return;
     }
 
     saveDogMutation.mutate(formData);
   };
 
-  const petTypeOptions = [
-    { value: "dog", label: "🐕 Cão", icon: "🐕" },
-    { value: "cat", label: "🐱 Gato", icon: "🐱" },
-    { value: "bird", label: "🦜 Pássaro", icon: "🦜" },
-    { value: "rabbit", label: "🐰 Coelho", icon: "🐰" },
-    { value: "hamster", label: "🐹 Hamster", icon: "🐹" },
-    { value: "guinea_pig", label: "🐹 Porquinho da Índia", icon: "🐹" },
-    { value: "turtle", label: "🐢 Tartaruga", icon: "🐢" },
-    { value: "fish", label: "🐠 Peixe", icon: "🐠" },
-    { value: "other", label: "🐾 Outro", icon: "🐾" }
+  // Animal types matching WalkerProfile.accepted_animals
+  const animalTypeOptions = [
+    { value: "dog", label: "🐕 Cão", icon: "🐕", color: "bg-amber-100 text-amber-700" },
+    { value: "cat", label: "🐱 Gato", icon: "🐱", color: "bg-purple-100 text-purple-700" },
+    { value: "reptile", label: "🦎 Réptil", icon: "🦎", color: "bg-green-100 text-green-700" },
+    { value: "arachnid", label: "🕷️ Aracnídeo", icon: "🕷️", color: "bg-gray-100 text-gray-700" },
+    { value: "rodent", label: "🐹 Roedor", icon: "🐹", color: "bg-orange-100 text-orange-700" },
+    { value: "bird", label: "🐦 Ave", icon: "🐦", color: "bg-blue-100 text-blue-700" }
   ];
+
+  const isExoticAnimal = ['reptile', 'arachnid', 'rodent', 'bird'].includes(formData.animal_type);
+
+  const selectedAnimalConfig = animalTypeOptions.find(a => a.value === formData.animal_type) || animalTypeOptions[0];
 
   return (
     <Card className="border-0 shadow-2xl">
-      <CardHeader className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 md:p-6">
+      <CardHeader className="bg-gradient-to-r from-pink-500 to-purple-500 text-white p-4 md:p-6">
         <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-          <Dog className="w-5 h-5 md:w-6 md:h-6" />
-          {dog ? 'Editar Pet' : 'Adicionar Novo Pet'}
+          <span className="text-2xl">{selectedAnimalConfig.icon}</span>
+          {dog ? 'Editar Animal' : 'Adicionar Novo Animal'}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 md:p-6">
@@ -319,32 +324,41 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     />
                   </div>
 
-                  <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="pet_type" className="text-sm">Tipo de Animal *</Label>
-                    <Select
-                      value={formData.pet_type}
-                      onValueChange={(value) => setFormData({ ...formData, pet_type: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {petTypeOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-1 md:space-y-2 md:col-span-2">
+                    <Label className="text-sm font-semibold">Tipo de Animal *</Label>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      {animalTypeOptions.map(option => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, animal_type: option.value })}
+                          className={`p-2 md:p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 ${
+                            formData.animal_type === option.value 
+                              ? 'border-green-500 bg-green-50 shadow-md' 
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className="text-xl md:text-2xl">{option.icon}</span>
+                          <span className="text-[10px] md:text-xs font-medium text-gray-700">{option.label.split(' ')[1]}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="breed" className="text-sm">Raça</Label>
+                    <Label htmlFor="breed" className="text-sm">{isExoticAnimal ? 'Espécie' : 'Raça'}</Label>
                     <Input
                       id="breed"
                       value={formData.breed}
                       onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
-                      placeholder={formData.pet_type === 'dog' ? "Ex: Labrador, SRD..." : "Raça ou espécie"}
+                      placeholder={
+                        formData.animal_type === 'dog' ? "Ex: Labrador, SRD..." : 
+                        formData.animal_type === 'cat' ? "Ex: Persa, Siamês..." :
+                        formData.animal_type === 'reptile' ? "Ex: Gecko, Iguana..." :
+                        formData.animal_type === 'bird' ? "Ex: Calopsita, Papagaio..." :
+                        formData.animal_type === 'rodent' ? "Ex: Hamster, Coelho..." :
+                        "Espécie ou variedade"
+                      }
                     />
                   </div>
 
@@ -380,20 +394,22 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     />
                   </div>
 
-                  <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="size" className="text-sm">Tamanho *</Label>
-                    <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="small">Pequeno</SelectItem>
-                        <SelectItem value="medium">Médio</SelectItem>
-                        <SelectItem value="large">Grande</SelectItem>
-                        <SelectItem value="extra_large">Extra Grande</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {!isExoticAnimal && (
+                    <div className="space-y-1 md:space-y-2">
+                      <Label htmlFor="size" className="text-sm">Tamanho</Label>
+                      <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">Pequeno</SelectItem>
+                          <SelectItem value="medium">Médio</SelectItem>
+                          <SelectItem value="large">Grande</SelectItem>
+                          <SelectItem value="extra_large">Extra Grande</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="space-y-1 md:space-y-2">
                     <Label htmlFor="gender" className="text-sm">Sexo</Label>
@@ -502,6 +518,50 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     </div>
                   )}
                 </div>
+
+                {/* Exotic Animal Special Care Section */}
+                {isExoticAnimal && (
+                  <div className="border-2 border-green-200 rounded-xl p-3 md:p-4 bg-green-50">
+                    <h4 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                      🦎 Cuidados Especiais para Animais Exóticos
+                    </h4>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="habitat_requirements" className="text-sm">Requisitos de Habitat</Label>
+                        <Textarea
+                          id="habitat_requirements"
+                          value={formData.habitat_requirements}
+                          onChange={(e) => setFormData({ ...formData, habitat_requirements: e.target.value })}
+                          placeholder="Ex: Terrário 60x40x40cm, temperatura 25-30°C, humidade 60%..."
+                          rows={2}
+                          className="mt-1 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="feeding_instructions" className="text-sm">Instruções de Alimentação</Label>
+                        <Textarea
+                          id="feeding_instructions"
+                          value={formData.feeding_instructions}
+                          onChange={(e) => setFormData({ ...formData, feeding_instructions: e.target.value })}
+                          placeholder="Ex: Alimentar 3x por semana com grilos vivos..."
+                          rows={2}
+                          className="mt-1 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="special_care_notes" className="text-sm">Notas de Cuidado Especial</Label>
+                        <Textarea
+                          id="special_care_notes"
+                          value={formData.special_care_notes}
+                          onChange={(e) => setFormData({ ...formData, special_care_notes: e.target.value })}
+                          placeholder="Ex: Não manusear após alimentação, sensível a ruídos..."
+                          rows={2}
+                          className="mt-1 bg-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Bio Section */}
                 <div>
