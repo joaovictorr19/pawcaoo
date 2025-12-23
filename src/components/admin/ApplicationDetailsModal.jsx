@@ -1,0 +1,458 @@
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { 
+  CheckCircle, XCircle, Eye, Upload, Loader2, MapPin, Phone,
+  Mail, Building, CreditCard, FileText, ShieldCheck, Video
+} from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+
+export default function ApplicationDetailsModal({ 
+  application, 
+  isOpen, 
+  onClose, 
+  onApprove,
+  onReject,
+  language 
+}) {
+  const queryClient = useQueryClient();
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [selectedApp, setSelectedApp] = useState(application);
+
+  React.useEffect(() => {
+    setSelectedApp(application);
+  }, [application]);
+
+  if (!selectedApp) return null;
+
+  const type = selectedApp.type;
+  const isWalker = type === 'walker';
+  const isTrainer = type === 'trainer';
+  const isShelter = type === 'shelter';
+
+  const handleDocUpload = async (e, field) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingDoc(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      const entity = isWalker 
+        ? base44.entities.WalkerProfile 
+        : isTrainer 
+        ? base44.entities.TrainerProfile 
+        : base44.entities.ShelterProfile;
+
+      await entity.update(selectedApp.id, { [field]: file_url });
+      setSelectedApp(prev => ({ ...prev, [field]: file_url }));
+
+      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
+
+      toast.success("Documento carregado!");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Erro ao carregar documento.");
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
+  const getName = () => {
+    return selectedApp.walker_name || selectedApp.trainer_name || selectedApp.shelter_name || 'Candidatura';
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-0">
+        <div className="sticky top-0 bg-white z-10 border-b px-6 py-4">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Detalhes da Candidatura</DialogTitle>
+            <DialogDescription className="text-base font-medium text-gray-700">
+              {getName()}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
+        <div className="px-6 py-4 space-y-6">
+          {/* Personal Info */}
+          <Card className="border-2 border-blue-100 bg-blue-50/30">
+            <CardContent className="p-4 space-y-3">
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Building className="w-5 h-5 text-blue-600" />
+                Informações Pessoais
+              </h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-2">
+                  <Mail className="w-4 h-4 text-gray-500 mt-1" />
+                  <div>
+                    <Label className="text-xs text-gray-500">Email</Label>
+                    <p className="text-sm font-medium break-all">
+                      {selectedApp.created_by || selectedApp.contact_email || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Phone className="w-4 h-4 text-gray-500 mt-1" />
+                  <div>
+                    <Label className="text-xs text-gray-500">Telefone</Label>
+                    <p className="text-sm font-medium">
+                      {selectedApp.phone || selectedApp.whatsapp_number || selectedApp.contact_phone || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-gray-500 mt-1" />
+                  <div>
+                    <Label className="text-xs text-gray-500">Localização</Label>
+                    <p className="text-sm font-medium">{selectedApp.location || 'N/A'}</p>
+                  </div>
+                </div>
+                {!isShelter && (
+                  <div className="flex items-start gap-2">
+                    <CreditCard className="w-4 h-4 text-gray-500 mt-1" />
+                    <div>
+                      <Label className="text-xs text-gray-500">Preço/Hora</Label>
+                      <p className="text-sm font-medium">
+                        €{selectedApp.hourly_rate || selectedApp.base_rate || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bank Details */}
+          {!isShelter && (
+            <Card className="border-2 border-green-100 bg-green-50/30">
+              <CardContent className="p-4 space-y-3">
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-green-600" />
+                  Dados Bancários
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs text-gray-500">Titular da Conta</Label>
+                    <p className="text-sm font-medium">{selectedApp.bank_account_holder || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">IBAN</Label>
+                    <p className="text-sm font-mono">{selectedApp.bank_account_number || 'N/A'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label className="text-xs text-gray-500">SWIFT/BIC</Label>
+                    <p className="text-sm font-mono">{selectedApp.bank_routing_number || 'N/A'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Bio */}
+          <Card className="border-2 border-purple-100 bg-purple-50/30">
+            <CardContent className="p-4">
+              <Label className="text-xs text-gray-500 mb-2 block">Biografia</Label>
+              <p className="text-sm text-gray-700 leading-relaxed bg-white p-3 rounded-lg">
+                {selectedApp.bio || selectedApp.mission || 'Sem descrição disponível.'}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Documents */}
+          <Card className="border-2 border-indigo-100 bg-indigo-50/30">
+            <CardContent className="p-4 space-y-4">
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-indigo-600" />
+                Documentos de Verificação
+                {uploadingDoc && (
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600 ml-2" />
+                )}
+              </h3>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                {/* ID Document */}
+                <div className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ShieldCheck className="w-5 h-5 text-blue-600" />
+                    <Label className="text-sm font-semibold">Documento de Identidade</Label>
+                  </div>
+                  {selectedApp.id_document_url ? (
+                    <div className="space-y-2">
+                      <a 
+                        href={selectedApp.id_document_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Ver Documento
+                      </a>
+                      <Label 
+                        htmlFor="upload-id" 
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-sm"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Substituir
+                      </Label>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                        <p className="text-sm text-red-600 font-medium">✗ Não enviado</p>
+                      </div>
+                      <Label 
+                        htmlFor="upload-id" 
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors cursor-pointer text-sm font-medium"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Carregar Agora
+                      </Label>
+                    </div>
+                  )}
+                  <Input
+                    id="upload-id"
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleDocUpload(e, 'id_document_url')}
+                    disabled={uploadingDoc}
+                  />
+                </div>
+
+                {/* Address Proof */}
+                <div className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Building className="w-5 h-5 text-green-600" />
+                    <Label className="text-sm font-semibold">Comprov. Morada</Label>
+                  </div>
+                  {selectedApp.proof_of_address_url ? (
+                    <div className="space-y-2">
+                      <a 
+                        href={selectedApp.proof_of_address_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Ver Documento
+                      </a>
+                      <Label 
+                        htmlFor="upload-addr" 
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-sm"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Substituir
+                      </Label>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                        <p className="text-sm text-red-600 font-medium">✗ Não enviado</p>
+                      </div>
+                      <Label 
+                        htmlFor="upload-addr" 
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors cursor-pointer text-sm font-medium"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Carregar Agora
+                      </Label>
+                    </div>
+                  )}
+                  <Input
+                    id="upload-addr"
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleDocUpload(e, 'proof_of_address_url')}
+                    disabled={uploadingDoc}
+                  />
+                </div>
+
+                {/* Criminal Record */}
+                <div className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-400 transition-colors">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ShieldCheck className="w-5 h-5 text-purple-600" />
+                    <Label className="text-sm font-semibold">Registo Criminal</Label>
+                  </div>
+                  {selectedApp.background_check_url ? (
+                    <div className="space-y-2">
+                      <a 
+                        href={selectedApp.background_check_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Ver Documento
+                      </a>
+                      {selectedApp.background_check_provider && (
+                        <p className="text-xs text-gray-600 text-center">
+                          {selectedApp.background_check_provider}
+                        </p>
+                      )}
+                      <Label 
+                        htmlFor="upload-bg" 
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-sm"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Substituir
+                      </Label>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                        <p className="text-sm text-gray-600">Opcional</p>
+                      </div>
+                      <Label 
+                        htmlFor="upload-bg" 
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors cursor-pointer text-sm font-medium"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Carregar
+                      </Label>
+                    </div>
+                  )}
+                  <Input
+                    id="upload-bg"
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => handleDocUpload(e, 'background_check_url')}
+                    disabled={uploadingDoc}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Photos and Video */}
+          <Card className="border-2 border-pink-100 bg-pink-50/30">
+            <CardContent className="p-4">
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Video className="w-5 h-5 text-pink-600" />
+                Fotos e Vídeo
+              </h3>
+              <div className="flex gap-4 flex-wrap">
+                {selectedApp.photo_url && (
+                  <div>
+                    <Label className="text-xs text-gray-500 mb-1 block">Foto de Perfil</Label>
+                    <img 
+                      src={selectedApp.photo_url} 
+                      alt="Profile" 
+                      className="w-32 h-32 object-cover rounded-xl border-2 border-white shadow-md" 
+                    />
+                  </div>
+                )}
+                {selectedApp.cover_photo_url && (
+                  <div>
+                    <Label className="text-xs text-gray-500 mb-1 block">Foto de Capa</Label>
+                    <img 
+                      src={selectedApp.cover_photo_url} 
+                      alt="Cover" 
+                      className="w-48 h-32 object-cover rounded-xl border-2 border-white shadow-md" 
+                    />
+                  </div>
+                )}
+                {selectedApp.video_intro_url && (
+                  <div>
+                    <Label className="text-xs text-gray-500 mb-1 block">Vídeo de Apresentação</Label>
+                    <a 
+                      href={selectedApp.video_intro_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-32 h-32 bg-black rounded-xl hover:opacity-80 transition-opacity"
+                    >
+                      <Video className="w-12 h-12 text-white" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status Summary */}
+          <Card className="border-2 border-yellow-100 bg-yellow-50/30">
+            <CardContent className="p-4">
+              <h3 className="font-bold text-gray-900 mb-3">Estado dos Documentos</h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2 bg-white rounded-lg">
+                  <span className="text-sm">Documento de Identidade</span>
+                  {selectedApp.id_document_url ? (
+                    <Badge className="bg-green-500">✓ Enviado</Badge>
+                  ) : (
+                    <Badge className="bg-red-500">✗ Falta</Badge>
+                  )}
+                </div>
+                <div className="flex items-center justify-between p-2 bg-white rounded-lg">
+                  <span className="text-sm">Comprovativo de Morada</span>
+                  {selectedApp.proof_of_address_url ? (
+                    <Badge className="bg-green-500">✓ Enviado</Badge>
+                  ) : (
+                    <Badge className="bg-red-500">✗ Falta</Badge>
+                  )}
+                </div>
+                <div className="flex items-center justify-between p-2 bg-white rounded-lg">
+                  <span className="text-sm">Registo Criminal (Opcional)</span>
+                  {selectedApp.background_check_url ? (
+                    <Badge className="bg-green-500">✓ Enviado</Badge>
+                  ) : (
+                    <Badge className="bg-gray-400">Não enviado</Badge>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="sticky bottom-0 bg-white border-t px-6 py-4">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+              Fechar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                const reason = prompt("Motivo da rejeição:");
+                if (reason) {
+                  onReject(type, selectedApp);
+                  onClose();
+                }
+              }}
+              className="w-full sm:w-auto"
+            >
+              <XCircle className="w-4 h-4 mr-2" />
+              Rejeitar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+              onClick={() => {
+                onApprove(type, selectedApp);
+                onClose();
+              }}
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Aprovar Candidatura
+            </Button>
+          </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

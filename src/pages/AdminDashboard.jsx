@@ -63,6 +63,7 @@ import ProductManagement from "../components/admin/ProductManagement";
 import BroadcastManager from "../components/admin/BroadcastManager";
 import StoreItemsManager from "../components/admin/StoreItemsManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
+import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
 
 export default function AdminDashboard() {
   // ============================================
@@ -4690,189 +4691,26 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
 
-        {/* Application Details Dialog */}
-        <Dialog open={showApplicationDialog} onOpenChange={setShowApplicationDialog}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{t('applicationDetails', language)} - {selectedApplication?.walker_name || selectedApplication?.trainer_name || selectedApplication?.shelter_name || "Candidatura"}</DialogTitle>
-            </DialogHeader>
-            {selectedApplication && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-semibold text-sm text-gray-500 mb-1">{t('personalInfo', language)}</h4>
-                    <p><strong>{t('fullName', language)}:</strong> {selectedApplication.walker_name || selectedApplication.trainer_name || selectedApplication.shelter_name || 'N/A'}</p>
-                    <p><strong>{t('email', language)}:</strong> {selectedApplication.created_by || selectedApplication.contact_email}</p>
-                    <p><strong>{t('phoneNumber', language)}:</strong> {selectedApplication.phone || selectedApplication.contact_phone}</p>
-                    <p><strong>{t('location', language)}:</strong> {selectedApplication.location}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm text-gray-500 mb-1">{t('bankDetails', language)}</h4>
-                    <p><strong>{t('accountHolderName', language)}:</strong> {selectedApplication.bank_account_holder || 'N/A'}</p>
-                    <p><strong>IBAN:</strong> {selectedApplication.bank_account_number || 'N/A'}</p>
-                    <p><strong>SWIFT/BIC:</strong> {selectedApplication.bank_routing_number || 'N/A'}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-sm text-gray-500 mb-2">{t('bio', language)}</h4>
-                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedApplication.bio || selectedApplication.mission || 'N/A'}</p>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-sm text-gray-500 mb-2">{t('documents', language)}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border rounded-lg p-3 bg-white">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="text-xs font-semibold">{t('idDocument', language)}</p>
-                        {uploadingDoc && <span className="text-xs text-blue-600 animate-pulse">{t('uploading', language)}</span>}
-                      </div>
-                      {selectedApplication.id_document_url ? (
-                        <div className="flex items-center justify-between">
-                          <a href={selectedApplication.id_document_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm truncate max-w-[150px]">
-                            {t('viewDocument', language)}
-                          </a>
-                          <Label htmlFor="upload-id" className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border">
-                            {t('replace', language)}
-                          </Label>
-                        </div>
-                      ) : (
-                        <div className="text-center py-2">
-                          <p className="text-sm text-red-500 mb-2">{t('notUploaded', language)}</p>
-                          <Label htmlFor="upload-id" className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200">
-                            <Upload className="w-3 h-3 inline mr-1" /> {t('upload', language)}
-                          </Label>
-                        </div>
-                      )}
-                      <Input
-                        id="upload-id"
-                        type="file"
-                        className="hidden"
-                        onChange={(e) => handleAdminDocUpload(e, 'id_document_url')}
-                        disabled={uploadingDoc}
-                      />
-                    </div>
-
-                    <div className="border rounded-lg p-3 bg-white">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="text-xs font-semibold">{t('addressProof', language)}</p>
-                      </div>
-                      {selectedApplication.proof_of_address_url ? (
-                        <div className="flex items-center justify-between">
-                          <a href={selectedApplication.proof_of_address_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm truncate max-w-[150px]">
-                            {t('viewDocument', language)}
-                          </a>
-                          <Label htmlFor="upload-addr" className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border">
-                            {t('replace', language)}
-                          </Label>
-                        </div>
-                      ) : (
-                        <div className="text-center py-2">
-                          <p className="text-sm text-red-500 mb-2">{t('notUploaded', language)}</p>
-                          <Label htmlFor="upload-addr" className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200">
-                            <Upload className="w-3 h-3 inline mr-1" /> {t('upload', language)}
-                          </Label>
-                        </div>
-                      )}
-                      <Input
-                        id="upload-addr"
-                        type="file"
-                        className="hidden"
-                        onChange={(e) => handleAdminDocUpload(e, 'proof_of_address_url')}
-                        disabled={uploadingDoc}
-                      />
-                    </div>
-
-                    <div className="border rounded-lg p-3 bg-white">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="text-xs font-semibold">{t('criminalRecord', language)}</p>
-                      </div>
-                      {selectedApplication.background_check_url ? (
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center justify-between">
-                            <a href={selectedApplication.background_check_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm truncate max-w-[150px]">
-                              {t('viewDocument', language)}
-                            </a>
-                            <Label htmlFor="upload-bg" className="cursor-pointer text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded border">
-                              {t('replace', language)}
-                            </Label>
-                          </div>
-                          <p className="text-xs text-gray-500">Prov: {selectedApplication.background_check_provider || 'N/A'}</p>
-                        </div>
-                      ) : (
-                        <div className="text-center py-2">
-                          <p className="text-sm text-gray-500 mb-2">{t('optional', language)} / {t('notUploaded', language)}</p>
-                          <Label htmlFor="upload-bg" className="cursor-pointer text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded border border-blue-200">
-                            <Upload className="w-3 h-3 inline mr-1" /> {t('upload', language)}
-                          </Label>
-                        </div>
-                      )}
-                      <Input
-                        id="upload-bg"
-                        type="file"
-                        className="hidden"
-                        onChange={(e) => handleAdminDocUpload(e, 'background_check_url')}
-                        disabled={uploadingDoc}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-sm text-gray-500 mb-2">{t('photosAndVideo', language)}</h4>
-                  <div className="flex gap-4 overflow-x-auto pb-2">
-                    {selectedApplication.photo_url && (
-                      <img src={selectedApplication.photo_url} alt="Profile" className="w-24 h-24 object-cover rounded-lg border" />
-                    )}
-                    {selectedApplication.video_intro_url && (
-                      <div className="w-24 h-24 bg-black rounded-lg flex items-center justify-center">
-                        <a href={selectedApplication.video_intro_url} target="_blank" rel="noopener noreferrer" className="text-white text-xs text-center">
-                          {t('viewVideo', language)}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowApplicationDialog(false)}>{t('cancel', language)}</Button>
-              <div className="flex gap-2">
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    if (selectedApplication) {
-                      const reason = prompt("Motivo da rejeição:");
-                      if (reason) {
-                        const type = selectedApplication.type;
-                        if (type === 'walker') updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'rejected', rejection_reason: reason }, walker: selectedApplication });
-                        else if (type === 'trainer') updateTrainerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'rejected', rejection_reason: reason }, trainer: selectedApplication });
-                        else if (type === 'shelter') updateShelterMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'rejected', rejection_reason: reason }, shelter: selectedApplication });
-                        setShowApplicationDialog(false);
-                      }
-                    }
-                  }}
-                >
-                  {t('reject', language)}
-                </Button>
-                <Button
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={() => {
-                    if (selectedApplication) {
-                      const type = selectedApplication.type;
-                      if (type === 'walker') updateWalkerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'verified', is_active: true }, walker: selectedApplication });
-                      else if (type === 'trainer') updateTrainerMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'verified', is_active: true }, trainer: selectedApplication });
-                      else if (type === 'shelter') updateShelterMutation.mutate({ id: selectedApplication.id, data: { verification_status: 'approved', is_verified: true }, shelter: selectedApplication });
-                      setShowApplicationDialog(false);
-                    }
-                  }}
-                >
-                  {t('approveApplication', language)}
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* Application Details Modal */}
+        <ApplicationDetailsModal
+          application={selectedApplication}
+          isOpen={showApplicationDialog}
+          onClose={() => setShowApplicationDialog(false)}
+          onApprove={(type, item) => {
+            if (type === 'walker') updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true }, walker: item });
+            else if (type === 'trainer') updateTrainerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true }, trainer: item });
+            else if (type === 'shelter') updateShelterMutation.mutate({ id: item.id, data: { verification_status: 'approved', is_verified: true }, shelter: item });
+          }}
+          onReject={(type, item) => {
+            const reason = prompt("Motivo da rejeição:");
+            if (!reason) return;
+            const data = { verification_status: 'rejected', rejection_reason: reason };
+            if (type === 'walker') updateWalkerMutation.mutate({ id: item.id, data, walker: item });
+            else if (type === 'trainer') updateTrainerMutation.mutate({ id: item.id, data, trainer: item });
+            else if (type === 'shelter') updateShelterMutation.mutate({ id: item.id, data, shelter: item });
+          }}
+          language={language}
+        />
 
         {/* Client Details Modal */}
         {showClientDetails && selectedClient && (
