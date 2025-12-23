@@ -198,7 +198,7 @@ export default function NotificationArea({ isOpen, onClose }) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => markAllRead.mutate()}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); markAllRead.mutate(); }}
                 className="text-xs text-blue-600 h-8 px-3 rounded-lg hover:bg-blue-50 font-semibold"
               >
                 ✓ Lidas
@@ -206,11 +206,12 @@ export default function NotificationArea({ isOpen, onClose }) {
             )}
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); forceClose(); }}
-              onTouchStart={(e) => { e.preventDefault(); forceClose(); }}
-              className="h-9 w-9 flex items-center justify-center rounded-xl hover:bg-gray-100 active:bg-gray-200 transition-colors"
+              onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); forceClose(); }}
+              className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-colors shadow-sm"
               style={{ touchAction: 'manipulation' }}
+              aria-label="Fechar"
             >
-              <X className="w-5 h-5 text-gray-600" />
+              <X className="w-5 h-5 text-gray-700" />
             </button>
           </div>
         </div>
@@ -266,8 +267,15 @@ export default function NotificationArea({ isOpen, onClose }) {
                   {/* Close button */}
                   {!n.is_system && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); deleteNotif.mutate(n.id); }}
+                      onClick={(e) => { 
+                        e.preventDefault(); 
+                        e.stopPropagation(); 
+                        deleteNotif.mutate(n.id); 
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
                       className="absolute top-1.5 right-1.5 p-1 hover:bg-red-100 rounded-full text-gray-400 hover:text-red-500 transition-colors active:scale-90 z-10"
+                      style={{ touchAction: 'manipulation' }}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -324,8 +332,15 @@ export default function NotificationArea({ isOpen, onClose }) {
                           
                           {!n.is_read && (
                             <button
-                              onClick={(e) => { e.stopPropagation(); markAsRead.mutate(n); }}
+                              onClick={(e) => { 
+                                e.preventDefault(); 
+                                e.stopPropagation(); 
+                                markAsRead.mutate(n); 
+                              }}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onTouchStart={(e) => e.stopPropagation()}
                               className="p-1 hover:bg-blue-100 rounded text-blue-600 transition-colors active:scale-90"
+                              style={{ touchAction: 'manipulation' }}
                             >
                               <Check className="w-3 h-3" />
                             </button>
