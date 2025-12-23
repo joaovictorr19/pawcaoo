@@ -714,19 +714,32 @@ export default function ProfessionalDashboard() {
 
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
-        <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] bg-white border border-gray-200 shadow-2xl p-0 overflow-hidden">
-          <div className="bg-white w-full h-full">
+        <DialogContent 
+          className="w-[95vw] sm:w-[90vw] max-w-3xl h-[95vh] sm:max-h-[90vh] bg-white p-0 gap-0 overflow-hidden flex flex-col"
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 999999,
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '16px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          }}
+        >
+          <div className="bg-white w-full h-full flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="bg-white px-6 py-5 border-b border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="bg-white px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex-shrink-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {editingService ? '✏️ Editar' : '➕ Adicionar'} Serviço
               </h2>
-              <p className="text-sm text-gray-600 mt-1">Preencha os detalhes do serviço abaixo</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Preencha os detalhes do serviço abaixo</p>
             </div>
 
             {/* Content */}
-            <div className="overflow-y-auto px-6 py-6 bg-white" style={{ maxHeight: 'calc(90vh - 180px)' }}>
-              <div className="space-y-6 bg-white">
+            <div className="overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 bg-white flex-1">
+              <div className="space-y-4 sm:space-y-6 bg-white">
                 
                 {/* Info Básica */}
                 <div className="bg-white p-5 rounded-xl border border-blue-100">
