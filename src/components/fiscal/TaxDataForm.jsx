@@ -193,7 +193,7 @@ export default function TaxDataForm({ onComplete }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validate tax ID format
@@ -202,7 +202,8 @@ export default function TaxDataForm({ onComplete }) {
       return;
     }
 
-    saveMutation.mutate(formData);
+    console.log('💾 Salvando dados fiscais:', formData);
+    await saveMutation.mutateAsync(formData);
   };
 
   const getStatusBadge = () => {
