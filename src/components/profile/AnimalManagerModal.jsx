@@ -19,7 +19,7 @@ const animalConfig = {
   bird: { icon: "🐦", label: "Ave", color: "bg-blue-100 text-blue-700" },
 };
 
-export default function DogManagerModal({ isOpen, onClose, userEmail }) {
+export default function AnimalManagerModal({ isOpen, onClose, userEmail }) {
   const [selectedAnimal, setSelectedAnimal] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const queryClient = useQueryClient();
@@ -102,8 +102,8 @@ export default function DogManagerModal({ isOpen, onClose, userEmail }) {
           ) : animals.length === 0 ? (
             <div className="text-center py-12 bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl border-2 border-dashed border-pink-200">
               <div className="text-4xl mb-4">🐾</div>
-              <p className="text-gray-600 mb-2">Ainda não tem animais cadastrados</p>
-              <p className="text-sm text-gray-500">Adicione cães, gatos, aves, répteis e mais!</p>
+              <p className="text-gray-600 mb-2">Ainda nao tem animais cadastrados</p>
+              <p className="text-sm text-gray-500">Adicione caes, gatos, aves, repteis e mais!</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -139,7 +139,7 @@ export default function DogManagerModal({ isOpen, onClose, userEmail }) {
                             )}
                             {animal.size && (
                               <span className="text-xs text-gray-500">
-                                • {animal.size === 'small' ? 'Peq.' : animal.size === 'medium' ? 'Méd.' : animal.size === 'large' ? 'Grande' : 'XL'}
+                                {animal.size === 'small' ? 'Peq.' : animal.size === 'medium' ? 'Med.' : animal.size === 'large' ? 'Grande' : 'XL'}
                               </span>
                             )}
                           </div>

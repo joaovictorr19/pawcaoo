@@ -28,7 +28,7 @@ const getAnimalTypeName = (type) => {
   return names[type] || "Animal";
 };
 
-export default function ProfileDogsBar({ userEmail, isOwnProfile, onAddDog }) {
+export default function ProfileAnimalsBar({ userEmail, isOwnProfile, onAddDog }) {
   const { data: animals = [], isLoading } = useQuery({
     queryKey: ['profileAnimals', userEmail],
     queryFn: async () => {
@@ -87,7 +87,6 @@ export default function ProfileDogsBar({ userEmail, isOwnProfile, onAddDog }) {
                           {animal.dog_name?.[0]?.toUpperCase() || config.icon}
                         </AvatarFallback>
                       </Avatar>
-
                     </div>
                     <span className="text-xs font-medium text-gray-700 truncate max-w-[60px] md:max-w-[70px]">
                       {animal.dog_name}
@@ -97,7 +96,7 @@ export default function ProfileDogsBar({ userEmail, isOwnProfile, onAddDog }) {
                 <TooltipContent className="bg-white border shadow-lg p-3 max-w-[200px]">
                   <div className="space-y-1">
                     <p className="font-bold text-gray-900 flex items-center gap-1">
-                      <span>{config.icon}</span> {animal.dog_name}
+                      {animal.dog_name}
                     </p>
                     <p className="text-xs text-gray-500">{getAnimalTypeName(type)}</p>
                     {animal.breed && <p className="text-xs text-gray-600">{animal.breed}</p>}
