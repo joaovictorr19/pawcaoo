@@ -349,96 +349,130 @@ export default function OwnerSubscriptions() {
         </div>
 
         <div className="relative">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, x: 100, rotateY: 90 }}
-              animate={{ opacity: 1, x: 0, rotateY: 0 }}
-              exit={{ opacity: 0, x: -100, rotateY: -90 }}
-              transition={{ duration: 0.3 }}
-              className={`relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-3xl p-8 border-2 ${style.border} shadow-2xl ${style.glow}`}
-            >
-              <div className={`absolute inset-0 bg-gradient-to-r ${style.shine} opacity-0 hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none`}></div>
-              
-              <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${currentPlan.gradient}`}></div>
-
-              <div className={`w-20 h-20 bg-gradient-to-br ${currentPlan.gradient} rounded-2xl flex items-center justify-center mb-4 shadow-xl mx-auto`}>
-                <Icon className="w-10 h-10 text-white" />
-              </div>
-
-              <h2 className="text-3xl font-black text-white text-center mb-2">
-                {currentPlan.name}
-              </h2>
-
-              <div className="text-center mb-6">
-                <div className="text-4xl font-black text-white">
-                  {getPrice(currentPlan)}
-                </div>
-                {savings && (
-                  <Badge className="mt-2 bg-green-500 text-white">
-                    Poupe €{savings}
-                  </Badge>
-                )}
-              </div>
-
-              {currentPlan.cashbackRate > 0 && (
-                <div className="mb-4 p-3 bg-green-500/20 border border-green-400/50 rounded-xl backdrop-blur">
-                  <p className="text-sm font-bold text-green-300 text-center">
-                    {currentPlan.cashbackRate}% Cashback
-                  </p>
-                </div>
-              )}
-
-              {currentPlan.freeWalksPerMonth > 0 && (
-                <div className="mb-4 p-3 bg-blue-500/20 border border-blue-400/50 rounded-xl backdrop-blur">
-                  <p className="text-sm font-bold text-blue-300 text-center">
-                    {currentPlan.freeWalksPerMonth} Passeio{currentPlan.freeWalksPerMonth > 1 ? 's' : ''} Grátis/Mês
-                  </p>
-                </div>
-              )}
-
-              <ul className="space-y-2 mb-6">
-                {currentPlan.features.map((feature, idx) => (
-                  <motion.li
-                    key={idx}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="flex items-start gap-2 text-sm text-white/90"
-                  >
-                    <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-                    <span>{feature}</span>
-                  </motion.li>
-                ))}
-              </ul>
-
-              <Button
-                className={`w-full bg-gradient-to-r ${currentPlan.gradient} hover:opacity-90 text-white font-bold h-12 rounded-xl shadow-xl`}
-                onClick={() => subscribeMutation.mutate({ plan: currentPlan, billingCycle })}
-                disabled={isCurrentPlan || subscribeMutation.isPending}
-              >
-                {isCurrentPlan ? 'Plano Atual' : subscribeMutation.isPending ? 'Processando...' : 'Subscrever'}
-              </Button>
-            </motion.div>
-          </AnimatePresence>
-
+          {/* Botões de navegação */}
           <Button
             variant="ghost"
             size="icon"
             onClick={prevCard}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 text-white hover:bg-white/10 w-12 h-12 rounded-full"
+            className="absolute left-0 md:-left-4 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-white/30 text-white hover:bg-white/20 h-10 w-10 md:h-12 md:w-12 rounded-full"
           >
-            <ChevronLeft className="w-8 h-8" />
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
           </Button>
 
           <Button
             variant="ghost"
             size="icon"
             onClick={nextCard}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 text-white hover:bg-white/10 w-12 h-12 rounded-full"
+            className="absolute right-0 md:-right-4 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-white/30 text-white hover:bg-white/20 h-10 w-10 md:h-12 md:w-12 rounded-full"
           >
-            <ChevronRight className="w-8 h-8" />
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
           </Button>
+
+          {/* Container das cartas - efeito de profundidade */}
+          <div className="flex justify-center items-center gap-4 overflow-hidden px-4 md:px-12 py-8">
+            <AnimatePresence mode="popLayout">
+              {plans.map((plan, idx) => {
+                const position = (idx - currentIndex + plans.length) % plans.length;
+                const isCurrent = position === 0;
+                const isNext = position === 1;
+                const isPrev = position === plans.length - 1;
+                const isVisible = isCurrent || isNext || isPrev;
+
+                if (!isVisible) return null;
+
+                const PlanIcon = plan.icon;
+                const planStyle = rarityStyles[plan.rarity];
+                const planIsActive = subscription?.plan_type === plan.type;
+                const planSavings = getSavings(plan);
+
+                return (
+                  <motion.div
+                    key={plan.type}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ 
+                      opacity: isCurrent ? 1 : 0.4,
+                      scale: isCurrent ? 1 : 0.85,
+                      zIndex: isCurrent ? 10 : 0,
+                      x: isPrev ? -40 : isNext ? 40 : 0
+                    }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.3 }}
+                    className={!isCurrent ? 'hidden md:block' : ''}
+                  >
+                    <div className={`relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 border-2 ${planStyle.border} shadow-2xl ${planStyle.glow} w-72 md:w-80`}>
+                      <div className={`absolute inset-0 bg-gradient-to-r ${planStyle.shine} opacity-0 hover:opacity-100 transition-opacity duration-500 rounded-3xl pointer-events-none`}></div>
+                      
+                      <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${plan.gradient}`}></div>
+
+                      {planIsActive && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                          Plano Atual
+                        </div>
+                      )}
+
+                      <div className={`w-20 h-20 bg-gradient-to-br ${plan.gradient} rounded-2xl flex items-center justify-center mb-4 shadow-xl mx-auto`}>
+                        <PlanIcon className="w-10 h-10 text-white" />
+                      </div>
+
+                      <h2 className="text-3xl font-black text-white text-center mb-2">
+                        {plan.name}
+                      </h2>
+
+                      <div className="text-center mb-6">
+                        <div className="text-4xl font-black text-white">
+                          {getPrice(plan)}
+                        </div>
+                        {planSavings && (
+                          <Badge className="mt-2 bg-green-500 text-white">
+                            Poupe €{planSavings}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {plan.cashbackRate > 0 && (
+                        <div className="mb-4 p-3 bg-green-500/20 border border-green-400/50 rounded-xl backdrop-blur">
+                          <p className="text-sm font-bold text-green-300 text-center">
+                            {plan.cashbackRate}% Cashback
+                          </p>
+                        </div>
+                      )}
+
+                      {plan.freeWalksPerMonth > 0 && (
+                        <div className="mb-4 p-3 bg-blue-500/20 border border-blue-400/50 rounded-xl backdrop-blur">
+                          <p className="text-sm font-bold text-blue-300 text-center">
+                            {plan.freeWalksPerMonth} Passeio{plan.freeWalksPerMonth > 1 ? 's' : ''} Grátis/Mês
+                          </p>
+                        </div>
+                      )}
+
+                      <ul className="space-y-2 mb-6">
+                        {plan.features.map((feature, featureIdx) => (
+                          <motion.li
+                            key={featureIdx}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: featureIdx * 0.05 }}
+                            className="flex items-start gap-2 text-sm text-white/90"
+                          >
+                            <Check className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                            <span>{feature}</span>
+                          </motion.li>
+                        ))}
+                      </ul>
+
+                      <Button
+                        className={`w-full bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white font-bold h-12 rounded-xl shadow-xl`}
+                        onClick={() => subscribeMutation.mutate({ plan, billingCycle })}
+                        disabled={planIsActive || subscribeMutation.isPending}
+                      >
+                        {planIsActive ? 'Plano Atual' : subscribeMutation.isPending ? 'Processando...' : 'Subscrever'}
+                      </Button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="flex justify-center gap-2 mt-6">
