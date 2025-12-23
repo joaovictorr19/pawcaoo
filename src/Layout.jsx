@@ -737,17 +737,31 @@ function LayoutContent({ children, currentPageName }) {
         /* Sidebar glassmorphism - same style for desktop and mobile */
         [data-sidebar="sidebar"],
         [data-sidebar="sidebar"] > div,
+        [data-sidebar="sidebar"] > div > div,
         aside[data-sidebar],
         aside[data-sidebar] > div,
         [data-state="open"] [data-sidebar="sidebar"],
-        [data-radix-scroll-area-viewport] {
-          background: rgba(255, 255, 255, 0.85) !important;
-          backdrop-filter: blur(16px) !important;
-          -webkit-backdrop-filter: blur(16px) !important;
+        [data-radix-scroll-area-viewport],
+        [data-sidebar],
+        [data-sidebar] > * {
+          background: rgba(255, 255, 255, 0.95) !important;
+          backdrop-filter: blur(20px) !important;
+          -webkit-backdrop-filter: blur(20px) !important;
+          --sidebar-background: rgba(255, 255, 255, 0.95) !important;
+        }
+        
+        /* Mobile sidebar drawer/sheet */
+        [data-state="open"][role="dialog"],
+        [data-state="open"][role="dialog"] > *,
+        [vaul-drawer],
+        [vaul-drawer] > * {
+          background: rgba(255, 255, 255, 0.98) !important;
+          backdrop-filter: blur(20px) !important;
+          -webkit-backdrop-filter: blur(20px) !important;
         }
         
         /* Force transparent background on sidebar children */
-        [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img) {
+        [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img):not([class*="bg-"]) {
           background-color: transparent !important;
         }
 
