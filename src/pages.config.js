@@ -82,6 +82,7 @@ import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
+import Shop from './pages/Shop';
 import __Layout from './Layout.jsx';
 
 
@@ -170,6 +171,7 @@ export const PAGES = {
     "WalkHistory": WalkHistory,
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
+    "Shop": Shop,
 }
 
 export const pagesConfig = {

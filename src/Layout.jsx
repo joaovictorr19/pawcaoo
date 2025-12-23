@@ -267,6 +267,11 @@ function LayoutContent({ children, currentPageName }) {
       id: "nav-home" 
     },
     { 
+      title: language === 'pt' ? 'Loja & Parceiros' : 'Shop & Partners',
+      url: createPageUrl("Shop"),
+      icon: ShoppingBag
+    },
+    { 
       title: language === 'pt' ? 'Passeio de Emergência' : (t('postEmergency', language) || 'Emergency Walk'), 
       url: createPageUrl("PostEmergency"), 
       icon: Zap, 
@@ -470,9 +475,7 @@ function LayoutContent({ children, currentPageName }) {
     prefetchQueries.trainers(queryClient, base44)
   );
   
-  const prefetchPartners = usePrefetchOnHover(() => 
-    prefetchQueries.partners(queryClient, base44)
-  );
+
   
   const prefetchBookings = usePrefetchOnHover(() => 
     prefetchQueries.bookings(queryClient, base44, authUser?.email)
@@ -481,7 +484,6 @@ function LayoutContent({ children, currentPageName }) {
   const getPrefetchHandlers = (item) => {
     if (item.url === createPageUrl("Home")) return prefetchWalkers;
     if (item.url === createPageUrl("Trainers")) return prefetchTrainers;
-    if (item.url === createPageUrl("Partners")) return prefetchPartners;
     if (item.url === createPageUrl("MyBookings")) return prefetchBookings;
     return {};
   };
@@ -842,14 +844,14 @@ function LayoutContent({ children, currentPageName }) {
                     <span className="hidden lg:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
                   </button>
                   <button
-                    onClick={() => navigate(createPageUrl("Partners"))}
+                    onClick={() => navigate(createPageUrl("Shop"))}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
-                      location.pathname === createPageUrl("Partners")
+                      location.pathname === createPageUrl("Shop")
                         ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
                         : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
-                    <Store className="w-4 h-4 flex-shrink-0" />
+                    <ShoppingBag className="w-4 h-4 flex-shrink-0" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Loja' : 'Shop'}</span>
                   </button>
                   <button
@@ -1334,7 +1336,7 @@ function LayoutContent({ children, currentPageName }) {
                       <li><Link to={createPageUrl("Home")} className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
                       <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
                       <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
-                      <li><Link to={createPageUrl("Partners")} className="hover:text-green-600 transition-colors">{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</Link></li>
+                      <li><Link to={createPageUrl("Shop")} className="hover:text-green-600 transition-colors">{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</Link></li>
                     </ul>
                   </div>
                   <div>
