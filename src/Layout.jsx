@@ -1402,7 +1402,9 @@ function LayoutContent({ children, currentPageName }) {
             </div>
 
             {/* Mobile Navigation Bar */}
-            <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
+            {authUser && (
+              <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
+            )}
 
             {/* Global Search Modal */}
             <GlobalSearch 
