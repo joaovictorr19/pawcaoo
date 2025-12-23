@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, Ticket, Truck, MapPin, CreditCard, Package, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -223,7 +223,7 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                   ))}
                 </div>
 
-                <Separator className="my-4" />
+                <div className="my-4 h-px bg-gray-200" />
 
                 {/* Coupon Section */}
                 <div className="space-y-2">
@@ -264,7 +264,7 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                   )}
                 </div>
 
-                <Separator className="my-4" />
+                <div className="my-4 h-px bg-gray-200" />
 
                 <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl space-y-2">
                   <div className="flex justify-between text-sm">
@@ -292,7 +292,7 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                       Faltam €{(50 - subtotal).toFixed(2)} para envio grátis
                     </p>
                   )}
-                  <Separator className="my-2" />
+                  <div className="my-2 h-px bg-gray-300" />
                   <div className="flex justify-between text-xl font-bold">
                     <span>Total</span>
                     <span className="text-blue-600">€{total.toFixed(2)}</span>
@@ -379,7 +379,7 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                     <span className="text-gray-600">Envio</span>
                     <span className="font-semibold">{shipping === 0 ? 'Grátis' : `€${shipping.toFixed(2)}`}</span>
                   </div>
-                  <Separator className="my-2" />
+                  <div className="my-2 h-px bg-gray-300" />
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
                     <span className="text-blue-600">€{total.toFixed(2)}</span>
@@ -462,7 +462,7 @@ export default function ShoppingCartModal({ isOpen, onClose, cart, onUpdateQuant
                       <span className="text-gray-600">Envio</span>
                       <span className="font-semibold">{shipping === 0 ? 'Grátis' : `€${shipping.toFixed(2)}`}</span>
                     </div>
-                    <Separator className="my-2" />
+                    <div className="my-2 h-px bg-gray-300" />
                     <div className="flex justify-between text-2xl font-bold">
                       <span>Total a Pagar</span>
                       <span className="text-blue-600">€{total.toFixed(2)}</span>
