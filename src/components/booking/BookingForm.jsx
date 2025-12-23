@@ -443,22 +443,17 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     <form onSubmit={(e) => e.preventDefault()}>
       <Card className="glass-panel border-0 shadow-xl rounded-2xl">
         <CardHeader 
-          className="text-white py-3 md:py-4 px-4 md:px-6"
+          className="text-white py-2 md:py-3 px-3 md:px-4"
           style={{
             background: selectedService 
               ? 'linear-gradient(to right, #3b82f6, #6366f1)' 
               : `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
           }}
         >
-          <CardTitle className="text-base md:text-xl flex items-center justify-between">
+          <CardTitle className="text-sm md:text-base flex items-center justify-between">
             <span className="flex items-center gap-2">
               {selectedService ? (
-                <>
-                  {selectedService.service_type === 'boarding' && '🏠'}
-                  {selectedService.service_type === 'house_sitting' && '🏡'}
-                  {selectedService.service_type === 'drop_in_feeding' && '🚪'}
-                  <span className="truncate">{selectedService.service_name}</span>
-                </>
+                <span className="truncate">{selectedService.service_name}</span>
               ) : (
                 isWalker ? 'Agendar Passeio' : 'Agendar Sessão'
               )}
@@ -472,58 +467,50 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               ))}
             </div>
           </CardTitle>
-          <p className="text-xs md:text-sm text-white/80">{proName}</p>
+          <p className="text-[10px] md:text-xs text-white/70">{proName}</p>
         </CardHeader>
-        <CardContent className="p-3 md:p-5 space-y-3 md:space-y-4">
+        <CardContent className="p-3 md:p-4 space-y-2 md:space-y-3">
           {/* STEP 1: Select Dog & Date */}
           {step === 1 && (
             <>
               {myDogs?.length > 0 ? (
-                <div className="space-y-3">
-                  <Label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-gray-700">
                     Selecione seu animal
                   </Label>
-                  <div className="grid gap-2">
+                  <div className="flex gap-2 overflow-x-auto pb-2">
                     {myDogs.map((dog) => {
-                      const isComplete = isDogProfileComplete(dog.id);
                       const isSelected = selectedDogId === dog.id;
                       return (
                         <div
                           key={dog.id}
-                          onClick={() => {
-                            setSelectedDogId(dog.id);
-                            if (isComplete) setAutoAdvance(true);
-                          }}
-                          className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                            isSelected 
-                              ? 'border-green-500 bg-green-50 shadow-md' 
-                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          onClick={() => setSelectedDogId(dog.id)}
+                          className={`flex-shrink-0 cursor-pointer transition-all ${
+                            isSelected ? 'scale-110' : 'opacity-70 hover:opacity-100'
                           }`}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="relative">
                             {dog.photo_url ? (
-                              <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow" />
+                              <img 
+                                src={dog.photo_url} 
+                                alt={dog.dog_name} 
+                                className={`w-16 h-16 rounded-full object-cover ${
+                                  isSelected ? 'ring-4 ring-green-500' : 'ring-2 ring-gray-200'
+                                }`} 
+                              />
                             ) : (
-                              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">
+                              <div className={`w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold ${
+                                isSelected ? 'ring-4 ring-green-500' : 'ring-2 ring-gray-200'
+                              }`}>
                                 {dog.dog_name?.charAt(0) || 'A'}
                               </div>
                             )}
-                            <div className="flex-1">
-                              <p className="font-semibold text-gray-900">{dog.dog_name}</p>
-                              <p className="text-xs text-gray-500">{dog.breed || 'SRD'} • {dog.size}</p>
-                            </div>
-                            {isComplete && (
-                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                                ✓ Perfil Completo
-                              </span>
+                            {isSelected && (
+                              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+                                <span className="text-white text-xs">✓</span>
+                              </div>
                             )}
                           </div>
-                          {isSelected && dog.default_pickup_address && (
-                            <div className="mt-2 pt-2 border-t border-green-200 text-xs text-gray-600">
-                              <MapPin className="w-3 h-3 inline mr-1" />
-                              {dog.default_pickup_address}
-                            </div>
-                          )}
                         </div>
                       );
                     })}
