@@ -331,6 +331,7 @@ function LayoutContent({ children, currentPageName }) {
           { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
           { title: "Teste Pagamentos", url: createPageUrl("TestPayments"), icon: CreditCard },
           { title: getMenuText('verifyWalkers'), url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
+          { title: "Gerir Emblemas", url: createPageUrl("BadgeManagement"), icon: Award },
           { title: "Shop Hub", url: createPageUrl("AdminShopHub"), icon: Store },
           { title: language === 'pt' ? 'Gestão de Loja' : 'Shop Management', url: createPageUrl("AdminProductManagement"), icon: ShoppingBag },
     { title: getMenuText('approveAds'), url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
