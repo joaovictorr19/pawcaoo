@@ -715,20 +715,22 @@ export default function ProfessionalDashboard() {
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
         <DialogContent 
-          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white border-0"
+          className="w-[95vw] max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white"
           style={{ 
             background: 'white !important',
             zIndex: 999999,
-            color: '#111827 !important'
+            color: '#111827 !important',
+            border: 'none',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
           }}
         >
           {/* Header Fixo */}
-          <DialogHeader className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-0 shadow-none" style={{ borderBottom: 'none' }}>
-            <DialogTitle className="text-xl md:text-2xl font-bold" style={{ color: '#111827' }}>
+          <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50">
+            <h2 className="text-xl md:text-2xl font-bold" style={{ color: '#111827' }}>
               {editingService ? '✏️ Editar' : '➕ Adicionar'} Serviço
-            </DialogTitle>
+            </h2>
             <p className="text-sm text-gray-600 mt-1">Preencha os detalhes do serviço abaixo</p>
-          </DialogHeader>
+          </div>
 
           {/* Conteúdo Scrollable */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -926,7 +928,7 @@ export default function ProfessionalDashboard() {
           </div>
 
           {/* Footer Fixo com Botões */}
-          <div className="px-6 py-4 bg-gray-50 flex gap-3 border-0 shadow-none" style={{ borderTop: 'none' }}>
+          <div className="px-6 py-4 bg-gray-50 flex gap-3">
             <Button 
               variant="outline" 
               onClick={() => {
