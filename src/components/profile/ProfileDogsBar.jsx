@@ -87,10 +87,7 @@ export default function ProfileDogsBar({ userEmail, isOwnProfile, onAddDog }) {
                           {animal.dog_name?.[0]?.toUpperCase() || config.icon}
                         </AvatarFallback>
                       </Avatar>
-                      {/* Animal type indicator */}
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">
-                        <span className="text-sm">{config.icon}</span>
-                      </div>
+
                     </div>
                     <span className="text-xs font-medium text-gray-700 truncate max-w-[60px] md:max-w-[70px]">
                       {animal.dog_name}

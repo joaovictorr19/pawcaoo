@@ -782,14 +782,14 @@ export default function Home() {
                 );
               })()}
 
-              {/* Dogs Carousel */}
+              {/* Animals Carousel */}
               {myDogs && myDogs.length > 0 && (
                 <Card className="glass-panel border-0 shadow-lg rounded-3xl">
                   <CardContent className="p-3">
                     <div className="flex items-center gap-2 mb-2">
-                      <Dog className="w-4 h-4 text-orange-600" />
+                      <Heart className="w-4 h-4 text-pink-500" />
                       <h3 className="font-bold text-sm text-gray-900">
-                        {language === 'pt' ? 'Meus Cães' : language === 'es' ? 'Mis Perros' : 'My Dogs'} ({myDogs.length})
+                        {language === 'pt' ? 'Meus Animais' : language === 'es' ? 'Mis Mascotas' : 'My Pets'} ({myDogs.length})
                       </h3>
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">

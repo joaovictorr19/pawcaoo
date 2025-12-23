@@ -286,11 +286,11 @@ export default function PostEmergency() {
           </CardHeader>
           <CardContent className="p-4 md:p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Multi-Dog Selection */}
+              {/* Multi-Animal Selection */}
               {myDogs?.length > 0 && (
                 <div className="bg-green-50 border border-green-300 rounded-xl p-3 md:p-4">
                   <Label className="font-semibold text-green-900 text-sm mb-2 block flex items-center gap-2">
-                    🐕 Meus Cães {selectedDogs.length > 0 && <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">{selectedDogs.length}</span>}
+                    Meus Animais {selectedDogs.length > 0 && <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">{selectedDogs.length}</span>}
                   </Label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {myDogs.map((dog) => {
@@ -354,10 +354,10 @@ export default function PostEmergency() {
                 </Select>
               </div>
 
-              {/* Dog Info - Only if manual entry */}
+              {/* Animal Info - Only if manual entry */}
               {selectedDogs.length === 0 && (
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 space-y-3">
-                  <Label className="text-sm font-semibold block text-gray-700">📸 Informações do Cão</Label>
+                  <Label className="text-sm font-semibold block text-gray-700">Informacoes do Animal</Label>
                   
                   <div className="flex items-center gap-3">
                     {formData.dog_photo_url ? (
@@ -428,7 +428,7 @@ export default function PostEmergency() {
 
               {/* Owner Info */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 md:p-4 space-y-3">
-                <Label className="text-sm font-semibold block text-blue-900">👤 Seus Dados</Label>
+                <Label className="text-sm font-semibold block text-blue-900">Seus Dados</Label>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="owner_name" className="text-xs">Seu Nome *</Label>
@@ -456,7 +456,7 @@ export default function PostEmergency() {
 
               {/* Walk Details */}
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 md:p-4 space-y-3">
-                <Label className="text-sm font-semibold block text-orange-900">📍 Detalhes do Passeio</Label>
+                <Label className="text-sm font-semibold block text-orange-900">Detalhes do Passeio</Label>
                 <div className="grid md:grid-cols-2 gap-3">
                   <div className="md:col-span-2">
                     <Label htmlFor="location" className="text-xs">Local de Recolha *</Label>
@@ -511,7 +511,7 @@ export default function PostEmergency() {
 
               {/* Special Notes */}
               <div>
-                <Label htmlFor="special_notes" className="text-sm font-semibold mb-1.5 block">💬 Notas Especiais <span className="text-xs text-gray-500 font-normal">(opcional)</span></Label>
+                <Label htmlFor="special_notes" className="text-sm font-semibold mb-1.5 block">Notas Especiais <span className="text-xs text-gray-500 font-normal">(opcional)</span></Label>
                 <Textarea
                   id="special_notes"
                   value={formData.special_notes}
@@ -534,7 +534,7 @@ export default function PostEmergency() {
                 </div>
 
                 <div className="bg-green-50 border border-green-300 rounded-lg p-3">
-                  <p className="text-xs text-green-800 font-semibold mb-1">💚 Reembolso Garantido</p>
+                  <p className="text-xs text-green-800 font-semibold mb-1">Reembolso Garantido</p>
                   <p className="text-xs text-green-700">
                     Cancelamento antes de aceite: <strong>100% reembolso</strong>
                   </p>

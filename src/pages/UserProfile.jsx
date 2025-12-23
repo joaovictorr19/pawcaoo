@@ -28,8 +28,8 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
 import { calculateTier, getLevelFromXP, getXPForLevel } from "@/components/gamification/tierSystem";
-import ProfileDogsBar from "@/components/profile/ProfileDogsBar";
-import DogManagerModal from "@/components/profile/DogManagerModal";
+import ProfileAnimalsBar from "@/components/profile/ProfileAnimalsBar";
+import AnimalManagerModal from "@/components/profile/AnimalManagerModal";
 
 const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => {
   return (
@@ -660,7 +660,7 @@ export default function UserProfile() {
   // Badge Selection State
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
-  const [isDogModalOpen, setIsDogModalOpen] = useState(false);
+  const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
 
   const updatePinnedBadgesMutation = useMutation({
     mutationFn: async ({ slotIndex, badgeId }) => {
@@ -1248,11 +1248,11 @@ export default function UserProfile() {
               </div>
             </div>
 
-            {/* Barra de Cães do Utilizador */}
-            <ProfileDogsBar 
+            {/* Barra de Animais do Utilizador */}
+            <ProfileAnimalsBar 
               userEmail={profileEmail}
               isOwnProfile={isOwnProfile}
-              onAddDog={() => setIsDogModalOpen(true)}
+              onAddDog={() => setIsAnimalModalOpen(true)}
             />
           </CardContent>
         </Card>
@@ -1494,10 +1494,10 @@ export default function UserProfile() {
           currentlyPinnedIds={profileUser?.pinned_badge_ids || []}
         />
 
-        {/* Dog Manager Modal */}
-        <DogManagerModal
-          isOpen={isDogModalOpen}
-          onClose={() => setIsDogModalOpen(false)}
+        {/* Animal Manager Modal */}
+        <AnimalManagerModal
+          isOpen={isAnimalModalOpen}
+          onClose={() => setIsAnimalModalOpen(false)}
           userEmail={profileEmail}
         />
       </div>

@@ -564,7 +564,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               {myDogs?.length > 0 ? (
                 <div className="space-y-3">
                   <Label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                    🐕 Selecione seu cão
+                    Selecione seu animal
                   </Label>
                   <div className="grid gap-2">
                     {myDogs.map((dog) => {
@@ -587,8 +587,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                             {dog.photo_url ? (
                               <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow" />
                             ) : (
-                              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-xl">
-                                🐕
+                              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">
+                                {dog.dog_name?.charAt(0) || 'A'}
                               </div>
                             )}
                             <div className="flex-1">
@@ -703,7 +703,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               {/* Service Selection */}
               {availableServices.length > 0 && (
                 <div>
-                  <Label className="text-sm font-semibold mb-2 block">🎯 Tipo de Serviço</Label>
+                  <Label className="text-sm font-semibold mb-2 block">Tipo de Servico</Label>
                   <div className="grid gap-2">
                     {availableServices.map((service, idx) => (
                       <div
@@ -772,7 +772,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           {step === 2 && (
             <>
               <div className="bg-gray-50 rounded-xl p-3 space-y-2">
-                <h4 className="font-semibold text-sm text-gray-900">📋 Confirme os dados</h4>
+                <h4 className="font-semibold text-sm text-gray-900">Confirme os dados</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-gray-500">Cão:</span>
@@ -858,15 +858,15 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 
                 <div className="space-y-2 text-sm mb-3">
                   <div className="flex justify-between py-1 border-b border-green-100">
-                    <span className="text-gray-600">🐕 {formData.dog_name}</span>
+                    <span className="text-gray-600">{formData.dog_name}</span>
                     <span className="font-medium">{formData.walk_date ? format(formData.walk_date, 'dd/MM') : ''} às {formData.walk_time}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-green-100">
-                    <span className="text-gray-600">🎯 Serviço</span>
+                    <span className="text-gray-600">Servico</span>
                     <span className="font-medium">{amounts.serviceName}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-green-100">
-                    <span className="text-gray-600">📍 Local</span>
+                    <span className="text-gray-600">Local</span>
                     <span className="font-medium text-right text-xs max-w-[150px] truncate">{pickupAddress}</span>
                   </div>
                 </div>
@@ -894,7 +894,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                <p className="font-semibold text-blue-800 mb-1">💳 Pagamento Seguro</p>
+                <p className="font-semibold text-blue-800 mb-1">Pagamento Seguro</p>
                 <p className="text-blue-700 text-xs">
                   Ao clicar em "Pagar", será redirecionado para o Stripe. 
                   O valor fica retido até o profissional aceitar e completar o serviço.

@@ -127,9 +127,6 @@ export default function DogManagerModal({ isOpen, onClose, userEmail }) {
                               {config.icon}
                             </div>
                           )}
-                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow border text-sm">
-                            {config.icon}
-                          </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-base md:text-lg truncate">{animal.dog_name}</h3>

@@ -448,7 +448,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 {/* Pickup Address */}
                 <div className="border-2 border-purple-200 rounded-xl p-3 md:p-4 bg-purple-50">
                   <Label htmlFor="default_pickup_address" className="text-sm md:text-base font-semibold text-purple-900 mb-2 block">
-                    📍 Local de Recolha Padrão
+                    Local de Recolha Padrao
                   </Label>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
@@ -471,7 +471,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                       className="bg-white"
                     />
                     <p className="text-xs text-purple-700">
-                      💡 Este endereço será usado automaticamente ao agendar passeios
+                      Este endereco sera usado automaticamente ao agendar passeios
                     </p>
                   </div>
                 </div>
@@ -487,8 +487,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                       className="w-4 h-4 text-pink-600"
                     />
                     <Label htmlFor="is_adopted" className="cursor-pointer font-semibold text-pink-900">
-                      <Heart className="w-4 h-4 inline mr-1 fill-pink-500 text-pink-500" />
-                      Este pet foi adotado
+                      Este animal foi adotado
                     </Label>
                   </div>
 
@@ -522,8 +521,8 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 {/* Exotic Animal Special Care Section */}
                 {isExoticAnimal && (
                   <div className="border-2 border-green-200 rounded-xl p-3 md:p-4 bg-green-50">
-                    <h4 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-                      🦎 Cuidados Especiais para Animais Exóticos
+                    <h4 className="font-semibold text-green-900 mb-3">
+                      Cuidados Especiais para Animais Exoticos
                     </h4>
                     <div className="space-y-3">
                       <div>
@@ -788,16 +787,16 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                   className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 md:py-3 text-sm md:text-base"
                   onClick={() => {
                     if (!formData.dog_name) {
-                      toast.error("Salve o perfil do cão primeiro!");
+                      toast.error("Salve o perfil do animal primeiro!");
                       return;
                     }
                     navigate(createPageUrl('PostEmergency') + `?dogName=${formData.dog_name}&dogPhoto=${formData.photo_url || ''}`);
                   }}
                 >
-                  🆘 Publicar Passeio de Emergência
+                  Publicar Passeio de Emergencia
                 </Button>
                 <p className="text-xs text-red-700 mt-2 text-center">
-                  Precisa de um passeador urgente? Crie um pedido de emergência!
+                  Precisa de um passeador urgente? Crie um pedido de emergencia!
                 </p>
               </div>
               </TabsContent>
