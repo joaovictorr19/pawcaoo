@@ -9,7 +9,7 @@ import { useLanguage } from "../LanguageContext";
 
 export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
-  const { colors, isDarkMode } = useTheme();
+  const { colors } = useTheme();
   const { language } = useLanguage();
 
   const isActive = (path) => {
@@ -96,22 +96,20 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
                 }
               }}
               className={`flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group ${
-                active ? "transform -translate-y-1" : (isDarkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700")
+                active ? "transform -translate-y-1" : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              {/* Glow Effect for Active - Dynamic Color */}
+              {/* Glow Effect for Active */}
               {active && (
                 <div 
-                  className="absolute -top-2 w-8 h-1 rounded-full opacity-60 blur-sm"
-                  style={{ backgroundColor: colors?.primary || '#3b82f6' }}
+                  className={`absolute -top-2 w-8 h-1 rounded-full opacity-60 blur-sm ${colors?.accent?.replace('text-', 'bg-') || 'bg-blue-600'}`}
                 />
               )}
 
               <div className="relative">
                 {item.isProfile && user ? (
                   <Avatar 
-                    className={`w-5 h-5 ${active ? "ring-2 ring-offset-1" : ""}`}
-                    style={active ? { '--tw-ring-color': colors?.primary || '#3b82f6' } : {}}
+                    className={`w-5 h-5 ${active ? `ring-2 ring-offset-1 ${colors?.ring || 'ring-blue-500'}` : ""}`}
                   >
                     <AvatarImage src={user.profile_photo_url} className="aspect-square object-cover object-center" />
                     <AvatarFallback className="text-[8px] bg-gray-200">
@@ -120,8 +118,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
                   </Avatar>
                 ) : (
                   <Icon 
-                    className={`w-5 h-5 ${item.isSpecial && active ? "fill-current" : ""}`}
-                    style={active ? { color: colors?.primary || '#3b82f6' } : {}}
+                    className={`w-5 h-5 ${active ? `${colors?.accent || 'text-blue-600'} scale-110` : ""} ${item.isSpecial && active ? "fill-current" : ""} transition-all duration-200`}
                     strokeWidth={active ? 2.5 : 1.8}
                   />
                 )}
@@ -134,8 +131,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               </div>
 
               <span 
-                className={`text-[9px] mt-0.5 font-medium truncate max-w-[50px] ${!active && "text-gray-500"}`}
-                style={active ? { color: colors?.primary || '#3b82f6' } : {}}
+                className={`text-[9px] mt-0.5 font-medium truncate max-w-[50px] ${active ? `${colors?.accent || 'text-blue-600'}` : "text-gray-500"}`}
               >
                 {item.label}
               </span>

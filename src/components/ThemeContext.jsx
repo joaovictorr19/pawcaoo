@@ -1,115 +1,88 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { calculateTier } from './gamification/tierSystem';
 
 const ThemeContext = createContext();
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    // Return default theme instead of throwing error
-    return {
-      tier: 'Safira',
-      colors: {
-        primary: 'green-600',
-              gradient: 'from-green-500 to-emerald-600',
-              glass_border: 'border-green-200/50',
-              text: 'text-green-600',
-              bg: 'bg-green-50',
-        isDarkMode: false
-      },
-      icon: '💎',
-      progress: 0,
-    };
-  }
-  return context;
-};
+export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
-  const [tierTheme, setTierTheme] = useState({
-    name: 'Safira',
-    colors: {
-      primary: 'green-600',
-      gradient: 'from-green-500 to-emerald-600',
-      glass_border: 'border-green-200/50',
-      text: 'text-green-600',
-      bg: 'bg-green-50'
-    }
-  });
-
+  // 1. Buscar o Nível do Utilizador
   const { data: user } = useQuery({
-    queryKey: ['currentUser'],
+    queryKey: ['currentUserTheme'],
     queryFn: () => base44.auth.me(),
-    retry: false,
+    staleTime: 1000 * 60 * 5, // Cache de 5 minutos
   });
 
-  const { data: userProfile } = useQuery({
-    queryKey: ['userProfileTheme', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-      const profile = profiles[0] || null;
-      
-      // UserProfile is the single source of truth for XP
-      console.log('🎯 Theme XP fetched:', profile?.gamification_xp);
-      
-      return profile;
-    },
-    enabled: !!user?.email,
-    staleTime: 10 * 1000, // 10 seconds - refresh more often for theme changes
-    refetchOnWindowFocus: true,
-  });
+  const level = user?.gamification_level || 0;
 
-  useEffect(() => {
-    if (userProfile) {
-      const xp = userProfile.gamification_xp || 0;
-      const tier = calculateTier(xp);
-      
-      // Novo sistema de 100 níveis com 20 cores
-      setTierTheme({
-        name: tier.name,
-        level: tier.level,
-        colors: {
-          primary: tier.primary,
-          gradient: tier.gradient,
-          orb1: tier.orb1,
-          orb2: tier.orb2,
-          text: tier.text,
-          bg: tier.bg,
-          isDark: false, // FORÇA SEMPRE MODO CLARO
-          isLegendary: tier.isLegendary
-        },
-        icon: tier.icon,
-        progress: tier.progress
-      });
+  // 2. A Lógica das Cores (Jewel Tones / Tons de Joia)
+  const getThemeByLevel = (lvl) => {
+    // TIER 1 (0-19): VERDE FLORESTA (Deep Forest)
+    if (lvl < 20) return {
+      name: 'forest',
+      primary: 'bg-emerald-900',      // Botões e Fundos Escuros
+      secondary: 'bg-emerald-100',    // Fundos Claros
+      text: 'text-emerald-900',       // Títulos
+      accent: 'text-emerald-600',     // Ícones e Links
+      border: 'border-emerald-200',   // Bordas finas
+      ring: 'ring-emerald-500',       // Foco
+      gradient: 'from-emerald-900 to-green-800' // Gradientes
+    };
 
-      // Inject CSS Variables into :root for dynamic orbs
-      const root = document.documentElement;
-      root.style.setProperty('--color-orb-1', tier.orb1 || tier.primary);
-      root.style.setProperty('--color-orb-2', tier.orb2 || tier.primary);
-      root.style.setProperty('--color-primary', tier.primary);
+    // TIER 2 (20-39): AZUL MARINHO REAL (Navy Blue)
+    if (lvl < 40) return {
+      name: 'navy',
+      primary: 'bg-blue-950',
+      secondary: 'bg-blue-50',
+      text: 'text-blue-950',
+      accent: 'text-blue-700',
+      border: 'border-blue-200',
+      ring: 'ring-blue-500',
+      gradient: 'from-blue-950 to-indigo-900'
+    };
 
-      // REMOVE PERMANENTEMENTE O MODO ESCURO
-      document.documentElement.classList.remove('dark-cosmos');
+    // TIER 3 (40-59): VERMELHO VINHO (Bordeaux/Velvet)
+    if (lvl < 60) return {
+      name: 'wine',
+      primary: 'bg-rose-950',         // Quase preto avermelhado
+      secondary: 'bg-rose-50',
+      text: 'text-rose-950',
+      accent: 'text-rose-700',
+      border: 'border-rose-200',
+      ring: 'ring-rose-500',
+      gradient: 'from-rose-950 to-red-900'
+    };
 
-      console.log(`🎨 Tema ${tier.name} (Nv.${tier.level}) aplicado | XP: ${xp} | Cores: ${tier.orb1}, ${tier.orb2}`);
-    }
-  }, [userProfile]);
+    // TIER 4 (60-79): ÂMBAR ESCURO (Dark Amber)
+    if (lvl < 80) return {
+      name: 'amber',
+      primary: 'bg-amber-900',
+      secondary: 'bg-amber-50',
+      text: 'text-amber-900',
+      accent: 'text-amber-600',
+      border: 'border-amber-200',
+      ring: 'ring-amber-500',
+      gradient: 'from-amber-900 to-yellow-700'
+    };
 
-  const value = {
-    tier: tierTheme.name,
-    level: tierTheme.level || 1,
-    colors: {
-      ...tierTheme.colors,
-      isDarkMode: false // SEMPRE MODO CLARO
-    },
-    icon: tierTheme.icon,
-    progress: tierTheme.progress || 0,
+    // TIER 5 (80+): LENDA DOURADA (Gold)
+    return {
+      name: 'gold',
+      primary: 'bg-yellow-600',
+      secondary: 'bg-yellow-50',
+      text: 'text-yellow-900',
+      accent: 'text-yellow-600',
+      border: 'border-yellow-200',
+      ring: 'ring-yellow-500',
+      gradient: 'from-yellow-600 via-amber-500 to-yellow-400' // Este brilha mais
+    };
   };
 
+  const colors = getThemeByLevel(level);
+
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider value={{ colors, level }}>
       {children}
     </ThemeContext.Provider>
   );
