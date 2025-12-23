@@ -707,15 +707,15 @@ export default function ProfessionalDashboard() {
 
     return (
       <Dialog open={showServiceForm} onOpenChange={setShowServiceForm}>
-        <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 md:p-6">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 md:p-6 bg-white border border-gray-200">
           <DialogHeader>
-            <DialogTitle className="text-lg md:text-xl">
+            <DialogTitle className="text-lg md:text-xl text-gray-900">
               {editingService ? 'Editar' : 'Adicionar'} Serviço
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label className="text-sm md:text-base">Nome do Serviço *</Label>
+              <Label className="text-sm md:text-base text-gray-900">Nome do Serviço *</Label>
               <Input
                 value={formData.service_name}
                 onChange={(e) => setFormData({...formData, service_name: e.target.value})}
@@ -724,19 +724,19 @@ export default function ProfessionalDashboard() {
               />
             </div>
             <div>
-              <Label className="text-sm md:text-base">Descrição</Label>
+              <Label className="text-sm md:text-base text-gray-900">Descrição</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 placeholder="Descreva o serviço oferecido..."
                 rows={3}
-                className="resize-none"
+                className="resize-none bg-white text-gray-900"
               />
             </div>
             
             {/* Animal Type Selector */}
             <div className="space-y-2">
-              <Label className="text-sm md:text-base font-semibold">Tipo de Animal *</Label>
+              <Label className="text-sm md:text-base font-semibold text-gray-900">Tipo de Animal *</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {[
                   { id: 'dogs', label: 'Cães', IconComponent: Dog },
@@ -765,7 +765,7 @@ export default function ProfessionalDashboard() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm md:text-base">
+                <Label className="text-sm md:text-base text-gray-900">
                   Preço (€) * 
                   <span className="text-xs text-gray-500 ml-1">
                     {['dogs', 'cats'].includes(formData.animal_type) ? '/hora' : '/visita'}
@@ -781,7 +781,7 @@ export default function ProfessionalDashboard() {
                       ? "Ex: 10€ (por hora)" 
                       : "Ex: 20€ (por visita)"
                   }
-                  className="h-11 md:h-10"
+                  className="h-11 md:h-10 bg-white text-gray-900"
                 />
               </div>
               <div className="flex items-center space-x-2 pt-8">
@@ -799,8 +799,8 @@ export default function ProfessionalDashboard() {
             </div>
 
             {/* Packages Section - Great for Trainers */}
-            <div className="border-t pt-4 mt-4">
-              <Label className="text-sm md:text-base mb-2 block font-semibold text-purple-700">
+            <div className="border-t border-gray-200 pt-4 mt-4">
+              <Label className="text-sm md:text-base mb-2 block font-semibold text-gray-900">
                 Pacotes Promocionais (Opcional)
               </Label>
               <div className="bg-gray-50 p-3 rounded-lg space-y-3">
