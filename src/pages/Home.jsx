@@ -1467,22 +1467,22 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-4 md:gap-8 max-w-2xl mx-auto px-4">
             <motion.div 
               whileHover={{ scale: 1.05, y: -4 }}
-              className="flex flex-col items-center gap-3 cursor-default group"
+              className="flex flex-col items-center gap-3 cursor-default group bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20 shadow-xl"
             >
               <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
                 <Shield className="w-8 h-8 md:w-10 md:h-10 text-white" />
               </div>
-              <span className="text-sm md:text-base font-bold text-white text-center leading-tight drop-shadow-md">{t('verifiedProfessionals', language)}</span>
+              <span className="text-sm md:text-base font-bold text-white text-center leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">{t('verifiedProfessionals', language)}</span>
             </motion.div>
 
             <motion.div 
               whileHover={{ scale: 1.05, y: -4 }}
-              className="flex flex-col items-center gap-3 cursor-default group"
+              className="flex flex-col items-center gap-3 cursor-default group bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20 shadow-xl"
             >
               <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
                 <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-white" />
               </div>
-              <span className="text-sm md:text-base font-bold text-white text-center leading-tight drop-shadow-md">{t('securePayment', language)}</span>
+              <span className="text-sm md:text-base font-bold text-white text-center leading-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">{t('securePayment', language)}</span>
             </motion.div>
           </div>
           </div>
