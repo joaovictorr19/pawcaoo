@@ -5,9 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { 
   Wallet, Zap, Star, TrendingUp, Clock, ArrowUpRight, ArrowDownLeft, 
-  Gift, ShoppingBag, Dog, Calendar, Crown, Sparkles 
+  Gift, ShoppingBag, Dog, Calendar, Crown, Sparkles, HelpCircle, Info 
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -19,6 +31,7 @@ import { useLanguage } from "@/components/LanguageContext";
 export default function MyWallet() {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const [showGuide, setShowGuide] = React.useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -91,17 +104,127 @@ export default function MyWallet() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-black text-gray-900 mb-2">Minha Wallet</h1>
-          <p className="text-gray-600">Gerencie seus tokens, cashback e pontos</p>
-        </motion.div>
+    <TooltipProvider>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-blue-50 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-black text-gray-900 mb-2">Minha Wallet</h1>
+                <p className="text-gray-600">Gerencie seus tokens, cashback e pontos</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowGuide(!showGuide)}
+                className="gap-2"
+              >
+                <HelpCircle className="w-4 h-4" />
+                Guia Rápido
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* Quick Guide/FAQ */}
+          {showGuide && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6"
+            >
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-50 to-purple-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Info className="w-5 h-5 text-blue-600" />
+                    Guia da Wallet PawCão
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="tokens">
+                      <AccordionTrigger className="text-sm font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-blue-600" />
+                          O que são Tokens de Passeio?
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-gray-700 space-y-2">
+                        <p>Tokens são <strong>passeios grátis</strong> incluídos no seu plano de subscrição.</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li>Válidos para passeios em <strong>dias úteis (9h-18h)</strong></li>
+                          <li>Coberturas extras: +€5 fins-de-semana, +€3 horário noturno</li>
+                          <li>Valor padrão: €12-€15 por passeio (depende do plano)</li>
+                          <li>⚠️ Tokens não utilizados <strong>expiram</strong> no fim do período</li>
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="cashback">
+                      <AccordionTrigger className="text-sm font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Wallet className="w-4 h-4 text-green-600" />
+                          Como funciona o Cashback?
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-gray-700 space-y-2">
+                        <p>Cashback é <strong>crédito em euros</strong> que você ganha em compras.</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li>Ganhe 5%-15% de volta em cada compra (depende do plano)</li>
+                          <li>Use na <strong>Loja PawCão</strong> ou em <strong>serviços</strong></li>
+                          <li>Sem data de expiração</li>
+                          <li>Aplicado automaticamente no checkout</li>
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="points">
+                      <AccordionTrigger className="text-sm font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-yellow-600" />
+                          O que são PawPoints?
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-gray-700 space-y-2">
+                        <p>PawPoints é o nosso <strong>programa de fidelidade</strong>.</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                          <li>Ganhe 10 pontos por cada €1 gasto</li>
+                          <li>Multiplicadores: 1.5x-3x (depende do plano)</li>
+                          <li>400 pontos = €1 em resgates</li>
+                          <li>Troque por descontos, produtos, serviços VIP</li>
+                          <li>Pontos não expiram</li>
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="howto">
+                      <AccordionTrigger className="text-sm font-semibold">
+                        <div className="flex items-center gap-2">
+                          <Gift className="w-4 h-4 text-purple-600" />
+                          Como maximizar meus benefícios?
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-gray-700 space-y-2">
+                        <p><strong>Dicas para aproveitar ao máximo:</strong></p>
+                        <ol className="list-decimal pl-5 space-y-1">
+                          <li><strong>Use seus tokens!</strong> Eles expiram no fim do mês</li>
+                          <li>Marque passeios em dias úteis para maximizar tokens grátis</li>
+                          <li>Acumule cashback comprando na Loja PawCão</li>
+                          <li>Deixe reviews para ganhar pontos bônus</li>
+                          <li>Faça upgrade de plano para multiplicadores maiores</li>
+                        </ol>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
         {/* Membership Status */}
         <motion.div
@@ -175,8 +298,21 @@ export default function MyWallet() {
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <Zap className="w-6 h-6 text-blue-600" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                          <HelpCircle className="w-4 h-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="font-semibold mb-1">Tokens de Passeio Grátis</p>
+                        <p className="text-xs">Passeios incluídos no seu plano. Use em dias úteis (9h-18h) sem custo extra. Fins-de-semana +€5, noturno +€3.</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                   {wallet?.tokens_expiry_date && (
                     <Badge variant="outline" className={`text-xs ${new Date(wallet.tokens_expiry_date) < new Date(Date.now() + 7*24*60*60*1000) ? 'border-red-300 text-red-600 bg-red-50' : ''}`}>
@@ -206,8 +342,21 @@ export default function MyWallet() {
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <Wallet className="w-6 h-6 text-green-600" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                      <Wallet className="w-6 h-6 text-green-600" />
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                          <HelpCircle className="w-4 h-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="font-semibold mb-1">Crédito Cashback</p>
+                        <p className="text-xs">Dinheiro de volta em euros. Use na Loja PawCão ou em serviços. Sem expiração. Taxa: {(membership?.cashback_rate * 100 || 0)}%.</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                   <Badge className="bg-green-100 text-green-700 text-xs">
                     {(membership?.cashback_rate * 100 || 0)}% cashback
@@ -233,8 +382,21 @@ export default function MyWallet() {
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                    <Star className="w-6 h-6 text-yellow-600" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                      <Star className="w-6 h-6 text-yellow-600" />
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                          <HelpCircle className="w-4 h-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="font-semibold mb-1">PawPoints</p>
+                        <p className="text-xs">Programa de fidelidade. Ganhe 10 pts/€1 (multiplicador {membership?.points_multiplier || 1}x). 400 pontos = €1. Resgates: descontos, produtos, serviços VIP.</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                   <Badge className="bg-yellow-100 text-yellow-700 text-xs">
                     {membership?.points_multiplier || 1}x multiplicador
@@ -351,5 +513,6 @@ export default function MyWallet() {
         </motion.div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
