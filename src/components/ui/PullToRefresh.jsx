@@ -12,14 +12,13 @@ export default function PullToRefresh({ children, onRefresh }) {
   const MAX_PULL = 160; // Maximum drag distance
 
   useEffect(() => {
-    const container = contentRef.current;
-    if (!container) return;
-
     let touchStartY = 0;
     let isPulling = false;
+    let currentDistance = 0;
 
     const handleTouchStart = (e) => {
-      if (window.scrollY <= 5 && !loading) {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      if (scrollTop <= 5 && !loading) {
         touchStartY = e.touches[0].clientY;
         isPulling = true;
         setStartY(touchStartY);
@@ -28,15 +27,17 @@ export default function PullToRefresh({ children, onRefresh }) {
     };
 
     const handleTouchMove = (e) => {
-      if (!isPulling || window.scrollY > 5 || loading) return;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      if (!isPulling || scrollTop > 5 || loading) return;
       
       const currentY = e.touches[0].clientY;
       const diff = currentY - touchStartY;
 
       if (diff > 0 && diff < MAX_PULL) {
-        const newDist = Math.min(diff * 0.5, MAX_PULL);
-        setDistance(newDist);
+        currentDistance = Math.min(diff * 0.5, MAX_PULL);
+        setDistance(currentDistance);
       } else if (diff <= 0) {
+        currentDistance = 0;
         setDistance(0);
       }
     };
@@ -49,7 +50,7 @@ export default function PullToRefresh({ children, onRefresh }) {
         return;
       }
       
-      if (distance > THRESHOLD) {
+      if (currentDistance > THRESHOLD) {
         setLoading(true);
         setDistance(THRESHOLD);
         
@@ -65,32 +66,37 @@ export default function PullToRefresh({ children, onRefresh }) {
         } finally {
           setLoading(false);
           setDistance(0);
+          currentDistance = 0;
           isPulling = false;
           setPulling(false);
         }
       } else {
         setDistance(0);
+        currentDistance = 0;
         isPulling = false;
         setPulling(false);
       }
     };
 
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: true });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-    container.addEventListener('touchcancel', () => {
+    const handleTouchCancel = () => {
       isPulling = false;
+      currentDistance = 0;
       setPulling(false);
       setDistance(0);
-    }, { passive: true });
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', handleTouchCancel, { passive: true });
 
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
-      container.removeEventListener('touchcancel', handleTouchEnd);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchCancel);
     };
-  }, [distance, loading, onRefresh]);
+  }, [loading, onRefresh]);
 
   return (
     <div ref={contentRef} className="min-h-screen relative">
