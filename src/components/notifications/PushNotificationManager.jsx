@@ -111,43 +111,45 @@ export default function PushNotificationManager({ user }) {
       <AnimatePresence>
         {showBanner && (
           <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-20 md:top-24 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md px-0"
+            initial={{ opacity: 0, y: -30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -30, scale: 0.95 }}
+            className="fixed top-16 md:top-24 left-3 right-3 md:left-1/2 md:-translate-x-1/2 md:right-auto z-[99998] md:w-full md:max-w-sm"
           >
-            <Card className="border-0 shadow-2xl backdrop-blur-xl bg-white/95 rounded-2xl overflow-hidden">
-              <CardContent className="p-4 md:p-6 relative">
+            <Card className="border-0 shadow-2xl backdrop-blur-xl bg-white/98 rounded-2xl overflow-hidden">
+              <CardContent className="p-3 md:p-5">
+                {/* Botão fechar */}
                 <button
                   onClick={dismissBanner}
-                  className="absolute top-2 right-2 md:top-3 md:right-3 text-gray-400 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100 p-1.5 z-10"
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100 p-1.5 z-10"
                 >
                   <X className="w-4 h-4" />
                 </button>
                 
-                <div className="flex flex-col md:flex-row items-start gap-3 md:gap-4">
-                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2.5 md:p-3 rounded-xl shadow-lg flex-shrink-0">
-                    <Bell className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                {/* Layout horizontal compacto */}
+                <div className="flex items-center gap-3 pr-6">
+                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg flex-shrink-0">
+                    <Bell className="w-5 h-5 text-white" />
                   </div>
-                  <div className="flex-1 pr-0 md:pr-6 w-full">
-                    <h3 className="font-bold text-base md:text-lg text-gray-900 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-sm text-gray-900 mb-0.5">
                       Ativar Notificações
                     </h3>
-                    <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 leading-relaxed">
-                      {/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-                        ? 'Alertas no celular sobre passeios.'
-                        : 'Alertas em tempo real sobre passeios.'}
+                    <p className="text-xs text-gray-500 leading-snug">
+                      Alertas sobre passeios e reservas
                     </p>
-                    <Button
-                      onClick={requestPermission}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md font-semibold rounded-xl h-10 md:h-11 transition-all text-sm"
-                      size="sm"
-                    >
-                      <Bell className="w-4 h-4 mr-2" />
-                      Ativar Agora
-                    </Button>
                   </div>
                 </div>
+                
+                {/* Botão */}
+                <Button
+                  onClick={requestPermission}
+                  className="w-full mt-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md font-semibold rounded-xl h-9 text-sm"
+                  size="sm"
+                >
+                  <Bell className="w-3.5 h-3.5 mr-1.5" />
+                  Ativar Agora
+                </Button>
               </CardContent>
             </Card>
           </motion.div>
