@@ -22,10 +22,13 @@ export const ThemeProvider = ({ children }) => {
       return profiles[0] || null;
     },
     enabled: !!user?.email,
-    staleTime: 10 * 1000,
+    staleTime: 5 * 1000,
+    refetchInterval: 10 * 1000,
   });
 
-  const level = userProfile?.gamification_level || 0;
+  const level = userProfile?.gamification_level || 1;
+  
+  console.log('🎨 ThemeContext - User:', user?.email, 'Level:', level, 'Profile:', userProfile);
 
   // 2. A Lógica das Cores (Jewel Tones / Tons de Joia)
   const getThemeByLevel = (lvl) => {

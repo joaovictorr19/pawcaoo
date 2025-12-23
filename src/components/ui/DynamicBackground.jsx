@@ -297,7 +297,9 @@ export default function DynamicBackground() {
   }
 
   // Logged in users: dynamic background based on level
-  const { colors } = useTheme();
+  const { colors, level } = useTheme();
+  
+  console.log('🌈 DynamicBackground - Theme:', colors?.name, 'Level:', level);
   
   // Get orb color based on theme name (more reliable)
   const getOrbColorsByTheme = (themeName) => {
