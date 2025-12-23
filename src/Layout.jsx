@@ -722,25 +722,6 @@ function LayoutContent({ children, currentPageName }) {
         }
         
         @media (max-width: 768px) {
-          [data-sidebar="sidebar"],
-          [data-sidebar="sidebar"] > div,
-          aside[data-sidebar],
-          aside[data-sidebar] > div,
-          .sidebar-mobile,
-          [data-state="open"] [data-sidebar="sidebar"],
-          [data-radix-scroll-area-viewport] {
-            width: 280px !important;
-            background: rgba(255, 255, 255, 0.98) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.5) !important;
-          }
-          
-          /* Force sidebar content background */
-          [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path) {
-            background-color: transparent !important;
-          }
-          
           input:not([type="checkbox"]):not([type="radio"]), select, textarea {
             width: 100% !important;
             max-width: 100%;
@@ -751,6 +732,23 @@ function LayoutContent({ children, currentPageName }) {
             flex-direction: column;
             gap: 1rem;
           }
+        }
+        
+        /* Sidebar glassmorphism - same style for desktop and mobile */
+        [data-sidebar="sidebar"],
+        [data-sidebar="sidebar"] > div,
+        aside[data-sidebar],
+        aside[data-sidebar] > div,
+        [data-state="open"] [data-sidebar="sidebar"],
+        [data-radix-scroll-area-viewport] {
+          background: rgba(255, 255, 255, 0.85) !important;
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
+        }
+        
+        /* Force transparent background on sidebar children */
+        [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img) {
+          background-color: transparent !important;
         }
 
         .scrollbar-hide {
