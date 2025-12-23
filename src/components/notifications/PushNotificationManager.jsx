@@ -4,12 +4,33 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Bell, BellOff, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { base44 } from '@/api/base44Client';
 
 export default function PushNotificationManager({ user }) {
   const [permission, setPermission] = useState(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
   const [showBanner, setShowBanner] = useState(false);
+
+  // Registrar Service Worker
+  useEffect(() => {
+    if (!user) return;
+    
+    const registerServiceWorker = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/'
+          });
+          console.log('✅ Service Worker registrado:', registration);
+        } catch (error) {
+          console.error('❌ Erro ao registrar Service Worker:', error);
+        }
+      }
+    };
+
+    registerServiceWorker();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -46,6 +67,7 @@ export default function PushNotificationManager({ user }) {
     // No mobile, verificar se está em PWA ou navegador
     const isPWA = window.matchMedia('(display-mode: standalone)').matches;
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     try {
       // Solicitar permissão - funciona em desktop e mobile, mas requer interação do usuário
@@ -67,12 +89,43 @@ export default function PushNotificationManager({ user }) {
         toast.success('✅ Notificações ativadas com sucesso!');
         setShowBanner(false);
         
+        // Registrar para push notifications (funciona no iOS quando instalado como PWA)
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          
+          // Verificar se já tem subscription
+          let subscription = await registration.pushManager.getSubscription();
+          
+          if (!subscription) {
+            // VAPID public key (você deve gerar sua própria com: npx web-push generate-vapid-keys)
+            const vapidPublicKey = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDpC9Br0qmM0kz6OdW5X91-4q4Tr0Sq9_PN8oMNLRm38';
+            
+            subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+            });
+          }
+          
+          // Salvar subscription no perfil do usuário
+          const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+          if (profiles.length > 0) {
+            await base44.entities.UserProfile.update(profiles[0].id, {
+              push_subscription: subscription.toJSON()
+            });
+            console.log('✅ Push subscription salva no perfil');
+          }
+        } catch (pushError) {
+          console.error('Erro ao configurar push:', pushError);
+        }
+        
         // Testar notificação (compatível com desktop e mobile)
         try {
           const notification = new Notification('PawCão - Notificações Ativas', {
-            body: isMobile 
-              ? 'Você receberá alertas importantes no seu celular' 
-              : 'Você receberá alertas em tempo real',
+            body: isIOS && isPWA
+              ? 'Você receberá notificações mesmo com o app fechado!' 
+              : isMobile 
+                ? 'Você receberá alertas importantes no seu celular' 
+                : 'Você receberá alertas em tempo real',
             icon: '/logo.png',
             badge: '/favicon.png',
             tag: 'welcome-notification',
@@ -96,6 +149,20 @@ export default function PushNotificationManager({ user }) {
       console.error('Erro ao solicitar permissão:', error);
       toast.error('Erro ao ativar notificações. Tente novamente.');
     }
+  };
+
+  // Converter VAPID key para Uint8Array
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
   };
 
   const dismissBanner = () => {
