@@ -921,23 +921,23 @@ export default function ProfessionalDashboard() {
             </div>
 
             {/* Footer */}
-            <div className="bg-white px-6 py-4 border-t border-gray-100 flex gap-3">
+            <div className="bg-white px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex gap-2 sm:gap-3 flex-shrink-0">
               <Button 
                 variant="outline" 
                 onClick={() => {
                   setShowServiceForm(false);
                   setEditingService(null);
                 }}
-                className="flex-1 h-12 text-base font-semibold bg-white text-gray-900 border-gray-300"
+                className="flex-1 h-11 sm:h-12 text-sm sm:text-base font-semibold bg-white text-gray-900 border-gray-300"
               >
                 Cancelar
               </Button>
               <Button 
                 onClick={handleSubmit}
                 disabled={!formData.service_name || !formData.price || !formData.animal_type}
-                className="flex-1 h-12 text-base font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                className="flex-1 h-11 sm:h-12 text-sm sm:text-base font-bold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
               >
-                {editingService ? 'Guardar Alterações' : 'Adicionar Serviço'}
+                {editingService ? 'Guardar' : 'Adicionar'}
               </Button>
             </div>
           </div>
