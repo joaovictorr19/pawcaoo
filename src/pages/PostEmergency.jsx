@@ -267,7 +267,7 @@ export default function PostEmergency() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 md:p-6 relative">
+    <div className="min-h-screen bg-white p-3 md:p-6 relative">
       <div className="max-w-2xl mx-auto relative z-10">
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-white border-2 border-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
@@ -277,7 +277,7 @@ export default function PostEmergency() {
           <p className="text-gray-600 text-sm md:text-base">{t('findWalkerNow', language)}</p>
         </div>
 
-        <Card className="border border-gray-200 shadow-md rounded-2xl overflow-hidden bg-white">
+        <Card className="border border-gray-200 shadow-md rounded-2xl overflow-hidden bg-white !bg-white">
           <CardHeader className="bg-white text-gray-900 border-b border-gray-200 py-4">
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
               <Zap className="w-5 h-5 text-gray-700" />
