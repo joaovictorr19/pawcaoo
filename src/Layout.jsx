@@ -644,7 +644,18 @@ function LayoutContent({ children, currentPageName }) {
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
           filter: brightness(0.95);
           background-color: inherit !important;
+        }
+
+        /* Garante que texto em links ativos permaneça visível */
+        button:active:not(:disabled) * {
           opacity: 1 !important;
+        }
+
+        /* Links ativos na sidebar sempre com texto visível */
+        [data-sidebar] a[class*="from-blue-600"] span,
+        [data-sidebar] a[class*="bg-red-600"] span {
+          opacity: 1 !important;
+          color: white !important;
         }
 
         /* Estado Disabled: Mantém visibilidade */
