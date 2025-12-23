@@ -930,14 +930,15 @@ function LayoutContent({ children, currentPageName }) {
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
         {authUser && (
-        <Sidebar 
-          className="hidden md:flex border transition-colors duration-300 ml-4 mr-4 mb-4 mt-8 rounded-[2rem] shadow-xl shadow-blue-900/5 overflow-hidden shrink-0 border-white/40"
-          style={{ 
-            height: 'calc(100vh - 130px)',
-            background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-          }}>
+                      <Sidebar 
+                        className="border transition-colors duration-300 md:ml-4 md:mr-4 md:mb-4 md:mt-8 md:rounded-[2rem] shadow-xl shadow-blue-900/5 overflow-hidden shrink-0 border-white/40"
+                        style={{ 
+                          height: 'calc(100vh - 130px)',
+                          background: 'rgba(255, 255, 255, 0.85)',
+                          backdropFilter: 'blur(16px)',
+                          WebkitBackdropFilter: 'blur(16px)',
+                          '--sidebar-background': 'rgba(255, 255, 255, 0.85)',
+                        }}>
           <SidebarHeader className="border-b p-4 md:p-6 border-gray-200/50">
             <Link 
               to={createPageUrl("Home")} 
