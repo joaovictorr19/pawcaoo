@@ -60,7 +60,6 @@ import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerDetails from './pages/PartnerDetails';
 import PartnerServices from './pages/PartnerServices';
 import Partners from './pages/Partners';
-import PawStore from './pages/PawStore';
 import PaymentMethods from './pages/PaymentMethods';
 import PaymentSetup from './pages/PaymentSetup';
 import PostEmergency from './pages/PostEmergency';
@@ -153,7 +152,6 @@ export const PAGES = {
     "PartnerDetails": PartnerDetails,
     "PartnerServices": PartnerServices,
     "Partners": Partners,
-    "PawStore": PawStore,
     "PaymentMethods": PaymentMethods,
     "PaymentSetup": PaymentSetup,
     "PostEmergency": PostEmergency,
