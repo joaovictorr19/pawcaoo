@@ -38,9 +38,9 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       id: "nav-home"
     },
     {
-      label: getLabel('bookings'),
+      label: language === 'pt' ? 'Painel' : language === 'es' ? 'Panel' : 'Panel',
       icon: Calendar,
-      path: createPageUrl("MyBookings"),
+      path: createPageUrl("ProfessionalDashboard"),
       activeColor: "text-blue-600"
     },
     {

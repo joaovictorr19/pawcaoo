@@ -114,18 +114,17 @@ export default function OnboardingWizard({ steps, user }) {
             // Desktop: Relativo ao elemento
             top: targetRect.position === 'bottom' ? targetRect.top + targetRect.height + 20 : 'auto',
             bottom: targetRect.position === 'top' ? (window.innerHeight - targetRect.top) + 20 : 'auto',
-            left: targetRect.left + (targetRect.width / 2) - 150,
+            left: Math.max(16, Math.min(targetRect.left + (targetRect.width / 2) - 150, window.innerWidth - 316)),
             width: '300px'
           } : {
-            // Mobile: Safe positioning
+            // Mobile: Fixo no fundo, acima da navbar
             position: 'fixed',
-            left: '4%',
-            right: '4%',
+            left: '12px',
+            right: '12px',
             width: 'auto',
-            maxWidth: '400px',
-            margin: '0 auto',
-            // Always bottom with safe spacing
-            bottom: '120px',
+            maxWidth: 'calc(100vw - 24px)',
+            margin: '0',
+            bottom: '100px',
             top: 'auto',
           })
         }}
@@ -133,7 +132,7 @@ export default function OnboardingWizard({ steps, user }) {
         {/* Seta do Balão (Apenas Desktop) */}
         <div className="hidden md:block w-4 h-4 bg-white transform rotate-45 absolute -top-2 left-1/2 -translate-x-1/2" />
 
-        <div className="bg-white rounded-2xl p-4 shadow-2xl border-2 border-purple-500 relative w-full animate-in slide-in-from-bottom-5 duration-500 max-h-[40vh] md:max-h-none overflow-y-auto">
+        <div className="bg-white rounded-2xl p-3 md:p-4 shadow-2xl border-2 border-purple-500 relative w-full animate-in slide-in-from-bottom-5 duration-500 max-h-[35vh] md:max-h-none overflow-y-auto">
           
           {/* Botão Fechar (X) - Também marca como visto! */}
           <button 
@@ -144,35 +143,35 @@ export default function OnboardingWizard({ steps, user }) {
             <X size={16} />
           </button>
           
-          <div className="flex gap-3 md:gap-4">
+          <div className="flex gap-2.5 md:gap-4">
             {/* Mascote */}
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-purple-100 rounded-lg flex-shrink-0 flex items-center justify-center text-2xl border-2 border-purple-200">
+            <div className="w-10 h-10 md:w-14 md:h-14 bg-purple-100 rounded-lg flex-shrink-0 flex items-center justify-center text-xl md:text-2xl border-2 border-purple-200">
              🐶
             </div>
             
-            <div className="flex-1">
-              <h3 className="font-bold text-base md:text-lg text-purple-700 mb-1">{currentStep.title}</h3>
-              <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-sm md:text-base text-purple-700 mb-0.5 md:mb-1">{currentStep.title}</h3>
+              <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 leading-relaxed">
                 {currentStep.content}
               </p>
               
-              <div className="flex justify-between items-center mt-2">
+              <div className="flex justify-between items-center mt-1.5 md:mt-2">
                 {/* Botão Pular */}
                 <button 
                   onClick={finishTutorial}
-                  className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1"
+                  className="text-[10px] md:text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1"
                 >
-                  <SkipForward size={12} /> Pular
+                  <SkipForward size={10} /> Pular
                 </button>
 
-                <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400 font-mono">
+                <div className="flex items-center gap-2 md:gap-3">
+                    <span className="text-[10px] md:text-xs text-gray-400 font-mono">
                     {currentStepIndex + 1}/{steps.length}
                     </span>
                     <Button 
                     size="sm" 
                     onClick={handleNext} 
-                    className="bg-purple-600 hover:bg-purple-700 h-8 px-4"
+                    className="bg-purple-600 hover:bg-purple-700 h-7 md:h-8 px-3 md:px-4 text-xs"
                     >
                     {currentStepIndex === steps.length - 1 ? 'Concluir' : 'Próximo'}
                     </Button>
