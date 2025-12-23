@@ -36,12 +36,19 @@
     background: #f8fafc !important;
   }
 
-  input, textarea, select, [role="dialog"], [role="combobox"], [data-radix-popper-content-wrapper] {
+  input, textarea, select, [role="dialog"], [role="combobox"], [data-radix-popper-content-wrapper], [data-radix-dialog-content] {
     background-color: white !important;
+    color: #111827 !important;
   }
 
   .card, [data-slot="card"], form {
     background-color: white !important;
+    color: #111827 !important;
+  }
+
+  /* Força modo claro em todos os labels */
+  label, [data-radix-label] {
+    color: #111827 !important;
   }
 
   button {
