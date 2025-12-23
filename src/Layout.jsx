@@ -886,22 +886,29 @@ function LayoutContent({ children, currentPageName }) {
         </div>
       </header>
 
-      {/* Mobile Header - Minimalista, largura total */}
+      {/* Mobile Header - Minimalista com glassmorphism */}
       <header 
-        className="md:hidden fixed top-0 left-0 right-0 z-[99999] px-4 py-2"
+        className="md:hidden fixed top-0 left-0 right-0 z-[99999] px-3 py-2"
         style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
+          background: 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.5)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
         }}
       >
-        <div className="flex items-center justify-between h-12">
+        <div className="flex items-center justify-between h-11">
           {/* Logo + Menu Trigger */}
           <div className="flex items-center gap-2">
             {authUser && (
-              <SidebarTrigger className="hover:bg-gray-100 h-9 w-9 p-2 rounded-lg transition-colors" aria-label="Menu" />
+              <SidebarTrigger 
+                className="h-9 w-9 p-2 rounded-xl transition-all active:scale-95"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  border: '1px solid rgba(0, 0, 0, 0.05)'
+                }}
+                aria-label="Menu" 
+              />
             )}
             <Link to={createPageUrl("Home")} className="hover:opacity-80 transition-opacity">
               <PawCaoLogo size="small" showText={false} />
@@ -909,17 +916,21 @@ function LayoutContent({ children, currentPageName }) {
           </div>
 
           {/* Direita - Login/Notificações */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {authUser ? (
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 relative"
+                className="h-9 w-9 relative rounded-xl"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  border: '1px solid rgba(0, 0, 0, 0.05)'
+                }}
                 onClick={() => setIsNotificationPanelOpen(true)}
               >
-                <Bell className="w-4 h-4" />
+                <Bell className="w-4 h-4 text-gray-700" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -927,10 +938,10 @@ function LayoutContent({ children, currentPageName }) {
             ) : (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs px-3 h-8"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs px-4 h-9 rounded-xl shadow-md"
                 size="sm"
               >
-                Entrar
+                {getMenuText('login')}
               </Button>
             )}
           </div>
