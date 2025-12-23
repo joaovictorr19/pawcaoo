@@ -5,10 +5,12 @@ import { Home, Calendar, Trophy, Bell, User, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "../ThemeContext";
+import { useLanguage } from "../LanguageContext";
 
 export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
   const { colors, isDarkMode } = useTheme();
+  const { language } = useLanguage();
 
   const isActive = (path) => {
     if (path === createPageUrl("Home") && location.pathname === path) return true;
@@ -16,22 +18,33 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     return false;
   };
 
+  // Labels traduzidos
+  const labels = {
+    explore: { pt: 'Explorar', es: 'Explorar', en: 'Explore' },
+    bookings: { pt: 'Reservas', es: 'Reservas', en: 'Bookings' },
+    hallOfFame: { pt: 'Fama', es: 'Fama', en: 'Fame' },
+    alerts: { pt: 'Alertas', es: 'Alertas', en: 'Alerts' },
+    profile: { pt: 'Perfil', es: 'Perfil', en: 'Profile' }
+  };
+
+  const getLabel = (key) => labels[key]?.[language] || labels[key]?.en;
+
   const navItems = [
     {
-      label: "Explorar",
+      label: getLabel('explore'),
       icon: Search,
       path: createPageUrl("Home"),
       activeColor: "text-green-600",
       id: "nav-home"
     },
     {
-      label: "Reservas",
+      label: getLabel('bookings'),
       icon: Calendar,
       path: createPageUrl("MyBookings"),
       activeColor: "text-blue-600"
     },
     {
-      label: "Hall da Fama",
+      label: getLabel('hallOfFame'),
       icon: Trophy,
       path: createPageUrl("Gamification"),
       activeColor: "text-yellow-500",
@@ -39,15 +52,15 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       id: "nav-gamification"
     },
     {
-      label: "Alertas",
+      label: getLabel('alerts'),
       icon: Bell,
       path: createPageUrl("Notifications"),
       activeColor: "text-red-500",
       badge: unreadCount > 0 ? unreadCount : null
     },
     {
-      label: "Perfil",
-      icon: User, // Fallback icon, logic handles Avatar below
+      label: getLabel('profile'),
+      icon: User,
       path: user ? (user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user?.id}`)) : createPageUrl("Login"),
       activeColor: "text-purple-600",
       isProfile: true,
@@ -56,10 +69,17 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   ];
 
   return (
-    <div className={`md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe backdrop-blur-xl mb-4 mx-4 rounded-2xl shadow-2xl ${
-      isDarkMode ? 'bg-slate-900/80 border border-slate-700/60' : 'bg-white/70 border border-white/40'
-    }`}>
-      <nav className="flex justify-around items-center h-16 px-2">
+    <div 
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe mb-3 mx-3 rounded-2xl shadow-2xl border"
+      style={{
+        background: 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderColor: 'rgba(255, 255, 255, 0.5)',
+        boxShadow: '0 -4px 30px rgba(0, 0, 0, 0.1)'
+      }}
+    >
+      <nav className="flex justify-around items-center h-14 px-1">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
           const Icon = item.icon;
