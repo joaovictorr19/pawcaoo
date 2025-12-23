@@ -387,7 +387,7 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [authUser?.email, authUser?.achievements_badges, language, queryClient]);
 
-  // Ensure Dog Connect profile and UserProfile entity for every user
+  // Ensure Dog Connect profile and UserProfile entity for every user + Sync XP bidirectionally
   React.useEffect(() => {
     const setupProfiles = async () => {
       if (!authUser?.email) return;
@@ -420,7 +420,7 @@ function LayoutContent({ children, currentPageName }) {
         }
       }
 
-      // 2. Ensure UserProfile Entity exists (for public access)
+      // 2. Ensure UserProfile Entity exists + Sync XP bidirectionally
       try {
         const profiles = await base44.entities.UserProfile.filter({ user_email: authUser.email });
         if (!profiles || profiles.length === 0) {
@@ -428,7 +428,7 @@ function LayoutContent({ children, currentPageName }) {
           await base44.entities.UserProfile.create({
             user_email: authUser.email,
             user_id: authUser.id,
-            username: authUser.username, // might be undefined, allowed if optional or handled
+            username: authUser.username,
             full_name: authUser.full_name || 'Utilizador',
             profile_photo_url: authUser.profile_photo_url,
             cover_photo_url: authUser.cover_photo_url,
@@ -441,6 +441,17 @@ function LayoutContent({ children, currentPageName }) {
             following_count: 0,
             is_verified: authUser.is_verified || false
           });
+        } else {
+          // 3. SYNC: UserProfile -> Auth User (if different)
+          const profile = profiles[0];
+          if (authUser.gamification_xp !== profile.gamification_xp || authUser.gamification_level !== profile.gamification_level) {
+            console.log('🔄 Syncing XP from UserProfile to Auth:', profile.gamification_xp);
+            await base44.auth.updateMe({
+              gamification_xp: profile.gamification_xp || 0,
+              gamification_level: profile.gamification_level || 1
+            });
+            queryClient.invalidateQueries(['currentUser']);
+          }
         }
       } catch (err) {
         console.error("Error ensuring UserProfile entity:", err);
