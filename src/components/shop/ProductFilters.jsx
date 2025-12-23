@@ -68,10 +68,14 @@ export default function ProductFilters({ filters, onFiltersChange, onReset }) {
 
         {/* Brands */}
         <div>
-          <Label className="mb-3 block">Marcas</Label>
-          <div className="space-y-2">
+          <Label className="mb-2 block text-sm font-semibold">Marcas</Label>
+          <div className="space-y-1.5">
             {brands.map((brand) => (
-              <div key={brand} className="flex items-center gap-2">
+              <label
+                key={brand}
+                htmlFor={`brand-${brand}`}
+                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded transition-colors"
+              >
                 <Checkbox
                   id={`brand-${brand}`}
                   checked={filters.brands?.includes(brand)}
@@ -81,21 +85,24 @@ export default function ProductFilters({ filters, onFiltersChange, onReset }) {
                       : (filters.brands || []).filter(b => b !== brand);
                     onFiltersChange({ ...filters, brands: newBrands });
                   }}
+                  className="h-4 w-4"
                 />
-                <label htmlFor={`brand-${brand}`} className="text-sm cursor-pointer">
-                  {brand}
-                </label>
-              </div>
+                <span className="text-sm text-gray-700">{brand}</span>
+              </label>
             ))}
           </div>
         </div>
 
         {/* Categories */}
         <div>
-          <Label className="mb-3 block">Categorias</Label>
-          <div className="space-y-2">
+          <Label className="mb-2 block text-sm font-semibold">Categorias</Label>
+          <div className="space-y-1.5">
             {categories.map((category) => (
-              <div key={category} className="flex items-center gap-2">
+              <label
+                key={category}
+                htmlFor={`cat-${category}`}
+                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded transition-colors"
+              >
                 <Checkbox
                   id={`cat-${category}`}
                   checked={filters.categories?.includes(category)}
@@ -105,11 +112,10 @@ export default function ProductFilters({ filters, onFiltersChange, onReset }) {
                       : (filters.categories || []).filter(c => c !== category);
                     onFiltersChange({ ...filters, categories: newCategories });
                   }}
+                  className="h-4 w-4"
                 />
-                <label htmlFor={`cat-${category}`} className="text-sm cursor-pointer">
-                  {category}
-                </label>
-              </div>
+                <span className="text-sm text-gray-700">{category}</span>
+              </label>
             ))}
           </div>
         </div>
