@@ -98,17 +98,20 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
   }
 
-  /* Mobile sidebar glassmorphism override */
-  @media (max-width: 768px) {
-    [data-sidebar="sidebar"],
-    [data-sidebar="sidebar"] > div,
-    aside[data-sidebar="sidebar"],
-    [data-state="open"] aside,
-    [role="dialog"] aside {
-      background: rgba(255, 255, 255, 0.98) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
-    }
+  /* Sidebar glassmorphism - consistent across desktop and mobile */
+  [data-sidebar="sidebar"],
+  [data-sidebar="sidebar"] > div,
+  aside[data-sidebar="sidebar"],
+  [data-state="open"] aside,
+  [role="dialog"] aside,
+  [data-radix-scroll-area-viewport] {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+  }
+
+  [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img) {
+    background-color: transparent !important;
   }
 
   .dark-cosmos {
