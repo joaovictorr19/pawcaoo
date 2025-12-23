@@ -1,6 +1,5 @@
 import React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ShieldCheck } from "lucide-react";
 
 export default function PawCaoEmployeeStamp() {
   return (
@@ -8,33 +7,93 @@ export default function PawCaoEmployeeStamp() {
       <Tooltip>
         <TooltipTrigger>
           <div
-            className="w-16 h-16 rounded-full flex items-center justify-center relative overflow-hidden cursor-help transform rotate-[-12deg] hover:rotate-0 transition-transform duration-300"
+            className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center relative cursor-help transform rotate-[-15deg] hover:rotate-[-5deg] transition-transform duration-500"
             style={{
-              background: 'linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%)',
-              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.5), inset 0 -2px 4px rgba(0, 0, 0, 0.2)',
-              border: '3px solid rgba(255, 255, 255, 0.8)',
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(2px)',
+              WebkitBackdropFilter: 'blur(2px)',
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
             }}
           >
-            {/* Inner circle border */}
-            <div 
-              className="absolute inset-1 rounded-full border-2 border-dashed border-white/50"
-            />
-            
-            {/* Glossy effect */}
-            <div 
-              className="absolute top-0 left-0 right-0 h-1/2 rounded-t-full pointer-events-none" 
-              style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%)' }} 
-            />
-            
-            {/* Icon */}
-            <ShieldCheck className="w-7 h-7 text-white drop-shadow-md z-10" strokeWidth={2.5} />
-            
-            {/* Text around stamp effect */}
-            <div className="absolute inset-0 flex items-end justify-center pb-1">
-              <span className="text-[6px] font-bold text-white/90 uppercase tracking-widest">
-                Oficial
-              </span>
-            </div>
+            <svg 
+              viewBox="0 0 100 100" 
+              className="w-full h-full"
+              style={{ filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.3))' }}
+            >
+              {/* Outer circle */}
+              <circle 
+                cx="50" 
+                cy="50" 
+                r="46" 
+                fill="none" 
+                stroke="#16a34a" 
+                strokeWidth="3"
+                strokeDasharray="4 2"
+                opacity="0.9"
+              />
+              
+              {/* Inner circle */}
+              <circle 
+                cx="50" 
+                cy="50" 
+                r="38" 
+                fill="none" 
+                stroke="#16a34a" 
+                strokeWidth="2"
+                opacity="0.8"
+              />
+
+              {/* Circular text path - top */}
+              <defs>
+                <path 
+                  id="textCircleTop" 
+                  d="M 50,50 m -32,0 a 32,32 0 1,1 64,0"
+                  fill="none"
+                />
+                <path 
+                  id="textCircleBottom" 
+                  d="M 50,50 m 32,0 a 32,32 0 1,1 -64,0"
+                  fill="none"
+                />
+              </defs>
+
+              {/* Top text */}
+              <text 
+                fill="#16a34a" 
+                fontSize="8" 
+                fontWeight="bold" 
+                letterSpacing="3"
+                style={{ fontFamily: 'system-ui, sans-serif' }}
+              >
+                <textPath href="#textCircleTop" startOffset="50%" textAnchor="middle">
+                  EQUIPA PAWCÃO
+                </textPath>
+              </text>
+
+              {/* Bottom text */}
+              <text 
+                fill="#16a34a" 
+                fontSize="8" 
+                fontWeight="bold" 
+                letterSpacing="3"
+                style={{ fontFamily: 'system-ui, sans-serif' }}
+              >
+                <textPath href="#textCircleBottom" startOffset="50%" textAnchor="middle">
+                  EQUIPA PAWCÃO
+                </textPath>
+              </text>
+
+              {/* Center star/paw icon */}
+              <text 
+                x="50" 
+                y="54" 
+                textAnchor="middle" 
+                fontSize="18"
+                fill="#16a34a"
+              >
+                🐾
+              </text>
+            </svg>
           </div>
         </TooltipTrigger>
         <TooltipContent className="bg-green-700 text-white border-green-500">
