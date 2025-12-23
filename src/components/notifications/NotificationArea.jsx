@@ -249,29 +249,39 @@ export default function NotificationArea({ isOpen, onClose }) {
               <p className="text-xs text-gray-400 mt-1">Você está em dia!</p>
             </div>
           ) : (
-            <div className="p-3 space-y-2">
+            <div className="p-2 space-y-1.5">
               {filtered.map((n, idx) => (
                 <motion.div
                   key={n.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
+                  transition={{ delay: idx * 0.03 }}
                   onClick={() => handleClick(n)}
-                  className={`relative rounded-2xl cursor-pointer transition-all active:scale-[0.98] ${
+                  className={`relative rounded-xl cursor-pointer transition-all active:scale-[0.98] ${
                     !n.is_read 
-                      ? "bg-gradient-to-br from-blue-50 to-indigo-50 shadow-md border-2 border-blue-200" 
-                      : "bg-white shadow-sm border border-gray-100 hover:shadow-md"
+                      ? "bg-gradient-to-br from-blue-50 to-indigo-50 shadow-sm border border-blue-200" 
+                      : "bg-white shadow-sm border border-gray-100"
                   }`}
                 >
-                  {/* Unread indicator */}
-                  {!n.is_read && (
-                    <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-r-full" />
+                  {/* Close button */}
+                  {!n.is_system && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteNotif.mutate(n.id); }}
+                      className="absolute top-1.5 right-1.5 p-1 hover:bg-red-100 rounded-full text-gray-400 hover:text-red-500 transition-colors active:scale-90 z-10"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   )}
                   
-                  <div className="p-4">
-                    <div className="flex gap-3">
+                  {/* Unread indicator */}
+                  {!n.is_read && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-r-full" />
+                  )}
+                  
+                  <div className="p-2.5 pr-8">
+                    <div className="flex gap-2">
                       {/* Icon */}
-                      <div className={`p-2.5 rounded-xl flex-shrink-0 shadow-sm ${
+                      <div className={`p-1.5 rounded-lg flex-shrink-0 ${
                         !n.is_read 
                           ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
                           : 'bg-gray-100'
@@ -283,53 +293,43 @@ export default function NotificationArea({ isOpen, onClose }) {
                       
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2 mb-1">
-                          <h4 className={`text-sm font-bold leading-tight ${
+                        <div className="flex justify-between items-start gap-1 mb-0.5">
+                          <h4 className={`text-xs font-bold leading-tight ${
                             !n.is_read ? 'text-gray-900' : 'text-gray-600'
                           }`}>
                             {n.title}
                           </h4>
-                          <span className="text-[10px] text-gray-400 flex-shrink-0 font-medium">
+                          <span className="text-[9px] text-gray-400 flex-shrink-0">
                             {format(new Date(n.created_date), "HH:mm")}
                           </span>
                         </div>
                         
-                        <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed mb-2">
+                        <p className="text-[11px] text-gray-600 line-clamp-2 leading-snug mb-1">
                           {n.message}
                         </p>
                         
-                        {/* Footer with actions */}
+                        {/* Footer */}
                         <div className="flex items-center justify-between">
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
                             n.type === 'emergency' ? 'bg-red-100 text-red-600' :
                             n.type === 'payment' ? 'bg-green-100 text-green-600' :
                             n.type === 'booking' ? 'bg-blue-100 text-blue-600' :
                             'bg-purple-100 text-purple-600'
                           }`}>
-                            {n.type === 'emergency' ? '🚨 Urgente' :
-                             n.type === 'payment' ? '💰 Pagamento' :
-                             n.type === 'booking' ? '📅 Reserva' :
-                             '📢 Sistema'}
+                            {n.type === 'emergency' ? '🚨' :
+                             n.type === 'payment' ? '💰' :
+                             n.type === 'booking' ? '📅' :
+                             '📢'}
                           </span>
                           
-                          <div className="flex gap-1">
-                            {!n.is_read && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); markAsRead.mutate(n); }}
-                                className="p-1.5 hover:bg-blue-100 rounded-lg text-blue-600 transition-colors active:scale-95"
-                              >
-                                <Check className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                            {!n.is_system && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); deleteNotif.mutate(n.id); }}
-                                className="p-1.5 hover:bg-red-100 rounded-lg text-red-500 transition-colors active:scale-95"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
+                          {!n.is_read && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); markAsRead.mutate(n); }}
+                              className="p-1 hover:bg-blue-100 rounded text-blue-600 transition-colors active:scale-90"
+                            >
+                              <Check className="w-3 h-3" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
