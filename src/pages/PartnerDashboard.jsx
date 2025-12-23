@@ -574,170 +574,148 @@ export default function PartnerDashboard() {
 
       </div>
 
-      {/* CRIAR SERVIÇO - COM FOTO E LOCALIZAÇÃO */}
+      {/* CRIAR SERVIÇO - MODAL LIMPO */}
       <Dialog open={showCreateService} onOpenChange={setShowCreateService}>
-        <DialogContent 
-          className="max-w-3xl max-h-[90vh] overflow-y-auto !bg-white"
-          style={{ 
-            background: '#ffffff !important',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none',
-            border: '1px solid #e5e7eb',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
-          }}
-        >
-          <DialogHeader 
-            style={{ 
-              background: '#ffffff',
-              border: 'none',
-              borderBottom: 'none',
-              boxShadow: 'none'
-            }}
-          >
-            <DialogTitle>Criar Serviço</DialogTitle>
-          </DialogHeader>
-          <div 
-            className="space-y-4 py-4"
-            style={{ background: '#ffffff' }}
-          >
-            {/* FOTO DO SERVIÇO */}
-            <div>
-              <Label>Foto do Serviço</Label>
-              {serviceForm.image_url && (
-                <div className="relative w-full h-48 mb-2">
-                  <img 
-                    src={serviceForm.image_url} 
-                    className="w-full h-full object-cover aspect-square rounded-lg" 
-                    alt="Serviço"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setServiceForm({...serviceForm, image_url: ""})}
-                    className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    try {
-                      const url = await uploadImageMutation.mutateAsync(file);
-                      setServiceForm({...serviceForm, image_url: url});
-                    } catch (error) {
-                      console.error('Error uploading:', error);
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white border-gray-200">
+          <div className="bg-white p-6">
+            <DialogHeader className="mb-6">
+              <DialogTitle className="text-2xl font-bold text-gray-900">Criar Novo Serviço</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-6 bg-white">
+              <div className="bg-white p-4 rounded-lg">
+                <Label className="text-gray-900 mb-2 block">Foto do Serviço</Label>
+                {serviceForm.image_url && (
+                  <div className="relative w-full h-48 mb-3 bg-gray-100 rounded-lg overflow-hidden">
+                    <img 
+                      src={serviceForm.image_url} 
+                      className="w-full h-full object-cover" 
+                      alt="Serviço"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setServiceForm({...serviceForm, image_url: ""})}
+                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      try {
+                        const url = await uploadImageMutation.mutateAsync(file);
+                        setServiceForm({...serviceForm, image_url: url});
+                      } catch (error) {
+                        console.error('Error uploading:', error);
+                      }
                     }
-                  }
-                }}
-                className="h-10"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Foto do serviço ajuda a atrair mais clientes
-              </p>
-            </div>
-
-            <div>
-              <Label>Nome do Serviço *</Label>
-              <Input
-                value={serviceForm.service_name}
-                onChange={(e) => setServiceForm({...serviceForm, service_name: e.target.value})}
-                placeholder="Banho Completo"
-                className="bg-white text-gray-900"
-              />
-            </div>
-
-            <div>
-              <Label>Tipo *</Label>
-              <Select
-                value={serviceForm.service_type}
-                onValueChange={(v) => setServiceForm({...serviceForm, service_type: v})}
-              >
-                <SelectTrigger className="bg-white text-gray-900">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bath">🛁 Banho</SelectItem>
-                  <SelectItem value="grooming">✂️ Grooming</SelectItem>
-                  <SelectItem value="veterinary">🏥 Veterinário</SelectItem>
-                  <SelectItem value="vaccination">💉 Vacinação</SelectItem>
-                  <SelectItem value="checkup">🩺 Check-up</SelectItem>
-                  <SelectItem value="emergency">🚨 Emergência</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Descrição</Label>
-              <Textarea
-                value={serviceForm.description}
-                onChange={(e) => setServiceForm({...serviceForm, description: e.target.value})}
-                rows={3}
-                placeholder="Descreva o serviço em detalhes..."
-                className="bg-white text-gray-900"
-              />
-            </div>
-
-            {/* LOCALIZAÇÃO */}
-            <div>
-              <Label>Cidade/Localização *</Label>
-              <Input
-                value={serviceForm.location}
-                onChange={(e) => setServiceForm({...serviceForm, location: e.target.value})}
-                placeholder="Lisboa"
-                className="bg-white text-gray-900"
-              />
-            </div>
-
-            <div>
-              <Label>Morada Completa</Label>
-              <Input
-                value={serviceForm.address}
-                onChange={(e) => setServiceForm({...serviceForm, address: e.target.value})}
-                placeholder="Rua Principal, 123"
-                className="bg-white text-gray-900"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Duração (min)</Label>
-                <Input
-                  type="number"
-                  value={serviceForm.duration_minutes}
-                  onChange={(e) => setServiceForm({...serviceForm, duration_minutes: e.target.value})}
-                  className="bg-white text-gray-900"
+                  }}
+                  className="bg-white border-gray-300"
                 />
               </div>
-              <div>
-                <Label>Preço (€) *</Label>
+
+              <div className="bg-white p-4 rounded-lg">
+                <Label className="text-gray-900 mb-2 block">Nome do Serviço *</Label>
                 <Input
-                  type="number"
-                  step="0.01"
-                  value={serviceForm.base_price}
-                  onChange={(e) => setServiceForm({...serviceForm, base_price: e.target.value})}
-                  placeholder="25.00"
-                  className="bg-white text-gray-900"
+                  value={serviceForm.service_name}
+                  onChange={(e) => setServiceForm({...serviceForm, service_name: e.target.value})}
+                  placeholder="Ex: Banho Completo"
+                  className="bg-white border-gray-300 text-gray-900"
                 />
               </div>
-            </div>
 
-            <Button
-              onClick={() => {
-                if (!serviceForm.service_name || !serviceForm.base_price || !serviceForm.location) {
-                  toast.error('Preencha nome, preço e localização!');
-                  return;
-                }
-                createServiceMutation.mutate(serviceForm);
-              }}
-              disabled={createServiceMutation.isPending}
-              className="w-full bg-blue-600 hover:bg-blue-700 h-12"
-            >
-              {createServiceMutation.isPending ? 'Criando...' : 'Criar Serviço'}
-            </Button>
+              <div className="bg-white p-4 rounded-lg">
+                <Label className="text-gray-900 mb-2 block">Tipo de Serviço *</Label>
+                <Select
+                  value={serviceForm.service_type}
+                  onValueChange={(v) => setServiceForm({...serviceForm, service_type: v})}
+                >
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="bath">🛁 Banho</SelectItem>
+                    <SelectItem value="grooming">✂️ Grooming</SelectItem>
+                    <SelectItem value="veterinary">🏥 Veterinário</SelectItem>
+                    <SelectItem value="vaccination">💉 Vacinação</SelectItem>
+                    <SelectItem value="checkup">🩺 Check-up</SelectItem>
+                    <SelectItem value="emergency">🚨 Emergência</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg">
+                <Label className="text-gray-900 mb-2 block">Descrição</Label>
+                <Textarea
+                  value={serviceForm.description}
+                  onChange={(e) => setServiceForm({...serviceForm, description: e.target.value})}
+                  rows={3}
+                  placeholder="Descreva o serviço em detalhes..."
+                  className="bg-white border-gray-300 text-gray-900"
+                />
+              </div>
+
+              <div className="bg-white p-4 rounded-lg">
+                <Label className="text-gray-900 mb-2 block">Localização *</Label>
+                <Input
+                  value={serviceForm.location}
+                  onChange={(e) => setServiceForm({...serviceForm, location: e.target.value})}
+                  placeholder="Ex: Lisboa"
+                  className="bg-white border-gray-300 text-gray-900 mb-3"
+                />
+                <Label className="text-gray-900 mb-2 block">Morada Completa</Label>
+                <Input
+                  value={serviceForm.address}
+                  onChange={(e) => setServiceForm({...serviceForm, address: e.target.value})}
+                  placeholder="Ex: Rua Principal, 123"
+                  className="bg-white border-gray-300 text-gray-900"
+                />
+              </div>
+
+              <div className="bg-white p-4 rounded-lg grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-900 mb-2 block">Duração (minutos)</Label>
+                  <Input
+                    type="number"
+                    value={serviceForm.duration_minutes}
+                    onChange={(e) => setServiceForm({...serviceForm, duration_minutes: e.target.value})}
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-900 mb-2 block">Preço (€) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={serviceForm.base_price}
+                    onChange={(e) => setServiceForm({...serviceForm, base_price: e.target.value})}
+                    placeholder="25.00"
+                    className="bg-white border-gray-300 text-gray-900"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white pt-4">
+                <Button
+                  onClick={() => {
+                    if (!serviceForm.service_name || !serviceForm.base_price || !serviceForm.location) {
+                      toast.error('Preencha nome, preço e localização!');
+                      return;
+                    }
+                    createServiceMutation.mutate(serviceForm);
+                  }}
+                  disabled={createServiceMutation.isPending}
+                  className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-white"
+                >
+                  {createServiceMutation.isPending ? 'Criando...' : 'Criar Serviço'}
+                </Button>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
