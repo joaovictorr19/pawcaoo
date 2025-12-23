@@ -358,15 +358,26 @@ export default function WalkerDetails() {
           <div className="lg:col-span-1 space-y-4">
             
             {/* Card Perfil */}
-            <Card className="bg-white shadow-sm border-0">
-              <CardContent className="p-5">
+            <Card className="bg-white shadow-sm border-0 overflow-hidden">
+              {/* Foto de Capa */}
+              {walker.cover_photo_url && (
+                <div className="h-32 w-full bg-gradient-to-br from-green-100 to-blue-100 relative overflow-hidden">
+                  <img 
+                    src={walker.cover_photo_url} 
+                    alt="Capa"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
+              <CardContent className={`p-5 ${walker.cover_photo_url ? '-mt-12' : ''}`}>
                 {/* Foto + Nome */}
                 <div className="flex flex-col items-center text-center mb-4">
                   <div className="relative mb-3">
                     <img 
                       src={walker.photo_url || 'https://via.placeholder.com/150'} 
                       alt={walker.walker_name}
-                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                      className={`w-24 h-24 rounded-full object-cover shadow-lg ${walker.cover_photo_url ? 'border-4 border-white' : 'border-4 border-gray-100'}`}
                     />
                     {walker.verification_status === 'verified' && (
                       <div className="absolute -bottom-1 -right-1">
