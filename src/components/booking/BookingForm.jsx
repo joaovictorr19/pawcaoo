@@ -756,55 +756,33 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           {/* STEP 3: Payment & Confirmation */}
           {step === 3 && (
             <>
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
-                <h4 className="font-bold text-green-800 mb-3 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Resumo da Reserva
-                </h4>
+              <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold text-gray-900 mb-4">Resumo do Pagamento</h4>
                 
-                <div className="space-y-2 text-sm mb-3">
-                  <div className="flex justify-between py-1 border-b border-green-100">
-                    <span className="text-gray-600">{formData.dog_name}</span>
-                    <span className="font-medium">{formData.walk_date ? format(formData.walk_date, 'dd/MM') : ''} às {formData.walk_time}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-green-100">
-                    <span className="text-gray-600">Serviço</span>
-                    <span className="font-medium">{amounts.serviceName}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-green-100">
-                    <span className="text-gray-600">Local</span>
-                    <span className="font-medium text-right text-xs max-w-[150px] truncate">{pickupAddress}</span>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg p-3 space-y-1.5">
+                <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span>{amounts.serviceName}</span>
-                    <span>{formatCurrency(amounts.baseAmount)}</span>
+                    <span className="text-gray-600">{amounts.serviceName}</span>
+                    <span className="font-medium">{formatCurrency(amounts.baseAmount)}</span>
                   </div>
                   {amounts.discount > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
-                      <span>{t('memberDiscount', language)}</span>
+                      <span>Desconto de membro</span>
                       <span>-{formatCurrency(amounts.discountAmount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>{t('serviceFee', language)}</span>
-                    <span>{formatCurrency(amounts.platformFee)}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Taxa de serviço</span>
+                    <span className="font-medium">{formatCurrency(amounts.platformFee)}</span>
                   </div>
-                  <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold text-xl">
-                    <span>Total</span>
+                  <div className="border-t border-gray-200 pt-3 flex justify-between font-bold text-lg">
+                    <span>Total a pagar</span>
                     <span className="text-green-600">{formatCurrency(amounts.totalAmount)}</span>
                   </div>
                 </div>
-              </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                <p className="font-semibold text-blue-800 mb-1">💳 Pagamento Imediato</p>
-                <p className="text-blue-700 text-xs">
-                  O pagamento é realizado agora e fica retido até o serviço ser concluído. 
-                  Cancelamento com 24h de antecedência: reembolso de 100%.
-                </p>
+                <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
+                  Pagamento seguro processado via Stripe. Cancelamento com 24h de antecedência: reembolso de 100%.
+                </div>
               </div>
             </>
           )}
@@ -834,16 +812,16 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 type="button"
                 onClick={handlePayment}
                 disabled={isPaymentProcessing}
-                className="flex-1 h-10 text-sm text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
+                className="flex-1 h-11 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
                 {isPaymentProcessing ? (
                   <>
                     <Clock className="w-4 h-4 mr-2 animate-spin" />
-                    {language === 'pt' ? 'A processar' : language === 'es' ? 'Procesando' : language === 'fr' ? 'Traitement' : 'Processing'}...
+                    {language === 'pt' ? 'A processar pagamento' : language === 'es' ? 'Procesando pago' : language === 'fr' ? 'Traitement du paiement' : 'Processing payment'}...
                   </>
                 ) : (
                   <>
-                    💳 {language === 'pt' ? 'Pagar Agora' : language === 'es' ? 'Pagar Ahora' : language === 'fr' ? 'Payer Maintenant' : 'Pay Now'} {formatCurrency(amounts.totalAmount)}
+                    {language === 'pt' ? 'Confirmar e Pagar' : language === 'es' ? 'Confirmar y Pagar' : language === 'fr' ? 'Confirmer et Payer' : 'Confirm and Pay'} {formatCurrency(amounts.totalAmount)}
                   </>
                 )}
               </Button>
