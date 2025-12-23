@@ -885,15 +885,15 @@ function LayoutContent({ children, currentPageName }) {
           background: transparent !important;
         }
         
-        /* Prevent dark backgrounds on internal elements */
-        [data-sidebar] button,
-        [data-sidebar] a {
+        /* Allow gradient backgrounds on active links */
+        [data-sidebar] button:not([class*="from-"]):not([class*="bg-gradient"]),
+        [data-sidebar] a:not([class*="from-"]):not([class*="bg-gradient"]):not([class*="bg-red-6"]) {
           background-color: transparent;
         }
-        
-        [data-sidebar] button:hover,
-        [data-sidebar] a:hover {
-          background-color: rgba(0, 0, 0, 0.05) !important;
+
+        [data-sidebar] button:hover:not([class*="from-"]):not([class*="bg-gradient"]),
+        [data-sidebar] a:hover:not([class*="from-"]):not([class*="bg-gradient"]):not([class*="bg-red-6"]) {
+          background-color: rgba(0, 0, 0, 0.05);
         }
 
         .scrollbar-hide {
