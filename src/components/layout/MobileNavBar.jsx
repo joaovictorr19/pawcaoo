@@ -134,7 +134,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               </div>
 
               <span 
-                className={`text-[10px] mt-1 font-medium ${!active && (isDarkMode ? "text-gray-400" : "text-gray-500")}`}
+                className={`text-[9px] mt-0.5 font-medium truncate max-w-[50px] ${!active && "text-gray-500"}`}
                 style={active ? { color: colors?.primary || '#3b82f6' } : {}}
               >
                 {item.label}
