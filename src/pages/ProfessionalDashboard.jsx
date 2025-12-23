@@ -727,7 +727,7 @@ export default function ProfessionalDashboard() {
           }}
         >
           {/* Header Fixo */}
-          <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50">
+          <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50" style={{ border: 'none !important', boxShadow: 'none !important', borderBottom: 'none !important' }}>
             <h2 className="text-xl md:text-2xl font-bold" style={{ color: '#111827' }}>
               {editingService ? '✏️ Editar' : '➕ Adicionar'} Serviço
             </h2>
@@ -924,7 +924,7 @@ export default function ProfessionalDashboard() {
           </div>
 
           {/* Footer Fixo com Botões */}
-          <div className="px-6 py-4 bg-gray-50 flex gap-3">
+          <div className="px-6 py-4 bg-gray-50 flex gap-3" style={{ border: 'none !important', boxShadow: 'none !important', borderTop: 'none !important' }}>
             <Button 
               variant="outline" 
               onClick={() => {
