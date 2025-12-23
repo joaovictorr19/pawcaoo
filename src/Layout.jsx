@@ -743,7 +743,7 @@ function LayoutContent({ children, currentPageName }) {
         [data-state="open"] [data-sidebar="sidebar"],
         [data-radix-scroll-area-viewport],
         [data-sidebar],
-        [data-sidebar] > * {
+        [data-sidebar] > div {
           background: rgba(255, 255, 255, 0.95) !important;
           backdrop-filter: blur(20px) !important;
           -webkit-backdrop-filter: blur(20px) !important;
@@ -752,16 +752,16 @@ function LayoutContent({ children, currentPageName }) {
         
         /* Mobile sidebar drawer/sheet */
         [data-state="open"][role="dialog"],
-        [data-state="open"][role="dialog"] > *,
+        [data-state="open"][role="dialog"] > div,
         [vaul-drawer],
-        [vaul-drawer] > * {
+        [vaul-drawer] > div {
           background: rgba(255, 255, 255, 0.98) !important;
           backdrop-filter: blur(20px) !important;
           -webkit-backdrop-filter: blur(20px) !important;
         }
         
         /* Force transparent background on sidebar children */
-        [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img):not([class*="bg-"]) {
+        [data-sidebar="sidebar"] *:not(button):not(a):not(span):not(svg):not(path):not(img) {
           background-color: transparent !important;
         }
 
