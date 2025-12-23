@@ -267,10 +267,6 @@ export default function ProductList() {
         cart={cart}
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeItem}
-        onCheckout={() => {
-          toast.info("Sistema de checkout em desenvolvimento!");
-          setCartOpen(false);
-        }}
       />
 
       {reviewModal && (
