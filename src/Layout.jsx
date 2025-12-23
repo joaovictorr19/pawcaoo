@@ -1082,14 +1082,7 @@ function LayoutContent({ children, currentPageName }) {
               <PawCaoLogo size="default" />
             </Link>
 
-            {planBadge && (
-              <div className={`mt-2 ${planBadge.color} text-white rounded-xl px-3 py-1.5 text-center shadow-lg transform hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden`}>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 animate-shimmer"></div>
-                <div className="relative">
-                  <span className="text-xs font-bold tracking-wider">{planBadge.name}</span>
-                </div>
-              </div>
-            )}
+
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
