@@ -319,7 +319,7 @@ export default function EditWalkerProfile() {
                 <CardContent className="p-4">
                   <Label className="text-sm font-semibold text-gray-700 mb-3 block">Foto de Capa</Label>
                   <div 
-                    className="relative w-full h-32 rounded-xl overflow-hidden bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-dashed border-gray-300 cursor-pointer hover:border-green-400 transition-colors"
+                    className="relative w-full h-32 rounded-xl overflow-hidden bg-gray-100 border-2 border-dashed border-gray-300 cursor-pointer hover:border-gray-400 transition-colors"
                     onClick={() => document.getElementById('cover').click()}
                   >
                     {formData.cover_photo_url ? (
