@@ -605,11 +605,10 @@ export default function Gamification() {
                 ))}
               </div>
 
-              {/* Avatar flutuante - posição baseada no progresso */}
+              {/* Avatar flutuante - fixo no topo do totem */}
               <motion.div
-                className="absolute left-1/2 -translate-x-1/2"
-                style={{ bottom: `${Math.max(5, progressInLevel - 10)}%` }}
-                animate={{ y: [0, -4, 0] }}
+                className="absolute left-1/2 -translate-x-1/2 -top-6"
+                animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
                 {/* Aura */}
