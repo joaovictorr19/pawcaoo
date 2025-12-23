@@ -723,7 +723,7 @@ export default function ProfessionalDashboard() {
           }}
         >
           {/* Header Fixo */}
-          <DialogHeader className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-0">
+          <DialogHeader className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-0 shadow-none" style={{ borderBottom: 'none' }}>
             <DialogTitle className="text-xl md:text-2xl font-bold" style={{ color: '#111827' }}>
               {editingService ? '✏️ Editar' : '➕ Adicionar'} Serviço
             </DialogTitle>
@@ -926,7 +926,7 @@ export default function ProfessionalDashboard() {
           </div>
 
           {/* Footer Fixo com Botões */}
-          <div className="px-6 py-4 bg-gray-50 flex gap-3 border-0">
+          <div className="px-6 py-4 bg-gray-50 flex gap-3 border-0 shadow-none" style={{ borderTop: 'none' }}>
             <Button 
               variant="outline" 
               onClick={() => {
