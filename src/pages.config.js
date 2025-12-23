@@ -2,12 +2,14 @@ import AIMatches from './pages/AIMatches';
 import AboutUs from './pages/AboutUs';
 import AccountSettings from './pages/AccountSettings';
 import ActiveRide from './pages/ActiveRide';
+import AdminDashboard from './pages/AdminDashboard';
 import AdminFinanceDashboard from './pages/AdminFinanceDashboard';
 import AdminShelterVerification from './pages/AdminShelterVerification';
 import AdminShopHub from './pages/AdminShopHub';
 import AdoptionListingDetails from './pages/AdoptionListingDetails';
 import AdoptionListings from './pages/AdoptionListings';
 import AffiliateDashboard from './pages/AffiliateDashboard';
+import ApiDocs from './pages/ApiDocs';
 import ApplyForAdoption from './pages/ApplyForAdoption';
 import ApproveAnnouncements from './pages/ApproveAnnouncements';
 import BecomeProfessional from './pages/BecomeProfessional';
@@ -31,6 +33,8 @@ import FAQ from './pages/FAQ';
 import Favorites from './pages/Favorites';
 import FiscalSettings from './pages/FiscalSettings';
 import ForumTopicDetails from './pages/ForumTopicDetails';
+import Gamification from './pages/Gamification';
+import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Leaderboard from './pages/Leaderboard';
 import LiveWalkTracking from './pages/LiveWalkTracking';
@@ -73,15 +77,11 @@ import TermsOfService from './pages/TermsOfService';
 import TestPayments from './pages/TestPayments';
 import TrainerDetails from './pages/TrainerDetails';
 import Trainers from './pages/Trainers';
+import UserProfile from './pages/UserProfile';
 import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
-import Gamification from './pages/Gamification';
-import UserProfile from './pages/UserProfile';
-import AdminDashboard from './pages/AdminDashboard';
-import ApiDocs from './pages/ApiDocs';
-import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -90,12 +90,14 @@ export const PAGES = {
     "AboutUs": AboutUs,
     "AccountSettings": AccountSettings,
     "ActiveRide": ActiveRide,
+    "AdminDashboard": AdminDashboard,
     "AdminFinanceDashboard": AdminFinanceDashboard,
     "AdminShelterVerification": AdminShelterVerification,
     "AdminShopHub": AdminShopHub,
     "AdoptionListingDetails": AdoptionListingDetails,
     "AdoptionListings": AdoptionListings,
     "AffiliateDashboard": AffiliateDashboard,
+    "ApiDocs": ApiDocs,
     "ApplyForAdoption": ApplyForAdoption,
     "ApproveAnnouncements": ApproveAnnouncements,
     "BecomeProfessional": BecomeProfessional,
@@ -119,6 +121,8 @@ export const PAGES = {
     "Favorites": Favorites,
     "FiscalSettings": FiscalSettings,
     "ForumTopicDetails": ForumTopicDetails,
+    "Gamification": Gamification,
+    "Home": Home,
     "Landing": Landing,
     "Leaderboard": Leaderboard,
     "LiveWalkTracking": LiveWalkTracking,
@@ -161,15 +165,11 @@ export const PAGES = {
     "TestPayments": TestPayments,
     "TrainerDetails": TrainerDetails,
     "Trainers": Trainers,
+    "UserProfile": UserProfile,
     "VeterinaryDashboard": VeterinaryDashboard,
     "WalkHistory": WalkHistory,
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
-    "Gamification": Gamification,
-    "UserProfile": UserProfile,
-    "AdminDashboard": AdminDashboard,
-    "ApiDocs": ApiDocs,
-    "Home": Home,
 }
 
 export const pagesConfig = {
