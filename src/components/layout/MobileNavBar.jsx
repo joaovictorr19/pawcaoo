@@ -90,7 +90,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               id={item.id}
               to={item.path}
               onClick={(e) => {
-                if (item.label === "Alertas" && onNotificationsClick) {
+                if (item.label === getLabel('alerts') && onNotificationsClick) {
                   e.preventDefault();
                   onNotificationsClick();
                 }
