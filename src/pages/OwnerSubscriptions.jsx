@@ -279,7 +279,7 @@ export default function OwnerSubscriptions() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 relative overflow-hidden">
+    <div className="min-h-screen bg-neutral-950 relative overflow-hidden rounded-3xl mx-2 md:mx-4 my-2">
       {/* Nevoeiro animado */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
