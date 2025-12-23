@@ -10,15 +10,6 @@ import ShoppingCartModal from "./ShoppingCartModal";
 import ProductReviewModal from "./ProductReviewModal";
 import { toast } from "sonner";
 
-const products = [
-  { id: 1, title: 'Ração Premium Natural 15kg', brand: 'Royal Canin', price: 45.90, category: 'Alimentação', image: 'https://images.unsplash.com/photo-1585499193151-0f515432bc69?auto=format&fit=crop&q=80&w=400', badge: 'Envio Grátis' },
-  { id: 2, title: 'Coleira de Couro Personalizada', brand: 'PawCraft', price: 12.50, category: 'Acessórios', image: 'https://images.unsplash.com/photo-1605639176478-95e51f9c008a?auto=format&fit=crop&q=80&w=400', badge: 'Feito à Mão' },
-  { id: 3, title: 'Kit Brinquedos Interativos', brand: 'FunPet', price: 18.99, originalPrice: 24.99, category: 'Brinquedos', image: 'https://images.unsplash.com/photo-1535294435445-d7249524ef2e?auto=format&fit=crop&q=80&w=400', badge: '-24%' },
-  { id: 4, title: 'Champô Hipoalergénico 500ml', brand: 'VetCare', price: 8.90, category: 'Higiene', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=400' },
-  { id: 5, title: 'Cama Ortopédica Luxo', brand: 'PawCraft', price: 65.00, category: 'Acessórios', image: 'https://images.unsplash.com/photo-1616433321820-e0e3b5b9dc12?auto=format&fit=crop&q=80&w=400', badge: 'Novidade' },
-  { id: 6, title: 'Snacks Dentais Naturais 1kg', brand: 'Royal Canin', price: 15.50, category: 'Alimentação', image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&q=80&w=400' },
-];
-
 export default function ProductList() {
   const queryClient = useQueryClient();
   const [favorites, setFavorites] = useState({});
@@ -44,6 +35,18 @@ export default function ProductList() {
       return carts[0] || null;
     },
     enabled: !!user?.email
+  });
+
+  const { data: partnerProducts = [], isLoading: loadingProducts } = useQuery({
+    queryKey: ['shopProducts'],
+    queryFn: async () => {
+      const products = await base44.entities.PartnerProduct.filter({ 
+        moderation_status: 'approved',
+        is_available: true
+      }, '-created_date');
+      return Array.isArray(products) ? products : [];
+    },
+    initialData: []
   });
 
   const { data: reviews = [] } = useQuery({
@@ -93,12 +96,13 @@ export default function ProductList() {
     } else {
       newItems = [...currentItems, {
         product_id: String(product.id),
-        product_name: product.title,
-        product_image: product.image,
+        product_name: product.product_name,
+        product_image: product.image_url,
         quantity: 1,
-        unit_price: product.price,
-        total_price: product.price,
-        partner_name: product.brand
+        unit_price: product.price_euro,
+        total_price: product.price_euro,
+        partner_id: product.partner_id,
+        partner_name: product.partner_name
       }];
     }
 
@@ -149,17 +153,29 @@ export default function ProductList() {
   };
 
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
+    return partnerProducts.filter(product => {
       const { averageRating } = getProductStats(product.id);
       
-      if (product.price < filters.minPrice || product.price > filters.maxPrice) return false;
+      const price = product.price_euro || 0;
+      if (price < filters.minPrice || price > filters.maxPrice) return false;
       if (filters.minRating > 0 && averageRating < filters.minRating) return false;
-      if (filters.brands?.length > 0 && !filters.brands.includes(product.brand)) return false;
+      if (filters.brands?.length > 0 && !filters.brands.includes(product.partner_name)) return false;
       if (filters.categories?.length > 0 && !filters.categories.includes(product.category)) return false;
       
       return true;
     });
-  }, [products, filters, reviews]);
+  }, [partnerProducts, filters, reviews]);
+
+  // Extrair brands e categories dos produtos reais
+  const availableBrands = useMemo(() => {
+    const brands = new Set(partnerProducts.map(p => p.partner_name).filter(Boolean));
+    return Array.from(brands);
+  }, [partnerProducts]);
+
+  const availableCategories = useMemo(() => {
+    const categories = new Set(partnerProducts.map(p => p.category).filter(Boolean));
+    return Array.from(categories);
+  }, [partnerProducts]);
 
   return (
     <div className="grid lg:grid-cols-4 gap-6">
@@ -168,15 +184,29 @@ export default function ProductList() {
           filters={filters}
           onFiltersChange={setFilters}
           onReset={() => setFilters({ minPrice: 0, maxPrice: 100, minRating: 0, brands: [], categories: [] })}
+          brands={availableBrands}
+          categories={availableCategories}
         />
       </div>
 
       <div className="lg:col-span-3">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Produtos</h2>
-            <p className="text-sm text-gray-600">{filteredProducts.length} {filteredProducts.length === 1 ? 'produto' : 'produtos'}</p>
+        {loadingProducts ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="bg-white rounded-xl p-4 space-y-3 shadow-md animate-pulse">
+                <div className="w-full h-48 bg-gray-200 rounded-lg" />
+                <div className="h-4 bg-gray-200 rounded w-3/4" />
+                <div className="h-3 bg-gray-200 rounded w-1/2" />
+              </div>
+            ))}
           </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Produtos</h2>
+                <p className="text-sm text-gray-600">{filteredProducts.length} {filteredProducts.length === 1 ? 'produto' : 'produtos'}</p>
+              </div>
           
           {user && (
             <Button
@@ -192,24 +222,43 @@ export default function ProductList() {
               )}
             </Button>
           )}
-        </div>
+            </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => {
-            const stats = getProductStats(product.id);
-            return (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={addToCart}
-                onToggleFavorite={(id) => setFavorites({...favorites, [id]: !favorites[id]})}
-                isFavorite={favorites[product.id]}
-                averageRating={stats.averageRating}
-                reviewCount={stats.reviewCount}
-              />
-            );
-          })}
-        </div>
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <ShoppingCartIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600">Nenhum produto encontrado</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts.map((product) => {
+                  const stats = getProductStats(product.id);
+                  return (
+                    <ProductCard
+                      key={product.id}
+                      product={{
+                        id: product.id,
+                        title: product.product_name,
+                        brand: product.partner_name,
+                        price: product.price_euro,
+                        originalPrice: product.discount_percentage > 0 ? product.price_euro / (1 - product.discount_percentage / 100) : null,
+                        category: product.category,
+                        image: product.image_url,
+                        badge: product.discount_percentage > 0 ? `-${product.discount_percentage}%` : null,
+                        stock: product.stock_quantity
+                      }}
+                      onAddToCart={addToCart}
+                      onToggleFavorite={(id) => setFavorites({...favorites, [id]: !favorites[id]})}
+                      isFavorite={favorites[product.id]}
+                      averageRating={stats.averageRating}
+                      reviewCount={stats.reviewCount}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <ShoppingCartModal
@@ -224,20 +273,22 @@ export default function ProductList() {
         }}
       />
 
-      <ProductReviewModal
-        isOpen={!!reviewModal}
-        onClose={() => setReviewModal(null)}
-        product={reviewModal}
-        onSubmit={(reviewData) => {
-          createReviewMutation.mutate({
-            product_id: String(reviewModal.id),
-            product_name: reviewModal.title,
-            reviewer_email: user.email,
-            reviewer_name: user.full_name,
-            ...reviewData
-          });
-        }}
-      />
+      {reviewModal && (
+        <ProductReviewModal
+          isOpen={!!reviewModal}
+          onClose={() => setReviewModal(null)}
+          product={reviewModal}
+          onSubmit={(reviewData) => {
+            createReviewMutation.mutate({
+              product_id: String(reviewModal.id),
+              product_name: reviewModal.title,
+              reviewer_email: user.email,
+              reviewer_name: user.full_name,
+              ...reviewData
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

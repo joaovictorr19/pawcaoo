@@ -1416,11 +1416,8 @@ export default function AdminDashboard() {
             <TabsTrigger value="documents" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Documentos</TabsTrigger>
             <TabsTrigger value="adoptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Adoções</TabsTrigger>
             <TabsTrigger value="badges" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Emblemas</TabsTrigger>
-            <TabsTrigger value="companies" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Empresas</TabsTrigger>
-            <TabsTrigger value="announcements" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Anúncios</TabsTrigger>
-            <TabsTrigger value="services" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Serviços</TabsTrigger>
-            <TabsTrigger value="products" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Produtos</TabsTrigger>
-            <TabsTrigger value="store" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Loja</TabsTrigger>
+            <TabsTrigger value="partners" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Parceiros & Loja</TabsTrigger>
+            <TabsTrigger value="store" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Loja PawPoints</TabsTrigger>
             <TabsTrigger value="bookings" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Reservas</TabsTrigger>
             <TabsTrigger value="payments" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Pagamentos</TabsTrigger>
             <TabsTrigger value="reviews" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Avaliações</TabsTrigger>
@@ -2775,13 +2772,23 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="companies">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
+          <TabsContent value="partners">
+            <div className="space-y-6 mt-6">
+              <Tabs defaultValue="companies" className="w-full">
+                <TabsList className="grid grid-cols-4 w-full mb-4">
+                  <TabsTrigger value="companies">Empresas</TabsTrigger>
+                  <TabsTrigger value="products">Produtos</TabsTrigger>
+                  <TabsTrigger value="services">Serviços</TabsTrigger>
+                  <TabsTrigger value="announcements">Anúncios</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="companies">
+            <Card className="glass-panel border-0 shadow-xl">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="text-2xl">{t('companyManagement', language)}</CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">{t('managePartners', language)}</p>
+                    <CardTitle className="text-2xl">Gestão de Empresas Parceiras</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">Adicionar e gerir empresas que fornecem produtos/serviços</p>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -2902,15 +2909,22 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+                </TabsContent>
 
-          <TabsContent value="announcements">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
+                <TabsContent value="products">
+                  <ProductManagement
+                    products={allPartnerProducts}
+                    isLoading={loadingProducts}
+                  />
+                </TabsContent>
+
+                <TabsContent value="services">
+            <Card className="glass-panel border-0 shadow-xl">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle className="flex items-center gap-2">
                     <Megaphone className="w-6 h-6 text-pink-600" />
-                    {t('allAnnouncements', language)} ({allAnnouncements.length})
+                    Anúncios de Empresas ({allAnnouncements.length})
                   </CardTitle>
                   <Button
                     variant="outline"
@@ -3033,42 +3047,25 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+                </TabsContent>
 
-          <TabsContent value="products">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="w-6 h-6 text-blue-600" />
-                  Gestão de Produtos ({allPartnerProducts.length})
-                </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  {pendingProducts.length} pendentes • {allPartnerProducts.filter(p => p.moderation_status === 'approved' && p.is_available).length} ativos
-                </p>
-              </CardHeader>
-              <CardContent>
-                <ProductManagement
-                  products={allPartnerProducts}
-                  isLoading={loadingProducts}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="store">
+                <TabsContent value="announcements">
             <div className="mt-6">
               <StoreItemsManager />
             </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           </TabsContent>
 
-          <TabsContent value="services">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
+          <TabsContent value="store">
+            <Card className="glass-panel border-0 shadow-xl">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle>{t('allServices', language)} ({allPartnerServices.length})</CardTitle>
+                    <CardTitle>Serviços de Parceiros ({allPartnerServices.length})</CardTitle>
                     <p className="text-sm text-gray-600 mt-1">
-                      {pendingApprovalServices.length} {t('pendingApproval', language)} • {allPartnerServices.filter(s => s.moderation_status === 'approved' && s.is_active).length} {t('active', language).toLowerCase()}
+                      {pendingApprovalServices.length} pendentes • {allPartnerServices.filter(s => s.moderation_status === 'approved' && s.is_active).length} ativos
                     </p>
                   </div>
                   <Button
