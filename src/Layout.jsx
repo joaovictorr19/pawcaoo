@@ -676,34 +676,62 @@ function LayoutContent({ children, currentPageName }) {
         /* CRITICAL: Force ALL sidebar elements to stay 100% visible on ALL states */
         [data-sidebar] a,
         [data-sidebar] a *,
+        [data-sidebar] a > *,
         [data-sidebar] a span,
         [data-sidebar] a svg,
+        [data-sidebar] a svg *,
         [data-sidebar] a path,
         [data-sidebar] button,
         [data-sidebar] button *,
+        [data-sidebar] button > *,
         [data-sidebar] button span,
         [data-sidebar] button svg,
-        [data-sidebar] button path,
+        [data-sidebar] button svg *,
+        [data-sidebar] button path {
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+
+        /* Force visibility on ALL interaction states */
         [data-sidebar] a:hover,
         [data-sidebar] a:hover *,
+        [data-sidebar] a:hover > *,
+        [data-sidebar] a:hover span,
+        [data-sidebar] a:hover svg,
+        [data-sidebar] a:hover svg *,
+        [data-sidebar] a:hover path,
         [data-sidebar] a:active,
         [data-sidebar] a:active *,
+        [data-sidebar] a:active > *,
         [data-sidebar] a:active span,
         [data-sidebar] a:active svg,
+        [data-sidebar] a:active svg *,
         [data-sidebar] a:active path,
         [data-sidebar] a:focus,
         [data-sidebar] a:focus *,
+        [data-sidebar] a:focus > *,
         [data-sidebar] button:hover,
         [data-sidebar] button:hover *,
+        [data-sidebar] button:hover > *,
         [data-sidebar] button:active,
         [data-sidebar] button:active *,
+        [data-sidebar] button:active > *,
         [data-sidebar] button:active span,
         [data-sidebar] button:active svg,
+        [data-sidebar] button:active svg *,
         [data-sidebar] button:active path,
         [data-sidebar] button:focus,
-        [data-sidebar] button:focus * {
+        [data-sidebar] button:focus *,
+        [data-sidebar] button:focus > * {
           opacity: 1 !important;
           visibility: visible !important;
+          color: inherit !important;
+        }
+
+        /* Prevent any transform or transition from affecting visibility */
+        [data-sidebar] a:active,
+        [data-sidebar] button:active {
+          transition: transform 0.1s !important;
         }
 
         /* Links ativos na sidebar sempre com texto e ícones visíveis */
