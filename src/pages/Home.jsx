@@ -652,7 +652,7 @@ export default function Home() {
                 return (
                   <div className="space-y-3 mb-6 relative">
                     {/* Ambient glow circle */}
-                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
+                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-green-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
                     
                     <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
                       {/* Shimmer effect overlay */}
@@ -762,7 +762,7 @@ export default function Home() {
                         onClick={() => navigate(createPageUrl('Favorites'))}
                         className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
                       >
-                        <Heart className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" strokeWidth={1.5} />
+                        <Heart className="w-4 h-4 md:w-5 md:h-5 text-green-600" strokeWidth={1.5} />
                         <span className="text-[10px] md:text-xs font-semibold text-slate-700">Favoritos</span>
                       </button>
 
@@ -778,7 +778,7 @@ export default function Home() {
                         onClick={() => navigate(createPageUrl('MyBookings'))}
                         className="flex flex-col items-center gap-1.5 p-2.5 md:p-3 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
                       >
-                        <Calendar className="w-4 h-4 md:w-5 md:h-5 text-blue-600" strokeWidth={1.5} />
+                        <Calendar className="w-4 h-4 md:w-5 md:h-5 text-green-600" strokeWidth={1.5} />
                         <span className="text-[10px] md:text-xs font-semibold text-slate-700">Histórico</span>
                       </button>
                     </div>
@@ -865,10 +865,10 @@ export default function Home() {
                       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
                       className="relative"
                     >
-                      <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-blue-400 shadow-2xl group-hover:border-blue-600 transition-all group-hover:scale-110 aspect-square">
+                      <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
                         <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
                       </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
                         🚶 Walker
                       </div>
                     </motion.div>
@@ -940,7 +940,7 @@ export default function Home() {
                   <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
                     <motion.div 
                       whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
+                      className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
                       onClick={() => setActiveTab('walkers')}
                     >
                       <Users className="w-4 h-4" />
@@ -990,7 +990,7 @@ export default function Home() {
                           }
                       }}
                       currentLocation={userLocation}
-                      className="border-0 bg-gray-100 h-10 text-sm focus:ring-2 focus:ring-blue-500 rounded-xl"
+                      className="border-0 bg-gray-100 h-10 text-sm focus:ring-2 focus:ring-green-500 rounded-xl"
                       placeholder="📍 Onde procura?"
                     />
                   </div>
@@ -1001,7 +1001,7 @@ export default function Home() {
                       setActiveTab('walkers');
                       document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="h-10 w-10 shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"
+                    className="h-10 w-10 shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"
                   >
                     <Search className="w-5 h-5" />
                   </Button>
@@ -1142,7 +1142,7 @@ export default function Home() {
                         </p>
                         
                         {selectedServiceTypes.length > 0 && (
-                          <Badge className="bg-blue-100 text-blue-800 text-xs">
+                          <Badge className="bg-green-100 text-green-800 text-xs">
                             {selectedServiceTypes.length} {t('serviceCount', language)}
                           </Badge>
                         )}
@@ -1159,7 +1159,7 @@ export default function Home() {
                         )}
                         
                         {filterDogSitting !== "all" && (
-                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                          <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
                             {filterDogSitting === "boarding" && `🏠 ${t('dogBoarding', language)}`}
                             {filterDogSitting === "house_sitting" && `🏡 ${t('houseSitting', language)}`}
                             {filterDogSitting === "drop_in" && `🚪 ${t('dropInVisits', language)}`}
@@ -1246,7 +1246,7 @@ export default function Home() {
                               }}
                               className="text-white hover:opacity-90"
                               style={{
-                                background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                                background: `linear-gradient(to right, ${colors?.primary || '#16a34a'}, ${colors?.primary || '#16a34a'}dd)`
                               }}
                             >
                               Limpar Todos os Filtros
@@ -1301,7 +1301,7 @@ export default function Home() {
                                           : 'text-gray-600 hover:bg-gray-50'
                                       }`}
                                       style={currentPage === pageNum ? {
-                                        background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                                        background: `linear-gradient(to right, ${colors?.primary || '#16a34a'}, ${colors?.primary || '#16a34a'}dd)`
                                       } : {}}
                                     >
                                       {pageNum}
@@ -1437,7 +1437,7 @@ export default function Home() {
 
                               <div className="space-y-2 mb-4">
                                 <div className="flex items-center gap-2 text-sm text-gray-700">
-                                  <Calendar className="w-4 h-4 text-blue-500" />
+                                  <Calendar className="w-4 h-4 text-green-500" />
                                   {(() => {
                                     const years = pet.age_years || 0;
                                     const months = pet.age_months || 0;
@@ -1574,7 +1574,7 @@ export default function Home() {
               whileHover={{ scale: 1.05, y: -4 }}
               className="flex flex-col items-center gap-2 cursor-default group"
             >
-              <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
                 <Shield className="w-6 h-6 md:w-8 md:h-8 text-white" />
               </div>
               <span className="text-xs md:text-sm font-bold text-white text-center leading-tight drop-shadow-md">{t('verifiedProfessionals', language)}</span>
