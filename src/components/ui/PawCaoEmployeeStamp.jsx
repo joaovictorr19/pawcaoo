@@ -18,7 +18,7 @@ export default function PawCaoEmployeeStamp() {
             <svg 
               viewBox="0 0 100 100" 
               className="w-full h-full"
-              style={{ filter: 'drop-shadow(1px 1px 1px rgba(0,0,0,0.3))' }}
+              style={{ filter: 'drop-shadow(2px 2px 3px rgba(0,0,0,0.4))' }}
             >
               {/* Outer circle */}
               <circle 
@@ -26,10 +26,10 @@ export default function PawCaoEmployeeStamp() {
                 cy="50" 
                 r="46" 
                 fill="none" 
-                stroke="#16a34a" 
-                strokeWidth="3"
-                strokeDasharray="4 2"
-                opacity="0.9"
+                stroke="#d4a020" 
+                strokeWidth="2.5"
+                strokeDasharray="3 2"
+                opacity="0.95"
               />
               
               {/* Inner circle */}
@@ -38,9 +38,9 @@ export default function PawCaoEmployeeStamp() {
                 cy="50" 
                 r="38" 
                 fill="none" 
-                stroke="#16a34a" 
-                strokeWidth="2"
-                opacity="0.8"
+                stroke="#d4a020" 
+                strokeWidth="1.5"
+                opacity="0.9"
               />
 
               {/* Circular text path - top */}
@@ -59,11 +59,11 @@ export default function PawCaoEmployeeStamp() {
 
               {/* Top text */}
               <text 
-                fill="#16a34a" 
-                fontSize="8" 
-                fontWeight="bold" 
-                letterSpacing="3"
-                style={{ fontFamily: 'system-ui, sans-serif' }}
+                fill="#d4a020" 
+                fontSize="7.5" 
+                fontWeight="500" 
+                letterSpacing="2.5"
+                style={{ fontFamily: 'Georgia, serif' }}
               >
                 <textPath href="#textCircleTop" startOffset="50%" textAnchor="middle">
                   EQUIPA PAWCÃO
@@ -72,27 +72,27 @@ export default function PawCaoEmployeeStamp() {
 
               {/* Bottom text */}
               <text 
-                fill="#16a34a" 
-                fontSize="8" 
-                fontWeight="bold" 
-                letterSpacing="3"
-                style={{ fontFamily: 'system-ui, sans-serif' }}
+                fill="#d4a020" 
+                fontSize="7.5" 
+                fontWeight="500" 
+                letterSpacing="2.5"
+                style={{ fontFamily: 'Georgia, serif' }}
               >
                 <textPath href="#textCircleBottom" startOffset="50%" textAnchor="middle">
                   EQUIPA PAWCÃO
                 </textPath>
               </text>
 
-              {/* Center star/paw icon */}
-              <text 
-                x="50" 
-                y="54" 
-                textAnchor="middle" 
-                fontSize="18"
-                fill="#16a34a"
-              >
-                🐾
-              </text>
+              {/* Center paw icon - SVG drawn */}
+              <g transform="translate(50, 50) scale(0.35)">
+                {/* Main pad */}
+                <ellipse cx="0" cy="8" rx="14" ry="12" fill="#d4a020" />
+                {/* Top pads */}
+                <ellipse cx="-12" cy="-8" rx="6" ry="7" fill="#d4a020" />
+                <ellipse cx="12" cy="-8" rx="6" ry="7" fill="#d4a020" />
+                <ellipse cx="-5" cy="-16" rx="5" ry="6" fill="#d4a020" />
+                <ellipse cx="5" cy="-16" rx="5" ry="6" fill="#d4a020" />
+              </g>
             </svg>
           </div>
         </TooltipTrigger>
