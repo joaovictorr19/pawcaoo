@@ -976,6 +976,22 @@ export default function UserProfile() {
             {profileUser.cover_photo_url && (
               <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" loading="lazy" decoding="async" />
             )}
+            
+            {/* Carimbo Oficial PawCão - Canto Superior Esquerdo */}
+            {(walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee || profileUser.is_pawcao_employee) && (
+              <div className="absolute top-4 left-4 z-20">
+                <PawCaoEmployeeStamp />
+              </div>
+            )}
+
+            {/* DogCollar - Canto Superior Direito abaixo do botão editar */}
+            <div className="absolute top-4 right-16 z-20">
+              <DogCollar 
+                userEmail={profileEmail} 
+                onClick={() => isOwnProfile && setIsDogModalOpen(true)} 
+              />
+            </div>
+
             {isOwnProfile && (
               <Button
                 size="icon"
@@ -1005,23 +1021,12 @@ export default function UserProfile() {
                           </AvatarFallback>
                         </Avatar>
 
-                        {/* Gold & Trainer Badges - Top Right Corner */}
-                        <div className="absolute -top-2 -right-2 flex gap-1">
-                          {(trainerProfile?.is_verified_trainer || walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee) && (
-                            <>
-                              {trainerProfile?.is_verified_trainer && (
-                                <div className="transform hover:scale-110 transition-transform">
-                                  <TrainerVerifiedBadge size="md" />
-                                </div>
-                              )}
-                              {(walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee) && !trainerProfile?.is_verified_trainer && (
-                                <div className="transform hover:scale-110 transition-transform">
-                                  <GoldEmployeeBadge size="lg" />
-                                </div>
-                              )}
-                            </>
-                          )}
-                        </div>
+                        {/* Trainer Verified Badge - Top Right Corner */}
+                        {trainerProfile?.is_verified_trainer && (
+                          <div className="absolute -top-2 -right-2 transform hover:scale-110 transition-transform">
+                            <TrainerVerifiedBadge size="md" />
+                          </div>
+                        )}
 
 
                       </div>
@@ -1031,11 +1036,11 @@ export default function UserProfile() {
               <div className="flex-1 flex flex-col md:flex-row justify-between items-start pt-4 px-4 md:pl-6 md:pr-0 relative">
                 
                 {/* User Details (Left) */}
-                <div className="text-center md:text-left w-full md:w-auto">
-                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">
-                    {profileUser.full_name}
-                  </h1>
+                <div className="text-center w-full md:w-auto">
+                  <div className="flex items-center gap-2 justify-center">
+                   <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">
+                     {profileUser.full_name}
+                   </h1>
 
                   {/* Lógica de verificação e Badges */}
                   {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified' || trainerProfile?.verification_status === 'verified') && (
@@ -1079,14 +1084,6 @@ export default function UserProfile() {
                       {profileUser.city}
                     </div>
                   )}
-
-                  {/* Dog Collar - ALWAYS visible with forced display */}
-                  <div className="mt-3 flex justify-center md:justify-start" style={{ display: 'flex' }}>
-                    <DogCollar 
-                      userEmail={profileEmail} 
-                      onClick={() => isOwnProfile && setIsDogModalOpen(true)} 
-                    />
-                  </div>
 
                   {/* Actions Buttons Mobile */}
                   <div className="flex md:hidden flex-wrap gap-2 justify-center mt-4 w-full px-4">
