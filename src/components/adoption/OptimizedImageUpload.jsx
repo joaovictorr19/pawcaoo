@@ -179,23 +179,23 @@ export default function OptimizedImageUpload({
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading || compressing}
-            className="w-full h-24 border-2 border-dashed border-purple-300 hover:border-purple-500 hover:bg-purple-50"
+            className="w-full h-24 border-2 border-dashed border-green-300 hover:border-green-500 hover:bg-green-50"
           >
             {compressing ? (
               <div className="text-center">
-                <Loader2 className="w-8 h-8 text-purple-600 mx-auto mb-2 animate-spin" />
-                <p className="text-sm font-medium text-purple-700">Comprimindo imagens...</p>
+                <Loader2 className="w-8 h-8 text-green-600 mx-auto mb-2 animate-spin" />
+                <p className="text-sm font-medium text-green-700">Comprimindo imagens...</p>
                 <p className="text-xs text-gray-500">Otimizando para &lt;{maxSizeKB}KB</p>
               </div>
             ) : uploading ? (
               <div className="text-center">
-                <Upload className="w-8 h-8 text-purple-600 mx-auto mb-2 animate-bounce" />
-                <p className="text-sm font-medium text-purple-700">Fazendo upload...</p>
+                <Upload className="w-8 h-8 text-green-600 mx-auto mb-2 animate-bounce" />
+                <p className="text-sm font-medium text-green-700">Fazendo upload...</p>
               </div>
             ) : (
               <div className="text-center">
-                <ImageIcon className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-sm font-medium text-purple-700">
+                <ImageIcon className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-green-700">
                   Adicionar Fotos ({images.length}/{maxImages})
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -264,10 +264,10 @@ export default function OptimizedImageUpload({
 
       {/* Info Box */}
       {images.length === 0 && (
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-900">
+            <AlertCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-green-900">
               <p className="font-semibold mb-1">💡 Dicas para Melhores Fotos:</p>
               <ul className="space-y-1 text-xs">
                 <li>✓ Use luz natural quando possível</li>
@@ -276,7 +276,7 @@ export default function OptimizedImageUpload({
                 <li>✓ Inclua fotos de corpo inteiro e close-ups</li>
                 <li>✓ Evite fundos confusos ou escuros</li>
               </ul>
-              <p className="mt-2 text-blue-700">
+              <p className="mt-2 text-green-700">
                 <strong>Fotos otimizadas = Carregamento rápido = Mais visualizações!</strong>
               </p>
             </div>
