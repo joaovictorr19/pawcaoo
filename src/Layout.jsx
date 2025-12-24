@@ -925,12 +925,12 @@ function LayoutContent({ children, currentPageName }) {
         className="hidden md:block fixed top-[10px] z-[99999] px-4 py-3 right-[15px]"
         style={{
           left: authUser ? '295px' : '15px',
-          background: 'rgba(255, 255, 255, 0.85)',
+          background: authUser ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.6)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255, 255, 255, 0.4)',
+          border: authUser ? '1px solid rgba(255, 255, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.3)',
           borderRadius: '20px',
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+          boxShadow: authUser ? '0 4px 30px rgba(0, 0, 0, 0.1)' : '0 2px 20px rgba(0, 0, 0, 0.05)',
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
@@ -963,21 +963,21 @@ function LayoutContent({ children, currentPageName }) {
                 <>
                   <button
                     onClick={() => navigate(createPageUrl("Home"))}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                       location.pathname === createPageUrl("Home") && !location.search.includes('tab=')
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-gray-200 text-gray-900"
+                        : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <Users className="w-4 h-4 flex-shrink-0" />
-                    <span className="hidden lg:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
+                    <Home className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden lg:inline">{language === 'pt' ? 'Início' : language === 'es' ? 'Inicio' : 'Home'}</span>
                   </button>
                   <button
                     onClick={() => navigate(createPageUrl("Shop"))}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                       location.pathname === createPageUrl("Shop")
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-gray-200 text-gray-900"
+                        : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
                     <ShoppingBag className="w-4 h-4 flex-shrink-0" />
@@ -985,21 +985,14 @@ function LayoutContent({ children, currentPageName }) {
                   </button>
                   <button
                     onClick={() => navigate(createPageUrl("AdoptionListings"))}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                       location.pathname === createPageUrl("AdoptionListings")
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-gray-200 text-gray-900"
+                        : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
                     <Heart className="w-4 h-4 flex-shrink-0" />
-                    <span className="hidden lg:inline">{language === 'pt' ? 'Adotar um Pet' : 'Adopt a Pet'}</span>
-                  </button>
-                  <button
-                    onClick={() => navigate(createPageUrl("Home") + "?tab=emergency")}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap text-red-600 bg-red-50 hover:bg-red-100`}
-                  >
-                    <Zap className="w-4 h-4 flex-shrink-0 text-red-500" />
-                    <span className="hidden lg:inline">{language === 'pt' ? 'Passeio de Emergência' : 'Emergency Walk'}</span>
+                    <span className="hidden lg:inline">{language === 'pt' ? 'Adoção' : language === 'es' ? 'Adopción' : 'Adoption'}</span>
                   </button>
                 </>
               )}
@@ -1020,7 +1013,7 @@ function LayoutContent({ children, currentPageName }) {
             {!authUser && (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md text-sm px-4 h-9"
+                className="bg-gray-800 text-white hover:bg-gray-900 shadow-sm text-sm px-4 h-9"
                 size="sm"
               >
                 {getMenuText('login')}
