@@ -5,8 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, Award, Video, User as UserIcon, ShieldCheck, Clock, Crown, Zap } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
@@ -120,7 +118,7 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
           {trainer.photo_url ? (
             <img
               src={trainer.photo_url}
-              alt={trainer.trainer_name}
+              alt={trainer.walker_name || trainer.trainer_name}
               className="w-full h-full aspect-square object-cover object-center group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
@@ -128,7 +126,7 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
             <div className="w-full h-full flex items-center justify-center">
               <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center">
                 <span className="text-4xl font-bold text-purple-600">
-                  {trainer.trainer_name?.[0]?.toUpperCase()}
+                  {(trainer.walker_name || trainer.trainer_name)?.[0]?.toUpperCase()}
                 </span>
               </div>
             </div>
@@ -168,12 +166,12 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
             <div className="flex-1 overflow-hidden">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <h3 className="text-sm md:text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors break-words">
-                  {trainer.trainer_name.length > 20 ? (
+                  {(trainer.walker_name || trainer.trainer_name)?.length > 20 ? (
                     <span className="animate-marquee inline-block">
-                      {trainer.trainer_name}
+                      {trainer.walker_name || trainer.trainer_name}
                     </span>
                   ) : (
-                    trainer.trainer_name
+                    trainer.walker_name || trainer.trainer_name
                   )}
                 </h3>
                 {(trainer.is_verified || trainer.verification_status === 'verified') && (
@@ -259,14 +257,14 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
           )}
 
           <div className="flex flex-wrap gap-1 md:gap-2">
-            {trainer.training_specialties?.slice(0, 2).map(specialty => (
-              <Badge key={specialty} variant="outline" className="border-purple-200 text-purple-700 bg-purple-50 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
-                {getSpecialtyLabel(specialty)}
+            {trainer.training_specializations?.slice(0, 2).map(spec => (
+              <Badge key={spec.specialty_id} variant="outline" className="border-purple-200 text-purple-700 bg-purple-50 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
+                {spec.specialty_name}
               </Badge>
             ))}
-            {trainer.training_specialties?.length > 2 && (
+            {trainer.training_specializations?.length > 2 && (
               <Badge variant="outline" className="border-gray-200 text-gray-600 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
-                +{trainer.training_specialties.length - 2}
+                +{trainer.training_specializations.length - 2}
               </Badge>
             )}
           </div>
