@@ -383,60 +383,35 @@ export default function UserProfile() {
   const profileEmail = profileUser?.user_email || profileUser?.email;
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
+  // Centralized Badge System with Unique ID
   const { data: earnedBadges = [], isLoading: loadingBadges } = useQuery({
-    queryKey: ['userBadges', profileEmail, activeTab],
+    queryKey: ['userBadges', profileEmail],
     queryFn: async () => {
-      const badgesMap = new Map();
-
-      // 1. Collect Legacy Badges from Auth User or Profile
-      let legacySources = [];
-      if (isSelfView && currentUser) {
-          legacySources = [
-              ...(currentUser.achievements_badges || []),
-              ...(currentUser.public_badges || [])
-          ];
-      } else if (profileUser) {
-          legacySources = profileUser.public_badges || [];
-      }
-
-      // Helper to generate a unique key for deduplication
-      const getBadgeKey = (b) => {
-        if (b.badge_id) return `id-${b.badge_id}`;
-        if (b.id && !b.id.startsWith('legacy-')) return `eid-${b.id}`;
-        if (b.name) return `name-${b.name.toLowerCase().trim().replace(/\s+/g, '_')}`;
-        return `fb-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      };
-
-      legacySources.forEach((b, idx) => {
-        const key = getBadgeKey(b);
-        if (!badgesMap.has(key)) {
-           badgesMap.set(key, { ...b, source: 'legacy', _idx: idx });
+      if (!profileEmail) return [];
+      
+      // SINGLE SOURCE OF TRUTH: UserBadge entity only
+      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
+      
+      // Deduplicate by badge_id with Map
+      const uniqueBadges = new Map();
+      badgesFromTable.forEach((badge) => {
+        const uniqueId = badge.badge_id || badge.id;
+        if (!uniqueBadges.has(uniqueId)) {
+          uniqueBadges.set(uniqueId, {
+            ...badge,
+            _uniqueId: uniqueId // Centralized unique identifier
+          });
         }
       });
-
-      // 2. Add badges from UserBadge table (Source of Truth)
-      if (profileEmail) {
-        try {
-          const fromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
-          fromTable.forEach((b, idx) => {
-            const key = getBadgeKey(b);
-            if (!badgesMap.has(key)) {
-              badgesMap.set(key, { ...b, source: 'table', _idx: idx });
-            }
-          });
-        } catch (e) {
-          console.error("Error fetching badges table:", e);
-        }
-      }
-
-      // Clear previous results before returning new ones (Safari Memory Leak Fix)
-      return Array.from(badgesMap.values());
+      
+      return Array.from(uniqueBadges.values());
     },
-    enabled: !!profileEmail || !!profileUser,
-    staleTime: 60000,
-    gcTime: 300000,
+    enabled: !!profileEmail,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false
+    refetchOnMount: false,
+    refetchInterval: false
   });
 
   // Fetch ALL Badge Definitions
@@ -448,130 +423,28 @@ export default function UserProfile() {
 
   const displayBadges = earnedBadges;
 
-  // Merge earned with definitions - Memoized with proper dependencies + Memory Cleanup
+  // Display badges directly - no complex merging (UserBadge is source of truth)
   const galleryBadges = React.useMemo(() => {
-    if (!earnedBadges || earnedBadges.length === 0) return [];
-    
-    const processedDefinitions = allBadgeDefinitions.map((def, idx) => {
-      const earnedMatch = earnedBadges.find(b => 
-        (b.badge_id && b.badge_id === def.id) || 
-        (b.name && b.name === def.name)
-      );
-      return {
-        ...def,
-        _uniqueKey: `def-${def.id}-${idx}`,
-        isEarned: !!earnedMatch,
-        earnedDate: earnedMatch?.earned_date || null
-      };
-    }).filter(b => b.isEarned);
-
-    const definitionIds = new Set(allBadgeDefinitions.map(d => d.id));
-    const definitionNames = new Set(allBadgeDefinitions.map(d => d.name.toLowerCase().trim()));
-    const uniqueLegacyMap = new Map();
-
-    earnedBadges.forEach((b, idx) => {
-      const matchId = b.badge_id && definitionIds.has(b.badge_id);
-      const matchName = b.name && definitionNames.has(b.name.toLowerCase().trim());
-      
-      if (!matchId && !matchName) {
-        const key = b.badge_id || b.name?.toLowerCase().trim() || `unique-${idx}-${Date.now()}`;
-        if (!uniqueLegacyMap.has(key)) {
-          uniqueLegacyMap.set(key, {
-            ...b,
-            id: b.badge_id || `legacy-${idx}-${key.replace(/\s+/g, '-')}`,
-            _uniqueKey: `legacy-${key}-${idx}`,
-            isEarned: true,
-            rarity: b.rarity || 'common',
-            description: b.description || 'Emblema Especial',
-            xp: b.xp || 0
-          });
-        }
-      }
-    });
-    const legacyBadges = Array.from(uniqueLegacyMap.values());
-
-    const combined = [...legacyBadges, ...processedDefinitions];
-    return combined.sort((a, b) => {
+    return earnedBadges.sort((a, b) => {
       const rarityOrder = { legendary: 3, epic: 2, rare: 1, common: 0 };
-      const rA = rarityOrder[a.rarity?.toLowerCase()] || 0;
-      const rB = rarityOrder[b.rarity?.toLowerCase()] || 0;
-      if (rA !== rB) return rB - rA;
-      return (b.xp || 0) - (a.xp || 0);
+      return (rarityOrder[b.rarity?.toLowerCase()] || 0) - (rarityOrder[a.rarity?.toLowerCase()] || 0);
     });
-  }, [allBadgeDefinitions, earnedBadges, activeTab]);
+  }, [earnedBadges]);
 
-  // Optimized Badge Synchronization
+  // Update badge count only (no complex sync)
   React.useEffect(() => {
-    const syncBadges = async () => {
-      if (!isOwnProfile || !profileEmail || !currentUser) return;
-
-      try {
-        // 1. Consolidate Source Badges (Legacy fields: achievements_badges OR public_badges)
-        // NOTE: User entity has achievements_badges, UserProfile has public_badges (deprecated but used)
-        const legacyBadges = [
-          ...(currentUser.achievements_badges || []),
-          ...(currentUser.public_badges || [])
-        ];
-
-        if (legacyBadges.length > 0) {
-          // Fetch current table badges
-          const existingBadges = await base44.entities.UserBadge.filter({ user_email: profileEmail });
-          const existingIds = new Set(existingBadges.map(b => b.badge_id));
-          const existingNames = new Set(existingBadges.map(b => b.name));
-
-          // Determine badges to sync to table
-          const badgesToCreate = legacyBadges.filter(b => {
-              const hasId = b.badge_id && existingIds.has(b.badge_id);
-              const hasName = b.name && existingNames.has(b.name);
-              return !hasId && !hasName;
-          });
-
-          // Deduplicate items to create
-          const uniqueToCreate = [];
-          const seenKeys = new Set();
-          badgesToCreate.forEach(b => {
-              const key = b.badge_id || b.name;
-              if(!seenKeys.has(key)) {
-                  seenKeys.add(key);
-                  uniqueToCreate.push(b);
-              }
-          });
-
-          if (uniqueToCreate.length > 0) {
-            // console.log(`Syncing ${uniqueToCreate.length} missing badges to table...`);
-            await Promise.all(uniqueToCreate.map(badge => 
-              base44.entities.UserBadge.create({
-                user_email: profileEmail,
-                badge_id: badge.badge_id || `migrated-${Date.now()}-${Math.random().toString(36).substr(2,5)}`,
-                name: badge.name,
-                description: badge.description,
-                icon: badge.icon,
-                image_url: badge.image_url,
-                rarity: badge.rarity || 'common',
-                earned_date: badge.earned_date || new Date().toISOString()
-              })
-            ));
-            queryClient.invalidateQueries({ queryKey: ['userBadges'] });
-          }
-        }
-
-        // 2. Sync Badge Count to UserProfile (source of truth for leaderboard)
-        // We use earnedBadges.length (which comes from query above)
-        if (profileUser?.id) {
-          // Ensure count matches what we show
-          if ((profileUser.badges_count || 0) !== earnedBadges.length) {
-            await base44.entities.UserProfile.update(profileUser.id, {
-              badges_count: earnedBadges.length
-            });
-          }
-        }
-      } catch (err) {
-        // console.error("Error syncing badges:", err);
+    if (!profileUser?.id || !isOwnProfile) return;
+    
+    const updateCount = async () => {
+      if ((profileUser.badges_count || 0) !== earnedBadges.length) {
+        await base44.entities.UserProfile.update(profileUser.id, {
+          badges_count: earnedBadges.length
+        });
       }
     };
-
-    syncBadges();
-  }, [isOwnProfile, currentUser, profileEmail, queryClient, earnedBadges.length, profileUser?.id, profileUser?.badges_count]);
+    
+    updateCount();
+  }, [earnedBadges.length, profileUser?.id, isOwnProfile]);
 
   const { data: walkerProfile } = useQuery({
     queryKey: ['walkerProfile', profileEmail],
@@ -581,6 +454,8 @@ export default function UserProfile() {
       return walkers[0] || null;
     },
     enabled: !!profileEmail,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: trainerProfile } = useQuery({
@@ -591,6 +466,8 @@ export default function UserProfile() {
       return trainers[0] || null;
     },
     enabled: !!profileEmail,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Sync Verification Status
@@ -625,33 +502,38 @@ export default function UserProfile() {
     queryKey: ['userDogs', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
-      return await base44.entities.DogProfile.filter({ owner_email: profileEmail });
+      return await base44.entities.DogProfile.filter({ owner_email: profileEmail }, '-created_date', 20);
     },
     enabled: !!profileEmail,
     initialData: [],
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  // Real-time Followers Count
   const { data: followersCount = 0 } = useQuery({
     queryKey: ['followersCount', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return 0;
-      // Fetch actual records to ensure accuracy (limit 1000 for performance)
-      const res = await base44.entities.SocialFollow.filter({ following_email: profileEmail }, '-created_date', 1000);
+      const res = await base44.entities.SocialFollow.filter({ following_email: profileEmail }, '-created_date', 100);
       return res.length;
     },
     enabled: !!profileEmail,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
-  // Real-time Following Count
   const { data: followingCount = 0 } = useQuery({
     queryKey: ['followingCount', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return 0;
-      const res = await base44.entities.SocialFollow.filter({ follower_email: profileEmail }, '-created_date', 1000);
+      const res = await base44.entities.SocialFollow.filter({ follower_email: profileEmail }, '-created_date', 100);
       return res.length;
     },
     enabled: !!profileEmail,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
   const [showFollowers, setShowFollowers] = useState(false);
@@ -705,7 +587,13 @@ export default function UserProfile() {
   };
 
   const handleBadgeSelect = (badgeId) => {
-    updatePinnedBadgesMutation.mutate({ slotIndex: activeSlotIndex, badgeId });
+    if (activeSlotIndex === null) return;
+    
+    // Use centralized _uniqueId
+    const selectedBadge = earnedBadges.find(b => (b.badge_id || b.id) === badgeId);
+    const uniqueId = selectedBadge?._uniqueId || badgeId;
+    
+    updatePinnedBadgesMutation.mutate({ slotIndex: activeSlotIndex, badgeId: uniqueId });
   };
 
   const handleMessageUser = async (targetEmail) => {
@@ -751,18 +639,20 @@ export default function UserProfile() {
 
   const { data: followersList = [] } = useQuery({
     queryKey: ['followersList', profileEmail],
-    queryFn: () => base44.entities.SocialFollow.filter({ following_email: profileEmail }),
+    queryFn: () => base44.entities.SocialFollow.filter({ following_email: profileEmail }, '-created_date', 50),
     enabled: showFollowers && !!profileEmail,
-    staleTime: 300000, // 5 minutes cache to prevent flicker
-    refetchOnWindowFocus: false
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: followingList = [] } = useQuery({
     queryKey: ['followingList', profileEmail],
-    queryFn: () => base44.entities.SocialFollow.filter({ follower_email: profileEmail }),
+    queryFn: () => base44.entities.SocialFollow.filter({ follower_email: profileEmail }, '-created_date', 50),
     enabled: showFollowing && !!profileEmail,
-    staleTime: 300000, // 5 minutes cache
-    refetchOnWindowFocus: false
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: isFollowing = false } = useQuery({
@@ -1107,12 +997,11 @@ export default function UserProfile() {
                     </div>
                     <div className="grid grid-cols-4 gap-1.5 md:gap-2">
                     {[0, 1, 2, 3].map((slotIdx) => {
-                     // Simple slot-based system: only show what's pinned
-                     const pinnedId = profileUser.pinned_badge_ids?.[slotIdx];
-                     const badge = pinnedId ? (earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId)) : null;
+                    const pinnedId = profileUser.pinned_badge_ids?.[slotIdx];
+                    const badge = pinnedId ? earnedBadges.find(b => b._uniqueId === pinnedId) : null;
 
-                        return (
-                          <TooltipProvider key={`slot-${slotIdx}-${pinnedId || 'empty'}-${badge?.badge_id || 'none'}`} delayDuration={100}>
+                       return (
+                         <TooltipProvider key={`slot-${slotIdx}`} delayDuration={100}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div 
@@ -1247,28 +1136,19 @@ export default function UserProfile() {
                      </div>
                    ))}
                  </div>
-               ) : galleryBadges.length > 0 ? (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
-                  {galleryBadges.map((badge, idx) => (
-                    <BadgeItem 
-                      key={badge._uniqueKey || `gallery-${badge.id || badge.badge_id}-${idx}`}
-                      badge={badge} 
-                      idx={idx}
-                      getBadgeImage={getBadgeImage}
-                      locked={!badge.isEarned} 
-                    />
-                  ))}
-                </div>
+               ) : earnedBadges.length > 0 ? (
+               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
+                 {earnedBadges.map((badge) => (
+                   <BadgeItem 
+                     key={badge._uniqueId}
+                     badge={badge} 
+                     idx={0}
+                     getBadgeImage={getBadgeImage}
+                   />
+                 ))}
+               </div>
                ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
-                  {displayBadges.map((badge, idx) => (
-                    <BadgeItem 
-                      key={`display-${badge.badge_id || badge.id}-${idx}-${badge.name}`}
-                      badge={badge} 
-                      idx={idx}
-                      getBadgeImage={getBadgeImage} 
-                    />
-                  ))}
+               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
                    {displayBadges.length === 0 && (
                      <div className="col-span-full text-center py-12">
                        <Award className="w-16 h-16 text-gray-700 mx-auto mb-4 opacity-50" />

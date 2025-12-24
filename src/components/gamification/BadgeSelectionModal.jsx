@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onSelectBadge, currentlyPinnedIds = [], maxSlots = 4, currentSlotIndex = 0 }) {
   
   const handleBadgeClick = (badge) => {
-    // Determine the ID to use (handle legacy/mixed data structures)
-    const badgeId = badge.badge_id || badge.id;
-    onSelectBadge(badgeId);
+    // Use centralized unique ID system
+    const uniqueId = badge._uniqueId || badge.badge_id || badge.id;
+    onSelectBadge(uniqueId);
   };
 
   return (
@@ -37,12 +37,12 @@ export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onS
           ) : (
             <div className="grid grid-cols-3 gap-3 pb-4">
               {earnedBadges.map((badge, idx) => {
-                const badgeId = badge.badge_id || badge.id;
-                const isEquipped = currentlyPinnedIds.includes(badgeId);
+                const uniqueId = badge._uniqueId || badge.badge_id || badge.id;
+                const isEquipped = currentlyPinnedIds.includes(uniqueId);
                 
                 return (
                   <button
-                    key={`${badgeId}-${idx}`}
+                    key={uniqueId}
                     onClick={() => handleBadgeClick(badge)}
                     className={`
                       relative group flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200 min-h-[44px] touch-manipulation
@@ -55,7 +55,7 @@ export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onS
                     {/* Equipped Indicator with Slot Number */}
                     {isEquipped && (
                       <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full w-6 h-6 shadow-md z-50 flex items-center justify-center">
-                        <span className="text-xs font-bold">{currentlyPinnedIds.indexOf(badgeId) + 1}</span>
+                        <span className="text-xs font-bold">{currentlyPinnedIds.indexOf(uniqueId) + 1}</span>
                       </div>
                     )}
 

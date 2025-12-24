@@ -259,8 +259,8 @@ function LayoutContent({ children, currentPageName }) {
 
   const unreadCount = notifications?.length || 0;
 
-  // ✅ Sistema de Notificações em Tempo Real
-  useRealtimeNotifications(authUser);
+  // Realtime notifications disabled to improve performance
+  // useRealtimeNotifications(authUser);
 
   // CRITICAL: Close notification panel and search on route change
   React.useEffect(() => {

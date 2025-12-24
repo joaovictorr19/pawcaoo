@@ -69,7 +69,9 @@ export default function Chat() {
       return convos;
     },
     enabled: !!user?.email,
-    refetchInterval: 5000,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
   // Fetch or create conversation from booking
@@ -183,7 +185,9 @@ export default function Chat() {
       return msgs.filter((m) => !m.is_deleted);
     },
     enabled: !!selectedConversation?.id,
-    refetchInterval: 1000, // Real-time polling
+    staleTime: 2000,
+    refetchOnWindowFocus: false,
+    refetchInterval: 3000, // Poll every 3 seconds instead of 1
   });
 
   // Mark messages as read

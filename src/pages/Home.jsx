@@ -226,8 +226,7 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        // Ensure we fetch all walkers without restrictive filtering initially
-        const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200);
+        const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 200);
         return Array.isArray(res) ? res : [];
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
@@ -235,9 +234,9 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 0, // Disable cache to ensure updates
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 3 * 60 * 1000, // 3 minutes cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Trainers são agora parte do WalkerProfile (is_verified_trainer = true)
@@ -250,16 +249,14 @@ export default function Home() {
     queryFn: async () => {
       try {
         const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 20);
-        if (!Array.isArray(res)) {
-          return [];
-        }
+        if (!Array.isArray(res)) return [];
 
         const uniqueMap = new Map();
-        for (const walk of res) {
+        res.forEach(walk => {
           if (walk.id && !uniqueMap.has(walk.id)) {
             uniqueMap.set(walk.id, walk);
           }
-        }
+        });
 
         return Array.from(uniqueMap.values());
       } catch (error) {
@@ -268,9 +265,9 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 30 * 1000, // 30s cache for emergencies
+    staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnWindowFocus: false,
-    refetchInterval: 60000, // Poll every minute
+    refetchInterval: false,
   });
 
   // Stats em tempo real
