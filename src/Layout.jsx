@@ -622,13 +622,22 @@ function LayoutContent({ children, currentPageName }) {
       background: #f8fafc;
       }
 
-      /* CRITICAL: Prevent click blocking from overlays */
-      .fixed {
-      pointer-events: auto;
+      /* CRITICAL: Prevent click blocking and page freeze */
+      * {
+        pointer-events: auto !important;
       }
 
-      .fixed > * {
-      pointer-events: auto;
+      body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Prevent modal/overlay blocking */
+      [role="dialog"],
+      [data-state="open"],
+      .fixed {
+        pointer-events: auto !important;
       }
 
       .glass-panel-dark {

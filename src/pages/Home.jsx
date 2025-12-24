@@ -111,9 +111,11 @@ export default function Home() {
 
   const { data: myDogs = [] } = useQuery({
     queryKey: ['myDogs', user?.email],
-    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
+    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }, '-created_date', 20),
     enabled: !!user?.email,
-    initialData: []
+    initialData: [],
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: loyaltyPoints } = useQuery({
@@ -123,6 +125,8 @@ export default function Home() {
       return points[0] || { points_balance: 0, total_earned: 0, tier: 'bronze' };
     },
     enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const [reviewBooking, setReviewBooking] = useState(null);
@@ -135,14 +139,15 @@ export default function Home() {
         const res = await base44.entities.Booking.filter({
           created_by: user.email,
           status: { '$in': ['confirmed', 'in_progress', 'completed'] }
-        }, '-walk_date', 20);
+        }, '-walk_date', 10);
         return Array.isArray(res) ? res : [];
       } catch (error) {
-        // console.error("Active bookings fetch error:", error);
         return [];
       }
     },
     enabled: !!user?.email,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // getLevelInfo removed - using calculateTier from tierSystem instead
