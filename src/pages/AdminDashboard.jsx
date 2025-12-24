@@ -987,7 +987,7 @@ export default function AdminDashboard() {
       const allProfilesData = await base44.entities.UserProfile.list('-created_date', 5000);
       const userEmailsWithProfile = new Set(allProfilesData.map(p => p.user_email));
 
-      const usersMissingProfile = allUsersData.filter(u => !userEmailsWithProfile.has(u.email));
+      const usersMissingProfile = allUsersData.filter(u => u.email && !userEmailsWithProfile.has(u.email));
 
       console.log(`Found ${usersMissingProfile.length} users missing profiles out of ${allUsersData.length} total users.`);
 
@@ -998,35 +998,45 @@ export default function AdminDashboard() {
       }
 
       let createdCount = 0;
-      const BATCH_SIZE = 10;
+      const BATCH_SIZE = 5;
 
       for (let i = 0; i < usersMissingProfile.length; i += BATCH_SIZE) {
         const batch = usersMissingProfile.slice(i, i + BATCH_SIZE);
 
-        await Promise.all(batch.map(async (user) => {
+        for (const targetUser of batch) {
           try {
             await base44.entities.UserProfile.create({
-              user_email: user.email,
-              user_id: user.id,
-              username: user.username,
-              full_name: user.full_name || 'Utilizador',
-              profile_photo_url: user.profile_photo_url,
-              cover_photo_url: user.cover_photo_url,
-              role: user.role || 'user',
-              gamification_xp: user.gamification_xp || 0,
-              is_verified: user.is_verified || false
+              user_email: targetUser.email,
+              user_id: targetUser.id,
+              username: targetUser.username || null,
+              full_name: targetUser.full_name || 'Utilizador',
+              profile_photo_url: targetUser.profile_photo_url || null,
+              cover_photo_url: targetUser.cover_photo_url || null,
+              bio: targetUser.bio || '',
+              city: targetUser.city || '',
+              role: targetUser.role || 'user',
+              social_role: targetUser.social_role || 'user',
+              gamification_xp: targetUser.gamification_xp || 0,
+              gamification_level: targetUser.gamification_level || 1,
+              followers_count: targetUser.followers_count || 0,
+              following_count: targetUser.following_count || 0,
+              badges_count: (targetUser.public_badges?.length || 0) + (targetUser.achievements_badges?.length || 0),
+              is_verified: targetUser.is_verified || false,
+              is_adoption_advocate: targetUser.is_adoption_advocate || false
             });
             createdCount++;
+            console.log(`✅ Created profile for ${targetUser.email}`);
           } catch (e) {
-            console.error(`Failed to create profile for ${user.email}`, e);
+            console.error(`❌ Failed to create profile for ${targetUser.email}:`, e.message);
           }
-        }));
+        }
 
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
 
       toast.success(`Sincronização concluída! ${createdCount} perfis criados.`);
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     } catch (error) {
       console.error("Error syncing profiles:", error);
       toast.error("Erro ao sincronizar perfis: " + (error.message || "Erro desconhecido"));

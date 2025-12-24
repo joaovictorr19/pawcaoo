@@ -35,7 +35,6 @@ import Favorites from './pages/Favorites';
 import FiscalSettings from './pages/FiscalSettings';
 import ForumTopicDetails from './pages/ForumTopicDetails';
 import Gamification from './pages/Gamification';
-import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Leaderboard from './pages/Leaderboard';
 import LiveWalkTracking from './pages/LiveWalkTracking';
@@ -55,7 +54,7 @@ import MyWallet from './pages/MyWallet';
 import MyWishlist from './pages/MyWishlist';
 import Notifications from './pages/Notifications';
 import OrderSuccess from './pages/OrderSuccess';
-import OwnerSubscriptions from './pages/OwnerSubscriptions';
+import Trainers from './pages/Trainers';
 import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerDetails from './pages/PartnerDetails';
 import PartnerServices from './pages/PartnerServices';
@@ -79,13 +78,14 @@ import StripeConnectSetup from './pages/StripeConnectSetup';
 import Subscriptions from './pages/Subscriptions';
 import TermsOfService from './pages/TermsOfService';
 import TestPayments from './pages/TestPayments';
-import TrainerDetails from './pages/TrainerDetails';
-import Trainers from './pages/Trainers';
+import Home from './pages/Home';
+import WalkerDetails from './pages/WalkerDetails';
 import UserProfile from './pages/UserProfile';
 import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
-import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
+import OwnerSubscriptions from './pages/OwnerSubscriptions';
+import TrainerDetails from './pages/TrainerDetails';
 import __Layout from './Layout.jsx';
 
 
@@ -127,7 +127,6 @@ export const PAGES = {
     "FiscalSettings": FiscalSettings,
     "ForumTopicDetails": ForumTopicDetails,
     "Gamification": Gamification,
-    "Home": Home,
     "Landing": Landing,
     "Leaderboard": Leaderboard,
     "LiveWalkTracking": LiveWalkTracking,
@@ -147,7 +146,7 @@ export const PAGES = {
     "MyWishlist": MyWishlist,
     "Notifications": Notifications,
     "OrderSuccess": OrderSuccess,
-    "OwnerSubscriptions": OwnerSubscriptions,
+    "Trainers": Trainers,
     "PartnerDashboard": PartnerDashboard,
     "PartnerDetails": PartnerDetails,
     "PartnerServices": PartnerServices,
@@ -171,13 +170,14 @@ export const PAGES = {
     "Subscriptions": Subscriptions,
     "TermsOfService": TermsOfService,
     "TestPayments": TestPayments,
-    "TrainerDetails": TrainerDetails,
-    "Trainers": Trainers,
+    "Home": Home,
+    "WalkerDetails": WalkerDetails,
     "UserProfile": UserProfile,
     "VeterinaryDashboard": VeterinaryDashboard,
     "WalkHistory": WalkHistory,
-    "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
+    "OwnerSubscriptions": OwnerSubscriptions,
+    "TrainerDetails": TrainerDetails,
 }
 
 export const pagesConfig = {

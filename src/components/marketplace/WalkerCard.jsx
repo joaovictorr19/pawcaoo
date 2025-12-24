@@ -307,8 +307,9 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
               onClick={(e) => {
                 e.stopPropagation();
                 window.scrollTo({ top: 0, behavior: 'instant' });
-                navigate(createPageUrl(`UserProfile?id=${walker.user_id || walker.created_by}`));
+                navigate(createPageUrl(`UserProfile?email=${walker.created_by}`));
               }}
+              title="Ver Perfil do Utilizador"
             >
               <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-700" />
             </Button>
