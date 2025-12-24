@@ -980,7 +980,7 @@ export default function Home() {
                     id="find-walker-btn"
                     size="icon"
                     onClick={() => {
-                      setActiveTab('walkers');
+                      setActiveTab('professionals');
                       analytics.searchPerformed(searchLocation || 'all');
                       document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
