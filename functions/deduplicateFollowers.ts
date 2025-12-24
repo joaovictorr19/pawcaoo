@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
@@ -31,21 +31,33 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.SocialFollow.delete(id);
     }
 
-    // Recalculate follower counts for all users
+    // Recalculate follower counts for all users (in batches)
     const userProfiles = await base44.asServiceRole.entities.UserProfile.list('-created_date', 5000);
+    const BATCH_SIZE = 10;
     
-    for (const profile of userProfiles) {
-      const followers = await base44.asServiceRole.entities.SocialFollow.filter({ 
-        following_email: profile.user_email 
-      });
-      const following = await base44.asServiceRole.entities.SocialFollow.filter({ 
-        follower_email: profile.user_email 
-      });
+    for (let i = 0; i < userProfiles.length; i += BATCH_SIZE) {
+      const batch = userProfiles.slice(i, i + BATCH_SIZE);
+      
+      await Promise.all(batch.map(async (profile) => {
+        try {
+          const followers = await base44.asServiceRole.entities.SocialFollow.filter({ 
+            following_email: profile.user_email 
+          });
+          const following = await base44.asServiceRole.entities.SocialFollow.filter({ 
+            follower_email: profile.user_email 
+          });
 
-      await base44.asServiceRole.entities.UserProfile.update(profile.id, {
-        followers_count: followers.length,
-        following_count: following.length
-      });
+          await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+            followers_count: followers.length,
+            following_count: following.length
+          });
+        } catch (e) {
+          console.error(`Error updating ${profile.user_email}:`, e);
+        }
+      }));
+      
+      // Small delay between batches
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     return Response.json({ 
