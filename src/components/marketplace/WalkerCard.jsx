@@ -123,16 +123,24 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           {/* Professional Role Badge - Top Right */}
-          <div className="absolute top-2 right-2 flex flex-col gap-1">
+          <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
             {walker.is_pawcao_employee && (
               <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-0 shadow-lg text-[10px] px-2 py-0.5 font-bold">
                 PawCao
               </Badge>
             )}
             {walker.is_verified_trainer && (
-              <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-lg text-[10px] px-2 py-0.5 font-bold">
-                Treinador
-              </Badge>
+              <>
+                <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-lg text-[10px] px-2 py-0.5 font-bold flex items-center gap-1">
+                  <Award className="w-3 h-3" />
+                  Treinador
+                </Badge>
+                {walker.training_specializations?.length > 0 && (
+                  <Badge className="bg-white/95 text-purple-700 border border-purple-200 text-[9px] px-1.5 py-0.5 shadow-md font-semibold">
+                    {walker.training_specializations.length} {walker.training_specializations.length === 1 ? 'Especialização' : 'Especializações'}
+                  </Badge>
+                )}
+              </>
             )}
           </div>
 

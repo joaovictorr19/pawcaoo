@@ -514,7 +514,25 @@ export default function Home() {
         }
       }
 
-      // Trainer filters não são mais necessários - tudo está no WalkerProfile
+      // Trainer-specific filters (if is_verified_trainer = true)
+      if (pro.is_verified_trainer && trainerFilters.specialties?.length > 0) {
+        const hasMatchingSpec = pro.training_specializations?.some(spec =>
+          trainerFilters.specialties.includes(spec.specialty_id)
+        );
+        if (!hasMatchingSpec) return false;
+      }
+
+      if (pro.is_verified_trainer && trainerFilters.verifiedOnly) {
+        if (pro.verification_status !== 'verified') return false;
+      }
+
+      if (pro.is_verified_trainer && trainerFilters.minExperience > 0) {
+        if ((pro.experience_years || 0) < trainerFilters.minExperience) return false;
+      }
+
+      if (pro.is_verified_trainer && trainerFilters.minRating > 0) {
+        if ((pro.rating || 0) < trainerFilters.minRating) return false;
+      }
 
       return true;
     }).sort((a, b) => {
