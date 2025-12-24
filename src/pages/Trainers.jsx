@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,8 +35,16 @@ export default function Trainers() {
 
   const { data: trainers, isLoading } = useQuery({
     queryKey: ['trainers'],
-    queryFn: () => base44.entities.TrainerProfile.filter({ is_active: true }, '-rating'),
+    queryFn: async () => {
+      const walkers = await base44.entities.WalkerProfile.filter({ 
+        is_active: true, 
+        is_verified_trainer: true 
+      }, '-rating', 100);
+      return Array.isArray(walkers) ? walkers : [];
+    },
     initialData: [],
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Removed allReviews query and trainersWithRatings calculation as per new outline
@@ -46,10 +53,10 @@ export default function Trainers() {
     .filter(trainer => {
       const matchesLocation = !searchLocation ||
         trainer.location?.toLowerCase().includes(searchLocation.toLowerCase()) ||
-        trainer.name?.toLowerCase().includes(searchLocation.toLowerCase()); // Added name search
+        trainer.walker_name?.toLowerCase().includes(searchLocation.toLowerCase());
 
       const matchesSpecialty = filterSpecialty === "all" ||
-        trainer.training_specialties?.includes(filterSpecialty);
+        trainer.training_specializations?.some(spec => spec.specialty_id === filterSpecialty);
       
       // filterMethodology, filterRating, filterSuccessRate removed from primary filters
       // filterMethod is now filterConsultation
@@ -58,12 +65,11 @@ export default function Trainers() {
 
       // Advanced filters
       const matchesAdvSpecialties = advancedFilters.specialties.length === 0 ||
-        advancedFilters.specialties.some(spec => trainer.training_specialties?.includes(spec));
-      
-      const matchesAdvMethodologies = advancedFilters.methodologies.length === 0 ||
-        advancedFilters.methodologies.some(method => 
-          trainer.training_methodologies?.some(m => m.methodology_name === method)
+        advancedFilters.specialties.some(spec => 
+          trainer.training_specializations?.some(s => s.specialty_id === spec)
         );
+      
+      const matchesAdvMethodologies = advancedFilters.methodologies.length === 0 || true;
       
       const matchesAdvConsultation = advancedFilters.consultationTypes.length === 0 ||
         advancedFilters.consultationTypes.some(type => trainer.consultation_options?.includes(type));
