@@ -50,33 +50,26 @@ import DynamicBackground from "@/components/ui/DynamicBackground";
 import { useModalCleanup } from "@/components/ui/ModalCleanup";
 import SEOManager from "@/components/SEOManager";
 import MobileOptimizations from "@/components/ui/MobileOptimizations";
-import PWAInstaller from "@/components/PWAInstaller";
-import StructuredData from "@/components/seo/StructuredData";
-import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
-import { SkipToContent } from "@/components/accessibility/AccessibilityHelper";
-import NetworkErrorBoundary from "@/components/ui/NetworkErrorBoundary";
 
 import "./globals.css";
 
-// Query optimization configs - v2.0 - Anti-freeze on tab switch
+// Query optimization configs - v1.1
 const queryConfig = {
   user: {
-    staleTime: 30 * 60 * 1000, // 30 minutes
-    cacheTime: 60 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
   },
   notifications: {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    cacheTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchInterval: false, // Disabled - use realtime instead
+    staleTime: 30 * 1000,
+    cacheTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false, // Reduced aggressiveness
+    refetchInterval: 60 * 1000, // Reduced to 1 minute
   },
   static: {
-    staleTime: 60 * 60 * 1000, // 1 hour
-    cacheTime: 2 * 60 * 60 * 1000,
+    staleTime: 15 * 60 * 1000, // Increased for static data
+    cacheTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
   },
 };
 
@@ -191,7 +184,9 @@ function LayoutContent({ children, currentPageName }) {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
+        console.log('👤 Fetching user...');
         const userData = await base44.auth.me();
+        console.log('✅ User fetched:', userData?.email || 'not logged in');
 
         // XP is managed in UserProfile entity only - read from there
         if (userData?.email) {
@@ -214,8 +209,6 @@ function LayoutContent({ children, currentPageName }) {
     },
     ...queryConfig.user,
     retry: 1,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
   });
 
   const { data: notifications } = useQuery({
@@ -233,7 +226,7 @@ function LayoutContent({ children, currentPageName }) {
         return [];
       }
     },
-    enabled: !!authUser && !document.hidden, // Don't fetch when tab hidden
+    enabled: !!authUser,
     initialData: [],
     ...queryConfig.notifications,
   });
@@ -554,11 +547,7 @@ function LayoutContent({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <SkipToContent />
-      <AnalyticsTracker />
       <MobileOptimizations />
-      <PWAInstaller />
-      <StructuredData type="organization" />
       {seoManager}
       <Helmet>
         <title>
@@ -567,16 +556,9 @@ function LayoutContent({ children, currentPageName }) {
            language === 'fr' ? 'PawCão - Le meilleur pour votre Animal' :
            'PawCão - The best for your Pet'}
         </title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-        <meta name="theme-color" content="#16a34a" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="PawCão" />
-        <link rel="manifest" href="/manifest.json" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/logo.png" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/logo.png" />
-        <link rel="apple-touch-icon" sizes="512x512" href="/logo.png" />
 
         {/* SEO Meta Tags */}
         <meta name="description" content={
@@ -589,30 +571,24 @@ function LayoutContent({ children, currentPageName }) {
         <meta name="author" content="PawCão" />
         <link rel="canonical" href="https://pawcao.net" />
 
-        {/* Open Graph / Facebook / WhatsApp */}
+        {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="PawCão" />
         <meta property="og:title" content="PawCão - O melhor cuidado para o seu animal" />
         <meta property="og:description" content="Encontre passeadores, treinadores e cuidadores de exóticos de confiança em Portugal, Espanha e França. Rastreamento GPS e pagamentos seguros." />
         <meta property="og:image" content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/22126cf76_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg" />
-        <meta property="og:image:secure_url" content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/22126cf76_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg" />
-        <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="PawCão - Plataforma de Dog Walkers e Pet Care" />
         <meta property="og:url" content={`${window.location.protocol}//${window.location.host}${window.location.pathname}`} />
         <meta property="og:locale" content="pt_PT" />
         <meta property="og:locale:alternate" content="es_ES" />
         <meta property="og:locale:alternate" content="fr_FR" />
 
-        {/* Twitter / X */}
+        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@pawcao" />
-        <meta name="twitter:creator" content="@pawcao" />
         <meta name="twitter:title" content="PawCão - O melhor cuidado para o seu animal" />
         <meta name="twitter:description" content="Encontre passeadores, treinadores e cuidadores de exóticos de confiança em PT, ES e FR." />
         <meta name="twitter:image" content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/22126cf76_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg" />
-        <meta name="twitter:image:alt" content="PawCão - Plataforma de Dog Walkers e Pet Care" />
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-9LBZ1D08FT"></script>
         <script>
@@ -965,14 +941,11 @@ function LayoutContent({ children, currentPageName }) {
             <div className="flex items-center gap-1 lg:gap-2">
               {authUser ? (
                 // Menu completo para usuários logados
-                mainMenu.map((item) => {
-                  const prefetchHandlers = getPrefetchHandlers(item);
-                  return (
+                mainMenu.map((item) => (
                 <Link
                   key={item.url}
                   id={item.id}
                   to={item.url}
-                  {...prefetchHandlers}
                   onClick={(e) => {
                     e.preventDefault();
                     navigate(item.url);
@@ -986,8 +959,7 @@ function LayoutContent({ children, currentPageName }) {
                     <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
                     <span className="hidden lg:inline">{item.title}</span>
                   </Link>
-                  );
-                })
+                ))
               ) : (
                 // Menu simplificado para visitantes (não logados)
                 <>
@@ -1234,9 +1206,7 @@ function LayoutContent({ children, currentPageName }) {
               {myActivityExpanded && (
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {myActivityMenu.map((item) => {
-                      const prefetchHandlers = getPrefetchHandlers(item);
-                      return ( 
+                    {myActivityMenu.map((item) => ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
@@ -1246,7 +1216,7 @@ function LayoutContent({ children, currentPageName }) {
                               : (item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : 'hover:bg-gray-100 text-gray-700')
                           }`}
                         >
-                          <Link to={item.url} id={item.id} {...prefetchHandlers} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2 md:py-2.5 relative">
+                          <Link to={item.url} id={item.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2 md:py-2.5 relative">
                             {isRouteActive(item.url) && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500" />
                             )}
@@ -1260,8 +1230,7 @@ function LayoutContent({ children, currentPageName }) {
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                      );
-                    })}
+                    ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
               )}
@@ -1417,7 +1386,7 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
           {/* Main Content Area with bottom padding for mobile nav */}
-          <div id="main-content" className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
+          <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
             {/* Breadcrumbs */}
             <Breadcrumbs />
 
@@ -1567,11 +1536,9 @@ export default function Layout({ children, currentPageName }) {
         <LocalizationProvider>
           <ThemeProvider>
             <ToastProvider>
-              <NetworkErrorBoundary>
-                <ErrorBoundary>
-                  <LayoutContent children={children} currentPageName={currentPageName} />
-                </ErrorBoundary>
-              </NetworkErrorBoundary>
+              <ErrorBoundary>
+                <LayoutContent children={children} currentPageName={currentPageName} />
+              </ErrorBoundary>
             </ToastProvider>
           </ThemeProvider>
         </LocalizationProvider>

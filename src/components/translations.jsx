@@ -3101,6 +3101,7 @@ export const translations = {
     topTitans: "Los Mejores Titanes",
     fullRanking: "Ranking Completo",
     viewTop10: "Ver Top 10",
+    viewAll: "Ver Todos",
     youAreHere: "¡Estás aquí!",
     celebrate: "Celebrar",
     celebrateAchievement: "Celebrar logro (+10 XP)",

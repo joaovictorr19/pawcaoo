@@ -7,19 +7,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet } from "lucide-react";
-const WalkerCard = React.lazy(() => import("../components/marketplace/WalkerCard"));
-const ReviewModal = React.lazy(() => import("../components/reviews/ReviewModal"));
-const EmergencyDogCard = React.lazy(() => import("../components/emergency/EmergencyDogCard"));
-const TrainerCard = React.lazy(() => import("../components/trainers/TrainerCard"));
+import WalkerCard from "../components/marketplace/WalkerCard";
+import ReviewModal from "../components/reviews/ReviewModal";
+import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
+import TrainerCard from "../components/trainers/TrainerCard";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
-const TestimonialsSection = React.lazy(() => import("../components/home/TestimonialsSection"));
+
+import TestimonialsSection from "../components/home/TestimonialsSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
-import StructuredData from "@/components/seo/StructuredData";
-import { analytics } from "@/components/analytics/AnalyticsTracker";
 
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -227,6 +226,7 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
+        // Ensure we fetch all walkers without restrictive filtering initially
         const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200);
         return Array.isArray(res) ? res : [];
       } catch (error) {
@@ -235,9 +235,9 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: 0, // Disable cache to ensure updates
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // Trainers são agora parte do WalkerProfile (is_verified_trainer = true)
@@ -329,9 +329,13 @@ export default function Home() {
           base44.entities.AdoptionApplication.list('-created_date', 100)
         ]);
 
+        // Filtrar walkers ativos
         const walkersAtivos = activeWalkers.filter(w => w.is_active === true);
+
+        // Filtrar bookings completados
         const completedBookings = allBookings.filter(b => b.status === 'completed');
 
+        // Contar cães únicos que foram passeados (clientes satisfeitos)
         const uniqueDogs = new Set();
         completedBookings.forEach(booking => {
           if (booking.dog_name) {
@@ -339,7 +343,15 @@ export default function Home() {
           }
         });
 
+        // Filtrar adoções aprovadas
         const approvedAdoptions = allAdoptions.filter(a => a.status === 'approved');
+
+        console.log('📊 Stats:', {
+          walkers: walkersAtivos.length,
+          completedBookings: completedBookings.length,
+          happyDogs: uniqueDogs.size,
+          adoptions: approvedAdoptions.length
+        });
 
         return {
           totalWalkers: walkersAtivos.length || 0,
@@ -352,9 +364,9 @@ export default function Home() {
       }
     },
     initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 15 * 60 * 1000, // 15 minutes cache
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 
   const getWalkerDistance = (walker) => {
@@ -441,14 +453,8 @@ export default function Home() {
 
   // Safe Memoized Unified Professionals Filter (todos são WalkerProfile agora)
   const filteredProfessionals = React.useMemo(() => {
-    console.log('🔍 Filtering professionals. Total walkers:', walkers?.length || 0);
-    
     const processedWalkers = (Array.isArray(walkers) ? walkers : [])
-      .filter(w => {
-        const isValid = w.walker_name && w.created_by;
-        if (!isValid) console.log('⚠️ Skipping invalid walker:', w.id);
-        return isValid;
-      })
+      .filter(w => w.walker_name && w.created_by) // Filtrar perfis fantasma
       .map(walker => ({
         ...walker,
         type: 'walker',
@@ -456,9 +462,10 @@ export default function Home() {
         matchScore: calculateMatchScore(walker)
       }));
 
-    console.log('✅ Processed walkers:', processedWalkers.length);
+    // Não há mais trainers separados - todos são walkers com is_verified_trainer
+    const allPros = [...processedWalkers];
 
-    return processedWalkers.filter(pro => {
+    return allPros.filter(pro => {
       // Basic Safety Filter
       if (pro.verification_status === 'rejected') return false;
 
@@ -541,7 +548,7 @@ export default function Home() {
       // 3. Rating
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, selectedServiceTypes, advancedFilters, trainerFilters, userLocation]);
+  }, [walkers, trainers, searchLocation, filterSize, filterTime, filterDogSitting, selectedServiceTypes, advancedFilters, trainerFilters, userLocation]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
@@ -645,15 +652,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative w-full overflow-hidden">
-      <StructuredData 
-        type="localBusiness" 
-        data={{ 
-          rating: 4.8, 
-          reviewCount: stats?.totalWalkers || 0,
-          lat: userLocation?.lat,
-          lng: userLocation?.lng
-        }} 
-      />
 
       <div className="relative z-10 overflow-hidden">
 
@@ -985,8 +983,7 @@ export default function Home() {
                     id="find-walker-btn"
                     size="icon"
                     onClick={() => {
-                      setActiveTab('professionals');
-                      analytics.searchPerformed(searchLocation || 'all');
+                      setActiveTab('walkers');
                       document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="h-10 w-10 shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"
@@ -1203,7 +1200,7 @@ export default function Home() {
                     <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
                       <React.Suspense fallback={<Skeleton className="w-full h-full" />}>
                         <InteractiveMap
-                          walkers={filteredProfessionals}
+                          walkers={filteredWalkers}
                           userLocation={userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null}
                           radiusKm={advancedFilters.radius || 50}
                           onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
@@ -1262,25 +1259,17 @@ export default function Home() {
                         </Card>
                       ) : (
                         <>
-                          <Suspense fallback={
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
-                              {[1, 2, 3, 4].map(i => (
-                                <Skeleton key={i} className="h-80 rounded-xl" />
-                              ))}
-                            </div>
-                          }>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
-                              {paginatedProfessionals.map((pro) => (
-                                <WalkerCard 
-                                  key={pro.id} 
-                                  walker={pro}
-                                  distance={pro.distance}
-                                  matchScore={pro.matchScore}
-                                  showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
-                                />
-                              ))}
-                            </div>
-                          </Suspense>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
+                            {paginatedProfessionals.map((pro) => (
+                              <WalkerCard 
+                                key={pro.id} 
+                                walker={pro}
+                                distance={pro.distance}
+                                matchScore={pro.matchScore}
+                                showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                              />
+                            ))}
+                          </div>
 
                           {/* Pagination Controls */}
                           {filteredProfessionals.length > itemsPerPage && (
@@ -1384,17 +1373,11 @@ export default function Home() {
                       <p className="text-sm md:text-base text-gray-600">{t('checkBackLater', language)}</p>
                     </div>
                   ) : (
-                    <Suspense fallback={
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                        {[1, 2, 3].map(i => <Skeleton key={i} className="h-64 rounded-xl" />)}
-                      </div>
-                    }>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                        {filteredEmergencyWalks.map((walk) => (
-                          <EmergencyDogCard key={walk.id} walk={walk} distance={walk.distance} />
-                        ))}
-                      </div>
-                    </Suspense>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                      {filteredEmergencyWalks.map((walk) => (
+                        <EmergencyDogCard key={walk.id} walk={walk} distance={walk.distance} />
+                      ))}
+                    </div>
                   )}
                 </div>
               </TabsContent>
@@ -1440,11 +1423,7 @@ export default function Home() {
           </div>
 
           {/* Testimonials Section */}
-            {!user && (
-              <Suspense fallback={<Skeleton className="h-96 rounded-2xl" />}>
-                <TestimonialsSection />
-              </Suspense>
-            )}
+          {!user && <TestimonialsSection />}
 
           {/* Trust Badges Section */}
           <div className="mt-12 mb-8">
