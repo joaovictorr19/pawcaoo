@@ -49,6 +49,7 @@ import NotificationTriggers from "@/components/notifications/NotificationTrigger
 import DynamicBackground from "@/components/ui/DynamicBackground";
 import { useModalCleanup } from "@/components/ui/ModalCleanup";
 import SEOManager from "@/components/SEOManager";
+import MobileOptimizations from "@/components/ui/MobileOptimizations";
 
 import "./globals.css";
 
@@ -546,6 +547,7 @@ function LayoutContent({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
+      <MobileOptimizations />
       {seoManager}
       <Helmet>
         <title>
