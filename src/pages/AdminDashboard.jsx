@@ -42,7 +42,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, pt } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -2501,26 +2501,41 @@ export default function AdminDashboard() {
                     <Button
                       onClick={async () => {
                         if (!confirm("Isto irá recalcular o XP de todos os usuários baseado nos emblemas que possuem. Continuar?")) return;
-                        toast.info("Recalculando XP de todos os usuários...");
+                        toast.info("Recalculando XP... Aguarde sem fechar a página.");
                         try {
                           let updatedCount = 0;
-                          for (const targetUser of allUsers) {
-                            const badges = targetUser.public_badges || [];
-                            const totalBadgeXP = badges.reduce((sum, b) => sum + (b.xp || 50), 0);
+                          const BATCH_SIZE = 5;
+                          
+                          for (let i = 0; i < allUsers.length; i += BATCH_SIZE) {
+                            const batch = allUsers.slice(i, i + BATCH_SIZE);
+                            
+                            for (const targetUser of batch) {
+                              try {
+                                const badges = targetUser.public_badges || [];
+                                const totalBadgeXP = badges.reduce((sum, b) => sum + (b.xp || 50), 0);
 
-                            if (totalBadgeXP > 0) {
-                              await base44.entities.User.update(targetUser.id, {
-                                gamification_xp: totalBadgeXP
-                              });
+                                if (totalBadgeXP >= 0) {
+                                  const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
+                                  
+                                  if (profiles.length > 0) {
+                                    await base44.entities.UserProfile.update(profiles[0].id, {
+                                      gamification_xp: totalBadgeXP
+                                    });
+                                  }
 
-                              const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
-                              if (profiles.length > 0) {
-                                await base44.entities.UserProfile.update(profiles[0].id, {
-                                  gamification_xp: totalBadgeXP
-                                });
+                                  await base44.entities.User.update(targetUser.id, {
+                                    gamification_xp: totalBadgeXP
+                                  });
+                                  
+                                  updatedCount++;
+                                }
+                              } catch (e) {
+                                console.error(`Erro ao atualizar ${targetUser.email}:`, e);
                               }
-                              updatedCount++;
                             }
+                            
+                            await new Promise(resolve => setTimeout(resolve, 200));
+                            toast.info(`Processando... ${updatedCount}/${allUsers.length}`);
                           }
 
                           queryClient.invalidateQueries(['allUsers']);
@@ -2539,13 +2554,18 @@ export default function AdminDashboard() {
                     <Button
                       onClick={async () => {
                         if (!confirm("Isto irá remover seguidores duplicados de todas as contas. Continuar?")) return;
-                        toast.info("Processando...");
+                        toast.info("Processando... Aguarde sem fechar a página.");
                         try {
-                          const res = await base44.functions.invoke('deduplicateFollowers');
-                          toast.success(res.data.message);
+                          const res = await base44.functions.invoke('deduplicateFollowers', {});
+                          if (res?.data?.message) {
+                            toast.success(res.data.message);
+                          } else {
+                            toast.success("Duplicados removidos!");
+                          }
                           queryClient.invalidateQueries(['allUsers']);
                         } catch (error) {
-                          toast.error("Erro: " + error.message);
+                          console.error("Erro ao limpar duplicados:", error);
+                          toast.error("Erro ao limpar duplicados. Verifique o console para detalhes.");
                         }
                       }}
                       variant="outline"
