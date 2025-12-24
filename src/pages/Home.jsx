@@ -1198,7 +1198,7 @@ export default function Home() {
                     <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
                       <React.Suspense fallback={<Skeleton className="w-full h-full" />}>
                         <InteractiveMap
-                          walkers={filteredWalkers}
+                          walkers={filteredProfessionals}
                           userLocation={userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null}
                           radiusKm={advancedFilters.radius || 50}
                           onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
