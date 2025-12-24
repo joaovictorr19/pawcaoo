@@ -348,6 +348,42 @@ export default function DynamicBackground() {
             <rect x="24" y="18" width="5" height="3" fill="#ff6347" rx="1" />
             <rect x="13" y="6" width="6" height="6" fill="#8b0000" rx="1" />
           </svg>
+
+          {/* Trees scattered in the park */}
+          <svg className="absolute top-[10%] left-[20%] w-16 h-20 opacity-35" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#5d4037" />
+            <ellipse cx="30" cy="35" rx="20" ry="25" fill="#2e7d32" />
+            <ellipse cx="30" cy="28" rx="16" ry="20" fill="#388e3c" />
+            <ellipse cx="30" cy="22" rx="12" ry="15" fill="#43a047" />
+          </svg>
+
+          <svg className="absolute top-[40%] left-[5%] w-12 h-16 opacity-30" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#4e342e" />
+            <ellipse cx="30" cy="35" rx="18" ry="23" fill="#1b5e20" />
+            <ellipse cx="30" cy="28" rx="14" ry="18" fill="#2e7d32" />
+            <ellipse cx="30" cy="22" rx="10" ry="13" fill="#388e3c" />
+          </svg>
+
+          <svg className="absolute bottom-[25%] right-[10%] w-14 h-18 opacity-40" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#5d4037" />
+            <ellipse cx="30" cy="35" rx="22" ry="27" fill="#2e7d32" />
+            <ellipse cx="30" cy="28" rx="18" ry="22" fill="#388e3c" />
+            <ellipse cx="30" cy="22" rx="14" ry="17" fill="#4caf50" />
+          </svg>
+
+          <svg className="absolute top-[65%] left-[75%] w-10 h-14 opacity-28" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#4e342e" />
+            <ellipse cx="30" cy="35" rx="16" ry="21" fill="#1b5e20" />
+            <ellipse cx="30" cy="28" rx="12" ry="16" fill="#2e7d32" />
+            <ellipse cx="30" cy="22" rx="9" ry="12" fill="#388e3c" />
+          </svg>
+
+          <svg className="absolute top-[15%] right-[8%] w-13 h-17 opacity-35" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#5d4037" />
+            <ellipse cx="30" cy="35" rx="19" ry="24" fill="#2e7d32" />
+            <ellipse cx="30" cy="28" rx="15" ry="19" fill="#388e3c" />
+            <ellipse cx="30" cy="22" rx="11" ry="14" fill="#43a047" />
+          </svg>
         </div>
         
         {/* Vignette for depth */}
