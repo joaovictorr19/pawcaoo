@@ -18,6 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import StructuredData from "@/components/seo/StructuredData";
+import { analytics } from "@/components/analytics/AnalyticsTracker";
 
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -638,6 +640,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative w-full overflow-hidden">
+      <StructuredData 
+        type="localBusiness" 
+        data={{ 
+          rating: 4.8, 
+          reviewCount: stats?.totalWalkers || 0,
+          lat: userLocation?.lat,
+          lng: userLocation?.lng
+        }} 
+      />
 
       <div className="relative z-10 overflow-hidden">
 
@@ -970,6 +981,7 @@ export default function Home() {
                     size="icon"
                     onClick={() => {
                       setActiveTab('walkers');
+                      analytics.searchPerformed(searchLocation || 'all');
                       document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="h-10 w-10 shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"

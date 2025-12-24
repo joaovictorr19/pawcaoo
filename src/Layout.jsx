@@ -51,6 +51,10 @@ import { useModalCleanup } from "@/components/ui/ModalCleanup";
 import SEOManager from "@/components/SEOManager";
 import MobileOptimizations from "@/components/ui/MobileOptimizations";
 import PWAInstaller from "@/components/PWAInstaller";
+import StructuredData from "@/components/seo/StructuredData";
+import AnalyticsTracker from "@/components/analytics/AnalyticsTracker";
+import { SkipToContent } from "@/components/accessibility/AccessibilityHelper";
+import NetworkErrorBoundary from "@/components/ui/NetworkErrorBoundary";
 
 import "./globals.css";
 
@@ -550,8 +554,11 @@ function LayoutContent({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
+      <SkipToContent />
+      <AnalyticsTracker />
       <MobileOptimizations />
       <PWAInstaller />
+      <StructuredData type="organization" />
       {seoManager}
       <Helmet>
         <title>
@@ -1410,7 +1417,7 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
           {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
+          <div id="main-content" className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
             {/* Breadcrumbs */}
             <Breadcrumbs />
 
@@ -1560,9 +1567,11 @@ export default function Layout({ children, currentPageName }) {
         <LocalizationProvider>
           <ThemeProvider>
             <ToastProvider>
-              <ErrorBoundary>
-                <LayoutContent children={children} currentPageName={currentPageName} />
-              </ErrorBoundary>
+              <NetworkErrorBoundary>
+                <ErrorBoundary>
+                  <LayoutContent children={children} currentPageName={currentPageName} />
+                </ErrorBoundary>
+              </NetworkErrorBoundary>
             </ToastProvider>
           </ThemeProvider>
         </LocalizationProvider>

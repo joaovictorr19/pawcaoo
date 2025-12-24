@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { analytics } from "@/components/analytics/AnalyticsTracker";
 
 export default function OwnerSubscriptions() {
   const queryClient = useQueryClient();
@@ -127,6 +128,7 @@ export default function OwnerSubscriptions() {
       });
 
       if (response?.data?.url) {
+        analytics.subscriptionStarted(plan.type);
         window.location.href = response.data.url;
         return null;
       } else {
