@@ -127,6 +127,25 @@
     @apply max-w-full h-auto;
   }
 
+  /* Mobile optimization */
+  @media (max-width: 768px) {
+    img {
+      will-change: transform;
+      content-visibility: auto;
+    }
+
+    /* Touch optimizations */
+    button, a, [role="button"] {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Smoother scrolling */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
   @media (max-width: 768px) {
     .table-container {
       overflow-x: auto;

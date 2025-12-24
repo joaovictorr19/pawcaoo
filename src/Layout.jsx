@@ -1025,16 +1025,16 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Mobile Header - Minimalista com glassmorphism */}
       <header 
-        className="md:hidden fixed top-0 left-0 right-0 z-[99999] px-3 py-2"
+        className="md:hidden fixed top-0 left-0 right-0 z-[99999] px-3 py-1.5"
         style={{
-          background: 'rgba(255, 255, 255, 0.92)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          background: 'rgba(255, 255, 255, 0.88)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.5)',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)',
         }}
       >
-        <div className="flex items-center justify-between h-11">
+        <div className="flex items-center justify-between h-10">
           {/* Logo + Menu Trigger */}
           <div className="flex items-center gap-2">
             {authUser && (
@@ -1058,27 +1058,27 @@ function LayoutContent({ children, currentPageName }) {
               variant="ghost"
               size="icon"
               onClick={() => setIsSearchOpen(true)}
-              className="h-9 w-9 rounded-xl"
+              className="h-8 w-8 rounded-lg active:scale-95 transition-transform"
               style={{
                 background: 'rgba(255, 255, 255, 0.6)',
                 border: '1px solid rgba(0, 0, 0, 0.05)'
               }}
               aria-label="Search"
             >
-              <Search className="w-4 h-4 text-gray-700" />
+              <Search className="w-3.5 h-3.5 text-gray-700" />
             </Button>
             {authUser ? (
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-9 w-9 relative rounded-xl"
+                className="h-8 w-8 relative rounded-lg active:scale-95 transition-transform"
                 style={{
                   background: 'rgba(255, 255, 255, 0.6)',
                   border: '1px solid rgba(0, 0, 0, 0.05)'
                 }}
                 onClick={() => setIsNotificationPanelOpen(true)}
               >
-                <Bell className="w-4 h-4 text-gray-700" />
+                <Bell className="w-3.5 h-3.5 text-gray-700" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
                     {unreadCount > 9 ? '9+' : unreadCount}
@@ -1088,7 +1088,7 @@ function LayoutContent({ children, currentPageName }) {
             ) : (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs px-4 h-9 rounded-xl shadow-md"
+                className="bg-gray-800 text-white text-xs px-3 h-8 rounded-lg shadow-sm active:scale-95 transition-transform"
                 size="sm"
               >
                 {getMenuText('login')}

@@ -759,34 +759,34 @@ export default function Home() {
                     <div className="grid grid-cols-4 gap-2 w-full">
                       <button
                         onClick={() => navigate(createPageUrl('Favorites'))}
-                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation"
                       >
                         <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
                         <span className="text-[9px] font-semibold text-slate-700">Favoritos</span>
                       </button>
 
                       <button
-                        onClick={() => navigate(createPageUrl('MyWallet'))}
-                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                      onClick={() => navigate(createPageUrl('MyWallet'))}
+                      className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation"
                       >
-                        <Wallet className="w-4 h-4 text-green-600" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Wallet</span>
+                      <Wallet className="w-4 h-4 text-green-600" strokeWidth={2} />
+                      <span className="text-[9px] font-semibold text-slate-700">Wallet</span>
                       </button>
 
                       <button
-                        onClick={() => navigate(createPageUrl('Gamification'))}
-                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                      onClick={() => navigate(createPageUrl('Gamification'))}
+                      className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation"
                       >
-                        <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Hall da Fama</span>
+                      <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
+                      <span className="text-[9px] font-semibold text-slate-700">Hall da Fama</span>
                       </button>
 
                       <button
-                        onClick={() => navigate(createPageUrl('MyBookings'))}
-                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md hover:shadow-lg ring-1 ring-white/50 hover:ring-white/80 transition-all duration-300 active:scale-95"
+                      onClick={() => navigate(createPageUrl('MyBookings'))}
+                      className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation"
                       >
-                        <Calendar className="w-4 h-4 text-blue-600" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Histórico</span>
+                      <Calendar className="w-4 h-4 text-blue-600" strokeWidth={2} />
+                      <span className="text-[9px] font-semibold text-slate-700">Histórico</span>
                       </button>
                     </div>
                   </div>
