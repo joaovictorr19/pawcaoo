@@ -922,18 +922,18 @@ function LayoutContent({ children, currentPageName }) {
       {/* ========== HEADER PREMIUM FLUTUANTE ========== */}
       {/* Desktop Header - Flutuante ao lado da Sidebar */}
       <header 
-        className="hidden md:block fixed top-[10px] z-[99999] px-4 py-3 right-[15px]"
+        className="hidden md:block fixed top-[10px] z-[99999] px-3 py-1.5 right-[15px]"
         style={{
           left: authUser ? '295px' : '15px',
-          background: authUser ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.6)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: authUser ? '1px solid rgba(255, 255, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.3)',
-          borderRadius: '20px',
-          boxShadow: authUser ? '0 4px 30px rgba(0, 0, 0, 0.1)' : '0 2px 20px rgba(0, 0, 0, 0.05)',
+          background: authUser ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.5)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: authUser ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.2)',
+          borderRadius: '16px',
+          boxShadow: authUser ? '0 2px 15px rgba(0, 0, 0, 0.06)' : '0 1px 10px rgba(0, 0, 0, 0.03)',
         }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-12">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-9">
           {/* Menu de Navegação Desktop */}
           <nav className="flex items-center justify-center flex-1 px-2">
             <div className="flex items-center gap-1 lg:gap-2">
@@ -963,35 +963,35 @@ function LayoutContent({ children, currentPageName }) {
                 <>
                   <button
                     onClick={() => navigate(createPageUrl("Home"))}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                       location.pathname === createPageUrl("Home") && !location.search.includes('tab=')
                         ? "bg-gray-200 text-gray-900"
                         : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <Home className="w-4 h-4 flex-shrink-0" />
+                    <Home className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Início' : language === 'es' ? 'Inicio' : 'Home'}</span>
                   </button>
                   <button
                     onClick={() => navigate(createPageUrl("Shop"))}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                       location.pathname === createPageUrl("Shop")
                         ? "bg-gray-200 text-gray-900"
                         : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <ShoppingBag className="w-4 h-4 flex-shrink-0" />
+                    <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Loja' : 'Shop'}</span>
                   </button>
                   <button
                     onClick={() => navigate(createPageUrl("AdoptionListings"))}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                       location.pathname === createPageUrl("AdoptionListings")
                         ? "bg-gray-200 text-gray-900"
                         : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <Heart className="w-4 h-4 flex-shrink-0" />
+                    <Heart className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Adoção' : language === 'es' ? 'Adopción' : 'Adoption'}</span>
                   </button>
                 </>
@@ -1005,15 +1005,15 @@ function LayoutContent({ children, currentPageName }) {
               variant="ghost"
               size="icon"
               onClick={() => setIsSearchOpen(true)}
-              className="h-9 w-9 rounded-xl"
+              className="h-8 w-8 rounded-lg"
               aria-label="Search"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-3.5 h-3.5" />
             </Button>
             {!authUser && (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                className="bg-gray-800 text-white hover:bg-gray-900 shadow-sm text-sm px-4 h-9"
+                className="bg-gray-800 text-white hover:bg-gray-900 shadow-sm text-xs px-3 h-8"
                 size="sm"
               >
                 {getMenuText('login')}
