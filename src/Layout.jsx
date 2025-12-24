@@ -50,6 +50,7 @@ import DynamicBackground from "@/components/ui/DynamicBackground";
 import { useModalCleanup } from "@/components/ui/ModalCleanup";
 import SEOManager from "@/components/SEOManager";
 import MobileOptimizations from "@/components/ui/MobileOptimizations";
+import PWAInstaller from "@/components/PWAInstaller";
 
 import "./globals.css";
 
@@ -550,6 +551,7 @@ function LayoutContent({ children, currentPageName }) {
   return (
     <SidebarProvider>
       <MobileOptimizations />
+      <PWAInstaller />
       {seoManager}
       <Helmet>
         <title>
@@ -558,9 +560,16 @@ function LayoutContent({ children, currentPageName }) {
            language === 'fr' ? 'PawCão - Le meilleur pour votre Animal' :
            'PawCão - The best for your Pet'}
         </title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        <meta name="theme-color" content="#16a34a" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="PawCão" />
+        <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/logo.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/logo.png" />
 
         {/* SEO Meta Tags */}
         <meta name="description" content={
@@ -573,24 +582,30 @@ function LayoutContent({ children, currentPageName }) {
         <meta name="author" content="PawCão" />
         <link rel="canonical" href="https://pawcao.net" />
 
-        {/* Open Graph / Facebook */}
+        {/* Open Graph / Facebook / WhatsApp */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="PawCão" />
         <meta property="og:title" content="PawCão - O melhor cuidado para o seu animal" />
         <meta property="og:description" content="Encontre passeadores, treinadores e cuidadores de exóticos de confiança em Portugal, Espanha e França. Rastreamento GPS e pagamentos seguros." />
         <meta property="og:image" content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/22126cf76_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg" />
+        <meta property="og:image:secure_url" content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/22126cf76_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg" />
+        <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="PawCão - Plataforma de Dog Walkers e Pet Care" />
         <meta property="og:url" content={`${window.location.protocol}//${window.location.host}${window.location.pathname}`} />
         <meta property="og:locale" content="pt_PT" />
         <meta property="og:locale:alternate" content="es_ES" />
         <meta property="og:locale:alternate" content="fr_FR" />
 
-        {/* Twitter */}
+        {/* Twitter / X */}
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@pawcao" />
+        <meta name="twitter:creator" content="@pawcao" />
         <meta name="twitter:title" content="PawCão - O melhor cuidado para o seu animal" />
         <meta name="twitter:description" content="Encontre passeadores, treinadores e cuidadores de exóticos de confiança em PT, ES e FR." />
         <meta name="twitter:image" content="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/22126cf76_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg" />
+        <meta name="twitter:image:alt" content="PawCão - Plataforma de Dog Walkers e Pet Care" />
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-9LBZ1D08FT"></script>
         <script>
