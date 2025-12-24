@@ -441,8 +441,14 @@ export default function Home() {
 
   // Safe Memoized Unified Professionals Filter (todos são WalkerProfile agora)
   const filteredProfessionals = React.useMemo(() => {
+    console.log('🔍 Filtering professionals. Total walkers:', walkers?.length || 0);
+    
     const processedWalkers = (Array.isArray(walkers) ? walkers : [])
-      .filter(w => w.walker_name && w.created_by) // Filtrar perfis fantasma
+      .filter(w => {
+        const isValid = w.walker_name && w.created_by;
+        if (!isValid) console.log('⚠️ Skipping invalid walker:', w.id);
+        return isValid;
+      })
       .map(walker => ({
         ...walker,
         type: 'walker',
@@ -450,10 +456,9 @@ export default function Home() {
         matchScore: calculateMatchScore(walker)
       }));
 
-    // Não há mais trainers separados - todos são walkers com is_verified_trainer
-    const allPros = [...processedWalkers];
+    console.log('✅ Processed walkers:', processedWalkers.length);
 
-    return allPros.filter(pro => {
+    return processedWalkers.filter(pro => {
       // Basic Safety Filter
       if (pro.verification_status === 'rejected') return false;
 
@@ -536,7 +541,7 @@ export default function Home() {
       // 3. Rating
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkers, trainers, searchLocation, filterSize, filterTime, filterDogSitting, selectedServiceTypes, advancedFilters, trainerFilters, userLocation]);
+  }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, selectedServiceTypes, advancedFilters, trainerFilters, userLocation]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
