@@ -16,16 +16,16 @@ export default function AdvancedTrainerFilters({ filters, onFiltersChange, onRes
   const [selectedDate, setSelectedDate] = useState(null);
 
   const trainingSpecialties = [
-    { id: "basic_obedience", label: "Obediência Básica", icon: "🎯" },
-    { id: "advanced_obedience", label: "Obediência Avançada", icon: "🏆" },
-    { id: "puppy_training", label: "Treino de Filhotes", icon: "🐶" },
-    { id: "behavior_modification", label: "Modificação Comportamental", icon: "🧠" },
-    { id: "aggression", label: "Agressão", icon: "⚠️" },
-    { id: "anxiety", label: "Ansiedade", icon: "😰" },
-    { id: "socialization", label: "Socialização", icon: "👥" },
-    { id: "service_dog", label: "Cão de Serviço", icon: "🦮" },
-    { id: "agility", label: "Agilidade", icon: "🏃" },
-    { id: "tricks", label: "Truques", icon: "🎪" }
+    { id: "positive_reinforcement", label: "Reforço Positivo", icon: "➕" },
+    { id: "agility_training", label: "Treino de Agilidade", icon: "🏃" },
+    { id: "behavioral_correction", label: "Correção Comportamental", icon: "🧠" },
+    { id: "puppy_socialization", label: "Socialização de Cachorros", icon: "🐶" },
+    { id: "obedience_training", label: "Treino de Obediência", icon: "🎯" },
+    { id: "service_dog_training", label: "Treino de Cães de Serviço", icon: "🦮" },
+    { id: "anxiety_management", label: "Gestão de Ansiedade", icon: "😰" },
+    { id: "aggression_rehabilitation", label: "Reabilitação de Agressão", icon: "⚠️" },
+    { id: "clicker_training", label: "Clicker Training", icon: "🔘" },
+    { id: "protection_training", label: "Treino de Proteção", icon: "🛡️" }
   ];
 
   const methodologies = [
@@ -174,28 +174,30 @@ export default function AdvancedTrainerFilters({ filters, onFiltersChange, onRes
 
         <Separator />
 
-        {/* Training Specialties */}
+        {/* Training Specializations */}
         <div>
           <Label className="text-sm font-bold mb-3 block flex items-center gap-2">
             <Award className="w-4 h-4 text-purple-600" />
-            Especialidades ({filters.specialties?.length || 0})
+            Especializações ({filters.specialties?.length || 0})
           </Label>
           <div className="space-y-2">
             {trainingSpecialties.map((spec) => (
               <label
                 key={spec.id}
-                className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${
+                className={`flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all ${
                   filters.specialties?.includes(spec.id)
                     ? 'bg-purple-50 border-2 border-purple-300'
-                    : 'hover:bg-gray-50'
+                    : 'hover:bg-gray-50 border border-gray-200'
                 }`}
               >
                 <Checkbox
                   checked={filters.specialties?.includes(spec.id)}
                   onCheckedChange={() => handleSpecialtyToggle(spec.id)}
                 />
-                <span className="text-lg">{spec.icon}</span>
-                <span className="text-sm font-medium">{spec.label}</span>
+                <span className="text-xl">{spec.icon}</span>
+                <div className="flex-1">
+                  <div className="text-sm font-semibold">{spec.label}</div>
+                </div>
               </label>
             ))}
           </div>

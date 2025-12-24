@@ -78,6 +78,7 @@ export default function Home() {
 
   const [trainerFilters, setTrainerFilters] = useState({
     specialties: [],
+    specializations: [],
     methodologies: [],
     consultationTypes: [],
     minExperience: 0,
@@ -609,6 +610,7 @@ export default function Home() {
   const resetTrainerFilters = () => {
     setTrainerFilters({
       specialties: [],
+      specializations: [],
       methodologies: [],
       consultationTypes: [],
       minExperience: 0,

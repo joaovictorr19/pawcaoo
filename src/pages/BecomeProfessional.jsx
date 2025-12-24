@@ -22,6 +22,7 @@ import { t } from "@/components/translations";
 import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload";
 import { toast } from "sonner";
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
+import TrainingSpecializationManager from "../components/trainers/TrainingSpecializationManager";
 
 export default function BecomeProfessional() {
   const navigate = useNavigate();
@@ -61,6 +62,7 @@ export default function BecomeProfessional() {
     languages_spoken: [],
     // Trainer specific
     training_specialties: [],
+    training_specializations: [],
     training_methodologies: [],
     consultation_options: [],
     training_philosophy: "",
@@ -124,6 +126,7 @@ export default function BecomeProfessional() {
         // Trainer fields (stored in same profile)
         is_verified_trainer: isAlsoTrainer,
         training_specialties: isAlsoTrainer ? data.training_specialties : [],
+        training_specializations: isAlsoTrainer ? data.training_specializations : [],
         training_philosophy: isAlsoTrainer ? data.training_philosophy : "",
         consultation_options: isAlsoTrainer ? data.consultation_options : [],
         // Multi-Country Tax Fields
@@ -872,30 +875,10 @@ export default function BecomeProfessional() {
                               />
                             </div>
 
-                            <div className="space-y-3">
-                              <Label>Especialidades de Treino</Label>
-                              <div className="grid grid-cols-2 gap-3">
-                                {[
-                                  { value: "basic_obedience", label: "Obediência Básica" },
-                                  { value: "advanced_obedience", label: "Obediência Avançada" },
-                                  { value: "behavior_modification", label: "Modificação de Comportamento" },
-                                  { value: "puppy_training", label: "Treino de Cachorros" },
-                                  { value: "aggression", label: "Agressão" },
-                                  { value: "anxiety", label: "Ansiedade" },
-                                ].map(spec => (
-                                  <div key={spec.value} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`spec-${spec.value}`}
-                                      checked={formData.training_specialties.includes(spec.value)}
-                                      onCheckedChange={() => toggleArrayItem('training_specialties', spec.value)}
-                                    />
-                                    <label htmlFor={`spec-${spec.value}`} className="text-sm cursor-pointer">
-                                      {spec.label}
-                                    </label>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
+                            <TrainingSpecializationManager
+                              specializations={formData.training_specializations}
+                              onChange={(specs) => setFormData({...formData, training_specializations: specs})}
+                            />
 
                             <div className="space-y-3">
                               <Label>Tipo de Consulta</Label>
