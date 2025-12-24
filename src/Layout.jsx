@@ -127,6 +127,58 @@ const usePrefetchOnHover = (prefetchFn) => {
   return { handleMouseEnter, handleMouseLeave };
 };
 
+// Simple prefetch helpers
+const prefetchQueries = {
+  walkers: (queryClient, base44) => {
+    queryClient.prefetchQuery({
+      queryKey: ['walkers'],
+      queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100),
+      staleTime: 2 * 60 * 1000,
+    });
+  },
+  trainers: (queryClient, base44) => {
+    queryClient.prefetchQuery({
+      queryKey: ['trainers'],
+      queryFn: () => base44.entities.TrainerProfile.filter({ is_active: true }, '-rating'),
+      staleTime: 2 * 60 * 1000,
+    });
+  },
+  partners: (queryClient, base44) => {
+    queryClient.prefetchQuery({
+      queryKey: ['partners'],
+      queryFn: () => base44.entities.Partnership.filter({ is_active: true }),
+      staleTime: 3 * 60 * 1000,
+    });
+  },
+  bookings: (queryClient, base44, userEmail) => {
+    if (!userEmail) return;
+    queryClient.prefetchQuery({
+      queryKey: ['userBookings', userEmail],
+      queryFn: () => base44.entities.Booking.filter({ created_by: userEmail }, '-created_date'),
+      staleTime: 1 * 60 * 1000,
+    });
+  },
+};
+
+// Prefetch on hover hook
+const usePrefetchOnHover = (prefetchFn) => {
+  const timeoutRef = React.useRef(null);
+
+  const handleMouseEnter = React.useCallback(() => {
+    timeoutRef.current = setTimeout(() => {
+      prefetchFn();
+    }, 100);
+  }, [prefetchFn]);
+
+  const handleMouseLeave = React.useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  }, []);
+
+  return { handleMouseEnter, handleMouseLeave };
+};
+
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -943,11 +995,14 @@ function LayoutContent({ children, currentPageName }) {
             <div className="flex items-center gap-1 lg:gap-2">
               {authUser ? (
                 // Menu completo para usuários logados
-                mainMenu.map((item) => (
+                mainMenu.map((item) => {
+                  const prefetchHandlers = getPrefetchHandlers(item);
+                  return (
                 <Link
                   key={item.url}
                   id={item.id}
                   to={item.url}
+                  {...prefetchHandlers}
                   onClick={(e) => {
                     e.preventDefault();
                     navigate(item.url);
@@ -961,7 +1016,8 @@ function LayoutContent({ children, currentPageName }) {
                     <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
                     <span className="hidden lg:inline">{item.title}</span>
                   </Link>
-                ))
+                  );
+                })
               ) : (
                 // Menu simplificado para visitantes (não logados)
                 <>
@@ -1208,7 +1264,9 @@ function LayoutContent({ children, currentPageName }) {
               {myActivityExpanded && (
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {myActivityMenu.map((item) => ( 
+                    {myActivityMenu.map((item) => {
+                      const prefetchHandlers = getPrefetchHandlers(item);
+                      return ( 
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
@@ -1218,7 +1276,7 @@ function LayoutContent({ children, currentPageName }) {
                               : (item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : 'hover:bg-gray-100 text-gray-700')
                           }`}
                         >
-                          <Link to={item.url} id={item.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2 md:py-2.5 relative">
+                          <Link to={item.url} id={item.id} {...prefetchHandlers} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2 md:py-2.5 relative">
                             {isRouteActive(item.url) && (
                               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-blue-500" />
                             )}
@@ -1232,7 +1290,8 @@ function LayoutContent({ children, currentPageName }) {
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    ))}
+                      );
+                    })}
                   </SidebarMenu>
                 </SidebarGroupContent>
               )}

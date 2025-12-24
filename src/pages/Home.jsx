@@ -7,14 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet } from "lucide-react";
-import WalkerCard from "../components/marketplace/WalkerCard";
-import ReviewModal from "../components/reviews/ReviewModal";
-import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
-import TrainerCard from "../components/trainers/TrainerCard";
+const WalkerCard = React.lazy(() => import("../components/marketplace/WalkerCard"));
+const ReviewModal = React.lazy(() => import("../components/reviews/ReviewModal"));
+const EmergencyDogCard = React.lazy(() => import("../components/emergency/EmergencyDogCard"));
+const TrainerCard = React.lazy(() => import("../components/trainers/TrainerCard"));
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
-
-import TestimonialsSection from "../components/home/TestimonialsSection";
+const TestimonialsSection = React.lazy(() => import("../components/home/TestimonialsSection"));
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
@@ -1246,17 +1245,25 @@ export default function Home() {
                         </Card>
                       ) : (
                         <>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
-                            {paginatedProfessionals.map((pro) => (
-                              <WalkerCard 
-                                key={pro.id} 
-                                walker={pro}
-                                distance={pro.distance}
-                                matchScore={pro.matchScore}
-                                showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
-                              />
-                            ))}
-                          </div>
+                          <Suspense fallback={
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
+                              {[1, 2, 3, 4].map(i => (
+                                <Skeleton key={i} className="h-80 rounded-xl" />
+                              ))}
+                            </div>
+                          }>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
+                              {paginatedProfessionals.map((pro) => (
+                                <WalkerCard 
+                                  key={pro.id} 
+                                  walker={pro}
+                                  distance={pro.distance}
+                                  matchScore={pro.matchScore}
+                                  showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                                />
+                              ))}
+                            </div>
+                          </Suspense>
 
                           {/* Pagination Controls */}
                           {filteredProfessionals.length > itemsPerPage && (
@@ -1360,11 +1367,17 @@ export default function Home() {
                       <p className="text-sm md:text-base text-gray-600">{t('checkBackLater', language)}</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                      {filteredEmergencyWalks.map((walk) => (
-                        <EmergencyDogCard key={walk.id} walk={walk} distance={walk.distance} />
-                      ))}
-                    </div>
+                    <Suspense fallback={
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                        {[1, 2, 3].map(i => <Skeleton key={i} className="h-64 rounded-xl" />)}
+                      </div>
+                    }>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                        {filteredEmergencyWalks.map((walk) => (
+                          <EmergencyDogCard key={walk.id} walk={walk} distance={walk.distance} />
+                        ))}
+                      </div>
+                    </Suspense>
                   )}
                 </div>
               </TabsContent>
@@ -1410,7 +1423,11 @@ export default function Home() {
           </div>
 
           {/* Testimonials Section */}
-          {!user && <TestimonialsSection />}
+            {!user && (
+              <Suspense fallback={<Skeleton className="h-96 rounded-2xl" />}>
+                <TestimonialsSection />
+              </Suspense>
+            )}
 
           {/* Trust Badges Section */}
           <div className="mt-12 mb-8">
