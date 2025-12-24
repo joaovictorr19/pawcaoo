@@ -127,58 +127,6 @@ const usePrefetchOnHover = (prefetchFn) => {
   return { handleMouseEnter, handleMouseLeave };
 };
 
-// Simple prefetch helpers
-const prefetchQueries = {
-  walkers: (queryClient, base44) => {
-    queryClient.prefetchQuery({
-      queryKey: ['walkers'],
-      queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100),
-      staleTime: 2 * 60 * 1000,
-    });
-  },
-  trainers: (queryClient, base44) => {
-    queryClient.prefetchQuery({
-      queryKey: ['trainers'],
-      queryFn: () => base44.entities.TrainerProfile.filter({ is_active: true }, '-rating'),
-      staleTime: 2 * 60 * 1000,
-    });
-  },
-  partners: (queryClient, base44) => {
-    queryClient.prefetchQuery({
-      queryKey: ['partners'],
-      queryFn: () => base44.entities.Partnership.filter({ is_active: true }),
-      staleTime: 3 * 60 * 1000,
-    });
-  },
-  bookings: (queryClient, base44, userEmail) => {
-    if (!userEmail) return;
-    queryClient.prefetchQuery({
-      queryKey: ['userBookings', userEmail],
-      queryFn: () => base44.entities.Booking.filter({ created_by: userEmail }, '-created_date'),
-      staleTime: 1 * 60 * 1000,
-    });
-  },
-};
-
-// Prefetch on hover hook
-const usePrefetchOnHover = (prefetchFn) => {
-  const timeoutRef = React.useRef(null);
-
-  const handleMouseEnter = React.useCallback(() => {
-    timeoutRef.current = setTimeout(() => {
-      prefetchFn();
-    }, 100);
-  }, [prefetchFn]);
-
-  const handleMouseLeave = React.useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-  }, []);
-
-  return { handleMouseEnter, handleMouseLeave };
-};
-
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
