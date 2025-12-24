@@ -463,24 +463,8 @@ export default function WalkerDetails() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    {walker.accepted_animals.map((animal) => {
-                      const animalData = {
-                        dogs: { emoji: '🐕', label: 'Cães' },
-                        cats: { emoji: '🐈', label: 'Gatos' },
-                        birds: { emoji: '🦜', label: 'Aves' },
-                        reptiles: { emoji: '🦎', label: 'Répteis' },
-                        arachnids: { emoji: '🕷️', label: 'Aracnídeos' },
-                        rodents: { emoji: '🐹', label: 'Roedores' }
-                      };
-                      const data = animalData[animal] || { emoji: '🐾', label: animal };
-                      return (
-                        <div key={animal} className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-                          <span className="text-lg grayscale">{data.emoji}</span>
-                          <span className="text-sm font-medium text-gray-700">{data.label}</span>
-                        </div>
-                      );
-                    })}
+                  <div className="flex flex-wrap gap-2">
+                    <AnimalIconsWithLabels acceptedAnimals={walker.accepted_animals} language={language} />
                   </div>
                 </CardContent>
               </Card>
