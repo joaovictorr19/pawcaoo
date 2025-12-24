@@ -582,6 +582,79 @@ export default function WalkerDetails() {
               </Card>
             )}
 
+            {/* Training Specializations (if trainer) */}
+            {walker.is_verified_trainer && walker.training_specializations?.length > 0 && (
+              <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 shadow-sm border border-purple-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Award className="w-5 h-5 text-purple-600" />
+                    Especializações de Treino
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {walker.training_specializations.map((spec, idx) => {
+                      const icons = {
+                        positive_reinforcement: "➕",
+                        agility_training: "🏃",
+                        behavioral_correction: "🧠",
+                        puppy_socialization: "🐶",
+                        obedience_training: "🎯",
+                        service_dog_training: "🦮",
+                        anxiety_management: "😰",
+                        aggression_rehabilitation: "⚠️",
+                        clicker_training: "🔘",
+                        protection_training: "🛡️"
+                      };
+                      
+                      return (
+                        <div key={idx} className="bg-white rounded-lg p-3 border border-purple-100">
+                          <div className="flex items-start gap-2 mb-2">
+                            <span className="text-xl">{icons[spec.specialty_id] || "🎓"}</span>
+                            <div className="flex-1">
+                              <h5 className="font-bold text-sm text-gray-900">{spec.specialty_name}</h5>
+                              {spec.years_experience > 0 && (
+                                <p className="text-xs text-purple-600 font-semibold mt-0.5">
+                                  {spec.years_experience} {spec.years_experience === 1 ? 'ano' : 'anos'} de experiência
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {spec.description && (
+                            <p className="text-xs text-gray-600 leading-relaxed ml-7">{spec.description}</p>
+                          )}
+                          {spec.certifications?.length > 0 && (
+                            <div className="mt-2 ml-7 flex flex-wrap gap-1">
+                              {spec.certifications.map((cert, certIdx) => (
+                                <Badge key={certIdx} variant="outline" className="text-[9px] bg-purple-50 text-purple-700 border-purple-200">
+                                  🏅 {cert}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Training Philosophy (if trainer) */}
+            {walker.is_verified_trainer && walker.training_philosophy && (
+              <Card className="bg-white shadow-sm border-0">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Award className="w-4 h-4 text-purple-600" />
+                    Filosofia de Treino
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="text-sm text-gray-700 leading-relaxed">{walker.training_philosophy}</p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Reviews */}
             <Card className="bg-white shadow-sm border-0">
               <CardHeader className="pb-3">
