@@ -882,62 +882,6 @@ export default function Home() {
                   </motion.div>
                 ))}
 
-                {/* Happy Dogs - Middle Left & Right */}
-                {featuredDogs.slice(0, 2).map((dog, idx) => (
-                  <motion.div
-                    key={`dog-${dog.id}`}
-                    initial={{ opacity: 0, scale: 0.5, x: idx === 0 ? -20 : 20 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
-                    onClick={() => {
-                      if (!user) {
-                        base44.auth.redirectToLogin(window.location.href);
-                        return;
-                      }
-                      navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
-                    }}
-                  >
-                    <motion.div
-                      animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
-                      className="relative"
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
-                        <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
-                      </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        🐕 {dog.dog_name}
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ))}
-
-                {/* Adoptions - Bottom Left & Right */}
-                {featuredAdoptions.slice(0, 2).map((adoption, idx) => (
-                  <motion.div
-                    key={`adoption-${adoption.id}`}
-                    initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.6 + idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden lg:block ${idx === 0 ? '-left-12 bottom-8' : '-right-12 bottom-8'} cursor-pointer group z-20`}
-                    onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${adoption.id}`))}
-                  >
-                    <motion.div
-                      animate={{ y: [0, -12, 0], scale: [1, 1.05, 1] }}
-                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.9 }}
-                      className="relative"
-                    >
-                      <div className="w-18 h-18 rounded-2xl overflow-hidden border-4 border-pink-400 shadow-2xl group-hover:border-pink-600 transition-all group-hover:scale-110">
-                        <img src={adoption.primary_photo_url} alt={adoption.pet_name} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-pink-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        ❤️ Adotar
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ))}
-
                 {/* Center Title with Stats */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -948,28 +892,11 @@ export default function Home() {
                     <motion.div 
                       whileHover={{ scale: 1.05, y: -2 }}
                       className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
-                      onClick={() => setActiveTab('walkers')}
+                      onClick={() => setActiveTab('professionals')}
                     >
                       <Users className="w-4 h-4" />
                       <span className="text-sm font-bold">{stats.totalWalkers}</span>
                       <span className="text-xs opacity-90">Walkers</span>
-                    </motion.div>
-                    <motion.div 
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full shadow-lg cursor-default"
-                    >
-                      <Dog className="w-4 h-4" />
-                      <span className="text-sm font-bold">{stats.happyDogs}</span>
-                      <span className="text-xs opacity-90">Cães Felizes</span>
-                    </motion.div>
-                    <motion.div 
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
-                      onClick={() => setActiveTab('adoption')}
-                    >
-                      <Heart className="w-4 h-4 fill-white" />
-                      <span className="text-sm font-bold">{stats.adoptedDogs}</span>
-                      <span className="text-xs opacity-90">Adoções</span>
                     </motion.div>
                   </div>
 
@@ -1359,22 +1286,7 @@ export default function Home() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="adoption">
-                <div>
-                  <div className="text-center py-8">
-                    <Heart className="w-16 h-16 text-pink-300 mx-auto mb-4 fill-pink-300" />
-                    <h3 className="text-2xl font-bold text-white mb-4">
-                      {language === 'pt' ? 'Adote um Pet' : 'Adopt a Pet'}
-                    </h3>
-                    <Button
-                      onClick={() => navigate(createPageUrl('AdoptionListings'))}
-                      className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 h-12 px-8"
-                    >
-                      {language === 'pt' ? 'Ver Adoções' : 'View Adoptions'}
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
+
 
               <TabsContent value="emergency">
                 <div>
