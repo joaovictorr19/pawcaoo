@@ -284,6 +284,70 @@ export default function DynamicBackground() {
           >
             <div className="absolute inset-[25%] rounded-full border border-white/30" style={{ borderStyle: 'dashed' }} />
           </div>
+
+          {/* Cycling paths/roads - subtle gray paths */}
+          <div className="absolute top-[20%] left-0 right-0 h-16 opacity-20"
+            style={{
+              background: 'linear-gradient(180deg, transparent 0%, #424242 20%, #616161 50%, #424242 80%, transparent 100%)',
+              transform: 'skewY(-2deg)'
+            }}
+          >
+            {/* Dashed white line for bike path */}
+            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/40 opacity-60"
+              style={{
+                backgroundImage: 'repeating-linear-gradient(90deg, white 0px, white 20px, transparent 20px, transparent 40px)'
+              }}
+            />
+          </div>
+
+          <div className="absolute bottom-[30%] left-0 right-0 h-20 opacity-15"
+            style={{
+              background: 'linear-gradient(180deg, transparent 0%, #757575 25%, #9e9e9e 50%, #757575 75%, transparent 100%)',
+              transform: 'skewY(1deg)'
+            }}
+          >
+            {/* Road yellow divider line */}
+            <div className="absolute top-1/2 left-0 right-0 h-1 bg-yellow-300/50 opacity-70"
+              style={{
+                backgroundImage: 'repeating-linear-gradient(90deg, #ffd54f 0px, #ffd54f 30px, transparent 30px, transparent 50px)'
+              }}
+            />
+          </div>
+
+          {/* Fire Hydrants scattered on the grass */}
+          <svg className="absolute top-[25%] right-[15%] w-8 h-10 opacity-40" viewBox="0 0 32 40" style={{ transform: 'rotate(-5deg)' }}>
+            {/* Base */}
+            <rect x="10" y="30" width="12" height="4" fill="#8b0000" rx="1" />
+            {/* Main body */}
+            <rect x="8" y="12" width="16" height="18" fill="#dc143c" rx="2" />
+            {/* Cap */}
+            <ellipse cx="16" cy="10" rx="9" ry="4" fill="#b22222" />
+            {/* Side valves */}
+            <rect x="3" y="18" width="5" height="3" fill="#ff6347" rx="1" />
+            <rect x="24" y="18" width="5" height="3" fill="#ff6347" rx="1" />
+            {/* Top nozzle */}
+            <rect x="13" y="6" width="6" height="6" fill="#8b0000" rx="1" />
+            {/* Shine effect */}
+            <ellipse cx="12" cy="16" rx="2" ry="4" fill="#ff6b6b" opacity="0.3" />
+          </svg>
+
+          <svg className="absolute bottom-[20%] left-[10%] w-7 h-9 opacity-35" viewBox="0 0 32 40" style={{ transform: 'rotate(8deg)' }}>
+            <rect x="10" y="30" width="12" height="4" fill="#8b0000" rx="1" />
+            <rect x="8" y="12" width="16" height="18" fill="#dc143c" rx="2" />
+            <ellipse cx="16" cy="10" rx="9" ry="4" fill="#b22222" />
+            <rect x="3" y="18" width="5" height="3" fill="#ff6347" rx="1" />
+            <rect x="24" y="18" width="5" height="3" fill="#ff6347" rx="1" />
+            <rect x="13" y="6" width="6" height="6" fill="#8b0000" rx="1" />
+          </svg>
+
+          <svg className="absolute top-[60%] right-[35%] w-6 h-8 opacity-30" viewBox="0 0 32 40" style={{ transform: 'rotate(-12deg)' }}>
+            <rect x="10" y="30" width="12" height="4" fill="#8b0000" rx="1" />
+            <rect x="8" y="12" width="16" height="18" fill="#dc143c" rx="2" />
+            <ellipse cx="16" cy="10" rx="9" ry="4" fill="#b22222" />
+            <rect x="3" y="18" width="5" height="3" fill="#ff6347" rx="1" />
+            <rect x="24" y="18" width="5" height="3" fill="#ff6347" rx="1" />
+            <rect x="13" y="6" width="6" height="6" fill="#8b0000" rx="1" />
+          </svg>
         </div>
         
         {/* Vignette for depth */}
