@@ -226,7 +226,6 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        // Ensure we fetch all walkers without restrictive filtering initially
         const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200);
         return Array.isArray(res) ? res : [];
       } catch (error) {
@@ -235,9 +234,9 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 0, // Disable cache to ensure updates
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Trainers são agora parte do WalkerProfile (is_verified_trainer = true)
@@ -329,13 +328,9 @@ export default function Home() {
           base44.entities.AdoptionApplication.list('-created_date', 100)
         ]);
 
-        // Filtrar walkers ativos
         const walkersAtivos = activeWalkers.filter(w => w.is_active === true);
-
-        // Filtrar bookings completados
         const completedBookings = allBookings.filter(b => b.status === 'completed');
 
-        // Contar cães únicos que foram passeados (clientes satisfeitos)
         const uniqueDogs = new Set();
         completedBookings.forEach(booking => {
           if (booking.dog_name) {
@@ -343,15 +338,7 @@ export default function Home() {
           }
         });
 
-        // Filtrar adoções aprovadas
         const approvedAdoptions = allAdoptions.filter(a => a.status === 'approved');
-
-        console.log('📊 Stats:', {
-          walkers: walkersAtivos.length,
-          completedBookings: completedBookings.length,
-          happyDogs: uniqueDogs.size,
-          adoptions: approvedAdoptions.length
-        });
 
         return {
           totalWalkers: walkersAtivos.length || 0,
@@ -364,9 +351,9 @@ export default function Home() {
       }
     },
     initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: 'always',
+    staleTime: 15 * 60 * 1000, // 15 minutes cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const getWalkerDistance = (walker) => {

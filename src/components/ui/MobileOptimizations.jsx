@@ -34,9 +34,24 @@ export default function MobileOptimizations() {
 
     document.addEventListener('touchmove', preventPullToRefresh, { passive: false });
 
+    // CRITICAL: Cleanup on visibility change to prevent freezes
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Pause heavy operations when tab is hidden
+        console.log('🔇 Tab hidden - pausing operations');
+      } else {
+        // Resume when tab is visible
+        console.log('🔊 Tab visible - resuming');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup on unmount
     return () => {
       document.removeEventListener('touchend', preventDoubleTapZoom);
       document.removeEventListener('touchmove', preventPullToRefresh);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

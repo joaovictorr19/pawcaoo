@@ -53,23 +53,25 @@ import MobileOptimizations from "@/components/ui/MobileOptimizations";
 
 import "./globals.css";
 
-// Query optimization configs - v1.1
+// Query optimization configs - v2.0 - Anti-freeze on tab switch
 const queryConfig = {
   user: {
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    cacheTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  },
-  notifications: {
-    staleTime: 30 * 1000,
-    cacheTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false, // Reduced aggressiveness
-    refetchInterval: 60 * 1000, // Reduced to 1 minute
-  },
-  static: {
-    staleTime: 15 * 60 * 1000, // Increased for static data
+    staleTime: 30 * 60 * 1000, // 30 minutes
     cacheTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  },
+  notifications: {
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disabled - use realtime instead
+  },
+  static: {
+    staleTime: 60 * 60 * 1000, // 1 hour
+    cacheTime: 2 * 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   },
 };
 
@@ -184,9 +186,7 @@ function LayoutContent({ children, currentPageName }) {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
-        console.log('👤 Fetching user...');
         const userData = await base44.auth.me();
-        console.log('✅ User fetched:', userData?.email || 'not logged in');
 
         // XP is managed in UserProfile entity only - read from there
         if (userData?.email) {
@@ -209,6 +209,8 @@ function LayoutContent({ children, currentPageName }) {
     },
     ...queryConfig.user,
     retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: notifications } = useQuery({
@@ -226,7 +228,7 @@ function LayoutContent({ children, currentPageName }) {
         return [];
       }
     },
-    enabled: !!authUser,
+    enabled: !!authUser && !document.hidden, // Don't fetch when tab hidden
     initialData: [],
     ...queryConfig.notifications,
   });
