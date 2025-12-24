@@ -100,28 +100,13 @@ export default function Home() {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
-        const userData = await base44.auth.me();
-
-        // XP is managed in UserProfile entity only - read from there
-        if (userData?.email) {
-          try {
-            const profiles = await base44.entities.UserProfile.filter({ user_email: userData.email });
-            if (profiles.length > 0) {
-              // Always use UserProfile as source of truth
-              userData.gamification_xp = profiles[0].gamification_xp || 0;
-              userData.gamification_level = profiles[0].gamification_level || 1;
-            }
-          } catch (e) {
-            console.log('XP read skipped:', e.message);
-          }
-        }
-
-        return userData;
+        return await base44.auth.me();
       } catch (err) {
         return null;
       }
     },
     retry: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: myDogs = [] } = useQuery({
@@ -189,8 +174,8 @@ export default function Home() {
       return profiles[0] || null;
     },
     enabled: !!user?.email,
-    staleTime: 10 * 1000, // 10 seconds - sync with theme
-    refetchOnWindowFocus: true,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnWindowFocus: false,
   });
 
   // XP animation effect - UserProfile is single source of truth
@@ -319,51 +304,31 @@ export default function Home() {
     queryKey: ['platformStats'],
     queryFn: async () => {
       try {
-        // Buscar todos os dados em paralelo
         const [activeWalkers, allBookings, allAdoptions] = await Promise.all([
-          base44.entities.WalkerProfile.list('-created_date', 100),
-          base44.entities.Booking.list('-created_date', 500),
-          base44.entities.AdoptionApplication.list('-created_date', 100)
+          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 100),
+          base44.entities.Booking.filter({ status: 'completed' }, '-created_date', 200),
+          base44.entities.AdoptionApplication.filter({ status: 'approved' }, '-created_date', 100)
         ]);
 
-        // Filtrar walkers ativos
-        const walkersAtivos = activeWalkers.filter(w => w.is_active === true);
-
-        // Filtrar bookings completados
-        const completedBookings = allBookings.filter(b => b.status === 'completed');
-
-        // Contar cães únicos que foram passeados (clientes satisfeitos)
         const uniqueDogs = new Set();
-        completedBookings.forEach(booking => {
-          if (booking.dog_name) {
+        allBookings.forEach(booking => {
+          if (booking.dog_name && booking.created_by) {
             uniqueDogs.add(`${booking.created_by}-${booking.dog_name}`);
           }
         });
 
-        // Filtrar adoções aprovadas
-        const approvedAdoptions = allAdoptions.filter(a => a.status === 'approved');
-
-        console.log('📊 Stats:', {
-          walkers: walkersAtivos.length,
-          completedBookings: completedBookings.length,
-          happyDogs: uniqueDogs.size,
-          adoptions: approvedAdoptions.length
-        });
-
         return {
-          totalWalkers: walkersAtivos.length || 0,
+          totalWalkers: activeWalkers.length || 0,
           happyDogs: uniqueDogs.size || 0,
-          adoptedDogs: approvedAdoptions.length || 0
+          adoptedDogs: allAdoptions.length || 0
         };
       } catch (error) {
-        console.error("Stats fetch error:", error);
         return { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 };
       }
     },
     initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: 'always',
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
   });
 
   const getWalkerDistance = (walker) => {
