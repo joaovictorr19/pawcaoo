@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Check, Trophy, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onSelectBadge, currentlyPinnedIds = [] }) {
+export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onSelectBadge, currentlyPinnedIds = [], maxSlots = 4, currentSlotIndex = 0 }) {
   
   const handleBadgeClick = (badge) => {
     // Determine the ID to use (handle legacy/mixed data structures)
@@ -18,10 +18,10 @@ export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onS
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             <Trophy className="w-5 h-5 text-yellow-500" />
-            Escolher Emblema
+            Escolher Emblema para Slot {currentSlotIndex + 1}
           </DialogTitle>
           <DialogDescription>
-            Selecione um emblema da sua coleção para exibir neste slot.
+            Selecione um emblema para o <strong>Slot {currentSlotIndex + 1}</strong> de {maxSlots}. Este emblema será exibido no seu perfil.
           </DialogDescription>
         </DialogHeader>
 
@@ -52,10 +52,10 @@ export default function BadgeSelectionModal({ isOpen, onClose, earnedBadges, onS
                       }
                     `}
                   >
-                    {/* Equipped Indicator */}
+                    {/* Equipped Indicator with Slot Number */}
                     {isEquipped && (
-                      <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1.5 shadow-sm z-50 min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation">
-                        <Check className="w-4 h-4" />
+                      <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full w-6 h-6 shadow-md z-50 flex items-center justify-center">
+                        <span className="text-xs font-bold">{currentlyPinnedIds.indexOf(badgeId) + 1}</span>
                       </div>
                     )}
 

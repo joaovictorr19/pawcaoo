@@ -666,25 +666,26 @@ export default function UserProfile() {
     mutationFn: async ({ slotIndex, badgeId }) => {
       if (!profileUser?.id) return;
       
-      const currentPinned = [...(profileUser.pinned_badge_ids || [null, null])];
-      // Ensure array has at least 2 slots
-      while (currentPinned.length < 2) currentPinned.push(null);
+      // Initialize with 4 null slots
+      const currentPinned = Array(4).fill(null);
+      
+      // Copy existing pinned badges up to 4 slots
+      (profileUser.pinned_badge_ids || []).slice(0, 4).forEach((id, idx) => {
+        currentPinned[idx] = id;
+      });
       
       // Update specific slot
       currentPinned[slotIndex] = badgeId;
       
-      // Remove duplicates if same badge selected in other slot
-      const otherSlot = slotIndex === 0 ? 1 : 0;
-      if (currentPinned[otherSlot] === badgeId) {
-        currentPinned[otherSlot] = null;
+      // Remove badge from other slots if duplicate
+      for (let i = 0; i < 4; i++) {
+        if (i !== slotIndex && currentPinned[i] === badgeId) {
+          currentPinned[i] = null;
+        }
       }
 
-      // Filter out nulls/undefined for clean storage, but UI handles partials
-      // Actually better to keep structure or just store valid IDs
-      const cleanPinned = currentPinned.filter(id => id);
-
       await base44.entities.UserProfile.update(profileUser.id, {
-        pinned_badge_ids: cleanPinned
+        pinned_badge_ids: currentPinned
       });
     },
     onSuccess: () => {
@@ -1091,25 +1092,7 @@ export default function UserProfile() {
                         Editar Perfil
                       </Button>
                     )}
-                    {!isOwnProfile && currentUser && (
-                      <div className="flex gap-2 w-full">
-                        <Button
-                          onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
-                          disabled={followMutation.isPending || unfollowMutation.isPending}
-                          className={`flex-1 ${isFollowing ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white'}`}
-                          size="sm"
-                        >
-                          {isFollowing ? 'Seguindo' : 'Seguir'}
-                        </Button>
-                        <Button
-                          onClick={() => handleMessageUser(profileEmail)}
-                          className="bg-white text-blue-600 border border-blue-200 hover:bg-blue-50"
-                          size="sm"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
+                    {/* Botões removidos - chat apenas em contexto de reserva */}
                   </div>
                 </div>
 
@@ -1124,33 +1107,9 @@ export default function UserProfile() {
                     </div>
                     <div className="grid grid-cols-4 gap-1.5 md:gap-2">
                     {[0, 1, 2, 3].map((slotIdx) => {
-                     // Priority Logic: highlighted_emblem_id ONLY for slot 0 > pinned_badge_ids > fallback ONLY if no highlighted
-                     let badge = null;
-                     let pinnedId = null;
-
-                     // Slot 0: PRIORITY to highlighted_emblem_id
-                     if (slotIdx === 0 && profileUser.highlighted_emblem_id) {
-                       pinnedId = profileUser.highlighted_emblem_id;
-                       badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId);
-                     }
-
-                     // Other slots OR if slot 0 has no highlighted: use pinned_badge_ids
-                     if (!badge && profileUser.pinned_badge_ids && profileUser.pinned_badge_ids.length > slotIdx) {
-                       pinnedId = profileUser.pinned_badge_ids[slotIdx];
-                       badge = earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId);
-                     }
-
-                     // Fallback: ONLY show recent/high rarity if NO highlighted_emblem_id exists at all
-                     if (!badge && !profileUser.highlighted_emblem_id && slotIdx < earnedBadges.length) {
-                       const sortedBadges = [...earnedBadges].sort((a, b) => {
-                         const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
-                         const rA = rarityOrder[a.rarity?.toLowerCase()] || 0;
-                         const rB = rarityOrder[b.rarity?.toLowerCase()] || 0;
-                         if (rA !== rB) return rB - rA;
-                         return new Date(b.earned_date || 0) - new Date(a.earned_date || 0);
-                       });
-                       badge = sortedBadges[slotIdx];
-                     }
+                     // Simple slot-based system: only show what's pinned
+                     const pinnedId = profileUser.pinned_badge_ids?.[slotIdx];
+                     const badge = pinnedId ? (earnedBadges.find(b => (b.badge_id || b.id) === pinnedId) || allBadgeDefinitions.find(b => b.id === pinnedId)) : null;
 
                         return (
                           <TooltipProvider key={`slot-${slotIdx}-${pinnedId || 'empty'}-${badge?.badge_id || 'none'}`} delayDuration={100}>
@@ -1162,6 +1121,10 @@ export default function UserProfile() {
                                    isOwnProfile ? 'cursor-pointer hover:scale-105 hover:border-blue-300' : ''
                                  } ${!badge ? 'bg-white/40 border-2 border-dashed border-gray-200' : 'bg-white shadow-sm border border-gray-200'}`}
                                 >
+                                  {/* Slot Number Indicator */}
+                                  <div className="absolute top-0.5 right-0.5 text-[9px] font-bold text-white bg-blue-500 rounded-full w-4 h-4 flex items-center justify-center border border-white shadow-sm z-30">
+                                    {slotIdx + 1}
+                                  </div>
                                   {badge ? (
                                     <>
                                       <div className={`absolute inset-0 opacity-20 ${
@@ -1209,23 +1172,7 @@ export default function UserProfile() {
                   </div>
 
                   {/* Desktop Actions */}
-                  {!isOwnProfile && currentUser && (
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => isFollowing ? unfollowMutation.mutate() : followMutation.mutate()}
-                        disabled={followMutation.isPending || unfollowMutation.isPending}
-                        className={isFollowing ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white'}
-                      >
-                        {isFollowing ? 'Seguindo' : 'Seguir'}
-                      </Button>
-                      <Button
-                        onClick={() => handleMessageUser(profileEmail)}
-                        className="bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 px-3"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
+                  {/* Botões removidos - chat apenas em contexto de reserva */}
                 </div>
 
               </div>
@@ -1425,20 +1372,7 @@ export default function UserProfile() {
                    </AvatarFallback>
                  </Avatar>
                   <span className="font-medium text-sm text-gray-700 flex-1 truncate">{f.follower_name}</span>
-                  {currentUser && f.follower_email !== currentUser.email && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-blue-600 hover:bg-blue-50 rounded-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMessageUser(f.follower_email);
-                      }}
-                      title="Enviar Mensagem"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                    </Button>
-                  )}
+
                 </div>
               ))}
             </ScrollArea>
@@ -1465,20 +1399,7 @@ export default function UserProfile() {
                    </AvatarFallback>
                  </Avatar>
                   <span className="font-medium text-sm text-gray-700 flex-1 truncate">{f.following_name}</span>
-                  {currentUser && f.following_email !== currentUser.email && (
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-blue-600 hover:bg-blue-50 rounded-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleMessageUser(f.following_email);
-                      }}
-                      title="Enviar Mensagem"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                    </Button>
-                  )}
+
                 </div>
               ))}
             </ScrollArea>
@@ -1492,6 +1413,8 @@ export default function UserProfile() {
           earnedBadges={earnedBadges}
           onSelectBadge={handleBadgeSelect}
           currentlyPinnedIds={profileUser?.pinned_badge_ids || []}
+          maxSlots={4}
+          currentSlotIndex={activeSlotIndex}
         />
 
         {/* Animal Manager Modal */}

@@ -219,7 +219,7 @@ function LayoutContent({ children, currentPageName }) {
         const allNotifications = await base44.entities.Notification.filter({ 
           recipient_email: authUser.email,
           is_read: false 
-        });
+        }, '-created_date', 50); // Limit to 50 most recent
         return Array.isArray(allNotifications) ? allNotifications : [];
       } catch (error) {
         console.error("Notifications fetch error:", error);
@@ -228,7 +228,10 @@ function LayoutContent({ children, currentPageName }) {
     },
     enabled: !!authUser,
     initialData: [],
-    ...queryConfig.notifications,
+    staleTime: 60 * 1000, // Increased to 1 minute
+    cacheTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disable auto-refetch
   });
 
 
@@ -241,7 +244,7 @@ function LayoutContent({ children, currentPageName }) {
         const subs = await base44.entities.OwnerSubscription.filter({
           owner_email: authUser.email,
           is_active: true
-        });
+        }, '-created_date', 1);
         return Array.isArray(subs) ? subs[0] : null;
       } catch (error) {
         console.error("Subscription fetch error:", error);
@@ -249,7 +252,9 @@ function LayoutContent({ children, currentPageName }) {
       }
     },
     enabled: !!authUser,
-    ...queryConfig.static,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const unreadCount = notifications?.length || 0;
@@ -656,21 +661,28 @@ function LayoutContent({ children, currentPageName }) {
 
       /* --- 1. MELHORIA NOS BOTÕES (Micro-interações) --- */
         /* Aplica-se a qualquer botão do shadcn ou html padrão */
-        button, .button-premium {
-          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        button, .button-premium, a[role="button"] {
+          transition: all 0.1s ease-out !important;
           position: relative;
+          cursor: pointer !important;
+          user-select: none;
+          -webkit-user-select: none;
+          touch-action: manipulation;
         }
 
         /* Estado Hover: Sobe levemente */
-        button:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        button:hover:not(:disabled),
+        a[role="button"]:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        /* Estado Active (Clique): Afunda */
-        button:active:not(:disabled) {
-          transform: translateY(1px) !important;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        /* Estado Active (Clique): Resposta instantânea */
+        button:active:not(:disabled),
+        a[role="button"]:active {
+          transform: translateY(0px) scale(0.98) !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+          transition: all 0.05s ease-out !important;
         }
 
         /* CRITICAL: Garante que todos os elementos dentro de botões/links ativos permaneçam 100% visíveis */

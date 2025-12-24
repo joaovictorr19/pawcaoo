@@ -39,7 +39,7 @@ import ImagePreviewModal from "@/components/chat/ImagePreviewModal";
 
 export default function Chat() {
   const [searchParams] = useSearchParams();
-  const conversationId = searchParams.get("conversationId");
+  const conversationId = searchParams.get("conversationId") || searchParams.get("id");
   const bookingId = searchParams.get("bookingId");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -73,10 +73,15 @@ export default function Chat() {
   });
 
   // Fetch or create conversation from booking
-  const { data: bookingConversation } = useQuery({
+  const { data: bookingConversation, isLoading: loadingBookingConvo } = useQuery({
     queryKey: ["bookingConversation", bookingId],
     queryFn: async () => {
-      if (!bookingId || !user?.email) return null;
+      if (!bookingId || !user?.email) {
+        console.log('❌ Missing bookingId or user');
+        return null;
+      }
+
+      console.log('🔍 Searching for conversation with bookingId:', bookingId);
 
       // Check if conversation exists
       const existing = await base44.entities.ChatConversation.filter({
@@ -84,29 +89,57 @@ export default function Chat() {
       });
 
       if (existing && existing.length > 0) {
+        console.log('✅ Found existing conversation:', existing[0].id);
         return existing[0];
       }
 
-      // Fetch booking to create conversation
-      const bookings = await base44.entities.Booking.filter({ id: bookingId });
-      const booking = bookings[0];
-      if (!booking) return null;
+      console.log('💬 No conversation found, fetching booking...');
+
+      // Fetch booking to create conversation - try both entities
+      let booking = null;
+      try {
+        const walkBookings = await base44.entities.Booking.filter({ id: bookingId });
+        booking = walkBookings[0];
+      } catch (e) {
+        console.log('Not a walk booking, trying training...');
+      }
+
+      if (!booking && base44.entities.TrainingBooking) {
+        try {
+          const trainBookings = await base44.entities.TrainingBooking.filter({ id: bookingId });
+          booking = trainBookings[0];
+        } catch (e) {
+          console.error('Failed to fetch training booking:', e);
+        }
+      }
+
+      if (!booking) {
+        console.error('❌ Booking not found:', bookingId);
+        toast.error("Reserva não encontrada");
+        return null;
+      }
+
+      console.log('✅ Booking found:', booking.id, 'Type:', booking.type || 'walk');
 
       const ownerEmail = booking.created_by || booking.owner_email;
       const professionalEmail = booking.walker_email || booking.trainer_email;
       const participants = [ownerEmail, professionalEmail].filter(Boolean);
 
-      if (participants.length < 2) {
+      console.log('👥 Participants:', participants);
+
+      if (participants.length < 2 || !ownerEmail || !professionalEmail) {
+        console.error('❌ Missing participants:', { ownerEmail, professionalEmail });
         toast.error("Dados insuficientes para criar conversa");
         return null;
       }
 
       // Create new conversation
+      console.log('💬 Creating new conversation...');
       const newConvo = await base44.entities.ChatConversation.create({
         participants,
         participant_names: {
-          [ownerEmail]: booking.owner_name,
-          [professionalEmail]: booking.walker_name || booking.trainer_name,
+          [ownerEmail]: booking.owner_name || 'Cliente',
+          [professionalEmail]: booking.walker_name || booking.trainer_name || 'Profissional',
         },
         booking_id: bookingId,
         tags: ["booking", booking.type || "walk"],
@@ -115,9 +148,13 @@ export default function Chat() {
         unread_counts: {},
       });
 
+      console.log('✅ Conversation created:', newConvo.id);
+      toast.success('Conversa criada!');
+      
       return newConvo;
     },
     enabled: !!bookingId && !!user?.email,
+    retry: 1,
   });
 
   // Set selected conversation from URL params
@@ -506,10 +543,13 @@ export default function Chat() {
     );
   };
 
-  if (!user) {
+  if (!user || (bookingId && loadingBookingConvo)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-3" />
+          <p className="text-sm text-gray-600">A carregar conversa...</p>
+        </div>
       </div>
     );
   }

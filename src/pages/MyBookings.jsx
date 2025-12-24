@@ -601,50 +601,26 @@ export default function MyBookings() {
             </Button>
           )}
 
-          {/* Botão de Chat Universal */}
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="flex-1 h-8 text-xs"
-            onClick={() => {
-                // Robust ID Extraction
-                const professionalId = getProfessionalId(booking);
-                const clientId = booking.created_by || booking.owner_email;
-
-                // Diagnóstico "Dedo-Duro"
-                console.group("DEBUG ABERTURA DE CHAT (Click)");
-                console.table({
-                    ReservaID: booking.id || "NULO (ERRO)",
-                    ProfID: professionalId || "NULO (ERRO)",
-                    ClienteID: clientId || "NULO (ERRO)",
-                    Tipo: booking.type
-                });
-                console.groupEnd();
-
-                if (!booking.id) {
-                    toast.error("Erro: ID da reserva inválido.");
-                    return;
-                }
-                
-                // Validação Bloqueante com Feedback
-                if (!professionalId) {
-                    toast.error(`Erro: ID do profissional não encontrado na reserva ${booking.id}`);
-                    console.error("Critical: Missing professional ID in booking", booking);
-                    return;
-                }
-                
-                if (!clientId) {
-                     toast.error("Erro: ID do cliente não encontrado.");
-                     return;
-                }
-
-                // Navegar diretamente para o Chat com bookingId
-                navigate(createPageUrl('Chat') + `?bookingId=${booking.id}`);
-              }}
-            >
-              <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
-              Chat
-            </Button>
+          {/* Chat apenas para passeios confirmados ou em andamento */}
+          {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="flex-1 h-8 text-xs"
+              onClick={() => {
+                  if (!booking.id) {
+                      toast.error("Erro: ID da reserva inválido.");
+                      return;
+                  }
+                  
+                  console.log('📤 Abrindo chat para reserva:', booking.id);
+                  navigate(createPageUrl('Chat') + `?bookingId=${booking.id}`);
+                }}
+              >
+                <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
+                Chat
+              </Button>
+          )}
 
             {/* Ações Condicionais */}
             {booking.status === 'pending' && !isProfessional && (
