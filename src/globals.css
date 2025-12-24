@@ -31,23 +31,16 @@
   }
   
   html, body {
-    @apply text-foreground max-w-[100vw] w-full;
+    @apply text-foreground overflow-x-hidden max-w-[100vw] w-full;
     position: relative;
     background: #f8fafc !important;
     min-height: 100vh;
     min-height: -webkit-fill-available;
-    overflow-x: hidden;
-    overflow-y: auto;
   }
 
   body {
     min-height: 100vh;
     min-height: -webkit-fill-available;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  * {
-    -webkit-tap-highlight-color: transparent;
   }
 
   input, textarea, select, [role="dialog"], [role="combobox"], [data-radix-popper-content-wrapper], [data-radix-dialog-content] {

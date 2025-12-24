@@ -196,26 +196,30 @@ export default function WalkerDetails() {
   });
 
   const { data: walkerBadges = [] } = useQuery({
-    queryKey: ['walkerPinnedBadges', userProfile?.pinned_badge_ids],
+    queryKey: ['walkerPinnedBadges', userProfile?.pinned_badge_ids, userProfile?.highlighted_emblem_id],
     queryFn: async () => {
-      if (!userProfile || !userProfile.pinned_badge_ids || userProfile.pinned_badge_ids.length === 0) return [];
+      if (!userProfile) return [];
       
-      // Get unique IDs from pinned slots (4 slots max)
-      const pinnedIds = userProfile.pinned_badge_ids.slice(0, 4).filter(id => id);
+      const pinnedIds = [];
+      if (userProfile.highlighted_emblem_id) {
+        pinnedIds.push(userProfile.highlighted_emblem_id);
+      }
+      if (userProfile.pinned_badge_ids && userProfile.pinned_badge_ids.length > 0) {
+        pinnedIds.push(...userProfile.pinned_badge_ids.filter(id => id !== userProfile.highlighted_emblem_id));
+      }
+      
       if (pinnedIds.length === 0) return [];
       
-      // Fetch badges with image files
       const allBadges = await base44.entities.UserBadge.filter({ user_email: walker.created_by });
+      const badgeDefinitions = await base44.entities.BadgeDefinition.list();
       
-      // Map pinned IDs to actual badge data
-      return pinnedIds.map(id => {
-        const badge = allBadges.find(b => b._uniqueId === id || b.badge_id === id || b.id === id);
-        return badge;
+      return pinnedIds.slice(0, 4).map(id => {
+        return allBadges.find(b => (b.badge_id || b.id) === id) || 
+               badgeDefinitions.find(b => b.id === id);
       }).filter(Boolean);
     },
     enabled: !!userProfile && !!walker?.created_by,
     initialData: [],
-    staleTime: 5 * 60 * 1000,
   });
 
   const averageRating = reviews.length > 0
@@ -429,18 +433,14 @@ export default function WalkerDetails() {
                       Conquistas
                     </h4>
                     <div className="grid grid-cols-4 gap-2">
-                      {walkerBadges.map((badge, idx) => (
-                        <div key={`badge-${badge.badge_id || badge.id}-${idx}`} className="flex flex-col items-center p-1.5 bg-purple-50 rounded-lg border border-purple-100">
-                          <div className="w-10 h-10 flex items-center justify-center">
+                      {walkerBadges.map((badge) => (
+                        <div key={badge.id} className="flex flex-col items-center p-1.5 bg-purple-50 rounded-lg border border-purple-100">
+                          <div className="text-xl w-6 h-6 flex items-center justify-center">
                             {badge.image_png_file ? (
                               <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" />
-                            ) : badge.image_url ? (
-                              <img src={badge.image_url} alt={badge.name} className="w-full h-full object-contain" />
-                            ) : (
-                              <span className="text-xl">{badge.icon || '🏆'}</span>
-                            )}
+                            ) : badge.icon}
                           </div>
-                          <span className="text-[9px] text-purple-900 line-clamp-1 text-center mt-1">{badge.name}</span>
+                          <span className="text-[9px] text-purple-900 line-clamp-1">{badge.name}</span>
                         </div>
                       ))}
                     </div>

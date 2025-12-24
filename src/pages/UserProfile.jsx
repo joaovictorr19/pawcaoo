@@ -37,6 +37,7 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.div
+            key={`badge-${badge.badge_id || badge.id}-${idx}`}
             initial={false}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -51,7 +52,7 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
                 : 'border-white/20 bg-white/5'
             }`}>
               {!locked && <div className="absolute inset-0 bg-white/5 blur-xl rounded-full transform scale-75" />}
-
+              
               {badge.image_png_file ? (
                 <img 
                   src={badge.image_png_file} 
@@ -69,7 +70,7 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
                   decoding="async"
                 />
               ) : (
-                <span className="text-3xl md:text-4xl z-10 drop-shadow-md">{badge.icon || '🏆'}</span>
+                <span className="text-3xl md:text-4xl z-10 drop-shadow-md">{badge.icon || getBadgeImage(badge.badge_id || badge.id)}</span>
               )}
 
               {locked && (
@@ -85,6 +86,8 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
               <p className={`text-[10px] md:text-xs font-bold leading-tight line-clamp-2 ${locked ? 'text-gray-500' : 'text-gray-100'}`}>
                 {badge.name}
               </p>
+              
+
             </div>
           </motion.div>
         </TooltipTrigger>
@@ -98,9 +101,9 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
           }`}>
             {badge.rarity || 'comum'}
           </Badge>
-          {badge.earned_date && (
+          {badge.earnedDate && (
             <div className="text-[10px] text-gray-500 mt-2">
-              Conquistado em {new Date(badge.earned_date).toLocaleDateString()}
+              Conquistado em {new Date(badge.earnedDate).toLocaleDateString()}
             </div>
           )}
         </TooltipContent>
@@ -1020,17 +1023,9 @@ export default function UserProfile() {
                                         'bg-gray-200'
                                       }`} />
                                       
-                                      {badge.image_png_file ? (
+                                      {badge.image_png_file || badge.image_url ? (
                                         <img 
-                                          src={badge.image_png_file} 
-                                          alt={badge.name} 
-                                          className="w-full h-full object-contain p-1 z-10" 
-                                          loading="lazy"
-                                          decoding="async"
-                                        />
-                                      ) : badge.image_url ? (
-                                        <img 
-                                          src={badge.image_url} 
+                                          src={badge.image_png_file || badge.image_url} 
                                           alt={badge.name} 
                                           className="w-full h-full object-contain p-1 z-10" 
                                           loading="lazy"

@@ -100,22 +100,35 @@ export default function Home() {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
-        return await base44.auth.me();
+        const userData = await base44.auth.me();
+
+        // XP is managed in UserProfile entity only - read from there
+        if (userData?.email) {
+          try {
+            const profiles = await base44.entities.UserProfile.filter({ user_email: userData.email });
+            if (profiles.length > 0) {
+              // Always use UserProfile as source of truth
+              userData.gamification_xp = profiles[0].gamification_xp || 0;
+              userData.gamification_level = profiles[0].gamification_level || 1;
+            }
+          } catch (e) {
+            console.log('XP read skipped:', e.message);
+          }
+        }
+
+        return userData;
       } catch (err) {
         return null;
       }
     },
     retry: false,
-    staleTime: 5 * 60 * 1000,
   });
 
   const { data: myDogs = [] } = useQuery({
     queryKey: ['myDogs', user?.email],
-    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }, '-created_date', 20),
+    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
     enabled: !!user?.email,
-    initialData: [],
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    initialData: []
   });
 
   const { data: loyaltyPoints } = useQuery({
@@ -125,8 +138,6 @@ export default function Home() {
       return points[0] || { points_balance: 0, total_earned: 0, tier: 'bronze' };
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
   });
 
   const [reviewBooking, setReviewBooking] = useState(null);
@@ -139,15 +150,14 @@ export default function Home() {
         const res = await base44.entities.Booking.filter({
           created_by: user.email,
           status: { '$in': ['confirmed', 'in_progress', 'completed'] }
-        }, '-walk_date', 10);
+        }, '-walk_date', 20);
         return Array.isArray(res) ? res : [];
       } catch (error) {
+        // console.error("Active bookings fetch error:", error);
         return [];
       }
     },
     enabled: !!user?.email,
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
   });
 
   // getLevelInfo removed - using calculateTier from tierSystem instead
@@ -179,8 +189,8 @@ export default function Home() {
       return profiles[0] || null;
     },
     enabled: !!user?.email,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnWindowFocus: false,
+    staleTime: 10 * 1000, // 10 seconds - sync with theme
+    refetchOnWindowFocus: true,
   });
 
   // XP animation effect - UserProfile is single source of truth
@@ -309,31 +319,51 @@ export default function Home() {
     queryKey: ['platformStats'],
     queryFn: async () => {
       try {
+        // Buscar todos os dados em paralelo
         const [activeWalkers, allBookings, allAdoptions] = await Promise.all([
-          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 100),
-          base44.entities.Booking.filter({ status: 'completed' }, '-created_date', 200),
-          base44.entities.AdoptionApplication.filter({ status: 'approved' }, '-created_date', 100)
+          base44.entities.WalkerProfile.list('-created_date', 100),
+          base44.entities.Booking.list('-created_date', 500),
+          base44.entities.AdoptionApplication.list('-created_date', 100)
         ]);
 
+        // Filtrar walkers ativos
+        const walkersAtivos = activeWalkers.filter(w => w.is_active === true);
+
+        // Filtrar bookings completados
+        const completedBookings = allBookings.filter(b => b.status === 'completed');
+
+        // Contar cães únicos que foram passeados (clientes satisfeitos)
         const uniqueDogs = new Set();
-        allBookings.forEach(booking => {
-          if (booking.dog_name && booking.created_by) {
+        completedBookings.forEach(booking => {
+          if (booking.dog_name) {
             uniqueDogs.add(`${booking.created_by}-${booking.dog_name}`);
           }
         });
 
+        // Filtrar adoções aprovadas
+        const approvedAdoptions = allAdoptions.filter(a => a.status === 'approved');
+
+        console.log('📊 Stats:', {
+          walkers: walkersAtivos.length,
+          completedBookings: completedBookings.length,
+          happyDogs: uniqueDogs.size,
+          adoptions: approvedAdoptions.length
+        });
+
         return {
-          totalWalkers: activeWalkers.length || 0,
+          totalWalkers: walkersAtivos.length || 0,
           happyDogs: uniqueDogs.size || 0,
-          adoptedDogs: allAdoptions.length || 0
+          adoptedDogs: approvedAdoptions.length || 0
         };
       } catch (error) {
+        console.error("Stats fetch error:", error);
         return { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 };
       }
     },
     initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 
   const getWalkerDistance = (walker) => {
