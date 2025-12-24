@@ -39,13 +39,18 @@ export default function TrainerDetails() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: trainers, isLoading } = useQuery({
-    queryKey: ['trainers'],
-    queryFn: () => base44.entities.TrainerProfile.list(),
-    initialData: [],
+  const { data: trainer, isLoading } = useQuery({
+    queryKey: ['trainer', trainerId],
+    queryFn: async () => {
+      const walkers = await base44.entities.WalkerProfile.filter({ 
+        id: trainerId,
+        is_verified_trainer: true 
+      });
+      return walkers[0] || null;
+    },
+    enabled: !!trainerId,
+    initialData: null,
   });
-
-  const trainer = trainers.find(t => t.id === trainerId);
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
     queryKey: ['trainerReviews', trainerId],
@@ -135,18 +140,6 @@ export default function TrainerDetails() {
     if (!currentBooking) return;
 
     try {
-      // Create TrainingBooking (CheckoutModal normally creates Booking, but we might want specific here)
-      // IMPORTANT: CheckoutModal creates 'Booking'. For Trainers we want 'TrainingBooking'.
-      // This is where the unified checkout modal is tricky.
-      // We'll let CheckoutModal create 'Booking' entity for now to unify the system, 
-      // OR we create TrainingBooking here manually after success.
-      // Since CheckoutModal does the entity creation, we should stick with it or refactor it to be generic.
-      // Given the "revise duplication" task, unifying on 'Booking' entity might be cleaner if fields allow.
-      // 'Booking' has 'walker_id'. We can add 'trainer_id' or just use 'walker_id' as 'professional_id'.
-      // But let's stick to the existing pattern of notifying and creating specific entities if possible.
-      // CheckoutModal actually calls createBooking internally. 
-      
-      // Notification
       await createNotification.mutateAsync({
         recipient_email: trainer.created_by,
         title: '🎉 Nova Sessão de Treino Confirmada!',
@@ -160,15 +153,11 @@ export default function TrainerDetails() {
       await createNotification.mutateAsync({
         recipient_email: user.email,
         title: '✅ Treino Confirmado!',
-        message: `Sua sessão com ${trainer.trainer_name} foi confirmada.`,
+        message: `Sua sessão com ${trainer.walker_name} foi confirmada.`,
         type: 'booking',
         related_id: currentBooking.id,
         action_url: `/MyBookings?id=${currentBooking.id}`,
         priority: 'normal'
-      });
-
-      await base44.entities.TrainerProfile.update(trainer.id, {
-        total_clients: (trainer.total_clients || 0) + 1
       });
 
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
@@ -311,45 +300,67 @@ export default function TrainerDetails() {
           <div className="px-8 pb-8 pt-4">
             <ServiceList services={trainer.services_offered} type="trainer" />
 
-            {/* Training Specialties - ENHANCED */}
-            {trainer.training_specialties && trainer.training_specialties.length > 0 && (
+            {/* Training Specializations - ENHANCED */}
+            {trainer.training_specializations && trainer.training_specializations.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Target className="w-6 h-6 text-purple-600" />
-                  Training Specialties
+                  Especializações de Treino
                 </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {trainer.training_specialties.map(specialty => (
+                <div className="space-y-4">
+                  {trainer.training_specializations.map((spec, idx) => (
                     <div
-                      key={specialty}
-                      className="bg-gradient-to-r from-purple-100 to-purple-50 border-2 border-purple-200 rounded-xl p-4 text-center hover:shadow-md transition-all"
+                      key={spec.specialty_id}
+                      className="bg-gradient-to-r from-purple-100 to-purple-50 border-2 border-purple-200 rounded-xl p-5 hover:shadow-md transition-all"
                     >
-                      <div className="text-2xl mb-2">
-                        {specialty === 'basic_obedience' && '🎯'}
-                        {specialty === 'advanced_obedience' && '⭐'}
-                        {specialty === 'behavior_modification' && '🔧'}
-                        {specialty === 'puppy_training' && '🐕'}
-                        {specialty === 'socialization' && '🤝'}
-                        {specialty === 'aggression' && '⚠️'}
-                        {specialty === 'anxiety' && '💙'}
-                        {specialty === 'potty_training' && '🚽'}
-                        {specialty === 'leash_training' && '🦮'}
-                        {specialty === 'service_dog' && '🦺'}
-                        {specialty === 'therapy_dog' && '❤️'}
-                        {specialty === 'agility' && '🏃'}
-                        {specialty === 'tricks' && '✨'}
+                      <h4 className="font-bold text-purple-900 text-lg mb-2 flex items-center gap-2">
+                        <Award className="w-5 h-5 text-purple-600" />
+                        {spec.specialty_name}
+                      </h4>
+                      <p className="text-sm text-gray-700 mb-3 leading-relaxed">
+                        {spec.description}
+                      </p>
+                      <div className="flex items-center gap-4 text-xs text-gray-600">
+                        {spec.years_experience > 0 && (
+                          <Badge variant="outline" className="border-purple-300 text-purple-700">
+                            {spec.years_experience} anos de experiência
+                          </Badge>
+                        )}
+                        {spec.certifications && spec.certifications.length > 0 && (
+                          <Badge variant="outline" className="border-green-300 text-green-700">
+                            {spec.certifications.length} certificação{spec.certifications.length !== 1 ? 'ões' : ''}
+                          </Badge>
+                        )}
                       </div>
-                      <div className="font-semibold text-purple-900">
-                        {getSpecialtyLabel(specialty)}
-                      </div>
+                      {spec.certifications && spec.certifications.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1">
+                          {spec.certifications.map((cert, i) => (
+                            <span key={i} className="text-xs bg-white px-2 py-1 rounded-lg border border-purple-200 text-purple-800">
+                              ✓ {cert}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Training Methodologies - ENHANCED */}
-            {trainer.training_methodologies && trainer.training_methodologies.length > 0 && (
+            {/* Training Philosophy */}
+            {trainer.training_philosophy && (
+              <div className="mb-6 bg-indigo-50 border-l-4 border-indigo-500 rounded-lg p-5">
+                <h3 className="text-lg font-semibold text-indigo-900 mb-2 flex items-center gap-2">
+                  💭 Filosofia de Treino
+                </h3>
+                <p className="text-sm text-indigo-800 leading-relaxed">
+                  {trainer.training_philosophy}
+                </p>
+              </div>
+            )}
+
+            {/* Training Methodologies - ENHANCED (removed) */}
+            {false && trainer.training_methodologies && trainer.training_methodologies.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Award className="w-6 h-6 text-purple-600" />
