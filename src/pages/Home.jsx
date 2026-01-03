@@ -1207,7 +1207,7 @@ export default function Home() {
                     </div>
                   ) : ( 
                     <>
-                      {loadingWalkers || loadingTrainers ? (
+                      {loadingWalkers ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                           {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                             <div key={`skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
