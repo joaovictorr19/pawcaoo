@@ -243,10 +243,7 @@ export default function Home() {
     refetchOnMount: false,
   });
 
-  // Trainers são agora parte do WalkerProfile (is_verified_trainer = true)
-  // Não precisamos de query separada - usamos walkers com filtro
-  const loadingTrainers = false;
-  const trainers = [];
+  // Trainers integrados no WalkerProfile (is_verified_trainer = true)
 
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
     queryKey: ['emergencyWalks'],
@@ -452,10 +449,9 @@ export default function Home() {
     return Math.round((score / totalPossibleScore) * 100);
   };
 
-  // Safe Memoized Unified Professionals Filter (todos são WalkerProfile agora)
+  // Safe Memoized Unified Professionals Filter
   const filteredProfessionals = React.useMemo(() => {
     const processedWalkers = (Array.isArray(walkers) ? walkers : [])
-      .filter(w => w.walker_name && w.created_by) // Filtrar perfis fantasma
       .map(walker => ({
         ...walker,
         type: 'walker',
@@ -463,11 +459,11 @@ export default function Home() {
         matchScore: calculateMatchScore(walker)
       }));
 
-    // Não há mais trainers separados - todos são walkers com is_verified_trainer
-    const allPros = [...processedWalkers];
+    const allPros = processedWalkers;
 
     return allPros.filter(pro => {
-      // Basic Safety Filter
+      // Safety filters
+      if (!pro.walker_name || !pro.created_by) return false;
       if (pro.verification_status === 'rejected') return false;
 
       // Common Filters
@@ -549,7 +545,7 @@ export default function Home() {
       // 3. Rating
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkers, trainers, searchLocation, filterSize, filterTime, filterDogSitting, selectedServiceTypes, advancedFilters, trainerFilters, userLocation]);
+  }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, filterAnimalType, selectedServiceTypes, advancedFilters, trainerFilters, userLocation]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
@@ -1201,7 +1197,7 @@ export default function Home() {
                     <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
                       <React.Suspense fallback={<Skeleton className="w-full h-full" />}>
                         <InteractiveMap
-                          walkers={filteredWalkers}
+                          walkers={filteredProfessionals}
                           userLocation={userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null}
                           radiusKm={advancedFilters.radius || 50}
                           onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
