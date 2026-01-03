@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Eye, Edit, Trash2, RefreshCw, Loader2, ChevronLeft, ChevronRight, Award
+  Eye, Edit, Trash2, RefreshCw, Loader2, ChevronLeft, ChevronRight, Award, UserCircle
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useLanguage } from "@/components/LanguageContext";
@@ -25,7 +25,8 @@ export default function AdminUserTable({
   onDelete, 
   onSyncProfiles, 
   isSyncing,
-  onEditBadges
+  onEditBadges,
+  onImpersonate
 }) {
   const { language } = useLanguage();
   const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
@@ -212,6 +213,11 @@ export default function AdminUserTable({
                           <Award className="w-3 h-3" />
                         </Button>
                       )}
+                      {onImpersonate && (
+                        <Button size="sm" variant="outline" onClick={() => onImpersonate(user)} className="h-8 px-2 text-blue-600 border-blue-200" title="Login as User">
+                          <UserCircle className="w-3 h-3" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" onClick={() => onDelete(user)} className="text-red-600 border-red-200 h-8 px-2" title="Eliminar">
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -284,6 +290,11 @@ export default function AdminUserTable({
                           {onEditBadges && (
                             <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-purple-100 rounded-full" onClick={() => onEditBadges(user)} title="Editar Emblemas & XP">
                               <Award className="w-3.5 h-3.5 text-purple-600" />
+                            </Button>
+                          )}
+                          {onImpersonate && (
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onImpersonate(user)} title="Login as User">
+                              <UserCircle className="w-3.5 h-3.5 text-blue-600" />
                             </Button>
                           )}
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-red-100 rounded-full" onClick={() => onDelete(user)} title="Eliminar Conta">
