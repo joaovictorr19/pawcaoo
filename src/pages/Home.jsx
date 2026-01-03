@@ -449,91 +449,90 @@ export default function Home() {
     return Math.round((score / totalPossibleScore) * 100);
   };
 
-  // Safe Memoized Unified Professionals Filter
+  // Safe Memoized Unified Professionals Filter - SIMPLIFIED
   const filteredProfessionals = React.useMemo(() => {
-    const processedWalkers = (Array.isArray(walkers) ? walkers : [])
-      .map(walker => ({
-        ...walker,
-        type: 'walker',
-        distance: getWalkerDistance(walker),
-        matchScore: calculateMatchScore(walker)
-      }));
+    console.log('🔄 Filtering professionals...', { 
+      totalWalkers: walkers?.length,
+      searchLocation,
+      filterSize,
+      filterTime,
+      filterAnimalType,
+      filterDogSitting
+    });
 
-    const allPros = processedWalkers;
+    if (!Array.isArray(walkers)) {
+      console.log('❌ Walkers is not an array:', walkers);
+      return [];
+    }
 
-    return allPros.filter(pro => {
-      // Safety filters
-      if (!pro.walker_name || !pro.created_by) return false;
+    const processedWalkers = walkers.map(walker => ({
+      ...walker,
+      type: 'walker',
+      distance: getWalkerDistance(walker),
+      matchScore: calculateMatchScore(walker)
+    }));
+
+    console.log('📊 Processed walkers:', processedWalkers.length);
+
+    const filtered = processedWalkers.filter(pro => {
+      // CRITICAL: Only reject if explicitly rejected
       if (pro.verification_status === 'rejected') return false;
 
-      // Common Filters
-      const matchesSearch = !searchLocation || 
-        (pro.location || "").toLowerCase().includes(searchLocation.toLowerCase()) ||
-        (pro.walker_name || pro.trainer_name || "").toLowerCase().includes(searchLocation.toLowerCase());
+      // Search Filter (optional)
+      if (searchLocation) {
+        const matchesSearch = (pro.location || "").toLowerCase().includes(searchLocation.toLowerCase()) ||
+          (pro.walker_name || "").toLowerCase().includes(searchLocation.toLowerCase());
+        if (!matchesSearch) return false;
+      }
 
-      const matchesSize = filterSize === "all" || 
-        pro.dog_sizes?.includes(filterSize);
+      // Size Filter (optional)
+      if (filterSize !== "all") {
+        if (!pro.dog_sizes?.includes(filterSize)) return false;
+      }
       
-      const matchesTime = filterTime === "all" || 
-        pro.availability?.includes(filterTime);
+      // Time Filter (optional)
+      if (filterTime !== "all") {
+        if (!pro.availability?.includes(filterTime)) return false;
+      }
 
-      // Animal Type Filter
-      const matchesAnimalType = filterAnimalType === "all" || 
-        (pro.accepted_animals || ['dogs']).includes(filterAnimalType);
+      // Animal Type Filter (optional)
+      if (filterAnimalType !== "all") {
+        const acceptedAnimals = pro.accepted_animals || ['dogs'];
+        if (!acceptedAnimals.includes(filterAnimalType)) return false;
+      }
 
-      // Distance Filter
-      const matchesRadius = !userLocation || pro.distance === null || 
-        pro.distance <= (advancedFilters.radius || 50);
+      // Distance Filter (optional)
+      if (userLocation && pro.distance !== null) {
+        if (pro.distance > (advancedFilters.radius || 50)) return false;
+      }
 
-      if (!matchesSearch || !matchesSize || !matchesTime || !matchesAnimalType || !matchesRadius) return false;
-
-      // Type-specific logic (only apply if pro matches the type of filter)
-      // If we are filtering for specific walker services, trainers might be excluded unless we want them to show up?
-      // For now, let's keep it simple: strict filters only apply to the relevant type.
-      
-      if (pro.type === 'walker') {
+      // Dog Sitting Filter (optional) - Only if explicitly set
+      if (filterDogSitting !== "all") {
         const services = pro.services_offered || [];
-        const matchesDogSitting = filterDogSitting === "all" || (() => {
-          if (services.length === 0) return false;
-          if (filterDogSitting === "boarding") return services.some(s => s.service_name?.toLowerCase().includes('boarding') || s.service_name?.toLowerCase().includes('alojamento'));
-          if (filterDogSitting === "house_sitting") return services.some(s => s.service_name?.toLowerCase().includes('house') || s.service_name?.toLowerCase().includes('casa'));
-          if (filterDogSitting === "drop_in") return services.some(s => s.service_name?.toLowerCase().includes('drop') || s.service_name?.toLowerCase().includes('visita'));
-          return true;
-        })();
-        if (!matchesDogSitting) return false;
+        if (services.length === 0) return false; // Skip if no services when filtering
         
-        // Walker-specific Advanced Filters
-        if (selectedServiceTypes.length > 0) {
-           const matches = selectedServiceTypes.every(type =>
-            pro.services_offered?.some(s => (s.service_name || "").toLowerCase().includes(type.toLowerCase().replace('_', ' ')))
-           );
-           if (!matches) return false;
+        let hasMatchingService = false;
+        if (filterDogSitting === "boarding") {
+          hasMatchingService = services.some(s => s.service_name?.toLowerCase().includes('boarding') || s.service_name?.toLowerCase().includes('alojamento'));
+        } else if (filterDogSitting === "house_sitting") {
+          hasMatchingService = services.some(s => s.service_name?.toLowerCase().includes('house') || s.service_name?.toLowerCase().includes('casa'));
+        } else if (filterDogSitting === "drop_in") {
+          hasMatchingService = services.some(s => s.service_name?.toLowerCase().includes('drop') || s.service_name?.toLowerCase().includes('visita'));
         }
+        
+        if (!hasMatchingService) return false;
       }
 
-      // Trainer-specific filters (if is_verified_trainer = true)
-      if (pro.is_verified_trainer && trainerFilters.specialties?.length > 0) {
-        const hasMatchingSpec = pro.training_specializations?.some(spec =>
-          trainerFilters.specialties.includes(spec.specialty_id)
+      // Advanced service type filters (optional)
+      if (selectedServiceTypes.length > 0) {
+        const hasServices = selectedServiceTypes.every(type =>
+          pro.services_offered?.some(s => (s.service_name || "").toLowerCase().includes(type.toLowerCase().replace('_', ' ')))
         );
-        if (!hasMatchingSpec) return false;
-      }
-
-      if (pro.is_verified_trainer && trainerFilters.verifiedOnly) {
-        if (pro.verification_status !== 'verified') return false;
-      }
-
-      if (pro.is_verified_trainer && trainerFilters.minExperience > 0) {
-        if ((pro.experience_years || 0) < trainerFilters.minExperience) return false;
-      }
-
-      if (pro.is_verified_trainer && trainerFilters.minRating > 0) {
-        if ((pro.rating || 0) < trainerFilters.minRating) return false;
+        if (!hasServices) return false;
       }
 
       return true;
     }).sort((a, b) => {
-      // Sort logic
       // 1. Featured first
       if (a.is_featured && !b.is_featured) return -1;
       if (!a.is_featured && b.is_featured) return 1;
@@ -542,10 +541,14 @@ export default function Home() {
       if (userLocation && a.distance !== null && b.distance !== null) {
         return a.distance - b.distance;
       }
+      
       // 3. Rating
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, filterAnimalType, selectedServiceTypes, advancedFilters, trainerFilters, userLocation]);
+
+    console.log('✅ Filtered professionals:', filtered.length);
+    return filtered;
+  }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, filterAnimalType, selectedServiceTypes, advancedFilters, userLocation]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
