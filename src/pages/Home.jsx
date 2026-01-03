@@ -329,14 +329,18 @@ export default function Home() {
     queryFn: async () => {
       try {
         // Buscar todos os dados em paralelo
-        const [activeWalkers, allBookings, allAdoptions] = await Promise.all([
+        const [activeWalkers, activeTrainers, allBookings, allAdoptions] = await Promise.all([
           base44.entities.WalkerProfile.list('-created_date', 100),
+          base44.entities.TrainerProfile.list('-created_date', 100),
           base44.entities.Booking.list('-created_date', 500),
           base44.entities.AdoptionApplication.list('-created_date', 100)
         ]);
 
-        // Filtrar walkers ativos
-        const walkersAtivos = activeWalkers.filter(w => w.is_active === true);
+        // Filtrar walkers ativos (não rejeitados)
+        const walkersAtivos = activeWalkers.filter(w => w.verification_status !== 'rejected');
+
+        // Filtrar trainers ativos (não rejeitados)
+        const trainersAtivos = activeTrainers.filter(t => t.verification_status !== 'rejected');
 
         // Filtrar bookings completados
         const completedBookings = allBookings.filter(b => b.status === 'completed');
@@ -354,6 +358,7 @@ export default function Home() {
 
         console.log('📊 Stats:', {
           walkers: walkersAtivos.length,
+          trainers: trainersAtivos.length,
           completedBookings: completedBookings.length,
           happyDogs: uniqueDogs.size,
           adoptions: approvedAdoptions.length
@@ -361,15 +366,16 @@ export default function Home() {
 
         return {
           totalWalkers: walkersAtivos.length || 0,
+          totalTrainers: trainersAtivos.length || 0,
           happyDogs: uniqueDogs.size || 0,
           adoptedDogs: approvedAdoptions.length || 0
         };
       } catch (error) {
         console.error("Stats fetch error:", error);
-        return { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 };
+        return { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 };
       }
     },
-    initialData: { totalWalkers: 0, happyDogs: 0, adoptedDogs: 0 },
+    initialData: { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 },
     staleTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: 'always',
@@ -473,11 +479,11 @@ export default function Home() {
       return [];
     }
 
-    const processedWalkers = walkers.map(walker => ({
-      ...walker,
-      type: 'walker',
-      distance: getWalkerDistance(walker),
-      matchScore: calculateMatchScore(walker)
+    const processedWalkers = walkers.map(pro => ({
+      ...pro,
+      type: pro.type || 'walker',
+      distance: getWalkerDistance(pro),
+      matchScore: calculateMatchScore(pro)
     }));
 
     console.log('📊 Processed walkers:', processedWalkers.length);
@@ -954,13 +960,23 @@ export default function Home() {
                     <motion.div 
                       whileHover={{ scale: 1.05, y: -2 }}
                       className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
-                      onClick={() => setActiveTab('professionals')}
+                      onClick={() => navigate(createPageUrl('Home') + '?tab=professionals')}
                     >
                       <Users className="w-4 h-4" />
                       <span className="text-sm font-bold">{stats.totalWalkers}</span>
                       <span className="text-xs opacity-90">Walkers</span>
                     </motion.div>
-                  </div>
+
+                    <motion.div 
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
+                      onClick={() => navigate(createPageUrl('Trainers'))}
+                    >
+                      <GraduationCap className="w-4 h-4" />
+                      <span className="text-sm font-bold">{stats.totalTrainers}</span>
+                      <span className="text-xs opacity-90">Trainers</span>
+                    </motion.div>
+                    </div>
 
 
                 </motion.div>
@@ -1272,13 +1288,22 @@ export default function Home() {
                         <>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
                             {paginatedProfessionals.map((pro) => (
-                              <WalkerCard 
-                                key={pro.id} 
-                                walker={pro}
-                                distance={pro.distance}
-                                matchScore={pro.matchScore}
-                                showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
-                              />
+                              pro.type === 'trainer_as_walker' ? (
+                                <TrainerCard 
+                                  key={pro.id} 
+                                  trainer={pro} 
+                                  distance={pro.distance}
+                                  showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                                />
+                              ) : (
+                                <WalkerCard 
+                                  key={pro.id} 
+                                  walker={pro}
+                                  distance={pro.distance}
+                                  matchScore={pro.matchScore}
+                                  showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                                />
+                              )
                             ))}
                           </div>
 
