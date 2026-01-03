@@ -191,9 +191,11 @@ export default function PostEmergency() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (createEmergencyWalkMutation.isPending) {
       console.log('⚠️ Submission already in progress, blocking duplicate');
+      toast.warning('Aguarde, já estamos a processar...');
       return;
     }
     

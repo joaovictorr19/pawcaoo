@@ -109,16 +109,33 @@ export default function EmergencyWalkDetails() {
   });
 
   const handleAcceptWalk = async () => {
+    if (isAccepting || acceptWalkMutation.isPending) {
+      console.log('⚠️ Already accepting, blocking duplicate');
+      return;
+    }
+    
+    if (!user) {
+      toast.error('Precisa fazer login para aceitar');
+      base44.auth.redirectToLogin(window.location.href);
+      return;
+    }
+    
     setIsAccepting(true);
-    await acceptWalkMutation.mutateAsync({
-      id: walk.id,
-      data: {
-        status: 'accepted',
-        accepted_by_walker: user?.email,
-        walker_name: user?.full_name || user?.email
-      }
-    });
-    setIsAccepting(false);
+    
+    try {
+      await acceptWalkMutation.mutateAsync({
+        id: walk.id,
+        data: {
+          status: 'accepted',
+          accepted_by_walker: user.email,
+          walker_name: user.full_name || user.email
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error accepting walk:', error);
+      toast.error('Erro ao aceitar passeio: ' + error.message);
+      setIsAccepting(false);
+    }
   };
 
   if (isLoading) {
@@ -303,16 +320,20 @@ export default function EmergencyWalkDetails() {
 
             <div className="flex flex-col md:flex-row gap-3">
               <Button 
-                className="flex-1 md:flex-none bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg h-16 px-12 text-xl font-semibold"
+                className="flex-1 md:flex-none bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg h-16 px-12 text-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleAcceptWalk}
-                disabled={isAccepting}
+                disabled={isAccepting || acceptWalkMutation.isPending || !user}
+                type="button"
               >
-                {isAccepting ? (
-                  "Accepting Walk..."
+                {isAccepting || acceptWalkMutation.isPending ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Aceitando...
+                  </>
                 ) : (
                   <>
                     <Zap className="w-6 h-6 mr-3" />
-                    Accept This Emergency Walk
+                    Aceitar Passeio de Emergência
                   </>
                 )}
               </Button>
