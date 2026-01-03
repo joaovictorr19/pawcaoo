@@ -176,8 +176,11 @@ export default function AdminUserTable({
                         {user.account_type || 'owner'}
                       </Badge>
                     </div>
-                    
+
                     <div className="flex gap-1 flex-wrap">
+                      <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-[10px] h-5">
+                        {user.gamification_xp || 0} XP
+                      </Badge>
                       <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'} text-[10px] text-white h-5`}>
                         {user.role === 'admin' ? 'Admin' : 'User'}
                       </Badge>
@@ -227,6 +230,7 @@ export default function AdminUserTable({
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">ID</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap w-[300px]">{t('email', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap w-[200px]">{t('fullName', language)}</TableHead>
+                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">XP</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">{t('accountType', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">{t('status', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">Data</TableHead>
@@ -248,6 +252,11 @@ export default function AdminUserTable({
                       <TableCell className="font-mono text-[10px] text-gray-500">{user.id.substring(0, 8)}...</TableCell>
                       <TableCell className="font-medium text-xs text-gray-800 break-all" title={user.email}>{user.email}</TableCell>
                       <TableCell className="text-xs text-gray-600 break-all" title={user.full_name}>{user.full_name || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-xs px-2 h-6">
+                          {user.gamification_xp || 0}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="capitalize bg-white/50 text-[10px] h-5 whitespace-nowrap">
                           {user.account_type || 'owner'}

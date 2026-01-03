@@ -437,8 +437,12 @@ export default function WalkerDetails() {
                         <div key={badge.id} className="flex flex-col items-center p-1.5 bg-purple-50 rounded-lg border border-purple-100">
                           <div className="text-xl w-6 h-6 flex items-center justify-center">
                             {badge.image_png_file ? (
-                              <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" />
-                            ) : badge.icon}
+                              <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
+                            ) : badge.image_url ? (
+                              <img src={badge.image_url} alt={badge.name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
+                            ) : (
+                              <span className="text-xl">{badge.icon || '🏆'}</span>
+                            )}
                           </div>
                           <span className="text-[9px] text-purple-900 line-clamp-1">{badge.name}</span>
                         </div>
