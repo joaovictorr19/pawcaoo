@@ -235,11 +235,17 @@ export default function Home() {
           return [];
         }
 
-        // SIMPLIFIED: Only filter out rejected - show all others including pending
-        const activeWalkers = allWalkers.filter(w => w.verification_status !== 'rejected');
-        console.log('✅ Non-rejected walkers:', activeWalkers.length);
+        // CRITICAL FIX: Show ALL walkers except explicitly rejected - ignore is_active
+        const visibleWalkers = allWalkers.filter(w => {
+          const isRejected = w.verification_status === 'rejected';
+          if (isRejected) {
+            console.log('❌ Rejeitado:', w.walker_name, w.id);
+          }
+          return !isRejected;
+        });
+        console.log('✅ Walkers visíveis (exceto rejeitados):', visibleWalkers.length);
         
-        return activeWalkers;
+        return visibleWalkers;
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
         return [];
@@ -489,11 +495,8 @@ export default function Home() {
     console.log('📊 Processed walkers:', processedWalkers.length);
 
     const filtered = processedWalkers.filter(pro => {
-      // SIMPLIFIED: Basic validation only
-      if (!pro.walker_name) {
-        console.log('⚠️ Skipping walker without name:', pro.id);
-        return false;
-      }
+      // CRITICAL: Show all professionals (validation at query level)
+      console.log('🔍 Checking professional:', pro.walker_name, 'ID:', pro.id);
 
       // Search Filter (optional)
       if (searchLocation) {
