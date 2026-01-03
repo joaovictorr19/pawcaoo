@@ -226,15 +226,19 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        const res = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 200);
-        return Array.isArray(res) ? res : [];
+        console.log('🔍 Fetching walkers...');
+        const res = await base44.entities.WalkerProfile.list('-rating', 200);
+        console.log('📦 Walkers fetched:', res?.length || 0);
+        const filtered = Array.isArray(res) ? res.filter(w => w.is_active === true && w.walker_name && w.created_by) : [];
+        console.log('✅ Active walkers with valid data:', filtered.length);
+        return filtered;
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
         return [];
       }
     },
     initialData: [],
-    staleTime: 3 * 60 * 1000, // 3 minutes cache
+    staleTime: 3 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });

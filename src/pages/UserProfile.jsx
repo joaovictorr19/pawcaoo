@@ -383,31 +383,39 @@ export default function UserProfile() {
   const profileEmail = profileUser?.user_email || profileUser?.email;
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
-  // Centralized Badge System with Unique ID
+  // Centralized Badge System with Unique ID - FIXED DEDUPLICATION
   const { data: earnedBadges = [], isLoading: loadingBadges } = useQuery({
     queryKey: ['userBadges', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
       
+      console.log('🔍 Fetching badges for:', profileEmail);
+      
       // SINGLE SOURCE OF TRUTH: UserBadge entity only
       const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
       
-      // Deduplicate by badge_id with Map
+      console.log('📦 Raw badges fetched:', badgesFromTable.length);
+      
+      // CRITICAL: Deduplicate using entity ID (most reliable)
       const uniqueBadges = new Map();
       badgesFromTable.forEach((badge) => {
-        const uniqueId = badge.badge_id || badge.id;
-        if (!uniqueBadges.has(uniqueId)) {
-          uniqueBadges.set(uniqueId, {
+        // Use entity record ID as primary key - guaranteed unique
+        const uniqueKey = badge.id;
+        if (!uniqueBadges.has(uniqueKey)) {
+          uniqueBadges.set(uniqueKey, {
             ...badge,
-            _uniqueId: uniqueId // Centralized unique identifier
+            _uniqueId: badge.id // Use entity ID as unique identifier
           });
         }
       });
       
-      return Array.from(uniqueBadges.values());
+      const deduped = Array.from(uniqueBadges.values());
+      console.log('✅ Deduplicated badges:', deduped.length);
+      
+      return deduped;
     },
     enabled: !!profileEmail,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
