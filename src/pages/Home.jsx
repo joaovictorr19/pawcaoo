@@ -226,21 +226,29 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        console.log('🔍 Fetching walkers...');
-        const res = await base44.entities.WalkerProfile.list('-rating', 200);
-        console.log('📦 Walkers fetched:', res?.length || 0);
-        const filtered = Array.isArray(res) ? res.filter(w => w.is_active === true && w.walker_name && w.created_by) : [];
-        console.log('✅ Active walkers with valid data:', filtered.length);
-        return filtered;
+        console.log('🔍 Fetching ALL walkers...');
+        const allWalkers = await base44.entities.WalkerProfile.list('-rating', 200);
+        console.log('📦 Total walkers fetched:', allWalkers?.length || 0);
+        
+        if (!Array.isArray(allWalkers)) {
+          console.error('❌ Walkers is not an array!');
+          return [];
+        }
+
+        // SIMPLIFIED: Only filter out rejected - show all others including pending
+        const activeWalkers = allWalkers.filter(w => w.verification_status !== 'rejected');
+        console.log('✅ Non-rejected walkers:', activeWalkers.length);
+        
+        return activeWalkers;
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
         return [];
       }
     },
     initialData: [],
-    staleTime: 3 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: 1 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // Trainers integrados no WalkerProfile (is_verified_trainer = true)
@@ -475,8 +483,11 @@ export default function Home() {
     console.log('📊 Processed walkers:', processedWalkers.length);
 
     const filtered = processedWalkers.filter(pro => {
-      // CRITICAL: Only reject if explicitly rejected
-      if (pro.verification_status === 'rejected') return false;
+      // SIMPLIFIED: Basic validation only
+      if (!pro.walker_name) {
+        console.log('⚠️ Skipping walker without name:', pro.id);
+        return false;
+      }
 
       // Search Filter (optional)
       if (searchLocation) {
