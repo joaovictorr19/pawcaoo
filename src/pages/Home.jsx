@@ -226,33 +226,35 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        console.log('🔍 Fetching ALL walkers...');
+        console.log('🔍 Fetching ALL walkers from database...');
         const allWalkers = await base44.entities.WalkerProfile.list('-rating', 200);
-        console.log('📦 Total walkers fetched:', allWalkers?.length || 0);
+        console.log('📦 Total walkers in DB:', allWalkers?.length || 0);
         
         if (!Array.isArray(allWalkers)) {
-          console.error('❌ Walkers is not an array!');
+          console.error('❌ ERROR: Walkers is not an array!', typeof allWalkers);
           return [];
         }
 
-        // CRITICAL FIX: Show ALL walkers except explicitly rejected - ignore is_active
-        const visibleWalkers = allWalkers.filter(w => {
-          const isRejected = w.verification_status === 'rejected';
-          if (isRejected) {
-            console.log('❌ Rejeitado:', w.walker_name, w.id);
-          }
-          return !isRejected;
+        // Log each walker for debugging
+        allWalkers.forEach((w, idx) => {
+          console.log(`Walker ${idx + 1}:`, {
+            id: w.id,
+            name: w.walker_name,
+            active: w.is_active,
+            status: w.verification_status
+          });
         });
-        console.log('✅ Walkers visíveis (exceto rejeitados):', visibleWalkers.length);
-        
-        return visibleWalkers;
+
+        // CRITICAL: Show ALL walkers - no filtering at all for debugging
+        console.log('✅ Returning ALL walkers without any filtering');
+        return allWalkers;
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
         return [];
       }
     },
     initialData: [],
-    staleTime: 1 * 60 * 1000,
+    staleTime: 0, // Force fresh data
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
@@ -495,35 +497,64 @@ export default function Home() {
     console.log('📊 Processed walkers:', processedWalkers.length);
 
     const filtered = processedWalkers.filter(pro => {
-      // CRITICAL: Show all professionals (validation at query level)
-      console.log('🔍 Checking professional:', pro.walker_name, 'ID:', pro.id);
+      // Log every professional being filtered
+      const logData = {
+        id: pro.id,
+        name: pro.walker_name,
+        active: pro.is_active,
+        status: pro.verification_status,
+        hasName: !!pro.walker_name,
+        hasCreator: !!pro.created_by
+      };
+      console.log('🔍 Filtering professional:', logData);
+
+      // ONLY reject if explicitly rejected
+      if (pro.verification_status === 'rejected') {
+        console.log('❌ REJECTED - hiding:', pro.walker_name);
+        return false;
+      }
 
       // Search Filter (optional)
       if (searchLocation) {
         const matchesSearch = (pro.location || "").toLowerCase().includes(searchLocation.toLowerCase()) ||
           (pro.walker_name || "").toLowerCase().includes(searchLocation.toLowerCase());
-        if (!matchesSearch) return false;
+        if (!matchesSearch) {
+          console.log('❌ SEARCH filter blocked:', pro.walker_name);
+          return false;
+        }
       }
 
       // Size Filter (optional)
       if (filterSize !== "all") {
-        if (!pro.dog_sizes?.includes(filterSize)) return false;
+        if (!pro.dog_sizes?.includes(filterSize)) {
+          console.log('❌ SIZE filter blocked:', pro.walker_name);
+          return false;
+        }
       }
       
       // Time Filter (optional)
       if (filterTime !== "all") {
-        if (!pro.availability?.includes(filterTime)) return false;
+        if (!pro.availability?.includes(filterTime)) {
+          console.log('❌ TIME filter blocked:', pro.walker_name);
+          return false;
+        }
       }
 
       // Animal Type Filter (optional)
       if (filterAnimalType !== "all") {
         const acceptedAnimals = pro.accepted_animals || ['dogs'];
-        if (!acceptedAnimals.includes(filterAnimalType)) return false;
+        if (!acceptedAnimals.includes(filterAnimalType)) {
+          console.log('❌ ANIMAL filter blocked:', pro.walker_name);
+          return false;
+        }
       }
 
       // Distance Filter (optional)
       if (userLocation && pro.distance !== null) {
-        if (pro.distance > (advancedFilters.radius || 50)) return false;
+        if (pro.distance > (advancedFilters.radius || 50)) {
+          console.log('❌ DISTANCE filter blocked:', pro.walker_name, pro.distance, 'km');
+          return false;
+        }
       }
 
       // Dog Sitting Filter (optional) - Only if explicitly set
@@ -548,9 +579,13 @@ export default function Home() {
         const hasServices = selectedServiceTypes.every(type =>
           pro.services_offered?.some(s => (s.service_name || "").toLowerCase().includes(type.toLowerCase().replace('_', ' ')))
         );
-        if (!hasServices) return false;
+        if (!hasServices) {
+          console.log('❌ SERVICE TYPE filter blocked:', pro.walker_name);
+          return false;
+        }
       }
 
+      console.log('✅ PASSED all filters:', pro.walker_name);
       return true;
     }).sort((a, b) => {
       // 1. Featured first
