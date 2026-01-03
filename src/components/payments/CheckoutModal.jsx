@@ -157,6 +157,16 @@ export default function CheckoutModal({
             <Smartphone className="w-6 h-6 text-green-600" />
             {language === 'pt' ? 'Pagamento via MBWay' : 'Payment via MBWay'}
           </h2>
+          
+          {/* TEST MODE WARNING */}
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3 mt-3">
+            <p className="text-sm text-yellow-900 font-semibold">
+              🧪 TEST MODE - Use card: <code className="bg-yellow-200 px-1 rounded">4242 4242 4242 4242</code>
+            </p>
+            <p className="text-xs text-yellow-700 mt-1">
+              Nenhuma transação real será processada. Data de validade: qualquer data futura.
+            </p>
+          </div>
         </div>
 
         <div className="space-y-6">

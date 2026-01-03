@@ -27,6 +27,9 @@ export default function LiveWalkTracking() {
     queryFn: () => base44.auth.me(),
   });
 
+  const isAdmin = user?.role === 'admin';
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+
   const { data: booking } = useQuery({
     queryKey: ['booking', bookingId],
     queryFn: async () => {
@@ -132,17 +135,107 @@ export default function LiveWalkTracking() {
                   )}
                 </div>
               </div>
-              <Button
-                variant="outline"
-                className="bg-white text-green-700 hover:bg-green-50"
-                onClick={() => navigate(createPageUrl('Chat') + `?bookingId=${bookingId}`)}
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Chat ao Vivo
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="bg-white text-green-700 hover:bg-green-50"
+                  onClick={() => navigate(createPageUrl('Chat') + `?bookingId=${bookingId}`)}
+                >
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  Chat ao Vivo
+                </Button>
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDebugPanel(!showDebugPanel)}
+                    className="bg-gray-800 text-white hover:bg-gray-700"
+                  >
+                    🐞 Debug
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* GPS DEBUG PANEL - Admin Only */}
+        {isAdmin && showDebugPanel && (
+          <Card className="border-2 border-yellow-400 bg-yellow-50 shadow-xl mb-6">
+            <CardHeader className="bg-yellow-100 border-b border-yellow-300">
+              <CardTitle className="text-lg flex items-center gap-2">
+                🔧 GPS Debug Info
+                <Badge className="bg-red-600 text-white text-xs">ADMIN ONLY</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 font-mono text-xs space-y-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-600 font-semibold mb-1">Current Location:</p>
+                  <p className="bg-white p-2 rounded border">
+                    Lat: {booking?.walker_lat?.toFixed(6) || 'N/A'}<br />
+                    Lng: {booking?.walker_lng?.toFixed(6) || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-semibold mb-1">Pickup/Destination:</p>
+                  <p className="bg-white p-2 rounded border">
+                    Lat: {booking?.pickup_lat?.toFixed(6) || 'N/A'}<br />
+                    Lng: {booking?.pickup_lng?.toFixed(6) || 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-gray-600 font-semibold mb-1">Last Update:</p>
+                <p className="bg-white p-2 rounded border">
+                  {booking?.last_update ? format(new Date(booking.last_update), "HH:mm:ss dd/MM/yyyy") : 'N/A'}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-600 font-semibold mb-1">Distance Traveled:</p>
+                  <p className="bg-white p-2 rounded border font-bold text-blue-600">
+                    {booking?.distance_km?.toFixed(2) || '0.00'} km
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600 font-semibold mb-1">Route Points:</p>
+                  <p className="bg-white p-2 rounded border font-bold">
+                    {booking?.route_coordinates?.length || 0} points
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-gray-600 font-semibold mb-1">Latest Route Coordinate:</p>
+                {booking?.route_coordinates?.length > 0 ? (
+                  <div className="bg-white p-2 rounded border">
+                    <p>Lat: {booking.route_coordinates[booking.route_coordinates.length - 1]?.lat?.toFixed(6)}</p>
+                    <p>Lng: {booking.route_coordinates[booking.route_coordinates.length - 1]?.lng?.toFixed(6)}</p>
+                    <p className="text-gray-500 mt-1">
+                      Accuracy: {booking.route_coordinates[booking.route_coordinates.length - 1]?.accuracy || 'N/A'}m
+                    </p>
+                    <p className="text-gray-500">
+                      Time: {booking.route_coordinates[booking.route_coordinates.length - 1]?.timestamp 
+                        ? format(new Date(booking.route_coordinates[booking.route_coordinates.length - 1].timestamp), "HH:mm:ss")
+                        : 'N/A'}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="bg-white p-2 rounded border text-red-600">No GPS data yet</p>
+                )}
+              </div>
+
+              <div className="bg-blue-100 border border-blue-300 p-2 rounded mt-3">
+                <p className="text-blue-900 text-xs">
+                  💡 <strong>Tip:</strong> Use a Fake GPS app to simulate location and test tracking in real-time.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           {/* Live Stats */}

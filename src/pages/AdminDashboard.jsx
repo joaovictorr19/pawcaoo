@@ -1914,6 +1914,26 @@ export default function AdminDashboard() {
               onEditBadges={handleOpenBadgesDialog}
               onSyncProfiles={handleSyncUserProfiles}
               isSyncing={isSyncingProfiles}
+              onImpersonate={async (user) => {
+                if (!confirm(`Login como ${user.full_name}?\n\nVocê terá acesso total à conta deste utilizador.`)) return;
+                
+                toast.info('Redirecionando para a conta do utilizador...');
+                
+                try {
+                  const response = await base44.functions.invoke('impersonateUser', {
+                    targetUserId: user.id
+                  });
+                  
+                  if (response.data?.success) {
+                    localStorage.setItem('impersonation', JSON.stringify(response.data.impersonationData));
+                    window.location.href = createPageUrl('Home');
+                  } else {
+                    toast.error('Erro ao iniciar impersonação');
+                  }
+                } catch (error) {
+                  toast.error('Erro: ' + error.message);
+                }
+              }}
             />
           </TabsContent>
 

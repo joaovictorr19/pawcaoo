@@ -50,6 +50,7 @@ import DynamicBackground from "@/components/ui/DynamicBackground";
 import { useModalCleanup } from "@/components/ui/ModalCleanup";
 import SEOManager from "@/components/SEOManager";
 import MobileOptimizations from "@/components/ui/MobileOptimizations";
+import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 
 import "./globals.css";
 
@@ -142,6 +143,15 @@ function LayoutContent({ children, currentPageName }) {
 
   // SEO Manager - Dynamic title and metadata
   const seoManager = <SEOManager />;
+
+  // Impersonation check
+  const impersonationData = React.useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('impersonation') || 'null');
+    } catch {
+      return null;
+    }
+  }, []);
 
   // Dictionary for menu translations
   const menuTranslations = {
@@ -554,6 +564,7 @@ function LayoutContent({ children, currentPageName }) {
     <SidebarProvider>
       <MobileOptimizations />
       {seoManager}
+      <ImpersonationBanner />
       <Helmet>
         <title>
           {language === 'pt' ? 'PawCão - O melhor para o seu Pet' :
