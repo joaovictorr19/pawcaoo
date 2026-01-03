@@ -769,13 +769,17 @@ export default function Home() {
                         
                         {(() => {
                           const allBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
-                          return allBadges.length > 0 && (
+                          // Remove duplicates based on badge_id
+                          const uniqueBadges = allBadges.filter((badge, index, self) => 
+                            index === self.findIndex(b => b.badge_id === badge.badge_id)
+                          );
+                          return uniqueBadges.length > 0 && (
                             <div className="mb-3 pt-3">
                               <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
                                 Conquistas Recentes
                               </p>
                               <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2 overflow-visible">
-                                {allBadges
+                                {uniqueBadges
                                   .sort((a, b) => {
                                     const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
                                     const dateB = b.earned_date ? new Date(b.earned_date).getTime() : 0;
