@@ -1,13 +1,7 @@
 import React from 'react';
 import { Map } from '@/components/ui/map';
 
-interface WalkerSearchMapProps {
-  walkers?: any[];
-  userLocation?: { lat: number; lng: number } | null;
-  onWalkerClick?: (walker: any) => void;
-}
-
-export function WalkerSearchMap({ walkers = [], userLocation, onWalkerClick }: WalkerSearchMapProps) {
+export function WalkerSearchMap({ walkers = [], userLocation, onWalkerClick }) {
   return (
     <Map
       initialViewState={{
