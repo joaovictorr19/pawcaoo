@@ -13,7 +13,6 @@ import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import TrainerCard from "../components/trainers/TrainerCard";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
-const InteractiveMap = React.lazy(() => import("../components/search/InteractiveMap"));
 
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import { WalkerSearchMap } from "../components/pawcao/WalkerSearchMap";
