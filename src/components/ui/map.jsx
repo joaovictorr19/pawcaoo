@@ -230,3 +230,55 @@ export function MarkerTooltip({ children }) {
 export function MarkerPopup({ children, className }) {
   return <>{children}</>;
 }
+
+export function MapPopup({ 
+  longitude, 
+  latitude, 
+  children, 
+  onClose,
+  closeButton = true,
+  closeOnClick = true,
+  focusAfterOpen = true,
+  offset = 10,
+  className 
+}) {
+  const popupRef = useRef(null);
+
+  useEffect(() => {
+    const mapContainer = document.querySelector('.maplibregl-map');
+    if (!mapContainer?._map || popupRef.current) return;
+
+    const popupInstance = new maplibregl.Popup({
+      closeButton,
+      closeOnClick,
+      focusAfterOpen,
+      offset,
+      className: className || ''
+    })
+      .setLngLat([longitude, latitude])
+      .setDOMContent(createPopupContent())
+      .addTo(mapContainer._map);
+
+    if (onClose) {
+      popupInstance.on('close', onClose);
+    }
+
+    popupRef.current = popupInstance;
+
+    return () => {
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+    };
+  }, [longitude, latitude, closeButton, closeOnClick, focusAfterOpen, offset, className]);
+
+  const createPopupContent = () => {
+    const div = document.createElement('div');
+    div.className = 'p-3';
+    ReactDOM.render(children, div);
+    return div;
+  };
+
+  return null;
+}
