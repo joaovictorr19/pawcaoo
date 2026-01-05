@@ -1472,6 +1472,104 @@ export default function AdminDashboard() {
                   </p>
                 </CardHeader>
                 <CardContent>
+                  {/* Sync Location Button */}
+                  <div className="mb-4 flex gap-2 flex-wrap">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        if (!confirm("Sincronizar coordenadas GPS de todos os profissionais com base nos seus endereços? Isto pode demorar alguns minutos.")) return;
+                        
+                        toast.info("Sincronizando localizações...");
+                        let synced = 0;
+                        
+                        try {
+                          // Sync walkers
+                          for (const walker of allWalkers.filter(w => w.location && (!w.latitude || !w.longitude))) {
+                            try {
+                              const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(walker.location + ', Portugal')}&format=json&limit=1`);
+                              const data = await response.json();
+                              if (data && data[0]) {
+                                await base44.entities.WalkerProfile.update(walker.id, {
+                                  latitude: parseFloat(data[0].lat),
+                                  longitude: parseFloat(data[0].lon)
+                                });
+                                synced++;
+                              }
+                              await new Promise(resolve => setTimeout(resolve, 1000));
+                            } catch (e) {
+                              console.error(`Erro ao geolocalizar ${walker.walker_name}:`, e);
+                            }
+                          }
+                          
+                          // Sync trainers
+                          for (const trainer of allTrainers.filter(t => t.location && (!t.latitude || !t.longitude))) {
+                            try {
+                              const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(trainer.location + ', Portugal')}&format=json&limit=1`);
+                              const data = await response.json();
+                              if (data && data[0]) {
+                                await base44.entities.TrainerProfile.update(trainer.id, {
+                                  latitude: parseFloat(data[0].lat),
+                                  longitude: parseFloat(data[0].lon)
+                                });
+                                synced++;
+                              }
+                              await new Promise(resolve => setTimeout(resolve, 1000));
+                            } catch (e) {
+                              console.error(`Erro ao geolocalizar trainer:`, e);
+                            }
+                          }
+                          
+                          // Sync users with city
+                          for (const user of allUsers.filter(u => u.city && (!u.latitude || !u.longitude))) {
+                            try {
+                              const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(user.city + ', Portugal')}&format=json&limit=1`);
+                              const data = await response.json();
+                              if (data && data[0]) {
+                                await base44.entities.User.update(user.id, {
+                                  latitude: parseFloat(data[0].lat),
+                                  longitude: parseFloat(data[0].lon)
+                                });
+                                synced++;
+                              }
+                              await new Promise(resolve => setTimeout(resolve, 1000));
+                            } catch (e) {
+                              console.error(`Erro ao geolocalizar ${user.email}:`, e);
+                            }
+                          }
+                          
+                          queryClient.invalidateQueries(['allWalkersAdmin']);
+                          queryClient.invalidateQueries(['allTrainersAdmin']);
+                          queryClient.invalidateQueries(['allUsers']);
+                          toast.success(`✅ ${synced} localizações sincronizadas!`);
+                        } catch (error) {
+                          toast.error("Erro ao sincronizar: " + error.message);
+                        }
+                      }}
+                      className="border-blue-500 text-blue-600"
+                    >
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Sincronizar GPS ({[...allWalkers, ...allTrainers, ...allUsers].filter(item => {
+                        const hasLocation = item.location || item.city;
+                        const hasCoords = item.latitude && item.longitude;
+                        return hasLocation && !hasCoords;
+                      }).length} pendentes)
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        queryClient.invalidateQueries(['allWalkersAdmin']);
+                        queryClient.invalidateQueries(['allTrainersAdmin']);
+                        queryClient.invalidateQueries(['allUsers']);
+                        toast.success("Mapa atualizado!");
+                      }}
+                      className="border-green-500 text-green-600"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Atualizar Mapa
+                    </Button>
+                  </div>
                   <div className="h-[400px] md:h-[500px] w-full rounded-xl overflow-hidden border border-gray-200">
                     <Map center={[-8.6291, 41.1579]} zoom={7}>
                       <MapClusterLayer
