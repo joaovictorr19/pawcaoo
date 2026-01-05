@@ -58,44 +58,50 @@ export default function Chat() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch all conversations
+  // Fetch all conversations - ONLY ACTIVE BOOKINGS
   const { data: conversations = [], isLoading: loadingConversations } = useQuery({
     queryKey: ["conversations", user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const convos = await base44.entities.ChatConversation.filter(
-        { participants: user.email },
-        "-last_message_date"
-      );
-      
-      // Fetch booking data for each conversation to check active status
-      const convosWithBookings = await Promise.all(
-        convos.map(async (conv) => {
-          if (!conv.booking_id) return { ...conv, booking: null };
-          try {
-            const bookings = await base44.entities.Booking.filter({ id: conv.booking_id });
-            return { ...conv, booking: bookings[0] || null };
-          } catch (e) {
-            return { ...conv, booking: null };
-          }
-        })
-      );
-      
-      // Sort: Active bookings first, then by last message
-      return convosWithBookings.sort((a, b) => {
-        const aActive = a.booking?.status === 'confirmed' || a.booking?.status === 'in_progress';
-        const bActive = b.booking?.status === 'confirmed' || b.booking?.status === 'in_progress';
+      try {
+        const convos = await base44.entities.ChatConversation.filter(
+          { participants: { $contains: user.email } },
+          "-last_message_date"
+        );
         
-        if (aActive && !bActive) return -1;
-        if (!aActive && bActive) return 1;
+        if (!Array.isArray(convos)) return [];
         
-        return new Date(b.last_message_date) - new Date(a.last_message_date);
-      });
+        // Fetch booking data for each conversation to check active status
+        const convosWithBookings = await Promise.all(
+          convos.map(async (conv) => {
+            if (!conv.booking_id) return { ...conv, booking: null, isActive: false };
+            try {
+              const bookings = await base44.entities.Booking.filter({ id: conv.booking_id });
+              const booking = bookings[0] || null;
+              const isActive = booking?.status === 'confirmed' || booking?.status === 'in_progress';
+              return { ...conv, booking, isActive };
+            } catch (e) {
+              return { ...conv, booking: null, isActive: false };
+            }
+          })
+        );
+        
+        // Filter: ONLY show conversations with ACTIVE bookings
+        const activeConvos = convosWithBookings.filter(c => c.isActive);
+        
+        // Sort by last message
+        return activeConvos.sort((a, b) => {
+          return new Date(b.last_message_date) - new Date(a.last_message_date);
+        });
+      } catch (error) {
+        console.error('Error fetching conversations:', error);
+        return [];
+      }
     },
     enabled: !!user?.email,
-    staleTime: 5 * 1000,
+    staleTime: 3000,
     refetchOnWindowFocus: true,
-    refetchInterval: 5000,
+    refetchInterval: 8000,
   });
 
   // Fetch or create conversation from booking (GUARANTEED UNIQUE)
@@ -172,17 +178,22 @@ export default function Chat() {
 
   // Set selected conversation from URL params (NO LOOP)
   useEffect(() => {
+    let updated = false;
+    
     if (conversationId && conversations.length > 0) {
       const conv = conversations.find((c) => c.id === conversationId);
-      if (conv && selectedConversation?.id !== conv.id) {
+      if (conv && (!selectedConversation || selectedConversation.id !== conv.id)) {
         setSelectedConversation(conv);
         setShowConversationList(false);
+        updated = true;
       }
-    } else if (bookingConversation && selectedConversation?.id !== bookingConversation.id) {
+    }
+    
+    if (!updated && bookingConversation && (!selectedConversation || selectedConversation.id !== bookingConversation.id)) {
       setSelectedConversation(bookingConversation);
       setShowConversationList(false);
     }
-  }, [conversationId, bookingConversation?.id, conversations.length]);
+  }, [conversationId, bookingConversation?.id]);
 
   // Fetch messages for selected conversation with full history
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
