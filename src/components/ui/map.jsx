@@ -117,3 +117,67 @@ export function MapControls({
     </div>
   );
 }
+
+export function MapMarker({ longitude, latitude, children }) {
+  const markerRef = useRef(null);
+  const [contentEl, setContentEl] = React.useState(null);
+  const [tooltipEl, setTooltipEl] = React.useState(null);
+  const [popupEl, setPopupEl] = React.useState(null);
+
+  useEffect(() => {
+    const mapContainer = document.querySelector('.maplibregl-map');
+    if (!mapContainer?._map || markerRef.current) return;
+
+    const el = document.createElement('div');
+    el.className = 'marker-container';
+    
+    markerRef.current = new maplibregl.Marker({ element: el })
+      .setLngLat([longitude, latitude])
+      .addTo(mapContainer._map);
+
+    setContentEl(el);
+
+    return () => {
+      if (markerRef.current) {
+        markerRef.current.remove();
+      }
+    };
+  }, [longitude, latitude]);
+
+  const content = React.Children.toArray(children).find(
+    child => child.type === MarkerContent
+  );
+  const tooltip = React.Children.toArray(children).find(
+    child => child.type === MarkerTooltip
+  );
+  const popup = React.Children.toArray(children).find(
+    child => child.type === MarkerPopup
+  );
+
+  return (
+    <>
+      {contentEl && content && ReactDOM.createPortal(content.props.children, contentEl)}
+      {tooltip && (
+        <div
+          ref={setTooltipEl}
+          className="absolute pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap"
+          style={{ bottom: '100%', left: '50%', transform: 'translateX(-50%) translateY(-4px)' }}
+        >
+          {tooltip.props.children}
+        </div>
+      )}
+    </>
+  );
+}
+
+export function MarkerContent({ children }) {
+  return <>{children}</>;
+}
+
+export function MarkerTooltip({ children }) {
+  return <>{children}</>;
+}
+
+export function MarkerPopup({ children }) {
+  return <>{children}</>;
+}
