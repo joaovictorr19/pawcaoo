@@ -146,19 +146,19 @@ export default function Chat() {
     staleTime: 60000,
   });
 
-  // Set selected conversation from URL params
+  // Set selected conversation from URL params (NO LOOP)
   useEffect(() => {
-    if (conversationId) {
+    if (conversationId && conversations.length > 0) {
       const conv = conversations.find((c) => c.id === conversationId);
-      if (conv) {
+      if (conv && selectedConversation?.id !== conv.id) {
         setSelectedConversation(conv);
         setShowConversationList(false);
       }
-    } else if (bookingConversation) {
+    } else if (bookingConversation && selectedConversation?.id !== bookingConversation.id) {
       setSelectedConversation(bookingConversation);
       setShowConversationList(false);
     }
-  }, [conversationId, bookingConversation, conversations]);
+  }, [conversationId, bookingConversation?.id, conversations.length]);
 
   // Fetch messages for selected conversation with full history
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
@@ -178,17 +178,18 @@ export default function Chat() {
     refetchOnWindowFocus: true,
   });
 
-  // Mark messages as read
+  // Mark messages as read (DEBOUNCED - NO LOOP)
   useEffect(() => {
     if (!selectedConversation?.id || !user?.email || messages.length === 0) return;
 
-    const markAsRead = async () => {
-      const unreadMessages = messages.filter(
-        (m) => m.sender_email !== user.email && !m.is_read && !m.read_by?.includes(user.email)
-      );
+    const unreadMessages = messages.filter(
+      (m) => m.sender_email !== user.email && !m.is_read && !m.read_by?.includes(user.email)
+    );
 
-      if (unreadMessages.length > 0) {
-        // Update each unread message
+    if (unreadMessages.length === 0) return;
+
+    const timer = setTimeout(async () => {
+      try {
         for (const msg of unreadMessages) {
           await base44.entities.ChatMessage.update(msg.id, {
             is_read: true,
@@ -197,21 +198,19 @@ export default function Chat() {
           });
         }
 
-        // Reset unread count in conversation
         const newUnreadCounts = { ...(selectedConversation.unread_counts || {}) };
         newUnreadCounts[user.email] = 0;
         
         await base44.entities.ChatConversation.update(selectedConversation.id, {
           unread_counts: newUnreadCounts,
         });
-
-        queryClient.invalidateQueries(["chatMessages", selectedConversation.id]);
-        queryClient.invalidateQueries(["conversations"]);
+      } catch (err) {
+        console.error('Mark as read error:', err);
       }
-    };
+    }, 1000);
 
-    markAsRead();
-  }, [messages, selectedConversation?.id, user?.email, queryClient]);
+    return () => clearTimeout(timer);
+  }, [messages.length, selectedConversation?.id, user?.email]);
 
   // Auto scroll to bottom
   useEffect(() => {
