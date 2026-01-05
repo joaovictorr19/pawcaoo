@@ -213,17 +213,36 @@ export default function ProfessionalDashboard() {
     queryFn: async () => {
       console.log('🔍 Buscando pedidos para walker:', user?.email, 'Profile ID:', walkerProfile?.id);
       
-      // Buscar por AMBOS: email E id do perfil
-      const byEmail = await base44.entities.Booking.filter({ walker_email: user?.email }, '-created_date');
-      const byId = walkerProfile?.id ? await base44.entities.Booking.filter({ walker_id: walkerProfile.id }, '-created_date') : [];
-      
-      // Merge e remover duplicados
-      const uniqueMap = new Map();
-      [...byEmail, ...byId].forEach(b => uniqueMap.set(b.id, b));
-      const bookings = Array.from(uniqueMap.values());
-      
-      console.log('📊 Pedidos encontrados:', bookings.length, bookings);
-      return bookings;
+      try {
+        // Buscar TODAS as reservas sem filtro primeiro (debug)
+        const allBookingsRaw = await base44.entities.Booking.list('-created_date', 500);
+        console.log('📊 TOTAL BOOKINGS NA DB:', allBookingsRaw.length);
+        console.log('📊 Pendentes na DB:', allBookingsRaw.filter(b => b.status === 'pending').length);
+        console.log('📊 Para este walker (email):', allBookingsRaw.filter(b => b.walker_email === user?.email).length);
+        console.log('📊 Para este walker (ID):', allBookingsRaw.filter(b => b.walker_id === walkerProfile?.id).length);
+        
+        // Buscar por AMBOS: email E id do perfil
+        const byEmail = await base44.entities.Booking.filter({ walker_email: user?.email }, '-created_date', 500);
+        const byId = walkerProfile?.id ? await base44.entities.Booking.filter({ walker_id: walkerProfile.id }, '-created_date', 500) : [];
+        
+        console.log('📦 By Email:', byEmail.length, byEmail.map(b => ({ id: b.id, status: b.status, dog: b.dog_name })));
+        console.log('📦 By ID:', byId.length, byId.map(b => ({ id: b.id, status: b.status, dog: b.dog_name })));
+        
+        // Merge e remover duplicados
+        const uniqueMap = new Map();
+        [...byEmail, ...byId].forEach(b => uniqueMap.set(b.id, b));
+        const bookings = Array.from(uniqueMap.values());
+        
+        console.log('✅ Pedidos FINAIS:', bookings.length);
+        console.log('✅ Pendentes:', bookings.filter(b => b.status === 'pending').length);
+        console.log('✅ Confirmados:', bookings.filter(b => b.status === 'confirmed').length);
+        console.log('✅ Em progresso:', bookings.filter(b => b.status === 'in_progress').length);
+        
+        return bookings;
+      } catch (error) {
+        console.error('❌ Erro ao buscar bookings:', error);
+        return [];
+      }
     },
     enabled: !!user && !!walkerProfile,
     initialData: [],
@@ -585,9 +604,19 @@ export default function ProfessionalDashboard() {
                     (b.walker_email && b.walker_email === user?.email) ||
                     (b.trainer_id && b.trainer_id === trainerProfile?.id) ||
                     (b.trainer_email && b.trainer_email === user?.email);
-    console.log('📋 Booking:', b.id, 'Status:', b.status, 'Walker ID:', b.walker_id, 'Walker Email:', b.walker_email, 'My ID:', walkerProfile?.id, 'My Email:', user?.email, 'IsForMe:', isForMe);
+    
+    if (isPending) {
+      console.log('🔍 PENDING Booking:', b.id, 'Dog:', b.dog_name);
+      console.log('   Walker ID:', b.walker_id, 'vs My ID:', walkerProfile?.id, 'Match:', b.walker_id === walkerProfile?.id);
+      console.log('   Walker Email:', b.walker_email, 'vs My Email:', user?.email, 'Match:', b.walker_email === user?.email);
+      console.log('   IsForMe:', isForMe);
+    }
+    
     return isPending && isForMe;
   });
+  
+  console.log('🎯 TOTAL DIRETAS:', directRequests.length);
+  console.log('📊 ALL BOOKINGS:', allBookings.length);
   const pendingBookings = allBookings.filter(b => b.status === 'pending' || b.status === 'confirmed');
   
   console.log('🎯 Total Solicitações Diretas:', directRequests.length);
