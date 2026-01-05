@@ -312,41 +312,76 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         console.error("Erro ao atualizar disponibilidade:", err);
       }
 
-      // 3. Criar/Atualizar Conversa de Chat (Sincronização)
+      // 3. Criar/Atualizar Conversa de Chat (Sincronização GARANTIDA)
       try {
-        const conversations = await base44.entities.ChatConversation.filter({});
-        let conversation = conversations.find(c => 
-          c.participants?.includes(user.email) && 
-          c.participants?.includes(pro.created_by)
-        );
+        const conversations = await base44.entities.ChatConversation.filter({
+          booking_id: booking.id
+        });
+        
+        let conversation = conversations[0];
+        
+        // Se não existe conversa para este booking, procurar por participantes
+        if (!conversation) {
+          const allConvos = await base44.entities.ChatConversation.filter({});
+          conversation = allConvos.find(c => 
+            c.participants?.includes(user.email) && 
+            c.participants?.includes(pro.created_by) &&
+            !c.booking_id
+          );
+        }
 
         const walkDate = typeof bookingData.walk_date === 'string' 
           ? bookingData.walk_date 
           : format(bookingData.walk_date, 'yyyy-MM-dd');
 
+        const participant_photos = {};
+        if (user.profile_photo_url) participant_photos[user.email] = user.profile_photo_url;
+        if (pro.photo_url) participant_photos[pro.created_by] = pro.photo_url;
+
         if (conversation) {
           await base44.entities.ChatConversation.update(conversation.id, {
             booking_id: booking.id,
-            last_message: `Nova reserva iniciada: ${bookingData.dog_name} - ${walkDate}`,
-            last_message_date: new Date().toISOString()
+            participant_names: {
+              [user.email]: user.full_name || 'Cliente',
+              [pro.created_by]: proName || 'Profissional'
+            },
+            participant_photos,
+            last_message: `🐕 Nova reserva: ${bookingData.dog_name} - ${walkDate} às ${bookingData.walk_time}`,
+            last_message_date: new Date().toISOString(),
+            last_sender_email: user.email
           });
+          console.log('💬 Chat atualizado:', conversation.id);
         } else {
-          await base44.entities.ChatConversation.create({
+          conversation = await base44.entities.ChatConversation.create({
             participants: [user.email, pro.created_by],
             participant_names: {
               [user.email]: user.full_name || 'Cliente',
               [pro.created_by]: proName || 'Profissional'
             },
+            participant_photos,
             booking_id: booking.id,
-            tags: ['booking'],
-            last_message: `Nova reserva iniciada: ${bookingData.dog_name} - ${walkDate}`,
+            tags: ['booking', isWalker ? 'walk' : 'training'],
+            last_message: `🐕 Nova reserva: ${bookingData.dog_name} - ${walkDate} às ${bookingData.walk_time}`,
             last_message_date: new Date().toISOString(),
+            last_sender_email: user.email,
             unread_counts: { [user.email]: 0, [pro.created_by]: 1 }
           });
+          console.log('✅ Chat criado:', conversation.id);
         }
-        console.log('💬 Chat sincronizado');
+
+        // Criar mensagem inicial no chat com detalhes
+        await base44.entities.ChatMessage.create({
+          conversation_id: conversation.id,
+          sender_email: user.email,
+          sender_name: user.full_name || 'Cliente',
+          participants: [user.email, pro.created_by],
+          content: `🎉 Reserva criada!\n\n🐕 Cão: ${bookingData.dog_name}\n📅 Data: ${walkDate}\n⏰ Horário: ${bookingData.walk_time}\n📍 Local: ${bookingData.pickup_address || 'A definir'}\n\nO passeador receberá os detalhes completos após confirmação.`,
+          message_type: 'system'
+        });
+
       } catch (err) {
-        console.error("Erro ao sincronizar chat:", err);
+        console.error("❌ Erro ao sincronizar chat:", err);
+        // Não falhar o booking por causa do chat
       }
 
       return booking;
@@ -416,11 +451,16 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   const handlePayment = async () => {
     setIsPaymentProcessing(true);
     try {
+      console.log('💳 Iniciando processo de pagamento...');
+      
       // 1. Create booking first
       const bookingData = {
-        walker_id: isWalker ? pro.id : undefined, 
+        walker_id: isWalker ? pro.id : undefined,
+        trainer_id: !isWalker ? pro.id : undefined,
         walker_name: proName,
         walker_email: pro.created_by,
+        trainer_email: !isWalker ? pro.created_by : undefined,
+        trainer_name: !isWalker ? proName : undefined,
         walker_payment_contact: pro.whatsapp_number || pro.phone,
         
         owner_name: user.full_name,
@@ -430,6 +470,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         dog_size: formData.dog_size,
         walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
         walk_time: formData.walk_time,
+        session_date: !isWalker ? format(formData.walk_date, 'yyyy-MM-dd') : undefined,
+        session_time: !isWalker ? formData.walk_time : undefined,
         duration_hours: formData.duration_hours,
         service_amount: amounts.walkerReceives,
         platform_fee: amounts.platformFee,
@@ -441,7 +483,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         professional_type: isWalker ? 'walker' : 'trainer',
         professional_id: pro.id,
         status: 'pending',
-        payment_status: 'pending'
+        payment_status: 'pending',
+        type: isWalker ? 'walk' : 'training'
       };
 
       console.log('📝 Creating booking before checkout...', bookingData);
@@ -935,10 +978,14 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                   onClick={async () => {
                     setIsProcessing(true);
                     try {
+                      console.log('🚀 Criando reserva sem pagamento...');
                       const bookingData = {
-                        walker_id: isWalker ? pro.id : undefined, 
+                        walker_id: isWalker ? pro.id : undefined,
+                        trainer_id: !isWalker ? pro.id : undefined,
                         walker_name: proName,
                         walker_email: pro.created_by,
+                        trainer_email: !isWalker ? pro.created_by : undefined,
+                        trainer_name: !isWalker ? proName : undefined,
                         walker_payment_contact: pro.whatsapp_number || pro.phone,
                         owner_name: user.full_name,
                         owner_phone: formData.owner_phone,
@@ -947,6 +994,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                         dog_size: formData.dog_size,
                         walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
                         walk_time: formData.walk_time,
+                        session_date: !isWalker ? format(formData.walk_date, 'yyyy-MM-dd') : undefined,
+                        session_time: !isWalker ? formData.walk_time : undefined,
                         duration_hours: formData.duration_hours,
                         service_amount: amounts.walkerReceives,
                         platform_fee: amounts.platformFee,
@@ -956,15 +1005,22 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                         pickup_lat: pickupCoords.lat,
                         pickup_lng: pickupCoords.lng,
                         status: 'pending',
-                        payment_status: 'pending'
+                        payment_status: 'pending',
+                        type: isWalker ? 'walk' : 'training'
                       };
                       
                       const booking = await createBookingMutation.mutateAsync(bookingData);
-                      toast.success('Reserva criada! Pode pagar depois.');
-                      navigate(createPageUrl(`Chat?bookingId=${booking.id}`));
-                      onClose?.();
+                      console.log('✅ Reserva criada:', booking.id);
+                      toast.success('✅ Reserva criada! Redirecionando para o chat...');
+                      
+                      // Pequeno delay para garantir que o chat foi criado
+                      setTimeout(() => {
+                        navigate(createPageUrl(`Chat?bookingId=${booking.id}`));
+                        onClose?.();
+                      }, 500);
                     } catch (error) {
-                      toast.error('Erro ao criar reserva');
+                      console.error('❌ Erro:', error);
+                      toast.error('Erro ao criar reserva: ' + (error.message || 'Tente novamente'));
                     } finally {
                       setIsProcessing(false);
                     }
