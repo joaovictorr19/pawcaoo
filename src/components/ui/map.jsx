@@ -366,3 +366,168 @@ export function MapRoute({
 
   return null;
 }
+
+export function MapClusterLayer({
+  data,
+  clusterRadius = 50,
+  clusterMaxZoom = 14,
+  clusterColors = ['#51bbd6', '#f1f075', '#f28cb1'],
+  pointColor = '#11b4da',
+  onPointClick,
+  id
+}) {
+  const layerId = useRef(id || `cluster-${Math.random().toString(36).substr(2, 9)}`);
+
+  useEffect(() => {
+    const mapContainer = document.querySelector('.maplibregl-map');
+    if (!mapContainer?._map) return;
+
+    const map = mapContainer._map;
+
+    const setupCluster = async () => {
+      if (map.getSource(layerId.current)) return;
+
+      // Fetch data if it's a URL
+      let geoJsonData = data;
+      if (typeof data === 'string') {
+        try {
+          const response = await fetch(data);
+          geoJsonData = await response.json();
+        } catch (error) {
+          console.error('Failed to fetch cluster data:', error);
+          return;
+        }
+      }
+
+      // Add source with clustering
+      map.addSource(layerId.current, {
+        type: 'geojson',
+        data: geoJsonData,
+        cluster: true,
+        clusterMaxZoom: clusterMaxZoom,
+        clusterRadius: clusterRadius
+      });
+
+      // Add cluster circles
+      map.addLayer({
+        id: `${layerId.current}-clusters`,
+        type: 'circle',
+        source: layerId.current,
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            clusterColors[0],
+            100,
+            clusterColors[1],
+            750,
+            clusterColors[2]
+          ],
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            20,
+            100,
+            30,
+            750,
+            40
+          ]
+        }
+      });
+
+      // Add cluster count labels
+      map.addLayer({
+        id: `${layerId.current}-cluster-count`,
+        type: 'symbol',
+        source: layerId.current,
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 12
+        },
+        paint: {
+          'text-color': '#ffffff'
+        }
+      });
+
+      // Add unclustered points
+      map.addLayer({
+        id: `${layerId.current}-unclustered-point`,
+        type: 'circle',
+        source: layerId.current,
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': pointColor,
+          'circle-radius': 6,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#fff'
+        }
+      });
+
+      // Click on clusters to zoom
+      map.on('click', `${layerId.current}-clusters`, (e) => {
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: [`${layerId.current}-clusters`]
+        });
+        const clusterId = features[0].properties.cluster_id;
+        map.getSource(layerId.current).getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err) return;
+          map.easeTo({
+            center: features[0].geometry.coordinates,
+            zoom: zoom
+          });
+        });
+      });
+
+      // Click on individual points
+      if (onPointClick) {
+        map.on('click', `${layerId.current}-unclustered-point`, (e) => {
+          const features = e.features;
+          if (!features || features.length === 0) return;
+          
+          const coordinates = features[0].geometry.coordinates.slice();
+          onPointClick(features[0], coordinates);
+        });
+      }
+
+      // Change cursor on hover
+      map.on('mouseenter', `${layerId.current}-clusters`, () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', `${layerId.current}-clusters`, () => {
+        map.getCanvas().style.cursor = '';
+      });
+      map.on('mouseenter', `${layerId.current}-unclustered-point`, () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', `${layerId.current}-unclustered-point`, () => {
+        map.getCanvas().style.cursor = '';
+      });
+    };
+
+    if (map.loaded()) {
+      setupCluster();
+    } else {
+      map.on('load', setupCluster);
+    }
+
+    return () => {
+      if (map.getLayer(`${layerId.current}-clusters`)) {
+        map.removeLayer(`${layerId.current}-clusters`);
+      }
+      if (map.getLayer(`${layerId.current}-cluster-count`)) {
+        map.removeLayer(`${layerId.current}-cluster-count`);
+      }
+      if (map.getLayer(`${layerId.current}-unclustered-point`)) {
+        map.removeLayer(`${layerId.current}-unclustered-point`);
+      }
+      if (map.getSource(layerId.current)) {
+        map.removeSource(layerId.current);
+      }
+    };
+  }, [data, clusterRadius, clusterMaxZoom, clusterColors, pointColor, onPointClick]);
+
+  return null;
+}
