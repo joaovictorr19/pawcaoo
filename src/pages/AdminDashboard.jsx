@@ -2354,7 +2354,22 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex gap-2 flex-wrap">
                         <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}>
-                          <Eye className="w-4 h-4 mr-2" /> {t('viewDetails', language)}
+                          <Eye className="w-4 h-4 mr-2" /> Ver
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                          onClick={() =>
+                            createTestBookingMutation.mutate({
+                              walkerId: walker.id,
+                              walkerEmail: walker.created_by
+                            })
+                          }
+                          disabled={createTestBookingMutation.isPending}
+                          title="Criar reserva de teste para ver chat e mapa em tempo real"
+                        >
+                          <Zap className="w-4 h-4 mr-1" />
+                          {createTestBookingMutation.isPending ? 'A criar...' : 'Teste'}
                         </Button>
                         <Button
                           size="sm"
