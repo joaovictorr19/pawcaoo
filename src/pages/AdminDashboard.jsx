@@ -1473,7 +1473,7 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-[400px] md:h-[500px] w-full rounded-xl overflow-hidden border border-gray-200">
-                    <Map center={[-9.1393, 38.7223]} zoom={6}>
+                    <Map center={[-8.6291, 41.1579]} zoom={7}>
                       <MapClusterLayer
                         data={{
                           type: 'FeatureCollection',
@@ -1651,7 +1651,20 @@ export default function AdminDashboard() {
                         </MapPopup>
                       )}
                       
-                      <MapControls position="bottom-right" showZoom showLocate />
+                      <MapControls 
+                        position="bottom-right" 
+                        showZoom 
+                        showLocate 
+                        onLocate={(location) => {
+                          const mapContainer = document.querySelector('.maplibregl-map');
+                          if (mapContainer?._map) {
+                            mapContainer._map.flyTo({
+                              center: [location.longitude, location.latitude],
+                              zoom: 13
+                            });
+                          }
+                        }}
+                      />
                     </Map>
                   </div>
                   
