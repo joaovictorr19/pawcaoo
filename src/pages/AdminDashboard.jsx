@@ -1461,48 +1461,104 @@ export default function AdminDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-blue-600" />
-                    Mapa de Clientes
+                    Mapa de Profissionais e Clientes
                   </CardTitle>
                   <p className="text-sm text-gray-600 mt-1">
-                    Distribuição geográfica dos {allUsers.filter(u => u.city).length} utilizadores com localização
+                    Distribuição geográfica - {(() => {
+                      const professionalsWithLocation = [...allWalkers, ...allTrainers].filter(p => p.latitude && p.longitude);
+                      const usersWithLocation = allUsers.filter(u => u.latitude && u.longitude);
+                      return professionalsWithLocation.length + usersWithLocation.length;
+                    })()} localizações no mapa
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[400px] w-full rounded-xl overflow-hidden">
+                  <div className="h-[400px] md:h-[500px] w-full rounded-xl overflow-hidden border border-gray-200">
                     <Map center={[-9.1393, 38.7223]} zoom={6}>
                       <MapClusterLayer
                         data={{
                           type: 'FeatureCollection',
-                          features: allUsers
-                            .filter(u => u.latitude && u.longitude)
-                            .map(u => ({
-                              type: 'Feature',
-                              geometry: {
-                                type: 'Point',
-                                coordinates: [u.longitude, u.latitude]
-                              },
-                              properties: {
-                                email: u.email,
-                                full_name: u.full_name || 'Utilizador',
-                                city: u.city || 'Sem cidade',
-                                account_type: u.account_type || 'owner',
-                                total_bookings: allBookings.filter(b => b.created_by === u.email || b.walker_email === u.email || b.trainer_email === u.email).length,
-                                profile_photo_url: u.profile_photo_url
-                              }
-                            }))
+                          features: [
+                            // Walkers (green markers)
+                            ...allWalkers
+                              .filter(w => w.latitude && w.longitude)
+                              .map(w => ({
+                                type: 'Feature',
+                                geometry: {
+                                  type: 'Point',
+                                  coordinates: [w.longitude, w.latitude]
+                                },
+                                properties: {
+                                  id: w.id,
+                                  email: w.created_by,
+                                  full_name: w.walker_name,
+                                  city: w.location || 'Sem cidade',
+                                  account_type: 'walker',
+                                  rating: w.rating,
+                                  total_walks: w.total_walks,
+                                  total_earnings: w.total_earnings,
+                                  is_verified: w.verification_status === 'verified',
+                                  profile_photo_url: w.photo_url
+                                }
+                              })),
+                            // Trainers (purple markers)
+                            ...allTrainers
+                              .filter(t => t.latitude && t.longitude)
+                              .map(t => ({
+                                type: 'Feature',
+                                geometry: {
+                                  type: 'Point',
+                                  coordinates: [t.longitude, t.latitude]
+                                },
+                                properties: {
+                                  id: t.id,
+                                  email: t.created_by,
+                                  full_name: t.trainer_name || t.business_name,
+                                  city: t.location || 'Sem cidade',
+                                  account_type: 'trainer',
+                                  rating: t.rating,
+                                  is_verified: t.verification_status === 'verified',
+                                  profile_photo_url: t.photo_url
+                                }
+                              })),
+                            // Regular users (blue markers)
+                            ...allUsers
+                              .filter(u => u.latitude && u.longitude)
+                              .map(u => ({
+                                type: 'Feature',
+                                geometry: {
+                                  type: 'Point',
+                                  coordinates: [u.longitude, u.latitude]
+                                },
+                                properties: {
+                                  id: u.id,
+                                  email: u.email,
+                                  full_name: u.full_name || 'Utilizador',
+                                  city: u.city || 'Sem cidade',
+                                  account_type: u.account_type || 'owner',
+                                  total_bookings: allBookings.filter(b => b.created_by === u.email).length,
+                                  profile_photo_url: u.profile_photo_url
+                                }
+                              }))
+                          ]
                         }}
                         clusterRadius={50}
                         clusterMaxZoom={14}
                         clusterColors={['#22c55e', '#eab308', '#ef4444']}
                         pointColor="#3b82f6"
                         onPointClick={(feature, coordinates) => {
-                          const user = allUsers.find(u => u.email === feature.properties.email);
-                          if (user) {
-                            setSelectedMapUser({
-                              ...user,
-                              coordinates: coordinates
-                            });
-                          }
+                          const props = feature.properties;
+                          const user = allUsers.find(u => u.email === props.email);
+                          
+                          setSelectedMapUser({
+                            ...props,
+                            id: props.id,
+                            email: props.email,
+                            full_name: props.full_name,
+                            city: props.city,
+                            account_type: props.account_type,
+                            profile_photo_url: props.profile_photo_url,
+                            coordinates: coordinates
+                          });
                         }}
                       />
                       
@@ -1516,42 +1572,80 @@ export default function AdminDashboard() {
                           focusAfterOpen={false}
                           closeButton
                         >
-                          <div className="space-y-2 min-w-[200px]">
+                          <div className="space-y-2 min-w-[220px] max-w-[280px]">
                             <div className="flex items-center gap-2">
-                              <Avatar className="w-10 h-10">
+                              <Avatar className="w-12 h-12 flex-shrink-0">
                                 <AvatarImage src={selectedMapUser.profile_photo_url} />
-                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white text-xs">
-                                  {selectedMapUser.full_name?.[0] || selectedMapUser.email?.[0]?.toUpperCase()}
+                                <AvatarFallback className={`text-white text-xs ${
+                                  selectedMapUser.account_type === 'walker' ? 'bg-gradient-to-br from-green-500 to-emerald-600' :
+                                  selectedMapUser.account_type === 'trainer' ? 'bg-gradient-to-br from-purple-500 to-pink-600' :
+                                  'bg-gradient-to-br from-blue-500 to-indigo-600'
+                                }`}>
+                                  {selectedMapUser.full_name?.[0]?.toUpperCase() || '?'}
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-sm truncate">{selectedMapUser.full_name}</p>
+                                <p className="font-bold text-sm truncate">{selectedMapUser.full_name}</p>
                                 <p className="text-xs text-gray-600 truncate">{selectedMapUser.email}</p>
                               </div>
                             </div>
-                            <div className="space-y-1 text-xs">
-                              <p className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3 text-gray-500" />
-                                {selectedMapUser.city}
+                            <div className="space-y-1.5 text-xs bg-gray-50 p-2 rounded-lg">
+                              <p className="flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                                <span className="truncate">{selectedMapUser.city}</span>
                               </p>
-                              <p className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3 text-gray-500" />
-                                {allBookings.filter(b => b.created_by === selectedMapUser.email || b.walker_email === selectedMapUser.email || b.trainer_email === selectedMapUser.email).length} reservas
-                              </p>
-                              <Badge variant="outline" className="text-xs capitalize mt-1">
-                                {selectedMapUser.account_type || 'owner'}
+                              {selectedMapUser.rating > 0 && (
+                                <p className="flex items-center gap-1.5">
+                                  <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                                  {selectedMapUser.rating?.toFixed(1)} ⭐
+                                </p>
+                              )}
+                              {selectedMapUser.total_walks > 0 && (
+                                <p className="flex items-center gap-1.5">
+                                  <Calendar className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                                  {selectedMapUser.total_walks} passeios
+                                </p>
+                              )}
+                              {selectedMapUser.total_earnings > 0 && (
+                                <p className="flex items-center gap-1.5">
+                                  <DollarSign className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                                  €{selectedMapUser.total_earnings?.toFixed(0)}
+                                </p>
+                              )}
+                              {selectedMapUser.total_bookings > 0 && (
+                                <p className="flex items-center gap-1.5">
+                                  <Calendar className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                                  {selectedMapUser.total_bookings} reservas
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex gap-1.5 flex-wrap">
+                              <Badge variant="outline" className={`text-xs capitalize ${
+                                selectedMapUser.account_type === 'walker' ? 'border-green-500 text-green-700 bg-green-50' :
+                                selectedMapUser.account_type === 'trainer' ? 'border-purple-500 text-purple-700 bg-purple-50' :
+                                'border-blue-500 text-blue-700 bg-blue-50'
+                              }`}>
+                                {selectedMapUser.account_type === 'walker' ? '🐕 Passeador' :
+                                 selectedMapUser.account_type === 'trainer' ? '🎓 Treinador' :
+                                 '👤 ' + (selectedMapUser.account_type || 'owner')}
                               </Badge>
+                              {selectedMapUser.is_verified && (
+                                <Badge className="bg-blue-500 text-white text-xs">✓ Verificado</Badge>
+                              )}
                             </div>
                             <Button
                               size="sm"
-                              className="w-full bg-blue-600 hover:bg-blue-700 text-xs"
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-xs mt-2"
                               onClick={() => {
-                                setSelectedClient(selectedMapUser);
-                                setShowClientDetails(true);
+                                const user = allUsers.find(u => u.email === selectedMapUser.email);
+                                if (user) {
+                                  setSelectedClient(user);
+                                  setShowClientDetails(true);
+                                }
                                 setSelectedMapUser(null);
                               }}
                             >
-                              Ver Detalhes
+                              Ver Detalhes Completos
                             </Button>
                           </div>
                         </MapPopup>
@@ -1559,6 +1653,22 @@ export default function AdminDashboard() {
                       
                       <MapControls position="bottom-right" showZoom showLocate />
                     </Map>
+                  </div>
+                  
+                  {/* Map Legend */}
+                  <div className="flex flex-wrap gap-3 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 text-xs">
+                      <div className="w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow"></div>
+                      <span className="text-gray-700">{allWalkers.filter(w => w.latitude && w.longitude).length} Passeadores</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <div className="w-3 h-3 rounded-full bg-purple-500 border-2 border-white shadow"></div>
+                      <span className="text-gray-700">{allTrainers.filter(t => t.latitude && t.longitude).length} Treinadores</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow"></div>
+                      <span className="text-gray-700">{allUsers.filter(u => u.latitude && u.longitude).length} Clientes</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
