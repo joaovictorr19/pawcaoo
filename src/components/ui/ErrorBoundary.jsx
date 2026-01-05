@@ -14,6 +14,15 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error("ErrorBoundary caught an error", error, errorInfo);
+    
+    // Safe error logging without .stack.match()
+    if (error && typeof error === 'object') {
+      console.error('Error details:', {
+        message: error.message || 'Unknown error',
+        name: error.name || 'Error',
+        stack: error.stack || 'No stack trace available'
+      });
+    }
   }
 
   render() {
@@ -44,7 +53,14 @@ class ErrorBoundary extends React.Component {
           </div>
           {process.env.NODE_ENV === 'development' && this.state.error && (
             <div className="mt-8 p-4 bg-gray-100 rounded-lg text-left w-full max-w-lg overflow-auto text-xs font-mono text-red-800 border border-red-200">
-              {this.state.error.toString()}
+              <div className="mb-2 font-bold">Error:</div>
+              {this.state.error?.message || this.state.error?.toString() || 'Unknown error'}
+              {this.state.error?.stack && (
+                <>
+                  <div className="mt-3 mb-2 font-bold">Stack:</div>
+                  <pre className="whitespace-pre-wrap">{this.state.error.stack}</pre>
+                </>
+              )}
             </div>
           )}
         </div>
