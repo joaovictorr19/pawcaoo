@@ -58,14 +58,14 @@ export default function Chat() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch all conversations - ONLY ACTIVE BOOKINGS
+  // Fetch all conversations - ONLY ACTIVE BOOKINGS (pending, confirmed, in_progress)
   const { data: conversations = [], isLoading: loadingConversations } = useQuery({
     queryKey: ["conversations", user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
       try {
         const convos = await base44.entities.ChatConversation.filter(
-          { participants: { $contains: user.email } },
+          { participants: user.email },
           "-last_message_date"
         );
         
@@ -78,7 +78,8 @@ export default function Chat() {
             try {
               const bookings = await base44.entities.Booking.filter({ id: conv.booking_id });
               const booking = bookings[0] || null;
-              const isActive = booking?.status === 'confirmed' || booking?.status === 'in_progress';
+              // Include pending, confirmed, and in_progress as active
+              const isActive = booking && (booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'in_progress');
               return { ...conv, booking, isActive };
             } catch (e) {
               return { ...conv, booking: null, isActive: false };
