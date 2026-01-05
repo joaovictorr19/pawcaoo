@@ -88,11 +88,14 @@ export default function ActiveWalkDashboard() {
       const msgs = await base44.entities.ChatMessage.filter({ conversation_id: conversation.id }, 'created_date');
       return msgs.filter(m => !m.is_deleted);
     },
-    enabled: !!conversation?.id,
-    refetchInterval: 2000,
+    enabled: !!conversation?.id && showChat,
+    refetchInterval: showChat ? 2000 : false,
   });
 
-  const unreadCount = messages.filter(m => m.sender_email !== user?.email && !m.read_by?.includes(user?.email)).length;
+  const unreadCount = React.useMemo(() => {
+    if (!messages || !user?.email) return 0;
+    return messages.filter(m => m.sender_email !== user?.email && !m.read_by?.includes(user?.email)).length;
+  }, [messages, user?.email]);
 
   // Start GPS tracking
   useEffect(() => {
@@ -504,30 +507,38 @@ export default function ActiveWalkDashboard() {
       </div>
 
       {/* Chat Sheet */}
-      <Sheet open={showChat} onOpenChange={setShowChat}>
-        <SheetContent side="bottom" className="h-[70vh] p-0">
-          <SheetHeader className="p-4 border-b">
-            <SheetTitle>Chat com {booking.owner_name}</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto p-4 space-y-2 h-[calc(70vh-80px)]">
-            {messages.map((msg) => {
-              const isMine = msg.sender_email === user?.email;
-              return (
-                <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                    isMine ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'
-                  }`}>
-                    <p className="text-sm">{msg.content}</p>
-                    <p className="text-xs opacity-70 mt-1">
-                      {new Date(msg.created_date).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
+      {showChat && (
+        <Sheet open={showChat} onOpenChange={setShowChat}>
+          <SheetContent side="bottom" className="h-[70vh] p-0">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle>Chat com {booking.owner_name}</SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 h-[calc(70vh-80px)]">
+              {messages && messages.length > 0 ? (
+                messages.map((msg) => {
+                  const isMine = msg.sender_email === user?.email;
+                  return (
+                    <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                        isMine ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'
+                      }`}>
+                        <p className="text-sm">{msg.content}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {new Date(msg.created_date).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  Nenhuma mensagem ainda
                 </div>
-              );
-            })}
-          </div>
-        </SheetContent>
-      </Sheet>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
 
       {/* Status Menu Sheet */}
       <Sheet open={showStatusMenu} onOpenChange={setShowStatusMenu}>
