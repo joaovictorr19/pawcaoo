@@ -178,29 +178,25 @@ export default function Chat() {
     staleTime: 60000,
   });
 
-  // Set selected conversation from URL params (NO LOOP) - Use ref to prevent infinite updates
-  const isSelectingRef = useRef(false);
-  
+  // Set selected conversation from URL params - FIXED: Separate effects to prevent loops
   useEffect(() => {
-    if (isSelectingRef.current) return;
+    if (!conversationId || conversations.length === 0) return;
     
-    if (conversationId && conversations.length > 0) {
-      const conv = conversations.find((c) => c.id === conversationId);
-      if (conv && conv.id !== selectedConversation?.id) {
-        console.log('💬 Abrindo conversa via URL:', conv.id);
-        isSelectingRef.current = true;
-        setSelectedConversation(conv);
-        setShowConversationList(false);
-        setTimeout(() => { isSelectingRef.current = false; }, 100);
-      }
-    } else if (bookingConversation && bookingConversation.id !== selectedConversation?.id) {
-      console.log('💬 Abrindo conversa via booking:', bookingConversation.id);
-      isSelectingRef.current = true;
-      setSelectedConversation(bookingConversation);
+    const conv = conversations.find((c) => c.id === conversationId);
+    if (conv && (!selectedConversation || conv.id !== selectedConversation.id)) {
+      console.log('💬 Abrindo conversa via URL:', conv.id);
+      setSelectedConversation(conv);
       setShowConversationList(false);
-      setTimeout(() => { isSelectingRef.current = false; }, 100);
     }
-  }, [conversationId, bookingConversation?.id, conversations]);
+  }, [conversationId, conversations.length]); // Only trigger on ID or length change
+
+  useEffect(() => {
+    if (!bookingConversation || selectedConversation?.id === bookingConversation.id) return;
+    
+    console.log('💬 Abrindo conversa via booking:', bookingConversation.id);
+    setSelectedConversation(bookingConversation);
+    setShowConversationList(false);
+  }, [bookingConversation?.id]); // Only trigger on booking conversation ID change
 
   // Fetch messages for selected conversation with full history
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
