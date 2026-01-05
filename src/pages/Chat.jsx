@@ -58,7 +58,7 @@ export default function Chat() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch all conversations - ONLY ACTIVE BOOKINGS (pending, confirmed, in_progress)
+  // Fetch all conversations
   const { data: conversations = [], isLoading: loadingConversations } = useQuery({
     queryKey: ["conversations", user?.email],
     queryFn: async () => {
@@ -71,27 +71,8 @@ export default function Chat() {
         
         if (!Array.isArray(convos)) return [];
         
-        // Fetch booking data for each conversation to check active status
-        const convosWithBookings = await Promise.all(
-          convos.map(async (conv) => {
-            if (!conv.booking_id) return { ...conv, booking: null, isActive: false };
-            try {
-              const bookings = await base44.entities.Booking.filter({ id: conv.booking_id });
-              const booking = bookings[0] || null;
-              // Include pending, confirmed, and in_progress as active
-              const isActive = booking && (booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'in_progress');
-              return { ...conv, booking, isActive };
-            } catch (e) {
-              return { ...conv, booking: null, isActive: false };
-            }
-          })
-        );
-        
-        // Filter: ONLY show conversations with ACTIVE bookings
-        const activeConvos = convosWithBookings.filter(c => c.isActive);
-        
         // Sort by last message
-        return activeConvos.sort((a, b) => {
+        return convos.sort((a, b) => {
           return new Date(b.last_message_date) - new Date(a.last_message_date);
         });
       } catch (error) {
@@ -111,90 +92,107 @@ export default function Chat() {
     queryFn: async () => {
       if (!bookingId || !user?.email) return null;
 
-      // STEP 1: Check if conversation already exists (UNIQUE by booking_id)
-      const existing = await base44.entities.ChatConversation.filter({
-        booking_id: bookingId,
-      });
+      console.log('🔍 Buscando conversa para booking:', bookingId);
 
-      if (existing && existing.length > 0) {
-        console.log('✅ Found existing conversation:', existing[0].id);
-        return existing[0];
+      // STEP 1: Check if conversation already exists
+      try {
+        const existing = await base44.entities.ChatConversation.filter({
+          booking_id: bookingId,
+        });
+
+        if (existing && existing.length > 0) {
+          console.log('✅ Conversa existente:', existing[0].id);
+          return existing[0];
+        }
+      } catch (e) {
+        console.log('Erro ao buscar conversa:', e);
       }
+
+      console.log('📝 Nenhuma conversa encontrada, criando...');
 
       // STEP 2: Fetch booking data
       let booking = null;
       try {
         const bookings = await base44.entities.Booking.filter({ id: bookingId });
         booking = bookings[0];
+        console.log('📦 Booking encontrado:', booking);
       } catch (e) {
-        console.log('Trying TrainingBooking...');
+        console.log('Tentando TrainingBooking...');
         try {
           const trainings = await base44.entities.TrainingBooking?.filter({ id: bookingId });
           booking = trainings?.[0];
-        } catch (err) {}
+        } catch (err) {
+          console.log('Erro em TrainingBooking:', err);
+        }
       }
 
       if (!booking) {
-        toast.error("Reserva não encontrada");
+        console.error('❌ Reserva não encontrada');
         return null;
       }
 
-      // STEP 3: Create UNIQUE conversation
+      // STEP 3: Create conversation
       const ownerEmail = booking.created_by || booking.owner_email;
       const professionalEmail = booking.walker_email || booking.trainer_email;
       
+      console.log('👥 Participantes:', ownerEmail, professionalEmail);
+      
       if (!ownerEmail || !professionalEmail) {
-        toast.error("Dados insuficientes");
+        console.error('❌ Emails insuficientes');
         return null;
       }
 
       const participants = [ownerEmail, professionalEmail];
 
-      const newConvo = await base44.entities.ChatConversation.create({
-        participants,
-        participant_names: {
-          [ownerEmail]: booking.owner_name || 'Cliente',
-          [professionalEmail]: booking.walker_name || booking.trainer_name || 'Profissional',
-        },
-        booking_id: bookingId,
-        tags: ["booking", booking.type || "walk"],
-        last_message: "Conversa iniciada",
-        last_message_date: new Date().toISOString(),
-        unread_counts: {
-          [ownerEmail]: 0,
-          [professionalEmail]: 0
-        },
-        is_muted: {},
-        pinned_by: [],
-        typing_users: []
-      });
+      try {
+        const newConvo = await base44.entities.ChatConversation.create({
+          participants,
+          participant_names: {
+            [ownerEmail]: booking.owner_name || 'Cliente',
+            [professionalEmail]: booking.walker_name || booking.trainer_name || 'Profissional',
+          },
+          booking_id: bookingId,
+          tags: ["booking", booking.type || "walk"],
+          last_message: "Conversa iniciada",
+          last_message_date: new Date().toISOString(),
+          unread_counts: {
+            [ownerEmail]: 0,
+            [professionalEmail]: 0
+          },
+          is_muted: {},
+          pinned_by: [],
+          typing_users: []
+        });
 
-      toast.success('Chat criado!');
-      return newConvo;
+        console.log('✅ Chat criado:', newConvo.id);
+        toast.success('Chat criado!');
+        return newConvo;
+      } catch (err) {
+        console.error('❌ Erro ao criar chat:', err);
+        toast.error('Erro ao criar chat: ' + err.message);
+        return null;
+      }
     },
     enabled: !!bookingId && !!user?.email,
-    retry: 1,
+    retry: 2,
     staleTime: 60000,
   });
 
   // Set selected conversation from URL params (NO LOOP)
   useEffect(() => {
-    let updated = false;
-    
     if (conversationId && conversations.length > 0) {
       const conv = conversations.find((c) => c.id === conversationId);
       if (conv && (!selectedConversation || selectedConversation.id !== conv.id)) {
+        console.log('📌 Selecionando conversa da lista:', conv.id);
         setSelectedConversation(conv);
         setShowConversationList(false);
-        updated = true;
       }
-    }
-    
-    if (!updated && bookingConversation && (!selectedConversation || selectedConversation.id !== bookingConversation.id)) {
+    } else if (bookingConversation && (!selectedConversation || selectedConversation.id !== bookingConversation.id)) {
+      console.log('📌 Selecionando conversa do booking:', bookingConversation.id);
       setSelectedConversation(bookingConversation);
       setShowConversationList(false);
     }
-  }, [conversationId, bookingConversation?.id]);
+  }, [conversationId, bookingConversation?.id, conversations.length]);
 
   // Fetch messages for selected conversation with full history
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
@@ -641,12 +639,25 @@ export default function Chat() {
     );
   };
 
-  if (!user || (bookingId && loadingBookingConvo)) {
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-3" />
+          <p className="text-sm text-gray-600">A carregar...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading ONLY for first 3 seconds max
+  if (bookingId && loadingBookingConvo && !bookingConversation) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-3" />
           <p className="text-sm text-gray-600">A carregar conversa...</p>
+          <p className="text-xs text-gray-500 mt-2">Se demorar muito, recarregue a página</p>
         </div>
       </div>
     );
