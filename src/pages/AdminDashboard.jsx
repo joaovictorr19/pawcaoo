@@ -38,7 +38,7 @@ import {
   Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
   CheckCircle2, FileText, Download, Trash2, User, Plus, Edit, Send, ShoppingBag,
   XCircle, Upload, Eye,
-  RefreshCw, Loader2, ArrowLeft, Zap, TrendingUp
+  RefreshCw, Loader2, ArrowLeft, Zap, TrendingUp, MapPin
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -64,6 +64,7 @@ import BroadcastManager from "../components/admin/BroadcastManager";
 import StoreItemsManager from "../components/admin/StoreItemsManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
+import { Map, MapClusterLayer, MapPopup, MapControls } from "@/components/ui/map";
 
 export default function AdminDashboard() {
   // ============================================
@@ -139,6 +140,7 @@ export default function AdminDashboard() {
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [badgeSearchTerm, setBadgeSearchTerm] = useState("");
   const [productFilter, setProductFilter] = useState('all');
+  const [selectedMapUser, setSelectedMapUser] = useState(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -1454,6 +1456,113 @@ export default function AdminDashboard() {
 
           <TabsContent value="overview">
             <div className="space-y-6 mt-6">
+              {/* Client Location Map */}
+              <Card className="glass-panel border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-blue-600" />
+                    Mapa de Clientes
+                  </CardTitle>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Distribuição geográfica dos {allUsers.filter(u => u.city).length} utilizadores com localização
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[400px] w-full rounded-xl overflow-hidden">
+                    <Map center={[-9.1393, 38.7223]} zoom={6}>
+                      <MapClusterLayer
+                        data={{
+                          type: 'FeatureCollection',
+                          features: allUsers
+                            .filter(u => u.latitude && u.longitude)
+                            .map(u => ({
+                              type: 'Feature',
+                              geometry: {
+                                type: 'Point',
+                                coordinates: [u.longitude, u.latitude]
+                              },
+                              properties: {
+                                email: u.email,
+                                full_name: u.full_name || 'Utilizador',
+                                city: u.city || 'Sem cidade',
+                                account_type: u.account_type || 'owner',
+                                total_bookings: allBookings.filter(b => b.created_by === u.email || b.walker_email === u.email || b.trainer_email === u.email).length,
+                                profile_photo_url: u.profile_photo_url
+                              }
+                            }))
+                        }}
+                        clusterRadius={50}
+                        clusterMaxZoom={14}
+                        clusterColors={['#22c55e', '#eab308', '#ef4444']}
+                        pointColor="#3b82f6"
+                        onPointClick={(feature, coordinates) => {
+                          const user = allUsers.find(u => u.email === feature.properties.email);
+                          if (user) {
+                            setSelectedMapUser({
+                              ...user,
+                              coordinates: coordinates
+                            });
+                          }
+                        }}
+                      />
+                      
+                      {selectedMapUser && (
+                        <MapPopup
+                          key={selectedMapUser.email}
+                          longitude={selectedMapUser.coordinates[0]}
+                          latitude={selectedMapUser.coordinates[1]}
+                          onClose={() => setSelectedMapUser(null)}
+                          closeOnClick={false}
+                          focusAfterOpen={false}
+                          closeButton
+                        >
+                          <div className="space-y-2 min-w-[200px]">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={selectedMapUser.profile_photo_url} />
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white text-xs">
+                                  {selectedMapUser.full_name?.[0] || selectedMapUser.email?.[0]?.toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-sm truncate">{selectedMapUser.full_name}</p>
+                                <p className="text-xs text-gray-600 truncate">{selectedMapUser.email}</p>
+                              </div>
+                            </div>
+                            <div className="space-y-1 text-xs">
+                              <p className="flex items-center gap-1">
+                                <MapPin className="w-3 h-3 text-gray-500" />
+                                {selectedMapUser.city}
+                              </p>
+                              <p className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3 text-gray-500" />
+                                {allBookings.filter(b => b.created_by === selectedMapUser.email || b.walker_email === selectedMapUser.email || b.trainer_email === selectedMapUser.email).length} reservas
+                              </p>
+                              <Badge variant="outline" className="text-xs capitalize mt-1">
+                                {selectedMapUser.account_type || 'owner'}
+                              </Badge>
+                            </div>
+                            <Button
+                              size="sm"
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-xs"
+                              onClick={() => {
+                                setSelectedClient(selectedMapUser);
+                                setShowClientDetails(true);
+                                setSelectedMapUser(null);
+                              }}
+                            >
+                              Ver Detalhes
+                            </Button>
+                          </div>
+                        </MapPopup>
+                      )}
+                      
+                      <MapControls position="bottom-right" showZoom showLocate />
+                    </Map>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Financial Overview */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card className="glass-panel border-0 shadow-lg">
