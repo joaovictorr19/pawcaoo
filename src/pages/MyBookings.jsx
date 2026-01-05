@@ -601,20 +601,18 @@ export default function MyBookings() {
             </Button>
           )}
 
-          {/* Chat apenas para passeios confirmados ou em andamento */}
+          {/* Chat - Available for confirmed/in_progress bookings */}
           {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
             <Button 
               size="sm" 
               variant="outline" 
-              className="flex-1 h-8 text-xs"
+              className="flex-1 h-8 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
               onClick={() => {
                   if (!booking.id) {
-                      toast.error("Erro: ID da reserva inválido.");
+                      toast.error("Erro: ID inválido");
                       return;
                   }
-                  
-                  console.log('📤 Abrindo chat para reserva:', booking.id);
-                  navigate(createPageUrl('Chat') + `?bookingId=${booking.id}`);
+                  navigate(createPageUrl(`Chat?bookingId=${booking.id}`));
                 }}
               >
                 <MessageCircle className="w-3.5 h-3.5 mr-1.5" />

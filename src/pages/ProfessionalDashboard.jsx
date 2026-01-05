@@ -1355,7 +1355,29 @@ export default function ProfessionalDashboard() {
                                   onClick={async () => {
                                     try {
                                       await base44.entities.Booking.update(booking.id, { status: 'confirmed' });
+
+                                      // Create ChatConversation immediately when accepting
+                                      const existingConvo = await base44.entities.ChatConversation.filter({ booking_id: booking.id });
+                                      if (!existingConvo || existingConvo.length === 0) {
+                                      await base44.entities.ChatConversation.create({
+                                      participants: [booking.walker_email, booking.owner_email || booking.created_by],
+                                      participant_names: {
+                                      [booking.walker_email]: booking.walker_name,
+                                      [booking.owner_email || booking.created_by]: booking.owner_name
+                                      },
+                                      booking_id: booking.id,
+                                      tags: ["booking", "walk"],
+                                      last_message: "Reserva confirmada",
+                                      last_message_date: new Date().toISOString(),
+                                      unread_counts: {},
+                                      is_muted: {},
+                                      pinned_by: [],
+                                      typing_users: []
+                                      });
+                                      }
+
                                       queryClient.invalidateQueries(['myWalkBookings']);
+                                      queryClient.invalidateQueries(['conversations']);
                                       toast.success('✅ Pedido aceite!');
                                       
                                       // Notificação in-app + email
@@ -1504,9 +1526,9 @@ export default function ProfessionalDashboard() {
                             
                             {booking.owner_phone && booking.status !== 'completed' && (
                               <Button
-                                onClick={() => window.open(`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`, '_blank')}
+                                onClick={() => navigate(createPageUrl(`Chat?bookingId=${booking.id}`))}
                                 variant="outline"
-                                className="w-full bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100"
+                                className="w-full bg-blue-50 border-2 border-blue-300 text-blue-700 hover:bg-blue-100"
                               >
                                 <MessageCircle className="w-4 h-4 mr-2" />
                                 Chat
