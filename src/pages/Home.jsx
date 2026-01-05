@@ -13,8 +13,10 @@ import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
 import TrainerCard from "../components/trainers/TrainerCard";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
+const InteractiveMap = React.lazy(() => import("../components/search/InteractiveMap"));
 
 import TestimonialsSection from "../components/home/TestimonialsSection";
+import { WalkerSearchMap } from "../components/pawcao/WalkerSearchMap";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
@@ -25,7 +27,6 @@ import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
-const InteractiveMap = React.lazy(() => import("../components/search/InteractiveMap"));
 import { Map as MapIcon, List, ChevronLeft, ChevronRight, Star as StarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
