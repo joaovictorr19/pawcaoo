@@ -74,18 +74,13 @@ export default function Chat() {
     refetchInterval: false,
   });
 
-  // Fetch or create conversation from booking
+  // Fetch or create conversation from booking (GUARANTEED UNIQUE)
   const { data: bookingConversation, isLoading: loadingBookingConvo } = useQuery({
     queryKey: ["bookingConversation", bookingId],
     queryFn: async () => {
-      if (!bookingId || !user?.email) {
-        console.log('❌ Missing bookingId or user');
-        return null;
-      }
+      if (!bookingId || !user?.email) return null;
 
-      console.log('🔍 Searching for conversation with bookingId:', bookingId);
-
-      // Check if conversation exists
+      // STEP 1: Check if conversation already exists (UNIQUE by booking_id)
       const existing = await base44.entities.ChatConversation.filter({
         booking_id: bookingId,
       });
@@ -95,48 +90,35 @@ export default function Chat() {
         return existing[0];
       }
 
-      console.log('💬 No conversation found, fetching booking...');
-
-      // Fetch booking to create conversation - try both entities
+      // STEP 2: Fetch booking data
       let booking = null;
       try {
-        const walkBookings = await base44.entities.Booking.filter({ id: bookingId });
-        booking = walkBookings[0];
+        const bookings = await base44.entities.Booking.filter({ id: bookingId });
+        booking = bookings[0];
       } catch (e) {
-        console.log('Not a walk booking, trying training...');
-      }
-
-      if (!booking && base44.entities.TrainingBooking) {
+        console.log('Trying TrainingBooking...');
         try {
-          const trainBookings = await base44.entities.TrainingBooking.filter({ id: bookingId });
-          booking = trainBookings[0];
-        } catch (e) {
-          console.error('Failed to fetch training booking:', e);
-        }
+          const trainings = await base44.entities.TrainingBooking?.filter({ id: bookingId });
+          booking = trainings?.[0];
+        } catch (err) {}
       }
 
       if (!booking) {
-        console.error('❌ Booking not found:', bookingId);
         toast.error("Reserva não encontrada");
         return null;
       }
 
-      console.log('✅ Booking found:', booking.id, 'Type:', booking.type || 'walk');
-
+      // STEP 3: Create UNIQUE conversation
       const ownerEmail = booking.created_by || booking.owner_email;
       const professionalEmail = booking.walker_email || booking.trainer_email;
-      const participants = [ownerEmail, professionalEmail].filter(Boolean);
-
-      console.log('👥 Participants:', participants);
-
-      if (participants.length < 2 || !ownerEmail || !professionalEmail) {
-        console.error('❌ Missing participants:', { ownerEmail, professionalEmail });
-        toast.error("Dados insuficientes para criar conversa");
+      
+      if (!ownerEmail || !professionalEmail) {
+        toast.error("Dados insuficientes");
         return null;
       }
 
-      // Create new conversation
-      console.log('💬 Creating new conversation...');
+      const participants = [ownerEmail, professionalEmail];
+
       const newConvo = await base44.entities.ChatConversation.create({
         participants,
         participant_names: {
@@ -147,16 +129,21 @@ export default function Chat() {
         tags: ["booking", booking.type || "walk"],
         last_message: "Conversa iniciada",
         last_message_date: new Date().toISOString(),
-        unread_counts: {},
+        unread_counts: {
+          [ownerEmail]: 0,
+          [professionalEmail]: 0
+        },
+        is_muted: {},
+        pinned_by: [],
+        typing_users: []
       });
 
-      console.log('✅ Conversation created:', newConvo.id);
-      toast.success('Conversa criada!');
-      
+      toast.success('Chat criado!');
       return newConvo;
     },
     enabled: !!bookingId && !!user?.email,
     retry: 1,
+    staleTime: 60000,
   });
 
   // Set selected conversation from URL params
@@ -173,21 +160,22 @@ export default function Chat() {
     }
   }, [conversationId, bookingConversation, conversations]);
 
-  // Fetch messages for selected conversation
+  // Fetch messages for selected conversation with full history
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
     queryKey: ["chatMessages", selectedConversation?.id],
     queryFn: async () => {
       if (!selectedConversation?.id) return [];
       const msgs = await base44.entities.ChatMessage.filter(
         { conversation_id: selectedConversation.id },
-        "created_date"
+        "created_date",
+        1000 // Load all messages
       );
       return msgs.filter((m) => !m.is_deleted);
     },
     enabled: !!selectedConversation?.id,
-    staleTime: 2000,
-    refetchOnWindowFocus: false,
-    refetchInterval: 3000, // Poll every 3 seconds instead of 1
+    staleTime: 1000,
+    refetchInterval: 2000, // Real-time polling
+    refetchOnWindowFocus: true,
   });
 
   // Mark messages as read

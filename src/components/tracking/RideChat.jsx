@@ -26,17 +26,51 @@ export default function RideChat({ booking, user }) {
     booking.owner_email || booking.created_by
   ].filter(Boolean);
 
-  // ✅ Buscar mensagens com polling em tempo real
-  const { data: messages = [] } = useQuery({
-    queryKey: ['rideMessages', booking.id],
+  // ✅ Fetch or create conversation for this booking (UNIQUE)
+  const { data: conversation } = useQuery({
+    queryKey: ['rideConversation', booking.id],
     queryFn: async () => {
-      const msgs = await base44.entities.ChatMessage.filter({
+      const existing = await base44.entities.ChatConversation.filter({
         booking_id: booking.id
-      }, 'created_date');
-      return msgs;
+      });
+      
+      if (existing && existing.length > 0) {
+        return existing[0];
+      }
+
+      // Create new conversation for this booking
+      return await base44.entities.ChatConversation.create({
+        participants: participants,
+        participant_names: {
+          [booking.walker_email]: booking.walker_name,
+          [booking.owner_email || booking.created_by]: booking.owner_name
+        },
+        booking_id: booking.id,
+        tags: ["booking", "ride"],
+        last_message: "Chat iniciado",
+        last_message_date: new Date().toISOString(),
+        unread_counts: {},
+        is_muted: {},
+        pinned_by: [],
+        typing_users: []
+      });
     },
     enabled: !!booking?.id,
-    refetchInterval: 3000, // Realtime: atualiza a cada 3s
+  });
+
+  // ✅ Fetch messages with full history
+  const { data: messages = [] } = useQuery({
+    queryKey: ['rideMessages', conversation?.id],
+    queryFn: async () => {
+      if (!conversation?.id) return [];
+      const msgs = await base44.entities.ChatMessage.filter({
+        conversation_id: conversation.id
+      }, 'created_date', 1000);
+      return msgs.filter(m => !m.is_deleted);
+    },
+    enabled: !!conversation?.id,
+    refetchInterval: 2000, // Real-time updates
+    staleTime: 1000,
   });
 
   // Contar mensagens não lidas
@@ -57,41 +91,50 @@ export default function RideChat({ booking, user }) {
     }
   }, [isOpen]);
 
-  // ✅ Mutation para enviar mensagem
+  // ✅ Send message mutation (uses unique conversation)
   const sendMessageMutation = useMutation({
     mutationFn: async (content) => {
-      const conversationId = `ride_${booking.id}`;
+      if (!conversation?.id) {
+        throw new Error('Conversa não encontrada');
+      }
       
-      return await base44.entities.ChatMessage.create({
-        conversation_id: conversationId,
+      const newMsg = await base44.entities.ChatMessage.create({
+        conversation_id: conversation.id,
         booking_id: booking.id,
         sender_email: user.email,
         sender_name: user.full_name,
+        sender_photo_url: user.profile_photo_url,
         participants: participants,
         content: content,
-        timestamp: new Date().toISOString()
+        message_type: 'text',
+        is_read: false,
       });
+
+      // Update conversation last message
+      await base44.entities.ChatConversation.update(conversation.id, {
+        last_message: content,
+        last_message_date: new Date().toISOString(),
+        last_sender_email: user.email,
+      });
+
+      return newMsg;
     },
     onSuccess: async (newMessage) => {
-      queryClient.invalidateQueries(['rideMessages', booking.id]);
+      queryClient.invalidateQueries(['rideMessages']);
+      queryClient.invalidateQueries(['rideConversation']);
       setMessage('');
       
-      // 🔔 Notificar outro participante
-      try {
-        const recipientEmail = participants.find(p => p !== user.email);
-        if (recipientEmail) {
-          await base44.entities.Notification.create({
-            recipient_email: recipientEmail,
-            title: `💬 Nova mensagem de ${user.full_name}`,
-            message: newMessage.content.substring(0, 100),
-            type: 'booking',
-            related_id: booking.id,
-            priority: 'normal',
-            action_url: `/ActiveRide/${booking.id}`
-          });
-        }
-      } catch (err) {
-        console.error('Erro ao notificar:', err);
+      // Notify recipient
+      const recipientEmail = participants.find(p => p !== user.email);
+      if (recipientEmail) {
+        await base44.entities.Notification.create({
+          recipient_email: recipientEmail,
+          title: `💬 ${user.full_name}`,
+          message: newMessage.content.substring(0, 100),
+          type: 'message',
+          related_id: conversation.id,
+          priority: 'normal',
+        });
       }
     },
     onError: () => {
@@ -191,66 +234,79 @@ export default function RideChat({ booking, user }) {
                 </Button>
               </div>
 
-              {/* Messages Area */}
+              {/* Messages Area with Map Integration */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-                {showMap ? (
+                {showMap && booking.booking_id ? (
                   <div className="space-y-3">
-                    {/* Show pickup map BEFORE walk starts (status = pending/confirmed) */}
-                    {booking.status === 'pending' || booking.status === 'confirmed' ? (
+                    {/* BEFORE walk starts: Show pickup location */}
+                    {(booking.status === 'pending' || booking.status === 'confirmed') && (
                       <div>
                         <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
                           <MapPin className="w-4 h-4 text-green-600" />
-                          📍 Localização de Recolha
+                          📍 Onde Recolher {booking.dog_name}
                         </p>
                         <ClientPickupMap 
                           pickupLocation={{
                             lat: booking.pickup_lat || 38.7223,
                             lng: booking.pickup_lng || -9.1393,
-                            address: booking.pickup_address || 'Lisboa, Portugal',
+                            address: booking.pickup_address || 'Localização não definida',
                             clientName: booking.owner_name
                           }}
                         />
+                        <p className="text-xs text-gray-600 mt-2">
+                          💡 Use o botão "Navegar" para abrir no Google Maps
+                        </p>
                       </div>
-                    ) : (
-                      /* Show active walk map DURING the walk (status = in_progress) */
-                      booking.status === 'in_progress' && (
-                        <div>
-                          <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                            <Activity className="w-4 h-4 text-blue-600 animate-pulse" />
-                            🐕 Passeio ao Vivo
-                          </p>
-                          <ActiveWalkMap
-                            currentLocation={{
-                              lat: booking.walker_lat || booking.pickup_lat || 38.7223,
-                              lng: booking.walker_lng || booking.pickup_lng || -9.1393
-                            }}
-                            pathHistory={booking.route_coordinates || []}
-                            startLocation={
-                              booking.pickup_lat && booking.pickup_lng 
-                                ? { lat: booking.pickup_lat, lng: booking.pickup_lng }
-                                : null
-                            }
-                          />
-                          <div className="mt-2 text-xs text-gray-600 flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                            Atualizando em tempo real
-                          </div>
-                        </div>
-                      )
                     )}
 
-                    {/* Completed walk summary */}
-                    {booking.status === 'service_completed' || booking.status === 'completed' ? (
+                    {/* DURING walk: Show live tracking */}
+                    {booking.status === 'in_progress' && (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                          <Activity className="w-4 h-4 text-blue-600 animate-pulse" />
+                          🐕 Rastreamento ao Vivo
+                        </p>
+                        <ActiveWalkMap
+                          currentLocation={{
+                            lat: booking.walker_lat || booking.pickup_lat || 38.7223,
+                            lng: booking.walker_lng || booking.pickup_lng || -9.1393
+                          }}
+                          pathHistory={booking.route_coordinates || []}
+                          startLocation={
+                            booking.pickup_lat && booking.pickup_lng 
+                              ? { lat: booking.pickup_lat, lng: booking.pickup_lng }
+                              : null
+                          }
+                        />
+                        <div className="mt-2 flex items-center justify-between text-xs">
+                          <span className="text-gray-600 flex items-center gap-1">
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            GPS ativo
+                          </span>
+                          <span className="font-bold text-blue-600">
+                            {booking.distance_km?.toFixed(2) || '0.00'} km
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* COMPLETED: Show summary */}
+                    {(booking.status === 'service_completed' || booking.status === 'completed') && (
                       <div className="text-center py-8">
                         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                           <CheckCircle className="w-8 h-8 text-green-600" />
                         </div>
-                        <h3 className="font-bold text-lg text-gray-900 mb-2">Passeio Concluído!</h3>
+                        <h3 className="font-bold text-lg text-gray-900 mb-2">✅ Passeio Concluído!</h3>
                         <p className="text-sm text-gray-600">
-                          Distância total: {booking.distance_km?.toFixed(2) || '0.00'} km
+                          Distância: {booking.distance_km?.toFixed(2) || '0.00'} km
                         </p>
                       </div>
-                    ) : null}
+                    )}
+                  </div>
+                ) : showMap && !booking.booking_id ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm">Mapa disponível apenas para conversas de reservas</p>
                   </div>
                 ) : (
                   <>
