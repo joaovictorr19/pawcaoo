@@ -681,6 +681,31 @@ export default function AdminDashboard() {
     onError: (error) => toast.error("Erro ao eliminar perfil de passeador: " + (error.message || "Erro desconhecido")),
   });
 
+  // Criar Reserva de Teste
+  const createTestBookingMutation = useMutation({
+    mutationFn: async ({ walkerId, walkerEmail }) => {
+      const response = await base44.functions.invoke('createTestBooking', {
+        walkerId,
+        walkerEmail
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(["allBookings"]);
+      toast.success("🧪 Reserva de teste criada!", {
+        description: "Redirecionando para o chat..."
+      });
+      setTimeout(() => {
+        navigate(createPageUrl(`Chat?conversationId=${data.conversation.id}`));
+      }, 1000);
+    },
+    onError: (error) => {
+      toast.error("Erro ao criar teste", {
+        description: error.message
+      });
+    }
+  });
+
   const adminDeleteBookingMutation = useMutation({
     mutationFn: async ({ id, entityType }) => {
       const entity = entityType === 'training' ? base44.entities.TrainingBooking : base44.entities.Booking;
@@ -2411,13 +2436,28 @@ export default function AdminDashboard() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                           <div className="flex gap-2">
+                           <div className="flex gap-2 flex-wrap">
                              <Button
                                size="sm"
                                variant="outline"
                                onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
                              >
                                <Eye className="w-4 h-4" />
+                             </Button>
+                             <Button
+                               size="sm"
+                               className="bg-purple-600 hover:bg-purple-700 text-white"
+                               onClick={() =>
+                                 createTestBookingMutation.mutate({
+                                   walkerId: walker.id,
+                                   walkerEmail: walker.created_by
+                                 })
+                               }
+                               disabled={createTestBookingMutation.isPending}
+                               title="Criar reserva de teste para ver chat + mapa"
+                             >
+                               <Zap className="w-4 h-4 mr-1" />
+                               Teste
                              </Button>
                              <Button
                                size="sm"
