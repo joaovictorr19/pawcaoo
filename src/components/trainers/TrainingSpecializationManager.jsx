@@ -76,31 +76,35 @@ export default function TrainingSpecializationManager({ specializations = [], on
   const [expandedId, setExpandedId] = useState(null);
 
   const handleToggle = (spec) => {
-    const exists = specializations.find(s => s.specialty_id === spec.id);
+    console.log('🎓 Toggle specialization:', spec.id, 'Current:', specializations);
+    const exists = specializations?.find(s => s.specialty_id === spec.id);
     
     if (exists) {
-      onChange(specializations.filter(s => s.specialty_id !== spec.id));
+      const updated = (specializations || []).filter(s => s.specialty_id !== spec.id);
+      console.log('✅ Removing spec, new list:', updated);
+      onChange(updated);
+      if (expandedId === spec.id) setExpandedId(null);
     } else {
-      onChange([
-        ...specializations,
-        {
-          specialty_id: spec.id,
-          specialty_name: spec.name,
-          description: spec.description,
-          years_experience: 0,
-          certifications: []
-        }
-      ]);
+      const newSpec = {
+        specialty_id: spec.id,
+        specialty_name: spec.name,
+        description: spec.description,
+        years_experience: 0,
+        certifications: []
+      };
+      const updated = [...(specializations || []), newSpec];
+      console.log('✅ Adding spec, new list:', updated);
+      onChange(updated);
       setExpandedId(spec.id);
     }
   };
 
   const updateSpecialization = (specId, field, value) => {
-    onChange(
-      specializations.map(s =>
-        s.specialty_id === specId ? { ...s, [field]: value } : s
-      )
+    console.log('📝 Updating spec:', specId, field, value);
+    const updated = (specializations || []).map(s =>
+      s.specialty_id === specId ? { ...s, [field]: value } : s
     );
+    onChange(updated);
   };
 
   const addCertification = (specId, cert) => {
@@ -131,13 +135,13 @@ export default function TrainingSpecializationManager({ specializations = [], on
 
       <div className="grid gap-3">
         {AVAILABLE_SPECIALIZATIONS.map((spec) => {
-          const isSelected = specializations.find(s => s.specialty_id === spec.id);
+          const isSelected = (specializations || []).find(s => s.specialty_id === spec.id);
           const isExpanded = expandedId === spec.id;
 
           return (
             <Card
               key={spec.id}
-              className={`transition-all cursor-pointer ${
+              className={`transition-all ${
                 isSelected
                   ? 'ring-2 ring-purple-500 bg-purple-50'
                   : 'hover:shadow-md hover:bg-gray-50'
@@ -145,16 +149,23 @@ export default function TrainingSpecializationManager({ specializations = [], on
             >
               <CardContent className="p-4">
                 <div
-                  onClick={() => handleToggle(spec)}
-                  className="flex items-start gap-3"
+                  onClick={(e) => {
+                    console.log('🖱️ Card clicked:', spec.id);
+                    e.preventDefault();
+                    handleToggle(spec);
+                  }}
+                  className="flex items-start gap-3 cursor-pointer"
                 >
-                  <Checkbox checked={!!isSelected} className="mt-1" />
-                  <div className="flex-1">
+                  <Checkbox 
+                    checked={!!isSelected} 
+                    className="mt-1 pointer-events-none" 
+                  />
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-2xl">{spec.icon}</span>
                       <h4 className="font-bold text-sm">{spec.name}</h4>
                     </div>
-                    <p className="text-xs text-gray-600">{spec.description}</p>
+                    <p className="text-xs text-gray-600 line-clamp-2">{spec.description}</p>
                   </div>
                   {isSelected && (
                     <Button
@@ -163,8 +174,10 @@ export default function TrainingSpecializationManager({ specializations = [], on
                       variant="ghost"
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log('📂 Expand clicked:', spec.id);
                         setExpandedId(isExpanded ? null : spec.id);
                       }}
+                      className="shrink-0"
                     >
                       {isExpanded ? '▲' : '▼'}
                     </Button>

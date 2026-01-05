@@ -832,27 +832,20 @@ export default function BecomeProfessional() {
                                 </RadioGroup>
                               </div>
 
-                              {formData.france_professional_type === 'professional' && (
-                                <div className="space-y-2 bg-blue-50 p-4 rounded-lg border border-blue-300">
-                                  <Label>SIRET *</Label>
-                                  <Input
-                                    required
-                                    value={formData.tax_id_france}
-                                    onChange={(e) => setFormData({...formData, tax_id_france: e.target.value})}
-                                    placeholder="12345678901234"
-                                    maxLength={14}
-                                  />
-                                  <p className="text-xs text-gray-600">Número SIRET de 14 dígitos (obrigatório para auto-entrepreneurs)</p>
-                                </div>
-                              )}
-
-                              {formData.france_professional_type === 'individual' && (
-                                <Alert className="border-orange-300 bg-orange-50">
-                                  <AlertDescription className="text-sm">
-                                    ⚠️ <strong>Atenção:</strong> Como particular, não precisa de SIRET. Os rendimentos devem ser declarados via CESU pelo cliente. A responsabilidade legal é entre o cliente e o prestador.
-                                  </AlertDescription>
-                                </Alert>
-                              )}
+                              <div className="space-y-2 bg-blue-50 p-4 rounded-lg border border-blue-300">
+                                <Label>Número Fiscal Francês {formData.france_professional_type === 'professional' ? '*' : '(Opcional)'}</Label>
+                                <Input
+                                  required={formData.france_professional_type === 'professional'}
+                                  value={formData.tax_id_france}
+                                  onChange={(e) => setFormData({...formData, tax_id_france: e.target.value})}
+                                  placeholder={formData.france_professional_type === 'professional' ? "12345678901234 (SIRET)" : "Número fiscal (se tiver)"}
+                                />
+                                <p className="text-xs text-gray-600">
+                                  {formData.france_professional_type === 'professional' 
+                                    ? "SIRET obrigatório para auto-entrepreneurs e empresas" 
+                                    : "Particulares não precisam de SIRET. Declaração via CESU."}
+                                </p>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -876,8 +869,11 @@ export default function BecomeProfessional() {
                             </div>
 
                             <TrainingSpecializationManager
-                              specializations={formData.training_specializations}
-                              onChange={(specs) => setFormData({...formData, training_specializations: specs})}
+                              specializations={formData.training_specializations || []}
+                              onChange={(specs) => {
+                                console.log('🎓 Specs updated:', specs);
+                                setFormData({...formData, training_specializations: specs || []});
+                              }}
                             />
 
                             <div className="space-y-3">
