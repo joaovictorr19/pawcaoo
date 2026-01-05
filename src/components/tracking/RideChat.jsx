@@ -4,16 +4,19 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { MessageCircle, Send, X, Loader2 } from 'lucide-react';
+import { MessageCircle, Send, X, Loader2, MapPin, Activity, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import ClientPickupMap from '@/components/tracking/ClientPickupMap';
+import ActiveWalkMap from '@/components/tracking/ActiveWalkMap';
 
 export default function RideChat({ booking, user }) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [lastReadTime, setLastReadTime] = useState(Date.now());
+  const [showMap, setShowMap] = useState(true);
   const queryClient = useQueryClient();
   const messagesEndRef = useRef(null);
 
@@ -161,46 +164,136 @@ export default function RideChat({ booking, user }) {
                 </button>
               </div>
 
+              {/* Map & Messages Tabs */}
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 border-b">
+                <Button
+                  size="sm"
+                  variant={showMap ? "default" : "ghost"}
+                  onClick={() => setShowMap(true)}
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <MapPin className="w-3 h-3" />
+                  Mapa
+                </Button>
+                <Button
+                  size="sm"
+                  variant={!showMap ? "default" : "ghost"}
+                  onClick={() => setShowMap(false)}
+                  className="flex items-center gap-1 text-xs relative"
+                >
+                  <MessageCircle className="w-3 h-3" />
+                  Chat
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </div>
+
               {/* Messages Area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-                {messages.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm">Nenhuma mensagem ainda</p>
-                    <p className="text-xs mt-1">Envie a primeira mensagem!</p>
+                {showMap ? (
+                  <div className="space-y-3">
+                    {/* Show pickup map BEFORE walk starts (status = pending/confirmed) */}
+                    {booking.status === 'pending' || booking.status === 'confirmed' ? (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                          <MapPin className="w-4 h-4 text-green-600" />
+                          📍 Localização de Recolha
+                        </p>
+                        <ClientPickupMap 
+                          pickupLocation={{
+                            lat: booking.pickup_lat || 38.7223,
+                            lng: booking.pickup_lng || -9.1393,
+                            address: booking.pickup_address || 'Lisboa, Portugal',
+                            clientName: booking.owner_name
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      /* Show active walk map DURING the walk (status = in_progress) */
+                      booking.status === 'in_progress' && (
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                            <Activity className="w-4 h-4 text-blue-600 animate-pulse" />
+                            🐕 Passeio ao Vivo
+                          </p>
+                          <ActiveWalkMap
+                            currentLocation={{
+                              lat: booking.walker_lat || booking.pickup_lat || 38.7223,
+                              lng: booking.walker_lng || booking.pickup_lng || -9.1393
+                            }}
+                            pathHistory={booking.route_coordinates || []}
+                            startLocation={
+                              booking.pickup_lat && booking.pickup_lng 
+                                ? { lat: booking.pickup_lat, lng: booking.pickup_lng }
+                                : null
+                            }
+                          />
+                          <div className="mt-2 text-xs text-gray-600 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            Atualizando em tempo real
+                          </div>
+                        </div>
+                      )
+                    )}
+
+                    {/* Completed walk summary */}
+                    {booking.status === 'service_completed' || booking.status === 'completed' ? (
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <CheckCircle className="w-8 h-8 text-green-600" />
+                        </div>
+                        <h3 className="font-bold text-lg text-gray-900 mb-2">Passeio Concluído!</h3>
+                        <p className="text-sm text-gray-600">
+                          Distância total: {booking.distance_km?.toFixed(2) || '0.00'} km
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
                 ) : (
-                  messages.map((msg) => {
-                    const isMe = msg.sender_email === user?.email;
-                    return (
-                      <motion.div
-                        key={msg.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                          isMe 
-                            ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
-                            : 'bg-white border border-gray-200 text-gray-900'
-                        }`}>
-                          {!isMe && (
-                            <p className="text-xs font-semibold text-gray-600 mb-1">
-                              {msg.sender_name}
-                            </p>
-                          )}
-                          <p className="text-sm break-words">{msg.content}</p>
-                          <p className={`text-[10px] mt-1 ${
-                            isMe ? 'text-blue-100' : 'text-gray-500'
-                          }`}>
-                            {format(new Date(msg.created_date), 'HH:mm', { locale: ptBR })}
-                          </p>
-                        </div>
-                      </motion.div>
-                    );
-                  })
+                  <>
+                    {messages.length === 0 ? (
+                      <div className="text-center py-12 text-gray-500">
+                        <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                        <p className="text-sm">Nenhuma mensagem ainda</p>
+                        <p className="text-xs mt-1">Envie a primeira mensagem!</p>
+                      </div>
+                    ) : (
+                      messages.map((msg) => {
+                        const isMe = msg.sender_email === user?.email;
+                        return (
+                          <motion.div
+                            key={msg.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                              isMe 
+                                ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white' 
+                                : 'bg-white border border-gray-200 text-gray-900'
+                            }`}>
+                              {!isMe && (
+                                <p className="text-xs font-semibold text-gray-600 mb-1">
+                                  {msg.sender_name}
+                                </p>
+                              )}
+                              <p className="text-sm break-words">{msg.content}</p>
+                              <p className={`text-[10px] mt-1 ${
+                                isMe ? 'text-blue-100' : 'text-gray-500'
+                              }`}>
+                                {format(new Date(msg.created_date), 'HH:mm', { locale: ptBR })}
+                              </p>
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    )}
+                    <div ref={messagesEndRef} />
+                  </>
                 )}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Input Area */}
