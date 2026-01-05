@@ -400,38 +400,41 @@ export default function BecomeProfessional() {
                       <Label className="text-xl font-bold">Quero ser:</Label>
                       <RadioGroup value={professionalType} onValueChange={setProfessionalType}>
                         <div className="grid md:grid-cols-3 gap-4">
-                          <Card className={`cursor-pointer transition-all ${professionalType === 'walker' ? 'ring-4 ring-green-500 bg-green-50' : 'hover:shadow-lg'}`}
-                            onClick={() => setProfessionalType('walker')}>
-                            <CardContent className="p-6 text-center">
-                              <RadioGroupItem value="walker" id="walker" className="sr-only" />
-                              <Dog className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                              <h3 className="font-bold text-lg mb-2">Passeador</h3>
-                              <p className="text-sm text-gray-600">Passeios e cuidados com cães</p>
-                            </CardContent>
-                          </Card>
+                          <div 
+                            className={`cursor-pointer transition-all rounded-lg border-2 p-6 text-center ${professionalType === 'walker' ? 'ring-4 ring-green-500 bg-green-50 border-green-500' : 'border-gray-200 hover:shadow-lg'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setProfessionalType('walker');
+                            }}>
+                            <Dog className="w-12 h-12 text-green-600 mx-auto mb-3" />
+                            <h3 className="font-bold text-lg mb-2">Passeador</h3>
+                            <p className="text-sm text-gray-600">Passeios e cuidados com cães</p>
+                          </div>
 
-                          <Card className={`cursor-pointer transition-all ${professionalType === 'trainer' ? 'ring-4 ring-blue-500 bg-blue-50' : 'hover:shadow-lg'}`}
-                            onClick={() => setProfessionalType('trainer')}>
-                            <CardContent className="p-6 text-center">
-                              <RadioGroupItem value="trainer" id="trainer" className="sr-only" />
-                              <GraduationCap className="w-12 h-12 text-blue-600 mx-auto mb-3" />
-                              <h3 className="font-bold text-lg mb-2">Treinador</h3>
-                              <p className="text-sm text-gray-600">Treino e comportamento canino</p>
-                            </CardContent>
-                          </Card>
+                          <div 
+                            className={`cursor-pointer transition-all rounded-lg border-2 p-6 text-center ${professionalType === 'trainer' ? 'ring-4 ring-blue-500 bg-blue-50 border-blue-500' : 'border-gray-200 hover:shadow-lg'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setProfessionalType('trainer');
+                            }}>
+                            <GraduationCap className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+                            <h3 className="font-bold text-lg mb-2">Treinador</h3>
+                            <p className="text-sm text-gray-600">Treino e comportamento canino</p>
+                          </div>
 
-                          <Card className={`cursor-pointer transition-all ${professionalType === 'both' ? 'ring-4 ring-purple-500 bg-purple-50' : 'hover:shadow-lg'}`}
-                            onClick={() => setProfessionalType('both')}>
-                            <CardContent className="p-6 text-center">
-                              <RadioGroupItem value="both" id="both" className="sr-only" />
-                              <div className="flex justify-center gap-2 mb-3">
-                                <Dog className="w-10 h-10 text-green-600" />
-                                <GraduationCap className="w-10 h-10 text-blue-600" />
-                              </div>
-                              <h3 className="font-bold text-lg mb-2">Ambos</h3>
-                              <p className="text-sm text-gray-600">Passeador & Treinador</p>
-                            </CardContent>
-                          </Card>
+                          <div 
+                            className={`cursor-pointer transition-all rounded-lg border-2 p-6 text-center ${professionalType === 'both' ? 'ring-4 ring-purple-500 bg-purple-50 border-purple-500' : 'border-gray-200 hover:shadow-lg'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setProfessionalType('both');
+                            }}>
+                            <div className="flex justify-center gap-2 mb-3">
+                              <Dog className="w-10 h-10 text-green-600" />
+                              <GraduationCap className="w-10 h-10 text-blue-600" />
+                            </div>
+                            <h3 className="font-bold text-lg mb-2">Ambos</h3>
+                            <p className="text-sm text-gray-600">Passeador & Treinador</p>
+                          </div>
                         </div>
                       </RadioGroup>
                     </div>
@@ -760,32 +763,38 @@ export default function BecomeProfessional() {
                             <Label>Onde Presta Serviços? *</Label>
                             <RadioGroup value={formData.country_of_operation} onValueChange={(val) => setFormData({...formData, country_of_operation: val})}>
                               <div className="grid grid-cols-3 gap-3">
-                                <Card className={`cursor-pointer transition-all ${formData.country_of_operation === 'portugal' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:shadow-md'}`}
-                                  onClick={() => setFormData({...formData, country_of_operation: 'portugal'})}>
-                                  <CardContent className="p-4 text-center">
-                                    <RadioGroupItem value="portugal" id="pt" className="sr-only" />
-                                    <div className="text-3xl mb-2">🇵🇹</div>
-                                    <h4 className="font-bold text-sm">Portugal</h4>
-                                  </CardContent>
-                                </Card>
+                                <div 
+                                  className={`cursor-pointer transition-all rounded-lg border-2 p-4 text-center ${formData.country_of_operation === 'portugal' ? 'ring-2 ring-green-500 bg-green-50 border-green-500' : 'border-gray-200 hover:shadow-md hover:border-green-300'}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setFormData({...formData, country_of_operation: 'portugal'});
+                                  }}>
+                                  <div className="text-3xl mb-2">🇵🇹</div>
+                                  <h4 className="font-bold text-sm">Portugal</h4>
+                                </div>
 
-                                <Card className={`cursor-pointer transition-all ${formData.country_of_operation === 'spain' ? 'ring-2 ring-red-500 bg-red-50' : 'hover:shadow-md'}`}
-                                  onClick={() => setFormData({...formData, country_of_operation: 'spain'})}>
-                                  <CardContent className="p-4 text-center">
-                                    <RadioGroupItem value="spain" id="es" className="sr-only" />
-                                    <div className="text-3xl mb-2">🇪🇸</div>
-                                    <h4 className="font-bold text-sm">Espanha</h4>
-                                  </CardContent>
-                                </Card>
+                                <div 
+                                  className={`cursor-pointer transition-all rounded-lg border-2 p-4 text-center ${formData.country_of_operation === 'spain' ? 'ring-2 ring-red-500 bg-red-50 border-red-500' : 'border-gray-200 hover:shadow-md hover:border-red-300'}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setFormData({...formData, country_of_operation: 'spain'});
+                                  }}>
+                                  <div className="text-3xl mb-2">🇪🇸</div>
+                                  <h4 className="font-bold text-sm">Espanha</h4>
+                                </div>
 
-                                <Card className={`cursor-pointer transition-all ${formData.country_of_operation === 'france' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'}`}
-                                  onClick={() => setFormData({...formData, country_of_operation: 'france'})}>
-                                  <CardContent className="p-4 text-center">
-                                    <RadioGroupItem value="france" id="fr" className="sr-only" />
-                                    <div className="text-3xl mb-2">🇫🇷</div>
-                                    <h4 className="font-bold text-sm">França</h4>
-                                  </CardContent>
-                                </Card>
+                                <div 
+                                  className={`cursor-pointer transition-all rounded-lg border-2 p-4 text-center ${formData.country_of_operation === 'france' ? 'ring-2 ring-blue-500 bg-blue-50 border-blue-500' : 'border-gray-200 hover:shadow-md hover:border-blue-300'}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setFormData({...formData, country_of_operation: 'france'});
+                                  }}>
+                                  <div className="text-3xl mb-2">🇫🇷</div>
+                                  <h4 className="font-bold text-sm">França</h4>
+                                </div>
                               </div>
                             </RadioGroup>
                           </div>
@@ -823,28 +832,30 @@ export default function BecomeProfessional() {
                           {formData.country_of_operation === 'france' && (
                             <div className="space-y-4 bg-white p-4 rounded-lg border-2 border-blue-200">
                               <div className="space-y-2">
-                                <Label>Tipo de Prestador *</Label>
-                                <RadioGroup value={formData.france_professional_type} onValueChange={(val) => setFormData({...formData, france_professional_type: val, tax_id_france: val === 'individual' ? '' : formData.tax_id_france})}>
-                                  <div className="grid grid-cols-2 gap-3">
-                                    <Card className={`cursor-pointer ${formData.france_professional_type === 'professional' ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'}`}
-                                      onClick={() => setFormData({...formData, france_professional_type: 'professional'})}>
-                                      <CardContent className="p-3 text-center">
-                                        <RadioGroupItem value="professional" id="fr-pro" className="sr-only" />
-                                        <div className="font-semibold text-sm">Profissional</div>
-                                        <p className="text-xs text-gray-600">Auto-entrepreneur / Empresa</p>
-                                      </CardContent>
-                                    </Card>
+                              <Label>Tipo de Prestador *</Label>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div 
+                                  className={`cursor-pointer rounded-lg border-2 p-3 text-center ${formData.france_professional_type === 'professional' ? 'ring-2 ring-blue-500 bg-blue-50 border-blue-500' : 'border-gray-200 hover:shadow-md'}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setFormData({...formData, france_professional_type: 'professional'});
+                                  }}>
+                                  <div className="font-semibold text-sm">Profissional</div>
+                                  <p className="text-xs text-gray-600">Auto-entrepreneur / Empresa</p>
+                                </div>
 
-                                    <Card className={`cursor-pointer ${formData.france_professional_type === 'individual' ? 'ring-2 ring-green-500 bg-green-50' : 'hover:shadow-md'}`}
-                                      onClick={() => setFormData({...formData, france_professional_type: 'individual', tax_id_france: ''})}>
-                                      <CardContent className="p-3 text-center">
-                                        <RadioGroupItem value="individual" id="fr-ind" className="sr-only" />
-                                        <div className="font-semibold text-sm">Particular</div>
-                                        <p className="text-xs text-gray-600">Pessoa física</p>
-                                      </CardContent>
-                                    </Card>
-                                  </div>
-                                </RadioGroup>
+                                <div 
+                                  className={`cursor-pointer rounded-lg border-2 p-3 text-center ${formData.france_professional_type === 'individual' ? 'ring-2 ring-green-500 bg-green-50 border-green-500' : 'border-gray-200 hover:shadow-md'}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setFormData({...formData, france_professional_type: 'individual', tax_id_france: ''});
+                                  }}>
+                                  <div className="font-semibold text-sm">Particular</div>
+                                  <p className="text-xs text-gray-600">Pessoa física</p>
+                                </div>
+                              </div>
                               </div>
 
                               <div className="space-y-2 bg-blue-50 p-4 rounded-lg border border-blue-300">
@@ -975,8 +986,14 @@ export default function BecomeProfessional() {
                       </AlertDescription>
                     </Alert>
 
+                    <Alert className="border-blue-200 bg-blue-50 mb-4">
+                      <AlertDescription>
+                        <strong>Documentos Opcionais:</strong> Pode enviar agora ou depois no Painel Profissional.
+                      </AlertDescription>
+                    </Alert>
+
                     <div className="space-y-2">
-                      <Label>Documento de Identificação *</Label>
+                      <Label>Documento de Identificação (Opcional)</Label>
                       <Input
                         type="file"
                         accept="image/*,.pdf"
@@ -992,7 +1009,7 @@ export default function BecomeProfessional() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Comprovativo de Morada *</Label>
+                      <Label>Comprovativo de Morada (Opcional)</Label>
                       <Input
                         type="file"
                         accept="image/*,.pdf"
