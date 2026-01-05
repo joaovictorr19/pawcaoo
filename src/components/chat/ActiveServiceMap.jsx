@@ -2,7 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Button } from '@/components/ui/button';
-import { Navigation, MapPin } from 'lucide-react';
+import { Navigation } from 'lucide-react';
+import { MapControlsCustom } from '@/components/pawcao/MapControlsCustom';
 
 export default function ActiveServiceMap({ booking, currentUserEmail }) {
   const mapContainer = useRef(null);
@@ -140,6 +141,9 @@ export default function ActiveServiceMap({ booking, currentUserEmail }) {
     <div className="relative w-full h-48 rounded-lg overflow-hidden border border-white/20 shadow-lg">
       <div ref={mapContainer} className="w-full h-full" />
       
+      {/* Controles Personalizados */}
+      <MapControlsCustom mapRef={map} />
+      
       {/* Legenda */}
       <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm rounded-lg shadow-md p-2 text-xs space-y-1">
         <div className="flex items-center gap-2">
@@ -162,7 +166,7 @@ export default function ActiveServiceMap({ booking, currentUserEmail }) {
             const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${booking.pickup_lat},${booking.pickup_lng}`;
             window.open(mapsUrl, '_blank');
           }}
-          className="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white border-0 h-8 px-3 text-xs shadow-lg"
+          className="absolute bottom-2 left-2 bg-blue-600 hover:bg-blue-700 text-white border-0 h-8 px-3 text-xs shadow-lg"
         >
           <Navigation className="w-3 h-3 mr-1" />
           Abrir Rota
