@@ -19,6 +19,7 @@ export function Map({
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const finalCenter = center || [initialViewState.longitude, initialViewState.latitude];
   const finalZoom = zoom !== undefined ? zoom : initialViewState.zoom;
@@ -33,15 +34,21 @@ export function Map({
       zoom: finalZoom
     });
 
-    if (onMapLoad) {
-      map.current.on('load', () => {
+    // Store map reference in DOM for controls
+    mapContainer.current._map = map.current;
+
+    map.current.on('load', () => {
+      console.log('Map loaded successfully');
+      setIsLoaded(true);
+      if (onMapLoad) {
         onMapLoad(map.current);
-      });
-    }
+      }
+    });
 
     return () => {
       if (map.current) {
         map.current.remove();
+        map.current = null;
       }
     };
   }, []);
@@ -49,7 +56,7 @@ export function Map({
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className={className} />
-      {children}
+      {isLoaded && children}
     </div>
   );
 }
@@ -69,6 +76,45 @@ export function MapControls({
     "bottom-right": "bottom-2 right-2"
   };
 
+  const handleZoomIn = () => {
+    const mapEl = document.querySelector('.maplibregl-map');
+    if (mapEl?._map) {
+      mapEl._map.zoomIn();
+    }
+  };
+
+  const handleZoomOut = () => {
+    const mapEl = document.querySelector('.maplibregl-map');
+    if (mapEl?._map) {
+      mapEl._map.zoomOut();
+    }
+  };
+
+  const handleLocate = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const mapEl = document.querySelector('.maplibregl-map');
+          if (mapEl?._map) {
+            mapEl._map.flyTo({
+              center: [pos.coords.longitude, pos.coords.latitude],
+              zoom: 13
+            });
+          }
+          if (onLocate) {
+            onLocate({ longitude: pos.coords.longitude, latitude: pos.coords.latitude });
+          }
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          alert('Não foi possível obter sua localização');
+        }
+      );
+    } else {
+      alert('Geolocalização não suportada pelo navegador');
+    }
+  };
+
   return (
     <div className={`absolute ${positionClasses[position]} flex flex-col gap-1 z-10`}>
       {showZoom && (
@@ -77,10 +123,7 @@ export function MapControls({
             size="icon"
             variant="secondary"
             className="h-8 w-8 bg-white/95 hover:bg-white shadow-md"
-            onClick={(e) => {
-              const mapEl = e.currentTarget.closest('.relative').querySelector('.maplibregl-map');
-              if (mapEl?._map) mapEl._map.zoomIn();
-            }}
+            onClick={handleZoomIn}
           >
             <ZoomIn className="w-4 h-4" />
           </Button>
@@ -88,10 +131,7 @@ export function MapControls({
             size="icon"
             variant="secondary"
             className="h-8 w-8 bg-white/95 hover:bg-white shadow-md"
-            onClick={(e) => {
-              const mapEl = e.currentTarget.closest('.relative').querySelector('.maplibregl-map');
-              if (mapEl?._map) mapEl._map.zoomOut();
-            }}
+            onClick={handleZoomOut}
           >
             <ZoomOut className="w-4 h-4" />
           </Button>
@@ -102,15 +142,7 @@ export function MapControls({
           size="icon"
           variant="secondary"
           className="h-8 w-8 bg-white/95 hover:bg-white shadow-md"
-          onClick={() => {
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition((pos) => {
-                if (onLocate) {
-                  onLocate({ longitude: pos.coords.longitude, latitude: pos.coords.latitude });
-                }
-              });
-            }
-          }}
+          onClick={handleLocate}
         >
           <Locate className="w-4 h-4" />
         </Button>

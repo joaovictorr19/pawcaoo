@@ -1580,7 +1580,7 @@ export default function AdminDashboard() {
                         setMapLoaded(true);
                       }}
                     >
-                      {mapLoaded && <MapClusterLayer
+                      <MapClusterLayer
                         data={{
                           type: 'FeatureCollection',
                           features: [
@@ -1666,9 +1666,9 @@ export default function AdminDashboard() {
                             coordinates: coordinates
                           });
                         }}
-                      />}
+                      />
 
-                      {mapLoaded && selectedMapUser && (
+                      {selectedMapUser && (
                         <MapPopup
                           key={selectedMapUser.email}
                           longitude={selectedMapUser.coordinates[0]}
