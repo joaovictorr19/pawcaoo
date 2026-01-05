@@ -1573,10 +1573,29 @@ export default function ProfessionalDashboard() {
 
                             {booking.status === 'confirmed' && (
                               <>
+                                <Button
+                                  onClick={async () => {
+                                    try {
+                                      await base44.entities.Booking.update(booking.id, { 
+                                        status: 'in_progress',
+                                        walk_start_time: new Date().toISOString()
+                                      });
+                                      queryClient.invalidateQueries(['myWalkBookings']);
+                                      toast.success('✅ Serviço iniciado!');
+                                      navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
+                                    } catch (error) {
+                                      toast.error('Erro ao iniciar');
+                                    }
+                                  }}
+                                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg font-bold"
+                                >
+                                  🚀 Iniciar Serviço
+                                </Button>
                                 {new Date(booking.walk_date || booking.session_date) <= new Date() && (
                                   <Button
                                     onClick={() => handleServiceCompleted(booking)}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+                                    variant="outline"
+                                    className="w-full border-2 border-blue-300 text-blue-600 hover:bg-blue-50"
                                     disabled={updateBookingStatusMutation.isPending}
                                   >
                                     <CheckCircle className="w-4 h-4 mr-2" />
