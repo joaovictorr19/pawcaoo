@@ -152,7 +152,7 @@ export default function BecomeProfessional() {
       queryClient.invalidateQueries({ queryKey: ['trainers'] });
       setShowSuccess(true);
       setTimeout(() => {
-        navigate(createPageUrl('ProfessionalDashboard'));
+        navigate(createPageUrl('Home'));
       }, 3000);
     },
     onError: (error) => {
@@ -362,13 +362,21 @@ export default function BecomeProfessional() {
                     transition={{ delay: 0.2, type: "spring" }}
                   >
                     <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Sparkles className="w-12 h-12 text-green-600" />
+                      <CheckCircle2 className="w-12 h-12 text-green-600" />
                     </div>
                   </motion.div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Candidatura Recebida!</h2>
-                  <p className="text-lg text-gray-600">
-                    Iremos analisar o seu perfil em até 24-48 horas.
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Candidatura Enviada!</h2>
+                  <p className="text-lg text-gray-700 mb-2 font-semibold">
+                    A sua candidatura está em análise
                   </p>
+                  <p className="text-base text-gray-600 mb-6">
+                    Iremos verificar os seus dados e documentos nas próximas 24-48 horas. Receberá um email quando o seu perfil for aprovado.
+                  </p>
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-gray-700">
+                      Enquanto aguarda, pode explorar a plataforma e ver outros profissionais.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>

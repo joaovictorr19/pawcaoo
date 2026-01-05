@@ -967,13 +967,99 @@ export default function ProfessionalDashboard() {
               {dt('createProfileMessage', language)}
             </p>
             <div className="flex flex-col md:flex-row gap-3">
-              <Button onClick={() => navigate(createPageUrl('BecomeWalker'))} className="flex-1 h-12 bg-green-600 hover:bg-green-700">
-                {dt('becomeWalker', language)}
-              </Button>
-              <Button onClick={() => navigate(createPageUrl('BecomeTrainer'))} className="flex-1 h-12">
-                {dt('becomeTrainer', language)}
+              <Button onClick={() => navigate(createPageUrl('BecomeProfessional'))} className="flex-1 h-12 bg-green-600 hover:bg-green-700">
+                Criar Perfil Profissional
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // SECURITY: Block unverified professionals from dashboard
+  if (profile.verification_status === 'pending') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex items-center justify-center">
+        <Card className="max-w-2xl border-0 shadow-2xl mx-4">
+          <CardContent className="p-8 md:p-12 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <Clock className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+              Candidatura em Análise
+            </h2>
+            <p className="text-base md:text-lg text-gray-700 mb-2">
+              A sua candidatura foi recebida e está a ser analisada pela nossa equipa.
+            </p>
+            <p className="text-sm text-gray-600 mb-8">
+              Iremos verificar os seus dados e documentos nas próximas 24-48 horas. Receberá um email quando o seu perfil for aprovado.
+            </p>
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-6">
+              <h3 className="font-bold text-blue-900 mb-3">O que estamos a verificar:</h3>
+              <ul className="text-sm text-gray-700 space-y-2 text-left">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  Documentos de identificação
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  Informações fiscais
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  Experiência e qualificações
+                </li>
+                <li className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                  Verificação de segurança
+                </li>
+              </ul>
+            </div>
+            <Button 
+              onClick={() => navigate(createPageUrl('Home'))} 
+              variant="outline"
+              className="w-full h-12"
+            >
+              Voltar ao Início
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // SECURITY: Block rejected professionals
+  if (profile.verification_status === 'rejected') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex items-center justify-center">
+        <Card className="max-w-2xl border-0 shadow-2xl mx-4">
+          <CardContent className="p-8 md:p-12 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+              Candidatura Não Aprovada
+            </h2>
+            <p className="text-base text-gray-700 mb-4">
+              Infelizmente não foi possível aprovar a sua candidatura neste momento.
+            </p>
+            {profile.rejection_reason && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 mb-6">
+                <h3 className="font-bold text-red-900 mb-2">Motivo:</h3>
+                <p className="text-sm text-gray-700">{profile.rejection_reason}</p>
+              </div>
+            )}
+            <p className="text-sm text-gray-600 mb-6">
+              Pode contactar-nos através de support@pawcao.net se tiver questões ou desejar candidatar-se novamente.
+            </p>
+            <Button 
+              onClick={() => navigate(createPageUrl('Home'))} 
+              variant="outline"
+              className="w-full h-12"
+            >
+              Voltar ao Início
+            </Button>
           </CardContent>
         </Card>
       </div>
