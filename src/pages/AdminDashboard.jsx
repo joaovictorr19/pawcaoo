@@ -1771,8 +1771,8 @@ export default function AdminDashboard() {
                           }
                         }}
                       />
-                    </Map>
-                  </div>
+                      </Map>
+                      </div>
                   
                   {/* Map Legend */}
                   <div className="flex flex-wrap gap-3 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
