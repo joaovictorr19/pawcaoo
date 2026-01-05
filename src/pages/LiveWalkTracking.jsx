@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
-import RideChat from '../components/tracking/RideChat';
+
 
 export default function LiveWalkTracking() {
   const navigate = useNavigate();
