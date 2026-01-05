@@ -974,61 +974,101 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             ) : (
               <div className="flex-1 flex flex-col gap-2">
                 <Button
-                  type="button"
-                  onClick={async () => {
-                    setIsProcessing(true);
-                    try {
-                      console.log('🚀 Criando reserva sem pagamento...');
-                      const bookingData = {
-                        walker_id: isWalker ? pro.id : undefined,
-                        trainer_id: !isWalker ? pro.id : undefined,
-                        walker_name: proName,
-                        walker_email: pro.created_by,
-                        trainer_email: !isWalker ? pro.created_by : undefined,
-                        trainer_name: !isWalker ? proName : undefined,
-                        walker_payment_contact: pro.whatsapp_number || pro.phone,
-                        owner_name: user.full_name,
-                        owner_phone: formData.owner_phone,
-                        owner_email: user.email,
-                        dog_name: formData.dog_name,
-                        dog_size: formData.dog_size,
-                        walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
-                        walk_time: formData.walk_time,
-                        session_date: !isWalker ? format(formData.walk_date, 'yyyy-MM-dd') : undefined,
-                        session_time: !isWalker ? formData.walk_time : undefined,
-                        duration_hours: formData.duration_hours,
-                        service_amount: amounts.walkerReceives,
-                        platform_fee: amounts.platformFee,
-                        total_amount: amounts.totalAmount,
-                        special_notes: formData.special_notes,
-                        pickup_address: pickupAddress,
-                        pickup_lat: pickupCoords.lat,
-                        pickup_lng: pickupCoords.lng,
-                        status: 'pending',
-                        payment_status: 'pending',
-                        type: isWalker ? 'walk' : 'training'
-                      };
-                      
-                      const booking = await createBookingMutation.mutateAsync(bookingData);
-                      console.log('✅ Reserva criada:', booking.id);
-                      toast.success('✅ Reserva criada! Redirecionando para o chat...');
-                      
-                      // Pequeno delay para garantir que o chat foi criado
-                      setTimeout(() => {
-                        navigate(createPageUrl(`Chat?bookingId=${booking.id}`));
-                        onClose?.();
-                      }, 500);
-                    } catch (error) {
-                      console.error('❌ Erro:', error);
-                      toast.error('Erro ao criar reserva: ' + (error.message || 'Tente novamente'));
-                    } finally {
+                type="button"
+                onClick={async () => {
+                  setIsProcessing(true);
+                  try {
+                    console.log('🚀 Criando reserva sem pagamento...');
+
+                    // Validação final
+                    if (!formData.dog_name?.trim()) {
+                      toast.error('Nome do animal é obrigatório');
                       setIsProcessing(false);
+                      return;
                     }
-                  }}
-                  disabled={isProcessing}
-                  className="h-10 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700"
+
+                    if (!formData.walk_date) {
+                      toast.error('Data é obrigatória');
+                      setIsProcessing(false);
+                      return;
+                    }
+
+                    if (!formData.owner_phone?.trim()) {
+                      toast.error('Telefone é obrigatório');
+                      setIsProcessing(false);
+                      return;
+                    }
+
+                    if (!pickupAddress?.trim()) {
+                      toast.error('Morada de recolha é obrigatória');
+                      setIsProcessing(false);
+                      return;
+                    }
+
+                    const bookingData = {
+                      walker_id: isWalker ? pro.id : undefined,
+                      trainer_id: !isWalker ? pro.id : undefined,
+                      walker_name: proName,
+                      walker_email: pro.created_by,
+                      trainer_email: !isWalker ? pro.created_by : undefined,
+                      trainer_name: !isWalker ? proName : undefined,
+                      walker_payment_contact: pro.whatsapp_number || pro.phone,
+                      owner_name: user.full_name,
+                      owner_phone: formData.owner_phone,
+                      owner_email: user.email,
+                      dog_name: formData.dog_name,
+                      dog_size: formData.dog_size,
+                      walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
+                      walk_time: formData.walk_time,
+                      session_date: !isWalker ? format(formData.walk_date, 'yyyy-MM-dd') : undefined,
+                      session_time: !isWalker ? formData.walk_time : undefined,
+                      duration_hours: formData.duration_hours,
+                      service_amount: amounts.walkerReceives,
+                      platform_fee: amounts.platformFee,
+                      total_amount: amounts.totalAmount,
+                      special_notes: formData.special_notes,
+                      pickup_address: pickupAddress,
+                      pickup_lat: pickupCoords.lat || 0,
+                      pickup_lng: pickupCoords.lng || 0,
+                      status: 'pending',
+                      payment_status: 'pending',
+                      type: isWalker ? 'walk' : 'training'
+                    };
+
+                    console.log('📦 Booking data:', bookingData);
+                    const booking = await createBookingMutation.mutateAsync(bookingData);
+                    console.log('✅ Reserva criada:', booking.id);
+
+                    queryClient.invalidateQueries({ queryKey: ['myBookings'] });
+                    queryClient.invalidateQueries({ queryKey: ['conversations'] });
+
+                    toast.success('✅ Reserva criada! Redirecionando para o chat...', {
+                      description: 'O profissional foi notificado'
+                    });
+
+                    // Delay para garantir sincronização
+                    setTimeout(() => {
+                      navigate(createPageUrl(`Chat?bookingId=${booking.id}`));
+                      if (onClose) onClose();
+                    }, 800);
+                  } catch (error) {
+                    console.error('❌ Erro:', error);
+                    toast.error('Erro ao criar reserva: ' + (error.message || 'Tente novamente'));
+                  } finally {
+                    setIsProcessing(false);
+                  }
+                }}
+                disabled={isProcessing}
+                className="h-10 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700"
                 >
-                  {isProcessing ? 'A criar...' : 'Criar Reserva (Pagar Depois)'}
+                {isProcessing ? (
+                  <>
+                    <Clock className="w-4 h-4 mr-2 animate-spin" />
+                    A criar...
+                  </>
+                ) : (
+                  'Criar Reserva (Pagar Depois)'
+                )}
                 </Button>
                 <Button
                   type="button"

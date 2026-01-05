@@ -2311,19 +2311,42 @@ export default function AdminDashboard() {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>{t('activeWalkersManagement', language)} ({activeWalkers.length})</CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-                      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-                      toast.success("Lista atualizada!");
-                    }}
-                    className="gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Atualizar
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                      onClick={() => {
+                        const walkerId = prompt("ID do Passeador:");
+                        if (!walkerId) return;
+                        const walker = activeWalkers.find(w => w.id === walkerId);
+                        if (!walker) {
+                          toast.error("Passeador não encontrado");
+                          return;
+                        }
+                        createTestBookingMutation.mutate({
+                          walkerId: walker.id,
+                          walkerEmail: walker.created_by
+                        });
+                      }}
+                      disabled={createTestBookingMutation.isPending}
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Criar Reserva Manual
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                        queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+                        toast.success("Lista atualizada!");
+                      }}
+                      className="gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Atualizar
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
