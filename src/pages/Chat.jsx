@@ -364,6 +364,22 @@ export default function Chat() {
     },
   });
 
+  // Fetch booking data if conversation has booking_id
+  const { data: bookingData } = useQuery({
+    queryKey: ['chatBookingData', selectedConversation?.booking_id],
+    queryFn: async () => {
+      if (!selectedConversation?.booking_id) return null;
+      try {
+        const bookings = await base44.entities.Booking.filter({ id: selectedConversation.booking_id });
+        return bookings[0] || null;
+      } catch (e) {
+        return null;
+      }
+    },
+    enabled: !!selectedConversation?.booking_id,
+    staleTime: 30000,
+  });
+
   // Get other participant info
   const getOtherParticipant = useCallback(() => {
     if (!selectedConversation || !user?.email) return null;
@@ -483,6 +499,55 @@ export default function Chat() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        {/* Active Service Banner - Only for professionals when booking is confirmed/in_progress */}
+        {bookingData && (bookingData.status === 'confirmed' || bookingData.status === 'in_progress' || bookingData.status === 'service_completed') && 
+         (user?.email === bookingData.walker_email || user?.email === bookingData.trainer_email) && (
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-3 border-b flex-shrink-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge className="bg-white/20 text-white border-0 text-xs">
+                    {bookingData.status === 'in_progress' ? '🔴 EM ANDAMENTO' : 
+                     bookingData.status === 'service_completed' ? '✅ CONCLUÍDO' : 
+                     '📅 CONFIRMADO'}
+                  </Badge>
+                  <span className="text-xs font-semibold">{bookingData.dog_name}</span>
+                </div>
+                <div className="text-xs space-y-0.5 opacity-95">
+                  <p className="font-semibold flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {bookingData.pickup_address || 'Morada não definida'}
+                  </p>
+                  <p className="flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {format(new Date(bookingData.walk_date || bookingData.session_date), 'dd/MM/yyyy')} • {bookingData.walk_time || bookingData.session_time}
+                  </p>
+                </div>
+              </div>
+              {bookingData.pickup_lat && bookingData.pickup_lng && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${bookingData.pickup_lat},${bookingData.pickup_lng}`;
+                    window.open(mapsUrl, '_blank');
+                  }}
+                  className="bg-white/20 hover:bg-white/30 text-white border-0 h-8 px-3 text-xs flex-shrink-0"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                  Rota
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-3 py-3 bg-gray-50" ref={scrollRef}>
