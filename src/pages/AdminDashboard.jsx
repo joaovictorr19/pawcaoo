@@ -2442,7 +2442,8 @@ export default function AdminDashboard() {
                                variant="outline"
                                onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
                              >
-                               <Eye className="w-4 h-4" />
+                               <Eye className="w-4 h-4 mr-1" />
+                               Ver
                              </Button>
                              <Button
                                size="sm"
@@ -2454,10 +2455,10 @@ export default function AdminDashboard() {
                                  })
                                }
                                disabled={createTestBookingMutation.isPending}
-                               title="Criar reserva de teste para ver chat + mapa"
+                               title="Criar reserva de teste para ver chat e mapa em tempo real"
                              >
                                <Zap className="w-4 h-4 mr-1" />
-                               Teste
+                               {createTestBookingMutation.isPending ? 'Criando...' : 'Teste Passeio'}
                              </Button>
                              <Button
                                size="sm"
