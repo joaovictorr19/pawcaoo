@@ -75,6 +75,15 @@ const AVAILABLE_SPECIALIZATIONS = [
 export default function TrainingSpecializationManager({ specializations = [], onChange }) {
   const [expandedId, setExpandedId] = useState(null);
 
+  // CRITICAL: Ensure onChange always receives an array
+  React.useEffect(() => {
+    console.log('🎓 TrainingSpecializationManager mounted with:', specializations);
+    if (!Array.isArray(specializations)) {
+      console.warn('⚠️ Specializations is not an array, fixing...');
+      onChange([]);
+    }
+  }, []);
+
   const handleToggle = (spec) => {
     console.log('🎓 Toggle specialization:', spec.id, 'Current:', specializations);
     const exists = specializations?.find(s => s.specialty_id === spec.id);
@@ -108,15 +117,15 @@ export default function TrainingSpecializationManager({ specializations = [], on
   };
 
   const addCertification = (specId, cert) => {
-    const spec = specializations.find(s => s.specialty_id === specId);
-    if (spec && cert.trim()) {
+    const spec = (specializations || []).find(s => s.specialty_id === specId);
+    if (spec && cert?.trim()) {
       updateSpecialization(specId, 'certifications', [...(spec.certifications || []), cert.trim()]);
     }
   };
 
   const removeCertification = (specId, index) => {
-    const spec = specializations.find(s => s.specialty_id === specId);
-    if (spec) {
+    const spec = (specializations || []).find(s => s.specialty_id === specId);
+    if (spec && spec.certifications) {
       const updated = [...spec.certifications];
       updated.splice(index, 1);
       updateSpecialization(specId, 'certifications', updated);

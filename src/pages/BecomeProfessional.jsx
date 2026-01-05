@@ -60,12 +60,12 @@ export default function BecomeProfessional() {
     mbway_number: "",
     portfolio: [],
     languages_spoken: [],
-    // Trainer specific
+    // Trainer specific (ALWAYS initialized as arrays)
     training_specialties: [],
     training_specializations: [],
     training_methodologies: [],
     consultation_options: [],
-    training_philosophy: "",
+    training_philosophy: ""
     // Services check
     hasBoarding: false,
     boardingPrice: 25,
@@ -125,10 +125,10 @@ export default function BecomeProfessional() {
         languages_spoken: data.languages_spoken,
         // Trainer fields (stored in same profile)
         is_verified_trainer: isAlsoTrainer,
-        training_specialties: isAlsoTrainer ? data.training_specialties : [],
-        training_specializations: isAlsoTrainer ? data.training_specializations : [],
-        training_philosophy: isAlsoTrainer ? data.training_philosophy : "",
-        consultation_options: isAlsoTrainer ? data.consultation_options : [],
+        training_specialties: isAlsoTrainer ? (data.training_specialties || []) : [],
+        training_specializations: isAlsoTrainer ? (data.training_specializations || []) : [],
+        training_philosophy: isAlsoTrainer ? (data.training_philosophy || "") : "",
+        consultation_options: isAlsoTrainer ? (data.consultation_options || []) : [],
         // Multi-Country Tax Fields
         country_of_operation: data.country_of_operation,
         tax_id_portugal: data.tax_id_portugal,
