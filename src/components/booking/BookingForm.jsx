@@ -858,23 +858,69 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 Continuar →
               </Button>
             ) : (
-              <Button
-                type="button"
-                onClick={handlePayment}
-                disabled={isPaymentProcessing}
-                className="flex-1 h-11 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              >
-                {isPaymentProcessing ? (
-                  <>
-                    <Clock className="w-4 h-4 mr-2 animate-spin" />
-                    {language === 'pt' ? 'A processar pagamento' : language === 'es' ? 'Procesando pago' : language === 'fr' ? 'Traitement du paiement' : 'Processing payment'}...
-                  </>
-                ) : (
-                  <>
-                    {language === 'pt' ? 'Confirmar e Pagar' : language === 'es' ? 'Confirmar y Pagar' : language === 'fr' ? 'Confirmer et Payer' : 'Confirm and Pay'} {formatCurrency(amounts.totalAmount)}
-                  </>
-                )}
-              </Button>
+              <div className="flex-1 flex flex-col gap-2">
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    setIsProcessing(true);
+                    try {
+                      const bookingData = {
+                        walker_id: isWalker ? pro.id : undefined, 
+                        walker_name: proName,
+                        walker_email: pro.created_by,
+                        walker_payment_contact: pro.whatsapp_number || pro.phone,
+                        owner_name: user.full_name,
+                        owner_phone: formData.owner_phone,
+                        owner_email: user.email,
+                        dog_name: formData.dog_name,
+                        dog_size: formData.dog_size,
+                        walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
+                        walk_time: formData.walk_time,
+                        duration_hours: formData.duration_hours,
+                        service_amount: amounts.walkerReceives,
+                        platform_fee: amounts.platformFee,
+                        total_amount: amounts.totalAmount,
+                        special_notes: formData.special_notes,
+                        pickup_address: pickupAddress,
+                        pickup_lat: pickupCoords.lat,
+                        pickup_lng: pickupCoords.lng,
+                        status: 'pending',
+                        payment_status: 'pending'
+                      };
+                      
+                      const booking = await createBookingMutation.mutateAsync(bookingData);
+                      toast.success('Reserva criada! Pode pagar depois.');
+                      navigate(createPageUrl(`Chat?bookingId=${booking.id}`));
+                      onClose?.();
+                    } catch (error) {
+                      toast.error('Erro ao criar reserva');
+                    } finally {
+                      setIsProcessing(false);
+                    }
+                  }}
+                  disabled={isProcessing}
+                  className="h-10 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  {isProcessing ? 'A criar...' : 'Criar Reserva (Pagar Depois)'}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handlePayment}
+                  disabled={isPaymentProcessing}
+                  className="h-10 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {isPaymentProcessing ? (
+                    <>
+                      <Clock className="w-4 h-4 mr-2 animate-spin" />
+                      A processar...
+                    </>
+                  ) : (
+                    <>
+                      Pagar Agora {formatCurrency(amounts.totalAmount)}
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
           </div>
         </CardContent>
