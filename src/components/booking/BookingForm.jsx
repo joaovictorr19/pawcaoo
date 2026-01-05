@@ -254,32 +254,42 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   // Mutation para criar booking
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData) => {
-      console.log('📝 Criando booking:', bookingData);
+      console.log('📝 Criando booking com dados:', bookingData);
+      console.log('🎯 Profissional:', { id: pro.id, email: pro.created_by, nome: proName });
       
       // CRITICAL: Validate required fields before creating
       if (!bookingData.dog_name || !bookingData.walk_date) {
         throw new Error('Dados obrigatórios em falta');
       }
 
-      if (!pro?.created_by) {
-        throw new Error('Profissional inválido');
+      if (!pro?.created_by || !pro?.id) {
+        throw new Error('Profissional inválido - falta ID ou email');
       }
       
       // 1. Criar RESERVA DIRETA com Walker Específico - SEMPRE VISÍVEL
       // Generate completion code (6 digits)
       const completionCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      const booking = await base44.entities.Booking.create({
+      const bookingPayload = {
         ...bookingData,
         status: 'pending',
         payment_status: 'pending',
-        walker_email: pro.created_by,
-        walker_id: pro.id,
+        walker_email: pro.created_by, // CRITICAL: Email do profissional
+        walker_id: pro.id, // CRITICAL: ID do perfil do profissional
         walker_name: proName,
         type: isWalker ? 'walk' : 'training',
         completion_code: completionCode
-      });
-      console.log('✅ RESERVA criada:', booking.id, 'Código:', completionCode);
+      };
+      
+      console.log('📦 Payload final da reserva:', bookingPayload);
+      
+      const booking = await base44.entities.Booking.create(bookingPayload);
+      console.log('✅ RESERVA CRIADA COM SUCESSO!');
+      console.log('   ID:', booking.id);
+      console.log('   Walker Email:', booking.walker_email);
+      console.log('   Walker ID:', booking.walker_id);
+      console.log('   Status:', booking.status);
+      console.log('   Código:', completionCode);
 
       // 2. Atualizar Disponibilidade (Reservar Horário)
       try {
@@ -1017,6 +1027,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                   setIsProcessing(true);
                   try {
                     console.log('🚀 Criando reserva sem pagamento...');
+                    console.log('👤 Profissional:', pro.id, pro.created_by, proName);
 
                     // Validação final
                     if (!formData.dog_name?.trim()) {
@@ -1043,14 +1054,17 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       return;
                     }
 
+                    // CRITICAL: Garantir que walker_id e walker_email estão SEMPRE definidos
                     const bookingData = {
-                      walker_id: isWalker ? pro.id : undefined,
-                      trainer_id: !isWalker ? pro.id : undefined,
+                      walker_id: pro.id, // SEMPRE definir
+                      walker_email: pro.created_by, // SEMPRE definir
                       walker_name: proName,
-                      walker_email: pro.created_by,
+                      walker_payment_contact: pro.whatsapp_number || pro.phone,
+                      
+                      trainer_id: !isWalker ? pro.id : undefined,
                       trainer_email: !isWalker ? pro.created_by : undefined,
                       trainer_name: !isWalker ? proName : undefined,
-                      walker_payment_contact: pro.whatsapp_number || pro.phone,
+                      
                       owner_name: user.full_name,
                       owner_phone: formData.owner_phone,
                       owner_email: user.email,
@@ -1073,9 +1087,12 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       type: isWalker ? 'walk' : 'training'
                     };
 
-                    console.log('📦 Booking data:', bookingData);
+                    console.log('📦 Booking data FINAL:', JSON.stringify(bookingData, null, 2));
                     const booking = await createBookingMutation.mutateAsync(bookingData);
-                    console.log('✅ Reserva criada:', booking.id);
+                    console.log('✅ Reserva criada com SUCESSO!');
+                    console.log('   ID:', booking.id);
+                    console.log('   Walker ID salvo:', booking.walker_id);
+                    console.log('   Walker Email salvo:', booking.walker_email);
 
                     queryClient.invalidateQueries({ queryKey: ['myBookings'] });
                     queryClient.invalidateQueries({ queryKey: ['conversations'] });
