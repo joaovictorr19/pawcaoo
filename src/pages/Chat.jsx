@@ -187,18 +187,20 @@ export default function Chat() {
     if (conversationId && conversations.length > 0) {
       const conv = conversations.find((c) => c.id === conversationId);
       if (conv && conv.id !== selectedConversation?.id) {
+        console.log('💬 Abrindo conversa via URL:', conv.id);
         isSelectingRef.current = true;
         setSelectedConversation(conv);
         setShowConversationList(false);
         setTimeout(() => { isSelectingRef.current = false; }, 100);
       }
     } else if (bookingConversation && bookingConversation.id !== selectedConversation?.id) {
+      console.log('💬 Abrindo conversa via booking:', bookingConversation.id);
       isSelectingRef.current = true;
       setSelectedConversation(bookingConversation);
       setShowConversationList(false);
       setTimeout(() => { isSelectingRef.current = false; }, 100);
     }
-  }, [conversationId, bookingConversation?.id]);
+  }, [conversationId, bookingConversation?.id, conversations]);
 
   // Fetch messages for selected conversation with full history
   const { data: messages = [], isLoading: loadingMessages } = useQuery({

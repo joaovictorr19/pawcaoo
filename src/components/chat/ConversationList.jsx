@@ -12,6 +12,8 @@ export default function ConversationList({
   onSelect,
   isLoading,
 }) {
+  console.log('📋 ConversationList - Total:', conversations.length, 'User:', currentUserId);
+  
   // Separate active services from other conversations
   const activeServiceConvos = conversations.filter(c => 
     c.booking?.status === 'confirmed' || 
@@ -23,6 +25,9 @@ export default function ConversationList({
     c.booking?.status !== 'in_progress' &&
     c.booking?.status !== 'service_completed'
   );
+  
+  console.log('   Ativos:', activeServiceConvos.length);
+  console.log('   Outros:', otherConvos.length);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
