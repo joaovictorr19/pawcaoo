@@ -1666,9 +1666,9 @@ export default function AdminDashboard() {
                             coordinates: coordinates
                           });
                         }}
-                      />
-                      
-                      {selectedMapUser && (
+                      />}
+
+                      {mapLoaded && selectedMapUser && (
                         <MapPopup
                           key={selectedMapUser.email}
                           longitude={selectedMapUser.coordinates[0]}
