@@ -55,7 +55,7 @@ export default function ActiveWalkDashboard() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch booking
+  // Fetch booking with real-time updates
   const { data: booking, isLoading } = useQuery({
     queryKey: ['activeBooking', bookingId],
     queryFn: async () => {
@@ -64,7 +64,8 @@ export default function ActiveWalkDashboard() {
       return bookings[0] || null;
     },
     enabled: !!bookingId,
-    refetchInterval: 5000,
+    refetchInterval: 2000, // Poll every 2 seconds for real-time feel
+    refetchIntervalInBackground: true,
   });
 
   // Fetch checkpoints
@@ -107,13 +108,17 @@ export default function ActiveWalkDashboard() {
     return messages.filter(m => m.sender_email !== user?.email && !m.read_by?.includes(user?.email)).length;
   }, [messages, user?.email]);
 
-  // Start GPS tracking
+  // Real-time GPS tracking with debounce
+  const updateIntervalRef = useRef(null);
+  const pendingPositionRef = useRef(null);
+
   useEffect(() => {
     if (booking?.status === 'in_progress' && navigator.geolocation && !isTracking) {
-      console.log('🚀 Starting GPS tracking...');
+      console.log('🚀 Starting real-time GPS tracking...');
       setIsTracking(true);
       startTimeRef.current = booking.walk_start_time ? new Date(booking.walk_start_time) : new Date();
 
+      // Watch position continuously
       watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
           const newPos = {
@@ -122,24 +127,50 @@ export default function ActiveWalkDashboard() {
             accuracy: position.coords.accuracy,
             timestamp: new Date().toISOString()
           };
+          
+          // Update UI immediately
           setCurrentPosition(newPos);
-
-          // Update booking location
-          base44.entities.Booking.update(bookingId, {
-            walker_lat: newPos.lat,
-            walker_lng: newPos.lng,
-            last_update: newPos.timestamp,
-            route_coordinates: [...(booking.route_coordinates || []), newPos]
-          }).catch(err => console.error('Location update error:', err));
+          pendingPositionRef.current = newPos;
+          
+          console.log('📍 GPS Update:', newPos.lat.toFixed(6), newPos.lng.toFixed(6), '±', newPos.accuracy.toFixed(0), 'm');
         },
         (error) => console.error('GPS error:', error),
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { 
+          enableHighAccuracy: true, 
+          timeout: 5000, 
+          maximumAge: 0,
+          distanceFilter: 5 // iOS optimization
+        }
       );
+
+      // Batch update database every 3 seconds
+      updateIntervalRef.current = setInterval(async () => {
+        if (pendingPositionRef.current) {
+          const pos = pendingPositionRef.current;
+          pendingPositionRef.current = null;
+
+          try {
+            await base44.entities.Booking.update(bookingId, {
+              walker_lat: pos.lat,
+              walker_lng: pos.lng,
+              last_update: pos.timestamp,
+              route_coordinates: [...(booking.route_coordinates || []), pos]
+            });
+            console.log('✅ Position saved to DB');
+          } catch (err) {
+            console.error('❌ DB update error:', err);
+          }
+        }
+      }, 3000);
     }
 
     return () => {
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
+        console.log('🛑 GPS tracking stopped');
+      }
+      if (updateIntervalRef.current) {
+        clearInterval(updateIntervalRef.current);
       }
     };
   }, [booking?.status, bookingId, isTracking]);
