@@ -205,8 +205,12 @@ export default function TrainingSpecializationManager({ specializations = [], on
                       <div className="space-y-2">
                         <Label className="text-xs">Descrição Personalizada</Label>
                         <Textarea
-                          value={isSelected.description || ''}
-                          onChange={(e) => updateSpecialization(spec.id, 'description', e.target.value)}
+                          value={isSelected?.description || ''}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            updateSpecialization(spec.id, 'description', e.target.value);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
                           placeholder="Adicione detalhes sobre sua experiência nesta área..."
                           rows={3}
                           className="text-sm"
@@ -219,8 +223,12 @@ export default function TrainingSpecializationManager({ specializations = [], on
                           type="number"
                           min="0"
                           max="50"
-                          value={isSelected.years_experience || 0}
-                          onChange={(e) => updateSpecialization(spec.id, 'years_experience', parseInt(e.target.value) || 0)}
+                          value={isSelected?.years_experience || 0}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            updateSpecialization(spec.id, 'years_experience', parseInt(e.target.value) || 0);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
                           className="text-sm"
                         />
                       </div>
@@ -228,16 +236,19 @@ export default function TrainingSpecializationManager({ specializations = [], on
                       <div className="space-y-2">
                         <Label className="text-xs flex items-center gap-1">
                           <Award className="w-3 h-3" />
-                          Certificações Relacionadas
+                          Certificações Relacionadas (Opcional)
                         </Label>
                         <div className="space-y-2">
-                          {isSelected.certifications?.map((cert, idx) => (
+                          {isSelected?.certifications?.map((cert, idx) => (
                             <div key={idx} className="flex items-center gap-2">
                               <Badge variant="secondary" className="flex-1 justify-between">
                                 <span>{cert}</span>
                                 <button
                                   type="button"
-                                  onClick={() => removeCertification(spec.id, idx)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeCertification(spec.id, idx);
+                                  }}
                                   className="ml-2 hover:text-red-600"
                                 >
                                   <Trash2 className="w-3 h-3" />
@@ -249,9 +260,11 @@ export default function TrainingSpecializationManager({ specializations = [], on
                             <Input
                               placeholder="Nome da certificação..."
                               className="text-xs"
+                              onClick={(e) => e.stopPropagation()}
                               onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                   e.preventDefault();
+                                  e.stopPropagation();
                                   addCertification(spec.id, e.target.value);
                                   e.target.value = '';
                                 }
@@ -262,9 +275,12 @@ export default function TrainingSpecializationManager({ specializations = [], on
                               size="sm"
                               variant="outline"
                               onClick={(e) => {
-                                const input = e.target.closest('.flex').querySelector('input');
-                                addCertification(spec.id, input.value);
-                                input.value = '';
+                                e.stopPropagation();
+                                const input = e.target.closest('.flex')?.querySelector('input');
+                                if (input?.value) {
+                                  addCertification(spec.id, input.value);
+                                  input.value = '';
+                                }
                               }}
                             >
                               <Plus className="w-3 h-3" />

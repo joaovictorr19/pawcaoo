@@ -95,47 +95,51 @@ export default function BecomeProfessional() {
       // Se for "both" ou "trainer", marcamos is_verified_trainer = true
       const isAlsoTrainer = professionalType === 'trainer' || professionalType === 'both';
       
+      console.log('📝 Creating WalkerProfile with data:', { isAlsoTrainer, training_specializations: data.training_specializations });
+      
       results.walker = await base44.entities.WalkerProfile.create({
         walker_name: data.name,
-        age: data.age,
-        photo_url: data.photo_url,
-        cover_photo_url: data.cover_photo_url,
-        video_intro_url: data.video_intro_url,
-        bio: data.bio,
+        age: data.age || 0,
+        photo_url: data.photo_url || "",
+        cover_photo_url: data.cover_photo_url || "",
+        video_intro_url: data.video_intro_url || "",
+        bio: data.bio || "",
         location: data.location,
-        service_areas: data.service_areas,
+        service_areas: Array.isArray(data.service_areas) ? data.service_areas : [],
         hourly_rate: data.hourly_rate,
-        services_offered: data.services_offered,
-        experience_years: data.experience_years,
-        phone: data.phone,
+        services_offered: Array.isArray(data.services_offered) ? data.services_offered : [],
+        experience_years: data.experience_years || 0,
+        phone: data.phone || "",
         whatsapp_number: data.whatsapp_number,
-        is_active: false, // Force inactive until approved
-        verification_status: "pending", // Force pending
-        dog_sizes: data.dog_sizes,
-        dog_breeds_handled: data.dog_breeds_handled,
-        breed_specialization: data.breed_specialization,
-        availability: data.availability,
-        id_document_url: data.id_document_url,
-        proof_of_address_url: data.proof_of_address_url,
-        bank_account_holder: data.bank_account_holder,
-        bank_account_number: data.bank_account_number,
-        bank_routing_number: data.bank_routing_number,
-        mbway_number: data.mbway_number,
-        portfolio: data.portfolio,
-        languages_spoken: data.languages_spoken,
+        is_active: false,
+        verification_status: "pending",
+        dog_sizes: Array.isArray(data.dog_sizes) ? data.dog_sizes : [],
+        dog_breeds_handled: Array.isArray(data.dog_breeds_handled) ? data.dog_breeds_handled : [],
+        breed_specialization: Array.isArray(data.breed_specialization) ? data.breed_specialization : [],
+        availability: Array.isArray(data.availability) ? data.availability : [],
+        id_document_url: data.id_document_url || "",
+        proof_of_address_url: data.proof_of_address_url || "",
+        bank_account_holder: data.bank_account_holder || "",
+        bank_account_number: data.bank_account_number || "",
+        bank_routing_number: data.bank_routing_number || "",
+        mbway_number: data.mbway_number || "",
+        portfolio: Array.isArray(data.portfolio) ? data.portfolio : [],
+        languages_spoken: Array.isArray(data.languages_spoken) ? data.languages_spoken : [],
         // Trainer fields (stored in same profile)
         is_verified_trainer: isAlsoTrainer,
-        training_specialties: isAlsoTrainer ? (data.training_specialties || []) : [],
-        training_specializations: isAlsoTrainer ? (data.training_specializations || []) : [],
+        training_specialties: isAlsoTrainer ? (Array.isArray(data.training_specialties) ? data.training_specialties : []) : [],
+        training_specializations: isAlsoTrainer ? (Array.isArray(data.training_specializations) ? data.training_specializations : []) : [],
         training_philosophy: isAlsoTrainer ? (data.training_philosophy || "") : "",
-        consultation_options: isAlsoTrainer ? (data.consultation_options || []) : [],
+        consultation_options: isAlsoTrainer ? (Array.isArray(data.consultation_options) ? data.consultation_options : []) : [],
         // Multi-Country Tax Fields
         country_of_operation: data.country_of_operation,
-        tax_id_portugal: data.tax_id_portugal,
-        tax_id_spain: data.tax_id_spain,
-        france_professional_type: data.france_professional_type,
-        tax_id_france: data.tax_id_france
+        tax_id_portugal: data.tax_id_portugal || "",
+        tax_id_spain: data.tax_id_spain || "",
+        france_professional_type: data.france_professional_type || "",
+        tax_id_france: data.tax_id_france || ""
       });
+      
+      console.log('✅ WalkerProfile created:', results.walker.id);
 
       // Update user account_type
       await base44.auth.updateMe({ account_type: professionalType });
@@ -197,6 +201,8 @@ export default function BecomeProfessional() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('🚀 Submitting professional profile...', { professionalType, formData });
+    
     if (!professionalType) {
       toast.error("Por favor selecione o tipo de profissional");
       return;
@@ -224,14 +230,14 @@ export default function BecomeProfessional() {
         return;
       }
       if (formData.france_professional_type === 'professional' && !formData.tax_id_france) {
-        toast.error("SIRET é obrigatório para Profissionais em França");
+        toast.error("Número Fiscal é obrigatório para Profissionais em França");
         return;
       }
     }
 
     const rate = parseFloat(formData.hourly_rate);
-    const exp = parseFloat(formData.experience_years);
-    const ageNum = parseFloat(formData.age);
+    const exp = parseFloat(formData.experience_years) || 0;
+    const ageNum = parseFloat(formData.age) || 0;
 
     if (isNaN(rate) || rate <= 0) {
       toast.error("Taxa horária inválida.");
@@ -282,15 +288,24 @@ export default function BecomeProfessional() {
       });
     }
 
-    await createProfileMutation.mutateAsync({
+    // Garantir que arrays de treinador estão sempre definidos (mesmo vazios)
+    const finalData = {
       ...formData,
       hourly_rate: rate,
       services_offered: services,
-      experience_years: isNaN(exp) ? 0 : exp,
-      age: isNaN(ageNum) ? 0 : ageNum,
-      is_active: false, // Aprovação obrigatória
-      verification_status: 'pending' // Estado pendente
-    });
+      experience_years: exp,
+      age: ageNum,
+      is_active: false,
+      verification_status: 'pending',
+      // CRITICAL: Garantir arrays sempre definidos
+      training_specializations: Array.isArray(formData.training_specializations) ? formData.training_specializations : [],
+      training_specialties: Array.isArray(formData.training_specialties) ? formData.training_specialties : [],
+      consultation_options: Array.isArray(formData.consultation_options) ? formData.consultation_options : []
+    };
+
+    console.log('✅ Final data prepared:', finalData);
+    
+    await createProfileMutation.mutateAsync(finalData);
   };
 
   const toggleArrayItem = (field, value) => {
@@ -1007,73 +1022,83 @@ export default function BecomeProfessional() {
                   </motion.div>
                 )}
 
-                {/* STEP 3: PAYMENT */}
+                {/* STEP 3: PAYMENT - OPCIONAL */}
                 {currentStep === 3 && (
-                  <motion.div
-                    key="step3"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-6"
-                  >
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2 md:col-span-2">
-                        <Label>Nome do Titular da Conta</Label>
-                        <Input
-                          value={formData.bank_account_holder}
-                          onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
-                          placeholder="João Silva"
-                        />
-                      </div>
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <Alert className="border-blue-300 bg-blue-50">
+                    <AlertDescription className="text-sm">
+                      ℹ️ <strong>Opcional:</strong> Pode adicionar seus dados bancários agora ou depois no Painel Profissional. 
+                      Os pagamentos ficarão retidos na sua carteira até configurar o método de saque.
+                    </AlertDescription>
+                  </Alert>
 
-                      <div className="space-y-2">
-                        <Label>IBAN</Label>
-                        <Input
-                          value={formData.bank_account_number}
-                          onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
-                          placeholder="PT50000201231234567890154"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>SWIFT/BIC</Label>
-                        <Input
-                          value={formData.bank_routing_number}
-                          onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
-                          placeholder="BOFAPORTXXX"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>MBWay (Opcional)</Label>
-                        <Input
-                          value={formData.mbway_number}
-                          onChange={(e) => setFormData({...formData, mbway_number: e.target.value})}
-                          placeholder="912345678"
-                        />
-                      </div>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Nome do Titular da Conta (Opcional)</Label>
+                      <Input
+                        value={formData.bank_account_holder || ""}
+                        onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
+                        placeholder="João Silva"
+                      />
                     </div>
 
-                    <div className="flex gap-3 pt-6">
-                      <Button type="button" variant="outline" onClick={() => setCurrentStep(2)} className="flex-1">
-                        ← Anterior
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={createProfileMutation.isPending}
-                        className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold shadow-xl"
-                      >
-                        {createProfileMutation.isPending ? (
-                          "Submetendo..."
-                        ) : (
-                          <span className="flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5" />
-                            Submeter para Verificação
-                          </span>
-                        )}
-                      </Button>
+                    <div className="space-y-2">
+                      <Label>IBAN (Opcional)</Label>
+                      <Input
+                        value={formData.bank_account_number || ""}
+                        onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
+                        placeholder="PT50000201231234567890154"
+                      />
                     </div>
-                  </motion.div>
+
+                    <div className="space-y-2">
+                      <Label>SWIFT/BIC (Opcional)</Label>
+                      <Input
+                        value={formData.bank_routing_number || ""}
+                        onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
+                        placeholder="BOFAPORTXXX"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>MBWay (Opcional)</Label>
+                      <Input
+                        value={formData.mbway_number || ""}
+                        onChange={(e) => setFormData({...formData, mbway_number: e.target.value})}
+                        placeholder="912345678"
+                      />
+                      <p className="text-xs text-gray-500">
+                        💡 Sugestão: MBWay é o método mais rápido para receber pagamentos
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-6">
+                    <Button type="button" variant="outline" onClick={() => setCurrentStep(2)} className="flex-1">
+                      ← Anterior
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={createProfileMutation.isPending}
+                      className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold shadow-xl"
+                    >
+                      {createProfileMutation.isPending ? (
+                        "Submetendo..."
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5" />
+                          Submeter para Verificação
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                </motion.div>
                 )}
               </AnimatePresence>
             </form>
