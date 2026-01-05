@@ -404,27 +404,39 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     console.log('📍 handleNextStep - Step:', step, 'Data:', formData);
     
     if (step === 1) {
-      // Validar cão
+      // Validar cão - FORÇAR input do nome se modo manual
       const hasDog = selectedDogId || (showManualInput && formData.dog_name?.trim());
       if (!hasDog) {
-        toast.error('Selecione ou adicione um animal', {
-          description: 'É necessário escolher um cão para continuar'
+        toast.error('⚠️ Selecione ou adicione um animal', {
+          description: 'É necessário escolher um cão para continuar',
+          duration: 4000
+        });
+        return;
+      }
+      
+      // Se modo manual, garantir que nome foi preenchido
+      if (showManualInput && !formData.dog_name?.trim()) {
+        toast.error('⚠️ Digite o nome do animal', {
+          description: 'O nome do animal é obrigatório',
+          duration: 4000
         });
         return;
       }
       
       // Validar data
       if (!formData.walk_date) {
-        toast.error('Selecione a data', {
-          description: 'Escolha uma data disponível no calendário'
+        toast.error('⚠️ Selecione a data', {
+          description: 'Escolha uma data disponível no calendário',
+          duration: 4000
         });
         return;
       }
       
       // Validar horário
       if (!formData.walk_time) {
-        toast.error('Selecione o horário', {
-          description: 'Escolha um horário disponível'
+        toast.error('⚠️ Selecione o horário', {
+          description: 'Escolha um horário disponível',
+          duration: 4000
         });
         return;
       }
@@ -434,15 +446,33 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       
     } else if (step === 2) {
       if (!pickupAddress?.trim()) {
-        toast.error('Indique o local de recolha', {
-          description: 'A morada é obrigatória para o passeador ir buscar o cão'
+        toast.error('⚠️ Indique o local de recolha', {
+          description: 'A morada é obrigatória para o passeador ir buscar o cão',
+          duration: 4000
         });
+        // Scroll para o campo de morada
+        setTimeout(() => {
+          const addressInput = document.querySelector('input[placeholder*="Rua"]');
+          if (addressInput) {
+            addressInput.focus();
+            addressInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
         return;
       }
       if (!formData.owner_phone?.trim()) {
-        toast.error('Indique o número de telefone', {
-          description: 'Precisamos de um contacto para o passeador'
+        toast.error('⚠️ Indique o número de telefone', {
+          description: 'Precisamos de um contacto para o passeador',
+          duration: 4000
         });
+        // Scroll para o campo de telefone
+        setTimeout(() => {
+          const phoneInput = document.querySelector('input[type="tel"]');
+          if (phoneInput) {
+            phoneInput.focus();
+            phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
         return;
       }
       
@@ -641,17 +671,19 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                     </div>
                   </div>
                   {showManualInput && (
-                    <div className="bg-blue-50 rounded-lg p-3 space-y-2 border-2 border-blue-400 animate-in">
-                      <Label className="text-xs font-semibold text-blue-900">Dados do Animal</Label>
-                      <Input
-                        value={formData.dog_name}
-                        onChange={(e) => {
-                          console.log('📝 Nome do animal:', e.target.value);
-                          setFormData({...formData, dog_name: e.target.value});
-                        }}
-                        placeholder="Nome do animal *"
-                        className="h-9 text-sm border-blue-200"
-                      />
+                   <div className="bg-blue-50 rounded-lg p-3 space-y-2 border-2 border-blue-400 animate-in">
+                     <Label className="text-xs font-semibold text-blue-900">Dados do Animal</Label>
+                     <Input
+                       value={formData.dog_name}
+                       onChange={(e) => {
+                         console.log('📝 Nome do animal:', e.target.value);
+                         setFormData({...formData, dog_name: e.target.value});
+                       }}
+                       placeholder="Nome do animal *"
+                       className="h-9 text-sm border-blue-200"
+                       required
+                       autoFocus
+                     />
                       <Select
                         value={formData.dog_size}
                         onValueChange={(value) => {
@@ -865,18 +897,19 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               </div>
 
               <div>
-                <Label className="text-sm">Telefone *</Label>
+                <Label className="text-sm font-semibold text-gray-700">Telefone *</Label>
                 <Input
                   type="tel"
                   value={formData.owner_phone}
                   onChange={(e) => setFormData({...formData, owner_phone: e.target.value})}
                   placeholder="912345678"
-                  className="h-9"
+                  className="h-10 border-2"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-sm">
+                <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                   <MapPin className="w-4 h-4 text-green-600" /> 
                   Morada de Recolha *
                 </Label>
@@ -884,7 +917,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                   value={pickupAddress}
                   onChange={(e) => setPickupAddress(e.target.value)}
                   placeholder="Rua, Número, Cidade"
-                  className="h-9"
+                  className="h-10 border-2"
+                  required
                 />
                 
                 <div className="flex items-center gap-2">
