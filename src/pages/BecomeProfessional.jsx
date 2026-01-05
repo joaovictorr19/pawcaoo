@@ -65,7 +65,7 @@ export default function BecomeProfessional() {
     training_specializations: [],
     training_methodologies: [],
     consultation_options: [],
-    training_philosophy: ""
+    training_philosophy: "",
     // Services check
     hasBoarding: false,
     boardingPrice: 25,
