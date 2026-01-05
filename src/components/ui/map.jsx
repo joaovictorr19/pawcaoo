@@ -9,7 +9,8 @@ export function Map({
     zoom: 12 
   },
   className = "w-full h-full",
-  children 
+  children,
+  onMapLoad
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -24,8 +25,12 @@ export function Map({
       zoom: initialViewState.zoom
     });
 
-    // Add navigation controls
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+    // Notify parent when map is loaded
+    if (onMapLoad) {
+      map.current.on('load', () => {
+        onMapLoad(map.current);
+      });
+    }
 
     return () => {
       if (map.current) {
@@ -35,6 +40,9 @@ export function Map({
   }, []);
 
   return (
-    <div ref={mapContainer} className={className} />
+    <div className="relative w-full h-full">
+      <div ref={mapContainer} className={className} />
+      {children}
+    </div>
   );
 }
