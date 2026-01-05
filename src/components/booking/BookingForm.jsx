@@ -266,16 +266,20 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       }
       
       // 1. Criar RESERVA DIRETA com Walker Específico - SEMPRE VISÍVEL
+      // Generate completion code (6 digits)
+      const completionCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
       const booking = await base44.entities.Booking.create({
         ...bookingData,
-        status: 'pending', // Aguardando pagamento
+        status: 'pending',
         payment_status: 'pending',
         walker_email: pro.created_by,
         walker_id: pro.id,
         walker_name: proName,
-        type: isWalker ? 'walk' : 'training'
+        type: isWalker ? 'walk' : 'training',
+        completion_code: completionCode
       });
-      console.log('✅ RESERVA criada:', booking.id);
+      console.log('✅ RESERVA criada:', booking.id, 'Código:', completionCode);
 
       // 2. Atualizar Disponibilidade (Reservar Horário)
       try {
