@@ -75,62 +75,71 @@ const AVAILABLE_SPECIALIZATIONS = [
 export default function TrainingSpecializationManager({ specializations = [], onChange }) {
   const [expandedId, setExpandedId] = useState(null);
 
-  // CRITICAL: Ensure onChange always receives an array
-  React.useEffect(() => {
-    console.log('🎓 TrainingSpecializationManager mounted with:', specializations);
-    if (!Array.isArray(specializations)) {
-      console.warn('⚠️ Specializations is not an array, fixing...');
-      onChange([]);
-    }
-  }, []);
-
   const handleToggle = (spec) => {
-    console.log('🎓 Toggle specialization:', spec.id, 'Current:', specializations);
-    const exists = specializations?.find(s => s.specialty_id === spec.id);
-    
-    if (exists) {
-      const updated = (specializations || []).filter(s => s.specialty_id !== spec.id);
-      console.log('✅ Removing spec, new list:', updated);
-      onChange(updated);
-      if (expandedId === spec.id) setExpandedId(null);
-    } else {
-      const newSpec = {
-        specialty_id: spec.id,
-        specialty_name: spec.name,
-        description: spec.description,
-        years_experience: 0,
-        certifications: []
-      };
-      const updated = [...(specializations || []), newSpec];
-      console.log('✅ Adding spec, new list:', updated);
-      onChange(updated);
-      setExpandedId(spec.id);
+    try {
+      const safeSpecs = Array.isArray(specializations) ? specializations : [];
+      const exists = safeSpecs.find(s => s.specialty_id === spec.id);
+      
+      if (exists) {
+        const updated = safeSpecs.filter(s => s.specialty_id !== spec.id);
+        onChange(updated);
+        if (expandedId === spec.id) setExpandedId(null);
+      } else {
+        const newSpec = {
+          specialty_id: spec.id,
+          specialty_name: spec.name,
+          description: spec.description,
+          years_experience: 0,
+          certifications: []
+        };
+        const updated = [...safeSpecs, newSpec];
+        onChange(updated);
+        setExpandedId(spec.id);
+      }
+    } catch (error) {
+      console.error('Error toggling spec:', error);
     }
   };
 
   const updateSpecialization = (specId, field, value) => {
-    console.log('📝 Updating spec:', specId, field, value);
-    const updated = (specializations || []).map(s =>
-      s.specialty_id === specId ? { ...s, [field]: value } : s
-    );
-    onChange(updated);
+    try {
+      const safeSpecs = Array.isArray(specializations) ? specializations : [];
+      const updated = safeSpecs.map(s =>
+        s.specialty_id === specId ? { ...s, [field]: value } : s
+      );
+      onChange(updated);
+    } catch (error) {
+      console.error('Error updating spec:', error);
+    }
   };
 
   const addCertification = (specId, cert) => {
-    const spec = (specializations || []).find(s => s.specialty_id === specId);
-    if (spec && cert?.trim()) {
-      updateSpecialization(specId, 'certifications', [...(spec.certifications || []), cert.trim()]);
+    try {
+      const safeSpecs = Array.isArray(specializations) ? specializations : [];
+      const spec = safeSpecs.find(s => s.specialty_id === specId);
+      if (spec && cert?.trim()) {
+        updateSpecialization(specId, 'certifications', [...(spec.certifications || []), cert.trim()]);
+      }
+    } catch (error) {
+      console.error('Error adding cert:', error);
     }
   };
 
   const removeCertification = (specId, index) => {
-    const spec = (specializations || []).find(s => s.specialty_id === specId);
-    if (spec && spec.certifications) {
-      const updated = [...spec.certifications];
-      updated.splice(index, 1);
-      updateSpecialization(specId, 'certifications', updated);
+    try {
+      const safeSpecs = Array.isArray(specializations) ? specializations : [];
+      const spec = safeSpecs.find(s => s.specialty_id === specId);
+      if (spec && spec.certifications) {
+        const updated = [...spec.certifications];
+        updated.splice(index, 1);
+        updateSpecialization(specId, 'certifications', updated);
+      }
+    } catch (error) {
+      console.error('Error removing cert:', error);
     }
   };
+
+  const safeSpecs = Array.isArray(specializations) ? specializations : [];
 
   return (
     <div className="space-y-4">
@@ -138,13 +147,13 @@ export default function TrainingSpecializationManager({ specializations = [], on
         <GraduationCap className="w-5 h-5 text-purple-600" />
         <h3 className="font-bold text-lg">Especializações de Treino</h3>
         <Badge className="bg-purple-100 text-purple-800">
-          {specializations.length} selecionadas
+          {safeSpecs.length} selecionadas
         </Badge>
       </div>
 
       <div className="grid gap-3">
         {AVAILABLE_SPECIALIZATIONS.map((spec) => {
-          const isSelected = (specializations || []).find(s => s.specialty_id === spec.id);
+          const isSelected = safeSpecs.find(s => s.specialty_id === spec.id);
           const isExpanded = expandedId === spec.id;
 
           return (
@@ -159,16 +168,20 @@ export default function TrainingSpecializationManager({ specializations = [], on
               <CardContent className="p-4">
                 <div
                   onClick={(e) => {
-                    console.log('🖱️ Card clicked:', spec.id);
                     e.preventDefault();
+                    e.stopPropagation();
                     handleToggle(spec);
                   }}
                   className="flex items-start gap-3 cursor-pointer"
                 >
-                  <Checkbox 
-                    checked={!!isSelected} 
-                    className="mt-1 pointer-events-none" 
-                  />
+                  <div onClick={(e) => e.stopPropagation()} className="mt-1">
+                    <Checkbox 
+                      checked={!!isSelected} 
+                      onCheckedChange={(checked) => {
+                        handleToggle(spec);
+                      }}
+                    />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-2xl">{spec.icon}</span>
@@ -182,8 +195,8 @@ export default function TrainingSpecializationManager({ specializations = [], on
                       size="sm"
                       variant="ghost"
                       onClick={(e) => {
+                        e.preventDefault();
                         e.stopPropagation();
-                        console.log('📂 Expand clicked:', spec.id);
                         setExpandedId(isExpanded ? null : spec.id);
                       }}
                       className="shrink-0"
@@ -200,7 +213,6 @@ export default function TrainingSpecializationManager({ specializations = [], on
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       className="mt-4 pt-4 border-t space-y-4"
-                      onClick={(e) => e.stopPropagation()}
                     >
                       <div className="space-y-2">
                         <Label className="text-xs">Descrição Personalizada</Label>
@@ -211,6 +223,7 @@ export default function TrainingSpecializationManager({ specializations = [], on
                             updateSpecialization(spec.id, 'description', e.target.value);
                           }}
                           onClick={(e) => e.stopPropagation()}
+                          onFocus={(e) => e.stopPropagation()}
                           placeholder="Adicione detalhes sobre sua experiência nesta área..."
                           rows={3}
                           className="text-sm"
@@ -218,7 +231,7 @@ export default function TrainingSpecializationManager({ specializations = [], on
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-xs">Anos de Experiência nesta Especialização</Label>
+                        <Label className="text-xs">Anos de Experiência</Label>
                         <Input
                           type="number"
                           min="0"
@@ -229,6 +242,7 @@ export default function TrainingSpecializationManager({ specializations = [], on
                             updateSpecialization(spec.id, 'years_experience', parseInt(e.target.value) || 0);
                           }}
                           onClick={(e) => e.stopPropagation()}
+                          onFocus={(e) => e.stopPropagation()}
                           className="text-sm"
                         />
                       </div>
@@ -236,7 +250,7 @@ export default function TrainingSpecializationManager({ specializations = [], on
                       <div className="space-y-2">
                         <Label className="text-xs flex items-center gap-1">
                           <Award className="w-3 h-3" />
-                          Certificações Relacionadas (Opcional)
+                          Certificações (Opcional)
                         </Label>
                         <div className="space-y-2">
                           {isSelected?.certifications?.map((cert, idx) => (
@@ -246,6 +260,7 @@ export default function TrainingSpecializationManager({ specializations = [], on
                                 <button
                                   type="button"
                                   onClick={(e) => {
+                                    e.preventDefault();
                                     e.stopPropagation();
                                     removeCertification(spec.id, idx);
                                   }}
@@ -261,12 +276,15 @@ export default function TrainingSpecializationManager({ specializations = [], on
                               placeholder="Nome da certificação..."
                               className="text-xs"
                               onClick={(e) => e.stopPropagation()}
-                              onKeyPress={(e) => {
+                              onFocus={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  addCertification(spec.id, e.target.value);
-                                  e.target.value = '';
+                                  if (e.target.value?.trim()) {
+                                    addCertification(spec.id, e.target.value);
+                                    e.target.value = '';
+                                  }
                                 }
                               }}
                             />
@@ -275,9 +293,10 @@ export default function TrainingSpecializationManager({ specializations = [], on
                               size="sm"
                               variant="outline"
                               onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
-                                const input = e.target.closest('.flex')?.querySelector('input');
-                                if (input?.value) {
+                                const input = e.currentTarget.previousElementSibling;
+                                if (input?.value?.trim()) {
                                   addCertification(spec.id, input.value);
                                   input.value = '';
                                 }
