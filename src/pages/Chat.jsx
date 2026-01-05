@@ -178,21 +178,27 @@ export default function Chat() {
     staleTime: 60000,
   });
 
-  // Set selected conversation from URL params (NO LOOP)
+  // Set selected conversation from URL params (NO LOOP) - Use ref to prevent infinite updates
+  const isSelectingRef = useRef(false);
+  
   useEffect(() => {
+    if (isSelectingRef.current) return;
+    
     if (conversationId && conversations.length > 0) {
       const conv = conversations.find((c) => c.id === conversationId);
-      if (conv && (!selectedConversation || selectedConversation.id !== conv.id)) {
-        console.log('📌 Selecionando conversa da lista:', conv.id);
+      if (conv && conv.id !== selectedConversation?.id) {
+        isSelectingRef.current = true;
         setSelectedConversation(conv);
         setShowConversationList(false);
+        setTimeout(() => { isSelectingRef.current = false; }, 100);
       }
-    } else if (bookingConversation && (!selectedConversation || selectedConversation.id !== bookingConversation.id)) {
-      console.log('📌 Selecionando conversa do booking:', bookingConversation.id);
+    } else if (bookingConversation && bookingConversation.id !== selectedConversation?.id) {
+      isSelectingRef.current = true;
       setSelectedConversation(bookingConversation);
       setShowConversationList(false);
+      setTimeout(() => { isSelectingRef.current = false; }, 100);
     }
-  }, [conversationId, bookingConversation?.id, conversations.length]);
+  }, [conversationId, bookingConversation?.id]);
 
   // Fetch messages for selected conversation with full history
   const { data: messages = [], isLoading: loadingMessages } = useQuery({
@@ -212,12 +218,17 @@ export default function Chat() {
     refetchOnWindowFocus: true,
   });
 
-  // Mark messages as read (DEBOUNCED - NO LOOP)
+  // Mark messages as read (DEBOUNCED - NO LOOP) - Use ref to track processed IDs
+  const processedMessageIdsRef = useRef(new Set());
+  
   useEffect(() => {
     if (!selectedConversation?.id || !user?.email || messages.length === 0) return;
 
     const unreadMessages = messages.filter(
-      (m) => m.sender_email !== user.email && !m.is_read && !m.read_by?.includes(user.email)
+      (m) => m.sender_email !== user.email && 
+             !m.is_read && 
+             !m.read_by?.includes(user.email) &&
+             !processedMessageIdsRef.current.has(m.id)
     );
 
     if (unreadMessages.length === 0) return;
@@ -225,6 +236,7 @@ export default function Chat() {
     const timer = setTimeout(async () => {
       try {
         for (const msg of unreadMessages) {
+          processedMessageIdsRef.current.add(msg.id);
           await base44.entities.ChatMessage.update(msg.id, {
             is_read: true,
             read_at: new Date().toISOString(),
@@ -238,6 +250,8 @@ export default function Chat() {
         await base44.entities.ChatConversation.update(selectedConversation.id, {
           unread_counts: newUnreadCounts,
         });
+        
+        queryClient.invalidateQueries({ queryKey: ["chatMessages", selectedConversation.id] });
       } catch (err) {
         console.error('Mark as read error:', err);
       }
@@ -245,6 +259,11 @@ export default function Chat() {
 
     return () => clearTimeout(timer);
   }, [messages.length, selectedConversation?.id, user?.email]);
+  
+  // Clear processed IDs when conversation changes
+  useEffect(() => {
+    processedMessageIdsRef.current.clear();
+  }, [selectedConversation?.id]);
 
   // Auto scroll to bottom
   useEffect(() => {
