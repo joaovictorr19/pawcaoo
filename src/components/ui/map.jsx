@@ -282,3 +282,62 @@ export function MapPopup({
 
   return null;
 }
+
+export function MapRoute({ 
+  coordinates, 
+  color = '#3b82f6', 
+  width = 3, 
+  opacity = 0.8,
+  id 
+}) {
+  const routeId = useRef(id || `route-${Math.random().toString(36).substr(2, 9)}`);
+
+  useEffect(() => {
+    const mapContainer = document.querySelector('.maplibregl-map');
+    if (!mapContainer?._map) return;
+
+    const map = mapContainer._map;
+
+    map.on('load', () => {
+      if (map.getSource(routeId.current)) return;
+
+      map.addSource(routeId.current, {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: coordinates
+          }
+        }
+      });
+
+      map.addLayer({
+        id: routeId.current,
+        type: 'line',
+        source: routeId.current,
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': color,
+          'line-width': width,
+          'line-opacity': opacity
+        }
+      });
+    });
+
+    return () => {
+      if (map.getLayer(routeId.current)) {
+        map.removeLayer(routeId.current);
+      }
+      if (map.getSource(routeId.current)) {
+        map.removeSource(routeId.current);
+      }
+    };
+  }, [coordinates, color, width, opacity]);
+
+  return null;
+}
