@@ -362,30 +362,52 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   });
 
   const handleNextStep = () => {
+    console.log('📍 handleNextStep - Step:', step, 'Data:', formData);
+    
     if (step === 1) {
-      // Validar se selecionou um cão OU se preencheu manualmente
-      if (!selectedDogId && (!showManualInput || !formData.dog_name)) {
-        toast.error('Selecione ou adicione um animal');
+      // Validar cão
+      const hasDog = selectedDogId || (showManualInput && formData.dog_name?.trim());
+      if (!hasDog) {
+        toast.error('Selecione ou adicione um animal', {
+          description: 'É necessário escolher um cão para continuar'
+        });
         return;
       }
+      
+      // Validar data
       if (!formData.walk_date) {
-        toast.error('Selecione a data');
+        toast.error('Selecione a data', {
+          description: 'Escolha uma data disponível no calendário'
+        });
         return;
       }
+      
+      // Validar horário
       if (!formData.walk_time) {
-        toast.error('Selecione o horário');
+        toast.error('Selecione o horário', {
+          description: 'Escolha um horário disponível'
+        });
         return;
       }
+      
+      console.log('✅ Step 1 validado, avançando...');
       setStep(2);
+      
     } else if (step === 2) {
-      if (!pickupAddress) {
-        toast.error('Indique o local de recolha');
+      if (!pickupAddress?.trim()) {
+        toast.error('Indique o local de recolha', {
+          description: 'A morada é obrigatória para o passeador ir buscar o cão'
+        });
         return;
       }
-      if (!formData.owner_phone) {
-        toast.error('Indique o número de telefone');
+      if (!formData.owner_phone?.trim()) {
+        toast.error('Indique o número de telefone', {
+          description: 'Precisamos de um contacto para o passeador'
+        });
         return;
       }
+      
+      console.log('✅ Step 2 validado, avançando para pagamento...');
       setStep(3);
     }
   };
@@ -510,7 +532,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               {myDogs?.length > 0 ? (
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-gray-700">
-                    Selecione seu animal
+                    Selecione seu animal *
                   </Label>
                   <div className="flex gap-2 overflow-x-auto pb-2">
                     {myDogs.map((dog) => {
@@ -519,6 +541,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                         <div
                           key={dog.id}
                           onClick={() => {
+                            console.log('🐕 Cão selecionado:', dog.dog_name);
                             setSelectedDogId(dog.id);
                             setShowManualInput(false);
                           }}
@@ -547,12 +570,14 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                                 <span className="text-white text-xs">✓</span>
                               </div>
                             )}
+                            <p className="text-[10px] text-center mt-1 font-medium text-gray-700">{dog.dog_name}</p>
                           </div>
                         </div>
                       );
                     })}
                     <div
                       onClick={() => {
+                        console.log('➕ Modo manual ativado');
                         setShowManualInput(true);
                         setSelectedDogId("");
                       }}
@@ -565,22 +590,30 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       }`}>
                         +
                       </div>
+                      <p className="text-[10px] text-center mt-1 font-medium text-gray-700">Adicionar</p>
                     </div>
                   </div>
                   {showManualInput && (
-                    <div className="bg-blue-50 rounded-lg p-3 space-y-2 border border-blue-200">
+                    <div className="bg-blue-50 rounded-lg p-3 space-y-2 border-2 border-blue-400 animate-in">
+                      <Label className="text-xs font-semibold text-blue-900">Dados do Animal</Label>
                       <Input
                         value={formData.dog_name}
-                        onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
-                        placeholder="Nome do animal"
-                        className="h-8 text-sm"
+                        onChange={(e) => {
+                          console.log('📝 Nome do animal:', e.target.value);
+                          setFormData({...formData, dog_name: e.target.value});
+                        }}
+                        placeholder="Nome do animal *"
+                        className="h-9 text-sm border-blue-200"
                       />
                       <Select
                         value={formData.dog_size}
-                        onValueChange={(value) => setFormData({...formData, dog_size: value})}
+                        onValueChange={(value) => {
+                          console.log('📏 Tamanho:', value);
+                          setFormData({...formData, dog_size: value});
+                        }}
                       >
-                        <SelectTrigger className="h-8 text-sm">
-                          <SelectValue placeholder="Tamanho" />
+                        <SelectTrigger className="h-9 text-sm border-blue-200">
+                          <SelectValue placeholder="Tamanho *" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="small">Pequeno</SelectItem>
@@ -625,19 +658,27 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-sm">Data *</Label>
+                  <Label className="text-sm font-semibold">Data *</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal h-9 text-sm">
+                      <Button 
+                        variant="outline" 
+                        className={`w-full justify-start text-left font-normal h-9 text-sm ${
+                          !formData.walk_date ? 'border-red-300 text-red-600' : ''
+                        }`}
+                      >
                         <CalendarIcon className="mr-2 h-3 w-3" />
-                        {formData.walk_date ? format(formData.walk_date, 'dd/MM') : 'Data'}
+                        {formData.walk_date ? format(formData.walk_date, 'dd/MM/yyyy') : 'Escolher data'}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
                         selected={formData.walk_date}
-                        onSelect={(date) => setFormData({...formData, walk_date: date})}
+                        onSelect={(date) => {
+                          console.log('📅 Data selecionada:', date);
+                          setFormData({...formData, walk_date: date});
+                        }}
                         disabled={(date) => {
                           if (date < new Date().setHours(0,0,0,0)) return true;
                           const dateStr = format(date, 'yyyy-MM-dd');
@@ -653,13 +694,16 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 </div>
 
                 <div>
-                  <Label className="text-sm">Horário *</Label>
+                  <Label className="text-sm font-semibold">Horário *</Label>
                   <Select
                     value={formData.walk_time}
-                    onValueChange={(value) => setFormData({...formData, walk_time: value})}
+                    onValueChange={(value) => {
+                      console.log('⏰ Horário selecionado:', value);
+                      setFormData({...formData, walk_time: value});
+                    }}
                   >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Hora" />
+                    <SelectTrigger className={`h-9 ${!formData.walk_time ? 'border-red-300 text-red-600' : ''}`}>
+                      <SelectValue placeholder="Escolher hora" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
                       {availableSlots.length > 0 ? (
@@ -876,8 +920,11 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             {step < 3 ? (
               <Button
                 type="button"
-                onClick={handleNextStep}
-                className="flex-1 h-10 text-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                onClick={() => {
+                  console.log('🔘 Botão Continuar clicado');
+                  handleNextStep();
+                }}
+                className="flex-1 h-10 text-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md"
               >
                 Continuar →
               </Button>
