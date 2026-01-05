@@ -296,15 +296,17 @@ export default function AdminDashboard() {
     queryKey: ['allBookings'],
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const walkerBookings = (await base44.entities.Booking.list('-created_date', 100)).map(b => ({...b, entityType: 'walk'}));
-      const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 100)).map(b => ({...b, entityType: 'training'}));
-      return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      const walkerBookings = (await base44.entities.Booking.list('-created_date', 500)).map(b => ({...b, entityType: 'walk'}));
+      const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 500)).map(b => ({...b, entityType: 'training'}));
+      const allBk = [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      console.log('📊 ADMIN - Total bookings:', allBk.length, 'Pending:', allBk.filter(b => b.status === 'pending').length, 'In Progress:', allBk.filter(b => b.status === 'in_progress').length);
+      return allBk;
     },
     enabled: isAdmin,
     initialData: [],
-    staleTime: 2 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 10 * 1000,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: allPayments = [] } = useQuery({
@@ -1943,8 +1945,12 @@ export default function AdminDashboard() {
                         <Badge className="bg-green-500">{allBookings.filter(b => b.status === 'completed').length}</Badge>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Em Progresso</span>
-                        <Badge className="bg-blue-500">{allBookings.filter(b => b.status === 'in_progress' || b.status === 'confirmed').length}</Badge>
+                       <span className="text-sm text-gray-600">Pendentes</span>
+                       <Badge className="bg-orange-500">{allBookings.filter(b => b.status === 'pending').length}</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                       <span className="text-sm text-gray-600">Em Progresso</span>
+                       <Badge className="bg-blue-500">{allBookings.filter(b => b.status === 'in_progress' || b.status === 'confirmed').length}</Badge>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Canceladas</span>
