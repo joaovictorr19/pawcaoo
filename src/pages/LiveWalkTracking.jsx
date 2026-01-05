@@ -521,9 +521,14 @@ export default function LiveWalkTracking() {
           )}
         </AnimatePresence>
 
-        {/* ✅ CHAT EM TEMPO REAL */}
-        {booking && user && (
-          <RideChat booking={booking} user={user} />
+        {/* ✅ CHAT BUTTON */}
+        {booking && (
+          <Button
+            onClick={() => navigate(createPageUrl(`Chat?bookingId=${booking.id}`))}
+            className="fixed bottom-24 right-6 z-50 w-16 h-16 rounded-full shadow-2xl bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 flex items-center justify-center"
+          >
+            <MessageCircle className="w-7 h-7 text-white" />
+          </Button>
         )}
       </div>
     </div>
