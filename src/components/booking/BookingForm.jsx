@@ -256,6 +256,15 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     mutationFn: async (bookingData) => {
       console.log('📝 Criando booking:', bookingData);
       
+      // CRITICAL: Validate required fields before creating
+      if (!bookingData.dog_name || !bookingData.walk_date) {
+        throw new Error('Dados obrigatórios em falta');
+      }
+
+      if (!pro?.created_by) {
+        throw new Error('Profissional inválido');
+      }
+      
       // 1. Criar RESERVA DIRETA com Walker Específico - SEMPRE VISÍVEL
       const booking = await base44.entities.Booking.create({
         ...bookingData,
@@ -263,13 +272,18 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         payment_status: 'pending',
         walker_email: pro.created_by,
         walker_id: pro.id,
-        walker_name: proName
+        walker_name: proName,
+        type: isWalker ? 'walk' : 'training'
       });
       console.log('✅ RESERVA criada:', booking.id);
 
       // 2. Atualizar Disponibilidade (Reservar Horário)
       try {
-        const dateStr = format(bookingData.walk_date, 'yyyy-MM-dd');
+        const walkDate = typeof bookingData.walk_date === 'string' 
+          ? new Date(bookingData.walk_date) 
+          : bookingData.walk_date;
+        
+        const dateStr = format(walkDate, 'yyyy-MM-dd');
         const availRecords = await base44.entities.CalendarAvailability.filter({
           professional_email: pro.created_by,
           date: dateStr
@@ -306,18 +320,26 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           c.participants?.includes(pro.created_by)
         );
 
+        const walkDate = typeof bookingData.walk_date === 'string' 
+          ? bookingData.walk_date 
+          : format(bookingData.walk_date, 'yyyy-MM-dd');
+
         if (conversation) {
           await base44.entities.ChatConversation.update(conversation.id, {
             booking_id: booking.id,
-            last_message: `Nova reserva iniciada: ${bookingData.dog_name} - ${bookingData.walk_date}`,
+            last_message: `Nova reserva iniciada: ${bookingData.dog_name} - ${walkDate}`,
             last_message_date: new Date().toISOString()
           });
         } else {
           await base44.entities.ChatConversation.create({
             participants: [user.email, pro.created_by],
+            participant_names: {
+              [user.email]: user.full_name || 'Cliente',
+              [pro.created_by]: proName || 'Profissional'
+            },
             booking_id: booking.id,
             tags: ['booking'],
-            last_message: `Nova reserva iniciada: ${bookingData.dog_name} - ${bookingData.walk_date}`,
+            last_message: `Nova reserva iniciada: ${bookingData.dog_name} - ${walkDate}`,
             last_message_date: new Date().toISOString(),
             unread_counts: { [user.email]: 0, [pro.created_by]: 1 }
           });
@@ -330,9 +352,11 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       return booking;
     },
     onError: (error) => {
-      console.error('Erro ao criar booking:', error);
-      toast.error('Não foi possível criar a sua reserva neste momento.', {
-        description: 'Por favor, tente novamente ou contacte o suporte.',
+      console.error('❌ Erro ao criar booking:', error);
+      setIsProcessing(false);
+      setIsPaymentProcessing(false);
+      toast.error('Erro ao criar reserva: ' + (error.message || 'Tente novamente'), {
+        description: 'Verifique os dados e tente novamente.',
       });
     }
   });
