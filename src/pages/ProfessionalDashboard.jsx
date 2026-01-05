@@ -209,44 +209,45 @@ export default function ProfessionalDashboard() {
 
   // Real-time bookings - PEGA TODOS OS PEDIDOS para este Walker
   const { data: walkBookings = [] } = useQuery({
-    queryKey: ['myWalkBookings'],
+    queryKey: ['myWalkBookings', walkerProfile?.id, user?.email],
     queryFn: async () => {
-      console.log('🔍 Buscando pedidos para walker:', user?.email, 'Profile ID:', walkerProfile?.id);
+      console.log('🔍 BUSCANDO RESERVAS - Walker Email:', user?.email, 'Walker ID:', walkerProfile?.id);
+      
+      if (!user?.email || !walkerProfile?.id) {
+        console.log('❌ Faltam dados para buscar');
+        return [];
+      }
       
       try {
-        // Buscar TODAS as reservas sem filtro primeiro (debug)
-        const allBookingsRaw = await base44.entities.Booking.list('-created_date', 500);
-        console.log('📊 TOTAL BOOKINGS NA DB:', allBookingsRaw.length);
-        console.log('📊 Pendentes na DB:', allBookingsRaw.filter(b => b.status === 'pending').length);
-        console.log('📊 Para este walker (email):', allBookingsRaw.filter(b => b.walker_email === user?.email).length);
-        console.log('📊 Para este walker (ID):', allBookingsRaw.filter(b => b.walker_id === walkerProfile?.id).length);
+        // MÉTODO SIMPLIFICADO: Buscar TUDO e filtrar localmente
+        const allBookings = await base44.entities.Booking.list('-created_date', 500);
+        console.log('📊 TOTAL na DB:', allBookings.length);
         
-        // Buscar por AMBOS: email E id do perfil
-        const byEmail = await base44.entities.Booking.filter({ walker_email: user?.email }, '-created_date', 500);
-        const byId = walkerProfile?.id ? await base44.entities.Booking.filter({ walker_id: walkerProfile.id }, '-created_date', 500) : [];
+        // Filtrar para ESTE walker
+        const myBookings = allBookings.filter(b => 
+          b.walker_email === user.email || b.walker_id === walkerProfile.id
+        );
         
-        console.log('📦 By Email:', byEmail.length, byEmail.map(b => ({ id: b.id, status: b.status, dog: b.dog_name })));
-        console.log('📦 By ID:', byId.length, byId.map(b => ({ id: b.id, status: b.status, dog: b.dog_name })));
+        console.log('✅ MINHAS RESERVAS:', myBookings.length);
+        console.log('   Pendentes:', myBookings.filter(b => b.status === 'pending').length);
+        console.log('   Confirmadas:', myBookings.filter(b => b.status === 'confirmed').length);
+        console.log('   Em progresso:', myBookings.filter(b => b.status === 'in_progress').length);
         
-        // Merge e remover duplicados
-        const uniqueMap = new Map();
-        [...byEmail, ...byId].forEach(b => uniqueMap.set(b.id, b));
-        const bookings = Array.from(uniqueMap.values());
+        myBookings.forEach(b => {
+          console.log(`   - ${b.dog_name} (${b.status}) - Walker Email: ${b.walker_email}, Walker ID: ${b.walker_id}`);
+        });
         
-        console.log('✅ Pedidos FINAIS:', bookings.length);
-        console.log('✅ Pendentes:', bookings.filter(b => b.status === 'pending').length);
-        console.log('✅ Confirmados:', bookings.filter(b => b.status === 'confirmed').length);
-        console.log('✅ Em progresso:', bookings.filter(b => b.status === 'in_progress').length);
-        
-        return bookings;
+        return myBookings;
       } catch (error) {
-        console.error('❌ Erro ao buscar bookings:', error);
+        console.error('❌ Erro ao buscar:', error);
         return [];
       }
     },
-    enabled: !!user && !!walkerProfile,
+    enabled: !!user?.email && !!walkerProfile?.id,
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   });
 
   // Detect NEW direct requests (apenas para este walker) e mostrar alerta

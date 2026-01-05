@@ -113,7 +113,12 @@ export default function ConversationList({
     return (
       <button
         key={conv.id}
-        onClick={() => onSelect(conv)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('💬 Conversa clicada:', conv.id);
+          onSelect(conv);
+        }}
         className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left border-b ${
           isSelected ? (isActive ? "bg-green-50 border-l-4 border-green-600" : "bg-blue-50") : ""
         }`}
