@@ -365,15 +365,18 @@ function LayoutContent({ children, currentPageName }) {
 
   // RESET SYSTEM: Welcome badge sem XP automático (sistema começa do zero)
   // Badge de boas-vindas apenas se não tiver nenhum badge ainda
+  const welcomeBadgeAwardedRef = React.useRef(false);
+  
   React.useEffect(() => {
     const awardWelcomeBadge = async () => {
-      if (!authUser?.email) return;
+      if (!authUser?.email || welcomeBadgeAwardedRef.current) return;
 
       const badges = authUser.achievements_badges || [];
       const hasWelcomeBadge = badges.some(b => b.badge_id === 'welcome');
 
       // Só dar badge de boas-vindas se ainda não tiver NENHUM badge
       if (!hasWelcomeBadge && badges.length === 0) {
+        welcomeBadgeAwardedRef.current = true;
         try {
           const badge = {
             badge_id: 'welcome',
@@ -383,18 +386,18 @@ function LayoutContent({ children, currentPageName }) {
             rarity: 'common',
             earned_date: new Date().toISOString(),
             category: 'milestone',
-            xp_reward: 0 // SEM XP automático - sistema começa do zero
+            xp_reward: 0
           };
 
           await base44.auth.updateMe({
             achievements_badges: [badge]
-            // NÃO adicionar XP aqui - começa do zero
           });
 
           queryClient.invalidateQueries(['currentUser']);
           setNewBadge(badge);
         } catch (error) {
           console.error('Error awarding welcome badge:', error);
+          welcomeBadgeAwardedRef.current = false;
         }
       }
     };
@@ -402,12 +405,16 @@ function LayoutContent({ children, currentPageName }) {
     if (authUser?.email && authUser.achievements_badges !== undefined) {
       awardWelcomeBadge();
     }
-  }, [authUser?.email, authUser?.achievements_badges, language, queryClient]);
+  }, [authUser?.email, language, queryClient]);
 
   // Ensure Dog Connect profile and UserProfile entity for every user + Sync XP bidirectionally
+  const profileSetupRef = React.useRef({ initialized: false, syncedXP: null });
+  
   React.useEffect(() => {
     const setupProfiles = async () => {
-      if (!authUser?.email) return;
+      if (!authUser?.email || profileSetupRef.current.initialized) return;
+      
+      profileSetupRef.current.initialized = true;
 
       // 1. Setup Dog Connect Stats on User Object (Auth)
       if (authUser.profile_stats === undefined || authUser.profile_stats === null) {
@@ -461,8 +468,13 @@ function LayoutContent({ children, currentPageName }) {
         } else {
           // 3. SYNC: UserProfile -> Auth User (if different)
           const profile = profiles[0];
-          if (authUser.gamification_xp !== profile.gamification_xp || authUser.gamification_level !== profile.gamification_level) {
+          const currentXPKey = `${profile.gamification_xp}_${profile.gamification_level}`;
+          
+          if (profileSetupRef.current.syncedXP !== currentXPKey &&
+              (authUser.gamification_xp !== profile.gamification_xp || 
+               authUser.gamification_level !== profile.gamification_level)) {
             console.log('🔄 Syncing XP from UserProfile to Auth:', profile.gamification_xp);
+            profileSetupRef.current.syncedXP = currentXPKey;
             await base44.auth.updateMe({
               gamification_xp: profile.gamification_xp || 0,
               gamification_level: profile.gamification_level || 1
@@ -476,7 +488,12 @@ function LayoutContent({ children, currentPageName }) {
     };
 
     setupProfiles();
-  }, [authUser?.email, queryClient]);
+  }, [authUser?.email]);
+  
+  // Reset initialization when user changes
+  React.useEffect(() => {
+    profileSetupRef.current = { initialized: false, syncedXP: null };
+  }, [authUser?.email]);
 
 
   const availableLanguages = getAvailableLanguages();
