@@ -121,22 +121,26 @@ export function MapControls({
 
 export function MapMarker({ longitude, latitude, children }) {
   const markerRef = useRef(null);
-  const [contentEl, setContentEl] = React.useState(null);
-  const [tooltipEl, setTooltipEl] = React.useState(null);
-  const [popupEl, setPopupEl] = React.useState(null);
+  const popupRef = useRef(null);
+  const [contentEl, setContentEl] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
     const mapContainer = document.querySelector('.maplibregl-map');
     if (!mapContainer?._map || markerRef.current) return;
 
     const el = document.createElement('div');
-    el.className = 'marker-container';
+    el.className = 'marker-container cursor-pointer';
     
     markerRef.current = new maplibregl.Marker({ element: el })
       .setLngLat([longitude, latitude])
       .addTo(mapContainer._map);
 
     setContentEl(el);
+
+    el.addEventListener('click', () => {
+      setIsPopupOpen(prev => !prev);
+    });
 
     return () => {
       if (markerRef.current) {
@@ -145,28 +149,57 @@ export function MapMarker({ longitude, latitude, children }) {
     };
   }, [longitude, latitude]);
 
+  useEffect(() => {
+    const mapContainer = document.querySelector('.maplibregl-map');
+    if (!mapContainer?._map || !isPopupOpen || popupRef.current) return;
+
+    const popup = React.Children.toArray(children).find(
+      child => child.type === MarkerPopup
+    );
+
+    if (popup) {
+      const popupInstance = new maplibregl.Popup({
+        closeButton: true,
+        closeOnClick: false,
+        offset: 25,
+        className: 'map-popup'
+      })
+        .setLngLat([longitude, latitude])
+        .setDOMContent(createPopupElement(popup))
+        .addTo(mapContainer._map);
+
+      popupInstance.on('close', () => {
+        setIsPopupOpen(false);
+      });
+
+      popupRef.current = popupInstance;
+    }
+
+    return () => {
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+    };
+  }, [isPopupOpen, longitude, latitude, children]);
+
+  const createPopupElement = (popup) => {
+    const div = document.createElement('div');
+    div.className = popup.props.className || '';
+    ReactDOM.render(popup.props.children, div);
+    return div;
+  };
+
   const content = React.Children.toArray(children).find(
     child => child.type === MarkerContent
   );
   const tooltip = React.Children.toArray(children).find(
     child => child.type === MarkerTooltip
   );
-  const popup = React.Children.toArray(children).find(
-    child => child.type === MarkerPopup
-  );
 
   return (
     <>
       {contentEl && content && ReactDOM.createPortal(content.props.children, contentEl)}
-      {tooltip && (
-        <div
-          ref={setTooltipEl}
-          className="absolute pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap"
-          style={{ bottom: '100%', left: '50%', transform: 'translateX(-50%) translateY(-4px)' }}
-        >
-          {tooltip.props.children}
-        </div>
-      )}
     </>
   );
 }
@@ -175,10 +208,25 @@ export function MarkerContent({ children }) {
   return <>{children}</>;
 }
 
+export function MarkerLabel({ children, position = 'top' }) {
+  const positionClasses = {
+    top: '-top-6 left-1/2 -translate-x-1/2',
+    bottom: 'top-full mt-1 left-1/2 -translate-x-1/2',
+    left: 'right-full mr-1 top-1/2 -translate-y-1/2',
+    right: 'left-full ml-1 top-1/2 -translate-y-1/2'
+  };
+
+  return (
+    <div className={`absolute ${positionClasses[position]} bg-white text-gray-900 text-xs font-medium px-2 py-0.5 rounded shadow-md whitespace-nowrap pointer-events-none`}>
+      {children}
+    </div>
+  );
+}
+
 export function MarkerTooltip({ children }) {
   return <>{children}</>;
 }
 
-export function MarkerPopup({ children }) {
+export function MarkerPopup({ children, className }) {
   return <>{children}</>;
 }
