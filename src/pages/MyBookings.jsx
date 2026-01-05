@@ -601,8 +601,8 @@ export default function MyBookings() {
             </Button>
           )}
 
-          {/* Chat - Available for confirmed/in_progress bookings */}
-          {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
+          {/* Chat - Available for pending/confirmed/in_progress bookings */}
+          {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'in_progress') && (
             <Button 
               size="sm" 
               variant="outline" 
@@ -612,6 +612,7 @@ export default function MyBookings() {
                       toast.error("Erro: ID inválido");
                       return;
                   }
+                  console.log('🔗 Opening chat for booking:', booking.id);
                   navigate(createPageUrl(`Chat?bookingId=${booking.id}`));
                 }}
               >

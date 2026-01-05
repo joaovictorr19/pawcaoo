@@ -536,7 +536,7 @@ export default function Chat() {
         </div>
 
         {/* Active Service Banner with Map */}
-        {bookingData && (bookingData.status === 'confirmed' || bookingData.status === 'in_progress' || bookingData.status === 'service_completed') && (
+        {bookingData && (bookingData.status === 'pending' || bookingData.status === 'confirmed' || bookingData.status === 'in_progress' || bookingData.status === 'service_completed') && (
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-b flex-shrink-0">
             <div className="p-3">
               <div className="flex items-start justify-between gap-3 mb-3">
