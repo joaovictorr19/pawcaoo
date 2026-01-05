@@ -66,12 +66,35 @@ export default function Chat() {
         { participants: user.email },
         "-last_message_date"
       );
-      return convos;
+      
+      // Fetch booking data for each conversation to check active status
+      const convosWithBookings = await Promise.all(
+        convos.map(async (conv) => {
+          if (!conv.booking_id) return { ...conv, booking: null };
+          try {
+            const bookings = await base44.entities.Booking.filter({ id: conv.booking_id });
+            return { ...conv, booking: bookings[0] || null };
+          } catch (e) {
+            return { ...conv, booking: null };
+          }
+        })
+      );
+      
+      // Sort: Active bookings first, then by last message
+      return convosWithBookings.sort((a, b) => {
+        const aActive = a.booking?.status === 'confirmed' || a.booking?.status === 'in_progress';
+        const bActive = b.booking?.status === 'confirmed' || b.booking?.status === 'in_progress';
+        
+        if (aActive && !bActive) return -1;
+        if (!aActive && bActive) return 1;
+        
+        return new Date(b.last_message_date) - new Date(a.last_message_date);
+      });
     },
     enabled: !!user?.email,
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
+    staleTime: 5 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000,
   });
 
   // Fetch or create conversation from booking (GUARANTEED UNIQUE)
