@@ -1011,11 +1011,16 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             {step < 3 ? (
               <Button
                 type="button"
-                onClick={() => {
-                  console.log('🔘 Botão Continuar clicado');
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('🔘 Botão Continuar clicado - Step:', step);
+                  console.log('📊 FormData:', formData);
+                  console.log('🐕 Selected Dog:', selectedDogId);
+                  console.log('✍️ Manual Input:', showManualInput);
                   handleNextStep();
                 }}
-                className="flex-1 h-10 text-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md"
+                className="flex-1 h-10 text-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md font-semibold"
               >
                 Continuar →
               </Button>
