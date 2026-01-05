@@ -1559,10 +1559,16 @@ export default function AdminDashboard() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        queryClient.invalidateQueries(['allWalkersAdmin']);
-                        queryClient.invalidateQueries(['allTrainersAdmin']);
-                        queryClient.invalidateQueries(['allUsers']);
+                      onClick={async () => {
+                        toast.info("Atualizando mapa...");
+                        await queryClient.invalidateQueries(['allWalkersAdmin']);
+                        await queryClient.invalidateQueries(['allTrainersAdmin']);
+                        await queryClient.invalidateQueries(['allUsers']);
+                        await queryClient.refetchQueries(['allWalkersAdmin']);
+                        await queryClient.refetchQueries(['allTrainersAdmin']);
+                        await queryClient.refetchQueries(['allUsers']);
+                        setMapLoaded(false);
+                        setTimeout(() => setMapLoaded(true), 500);
                         toast.success("Mapa atualizado!");
                       }}
                       className="border-green-500 text-green-600"

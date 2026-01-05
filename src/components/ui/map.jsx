@@ -19,7 +19,7 @@ export function Map({
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   const finalCenter = center || [initialViewState.longitude, initialViewState.latitude];
   const finalZoom = zoom !== undefined ? zoom : initialViewState.zoom;
@@ -34,12 +34,14 @@ export function Map({
       zoom: finalZoom
     });
 
-    // Store map reference in DOM for controls
-    mapContainer.current._map = map.current;
+    // Store map in DOM for controls
+    if (mapContainer.current) {
+      mapContainer.current._map = map.current;
+    }
 
     map.current.on('load', () => {
-      console.log('Map loaded successfully');
-      setIsLoaded(true);
+      console.log('✅ Map loaded successfully at', finalCenter);
+      setIsReady(true);
       if (onMapLoad) {
         onMapLoad(map.current);
       }
@@ -56,7 +58,7 @@ export function Map({
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className={className} />
-      {isLoaded && children}
+      {isReady && children}
     </div>
   );
 }
@@ -80,6 +82,7 @@ export function MapControls({
     const mapEl = document.querySelector('.maplibregl-map');
     if (mapEl?._map) {
       mapEl._map.zoomIn();
+      console.log('Zoom in clicked');
     }
   };
 
@@ -87,6 +90,7 @@ export function MapControls({
     const mapEl = document.querySelector('.maplibregl-map');
     if (mapEl?._map) {
       mapEl._map.zoomOut();
+      console.log('Zoom out clicked');
     }
   };
 
@@ -94,6 +98,7 @@ export function MapControls({
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
+          console.log('Location found:', pos.coords);
           const mapEl = document.querySelector('.maplibregl-map');
           if (mapEl?._map) {
             mapEl._map.flyTo({
@@ -110,8 +115,6 @@ export function MapControls({
           alert('Não foi possível obter sua localização');
         }
       );
-    } else {
-      alert('Geolocalização não suportada pelo navegador');
     }
   };
 
@@ -146,6 +149,11 @@ export function MapControls({
         >
           <Locate className="w-4 h-4" />
         </Button>
+      )}
+      {showCompass && (
+        <div className="h-8 w-8 bg-white/95 rounded shadow-md flex items-center justify-center text-xs font-bold">
+          N
+        </div>
       )}
     </div>
   );
@@ -224,9 +232,6 @@ export function MapMarker({ longitude, latitude, children }) {
 
   const content = React.Children.toArray(children).find(
     child => child.type === MarkerContent
-  );
-  const tooltip = React.Children.toArray(children).find(
-    child => child.type === MarkerTooltip
   );
 
   return (
@@ -361,7 +366,6 @@ export function MapRoute({
         }
       });
 
-      // Add click handler if onClick is provided
       if (onClick) {
         map.on('click', routeId.current, (e) => {
           onClick(e);
@@ -409,29 +413,38 @@ export function MapClusterLayer({
   id
 }) {
   const layerId = useRef(id || `cluster-${Math.random().toString(36).substr(2, 9)}`);
+  const [setupComplete, setSetupComplete] = useState(false);
 
   useEffect(() => {
     const mapContainer = document.querySelector('.maplibregl-map');
-    if (!mapContainer?._map) return;
+    if (!mapContainer?._map) {
+      console.log('❌ Map not found');
+      return;
+    }
 
     const map = mapContainer._map;
 
-    const setupCluster = async () => {
-      if (map.getSource(layerId.current)) return;
-
-      // Fetch data if it's a URL
-      let geoJsonData = data;
-      if (typeof data === 'string') {
-        try {
-          const response = await fetch(data);
-          geoJsonData = await response.json();
-        } catch (error) {
-          console.error('Failed to fetch cluster data:', error);
-          return;
-        }
+    const setupCluster = () => {
+      // Clean up existing
+      try {
+        if (map.getLayer(`${layerId.current}-clusters`)) map.removeLayer(`${layerId.current}-clusters`);
+        if (map.getLayer(`${layerId.current}-cluster-count`)) map.removeLayer(`${layerId.current}-cluster-count`);
+        if (map.getLayer(`${layerId.current}-unclustered-point`)) map.removeLayer(`${layerId.current}-unclustered-point`);
+        if (map.getSource(layerId.current)) map.removeSource(layerId.current);
+      } catch (e) {
+        console.log('Cleanup skipped:', e.message);
       }
 
-      // Add source with clustering
+      let geoJsonData = data;
+      
+      console.log('📍 Setting up cluster with', geoJsonData?.features?.length || 0, 'features');
+
+      if (!geoJsonData || !geoJsonData.features || geoJsonData.features.length === 0) {
+        console.log('⚠️ No features to display');
+        return;
+      }
+
+      // Add source
       map.addSource(layerId.current, {
         type: 'geojson',
         data: geoJsonData,
@@ -440,7 +453,7 @@ export function MapClusterLayer({
         clusterRadius: clusterRadius
       });
 
-      // Add cluster circles
+      // Cluster circles
       map.addLayer({
         id: `${layerId.current}-clusters`,
         type: 'circle',
@@ -468,7 +481,7 @@ export function MapClusterLayer({
         }
       });
 
-      // Add cluster count labels
+      // Cluster count
       map.addLayer({
         id: `${layerId.current}-cluster-count`,
         type: 'symbol',
@@ -484,7 +497,7 @@ export function MapClusterLayer({
         }
       });
 
-      // Add unclustered points
+      // Individual points
       map.addLayer({
         id: `${layerId.current}-unclustered-point`,
         type: 'circle',
@@ -492,39 +505,40 @@ export function MapClusterLayer({
         filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': pointColor,
-          'circle-radius': 6,
+          'circle-radius': 8,
           'circle-stroke-width': 2,
           'circle-stroke-color': '#fff'
         }
       });
 
-      // Click on clusters to zoom
+      // Click handlers
       map.on('click', `${layerId.current}-clusters`, (e) => {
         const features = map.queryRenderedFeatures(e.point, {
           layers: [`${layerId.current}-clusters`]
         });
-        const clusterId = features[0].properties.cluster_id;
-        map.getSource(layerId.current).getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) return;
-          map.easeTo({
-            center: features[0].geometry.coordinates,
-            zoom: zoom
+        if (features[0]) {
+          const clusterId = features[0].properties.cluster_id;
+          map.getSource(layerId.current).getClusterExpansionZoom(clusterId, (err, zoom) => {
+            if (!err) {
+              map.easeTo({
+                center: features[0].geometry.coordinates,
+                zoom: zoom
+              });
+            }
           });
-        });
+        }
       });
 
-      // Click on individual points
       if (onPointClick) {
         map.on('click', `${layerId.current}-unclustered-point`, (e) => {
-          const features = e.features;
-          if (!features || features.length === 0) return;
-          
-          const coordinates = features[0].geometry.coordinates.slice();
-          onPointClick(features[0], coordinates);
+          if (e.features && e.features.length > 0) {
+            const coordinates = e.features[0].geometry.coordinates.slice();
+            onPointClick(e.features[0], coordinates);
+          }
         });
       }
 
-      // Change cursor on hover
+      // Cursor changes
       map.on('mouseenter', `${layerId.current}-clusters`, () => {
         map.getCanvas().style.cursor = 'pointer';
       });
@@ -537,6 +551,9 @@ export function MapClusterLayer({
       map.on('mouseleave', `${layerId.current}-unclustered-point`, () => {
         map.getCanvas().style.cursor = '';
       });
+
+      console.log('✅ Cluster setup complete');
+      setSetupComplete(true);
     };
 
     if (map.loaded()) {
@@ -546,17 +563,13 @@ export function MapClusterLayer({
     }
 
     return () => {
-      if (map.getLayer(`${layerId.current}-clusters`)) {
-        map.removeLayer(`${layerId.current}-clusters`);
-      }
-      if (map.getLayer(`${layerId.current}-cluster-count`)) {
-        map.removeLayer(`${layerId.current}-cluster-count`);
-      }
-      if (map.getLayer(`${layerId.current}-unclustered-point`)) {
-        map.removeLayer(`${layerId.current}-unclustered-point`);
-      }
-      if (map.getSource(layerId.current)) {
-        map.removeSource(layerId.current);
+      try {
+        if (map.getLayer(`${layerId.current}-clusters`)) map.removeLayer(`${layerId.current}-clusters`);
+        if (map.getLayer(`${layerId.current}-cluster-count`)) map.removeLayer(`${layerId.current}-cluster-count`);
+        if (map.getLayer(`${layerId.current}-unclustered-point`)) map.removeLayer(`${layerId.current}-unclustered-point`);
+        if (map.getSource(layerId.current)) map.removeSource(layerId.current);
+      } catch (e) {
+        console.log('Cleanup error (safe to ignore):', e.message);
       }
     };
   }, [data, clusterRadius, clusterMaxZoom, clusterColors, pointColor, onPointClick]);
