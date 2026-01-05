@@ -21,7 +21,7 @@ import {
   AlertCircle,
   Bookmark,
   Edit3,
-  Map as MapIcon
+  Map as MapComponent
 } from "lucide-react";
 import { Map, MapRoute, MapMarker, MarkerContent, MapControls } from "@/components/ui/map";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -379,7 +379,7 @@ export default function ActiveWalkDashboard() {
     <div className="fixed inset-0 bg-white">
       {/* Full-screen Map */}
       <div className="absolute inset-0">
-        <Map center={mapCenter} zoom={15}>
+        <MapComponent center={mapCenter} zoom={15}>
           {/* Selected Guide Route - Dashed Blue */}
           {selectedRoute && selectedRoute.coordinates.length > 1 && (
             <MapRoute
@@ -442,7 +442,7 @@ export default function ActiveWalkDashboard() {
           })}
 
           <MapControls position="top-right" showZoom showLocate />
-        </Map>
+        </MapComponent>
       </div>
 
       {/* Top Bar - Minimal Stats */}
@@ -554,7 +554,7 @@ export default function ActiveWalkDashboard() {
                 onClick={() => setShowRouteSelector(true)}
                 className="bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 active:scale-95 rounded-lg md:rounded-xl shadow-sm p-1.5 md:p-2 flex flex-col items-center justify-center transition-all"
               >
-                <MapIcon className="w-4 h-4 md:w-5 md:h-5 mb-0.5 md:mb-1 text-purple-700" />
+                <Bookmark className="w-4 h-4 md:w-5 md:h-5 mb-0.5 md:mb-1 text-purple-700" />
                 <span className="text-[8px] md:text-[9px] font-medium text-purple-700">Rotas</span>
               </button>
 
@@ -595,8 +595,33 @@ export default function ActiveWalkDashboard() {
 
             <Button
               size="lg"
-              className="flex-1 h-11 md:h-12 bg-black hover:bg-gray-800 text-white rounded-xl font-semibold text-sm md:text-base"
-              onClick={() => navigate(createPageUrl(`ActiveRide?bookingId=${bookingId}`))}
+              className="flex-1 h-11 md:h-12 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-sm md:text-base shadow-lg"
+              onClick={async () => {
+                if (confirm('Finalizar o serviço e notificar o cliente?')) {
+                  try {
+                    await base44.entities.Booking.update(bookingId, { 
+                      status: 'service_completed',
+                      distance_km: distanceKm,
+                      completed_date: new Date().toISOString()
+                    });
+                    
+                    // Send notification to client
+                    await base44.entities.Notification.create({
+                      recipient_email: booking.created_by,
+                      title: '✅ Serviço Concluído',
+                      message: `O passeio do ${booking.dog_name} foi concluído! Distância: ${distanceKm.toFixed(2)}km`,
+                      type: 'service_completed',
+                      related_id: bookingId,
+                      priority: 'high'
+                    });
+                    
+                    toast.success('Serviço concluído!');
+                    navigate(createPageUrl('ProfessionalDashboard'));
+                  } catch (error) {
+                    toast.error('Erro ao finalizar');
+                  }
+                }
+              }}
             >
               <CheckCircle className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
               Finalizar

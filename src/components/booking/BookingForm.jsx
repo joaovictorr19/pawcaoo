@@ -583,7 +583,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   };
 
   return (
-    <form onSubmit={(e) => e.preventDefault()}>
+    <div>
       <Card className="glass-panel border-0 shadow-xl rounded-2xl">
         <CardHeader 
           className="text-white py-2 md:py-3 px-3 md:px-4"
@@ -1152,6 +1152,6 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           </div>
         </CardContent>
       </Card>
-    </form>
+    </div>
   );
 }
