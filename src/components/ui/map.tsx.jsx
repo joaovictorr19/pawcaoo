@@ -1,48 +1,44 @@
 import React from 'react';
-import Map, { Marker, NavigationControl, GeolocateControl, FullscreenControl } from 'react-map-gl/maplibre';
+import ReactMapGL, { MapRef, Marker, Source, Layer } from 'react-map-gl/maplibre';
+import type { MarkerProps, SourceProps, LayerProps } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-interface MapComponentProps {
+interface MapProps {
   children?: React.ReactNode;
   initialViewState?: {
     longitude: number;
     latitude: number;
     zoom: number;
   };
-  style?: React.CSSProperties;
+  mapStyle?: string;
   className?: string;
-  onMove?: (evt: any) => void;
-  onClick?: (evt: any) => void;
 }
 
-const MapComponent = React.forwardRef<any, MapComponentProps>(
-  ({ children, initialViewState, style, className, onMove, onClick, ...props }, ref) => {
+const Map = React.forwardRef<MapRef, MapProps>(
+  ({ children, initialViewState, mapStyle, className }, ref) => {
     return (
-      <Map
+      <ReactMapGL
         ref={ref}
         initialViewState={
           initialViewState || {
-            longitude: -8.6291,
-            latitude: 41.1579,
+            longitude: -9.1393,
+            latitude: 38.7223,
             zoom: 13,
           }
         }
-        style={{ width: '100%', height: '100%', ...style }}
-        mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-        onMove={onMove}
-        onClick={onClick}
-        {...props}
+        mapStyle={
+          mapStyle || 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+        }
+        style={{ width: '100%', height: '100%' }}
+        className={className}
       >
-        <NavigationControl position="top-right" />
-        <GeolocateControl position="top-right" />
-        <FullscreenControl position="top-right" />
         {children}
-      </Map>
+      </ReactMapGL>
     );
   }
 );
 
-MapComponent.displayName = 'Map';
+Map.displayName = 'Map';
 
-export { MapComponent as Map, Marker, NavigationControl, GeolocateControl, FullscreenControl };
-export default MapComponent;
+export { Map, Marker, Source, Layer };
+export type { MarkerProps, SourceProps, LayerProps };
