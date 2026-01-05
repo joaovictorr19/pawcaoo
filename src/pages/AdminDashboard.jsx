@@ -141,6 +141,7 @@ export default function AdminDashboard() {
   const [badgeSearchTerm, setBadgeSearchTerm] = useState("");
   const [productFilter, setProductFilter] = useState('all');
   const [selectedMapUser, setSelectedMapUser] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -1571,8 +1572,15 @@ export default function AdminDashboard() {
                     </Button>
                   </div>
                   <div className="h-[400px] md:h-[500px] w-full rounded-xl overflow-hidden border border-gray-200">
-                    <Map center={[-8.6291, 41.1579]} zoom={7}>
-                      <MapClusterLayer
+                    <Map 
+                      center={[-8.6291, 41.1579]} 
+                      zoom={7}
+                      onMapLoad={(map) => {
+                        console.log('🗺️ Mapa carregado!');
+                        setMapLoaded(true);
+                      }}
+                    >
+                      {mapLoaded && <MapClusterLayer
                         data={{
                           type: 'FeatureCollection',
                           features: [
