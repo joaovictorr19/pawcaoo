@@ -288,7 +288,8 @@ export function MapRoute({
   color = '#3b82f6', 
   width = 3, 
   opacity = 0.8,
-  id 
+  id,
+  onClick
 }) {
   const routeId = useRef(id || `route-${Math.random().toString(36).substr(2, 9)}`);
 
@@ -298,7 +299,7 @@ export function MapRoute({
 
     const map = mapContainer._map;
 
-    map.on('load', () => {
+    const setupRoute = () => {
       if (map.getSource(routeId.current)) return;
 
       map.addSource(routeId.current, {
@@ -327,9 +328,33 @@ export function MapRoute({
           'line-opacity': opacity
         }
       });
-    });
+
+      // Add click handler if onClick is provided
+      if (onClick) {
+        map.on('click', routeId.current, (e) => {
+          onClick(e);
+        });
+        map.on('mouseenter', routeId.current, () => {
+          map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', routeId.current, () => {
+          map.getCanvas().style.cursor = '';
+        });
+      }
+    };
+
+    if (map.loaded()) {
+      setupRoute();
+    } else {
+      map.on('load', setupRoute);
+    }
 
     return () => {
+      if (onClick) {
+        map.off('click', routeId.current);
+        map.off('mouseenter', routeId.current);
+        map.off('mouseleave', routeId.current);
+      }
       if (map.getLayer(routeId.current)) {
         map.removeLayer(routeId.current);
       }
@@ -337,7 +362,7 @@ export function MapRoute({
         map.removeSource(routeId.current);
       }
     };
-  }, [coordinates, color, width, opacity]);
+  }, [coordinates, color, width, opacity, onClick]);
 
   return null;
 }
