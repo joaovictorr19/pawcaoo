@@ -446,24 +446,24 @@ export default function ActiveWalkDashboard() {
       </div>
 
       {/* Top Bar - Minimal Stats */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4 safe-area-inset-top">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gray-600" />
-                <span className="font-semibold text-lg text-gray-900">{formatTime(elapsedTime)}</span>
+      <div className="absolute top-0 left-0 right-0 z-20 p-2 md:p-4 safe-area-inset-top">
+        <div className="bg-white rounded-xl md:rounded-2xl shadow-lg border border-gray-100 p-2 md:p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 md:gap-6 flex-1 min-w-0">
+              <div className="flex items-center gap-1 md:gap-2">
+                <Clock className="w-4 h-4 md:w-5 md:h-5 text-gray-600 flex-shrink-0" />
+                <span className="font-semibold text-sm md:text-lg text-gray-900">{formatTime(elapsedTime)}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Navigation className="w-5 h-5 text-gray-600" />
-                <span className="font-semibold text-lg text-gray-900">{distanceKm.toFixed(2)} km</span>
+              <div className="flex items-center gap-1 md:gap-2">
+                <Navigation className="w-4 h-4 md:w-5 md:h-5 text-gray-600 flex-shrink-0" />
+                <span className="font-semibold text-sm md:text-lg text-gray-900">{distanceKm.toFixed(2)} km</span>
               </div>
             </div>
 
             <Button
               size="sm"
               variant="destructive"
-              className="bg-red-600 hover:bg-red-700 rounded-full px-4"
+              className="bg-red-600 hover:bg-red-700 rounded-full px-2 md:px-4 h-8 md:h-9 text-xs md:text-sm flex-shrink-0"
               onClick={() => {
                 if (confirm('⚠️ ATIVAR MODO EMERGÊNCIA?\n\nIsto notificará o dono e a plataforma imediatamente.')) {
                   toast.error('🚨 EMERGÊNCIA ATIVADA!');
@@ -478,58 +478,58 @@ export default function ActiveWalkDashboard() {
                 }
               }}
             >
-              <AlertTriangle className="w-4 h-4 mr-1" />
-              SOS
+              <AlertTriangle className="w-3 h-3 md:w-4 md:h-4 mr-0 md:mr-1" />
+              <span className="hidden md:inline">SOS</span>
             </Button>
           </div>
         </div>
       </div>
 
       {/* Bottom Control Panel - Uber Style */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 p-4 safe-area-inset-bottom">
+      <div className="absolute bottom-0 left-0 right-0 z-20 p-3 md:p-4 safe-area-inset-bottom">
         <div className="bg-white rounded-t-3xl shadow-2xl border-t border-gray-100">
           {/* Dog Info */}
-          <div className="p-4 border-b border-gray-100">
+          <div className="p-3 md:p-4 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center">
-                  <span className="text-2xl">🐕</span>
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl md:text-2xl">🐕</span>
                 </div>
-                <div>
-                  <h3 className="font-bold text-base text-gray-900">{booking.dog_name}</h3>
-                  <p className="text-sm text-gray-500">{booking.owner_name}</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm md:text-base text-gray-900 truncate">{booking.dog_name}</h3>
+                  <p className="text-xs md:text-sm text-gray-500 truncate">{booking.owner_name}</p>
                 </div>
               </div>
-              <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                EM ANDAMENTO
+              <div className="px-2 md:px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] md:text-xs font-semibold whitespace-nowrap flex-shrink-0">
+                🔴 ATIVO
               </div>
             </div>
           </div>
 
           {/* Quick Actions - Compact Grid with Route Tools */}
-          <div className="px-4 py-3 border-b border-gray-100">
-            <div className="grid grid-cols-4 gap-2 mb-3">
+          <div className="px-3 md:px-4 py-2 md:py-3 border-b border-gray-100">
+            <div className="grid grid-cols-4 gap-1.5 md:gap-2 mb-2 md:mb-3">
               <button
                 onClick={() => handleQuickEvent('behavior_note', '💩', 'O cão fez cocô!')}
-                className="aspect-square bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-xl shadow-sm flex flex-col items-center justify-center transition-all"
+                className="aspect-square bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-lg md:rounded-xl shadow-sm flex flex-col items-center justify-center transition-all"
                 disabled={createCheckpointMutation.isPending}
               >
-                <span className="text-3xl mb-1">💩</span>
-                <span className="text-[10px] font-medium text-gray-600">Cocô</span>
+                <span className="text-2xl md:text-3xl mb-0.5 md:mb-1">💩</span>
+                <span className="text-[9px] md:text-[10px] font-medium text-gray-600">Cocô</span>
               </button>
 
               <button
                 onClick={() => handleQuickEvent('behavior_note', '💧', 'O cão fez xixi!')}
-                className="aspect-square bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-xl shadow-sm flex flex-col items-center justify-center transition-all"
+                className="aspect-square bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-lg md:rounded-xl shadow-sm flex flex-col items-center justify-center transition-all"
                 disabled={createCheckpointMutation.isPending}
               >
-                <span className="text-3xl mb-1">💧</span>
-                <span className="text-[10px] font-medium text-gray-600">Xixi</span>
+                <span className="text-2xl md:text-3xl mb-0.5 md:mb-1">💧</span>
+                <span className="text-[9px] md:text-[10px] font-medium text-gray-600">Xixi</span>
               </button>
 
-              <label className="aspect-square bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-xl shadow-sm flex flex-col items-center justify-center transition-all cursor-pointer">
-                <Camera className="w-7 h-7 mb-1 text-gray-700" />
-                <span className="text-[10px] font-medium text-gray-600">Foto</span>
+              <label className="aspect-square bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-lg md:rounded-xl shadow-sm flex flex-col items-center justify-center transition-all cursor-pointer">
+                <Camera className="w-5 h-5 md:w-7 md:h-7 mb-0.5 md:mb-1 text-gray-700" />
+                <span className="text-[9px] md:text-[10px] font-medium text-gray-600">Foto</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -541,53 +541,53 @@ export default function ActiveWalkDashboard() {
 
               <button
                 onClick={() => setShowStatusMenu(true)}
-                className="aspect-square bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-xl shadow-sm flex flex-col items-center justify-center transition-all"
+                className="aspect-square bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-lg md:rounded-xl shadow-sm flex flex-col items-center justify-center transition-all"
               >
-                <Zap className="w-7 h-7 mb-1 text-gray-700" />
-                <span className="text-[10px] font-medium text-gray-600">Status</span>
+                <Zap className="w-5 h-5 md:w-7 md:h-7 mb-0.5 md:mb-1 text-gray-700" />
+                <span className="text-[9px] md:text-[10px] font-medium text-gray-600">Status</span>
               </button>
             </div>
 
             {/* Route Management Row */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 md:gap-2">
               <button
                 onClick={() => setShowRouteSelector(true)}
-                className="bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 active:scale-95 rounded-xl shadow-sm p-2 flex flex-col items-center justify-center transition-all"
+                className="bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 active:scale-95 rounded-lg md:rounded-xl shadow-sm p-1.5 md:p-2 flex flex-col items-center justify-center transition-all"
               >
-                <MapIcon className="w-5 h-5 mb-1 text-purple-700" />
-                <span className="text-[9px] font-medium text-purple-700">Rotas</span>
+                <MapIcon className="w-4 h-4 md:w-5 md:h-5 mb-0.5 md:mb-1 text-purple-700" />
+                <span className="text-[8px] md:text-[9px] font-medium text-purple-700">Rotas</span>
               </button>
 
               <button
                 onClick={() => setShowRouteEditor(true)}
-                className="bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 active:scale-95 rounded-xl shadow-sm p-2 flex flex-col items-center justify-center transition-all"
+                className="bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 active:scale-95 rounded-lg md:rounded-xl shadow-sm p-1.5 md:p-2 flex flex-col items-center justify-center transition-all"
               >
-                <Edit3 className="w-5 h-5 mb-1 text-blue-700" />
-                <span className="text-[9px] font-medium text-blue-700">Editar</span>
+                <Edit3 className="w-4 h-4 md:w-5 md:h-5 mb-0.5 md:mb-1 text-blue-700" />
+                <span className="text-[8px] md:text-[9px] font-medium text-blue-700">Editar</span>
               </button>
 
               <button
                 onClick={handleSaveCurrentRoute}
-                className="bg-green-50 hover:bg-green-100 border-2 border-green-200 active:scale-95 rounded-xl shadow-sm p-2 flex flex-col items-center justify-center transition-all"
+                className="bg-green-50 hover:bg-green-100 border-2 border-green-200 active:scale-95 rounded-lg md:rounded-xl shadow-sm p-1.5 md:p-2 flex flex-col items-center justify-center transition-all"
               >
-                <Bookmark className="w-5 h-5 mb-1 text-green-700" />
-                <span className="text-[9px] font-medium text-green-700">Guardar</span>
+                <Bookmark className="w-4 h-4 md:w-5 md:h-5 mb-0.5 md:mb-1 text-green-700" />
+                <span className="text-[8px] md:text-[9px] font-medium text-green-700">Guardar</span>
               </button>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="p-4 flex gap-3">
+          <div className="p-3 md:p-4 flex gap-2 md:gap-3">
             <Button
               size="lg"
               variant="outline"
-              className="flex-1 h-12 border-2 border-gray-200 hover:bg-gray-50 relative rounded-xl"
+              className="flex-1 h-11 md:h-12 border-2 border-gray-200 hover:bg-gray-50 relative rounded-xl text-sm md:text-base"
               onClick={() => setShowChat(true)}
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
+              <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
               <span className="font-semibold">Chat</span>
               {unreadCount > 0 && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full flex items-center justify-center">
                   {unreadCount}
                 </div>
               )}
@@ -595,10 +595,10 @@ export default function ActiveWalkDashboard() {
 
             <Button
               size="lg"
-              className="flex-1 h-12 bg-black hover:bg-gray-800 text-white rounded-xl font-semibold"
+              className="flex-1 h-11 md:h-12 bg-black hover:bg-gray-800 text-white rounded-xl font-semibold text-sm md:text-base"
               onClick={() => navigate(createPageUrl(`ActiveRide?bookingId=${bookingId}`))}
             >
-              <CheckCircle className="w-5 h-5 mr-2" />
+              <CheckCircle className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
               Finalizar
             </Button>
           </div>

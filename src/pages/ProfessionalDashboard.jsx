@@ -1571,6 +1571,16 @@ export default function ProfessionalDashboard() {
                          <div className="flex flex-col items-end gap-2 min-w-[140px]">
                            <div className="text-3xl font-bold text-green-600 mb-2">€{booking.service_amount}</div>
 
+                            {booking.status === 'in_progress' && (
+                              <Button
+                                onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
+                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg font-bold animate-pulse"
+                              >
+                                <MapIcon className="w-4 h-4 mr-2" />
+                                🔴 Acompanhar Ativo
+                              </Button>
+                            )}
+
                             {booking.status === 'confirmed' && (
                               <>
                                 <Button
