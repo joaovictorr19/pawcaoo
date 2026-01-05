@@ -18,11 +18,17 @@ import {
   Navigation,
   Coffee,
   Zap,
-  AlertCircle
+  AlertCircle,
+  Bookmark,
+  Edit3,
+  Map as MapIcon
 } from "lucide-react";
 import { Map, MapRoute, MapMarker, MarkerContent, MapControls } from "@/components/ui/map";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
+import RouteSelectorModal from "@/components/walk/RouteSelectorModal";
+import SaveRouteModal from "@/components/walk/SaveRouteModal";
+import RouteEditorPanel from "@/components/walk/RouteEditorPanel";
 
 export default function ActiveWalkDashboard() {
   const [searchParams] = useSearchParams();
@@ -35,7 +41,11 @@ export default function ActiveWalkDashboard() {
   const [currentPosition, setCurrentPosition] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [showRouteSelector, setShowRouteSelector] = useState(false);
+  const [showSaveRoute, setShowSaveRoute] = useState(false);
+  const [showRouteEditor, setShowRouteEditor] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState(null);
   const watchIdRef = useRef(null);
   const startTimeRef = useRef(null);
 
@@ -271,6 +281,46 @@ export default function ActiveWalkDashboard() {
     }
   };
 
+  // Handle route selection from saved routes
+  const handleSelectRoute = (route) => {
+    setSelectedRoute(route);
+    // Pre-load route on map but don't override GPS tracking
+    toast.success(`Rota "${route.route_name}" carregada como guia!`);
+  };
+
+  // Handle route updates during walk
+  const handleUpdateRoute = (newCoordinates) => {
+    base44.entities.Booking.update(bookingId, {
+      route_coordinates: newCoordinates
+    }).catch(err => console.error('Route update error:', err));
+  };
+
+  const handleAddWaypoint = (waypoint) => {
+    const updated = [...(booking.route_coordinates || []), waypoint];
+    handleUpdateRoute(updated);
+  };
+
+  const handleRemoveWaypoint = (index) => {
+    const updated = booking.route_coordinates.filter((_, idx) => idx !== index);
+    handleUpdateRoute(updated);
+  };
+
+  // Save current route
+  const handleSaveCurrentRoute = () => {
+    if (!booking.route_coordinates || booking.route_coordinates.length < 2) {
+      toast.error('Caminhe mais para guardar esta rota');
+      return;
+    }
+
+    const routeData = {
+      coordinates: booking.route_coordinates,
+      distance_km: distanceKm,
+      duration_minutes: Math.floor(elapsedTime / 60)
+    };
+
+    setShowSaveRoute(true);
+  };
+
   // Format time
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -305,7 +355,11 @@ export default function ActiveWalkDashboard() {
     );
   }
 
-  const routeCoordinates = booking.route_coordinates?.map(c => [c.lng, c.lat]) || [];
+  // Route display logic - Show selected route as guide OR actual GPS trail
+  const displayRoute = selectedRoute 
+    ? selectedRoute.coordinates.map(c => [c.lng, c.lat])
+    : booking.route_coordinates?.map(c => [c.lng, c.lat]) || [];
+
   const mapCenter = currentPosition 
     ? [currentPosition.lng, currentPosition.lat]
     : booking.pickup_lng && booking.pickup_lat
@@ -326,10 +380,20 @@ export default function ActiveWalkDashboard() {
       {/* Full-screen Map */}
       <div className="absolute inset-0">
         <Map center={mapCenter} zoom={15}>
-          {/* Route Line - Uber Blue */}
-          {routeCoordinates.length > 1 && (
+          {/* Selected Guide Route - Dashed Blue */}
+          {selectedRoute && selectedRoute.coordinates.length > 1 && (
             <MapRoute
-              coordinates={routeCoordinates}
+              coordinates={selectedRoute.coordinates.map(c => [c.lng, c.lat])}
+              color="#3b82f6"
+              width={3}
+              opacity={0.5}
+            />
+          )}
+
+          {/* Actual GPS Trail - Solid Black */}
+          {booking.route_coordinates && booking.route_coordinates.length > 1 && (
+            <MapRoute
+              coordinates={booking.route_coordinates.map(c => [c.lng, c.lat])}
               color="#000000"
               width={5}
               opacity={1}
@@ -442,9 +506,9 @@ export default function ActiveWalkDashboard() {
             </div>
           </div>
 
-          {/* Quick Actions - Compact Grid */}
+          {/* Quick Actions - Compact Grid with Route Tools */}
           <div className="px-4 py-3 border-b border-gray-100">
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2 mb-3">
               <button
                 onClick={() => handleQuickEvent('behavior_note', '💩', 'O cão fez cocô!')}
                 className="aspect-square bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-xl shadow-sm flex flex-col items-center justify-center transition-all"
@@ -481,6 +545,33 @@ export default function ActiveWalkDashboard() {
               >
                 <Zap className="w-7 h-7 mb-1 text-gray-700" />
                 <span className="text-[10px] font-medium text-gray-600">Status</span>
+              </button>
+            </div>
+
+            {/* Route Management Row */}
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => setShowRouteSelector(true)}
+                className="bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 active:scale-95 rounded-xl shadow-sm p-2 flex flex-col items-center justify-center transition-all"
+              >
+                <MapIcon className="w-5 h-5 mb-1 text-purple-700" />
+                <span className="text-[9px] font-medium text-purple-700">Rotas</span>
+              </button>
+
+              <button
+                onClick={() => setShowRouteEditor(true)}
+                className="bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 active:scale-95 rounded-xl shadow-sm p-2 flex flex-col items-center justify-center transition-all"
+              >
+                <Edit3 className="w-5 h-5 mb-1 text-blue-700" />
+                <span className="text-[9px] font-medium text-blue-700">Editar</span>
+              </button>
+
+              <button
+                onClick={handleSaveCurrentRoute}
+                className="bg-green-50 hover:bg-green-100 border-2 border-green-200 active:scale-95 rounded-xl shadow-sm p-2 flex flex-col items-center justify-center transition-all"
+              >
+                <Bookmark className="w-5 h-5 mb-1 text-green-700" />
+                <span className="text-[9px] font-medium text-green-700">Guardar</span>
               </button>
             </div>
           </div>
@@ -568,6 +659,37 @@ export default function ActiveWalkDashboard() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Route Selector Modal */}
+      <RouteSelectorModal
+        isOpen={showRouteSelector}
+        onClose={() => setShowRouteSelector(false)}
+        onSelectRoute={handleSelectRoute}
+        currentUserEmail={user?.email}
+      />
+
+      {/* Save Route Modal */}
+      <SaveRouteModal
+        isOpen={showSaveRoute}
+        onClose={() => setShowSaveRoute(false)}
+        routeData={{
+          coordinates: booking.route_coordinates || [],
+          distance_km: distanceKm,
+          duration_minutes: Math.floor(elapsedTime / 60)
+        }}
+        userEmail={user?.email}
+      />
+
+      {/* Route Editor Panel */}
+      <RouteEditorPanel
+        isOpen={showRouteEditor}
+        onClose={() => setShowRouteEditor(false)}
+        routeCoordinates={booking.route_coordinates || []}
+        onUpdateRoute={handleUpdateRoute}
+        onAddWaypoint={handleAddWaypoint}
+        onRemoveWaypoint={handleRemoveWaypoint}
+        currentPosition={currentPosition}
+      />
     </div>
   );
 }
