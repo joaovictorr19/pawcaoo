@@ -478,9 +478,10 @@ export default function Chat() {
         currentUserId={user?.email}
         selectedId={selectedConversation?.id}
         onSelect={(conv) => {
+          console.log('🎯 Conversa selecionada:', conv.id);
           setSelectedConversation(conv);
           setShowConversationList(false);
-          navigate(createPageUrl(`Chat?conversationId=${conv.id}`), { replace: true });
+          navigate(createPageUrl(`Chat?conversationId=${conv.id}`));
         }}
         isLoading={loadingConversations}
       />
@@ -648,14 +649,16 @@ export default function Chat() {
           )}
         </div>
 
-        {/* Input */}
-        <ChatInput
-          onSendMessage={(data) => sendMessageMutation.mutate(data)}
-          onTyping={(isTyping) => updateTypingMutation.mutate(isTyping)}
-          disabled={sendMessageMutation.isPending}
-          replyTo={replyTo}
-          onCancelReply={() => setReplyTo(null)}
-        />
+        {/* Input - Always visible */}
+        <div className="flex-shrink-0 border-t bg-white">
+          <ChatInput
+            onSendMessage={(data) => sendMessageMutation.mutate(data)}
+            onTyping={(isTyping) => updateTypingMutation.mutate(isTyping)}
+            disabled={sendMessageMutation.isPending}
+            replyTo={replyTo}
+            onCancelReply={() => setReplyTo(null)}
+          />
+        </div>
       </div>
     );
   };
@@ -673,19 +676,24 @@ export default function Chat() {
 
   // Show loading ONLY for first 3 seconds max
   if (bookingId && loadingBookingConvo && !bookingConversation) {
+    setTimeout(() => {
+      if (!bookingConversation) {
+        navigate(createPageUrl("Chat"));
+      }
+    }, 5000);
+
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-3" />
           <p className="text-sm text-gray-600">A carregar conversa...</p>
-          <p className="text-xs text-gray-500 mt-2">Se demorar muito, recarregue a página</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-140px)] md:h-[calc(100vh-120px)] bg-white rounded-2xl overflow-hidden shadow-lg mx-2 md:mx-4 my-2">
+    <div className="flex h-[calc(100vh-80px)] md:h-[calc(100vh-120px)] bg-white md:rounded-2xl overflow-hidden md:shadow-lg md:mx-2 md:my-2">
       {renderConversationList()}
       {renderChatView()}
 

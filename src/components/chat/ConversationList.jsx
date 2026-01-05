@@ -118,21 +118,22 @@ export default function ConversationList({
     return (
       <button
         key={conv.id}
+        type="button"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log('💬 Conversa clicada:', conv.id);
+          console.log('💬 CLICK em conversa:', conv.id);
           onSelect(conv);
         }}
-        className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left border-b ${
+        className={`w-full flex items-center gap-2 md:gap-3 p-2 md:p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left border-b ${
           isSelected ? (isActive ? "bg-green-50 border-l-4 border-green-600" : "bg-blue-50") : ""
         }`}
       >
         {/* Avatar */}
         <div className="relative flex-shrink-0">
-          <Avatar className={`w-12 h-12 ${isActive ? 'ring-2 ring-green-500' : ''}`}>
+          <Avatar className={`w-10 h-10 md:w-12 md:h-12 ${isActive ? 'ring-2 ring-green-500' : ''}`}>
             <AvatarImage src={other.photo} />
-            <AvatarFallback className={`${isActive ? 'bg-green-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'} text-white`}>
+            <AvatarFallback className={`${isActive ? 'bg-green-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'} text-white text-sm md:text-base`}>
               {other.name?.[0]?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -145,15 +146,15 @@ export default function ConversationList({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1 min-w-0">
-              <h4 className={`text-sm truncate ${unreadCount > 0 ? "font-bold" : "font-medium"}`}>
+          <div className="flex items-center justify-between gap-1 md:gap-2">
+            <div className="flex items-center gap-1 min-w-0 flex-1">
+              <h4 className={`text-xs md:text-sm truncate ${unreadCount > 0 ? "font-bold" : "font-medium"}`}>
                 {other.name}
               </h4>
-              {isPinned && <Pin className="w-3 h-3 text-blue-500 flex-shrink-0" />}
-              {isMuted && <VolumeX className="w-3 h-3 text-gray-400 flex-shrink-0" />}
+              {isPinned && <Pin className="w-2.5 h-2.5 md:w-3 md:h-3 text-blue-500 flex-shrink-0" />}
+              {isMuted && <VolumeX className="w-2.5 h-2.5 md:w-3 md:h-3 text-gray-400 flex-shrink-0" />}
             </div>
-            <span className="text-[10px] text-gray-500 flex-shrink-0">
+            <span className="text-[9px] md:text-[10px] text-gray-500 flex-shrink-0">
               {formatDate(conv.last_message_date)}
             </span>
           </div>
