@@ -211,14 +211,23 @@ export default function ProfessionalDashboard() {
   const { data: walkBookings = [] } = useQuery({
     queryKey: ['myWalkBookings'],
     queryFn: async () => {
-      console.log('🔍 Buscando pedidos para walker:', user?.email);
-      const bookings = await base44.entities.Booking.filter({ walker_email: user?.email }, '-created_date');
+      console.log('🔍 Buscando pedidos para walker:', user?.email, 'Profile ID:', walkerProfile?.id);
+      
+      // Buscar por AMBOS: email E id do perfil
+      const byEmail = await base44.entities.Booking.filter({ walker_email: user?.email }, '-created_date');
+      const byId = walkerProfile?.id ? await base44.entities.Booking.filter({ walker_id: walkerProfile.id }, '-created_date') : [];
+      
+      // Merge e remover duplicados
+      const uniqueMap = new Map();
+      [...byEmail, ...byId].forEach(b => uniqueMap.set(b.id, b));
+      const bookings = Array.from(uniqueMap.values());
+      
       console.log('📊 Pedidos encontrados:', bookings.length, bookings);
       return bookings;
     },
     enabled: !!user && !!walkerProfile,
     initialData: [],
-    refetchInterval: 5000, // Real-time: refresh every 5s (mais agressivo)
+    refetchInterval: 5000,
   });
 
   // Detect NEW direct requests (apenas para este walker) e mostrar alerta
@@ -571,8 +580,12 @@ export default function ProfessionalDashboard() {
   // Separar Solicitações Diretas (para mim) vs Pedidos Disponíveis (broadcast)
   const directRequests = allBookings.filter(b => {
     const isPending = b.status === 'pending';
-    const isForMe = b.walker_id === walkerProfile?.id || b.walker_email === user?.email;
-    console.log('📋 Booking:', b.id, 'Status:', b.status, 'Walker ID:', b.walker_id, 'My ID:', walkerProfile?.id, 'IsForMe:', isForMe);
+    // GARANTIR que pega TODOS os pendentes do walker (por ID ou Email)
+    const isForMe = (b.walker_id && b.walker_id === walkerProfile?.id) || 
+                    (b.walker_email && b.walker_email === user?.email) ||
+                    (b.trainer_id && b.trainer_id === trainerProfile?.id) ||
+                    (b.trainer_email && b.trainer_email === user?.email);
+    console.log('📋 Booking:', b.id, 'Status:', b.status, 'Walker ID:', b.walker_id, 'Walker Email:', b.walker_email, 'My ID:', walkerProfile?.id, 'My Email:', user?.email, 'IsForMe:', isForMe);
     return isPending && isForMe;
   });
   const pendingBookings = allBookings.filter(b => b.status === 'pending' || b.status === 'confirmed');
@@ -1525,8 +1538,17 @@ export default function ProfessionalDashboard() {
                     <p className="text-gray-600">{dt('bookingsWillAppear', language)}</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {allBookings.filter(b => !(b.status === 'pending' && b.walker_id === walkerProfile?.id)).map((booking) => (
+                 <div className="space-y-3">
+                   {allBookings.filter(b => {
+                     // NÃO mostrar aqui os que já aparecem em "Solicitações Diretas"
+                     const isPendingForMe = b.status === 'pending' && (
+                       (b.walker_id && b.walker_id === walkerProfile?.id) || 
+                       (b.walker_email && b.walker_email === user?.email) ||
+                       (b.trainer_id && b.trainer_id === trainerProfile?.id) ||
+                       (b.trainer_email && b.trainer_email === user?.email)
+                     );
+                     return !isPendingForMe; // Exclui os que já estão nas solicitações diretas
+                   }).map((booking) => (
                      <div key={booking.id} className="bg-gradient-to-br from-gray-50 to-white rounded-xl border-2 border-gray-200 hover:border-green-300 shadow-md hover:shadow-lg transition-all p-4">
                        <div className="grid md:grid-cols-[1fr,auto] gap-4">
                          <div>
