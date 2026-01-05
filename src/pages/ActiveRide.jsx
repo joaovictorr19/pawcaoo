@@ -24,7 +24,6 @@ import useRideTracker from '../components/tracking/useRideTracker';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import FinishRideModal from '../components/tracking/FinishRideModal';
-import RideChat from '../components/tracking/RideChat';
 
 /**
  * ✅ PÁGINA DE RASTREAMENTO COM INTEGRIDADE DE DADOS
@@ -463,8 +462,13 @@ export default function ActiveRide() {
         }}
       />
 
-      {/* ✅ CHAT EM TEMPO REAL */}
-      <RideChat booking={booking} user={user} />
+      {/* ✅ CHAT - Link to main Chat page with this booking */}
+      <Button
+        onClick={() => navigate(createPageUrl(`Chat?bookingId=${booking.id}`))}
+        className="fixed bottom-24 right-6 z-50 w-16 h-16 rounded-full shadow-2xl bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 flex items-center justify-center"
+      >
+        <MessageCircle className="w-7 h-7 text-white" />
+      </Button>
     </div>
   );
 }
