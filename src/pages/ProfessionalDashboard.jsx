@@ -1524,7 +1524,7 @@ export default function ProfessionalDashboard() {
                                 </Button>
                             )}
                             
-                            {booking.owner_phone && booking.status !== 'completed' && (
+                            {(booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'service_completed') && (
                               <Button
                                 onClick={() => navigate(createPageUrl(`Chat?bookingId=${booking.id}`))}
                                 variant="outline"
