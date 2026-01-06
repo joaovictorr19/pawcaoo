@@ -683,44 +683,72 @@ export default function AdminDashboard() {
     onError: (error) => toast.error("Erro ao eliminar perfil de passeador: " + (error.message || "Erro desconhecido")),
   });
 
-  // Criar Reserva de Teste - NUCLEAR OPTION
+  // Criar Reserva de Teste - ANTI-FREEZE PATTERN
   const createTestBookingMutation = useMutation({
     mutationFn: async ({ walkerId, walkerEmail }) => {
-      console.log('🧪 Starting test booking creation...');
-      const response = await base44.functions.invoke('createTestBooking', {
-        walkerId,
-        walkerEmail
-      });
-      console.log('📦 Backend response:', response.data);
-      return response.data;
+      try {
+        console.log('🧪 [CLIENT] Starting test booking creation...');
+        console.log('📦 [CLIENT] Walker ID:', walkerId, 'Email:', walkerEmail);
+        
+        const response = await base44.functions.invoke('createTestBooking', {
+          walkerId,
+          walkerEmail
+        });
+        
+        console.log('📦 [CLIENT] Backend response:', response?.data);
+        
+        // CRITICAL: Always return an object, even if response is malformed
+        if (!response || !response.data) {
+          throw new Error('Resposta vazia do servidor');
+        }
+        
+        return response.data;
+      } catch (error) {
+        console.error('❌ [CLIENT] Mutation function error:', error);
+        // Re-throw to trigger onError
+        throw error;
+      }
     },
     onSuccess: (data) => {
-      console.log('✅ Test booking created successfully:', data);
+      console.log('✅ [CLIENT] Mutation success callback, data:', data);
       
-      if (!data.success) {
-        toast.error('Falha ao criar teste', {
-          description: data.error || 'Erro desconhecido'
+      // ANTI-FREEZE: Check success flag
+      if (!data || !data.success) {
+        console.error('❌ [CLIENT] Backend returned failure:', data?.error);
+        toast.error('❌ Falha ao criar teste', {
+          description: data?.error || 'Erro desconhecido',
+          duration: 5000
         });
         return;
       }
 
+      if (!data.bookingId) {
+        console.error('❌ [CLIENT] No booking ID in response');
+        toast.error('Erro: ID da reserva não retornado');
+        return;
+      }
+
+      console.log('🔄 [CLIENT] Invalidating queries...');
       queryClient.invalidateQueries(["allBookings"]);
       queryClient.invalidateQueries(["myWalkBookings"]);
       
-      toast.success("🧪 Serviço de teste iniciado!", {
-        description: "Abrindo mapa GPS ao vivo..."
+      toast.success("🧪 Serviço de teste criado!", {
+        description: "Redirecionando para mapa GPS..."
       });
       
+      // CLIENT-SIDE REDIRECT (The Nuclear Fix)
+      const url = createPageUrl(`ActiveWalkDashboard?bookingId=${data.bookingId}`);
+      console.log('🗺️ [CLIENT] Navigating to:', url);
+      
       setTimeout(() => {
-        const url = createPageUrl(`ActiveWalkDashboard?bookingId=${data.bookingId}`);
-        console.log('🗺️ Redirecting to:', url);
         navigate(url);
-      }, 800);
+      }, 500);
     },
     onError: (error) => {
-      console.error('❌ Test booking error:', error);
-      toast.error("Erro ao criar teste", {
-        description: error?.message || 'Erro desconhecido'
+      console.error('❌ [CLIENT] Mutation error callback:', error);
+      toast.error("❌ Erro ao criar teste", {
+        description: error?.message || String(error) || 'Erro desconhecido',
+        duration: 5000
       });
     }
   });
