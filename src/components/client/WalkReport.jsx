@@ -15,8 +15,9 @@ export function WalkReport({ booking, checkpoints = [] }) {
   const eventIcons = {
     '💩': { label: 'Fez cocô', color: 'bg-orange-100 text-orange-700 border-orange-300' },
     '💧': { label: 'Fez xixi', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-    '🐕': { label: 'Socializou', color: 'bg-pink-100 text-pink-700 border-pink-300' },
-    '💧': { label: 'Bebeu água', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
+    '🐕': { label: 'Socializou com outros cães', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+    '💦': { label: 'Bebeu água', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
+    '😰': { label: 'Cansado/Pausa', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
     '📷': { label: 'Foto', color: 'bg-purple-100 text-purple-700 border-purple-300' },
   };
 

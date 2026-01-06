@@ -12,7 +12,12 @@ import {
   Clock,
   Navigation,
   CheckCircle,
+  Thermometer,
+  Frown
 } from "lucide-react";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
+import { MarkerTooltip, MarkerPopup } from "@/components/ui/map";
 import UniversalMap from "@/components/maps/UniversalMap";
 import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
 import { MapRoute, MapMarker, MarkerContent } from "@/components/ui/map";
@@ -549,16 +554,55 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             </MapMarker>
           )}
 
-          {/* Event Markers */}
-          {pathMarkers.map((marker, idx) => (
-            <MapMarker key={idx} longitude={marker.lng} latitude={marker.lat}>
-              <MarkerContent>
-                <div className="w-8 h-8 bg-white rounded-full border-2 border-gray-300 shadow-lg flex items-center justify-center text-lg">
-                  {marker.emoji}
-                </div>
-              </MarkerContent>
-            </MapMarker>
-          ))}
+          {/* Event Markers - Interactive with Popups */}
+          {pathMarkers.map((marker, idx) => {
+            const eventLabels = {
+              '💩': 'Fez cocô',
+              '💧': 'Fez xixi',
+              '🐕': 'Socializou',
+              '💦': 'Bebeu água',
+              '📷': 'Foto tirada'
+            };
+            
+            const eventColors = {
+              '💩': 'border-orange-400 bg-orange-50',
+              '💧': 'border-blue-400 bg-blue-50',
+              '🐕': 'border-pink-400 bg-pink-50',
+              '💦': 'border-cyan-400 bg-cyan-50',
+              '📷': 'border-purple-400 bg-purple-50'
+            };
+            
+            return (
+              <MapMarker key={idx} longitude={marker.lng} latitude={marker.lat}>
+                <MarkerContent>
+                  <div className={`w-10 h-10 rounded-full border-3 shadow-xl flex items-center justify-center text-xl cursor-pointer hover:scale-125 transition-transform ${eventColors[marker.emoji] || 'bg-white border-gray-300'}`}>
+                    {marker.emoji}
+                  </div>
+                </MarkerContent>
+                <MarkerTooltip>
+                  {eventLabels[marker.emoji] || 'Evento'}
+                </MarkerTooltip>
+                <MarkerPopup>
+                  <div className="space-y-2 min-w-[200px]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center">
+                        <span className="text-lg">{marker.emoji}</span>
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{eventLabels[marker.emoji]}</p>
+                        <p className="text-xs text-gray-500">
+                          {marker.timestamp ? format(new Date(marker.timestamp), 'HH:mm:ss', { locale: pt }) : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      📍 Lat: {marker.lat.toFixed(5)}, Lng: {marker.lng.toFixed(5)}
+                    </p>
+                  </div>
+                </MarkerPopup>
+              </MapMarker>
+            );
+          })}
           </UniversalMap>
         </SafeMapWrapper>
       </div>
@@ -681,27 +725,30 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             </button>
 
             <button
-              onClick={() => {
-                console.log('💧 Water button clicked!');
-                handleQuickEvent('💧', 'O cão bebeu água! 💧');
-              }}
+              onClick={() => handleQuickEvent('💦', 'O cão bebeu água! 💦')}
               disabled={!currentPosition}
               className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Água"
             >
-              💧
+              💦
             </button>
 
             <button
-              onClick={() => {
-                console.log('🐕 Social button clicked!');
-                handleQuickEvent('🐕', 'O cão brincou com outros cães! 🐕');
-              }}
+              onClick={() => handleQuickEvent('🐕', 'O cão socializou com outros cães! 🐕')}
               disabled={!currentPosition}
               className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Social"
             >
               🐕
+            </button>
+
+            <button
+              onClick={() => handleQuickEvent('😰', 'O cão está cansado ou precisa de pausa 😰')}
+              disabled={!currentPosition}
+              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label="Cansado"
+            >
+              😰
             </button>
 
             <label className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform cursor-pointer touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}>

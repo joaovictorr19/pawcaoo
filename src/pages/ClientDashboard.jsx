@@ -19,12 +19,12 @@ import {
   ChevronRight
 } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, pt } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import UniversalMap from "@/components/maps/UniversalMap";
 import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
-import { MapRoute, MapMarker, MarkerContent } from "@/components/ui/map";
+import { MapRoute, MapMarker, MarkerContent, MarkerTooltip, MarkerPopup } from "@/components/ui/map";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -259,33 +259,178 @@ export default function ClientDashboard() {
           </TabsContent>
 
           <TabsContent value="map">
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <CardTitle>Trajetos GPS dos Passeios</CardTitle>
+            <Card className="overflow-hidden shadow-xl border-0">
+              <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="w-6 h-6" />
+                  Mapa de Aventuras do {selectedBooking?.dog_name || 'seu Pet'}
+                </CardTitle>
+                <p className="text-sm text-white/80">
+                  Todos os trajetos GPS e eventos registados nos passeios
+                </p>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-[600px]">
                   <SafeMapWrapper>
                     <UniversalMap
-                      center={[-8.6291, 41.1579]}
-                      zoom={12}
+                      center={selectedBooking?.route_coordinates?.[0] 
+                        ? [selectedBooking.route_coordinates[0].lng, selectedBooking.route_coordinates[0].lat]
+                        : [-8.6291, 41.1579]}
+                      zoom={selectedBooking ? 14 : 12}
                       showControls={true}
                       controlsPosition="top-right"
                     >
-                      {bookings
-                        .filter(b => b.route_coordinates && b.route_coordinates.length > 1)
-                        .map((booking, idx) => (
+                      {/* Draw routes */}
+                      {(selectedBooking 
+                        ? [selectedBooking] 
+                        : bookings.filter(b => b.route_coordinates && b.route_coordinates.length > 1)
+                      ).map((booking, idx) => (
+                        <React.Fragment key={booking.id}>
                           <MapRoute
-                            key={booking.id}
                             coordinates={booking.route_coordinates.map(c => [c.lng, c.lat])}
-                            color={`hsl(${idx * 40}, 70%, 50%)`}
-                            width={3}
-                            opacity={0.7}
+                            color={selectedBooking ? '#16a34a' : `hsl(${idx * 40}, 70%, 50%)`}
+                            width={selectedBooking ? 5 : 3}
+                            opacity={selectedBooking ? 1 : 0.6}
                           />
-                        ))}
+                          
+                          {/* Start marker */}
+                          {booking.route_coordinates.length > 0 && (
+                            <MapMarker 
+                              longitude={booking.route_coordinates[0].lng} 
+                              latitude={booking.route_coordinates[0].lat}
+                            >
+                              <MarkerContent>
+                                <div className="w-6 h-6 bg-green-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                                  <div className="w-2 h-2 bg-white rounded-full" />
+                                </div>
+                              </MarkerContent>
+                              <MarkerTooltip>Início do passeio</MarkerTooltip>
+                              <MarkerPopup>
+                                <div className="space-y-1">
+                                  <p className="font-bold text-green-700">🟢 Início</p>
+                                  <p className="text-xs text-gray-600">
+                                    {format(new Date(booking.walk_start_time || booking.created_date), "dd/MM/yyyy 'às' HH:mm", { locale: pt })}
+                                  </p>
+                                </div>
+                              </MarkerPopup>
+                            </MapMarker>
+                          )}
+                          
+                          {/* End marker */}
+                          {booking.route_coordinates.length > 1 && (
+                            <MapMarker 
+                              longitude={booking.route_coordinates[booking.route_coordinates.length - 1].lng} 
+                              latitude={booking.route_coordinates[booking.route_coordinates.length - 1].lat}
+                            >
+                              <MarkerContent>
+                                <div className="w-6 h-6 bg-red-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                                  <div className="w-2 h-2 bg-white rounded-full" />
+                                </div>
+                              </MarkerContent>
+                              <MarkerTooltip>Fim do passeio</MarkerTooltip>
+                              <MarkerPopup>
+                                <div className="space-y-1">
+                                  <p className="font-bold text-red-700">🔴 Fim</p>
+                                  <p className="text-xs text-gray-600">
+                                    Distância: {booking.distance_km?.toFixed(2)} km
+                                  </p>
+                                </div>
+                              </MarkerPopup>
+                            </MapMarker>
+                          )}
+                        </React.Fragment>
+                      ))}
+                      
+                      {/* Event markers with rich popups */}
+                      {selectedBooking && checkpoints.map((checkpoint, idx) => {
+                        const emoji = checkpoint.notes?.match(/[^\w\s]/)?.[0] || '📍';
+                        const eventLabels = {
+                          '💩': 'Fez cocô',
+                          '💧': 'Fez xixi',
+                          '🐕': 'Socializou',
+                          '💦': 'Bebeu água',
+                          '😰': 'Cansado/Pausa',
+                          '📷': 'Foto tirada'
+                        };
+                        
+                        return (
+                          <MapMarker 
+                            key={checkpoint.id} 
+                            longitude={checkpoint.longitude} 
+                            latitude={checkpoint.latitude}
+                          >
+                            <MarkerContent>
+                              <div className="w-10 h-10 bg-white rounded-full border-3 border-green-500 shadow-xl flex items-center justify-center text-xl hover:scale-125 transition-transform cursor-pointer">
+                                {emoji}
+                              </div>
+                            </MarkerContent>
+                            <MarkerTooltip>
+                              {eventLabels[emoji] || 'Evento'}
+                            </MarkerTooltip>
+                            <MarkerPopup>
+                              <div className="space-y-2 min-w-[220px]">
+                                <div className="flex items-start gap-3">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                                    <span className="text-2xl">{emoji}</span>
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="font-bold text-gray-900 leading-tight">{eventLabels[emoji]}</p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      ⏰ {format(new Date(checkpoint.timestamp), "HH:mm:ss", { locale: pt })}
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {checkpoint.notes && (
+                                  <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded-lg">
+                                    {checkpoint.notes}
+                                  </p>
+                                )}
+                                
+                                {checkpoint.photo_url && (
+                                  <img 
+                                    src={checkpoint.photo_url} 
+                                    alt="Foto do evento"
+                                    className="w-full rounded-lg border-2 border-white shadow-md"
+                                  />
+                                )}
+                              </div>
+                            </MarkerPopup>
+                          </MapMarker>
+                        );
+                      })}
                     </UniversalMap>
                   </SafeMapWrapper>
                 </div>
+                
+                {/* Walk selector if multiple walks exist */}
+                {bookings.filter(b => b.status === 'completed').length > 1 && (
+                  <div className="p-4 border-t bg-gray-50">
+                    <p className="text-sm font-medium text-gray-700 mb-3">Selecionar Passeio:</p>
+                    <div className="flex gap-2 overflow-x-auto pb-2">
+                      <Button
+                        variant={!selectedBooking ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedBooking(null)}
+                      >
+                        Todos
+                      </Button>
+                      {bookings
+                        .filter(b => b.status === 'completed' && b.route_coordinates?.length > 0)
+                        .map((booking) => (
+                          <Button
+                            key={booking.id}
+                            variant={selectedBooking?.id === booking.id ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSelectedBooking(booking)}
+                            className="whitespace-nowrap"
+                          >
+                            {booking.dog_name} - {format(new Date(booking.walk_date), "dd/MM", { locale: pt })}
+                          </Button>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

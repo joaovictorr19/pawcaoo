@@ -40,58 +40,83 @@ export default function UniversalMap({
     if (map.current) return;
     if (!mapContainer.current) return;
 
-    try {
-      map.current = new maplibregl.Map({
-        container: mapContainer.current,
-        style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-        center: safeCenter,
-        zoom: zoom || 13,
-        attributionControl: false
-      });
-    } catch (error) {
-      console.error('Map initialization error:', error);
-      return;
-    }
+    // CRITICAL FIX: Delay map initialization to ensure container is fully rendered
+    const initTimeout = setTimeout(() => {
+      try {
+        if (!mapContainer.current) {
+          console.warn('⚠️ Map container disappeared, aborting initialization');
+          return;
+        }
 
-    // Store map instance in DOM for child components
-    if (mapContainer.current) {
-      mapContainer.current._map = map.current;
-    }
-
-    // Add attribution control
-    map.current.addControl(new maplibregl.AttributionControl({
-      compact: true
-    }), 'bottom-right');
-
-    map.current.on('load', () => {
-      console.log('🗺️ UniversalMap loaded at', center);
-      setIsReady(true);
-      if (onMapLoad) {
-        onMapLoad(map.current);
-      }
-    });
-
-    // Track pitch and bearing changes
-    map.current.on('move', () => {
-      if (map.current) {
-        setPitch(Math.round(map.current.getPitch()));
-        setBearing(Math.round(map.current.getBearing()));
-      }
-    });
-
-    // Handle map clicks for manual correction
-    if (onMapClick) {
-      map.current.on('click', (e) => {
-        onMapClick({
-          lng: e.lngLat.lng,
-          lat: e.lngLat.lat
+        map.current = new maplibregl.Map({
+          container: mapContainer.current,
+          style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+          center: safeCenter,
+          zoom: zoom || 13,
+          attributionControl: false,
+          preserveDrawingBuffer: true, // Better for screenshots/rendering
+          failIfMajorPerformanceCaveat: false // Don't fail on low-end devices
         });
-      });
-    }
+
+        // Store map instance in DOM for child components
+        if (mapContainer.current) {
+          mapContainer.current._map = map.current;
+        }
+
+        // Add attribution control
+        map.current.addControl(new maplibregl.AttributionControl({
+          compact: true
+        }), 'bottom-right');
+
+        map.current.on('load', () => {
+          console.log('✅ UniversalMap loaded successfully at', center);
+          setIsReady(true);
+          if (onMapLoad) {
+            onMapLoad(map.current);
+          }
+        });
+
+        map.current.on('error', (e) => {
+          console.error('❌ Map error:', e);
+        });
+
+        // Track pitch and bearing changes
+        map.current.on('move', () => {
+          if (map.current) {
+            setPitch(Math.round(map.current.getPitch()));
+            setBearing(Math.round(map.current.getBearing()));
+          }
+        });
+
+        // Handle map clicks for manual correction
+        if (onMapClick) {
+          map.current.on('click', (e) => {
+            onMapClick({
+              lng: e.lngLat.lng,
+              lat: e.lngLat.lat
+            });
+          });
+        }
+      } catch (error) {
+        console.error('❌ Map initialization error:', error);
+        // Retry once after 1 second
+        setTimeout(() => {
+          if (!map.current && mapContainer.current) {
+            console.log('🔄 Retrying map initialization...');
+            window.location.reload();
+          }
+        }, 1000);
+      }
+    }, 100); // 100ms delay to ensure DOM is ready
 
     return () => {
+      clearTimeout(initTimeout);
       if (map.current) {
-        map.current.remove();
+        try {
+          map.current.remove();
+        } catch (e) {
+          console.error('Error removing map:', e);
+        }
         map.current = null;
       }
     };
