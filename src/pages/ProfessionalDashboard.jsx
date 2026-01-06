@@ -1496,7 +1496,7 @@ export default function ProfessionalDashboard() {
                                       queryClient.invalidateQueries(['myWalkBookings']);
                                       queryClient.invalidateQueries(['conversations']);
                                       toast.success('✅ Pedido aceite!');
-                                      
+
                                       // Notificação in-app + email
                                       await base44.functions.invoke('sendNotification', {
                                         recipient_email: booking.owner_email || booking.created_by,
@@ -1527,13 +1527,14 @@ export default function ProfessionalDashboard() {
                                 </Button>
                               </div>
                             </div>
-                            </div>
-                            </div>
-                            ))}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    </CardContent>
+                    </Card>
+                    </motion.div>
+                    )}
 
             {/* TODAS AS RESERVAS */}
             <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-lg">
