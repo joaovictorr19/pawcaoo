@@ -184,51 +184,51 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
           <div>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <h3 className="font-bold text-xl text-gray-900">{booking.dog_name}</h3>
-            <Badge variant="outline" className="text-xs font-semibold">
-              {booking.dog_size === 'small' && '🐕 Pequeno'}
-              {booking.dog_size === 'medium' && '🐕 Médio'}
-              {booking.dog_size === 'large' && '🐕 Grande'}
-              {booking.dog_size === 'extra_large' && '🐕 XL'}
-            </Badge>
-          </div>
-          
-          <p className="text-sm text-gray-700 font-semibold mb-1">
-            {booking.owner_name}
-          </p>
-          
-          <p className="text-sm text-gray-600 flex items-center gap-1 mb-2">
-            <Clock className="w-4 h-4" />
-            {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • 
-            {booking.walk_time || booking.session_time} • 
-            {booking.duration_hours}h
-          </p>
-          
-          {booking.pickup_address && (
-            <p className="text-sm text-gray-600 flex items-center gap-1 mt-2 font-medium bg-gray-50 p-2 rounded-lg">
-              <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" /> 
-              {booking.pickup_address}
-            </p>
-          )}
-          
-          {booking.special_notes && (
-            <div className="mt-3 p-3 bg-amber-50 border-l-4 border-amber-400 rounded-lg">
-              <p className="text-xs text-gray-800">
-                <strong>⚠️ Notas:</strong> {booking.special_notes}
-              </p>
+              <Badge variant="outline" className="text-xs font-semibold">
+                {booking.dog_size === 'small' && '🐕 Pequeno'}
+                {booking.dog_size === 'medium' && '🐕 Médio'}
+                {booking.dog_size === 'large' && '🐕 Grande'}
+                {booking.dog_size === 'extra_large' && '🐕 XL'}
+              </Badge>
             </div>
-          )}
-        </div>
-
-        {/* Right: Actions */}
-        <div className="flex flex-col items-end gap-2 min-w-[200px]">
-          <div className="text-3xl font-bold text-green-600 mb-2">
-            €{booking.service_amount}
+            
+            <p className="text-sm text-gray-700 font-semibold mb-1">
+              {booking.owner_name}
+            </p>
+            
+            <p className="text-sm text-gray-600 flex items-center gap-1 mb-2">
+              <Clock className="w-4 h-4" />
+              {format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy', { locale: ptBR })} • 
+              {booking.walk_time || booking.session_time} • 
+              {booking.duration_hours}h
+            </p>
+            
+            {booking.pickup_address && (
+              <p className="text-sm text-gray-600 flex items-center gap-1 mt-2 font-medium bg-gray-50 p-2 rounded-lg">
+                <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" /> 
+                {booking.pickup_address}
+              </p>
+            )}
+            
+            {booking.special_notes && (
+              <div className="mt-3 p-3 bg-amber-50 border-l-4 border-amber-400 rounded-lg">
+                <p className="text-xs text-gray-800">
+                  <strong>⚠️ Notas:</strong> {booking.special_notes}
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Main Action Button */}
-          {getMainActionButton()}
+          {/* Right: Actions */}
+          <div className="flex flex-col items-end gap-2 min-w-[200px]">
+            <div className="text-3xl font-bold text-green-600 mb-2">
+              €{booking.service_amount}
+            </div>
 
-          {/* Chat button removed - integrated into main action */}
+            {/* Main Action Button */}
+            {getMainActionButton()}
+
+            {/* Chat button removed - integrated into main action */}
           </div>
         </div>
       </div>
