@@ -1,53 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { toast } from "sonner";
-import { 
-  MessageCircle, 
-  AlertTriangle, 
-  Camera, 
-  Droplets,
-  Send,
-  CheckCircle,
-  Clock,
-  Navigation,
-  Coffee,
-  Zap,
-  AlertCircle,
-  Bookmark,
-  Edit3,
-  Map as MapComponent
-} from "lucide-react";
-import { Map, MapRoute, MapMarker, MarkerContent, MapControls } from "@/components/ui/map";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createPageUrl } from "@/utils";
-import RouteSelectorModal from "@/components/walk/RouteSelectorModal";
-import SaveRouteModal from "@/components/walk/SaveRouteModal";
-import RouteEditorPanel from "@/components/walk/RouteEditorPanel";
+import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
+import ActiveServiceCockpit from "@/components/service/ActiveServiceCockpit";
 
 export default function ActiveWalkDashboard() {
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get("bookingId");
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [distanceKm, setDistanceKm] = useState(0);
-  const [currentPosition, setCurrentPosition] = useState(null);
-  const [showChat, setShowChat] = useState(false);
-  const [showStatusMenu, setShowStatusMenu] = useState(false);
-  const [showRouteSelector, setShowRouteSelector] = useState(false);
-  const [showSaveRoute, setShowSaveRoute] = useState(false);
-  const [showRouteEditor, setShowRouteEditor] = useState(false);
-  const [isTracking, setIsTracking] = useState(false);
-  const [selectedRoute, setSelectedRoute] = useState(null);
-  const watchIdRef = useRef(null);
-  const startTimeRef = useRef(null);
 
   // Fetch user
   const { data: user } = useQuery({
@@ -55,18 +14,13 @@ export default function ActiveWalkDashboard() {
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch booking with real-time updates
-  const { data: booking, isLoading } = useQuery({
-    queryKey: ['activeBooking', bookingId],
-    queryFn: async () => {
-      if (!bookingId) return null;
-      const bookings = await base44.entities.Booking.filter({ id: bookingId });
-      return bookings[0] || null;
-    },
-    enabled: !!bookingId,
-    refetchInterval: 2000, // Poll every 2 seconds for real-time feel
-    refetchIntervalInBackground: true,
-  });
+  if (!bookingId || !user) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">A carregar...</div>
+      </div>
+    );
+  }
 
   // Fetch checkpoints
   const { data: checkpoints = [] } = useQuery({
