@@ -115,9 +115,39 @@ Deno.serve(async (req) => {
     };
 
     console.log('💾 Creating booking in database...');
-    const booking = await base44.asServiceRole.entities.Booking.create(bookingData);
+    const bookingResponse = await base44.asServiceRole.entities.Booking.create(bookingData);
     
-    console.log('✅ Booking created:', booking.id);
+    console.log('📡 Database response:', JSON.stringify(bookingResponse, null, 2));
+    
+    // CRITICAL: Extract ID safely (handles arrays or objects)
+    let bookingId = null;
+    let booking = null;
+    
+    if (bookingResponse) {
+      if (Array.isArray(bookingResponse) && bookingResponse.length > 0) {
+        booking = bookingResponse[0];
+        bookingId = booking.id;
+        console.log('📦 ID extracted from array:', bookingId);
+      } else if (typeof bookingResponse === 'object' && bookingResponse.id) {
+        booking = bookingResponse;
+        bookingId = booking.id;
+        console.log('📦 ID extracted from object:', bookingId);
+      }
+    }
+    
+    // CRITICAL: Verify booking ID exists
+    if (!bookingId || !booking) {
+      console.error('❌ CRITICAL: Booking created but NO ID found!');
+      console.error('Response type:', typeof bookingResponse);
+      console.error('Response value:', bookingResponse);
+      return Response.json({ 
+        success: false, 
+        error: 'Booking criado mas ID não foi retornado. Tipo: ' + typeof bookingResponse,
+        debug: { responseType: typeof bookingResponse, hasId: !!bookingResponse?.id }
+      }, { status: 500 });
+    }
+    
+    console.log('✅ Booking created successfully with ID:', bookingId);
 
     // Create guaranteed chat conversation
     console.log('💬 Creating chat conversation...');
@@ -151,7 +181,7 @@ Deno.serve(async (req) => {
       // Send initial system message
       await base44.asServiceRole.entities.ChatMessage.create({
         conversation_id: conversation.id,
-        booking_id: booking.id,
+        booking_id: bookingId,
         sender_email: testClientEmail,
         sender_name: testClientName,
         participants: [testClientEmail, walkerEmail],
@@ -171,9 +201,9 @@ Deno.serve(async (req) => {
         title: '🧪 Serviço de Teste Iniciado',
         message: `Serviço demo ativo agora - ${dateStr} às ${timeStr}`,
         type: 'booking',
-        related_id: booking.id,
+        related_id: bookingId,
         priority: 'high',
-        action_url: `/ActiveWalkDashboard?bookingId=${booking.id}`
+        action_url: `/ActiveWalkDashboard?bookingId=${bookingId}`
       });
       console.log('✅ Notification created');
     } catch (notifError) {
@@ -181,14 +211,14 @@ Deno.serve(async (req) => {
     }
 
     console.log('🎉 ========== TEST BOOKING SUCCESS ==========');
-    console.log('🔗 Booking ID:', booking.id);
+    console.log('🔗 Booking ID:', bookingId);
     console.log('📍 Coordinates:', PORTO_LAT, PORTO_LNG);
 
-    // Return success response with booking ID
+    // Return success response with explicit booking ID
     return Response.json({
       success: true,
-      bookingId: booking.id,
-      message: 'Test service started',
+      bookingId: bookingId,
+      message: '✅ Serviço de teste criado com sucesso!',
       coordinates: { lat: PORTO_LAT, lng: PORTO_LNG }
     });
 
