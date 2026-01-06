@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
           [testClientEmail]: user?.profile_photo_url || '',
           [walkerEmail]: walker.photo_url || ''
         },
-        booking_id: booking.id,
+        booking_id: bookingId,
         tags: ['booking', 'walk', 'test'],
         last_message: `🧪 Reserva de teste criada - ${dateStr} às ${timeStr}`,
         last_message_date: now.toISOString(),
