@@ -145,11 +145,18 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     return messages.filter(m => m.sender_email !== user?.email && !m.read_by?.includes(user?.email)).length;
   }, [messages, user?.email]);
 
-  // GPS tracking
+  // GPS tracking - REAL-TIME with HIGH ACCURACY
   useEffect(() => {
     if (booking?.status === 'in_progress' && navigator.geolocation && !isTracking) {
+      console.log('🛰️ Starting GPS tracking...');
       setIsTracking(true);
       startTimeRef.current = booking.walk_start_time ? new Date(booking.walk_start_time) : new Date();
+
+      // Request permission and start tracking
+      toast.info('📡 Ativando GPS de alta precisão...', {
+        description: 'Aguarde alguns segundos',
+        duration: 3000
+      });
 
       watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
@@ -160,37 +167,59 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             timestamp: new Date().toISOString()
           };
           
+          console.log('📍 GPS Update:', newPos);
           setCurrentPosition(newPos);
           pendingPositionRef.current = newPos;
+          
+          // Show success on first position
+          if (!currentPosition) {
+            toast.success('✅ GPS ativo! Sinal obtido.', {
+              description: `Precisão: ${Math.round(newPos.accuracy)}m`,
+              duration: 2000
+            });
+          }
         },
-        (error) => console.error('GPS error:', error),
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        (error) => {
+          console.error('❌ GPS error:', error);
+          toast.error('Erro GPS: ' + error.message, {
+            description: 'Verifique as permissões do navegador'
+          });
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
 
+      // CRITICAL: Update database with real-time position
       updateIntervalRef.current = setInterval(async () => {
-        if (pendingPositionRef.current) {
+        if (pendingPositionRef.current && booking?.id) {
           const pos = pendingPositionRef.current;
           pendingPositionRef.current = null;
 
           try {
+            console.log('💾 Updating database with position:', pos);
             await base44.entities.Booking.update(bookingId, {
               walker_lat: pos.lat,
               walker_lng: pos.lng,
               last_update: pos.timestamp,
               route_coordinates: [...(booking.route_coordinates || []), pos]
             });
+            console.log('✅ Position saved to database');
           } catch (err) {
-            console.error('DB update error:', err);
+            console.error('❌ DB update error:', err);
           }
         }
-      }, 3000);
+      }, 3000); // Update every 3 seconds
     }
 
     return () => {
-      if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
-      if (updateIntervalRef.current) clearInterval(updateIntervalRef.current);
+      if (watchIdRef.current) {
+        console.log('🛑 Stopping GPS tracking');
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+      if (updateIntervalRef.current) {
+        clearInterval(updateIntervalRef.current);
+      }
     };
-  }, [booking?.status, bookingId, isTracking]);
+  }, [booking?.status, bookingId, isTracking, booking?.id, booking?.route_coordinates, currentPosition]);
 
   // Timer
   useEffect(() => {
@@ -253,22 +282,35 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     },
   });
 
-  // Handle quick event (Poop, Pee)
+  // Handle quick event (Poop, Pee, Water, Social)
   const handleQuickEvent = async (emoji, message) => {
+    console.log('🎯 handleQuickEvent called:', emoji, message);
+    console.log('📍 Current Position:', currentPosition);
+    
     if (!currentPosition) {
-      toast.error('Aguarde GPS...');
+      toast.error('⏳ Aguarde o sinal GPS...', {
+        description: 'A localização está a ser obtida'
+      });
       return;
     }
 
-    // Add marker to map immediately
-    setPathMarkers(prev => [...prev, { 
+    // Visual feedback immediately
+    toast.info(`${emoji} A registar...`);
+
+    // Add marker to map immediately for instant visual feedback
+    const newMarker = { 
       lat: currentPosition.lat, 
       lng: currentPosition.lng, 
       emoji, 
       timestamp: new Date().toISOString() 
-    }]);
+    };
+    
+    setPathMarkers(prev => {
+      console.log('📌 Adding marker:', newMarker);
+      return [...prev, newMarker];
+    });
 
-    // Create checkpoint
+    // Create checkpoint in database
     try {
       await base44.entities.WalkCheckpoint.create({
         booking_id: bookingId,
@@ -285,10 +327,14 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
         await sendMessageMutation.mutateAsync({ content: message, type: 'system' });
       }
 
-      toast.success('Evento registado!');
+      toast.success(`📍 ${message}`, {
+        description: 'Evento registado com sucesso!'
+      });
     } catch (err) {
       console.error('Event error:', err);
       toast.error('Erro ao registar evento');
+      // Remove marker on error
+      setPathMarkers(prev => prev.filter(m => m.timestamp !== newMarker.timestamp));
     }
   };
 
@@ -471,14 +517,22 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             </MapMarker>
           )}
 
-          {/* Current Position */}
+          {/* Current Position - Blue Dot with Pulsing Ring */}
           {currentPosition && (
             <MapMarker longitude={currentPosition.lng} latitude={currentPosition.lat}>
               <MarkerContent>
-                <div className="relative">
-                  <div className="absolute -inset-2 bg-blue-500 rounded-full opacity-20 animate-ping" />
-                  <div className="w-12 h-12 bg-blue-600 rounded-full border-4 border-white shadow-2xl flex items-center justify-center">
-                    <Navigation className="w-6 h-6 text-white" style={{ transform: 'rotate(45deg)' }} />
+                <div className="relative flex items-center justify-center">
+                  {/* Pulsing outer ring */}
+                  <div className="absolute w-16 h-16 bg-blue-500 rounded-full opacity-20 animate-ping" />
+                  {/* Accuracy ring */}
+                  <div className="absolute w-12 h-12 bg-blue-400 rounded-full opacity-30" />
+                  {/* Main blue dot */}
+                  <div className="relative w-8 h-8 bg-blue-600 rounded-full border-4 border-white shadow-2xl flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  </div>
+                  {/* Accuracy label */}
+                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-md whitespace-nowrap">
+                    ±{Math.round(currentPosition.accuracy)}m
                   </div>
                 </div>
               </MarkerContent>
@@ -580,25 +634,67 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             </div>
           </div>
 
+          {/* GPS Status Indicator */}
+          {!currentPosition && (
+            <div className="mb-3 p-2 bg-blue-50 border-2 border-blue-300 rounded-xl text-center">
+              <p className="text-xs font-bold text-blue-700 flex items-center justify-center gap-2">
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
+                📡 A obter sinal GPS...
+              </p>
+            </div>
+          )}
+
           {/* Circular Action Buttons - Responsive */}
           <div className="flex items-center justify-around gap-1 md:gap-2 mb-3">
             <button
-              onClick={() => handleQuickEvent('💩', 'O cão fez cocô! 💩')}
-              className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation"
+              onClick={() => {
+                console.log('💩 Button clicked!');
+                handleQuickEvent('💩', 'O cão fez cocô! 💩');
+              }}
+              disabled={!currentPosition}
+              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Cocô"
             >
               💩
             </button>
 
             <button
-              onClick={() => handleQuickEvent('💧', 'O cão fez xixi! 💧')}
-              className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation"
+              onClick={() => {
+                console.log('💧 Button clicked!');
+                handleQuickEvent('💧', 'O cão fez xixi! 💧');
+              }}
+              disabled={!currentPosition}
+              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label="Xixi"
             >
               💧
             </button>
 
-            <label className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform cursor-pointer touch-manipulation">
+            <button
+              onClick={() => {
+                console.log('💧 Water button clicked!');
+                handleQuickEvent('💧', 'O cão bebeu água! 💧');
+              }}
+              disabled={!currentPosition}
+              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label="Água"
+            >
+              💧
+            </button>
+
+            <button
+              onClick={() => {
+                console.log('🐕 Social button clicked!');
+                handleQuickEvent('🐕', 'O cão brincou com outros cães! 🐕');
+              }}
+              disabled={!currentPosition}
+              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label="Social"
+            >
+              🐕
+            </button>
+
+            <label className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform cursor-pointer touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <Camera className="w-6 h-6 md:w-8 md:h-8 text-white" />
               <input
                 type="file"
@@ -606,6 +702,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
                 capture="environment"
                 onChange={handlePhotoUpload}
                 className="hidden"
+                disabled={!currentPosition}
               />
             </label>
 
