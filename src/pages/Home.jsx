@@ -574,20 +574,31 @@ export default function Home() {
     });
 
     console.log('🎯 FINAL FILTERED COUNT:', filtered.length);
+
+    if (filtered.length > 0) {
+      console.log('✅ Sample filtered walker:', {
+        name: filtered[0].walker_name,
+        id: filtered[0].id,
+        status: filtered[0].verification_status,
+        active: filtered[0].is_active,
+        location: filtered[0].location
+      });
+    }
+
     console.log('=== FILTERING DEBUG END ===');
 
     // Sort: Featured > Distance > Rating
     return filtered.sort((a, b) => {
       if (a.is_featured && !b.is_featured) return -1;
       if (!a.is_featured && b.is_featured) return 1;
-      
+
       if (userLocation && a.distance !== null && b.distance !== null) {
         return a.distance - b.distance;
       }
-      
+
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, filterAnimalType, selectedServiceTypes, advancedFilters, userLocation]);
+    }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, filterAnimalType, selectedServiceTypes, advancedFilters, userLocation]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];

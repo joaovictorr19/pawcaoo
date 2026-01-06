@@ -51,11 +51,11 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
         });
       } else {
         await base44.entities.Booking.update(booking.id, {
-          status: 'service_completed',
+          status: 'completed',
           completed_date: new Date().toISOString()
         });
         toast.success('✅ Entrega confirmada!', {
-          description: 'Pagamento será processado'
+          description: 'Avalie o serviço'
         });
       }
 

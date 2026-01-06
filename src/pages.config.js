@@ -18,6 +18,7 @@ import BecomeProfessional from './pages/BecomeProfessional';
 import BookService from './pages/BookService';
 import Chat from './pages/Chat';
 import CheckoutSuccess from './pages/CheckoutSuccess';
+import ClientDashboard from './pages/ClientDashboard';
 import Community from './pages/Community';
 import ConnectedAccountStorefront from './pages/ConnectedAccountStorefront';
 import Contact from './pages/Contact';
@@ -87,7 +88,6 @@ import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
-import ClientDashboard from './pages/ClientDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -112,6 +112,7 @@ export const PAGES = {
     "BookService": BookService,
     "Chat": Chat,
     "CheckoutSuccess": CheckoutSuccess,
+    "ClientDashboard": ClientDashboard,
     "Community": Community,
     "ConnectedAccountStorefront": ConnectedAccountStorefront,
     "Contact": Contact,
@@ -181,7 +182,6 @@ export const PAGES = {
     "WalkHistory": WalkHistory,
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
-    "ClientDashboard": ClientDashboard,
 }
 
 export const pagesConfig = {
