@@ -1318,15 +1318,6 @@ export default function Home() {
                        </Card>
                       ) : (
                         <>
-                          {/* Debug panel - remove after fixing */}
-                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-xs text-gray-700">
-                            <p className="font-bold mb-1">🔍 DEBUG MODE</p>
-                            <p>• Walkers em DB: {walkers?.length || 0}</p>
-                            <p>• Após filtros: {filteredProfessionals.length}</p>
-                            <p>• Na página atual: {paginatedProfessionals.length}</p>
-                            <p className="mt-2 text-[10px] text-gray-500">Abra o Console (F12) para ver logs detalhados</p>
-                          </div>
-
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
                             {paginatedProfessionals.map((pro) => {
                               console.log('🎨 Rendering professional:', pro.walker_name, pro.id);
