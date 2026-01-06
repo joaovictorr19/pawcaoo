@@ -571,7 +571,13 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               '💧': 'Fez xixi',
               '🐕': 'Socializou',
               '💦': 'Bebeu água',
-              '📷': 'Foto tirada'
+              '🍖': 'Petisco',
+              '🏃': 'Correu/Brincou',
+              '😰': 'Cansado',
+              '😠': 'Irritado',
+              '🤢': 'Mal-estar',
+              '😴': 'Descansou',
+              '📷': 'Foto'
             };
             
             const eventColors = {
@@ -579,35 +585,41 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               '💧': 'border-blue-400 bg-blue-50',
               '🐕': 'border-pink-400 bg-pink-50',
               '💦': 'border-cyan-400 bg-cyan-50',
+              '🍖': 'border-amber-400 bg-amber-50',
+              '🏃': 'border-green-400 bg-green-50',
+              '😰': 'border-yellow-400 bg-yellow-50',
+              '😠': 'border-red-400 bg-red-50',
+              '🤢': 'border-rose-400 bg-rose-50',
+              '😴': 'border-indigo-400 bg-indigo-50',
               '📷': 'border-purple-400 bg-purple-50'
             };
             
             return (
               <MapMarker key={idx} longitude={marker.lng} latitude={marker.lat}>
                 <MarkerContent>
-                  <div className={`w-10 h-10 rounded-full border-3 shadow-xl flex items-center justify-center text-xl cursor-pointer hover:scale-125 transition-transform ${eventColors[marker.emoji] || 'bg-white border-gray-300'}`}>
+                  <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full border-2 shadow-xl flex items-center justify-center text-base md:text-xl cursor-pointer hover:scale-125 transition-transform ${eventColors[marker.emoji] || 'bg-white border-gray-300'}`}>
                     {marker.emoji}
                   </div>
                 </MarkerContent>
                 <MarkerTooltip>
                   {eventLabels[marker.emoji] || 'Evento'}
                 </MarkerTooltip>
-                <MarkerPopup>
-                  <div className="space-y-2 min-w-[200px]">
+                <MarkerPopup className="p-0">
+                  <div className="space-y-2 min-w-[180px] p-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center">
-                        <span className="text-lg">{marker.emoji}</span>
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+                        <span className="text-2xl">{marker.emoji}</span>
                       </div>
-                      <div>
-                        <p className="font-bold text-gray-900">{eventLabels[marker.emoji]}</p>
-                        <p className="text-xs text-gray-500">
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900 text-sm leading-tight">{eventLabels[marker.emoji]}</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">
                           {marker.timestamp ? format(new Date(marker.timestamp), 'HH:mm:ss', { locale: pt }) : ''}
                         </p>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-600">
-                      📍 Lat: {marker.lat.toFixed(5)}, Lng: {marker.lng.toFixed(5)}
-                    </p>
+                    <div className="bg-gray-50 px-2 py-1 rounded text-[10px] text-gray-600">
+                      📍 {marker.lat.toFixed(5)}, {marker.lng.toFixed(5)}
+                    </div>
                   </div>
                 </MarkerPopup>
               </MapMarker>
@@ -617,53 +629,33 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
         </SafeMapWrapper>
       </div>
 
-      {/* Layer 1: Top Bar (Glass) - Safe Area for Mobile */}
-      <div className="absolute top-0 left-0 right-0 z-10 pt-safe px-3 pb-3" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
-        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/60 p-2 md:p-3">
+      {/* Layer 1: Compact Top Bar */}
+      <div className="absolute top-0 left-0 right-0 z-10 pt-safe px-2 md:px-3 pb-2" style={{ paddingTop: 'max(8px, env(safe-area-inset-top))' }}>
+        <div className="bg-white/95 backdrop-blur-xl rounded-xl shadow-lg border border-white/60 p-2">
           <div className="flex items-center justify-between gap-2">
-            {/* Stats - Compact for Mobile */}
-            <div className="flex items-center gap-2 md:gap-4">
-              <div className="flex items-center gap-1 md:gap-2 bg-gray-100 rounded-full px-2 md:px-3 py-1">
-                <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-700" />
-                <span className="font-bold text-xs md:text-base text-gray-900">{formatTime(elapsedTime)}</span>
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <div className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-0.5">
+                <Clock className="w-3 h-3 text-gray-700" />
+                <span className="font-bold text-[10px] md:text-xs text-gray-900">{formatTime(elapsedTime)}</span>
               </div>
-              <div className="flex items-center gap-1 md:gap-2 bg-gray-100 rounded-full px-2 md:px-3 py-1">
-                <Navigation className="w-3 h-3 md:w-4 md:h-4 text-gray-700" />
-                <span className="font-bold text-xs md:text-base text-gray-900">{distanceKm.toFixed(2)} km</span>
+              <div className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-0.5">
+                <Navigation className="w-3 h-3 text-gray-700" />
+                <span className="font-bold text-[10px] md:text-xs text-gray-900">{distanceKm.toFixed(2)} km</span>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-1 md:gap-2">
-              <Button
-                size="sm"
-                className={`rounded-full px-2 md:px-3 h-8 md:h-9 text-xs md:text-sm shadow-lg ${
-                  isCorrectionMode 
-                    ? 'bg-green-600 hover:bg-green-700 text-white' 
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-                onClick={() => {
-                  setIsCorrectionMode(!isCorrectionMode);
-                  if (!isCorrectionMode) {
-                    toast.info('📍 Clique no mapa para corrigir a localização');
-                  } else {
-                    toast.info('Modo de correção desativado');
-                  }
-                }}
-              >
-                📍 <span className="hidden md:inline ml-1">{isCorrectionMode ? 'Confirmar' : 'Ajustar'}</span>
-              </Button>
+            <div className="flex gap-1">
               <Button
                 size="sm"
                 variant="destructive"
-                className="bg-red-600 hover:bg-red-700 rounded-full px-2 md:px-3 h-8 md:h-9 text-xs md:text-sm shadow-lg"
+                className="bg-red-600 hover:bg-red-700 rounded-full px-2 h-7 text-[10px] md:text-xs shadow-lg"
                 onClick={() => {
                   if (confirm('⚠️ ATIVAR SOS?')) {
                     toast.error('🚨 EMERGÊNCIA ATIVADA!');
                   }
                 }}
               >
-                <AlertTriangle className="w-3 h-3 md:w-4 md:h-4" />
+                <AlertTriangle className="w-3 h-3" />
                 <span className="hidden md:inline ml-1">SOS</span>
               </Button>
             </div>
@@ -671,98 +663,97 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
         </div>
       </div>
 
-      {/* Correction Mode Overlay - Mobile Safe */}
-      {isCorrectionMode && (
-        <div className="absolute left-1/2 -translate-x-1/2 z-20 bg-green-600 text-white px-3 md:px-4 py-2 rounded-full shadow-2xl font-bold text-xs md:text-sm animate-pulse pointer-events-none" 
-             style={{ top: 'calc(70px + env(safe-area-inset-top))' }}>
-          👆 Clique no mapa para ajustar
-        </div>
-      )}
-
-      {/* Layer 2: Bottom Action Bar - Safe Area for Mobile */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-safe" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-3 md:p-4">
-          {/* Dog Info - Compact on Mobile */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-xl md:text-2xl">🐕</span>
+      {/* Layer 2: Bottom Compact Bar */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 px-2 md:px-3 pb-safe" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/60 p-2 md:p-3">
+          {/* Dog Info - Ultra Compact */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-base md:text-xl">🐕</span>
               </div>
               <div>
-                <h3 className="font-bold text-sm md:text-base text-gray-900">{booking.dog_name}</h3>
-                <p className="text-xs md:text-sm text-gray-500">{booking.owner_name}</p>
+                <h3 className="font-bold text-xs md:text-sm text-gray-900">{booking.dog_name}</h3>
+                <p className="text-[10px] md:text-xs text-gray-500">{booking.owner_name}</p>
               </div>
             </div>
-            <div className="px-2 md:px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] md:text-xs font-bold animate-pulse">
-              🔴 AO VIVO
+            <div className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] md:text-[10px] font-bold animate-pulse">
+              🔴 VIVO
             </div>
           </div>
 
-          {/* GPS Status Indicator */}
           {!currentPosition && (
-            <div className="mb-3 p-2 bg-blue-50 border-2 border-blue-300 rounded-xl text-center">
-              <p className="text-xs font-bold text-blue-700 flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
-                📡 A obter sinal GPS...
+            <div className="mb-2 p-1.5 bg-blue-50 border border-blue-300 rounded-lg text-center">
+              <p className="text-[10px] font-bold text-blue-700 flex items-center justify-center gap-1">
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                GPS...
               </p>
             </div>
           )}
 
-          {/* Circular Action Buttons - Responsive */}
-          <div className="flex items-center justify-around gap-1 md:gap-2 mb-3">
-            <button
-              onClick={() => {
-                console.log('💩 Button clicked!');
-                handleQuickEvent('💩', 'O cão fez cocô! 💩');
-              }}
-              disabled={!currentPosition}
-              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
-              aria-label="Cocô"
-            >
-              💩
-            </button>
+          {/* Compact Actions */}
+          <div className="flex items-center justify-between gap-2">
+            {/* Event Dropdown */}
+            <DropdownMenu open={isEventMenuOpen} onOpenChange={setIsEventMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  disabled={!currentPosition}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full shadow-lg active:scale-95 transition-all ${!currentPosition ? 'opacity-50' : ''}`}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span className="text-xs font-bold">Evento</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-56 mb-2 max-h-[50vh] overflow-y-auto">
+                <DropdownMenuLabel className="text-[10px]">Registar Evento</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('💩', 'Fez cocô 💩'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">💩</span>
+                  <span className="text-xs font-medium">Fez cocô</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('💧', 'Fez xixi 💧'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">💧</span>
+                  <span className="text-xs font-medium">Fez xixi</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('💦', 'Bebeu água 💦'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">💦</span>
+                  <span className="text-xs font-medium">Bebeu água</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('🐕', 'Socializou 🐕'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">🐕</span>
+                  <span className="text-xs font-medium">Socializou</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('🍖', 'Petisco 🍖'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">🍖</span>
+                  <span className="text-xs font-medium">Petisco</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('🏃', 'Correu 🏃'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">🏃</span>
+                  <span className="text-xs font-medium">Correu/Brincou</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('😰', 'Cansado 😰'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">😰</span>
+                  <span className="text-xs font-medium">Cansado</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('😠', 'Irritado 😠'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">😠</span>
+                  <span className="text-xs font-medium">Irritado</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('🤢', 'Mal-estar 🤢'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">🤢</span>
+                  <span className="text-xs font-medium">Mal-estar</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => { handleQuickEvent('😴', 'Descansou 😴'); setIsEventMenuOpen(false); }}>
+                  <span className="text-xl mr-2">😴</span>
+                  <span className="text-xs font-medium">Descansou</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-            <button
-              onClick={() => {
-                console.log('💧 Button clicked!');
-                handleQuickEvent('💧', 'O cão fez xixi! 💧');
-              }}
-              disabled={!currentPosition}
-              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
-              aria-label="Xixi"
-            >
-              💧
-            </button>
-
-            <button
-              onClick={() => handleQuickEvent('💦', 'O cão bebeu água! 💦')}
-              disabled={!currentPosition}
-              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
-              aria-label="Água"
-            >
-              💦
-            </button>
-
-            <button
-              onClick={() => handleQuickEvent('🐕', 'O cão socializou com outros cães! 🐕')}
-              disabled={!currentPosition}
-              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
-              aria-label="Social"
-            >
-              🐕
-            </button>
-
-            <button
-              onClick={() => handleQuickEvent('😰', 'O cão está cansado ou precisa de pausa 😰')}
-              disabled={!currentPosition}
-              className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}
-              aria-label="Cansado"
-            >
-              😰
-            </button>
-
-            <label className={`w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform cursor-pointer touch-manipulation ${!currentPosition ? 'opacity-50 cursor-not-allowed' : ''}`}>
-              <Camera className="w-6 h-6 md:w-8 md:h-8 text-white" />
+            {/* Photo Button */}
+            <label className={`flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg active:scale-95 transition-all cursor-pointer ${!currentPosition ? 'opacity-50' : ''}`}>
+              <Camera className="w-3.5 h-3.5" />
+              <span className="text-xs font-bold">Foto</span>
               <input
                 type="file"
                 accept="image/*"
@@ -773,36 +764,38 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               />
             </label>
 
+            {/* Chat Button */}
             <button
               onClick={() => setIsChatOpen(true)}
-              className="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform touch-manipulation"
-              aria-label="Chat"
+              className="relative flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full shadow-lg active:scale-95 transition-all"
             >
-              <MessageCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span className="text-xs font-bold hidden md:inline">Chat</span>
               {unreadCount > 0 && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full flex items-center justify-center border-2 border-white">
-                  {unreadCount}
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center border border-white">
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </div>
               )}
             </button>
           </div>
 
-          {/* End Walk Button - QR Scanner */}
-          <WalkScanner
-            booking={booking}
-            type="END"
-            onScanSuccess={async () => {
-              // Status already updated by scanner
-              await base44.entities.Booking.update(bookingId, { 
-                distance_km: distanceKm
-              });
-              queryClient.invalidateQueries(['activeBooking']);
-              navigate(createPageUrl('ProfessionalDashboard'));
-            }}
-            onScanError={() => {
-              toast.error('Verificação falhou - tente novamente');
-            }}
-          />
+          {/* End Walk Button */}
+          <div className="mt-2">
+            <WalkScanner
+              booking={booking}
+              type="END"
+              onScanSuccess={async () => {
+                await base44.entities.Booking.update(bookingId, { 
+                  distance_km: distanceKm
+                });
+                queryClient.invalidateQueries(['activeBooking']);
+                navigate(createPageUrl('ProfessionalDashboard'));
+              }}
+              onScanError={() => {
+                toast.error('Verificação falhou');
+              }}
+            />
+          </div>
         </div>
       </div>
 
