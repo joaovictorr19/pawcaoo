@@ -438,9 +438,47 @@ export default function ProfessionalDashboard() {
 
       // WORKFLOW: ACCEPTANCE
       if (status === 'confirmed') {
-        // 1. Create Event / Lock Slot
+        console.log('✅ ACCEPTING BOOKING - Creating chat conversation...');
+        
+        // 1. Create Chat Conversation (CRITICAL)
+        try {
+          const existingConvo = await base44.entities.ChatConversation.filter({ 
+            booking_id: booking.id 
+          });
+          
+          if (!existingConvo || existingConvo.length === 0) {
+            console.log('📝 Creating new chat conversation...');
+            await base44.entities.ChatConversation.create({
+              participants: [
+                booking.walker_email || professionalEmail, 
+                booking.owner_email || booking.created_by
+              ],
+              participant_names: {
+                [booking.walker_email || professionalEmail]: booking.walker_name || user.full_name,
+                [booking.owner_email || booking.created_by]: booking.owner_name
+              },
+              booking_id: booking.id,
+              tags: ["booking", "walk"],
+              last_message: "Reserva confirmada pelo profissional",
+              last_message_date: new Date().toISOString(),
+              unread_counts: {
+                [booking.walker_email || professionalEmail]: 0,
+                [booking.owner_email || booking.created_by]: 0
+              },
+              is_muted: {},
+              pinned_by: [],
+              typing_users: []
+            });
+            console.log('✅ Chat conversation created!');
+          } else {
+            console.log('ℹ️ Chat conversation already exists');
+          }
+        } catch (chatError) {
+          console.error('❌ Error creating chat:', chatError);
+        }
+        
+        // 2. Create Event / Lock Slot
         const eventId = await lockCalendarSlot(booking, professionalEmail);
-        // 2. Save Event ID to Booking
         if (eventId) {
           updateData.calendar_event_id = eventId;
         }

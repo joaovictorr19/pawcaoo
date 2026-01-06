@@ -1,14 +1,19 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, MessageCircle } from "lucide-react";
+import { MapPin, Clock, MessageCircle, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isProcessing, setIsProcessing] = React.useState(false);
 
   // Determine main action button
   const getMainActionButton = () => {
@@ -16,17 +21,62 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
       return (
         <div className="grid grid-cols-2 gap-2 w-full">
           <Button
-            onClick={onAccept}
+            onClick={async () => {
+              if (isProcessing) return;
+              setIsProcessing(true);
+              
+              try {
+                console.log('✅ Accepting booking:', booking.id);
+                await onAccept();
+                toast.success('✅ Pedido aceite!');
+              } catch (error) {
+                console.error('Accept error:', error);
+                toast.error('Erro ao aceitar');
+              } finally {
+                setIsProcessing(false);
+              }
+            }}
+            disabled={isProcessing}
             className="h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg font-bold"
           >
-            ✅ ACEITAR
+            {isProcessing ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                ACEITAR
+              </>
+            )}
           </Button>
           <Button
-            onClick={onDecline}
+            onClick={async () => {
+              if (isProcessing) return;
+              if (!confirm('Recusar esta reserva?')) return;
+              
+              setIsProcessing(true);
+              try {
+                console.log('❌ Declining booking:', booking.id);
+                await onDecline();
+                toast.success('Pedido recusado');
+              } catch (error) {
+                console.error('Decline error:', error);
+                toast.error('Erro ao recusar');
+              } finally {
+                setIsProcessing(false);
+              }
+            }}
+            disabled={isProcessing}
             variant="outline"
             className="h-12 border-2 border-red-300 text-red-600 hover:bg-red-50 font-bold"
           >
-            ❌ RECUSAR
+            {isProcessing ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600" />
+            ) : (
+              <>
+                <XCircle className="w-4 h-4 mr-2" />
+                RECUSAR
+              </>
+            )}
           </Button>
         </div>
       );
@@ -36,19 +86,32 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
       return (
         <Button
           onClick={async () => {
+            if (isProcessing) return;
+            setIsProcessing(true);
+            
             try {
+              console.log('🚀 Starting service:', booking.id);
               await base44.entities.Booking.update(booking.id, { 
                 status: 'in_progress',
                 walk_start_time: new Date().toISOString()
               });
+              queryClient.invalidateQueries(['myWalkBookings']);
+              toast.success('✅ Serviço iniciado!');
               navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
             } catch (error) {
               console.error('Start service error:', error);
+              toast.error('Erro ao iniciar serviço');
+              setIsProcessing(false);
             }
           }}
+          disabled={isProcessing}
           className="w-full h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg font-bold text-lg"
         >
-          ⚡ INICIAR PASSEIO
+          {isProcessing ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+          ) : (
+            '⚡ INICIAR PASSEIO'
+          )}
         </Button>
       );
     }
@@ -60,6 +123,41 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
           className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg font-bold text-lg animate-pulse"
         >
           🗺️ ABRIR MAPA / CHAT
+        </Button>
+      );
+    }
+
+    if (booking.status === 'service_completed') {
+      return (
+        <Button
+          onClick={async () => {
+            if (isProcessing) return;
+            if (!confirm('Confirmar que recebeu o pagamento?')) return;
+            
+            setIsProcessing(true);
+            try {
+              await base44.entities.Booking.update(booking.id, {
+                status: 'completed',
+                payment_status: 'released',
+                completed_date: new Date().toISOString()
+              });
+              queryClient.invalidateQueries(['myWalkBookings']);
+              toast.success('💰 Pagamento confirmado!');
+            } catch (error) {
+              console.error('Payment confirm error:', error);
+              toast.error('Erro ao confirmar pagamento');
+            } finally {
+              setIsProcessing(false);
+            }
+          }}
+          disabled={isProcessing}
+          className="w-full h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg font-bold text-lg animate-pulse"
+        >
+          {isProcessing ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+          ) : (
+            '💰 CONFIRMAR PAGAMENTO'
+          )}
         </Button>
       );
     }
