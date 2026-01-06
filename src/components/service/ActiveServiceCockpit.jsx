@@ -13,7 +13,9 @@ import {
   Navigation,
   CheckCircle,
 } from "lucide-react";
-import { Map, MapRoute, MapMarker, MarkerContent, MapControls } from "@/components/ui/map";
+import UniversalMap from "@/components/maps/UniversalMap";
+import { MapRoute, MapMarker, MarkerContent } from "@/components/ui/map";
+import maplibregl from 'maplibre-gl';
 import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import { createPageUrl } from "@/utils";
@@ -327,7 +329,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     <div className="h-[100dvh] relative overflow-hidden bg-white">
       {/* Layer 0: Background Map */}
       <div className="absolute inset-0 z-0">
-        <Map center={mapCenter} zoom={15}>
+        <UniversalMap center={mapCenter} zoom={15} showControls={true} controlsPosition="top-right">
           {/* GPS Trail */}
           {booking.route_coordinates && booking.route_coordinates.length > 1 && (
             <MapRoute
@@ -373,9 +375,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               </MarkerContent>
             </MapMarker>
           ))}
-
-          <MapControls position="top-right" showZoom showLocate />
-        </Map>
+        </UniversalMap>
       </div>
 
       {/* Layer 1: Top Bar (Glass) */}

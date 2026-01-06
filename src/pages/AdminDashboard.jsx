@@ -64,7 +64,7 @@ import BroadcastManager from "../components/admin/BroadcastManager";
 import StoreItemsManager from "../components/admin/StoreItemsManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
-import { Map, MapClusterLayer, MapPopup, MapControls } from "@/components/ui/map";
+import AdminLiveMap from "@/components/admin/AdminLiveMap";
 
 export default function AdminDashboard() {
   // ============================================
@@ -1484,7 +1484,7 @@ export default function AdminDashboard() {
 
           <TabsContent value="overview">
             <div className="space-y-6 mt-6">
-              {/* Client Location Map */}
+              {/* Client Location Map with Live Tracking */}
               <Card className="glass-panel border-0 shadow-xl">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -1591,11 +1591,7 @@ export default function AdminDashboard() {
                         await queryClient.invalidateQueries(['allWalkersAdmin']);
                         await queryClient.invalidateQueries(['allTrainersAdmin']);
                         await queryClient.invalidateQueries(['allUsers']);
-                        await queryClient.refetchQueries(['allWalkersAdmin']);
-                        await queryClient.refetchQueries(['allTrainersAdmin']);
-                        await queryClient.refetchQueries(['allUsers']);
-                        setMapLoaded(false);
-                        setTimeout(() => setMapLoaded(true), 500);
+                        await queryClient.invalidateQueries(['activeWalksLive']);
                         toast.success("Mapa atualizado!");
                       }}
                       className="border-green-500 text-green-600"
@@ -1605,207 +1601,20 @@ export default function AdminDashboard() {
                     </Button>
                   </div>
                   <div className="h-[400px] md:h-[500px] w-full rounded-xl overflow-hidden border border-gray-200">
-                    <Map 
-                      center={[-8.6291, 41.1579]} 
-                      zoom={7}
-                      onMapLoad={(map) => {
-                        console.log('🗺️ Mapa carregado!');
-                        setMapLoaded(true);
+                    <AdminLiveMap
+                      walkers={allWalkers}
+                      trainers={allTrainers}
+                      users={allUsers}
+                      bookings={allBookings}
+                      onUserClick={(user) => {
+                        const fullUser = allUsers.find(u => u.email === user.email);
+                        if (fullUser) {
+                          setSelectedClient(fullUser);
+                          setShowClientDetails(true);
+                        }
                       }}
-                    >
-                      <MapClusterLayer
-                        data={{
-                          type: 'FeatureCollection',
-                          features: [
-                            // Walkers (green markers)
-                            ...allWalkers
-                              .filter(w => w.latitude && w.longitude)
-                              .map(w => ({
-                                type: 'Feature',
-                                geometry: {
-                                  type: 'Point',
-                                  coordinates: [w.longitude, w.latitude]
-                                },
-                                properties: {
-                                  id: w.id,
-                                  email: w.created_by,
-                                  full_name: w.walker_name,
-                                  city: w.location || 'Sem cidade',
-                                  account_type: 'walker',
-                                  rating: w.rating,
-                                  total_walks: w.total_walks,
-                                  total_earnings: w.total_earnings,
-                                  is_verified: w.verification_status === 'verified',
-                                  profile_photo_url: w.photo_url
-                                }
-                              })),
-                            // Trainers (purple markers)
-                            ...allTrainers
-                              .filter(t => t.latitude && t.longitude)
-                              .map(t => ({
-                                type: 'Feature',
-                                geometry: {
-                                  type: 'Point',
-                                  coordinates: [t.longitude, t.latitude]
-                                },
-                                properties: {
-                                  id: t.id,
-                                  email: t.created_by,
-                                  full_name: t.trainer_name || t.business_name,
-                                  city: t.location || 'Sem cidade',
-                                  account_type: 'trainer',
-                                  rating: t.rating,
-                                  is_verified: t.verification_status === 'verified',
-                                  profile_photo_url: t.photo_url
-                                }
-                              })),
-                            // Regular users (blue markers)
-                            ...allUsers
-                              .filter(u => u.latitude && u.longitude)
-                              .map(u => ({
-                                type: 'Feature',
-                                geometry: {
-                                  type: 'Point',
-                                  coordinates: [u.longitude, u.latitude]
-                                },
-                                properties: {
-                                  id: u.id,
-                                  email: u.email,
-                                  full_name: u.full_name || 'Utilizador',
-                                  city: u.city || 'Sem cidade',
-                                  account_type: u.account_type || 'owner',
-                                  total_bookings: allBookings.filter(b => b.created_by === u.email).length,
-                                  profile_photo_url: u.profile_photo_url
-                                }
-                              }))
-                          ]
-                        }}
-                        clusterRadius={50}
-                        clusterMaxZoom={14}
-                        clusterColors={['#22c55e', '#eab308', '#ef4444']}
-                        pointColor="#3b82f6"
-                        onPointClick={(feature, coordinates) => {
-                          const props = feature.properties;
-                          const user = allUsers.find(u => u.email === props.email);
-                          
-                          setSelectedMapUser({
-                            ...props,
-                            id: props.id,
-                            email: props.email,
-                            full_name: props.full_name,
-                            city: props.city,
-                            account_type: props.account_type,
-                            profile_photo_url: props.profile_photo_url,
-                            coordinates: coordinates
-                          });
-                        }}
-                      />
-
-                      {selectedMapUser && (
-                        <MapPopup
-                          key={selectedMapUser.email}
-                          longitude={selectedMapUser.coordinates[0]}
-                          latitude={selectedMapUser.coordinates[1]}
-                          onClose={() => setSelectedMapUser(null)}
-                          closeOnClick={false}
-                          focusAfterOpen={false}
-                          closeButton
-                        >
-                          <div className="space-y-2 min-w-[220px] max-w-[280px]">
-                            <div className="flex items-center gap-2">
-                              <Avatar className="w-12 h-12 flex-shrink-0">
-                                <AvatarImage src={selectedMapUser.profile_photo_url} />
-                                <AvatarFallback className={`text-white text-xs ${
-                                  selectedMapUser.account_type === 'walker' ? 'bg-gradient-to-br from-green-500 to-emerald-600' :
-                                  selectedMapUser.account_type === 'trainer' ? 'bg-gradient-to-br from-purple-500 to-pink-600' :
-                                  'bg-gradient-to-br from-blue-500 to-indigo-600'
-                                }`}>
-                                  {selectedMapUser.full_name?.[0]?.toUpperCase() || '?'}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm truncate">{selectedMapUser.full_name}</p>
-                                <p className="text-xs text-gray-600 truncate">{selectedMapUser.email}</p>
-                              </div>
-                            </div>
-                            <div className="space-y-1.5 text-xs bg-gray-50 p-2 rounded-lg">
-                              <p className="flex items-center gap-1.5">
-                                <MapPin className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-                                <span className="truncate">{selectedMapUser.city}</span>
-                              </p>
-                              {selectedMapUser.rating > 0 && (
-                                <p className="flex items-center gap-1.5">
-                                  <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                                  {selectedMapUser.rating?.toFixed(1)} ⭐
-                                </p>
-                              )}
-                              {selectedMapUser.total_walks > 0 && (
-                                <p className="flex items-center gap-1.5">
-                                  <Calendar className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-                                  {selectedMapUser.total_walks} passeios
-                                </p>
-                              )}
-                              {selectedMapUser.total_earnings > 0 && (
-                                <p className="flex items-center gap-1.5">
-                                  <DollarSign className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                                  €{selectedMapUser.total_earnings?.toFixed(0)}
-                                </p>
-                              )}
-                              {selectedMapUser.total_bookings > 0 && (
-                                <p className="flex items-center gap-1.5">
-                                  <Calendar className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-                                  {selectedMapUser.total_bookings} reservas
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex gap-1.5 flex-wrap">
-                              <Badge variant="outline" className={`text-xs capitalize ${
-                                selectedMapUser.account_type === 'walker' ? 'border-green-500 text-green-700 bg-green-50' :
-                                selectedMapUser.account_type === 'trainer' ? 'border-purple-500 text-purple-700 bg-purple-50' :
-                                'border-blue-500 text-blue-700 bg-blue-50'
-                              }`}>
-                                {selectedMapUser.account_type === 'walker' ? '🐕 Passeador' :
-                                 selectedMapUser.account_type === 'trainer' ? '🎓 Treinador' :
-                                 '👤 ' + (selectedMapUser.account_type || 'owner')}
-                              </Badge>
-                              {selectedMapUser.is_verified && (
-                                <Badge className="bg-blue-500 text-white text-xs">✓ Verificado</Badge>
-                              )}
-                            </div>
-                            <Button
-                              size="sm"
-                              className="w-full bg-blue-600 hover:bg-blue-700 text-xs mt-2"
-                              onClick={() => {
-                                const user = allUsers.find(u => u.email === selectedMapUser.email);
-                                if (user) {
-                                  setSelectedClient(user);
-                                  setShowClientDetails(true);
-                                }
-                                setSelectedMapUser(null);
-                              }}
-                            >
-                              Ver Detalhes Completos
-                            </Button>
-                          </div>
-                        </MapPopup>
-                      )}
-                      
-                      <MapControls 
-                        position="bottom-right" 
-                        showZoom 
-                        showLocate 
-                        onLocate={(location) => {
-                          const mapContainer = document.querySelector('.maplibregl-map');
-                          if (mapContainer?._map) {
-                            mapContainer._map.flyTo({
-                              center: [location.longitude, location.latitude],
-                              zoom: 13
-                            });
-                          }
-                        }}
-                      />
-                      </Map>
-                      </div>
+                    />
+                  </div>
                   
                   {/* Map Legend */}
                   <div className="flex flex-wrap gap-3 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
