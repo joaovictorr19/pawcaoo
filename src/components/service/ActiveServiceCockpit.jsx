@@ -396,16 +396,16 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   );
 
   return (
-    <div className="h-[100dvh] relative overflow-hidden bg-white">
-      {/* Layer 0: Background Map */}
+    <div className="h-[100dvh] md:h-screen relative overflow-hidden bg-gray-900">
+      {/* Layer 0: Background Map - Full Screen */}
       <div className="absolute inset-0 z-0">
         <SafeMapWrapper>
           <UniversalMap 
           center={mapCenter} 
-          zoom={15} 
+          zoom={16} 
           showControls={true} 
           controlsPosition="top-right"
-          show3DControls={true}
+          show3DControls={false}
           onMapClick={handleLocationCorrection}
         >
           {/* GPS Trail */}
@@ -457,100 +457,107 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
         </SafeMapWrapper>
       </div>
 
-      {/* Layer 1: Top Bar (Glass) */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-3 safe-area-inset-top">
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 p-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-gray-700" />
-              <span className="font-bold text-lg text-gray-900">{formatTime(elapsedTime)}</span>
+      {/* Layer 1: Top Bar (Glass) - Safe Area for Mobile */}
+      <div className="absolute top-0 left-0 right-0 z-10 pt-safe px-3 pb-3" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/60 p-2 md:p-3">
+          <div className="flex items-center justify-between gap-2">
+            {/* Stats - Compact for Mobile */}
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="flex items-center gap-1 md:gap-2 bg-gray-100 rounded-full px-2 md:px-3 py-1">
+                <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-700" />
+                <span className="font-bold text-xs md:text-base text-gray-900">{formatTime(elapsedTime)}</span>
+              </div>
+              <div className="flex items-center gap-1 md:gap-2 bg-gray-100 rounded-full px-2 md:px-3 py-1">
+                <Navigation className="w-3 h-3 md:w-4 md:h-4 text-gray-700" />
+                <span className="font-bold text-xs md:text-base text-gray-900">{distanceKm.toFixed(2)} km</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Navigation className="w-5 h-5 text-gray-700" />
-              <span className="font-bold text-lg text-gray-900">{distanceKm.toFixed(2)} km</span>
-            </div>
-          </div>
 
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              className={`rounded-full px-3 h-9 shadow-lg ${
-                isCorrectionMode 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-              onClick={() => {
-                setIsCorrectionMode(!isCorrectionMode);
-                if (!isCorrectionMode) {
-                  toast.info('📍 Clique no mapa para corrigir a localização');
-                } else {
-                  toast.info('Modo de correção desativado');
-                }
-              }}
-            >
-              📍 {isCorrectionMode ? 'Confirmar' : 'Ajustar Local'}
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              className="bg-red-600 hover:bg-red-700 rounded-full px-3 h-9 shadow-lg"
-              onClick={() => {
-                if (confirm('⚠️ ATIVAR SOS?')) {
-                  toast.error('🚨 EMERGÊNCIA ATIVADA!');
-                }
-              }}
-            >
-              <AlertTriangle className="w-4 h-4 mr-1" />
-              SOS
-            </Button>
+            {/* Actions */}
+            <div className="flex gap-1 md:gap-2">
+              <Button
+                size="sm"
+                className={`rounded-full px-2 md:px-3 h-8 md:h-9 text-xs md:text-sm shadow-lg ${
+                  isCorrectionMode 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+                onClick={() => {
+                  setIsCorrectionMode(!isCorrectionMode);
+                  if (!isCorrectionMode) {
+                    toast.info('📍 Clique no mapa para corrigir a localização');
+                  } else {
+                    toast.info('Modo de correção desativado');
+                  }
+                }}
+              >
+                📍 <span className="hidden md:inline ml-1">{isCorrectionMode ? 'Confirmar' : 'Ajustar'}</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 rounded-full px-2 md:px-3 h-8 md:h-9 text-xs md:text-sm shadow-lg"
+                onClick={() => {
+                  if (confirm('⚠️ ATIVAR SOS?')) {
+                    toast.error('🚨 EMERGÊNCIA ATIVADA!');
+                  }
+                }}
+              >
+                <AlertTriangle className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden md:inline ml-1">SOS</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Correction Mode Overlay */}
+      {/* Correction Mode Overlay - Mobile Safe */}
       {isCorrectionMode && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 bg-green-600 text-white px-4 py-2 rounded-full shadow-2xl font-bold text-sm animate-pulse">
-          👆 Clique no mapa para ajustar a localização
+        <div className="absolute left-1/2 -translate-x-1/2 z-20 bg-green-600 text-white px-3 md:px-4 py-2 rounded-full shadow-2xl font-bold text-xs md:text-sm animate-pulse pointer-events-none" 
+             style={{ top: 'calc(70px + env(safe-area-inset-top))' }}>
+          👆 Clique no mapa para ajustar
         </div>
       )}
 
-      {/* Layer 2: Bottom Floating Action Bar */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 safe-area-inset-bottom">
-        <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/50 p-4">
-          {/* Dog Info */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-2xl">🐕</span>
+      {/* Layer 2: Bottom Action Bar - Safe Area for Mobile */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 px-3 pb-safe" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-3 md:p-4">
+          {/* Dog Info - Compact on Mobile */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-xl md:text-2xl">🐕</span>
               </div>
               <div>
-                <h3 className="font-bold text-base text-gray-900">{booking.dog_name}</h3>
-                <p className="text-sm text-gray-500">{booking.owner_name}</p>
+                <h3 className="font-bold text-sm md:text-base text-gray-900">{booking.dog_name}</h3>
+                <p className="text-xs md:text-sm text-gray-500">{booking.owner_name}</p>
               </div>
             </div>
-            <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
-              🔴 ATIVO
+            <div className="px-2 md:px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] md:text-xs font-bold animate-pulse">
+              🔴 AO VIVO
             </div>
           </div>
 
-          {/* Circular Action Buttons */}
-          <div className="flex items-center justify-around gap-2 mb-3">
+          {/* Circular Action Buttons - Responsive */}
+          <div className="flex items-center justify-around gap-1 md:gap-2 mb-3">
             <button
               onClick={() => handleQuickEvent('💩', 'O cão fez cocô! 💩')}
-              className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-xl flex items-center justify-center text-3xl active:scale-95 transition-transform"
+              className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation"
+              aria-label="Cocô"
             >
               💩
             </button>
 
             <button
               onClick={() => handleQuickEvent('💧', 'O cão fez xixi! 💧')}
-              className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-xl flex items-center justify-center text-3xl active:scale-95 transition-transform"
+              className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-xl flex items-center justify-center text-2xl md:text-3xl active:scale-95 transition-transform touch-manipulation"
+              aria-label="Xixi"
             >
               💧
             </button>
 
-            <label className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform cursor-pointer">
-              <Camera className="w-8 h-8 text-white" />
+            <label className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform cursor-pointer touch-manipulation">
+              <Camera className="w-6 h-6 md:w-8 md:h-8 text-white" />
               <input
                 type="file"
                 accept="image/*"
@@ -562,21 +569,22 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
 
             <button
               onClick={() => setIsChatOpen(true)}
-              className="relative w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform"
+              className="relative w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform touch-manipulation"
+              aria-label="Chat"
             >
-              <MessageCircle className="w-8 h-8 text-white" />
+              <MessageCircle className="w-6 h-6 md:w-8 md:h-8 text-white" />
               {unreadCount > 0 && (
-                <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white">
+                <div className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full flex items-center justify-center border-2 border-white">
                   {unreadCount}
                 </div>
               )}
             </button>
           </div>
 
-          {/* End Walk Button */}
+          {/* End Walk Button - Responsive */}
           <Button
             size="lg"
-            className="w-full h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl font-bold shadow-lg text-lg"
+            className="w-full h-12 md:h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl font-bold shadow-lg text-sm md:text-lg touch-manipulation"
             onClick={async () => {
               if (confirm('Finalizar o serviço?')) {
                 await base44.entities.Booking.update(bookingId, { 
@@ -589,30 +597,30 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               }
             }}
           >
-            <CheckCircle className="w-6 h-6 mr-2" />
+            <CheckCircle className="w-5 h-5 md:w-6 md:h-6 mr-2" />
             Finalizar Serviço
           </Button>
         </div>
       </div>
 
-      {/* Chat Drawer (Mobile) - z-index 50 */}
+      {/* Chat Drawer (Mobile) - Full Screen Safe */}
       <div className="md:hidden">
         <Drawer open={isChatOpen} onOpenChange={setIsChatOpen}>
-          <DrawerContent className="h-[85dvh] flex flex-col">
-            <DrawerHeader className="border-b">
-              <DrawerTitle>💬 Chat com {otherParticipant?.name}</DrawerTitle>
+          <DrawerContent className="h-[90dvh] flex flex-col bg-white" style={{ maxHeight: 'calc(100dvh - env(safe-area-inset-top))' }}>
+            <DrawerHeader className="border-b bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+              <DrawerTitle className="text-white">💬 Chat com {otherParticipant?.name}</DrawerTitle>
             </DrawerHeader>
             <ChatContent />
           </DrawerContent>
         </Drawer>
       </div>
 
-      {/* Chat Sheet (Desktop) - z-index 50 */}
+      {/* Chat Sheet (Desktop) */}
       <div className="hidden md:block">
         <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-          <SheetContent side="right" className="w-[400px] flex flex-col p-0">
-            <SheetHeader className="p-4 border-b">
-              <SheetTitle>💬 Chat com {otherParticipant?.name}</SheetTitle>
+          <SheetContent side="right" className="w-[500px] flex flex-col p-0 bg-white">
+            <SheetHeader className="p-4 border-b bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+              <SheetTitle className="text-white">💬 Chat com {otherParticipant?.name}</SheetTitle>
             </SheetHeader>
             <ChatContent />
           </SheetContent>
