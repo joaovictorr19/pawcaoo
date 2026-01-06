@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import WalkReview from "@/components/reviews/WalkReview";
 import { 
   MessageCircle, 
   AlertTriangle, 
@@ -469,6 +470,82 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
           </Button>
         </div>
       </div>
+    );
+  }
+
+  // Check if service just completed - show review
+  const isOwner = booking?.owner_email === user?.email || booking?.created_by === user?.email;
+  
+  React.useEffect(() => {
+    if (booking?.status === 'completed' && isOwner) {
+      setShowReview(true);
+    }
+  }, [booking?.status, isOwner]);
+
+  if (booking.status === 'completed') {
+    return (
+      <>
+        <div className="h-[100dvh] bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-4">
+          <div className="text-center max-w-md">
+            <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-12 h-12 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Passeio Concluído!</h2>
+            <p className="text-gray-600 mb-6">
+              {isOwner ? 'Obrigado por usar a PawCão!' : 'Serviço finalizado com sucesso!'}
+            </p>
+            <Button onClick={() => navigate(createPageUrl(isOwner ? 'ClientDashboard' : 'ProfessionalDashboard'))}>
+              {isOwner ? 'Ver Relatório' : 'Voltar ao Painel'}
+            </Button>
+          </div>
+        </div>
+        
+        {/* Auto-open review for owner */}
+        {isOwner && (
+          <WalkReview 
+            isOpen={showReview}
+            booking={booking}
+            onSubmit={async (reviewData) => {
+              try {
+                // Create review
+                await base44.entities.Review.create(reviewData);
+                
+                // Update booking with tip
+                if (reviewData.tip_amount > 0) {
+                  await base44.entities.Booking.update(booking.id, {
+                    tip_amount: reviewData.tip_amount,
+                    total_amount: (booking.total_amount || 0) + reviewData.tip_amount
+                  });
+                }
+                
+                // Update walker profile stats
+                const profile = await base44.entities.WalkerProfile.get(booking.walker_id);
+                if (profile) {
+                  const currentRating = profile.rating || 5;
+                  const currentCount = profile.total_walks || 1;
+                  const newRating = ((currentRating * currentCount) + reviewData.rating) / (currentCount + 1);
+                  
+                  await base44.entities.WalkerProfile.update(booking.walker_id, {
+                    rating: parseFloat(newRating.toFixed(2)),
+                    total_walks: currentCount + 1
+                  });
+                }
+                
+                toast.success('✅ Avaliação enviada com sucesso!');
+                setShowReview(false);
+                navigate(createPageUrl('ClientDashboard'));
+              } catch (error) {
+                console.error('Review error:', error);
+                toast.error('Erro ao enviar avaliação');
+              }
+            }}
+            onClose={() => {
+              setShowReview(false);
+              navigate(createPageUrl('ClientDashboard'));
+            }}
+          />
+        )}
+      </>
     );
   }
 
