@@ -259,7 +259,7 @@ export default function AdminLiveMap({
       </UniversalMap>
 
       {/* Render live walker markers after map loads */}
-      {isReady && <LiveWalkerMarkers walks={activeWalks} />}
+      <LiveWalkerMarkers walks={activeWalks} />
     </>
   );
 }
