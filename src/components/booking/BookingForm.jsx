@@ -90,6 +90,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   const [pickupCoords, setPickupCoords] = useState({ lat: null, lng: null });
   const [selectedDogId, setSelectedDogId] = useState("");
   const [showManualInput, setShowManualInput] = useState(false);
+  const [isTestBooking, setIsTestBooking] = useState(false);
 
   // Update address and phone when user is loaded
   React.useEffect(() => {
@@ -996,6 +997,21 @@ export default function BookingForm({ walker, professional, onClose, initialDate
             </>
           )}
 
+          {/* Test Mode Checkbox - Only visible in Step 3 or if Auto-Advance */}
+          {(step === 3 || (step === 2 && autoAdvance)) && (
+            <div className="flex items-center justify-end py-2 px-1">
+              <label className="flex items-center gap-2 cursor-pointer text-xs text-purple-600 font-bold bg-purple-50 px-2 py-1 rounded border border-purple-200">
+                <input 
+                  type="checkbox" 
+                  checked={isTestBooking} 
+                  onChange={(e) => setIsTestBooking(e.target.checked)}
+                  className="rounded text-purple-600 focus:ring-purple-500 w-3 h-3"
+                />
+                🧪 Modo Teste (Ignorar Pagamento)
+              </label>
+            </div>
+          )}
+
           {/* Navigation Buttons */}
           <div className="flex gap-2 pt-2 border-t">
             {step > 1 && (
@@ -1087,8 +1103,9 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       pickup_address: pickupAddress,
                       pickup_lat: pickupCoords.lat || 0,
                       pickup_lng: pickupCoords.lng || 0,
-                      status: 'pending',
-                      payment_status: 'pending',
+                      status: isTestBooking ? 'confirmed' : 'pending',
+                      payment_status: isTestBooking ? 'released' : 'pending',
+                      is_test_booking: isTestBooking,
                       type: isWalker ? 'walk' : 'training'
                     };
 
