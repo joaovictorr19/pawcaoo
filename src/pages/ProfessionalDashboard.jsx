@@ -1453,6 +1453,69 @@ export default function ProfessionalDashboard() {
 
           {/* Bookings Tab */}
           <TabsContent value="bookings">
+            {/* IN PROGRESS BOOKINGS - RETOMAR SERVIÇO - TOP PRIORITY */}
+            {allBookings.filter(b => b.status === 'in_progress').length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mb-6"
+              >
+                <Card className="border-4 border-blue-500 shadow-2xl overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 animate-pulse">
+                  <CardHeader className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white relative overflow-hidden">
+                    <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+                    <div className="relative z-10">
+                      <CardTitle className="flex items-center gap-2 text-xl md:text-2xl">
+                        <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm animate-pulse">
+                          🔴
+                        </div>
+                        SERVIÇO EM PROGRESSO - RETOMAR
+                      </CardTitle>
+                      <p className="text-sm text-blue-100 mt-1">Você tem um serviço ativo agora</p>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="space-y-4">
+                      {allBookings.filter(b => b.status === 'in_progress').map((booking) => (
+                        <div key={booking.id} className="bg-white rounded-2xl border-4 border-blue-400 shadow-2xl p-6">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md text-base px-3 py-1 animate-pulse">
+                                  🔴 AO VIVO
+                                </Badge>
+                                <h3 className="font-bold text-2xl text-gray-900">{booking.dog_name}</h3>
+                              </div>
+                              <p className="text-base text-gray-700 font-semibold mb-2">{booking.owner_name}</p>
+                              <p className="text-sm text-gray-600 flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                Iniciado: {booking.walk_start_time ? format(new Date(booking.walk_start_time), 'HH:mm') : 'Agora'}
+                              </p>
+                              {booking.pickup_address && (
+                                <p className="text-sm text-gray-600 flex items-center gap-1 mt-2 font-medium">
+                                  <MapPin className="w-4 h-4 text-blue-500" /> 
+                                  {booking.pickup_address}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-3 min-w-[200px]">
+                              <div className="text-4xl font-bold text-green-600 text-center">€{booking.service_amount}</div>
+                              <Button
+                                onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
+                                size="lg"
+                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-2xl font-bold text-base h-14 animate-pulse"
+                              >
+                                📍 RETOMAR SERVIÇO
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
             {/* SOLICITAÇÕES DIRETAS - Prioridade Máxima */}
             {directRequests.length > 0 && (
               <motion.div
