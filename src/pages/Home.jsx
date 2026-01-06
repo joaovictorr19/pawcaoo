@@ -222,25 +222,23 @@ export default function Home() {
 
 
 
-  const { data: walkers, isLoading: loadingWalkers } = useQuery({
+  const { data: walkers, isLoading: loadingWalkers, error: walkersError } = useQuery({
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
         console.log('🔍 Fetching walkers from database...');
-        // Using filter({}) to ensure we get results even if list() behaves differently
         const allWalkers = await base44.entities.WalkerProfile.filter({}, '-rating', 100);
         console.log('📦 Total walkers fetched:', allWalkers?.length || 0);
-        
+
         if (!Array.isArray(allWalkers)) {
           console.error('❌ ERROR: Walkers is not an array!', typeof allWalkers);
           return [];
         }
 
-        // Filter: Active OR verified (show verified even if not active)
         const visibleWalkers = allWalkers.filter(w => 
           w.verification_status === 'verified' && w.is_active !== false
         );
-        
+
         console.log('✅ Walkers visible:', visibleWalkers.length);
         return visibleWalkers;
       } catch (error) {
@@ -249,10 +247,12 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 3 * 60 * 1000, // 3 minutes
+    staleTime: 3 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    retry: 2,
+    retryDelay: 1000,
   });
 
   // Trainers integrados no WalkerProfile (is_verified_trainer = true)
@@ -627,6 +627,12 @@ export default function Home() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, filterAnimalType, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
+
+  // CRITICAL: Add error boundary for failed queries
+  if (userError) {
+    console.error('User fetch error:', userError);
+    // Don't block the page, just continue without user
+  }
 
   if (userLoading) {
     return (

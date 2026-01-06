@@ -211,13 +211,15 @@ function LayoutContent({ children, currentPageName }) {
 
         return userData;
       } catch (err) {
+        console.error('Auth error:', err);
         return null;
       }
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
-    retry: 1,
+    retry: 2,
+    retryDelay: 500,
   });
 
   const { data: notifications } = useQuery({
@@ -237,10 +239,12 @@ function LayoutContent({ children, currentPageName }) {
     },
     enabled: !!authUser,
     initialData: [],
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
+    retry: 1,
+    retryDelay: 500,
   });
 
 

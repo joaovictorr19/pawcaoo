@@ -56,7 +56,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   const [isCorrectionMode, setIsCorrectionMode] = useState(false);
 
   // Fetch booking
-  const { data: booking, error } = useQuery({
+  const { data: booking, error, isLoading: loadingBooking } = useQuery({
     queryKey: ['activeBooking', bookingId],
     queryFn: async () => {
       console.log('🔍 [COCKPIT] Fetching booking:', bookingId);
@@ -71,6 +71,8 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     },
     enabled: !!bookingId,
     refetchInterval: 2000,
+    retry: 2,
+    retryDelay: 1000,
   });
 
   // SECURITY: Admin Bypass - Admins can view any service
@@ -444,10 +446,36 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!booking || booking.status !== 'in_progress') {
+  if (loadingBooking) {
     return (
       <div className="h-[100dvh] bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-center">Serviço não ativo</div>
+        <div className="text-white text-center">
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p>A carregar serviço...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !booking) {
+    return (
+      <div className="h-[100dvh] bg-gray-900 flex items-center justify-center p-4">
+        <div className="text-white text-center max-w-md">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-xl font-bold mb-2">Erro ao carregar</h2>
+          <p className="text-gray-400 mb-4">{error?.message || 'Serviço não encontrado'}</p>
+          <Button onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}>
+            Voltar ao Painel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (booking.status !== 'in_progress') {
+    return (
+      <div className="h-[100dvh] bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-center">Serviço não está ativo</div>
       </div>
     );
   }
