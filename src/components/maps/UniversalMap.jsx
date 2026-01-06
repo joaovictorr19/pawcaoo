@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapControls } from '@/components/ui/map';
+import { Button } from '@/components/ui/button';
+import { Mountain, RotateCcw } from 'lucide-react';
 
 /**
  * UniversalMap - Single map component for all app views
@@ -15,11 +17,15 @@ export default function UniversalMap({
   children,
   onMapLoad,
   showControls = true,
-  controlsPosition = "top-right"
+  controlsPosition = "top-right",
+  show3DControls = false,
+  onMapClick
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [isReady, setIsReady] = useState(false);
+  const [pitch, setPitch] = useState(0);
+  const [bearing, setBearing] = useState(0);
 
   useEffect(() => {
     if (map.current) return;
@@ -50,6 +56,24 @@ export default function UniversalMap({
       }
     });
 
+    // Track pitch and bearing changes
+    map.current.on('move', () => {
+      if (map.current) {
+        setPitch(Math.round(map.current.getPitch()));
+        setBearing(Math.round(map.current.getBearing()));
+      }
+    });
+
+    // Handle map clicks for manual correction
+    if (onMapClick) {
+      map.current.on('click', (e) => {
+        onMapClick({
+          lng: e.lngLat.lng,
+          lat: e.lngLat.lat
+        });
+      });
+    }
+
     return () => {
       if (map.current) {
         map.current.remove();
@@ -65,12 +89,55 @@ export default function UniversalMap({
     }
   }, [center, zoom, isReady]);
 
+  const handle3DView = () => {
+    if (map.current) {
+      map.current.easeTo({
+        pitch: 60,
+        bearing: -20,
+        duration: 1000
+      });
+    }
+  };
+
+  const handleReset = () => {
+    if (map.current) {
+      map.current.easeTo({
+        pitch: 0,
+        bearing: 0,
+        duration: 1000
+      });
+    }
+  };
+
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className={className} />
       {isReady && (
         <>
           {showControls && <MapControls position={controlsPosition} showZoom showLocate />}
+          
+          {/* 3D Controls */}
+          {show3DControls && (
+            <div className="absolute top-3 left-3 z-10 flex gap-2">
+              <Button
+                size="sm"
+                className="bg-white/90 hover:bg-white text-gray-900 shadow-lg border border-gray-200"
+                onClick={handle3DView}
+              >
+                <Mountain className="w-4 h-4 mr-1.5" />
+                3D
+              </Button>
+              <Button
+                size="sm"
+                className="bg-white/90 hover:bg-white text-gray-900 shadow-lg border border-gray-200"
+                onClick={handleReset}
+              >
+                <RotateCcw className="w-4 h-4 mr-1.5" />
+                2D
+              </Button>
+            </div>
+          )}
+          
           {children}
         </>
       )}

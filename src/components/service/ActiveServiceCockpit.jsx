@@ -36,6 +36,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   const updateIntervalRef = useRef(null);
   const pendingPositionRef = useRef(null);
   const [pathMarkers, setPathMarkers] = useState([]);
+  const [isCorrectionMode, setIsCorrectionMode] = useState(false);
 
   // Fetch booking
   const { data: booking } = useQuery({
@@ -263,6 +264,44 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     }
   };
 
+  // Handle manual location correction
+  const handleLocationCorrection = async (coords) => {
+    if (!isCorrectionMode) return;
+
+    try {
+      // Update current position immediately
+      const correctedPos = {
+        lat: coords.lat,
+        lng: coords.lng,
+        accuracy: 0,
+        timestamp: new Date().toISOString()
+      };
+
+      setCurrentPosition(correctedPos);
+
+      // Save to database
+      await base44.entities.Booking.update(bookingId, {
+        walker_lat: coords.lat,
+        walker_lng: coords.lng,
+        last_update: correctedPos.timestamp,
+      });
+
+      // Send system message to chat
+      if (conversation?.id) {
+        await sendMessageMutation.mutateAsync({ 
+          content: '📍 Localização atualizada manualmente pelo passeador.', 
+          type: 'system' 
+        });
+      }
+
+      toast.success('📍 Localização ajustada manualmente!');
+      setIsCorrectionMode(false);
+    } catch (error) {
+      console.error('Location correction error:', error);
+      toast.error('Erro ao ajustar localização');
+    }
+  };
+
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -329,7 +368,14 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     <div className="h-[100dvh] relative overflow-hidden bg-white">
       {/* Layer 0: Background Map */}
       <div className="absolute inset-0 z-0">
-        <UniversalMap center={mapCenter} zoom={15} showControls={true} controlsPosition="top-right">
+        <UniversalMap 
+          center={mapCenter} 
+          zoom={15} 
+          showControls={true} 
+          controlsPosition="top-right"
+          show3DControls={true}
+          onMapClick={handleLocationCorrection}
+        >
           {/* GPS Trail */}
           {booking.route_coordinates && booking.route_coordinates.length > 1 && (
             <MapRoute
@@ -392,21 +438,48 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             </div>
           </div>
 
-          <Button
-            size="sm"
-            variant="destructive"
-            className="bg-red-600 hover:bg-red-700 rounded-full px-3 h-9 shadow-lg"
-            onClick={() => {
-              if (confirm('⚠️ ATIVAR SOS?')) {
-                toast.error('🚨 EMERGÊNCIA ATIVADA!');
-              }
-            }}
-          >
-            <AlertTriangle className="w-4 h-4 mr-1" />
-            SOS
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className={`rounded-full px-3 h-9 shadow-lg ${
+                isCorrectionMode 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+              onClick={() => {
+                setIsCorrectionMode(!isCorrectionMode);
+                if (!isCorrectionMode) {
+                  toast.info('📍 Clique no mapa para corrigir a localização');
+                } else {
+                  toast.info('Modo de correção desativado');
+                }
+              }}
+            >
+              📍 {isCorrectionMode ? 'Confirmar' : 'Ajustar Local'}
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700 rounded-full px-3 h-9 shadow-lg"
+              onClick={() => {
+                if (confirm('⚠️ ATIVAR SOS?')) {
+                  toast.error('🚨 EMERGÊNCIA ATIVADA!');
+                }
+              }}
+            >
+              <AlertTriangle className="w-4 h-4 mr-1" />
+              SOS
+            </Button>
+          </div>
         </div>
       </div>
+
+      {/* Correction Mode Overlay */}
+      {isCorrectionMode && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 bg-green-600 text-white px-4 py-2 rounded-full shadow-2xl font-bold text-sm animate-pulse">
+          👆 Clique no mapa para ajustar a localização
+        </div>
+      )}
 
       {/* Layer 2: Bottom Floating Action Bar */}
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4 safe-area-inset-bottom">
