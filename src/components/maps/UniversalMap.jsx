@@ -29,14 +29,20 @@ export default function UniversalMap({
 
   useEffect(() => {
     if (map.current) return;
+    if (!mapContainer.current) return;
 
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-      center: center,
-      zoom: zoom,
-      attributionControl: false
-    });
+    try {
+      map.current = new maplibregl.Map({
+        container: mapContainer.current,
+        style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+        center: center,
+        zoom: zoom,
+        attributionControl: false
+      });
+    } catch (error) {
+      console.error('Map initialization error:', error);
+      return;
+    }
 
     // Store map instance in DOM for child components
     if (mapContainer.current) {

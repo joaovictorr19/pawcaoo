@@ -266,9 +266,13 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
 
   // Handle manual location correction
   const handleLocationCorrection = async (coords) => {
-    if (!isCorrectionMode) return;
+    if (!isCorrectionMode || !coords) return;
 
     try {
+      if (!coords.lat || !coords.lng) {
+        console.error('Invalid coordinates:', coords);
+        return;
+      }
       // Update current position immediately
       const correctedPos = {
         lat: coords.lat,

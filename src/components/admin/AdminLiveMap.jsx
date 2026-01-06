@@ -112,11 +112,15 @@ export default function AdminLiveMap({
 
   // Render LIVE walker markers on top of clusters
   const renderLiveWalkers = (map) => {
-    // Clear old markers
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
+    if (!map) return;
+    
+    try {
+      // Clear old markers
+      markersRef.current.forEach(marker => marker?.remove());
+      markersRef.current = [];
 
-    activeWalks.forEach(walk => {
+      activeWalks.forEach(walk => {
+        if (!walk.walker_lat || !walk.walker_lng) return;
       const el = document.createElement('div');
       el.className = 'live-walker-marker';
       el.innerHTML = `
@@ -143,8 +147,11 @@ export default function AdminLiveMap({
         )
         .addTo(map);
 
-      markersRef.current.push(marker);
-    });
+        markersRef.current.push(marker);
+      });
+    } catch (error) {
+      console.error('Error rendering live walkers:', error);
+    }
   };
 
   return (
@@ -274,12 +281,14 @@ function LiveWalkerMarkers({ walks }) {
 
     const map = mapContainer._map;
 
-    // Clear old markers
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
+    try {
+      // Clear old markers
+      markersRef.current.forEach(marker => marker?.remove());
+      markersRef.current = [];
 
-    // Create new markers for active walks
-    walks.forEach(walk => {
+      // Create new markers for active walks
+      walks.forEach(walk => {
+        if (!walk.walker_lat || !walk.walker_lng) return;
       const el = document.createElement('div');
       el.className = 'live-walker-marker';
       el.innerHTML = `
@@ -307,14 +316,21 @@ function LiveWalkerMarkers({ walks }) {
         )
         .addTo(map);
 
-      markersRef.current.push(marker);
-    });
+        markersRef.current.push(marker);
+      });
 
-    console.log('🔴 Rendered', walks.length, 'live walker markers');
+      console.log('🔴 Rendered', walks.length, 'live walker markers');
+    } catch (error) {
+      console.error('Error rendering live walker markers:', error);
+    }
 
     return () => {
-      markersRef.current.forEach(marker => marker.remove());
-      markersRef.current = [];
+      try {
+        markersRef.current.forEach(marker => marker?.remove());
+        markersRef.current = [];
+      } catch (error) {
+        console.error('Cleanup error:', error);
+      }
     };
   }, [walks]);
 
