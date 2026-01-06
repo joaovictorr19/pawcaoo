@@ -165,11 +165,16 @@ export default function ProfessionalDashboard() {
   const { data: walkerProfile } = useQuery({
     queryKey: ['myWalkerProfile'],
     queryFn: async () => {
-      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user?.email });
-      const profile = profiles[0];
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user?.email }, '-created_date');
+      
+      // CRITICAL: Only use first NON-REJECTED profile
+      const activeProfile = profiles.find(p => p.verification_status !== 'rejected') || profiles[0];
+      
+      console.log('🔍 Walker Profiles Found:', profiles.length);
+      console.log('✅ Active Profile:', activeProfile?.walker_name, activeProfile?.id);
       
       // Auto-update account_type if user has walker profile but wrong account type
-      if (profile && user && user.account_type !== 'walker' && user.account_type !== 'both') {
+      if (activeProfile && user && user.account_type !== 'walker' && user.account_type !== 'both') {
         try {
           await base44.auth.updateMe({ account_type: 'walker' });
           queryClient.invalidateQueries({ queryKey: ['currentUser'] });
@@ -178,7 +183,7 @@ export default function ProfessionalDashboard() {
         }
       }
       
-      return profile;
+      return activeProfile;
     },
     enabled: !!user,
     refetchInterval: 30000,
@@ -187,11 +192,16 @@ export default function ProfessionalDashboard() {
   const { data: trainerProfile } = useQuery({
     queryKey: ['myTrainerProfile'],
     queryFn: async () => {
-      const profiles = await base44.entities.TrainerProfile.filter({ created_by: user?.email });
-      const profile = profiles[0];
+      const profiles = await base44.entities.TrainerProfile.filter({ created_by: user?.email }, '-created_date');
+      
+      // CRITICAL: Only use first NON-REJECTED profile
+      const activeProfile = profiles.find(p => p.verification_status !== 'rejected') || profiles[0];
+      
+      console.log('🔍 Trainer Profiles Found:', profiles.length);
+      console.log('✅ Active Profile:', activeProfile?.trainer_name, activeProfile?.id);
       
       // Auto-update account_type if user has trainer profile but wrong account type
-      if (profile && user && user.account_type !== 'trainer' && user.account_type !== 'both') {
+      if (activeProfile && user && user.account_type !== 'trainer' && user.account_type !== 'both') {
         try {
           const newType = walkerProfile ? 'both' : 'trainer';
           await base44.auth.updateMe({ account_type: newType });
@@ -201,7 +211,7 @@ export default function ProfessionalDashboard() {
         }
       }
       
-      return profile;
+      return activeProfile;
     },
     enabled: !!user,
     refetchInterval: 30000,
