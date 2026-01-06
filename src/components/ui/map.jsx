@@ -245,7 +245,7 @@ export function MarkerContent({ children }) {
   return <>{children}</>;
 }
 
-export function MarkerLabel({ children, position = 'top' }) {
+export function MarkerLabel({ children, position = 'top', className = '' }) {
   const positionClasses = {
     top: '-top-6 left-1/2 -translate-x-1/2',
     bottom: 'top-full mt-1 left-1/2 -translate-x-1/2',
@@ -254,7 +254,7 @@ export function MarkerLabel({ children, position = 'top' }) {
   };
 
   return (
-    <div className={`absolute ${positionClasses[position]} bg-white text-gray-900 text-xs font-medium px-2 py-0.5 rounded shadow-md whitespace-nowrap pointer-events-none`}>
+    <div className={`absolute ${positionClasses[position]} bg-white text-gray-900 text-xs font-medium px-2 py-0.5 rounded shadow-md whitespace-nowrap pointer-events-none ${className}`}>
       {children}
     </div>
   );
