@@ -235,9 +235,13 @@ export default function Home() {
           return [];
         }
 
-        const visibleWalkers = allWalkers.filter(w => 
-          w.verification_status === 'verified' && w.is_active !== false
-        );
+        // Show walkers that are: verified, pending (allowing new registrations), or explicitly active
+        // Only hide if rejected or explicitly inactive
+        const visibleWalkers = allWalkers.filter(w => {
+          const isRejected = w.verification_status === 'rejected';
+          const isInactive = w.is_active === false;
+          return !isRejected && !isInactive;
+        });
 
         console.log('✅ Walkers visible:', visibleWalkers.length);
         return visibleWalkers;
@@ -518,9 +522,9 @@ export default function Home() {
         return false;
       }
 
-      // Only block rejected
-      if (pro.verification_status === 'rejected') {
-        console.log('❌ Rejected walker:', pro.walker_name);
+      // Block rejected and inactive
+      if (pro.verification_status === 'rejected' || pro.is_active === false) {
+        console.log('❌ Blocked walker:', pro.walker_name, 'Status:', pro.verification_status, 'Active:', pro.is_active);
         return false;
       }
 
