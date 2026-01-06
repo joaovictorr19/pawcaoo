@@ -2,28 +2,20 @@ import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { 
   MessageCircle, 
   AlertTriangle, 
   Camera, 
-  CheckCircle,
   Clock,
   Navigation,
-  Zap,
-  Bookmark,
-  Edit3,
+  CheckCircle,
 } from "lucide-react";
 import { Map, MapRoute, MapMarker, MarkerContent, MapControls } from "@/components/ui/map";
 import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
-import TypingIndicator from "@/components/chat/TypingIndicator";
-import RouteSelectorModal from "@/components/walk/RouteSelectorModal";
-import SaveRouteModal from "@/components/walk/SaveRouteModal";
-import RouteEditorPanel from "@/components/walk/RouteEditorPanel";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -36,16 +28,12 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   const [distanceKm, setDistanceKm] = useState(0);
   const [currentPosition, setCurrentPosition] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [showStatusMenu, setShowStatusMenu] = useState(false);
-  const [showRouteSelector, setShowRouteSelector] = useState(false);
-  const [showSaveRoute, setShowSaveRoute] = useState(false);
-  const [showRouteEditor, setShowRouteEditor] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
-  const [selectedRoute, setSelectedRoute] = useState(null);
   const watchIdRef = useRef(null);
   const startTimeRef = useRef(null);
   const updateIntervalRef = useRef(null);
   const pendingPositionRef = useRef(null);
+  const [pathMarkers, setPathMarkers] = useState([]);
 
   // Fetch booking
   const { data: booking } = useQuery({
@@ -56,17 +44,6 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     },
     enabled: !!bookingId,
     refetchInterval: 2000,
-  });
-
-  // Fetch checkpoints
-  const { data: checkpoints = [] } = useQuery({
-    queryKey: ['walkCheckpoints', bookingId],
-    queryFn: async () => {
-      const cps = await base44.entities.WalkCheckpoint.filter({ booking_id: bookingId }, 'created_date');
-      return cps;
-    },
-    enabled: !!bookingId,
-    refetchInterval: 3000,
   });
 
   // Fetch conversation
@@ -204,6 +181,86 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     },
   });
 
+  // Handle quick event (Poop, Pee)
+  const handleQuickEvent = async (emoji, message) => {
+    if (!currentPosition) {
+      toast.error('Aguarde GPS...');
+      return;
+    }
+
+    // Add marker to map immediately
+    setPathMarkers(prev => [...prev, { 
+      lat: currentPosition.lat, 
+      lng: currentPosition.lng, 
+      emoji, 
+      timestamp: new Date().toISOString() 
+    }]);
+
+    // Create checkpoint
+    try {
+      await base44.entities.WalkCheckpoint.create({
+        booking_id: bookingId,
+        walker_email: user.email,
+        checkpoint_type: 'behavior_note',
+        latitude: currentPosition.lat,
+        longitude: currentPosition.lng,
+        timestamp: new Date().toISOString(),
+        notes: message,
+      });
+
+      // Auto-send message to chat
+      if (conversation?.id) {
+        await sendMessageMutation.mutateAsync({ content: message, type: 'system' });
+      }
+
+      toast.success('Evento registado!');
+    } catch (err) {
+      console.error('Event error:', err);
+      toast.error('Erro ao registar evento');
+    }
+  };
+
+  // Handle photo upload
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    toast.info('A carregar foto...');
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      // Add marker
+      if (currentPosition) {
+        setPathMarkers(prev => [...prev, { 
+          lat: currentPosition.lat, 
+          lng: currentPosition.lng, 
+          emoji: '📷', 
+          timestamp: new Date().toISOString() 
+        }]);
+      }
+
+      // Create checkpoint
+      await base44.entities.WalkCheckpoint.create({
+        booking_id: bookingId,
+        walker_email: user.email,
+        checkpoint_type: 'photo_update',
+        photo_url: file_url,
+        latitude: currentPosition?.lat,
+        longitude: currentPosition?.lng,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Auto-send to chat
+      if (conversation?.id) {
+        await sendMessageMutation.mutateAsync({ content: '📷 Nova foto enviada!', type: 'system' });
+      }
+
+      toast.success('Foto enviada!');
+    } catch (error) {
+      toast.error('Erro ao carregar foto');
+    }
+  };
+
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -213,15 +270,11 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
 
   if (!booking || booking.status !== 'in_progress') {
     return (
-      <div className="fixed inset-0 bg-gray-900 flex items-center justify-center">
+      <div className="h-[100dvh] bg-gray-900 flex items-center justify-center">
         <div className="text-white text-center">Serviço não ativo</div>
       </div>
     );
   }
-
-  const displayRoute = selectedRoute 
-    ? selectedRoute.coordinates.map(c => [c.lng, c.lat])
-    : booking.route_coordinates?.map(c => [c.lng, c.lat]) || [];
 
   const mapCenter = currentPosition 
     ? [currentPosition.lng, currentPosition.lat]
@@ -240,13 +293,13 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
 
   const ChatContent = () => (
     <>
-      <div className="flex-1 overflow-y-auto px-3 py-3 bg-gray-50" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto px-4 py-3 bg-gray-50" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <p className="text-sm">Nenhuma mensagem</p>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-2">
             {messages.map((msg) => {
               const isMine = msg.sender_email === user?.email;
               return (
@@ -271,153 +324,177 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   );
 
   return (
-    <div className="fixed inset-0 bg-white">
-      {/* Fullscreen Map - z-index 0 */}
-      <div className="absolute inset-0">
+    <div className="h-[100dvh] relative overflow-hidden bg-white">
+      {/* Layer 0: Background Map */}
+      <div className="absolute inset-0 z-0">
         <Map center={mapCenter} zoom={15}>
-          {selectedRoute && selectedRoute.coordinates.length > 1 && (
-            <MapRoute
-              coordinates={selectedRoute.coordinates.map(c => [c.lng, c.lat])}
-              color="#3b82f6"
-              width={3}
-              opacity={0.5}
-            />
-          )}
-
+          {/* GPS Trail */}
           {booking.route_coordinates && booking.route_coordinates.length > 1 && (
             <MapRoute
               coordinates={booking.route_coordinates.map(c => [c.lng, c.lat])}
               color="#000000"
-              width={5}
+              width={4}
               opacity={1}
             />
           )}
 
+          {/* Pickup Location */}
           {booking.pickup_lat && booking.pickup_lng && (
             <MapMarker longitude={booking.pickup_lng} latitude={booking.pickup_lat}>
               <MarkerContent>
-                <div className="w-12 h-12 bg-black rounded-full border-4 border-white shadow-2xl flex items-center justify-center">
-                  <div className="w-3 h-3 bg-white rounded-full"></div>
+                <div className="w-10 h-10 bg-green-600 rounded-full border-4 border-white shadow-xl flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
                 </div>
               </MarkerContent>
             </MapMarker>
           )}
 
+          {/* Current Position */}
           {currentPosition && (
             <MapMarker longitude={currentPosition.lng} latitude={currentPosition.lat}>
               <MarkerContent>
                 <div className="relative">
-                  <div className="absolute -inset-3 bg-black rounded-full opacity-10 animate-ping" />
-                  <div className="w-14 h-14 bg-black rounded-full border-4 border-white shadow-2xl flex items-center justify-center">
-                    <Navigation className="w-7 h-7 text-white" style={{ transform: 'rotate(45deg)' }} />
+                  <div className="absolute -inset-2 bg-blue-500 rounded-full opacity-20 animate-ping" />
+                  <div className="w-12 h-12 bg-blue-600 rounded-full border-4 border-white shadow-2xl flex items-center justify-center">
+                    <Navigation className="w-6 h-6 text-white" style={{ transform: 'rotate(45deg)' }} />
                   </div>
                 </div>
               </MarkerContent>
             </MapMarker>
           )}
 
+          {/* Event Markers */}
+          {pathMarkers.map((marker, idx) => (
+            <MapMarker key={idx} longitude={marker.lng} latitude={marker.lat}>
+              <MarkerContent>
+                <div className="w-8 h-8 bg-white rounded-full border-2 border-gray-300 shadow-lg flex items-center justify-center text-lg">
+                  {marker.emoji}
+                </div>
+              </MarkerContent>
+            </MapMarker>
+          ))}
+
           <MapControls position="top-right" showZoom showLocate />
         </Map>
       </div>
 
-      {/* Top Bar - z-index 20 */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-3 safe-area-inset-top">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gray-600" />
-                <span className="font-semibold text-lg">{formatTime(elapsedTime)}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Navigation className="w-5 h-5 text-gray-600" />
-                <span className="font-semibold text-lg">{distanceKm.toFixed(2)} km</span>
-              </div>
+      {/* Layer 1: Top Bar (Glass) */}
+      <div className="absolute top-0 left-0 right-0 z-10 p-3 safe-area-inset-top">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 p-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-gray-700" />
+              <span className="font-bold text-lg text-gray-900">{formatTime(elapsedTime)}</span>
             </div>
-
-            <Button
-              size="sm"
-              variant="destructive"
-              className="bg-red-600 hover:bg-red-700 rounded-full px-4"
-              onClick={() => {
-                if (confirm('⚠️ ATIVAR MODO EMERGÊNCIA?')) {
-                  toast.error('🚨 EMERGÊNCIA ATIVADA!');
-                }
-              }}
-            >
-              <AlertTriangle className="w-4 h-4 mr-1" />
-              SOS
-            </Button>
+            <div className="flex items-center gap-2">
+              <Navigation className="w-5 h-5 text-gray-700" />
+              <span className="font-bold text-lg text-gray-900">{distanceKm.toFixed(2)} km</span>
+            </div>
           </div>
+
+          <Button
+            size="sm"
+            variant="destructive"
+            className="bg-red-600 hover:bg-red-700 rounded-full px-3 h-9 shadow-lg"
+            onClick={() => {
+              if (confirm('⚠️ ATIVAR SOS?')) {
+                toast.error('🚨 EMERGÊNCIA ATIVADA!');
+              }
+            }}
+          >
+            <AlertTriangle className="w-4 h-4 mr-1" />
+            SOS
+          </Button>
         </div>
       </div>
 
-      {/* Bottom Control Panel - z-index 20 */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 p-3 safe-area-inset-bottom">
-        <div className="bg-white rounded-t-3xl shadow-2xl border-t border-gray-100">
+      {/* Layer 2: Bottom Floating Action Bar */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-4 safe-area-inset-bottom">
+        <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/50 p-4">
           {/* Dog Info */}
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center">
-                  <span className="text-2xl">🐕</span>
-                </div>
-                <div>
-                  <h3 className="font-bold text-base">{booking.dog_name}</h3>
-                  <p className="text-sm text-gray-500">{booking.owner_name}</p>
-                </div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-2xl">🐕</span>
               </div>
-              <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                🔴 ATIVO
+              <div>
+                <h3 className="font-bold text-base text-gray-900">{booking.dog_name}</h3>
+                <p className="text-sm text-gray-500">{booking.owner_name}</p>
               </div>
+            </div>
+            <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+              🔴 ATIVO
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="px-4 py-3 flex gap-3">
-            <Button
-              size="lg"
-              variant="outline"
-              className="flex-1 h-12 border-2 relative rounded-xl"
-              onClick={() => setIsChatOpen(true)}
+          {/* Circular Action Buttons */}
+          <div className="flex items-center justify-around gap-2 mb-3">
+            <button
+              onClick={() => handleQuickEvent('💩', 'O cão fez cocô! 💩')}
+              className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full shadow-xl flex items-center justify-center text-3xl active:scale-95 transition-transform"
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              Chat
+              💩
+            </button>
+
+            <button
+              onClick={() => handleQuickEvent('💧', 'O cão fez xixi! 💧')}
+              className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-xl flex items-center justify-center text-3xl active:scale-95 transition-transform"
+            >
+              💧
+            </button>
+
+            <label className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform cursor-pointer">
+              <Camera className="w-8 h-8 text-white" />
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </label>
+
+            <button
+              onClick={() => setIsChatOpen(true)}
+              className="relative w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full shadow-xl flex items-center justify-center active:scale-95 transition-transform"
+            >
+              <MessageCircle className="w-8 h-8 text-white" />
               {unreadCount > 0 && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white">
                   {unreadCount}
                 </div>
               )}
-            </Button>
-
-            <Button
-              size="lg"
-              className="flex-1 h-12 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold shadow-lg"
-              onClick={async () => {
-                if (confirm('Finalizar o serviço?')) {
-                  await base44.entities.Booking.update(bookingId, { 
-                    status: 'service_completed',
-                    distance_km: distanceKm,
-                    completed_date: new Date().toISOString()
-                  });
-                  toast.success('Serviço concluído!');
-                  navigate(createPageUrl('ProfessionalDashboard'));
-                }
-              }}
-            >
-              <CheckCircle className="w-5 h-5 mr-2" />
-              Finalizar
-            </Button>
+            </button>
           </div>
+
+          {/* End Walk Button */}
+          <Button
+            size="lg"
+            className="w-full h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl font-bold shadow-lg text-lg"
+            onClick={async () => {
+              if (confirm('Finalizar o serviço?')) {
+                await base44.entities.Booking.update(bookingId, { 
+                  status: 'service_completed',
+                  distance_km: distanceKm,
+                  completed_date: new Date().toISOString()
+                });
+                toast.success('Serviço concluído!');
+                navigate(createPageUrl('ProfessionalDashboard'));
+              }
+            }}
+          >
+            <CheckCircle className="w-6 h-6 mr-2" />
+            Finalizar Serviço
+          </Button>
         </div>
       </div>
 
       {/* Chat Drawer (Mobile) - z-index 50 */}
       <div className="md:hidden">
         <Drawer open={isChatOpen} onOpenChange={setIsChatOpen}>
-          <DrawerContent className="h-[85vh] flex flex-col">
+          <DrawerContent className="h-[85dvh] flex flex-col">
             <DrawerHeader className="border-b">
-              <DrawerTitle>Chat com {otherParticipant?.name}</DrawerTitle>
+              <DrawerTitle>💬 Chat com {otherParticipant?.name}</DrawerTitle>
             </DrawerHeader>
             <ChatContent />
           </DrawerContent>
@@ -429,38 +506,12 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
         <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
           <SheetContent side="right" className="w-[400px] flex flex-col p-0">
             <SheetHeader className="p-4 border-b">
-              <SheetTitle>Chat com {otherParticipant?.name}</SheetTitle>
+              <SheetTitle>💬 Chat com {otherParticipant?.name}</SheetTitle>
             </SheetHeader>
             <ChatContent />
           </SheetContent>
         </Sheet>
       </div>
-
-      {/* Modals */}
-      <RouteSelectorModal
-        isOpen={showRouteSelector}
-        onClose={() => setShowRouteSelector(false)}
-        onSelectRoute={setSelectedRoute}
-        currentUserEmail={user?.email}
-      />
-
-      <SaveRouteModal
-        isOpen={showSaveRoute}
-        onClose={() => setShowSaveRoute(false)}
-        routeData={{
-          coordinates: booking.route_coordinates || [],
-          distance_km: distanceKm,
-          duration_minutes: Math.floor(elapsedTime / 60)
-        }}
-        userEmail={user?.email}
-      />
-
-      <RouteEditorPanel
-        isOpen={showRouteEditor}
-        onClose={() => setShowRouteEditor(false)}
-        routeCoordinates={booking.route_coordinates || []}
-        currentPosition={currentPosition}
-      />
     </div>
   );
 }
