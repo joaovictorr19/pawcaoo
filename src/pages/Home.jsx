@@ -226,9 +226,9 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        console.log('🔍 Fetching ALL walkers from database...');
-        const allWalkers = await base44.entities.WalkerProfile.list('-rating', 200);
-        console.log('📦 Total walkers in DB:', allWalkers?.length || 0);
+        console.log('🔍 Fetching walkers from database...');
+        const allWalkers = await base44.entities.WalkerProfile.list('-rating', 100);
+        console.log('📦 Total walkers fetched:', allWalkers?.length || 0);
         
         if (!Array.isArray(allWalkers)) {
           console.error('❌ ERROR: Walkers is not an array!', typeof allWalkers);
@@ -254,9 +254,10 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 0, // Force fresh data
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Trainers integrados no WalkerProfile (is_verified_trainer = true)
@@ -265,7 +266,7 @@ export default function Home() {
     queryKey: ['emergencyWalks'],
     queryFn: async () => {
       try {
-        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 20);
+        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 15);
         if (!Array.isArray(res)) return [];
 
         const uniqueMap = new Map();
@@ -282,7 +283,8 @@ export default function Home() {
       }
     },
     initialData: [],
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
@@ -326,10 +328,13 @@ export default function Home() {
     queryFn: async () => {
       const res = await base44.entities.AdoptionListing.filter({ 
         status: 'available' 
-      }, '-created_date');
+      }, '-created_date', 20);
       return Array.isArray(res) ? res : [];
     },
     initialData: [],
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: stats } = useQuery({

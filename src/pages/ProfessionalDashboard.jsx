@@ -159,7 +159,9 @@ export default function ProfessionalDashboard() {
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: 60000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: walkerProfile } = useQuery({
@@ -278,7 +280,9 @@ export default function ProfessionalDashboard() {
     },
     enabled: !!user?.email || !!walkerProfile?.id,
     initialData: [],
-    refetchInterval: 3000, // Refresh every 3 seconds for testing
+    staleTime: 30 * 1000, // 30 seconds
+    cacheTime: 5 * 60 * 1000,
+    refetchInterval: 60 * 1000, // 1 minute instead of 3 seconds
     refetchOnWindowFocus: true,
   });
 
@@ -324,7 +328,10 @@ export default function ProfessionalDashboard() {
     queryFn: () => base44.entities.TrainingBooking.filter({ trainer_email: user?.email }, '-created_date'),
     enabled: !!user && !!trainerProfile,
     initialData: [],
-    refetchInterval: 10000,
+    staleTime: 2 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchInterval: false,
+    refetchOnWindowFocus: true,
   });
 
   // Real-time messages query removed
@@ -349,7 +356,10 @@ export default function ProfessionalDashboard() {
     },
     enabled: !!user && (!!walkerProfile || !!trainerProfile),
     initialData: [],
-    refetchInterval: 10000, // Atualizar a cada 10 segundos
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 15 * 60 * 1000,
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
   });
 
   // Availability
@@ -358,6 +368,9 @@ export default function ProfessionalDashboard() {
     queryFn: () => base44.entities.CalendarAvailability.filter({ professional_email: user?.email }),
     enabled: !!user,
     initialData: [],
+    staleTime: 2 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Booking Actions
