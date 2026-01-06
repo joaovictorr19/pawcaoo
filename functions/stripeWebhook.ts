@@ -102,8 +102,12 @@ async function handlePaymentSuccess(base44, paymentIntent) {
     const bookingId = paymentIntent.metadata?.booking_id;
     const emergencyWalkId = paymentIntent.metadata?.emergency_walk_id;
 
+    console.log('💰 ========== PAYMENT SUCCESS WEBHOOK ==========');
+    console.log('   Booking ID:', bookingId);
+    console.log('   Amount:', paymentIntent.amount / 100);
+
     if (!bookingId && !emergencyWalkId) {
-        console.log('No booking or emergency walk ID in payment metadata');
+        console.log('❌ No booking or emergency walk ID in payment metadata');
         return;
     }
 
@@ -117,6 +121,7 @@ async function handlePaymentSuccess(base44, paymentIntent) {
             status: 'held',
             held_date: new Date().toISOString()
         });
+        console.log('✅ Payment record updated');
     }
 
     // Update booking if exists
@@ -124,10 +129,52 @@ async function handlePaymentSuccess(base44, paymentIntent) {
         const bookings = await base44.asServiceRole.entities.Booking.filter({ id: bookingId });
         if (bookings.length > 0) {
             const booking = bookings[0];
+            console.log('📋 Found booking:', booking.dog_name);
+            console.log('   Walker Email:', booking.walker_email);
+            console.log('   Walker ID:', booking.walker_id);
+            console.log('   Owner Email:', booking.owner_email || booking.created_by);
+            
+            // CRITICAL: Update to 'pending' so walker can accept it
             await base44.asServiceRole.entities.Booking.update(bookingId, {
                 payment_status: 'held',
-                status: 'confirmed'
+                status: 'pending' // KEEP AS PENDING - Walker must accept
             });
+            console.log('✅ Booking updated to PENDING (awaiting walker acceptance)');
+
+            // CRITICAL: Create chat conversation immediately
+            try {
+                const existingConvo = await base44.asServiceRole.entities.ChatConversation.filter({ 
+                    booking_id: bookingId 
+                });
+                
+                if (!existingConvo || existingConvo.length === 0) {
+                    console.log('📝 Creating chat conversation...');
+                    const walkerEmail = booking.walker_email;
+                    const ownerEmail = booking.owner_email || booking.created_by;
+                    
+                    await base44.asServiceRole.entities.ChatConversation.create({
+                        participants: [walkerEmail, ownerEmail],
+                        participant_names: {
+                            [walkerEmail]: booking.walker_name,
+                            [ownerEmail]: booking.owner_name
+                        },
+                        booking_id: bookingId,
+                        tags: ["booking", "walk"],
+                        last_message: "Pagamento recebido - Aguardando aceitação",
+                        last_message_date: new Date().toISOString(),
+                        unread_counts: {
+                            [walkerEmail]: 0,
+                            [ownerEmail]: 0
+                        },
+                        is_muted: {},
+                        pinned_by: [],
+                        typing_users: []
+                    });
+                    console.log('✅ Chat conversation created!');
+                }
+            } catch (chatError) {
+                console.error('❌ Chat creation error:', chatError);
+            }
 
             // 🎯 AWARD LOYALTY POINTS (10 pontos base por €1)
             const ownerEmail = booking.owner_email || booking.created_by;
@@ -139,12 +186,14 @@ async function handlePaymentSuccess(base44, paymentIntent) {
             // Send notification to walker
             await base44.asServiceRole.entities.Notification.create({
                 recipient_email: booking.walker_email,
-                title: 'Nova Reserva Confirmada',
-                message: `Você tem uma nova reserva de ${booking.owner_name} para ${booking.walk_date}`,
+                title: '💰 Nova Reserva PAGA!',
+                message: `${booking.owner_name} pagou por ${booking.dog_name} (${booking.walk_date}). Aceite a reserva agora!`,
                 type: 'booking',
                 related_id: bookingId,
-                action_url: `/MyBookings?id=${bookingId}`
+                action_url: `/ProfessionalDashboard`,
+                priority: 'high'
             });
+            console.log('✅ Notification sent to walker');
         }
     }
 
