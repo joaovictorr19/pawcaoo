@@ -72,6 +72,9 @@ export default function MyBookings() {
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Buscar Reviews dadas pelo usuário (para saber o que já foi avaliado)
@@ -79,6 +82,8 @@ export default function MyBookings() {
     queryKey: ['myGivenReviews', user?.email],
     queryFn: () => base44.entities.Review.filter({ reviewer_email: user?.email }),
     enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
   });
 
   // 1. Buscar Bookings de Passeio (Owner)
@@ -86,10 +91,12 @@ export default function MyBookings() {
     queryKey: ['myWalks', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return await base44.entities.Booking.filter({ created_by: user.email }, '-created_date');
+      return await base44.entities.Booking.filter({ created_by: user.email }, '-created_date', 50);
     },
     enabled: !!user?.email,
-    refetchInterval: 15000
+    staleTime: 30 * 1000,
+    cacheTime: 5 * 60 * 1000,
+    refetchInterval: 60 * 1000,
   });
 
   // 2. Buscar Bookings de Passeio (Walker)
@@ -97,10 +104,12 @@ export default function MyBookings() {
     queryKey: ['walkerWalks', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return await base44.entities.Booking.filter({ walker_email: user.email }, '-created_date');
+      return await base44.entities.Booking.filter({ walker_email: user.email }, '-created_date', 50);
     },
     enabled: !!user?.email,
-    refetchInterval: 15000
+    staleTime: 30 * 1000,
+    cacheTime: 5 * 60 * 1000,
+    refetchInterval: 60 * 1000,
   });
 
   // 3. Buscar Treinos (Owner)
@@ -109,10 +118,12 @@ export default function MyBookings() {
     queryFn: async () => {
       if (!user?.email) return [];
       if (!base44.entities.TrainingBooking) return [];
-      return await base44.entities.TrainingBooking.filter({ created_by: user.email }, '-created_date');
+      return await base44.entities.TrainingBooking.filter({ created_by: user.email }, '-created_date', 50);
     },
     enabled: !!user?.email,
-    refetchInterval: 15000
+    staleTime: 30 * 1000,
+    cacheTime: 5 * 60 * 1000,
+    refetchInterval: 60 * 1000,
   });
 
   // 4. Buscar Treinos (Trainer)
@@ -121,11 +132,12 @@ export default function MyBookings() {
     queryFn: async () => {
       if (!user?.email) return [];
       if (!base44.entities.TrainingBooking) return [];
-      // Assuming 'trainer_email' exists on TrainingBooking, based on schema provided
-      return await base44.entities.TrainingBooking.filter({ trainer_email: user.email }, '-created_date');
+      return await base44.entities.TrainingBooking.filter({ trainer_email: user.email }, '-created_date', 50);
     },
     enabled: !!user?.email,
-    refetchInterval: 15000
+    staleTime: 30 * 1000,
+    cacheTime: 5 * 60 * 1000,
+    refetchInterval: 60 * 1000,
   });
 
   // Merge and Normalize Data
@@ -552,10 +564,11 @@ export default function MyBookings() {
            const w = await base44.entities.WalkerProfile.get(booking.walker_id);
            return w?.whatsapp_number;
         }
-        // Trainer logic if needed
         return null;
       },
-      enabled: !isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress')
+      enabled: !isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress'),
+      staleTime: 10 * 60 * 1000,
+      cacheTime: 30 * 60 * 1000,
     });
 
     return (
@@ -612,7 +625,7 @@ export default function MyBookings() {
                       toast.error("Erro: ID inválido");
                       return;
                   }
-                  navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
+                  navigate(createPageUrl('ActiveWalkDashboard') + `?bookingId=${booking.id}`);
                 }}
               >
                 <MapIcon className="w-3.5 h-3.5 mr-1.5" />
