@@ -14,6 +14,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import UniversalMap from "@/components/maps/UniversalMap";
+import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
 import { MapRoute, MapMarker, MarkerContent } from "@/components/ui/map";
 import maplibregl from 'maplibre-gl';
 import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
@@ -372,7 +373,8 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     <div className="h-[100dvh] relative overflow-hidden bg-white">
       {/* Layer 0: Background Map */}
       <div className="absolute inset-0 z-0">
-        <UniversalMap 
+        <SafeMapWrapper>
+          <UniversalMap 
           center={mapCenter} 
           zoom={15} 
           showControls={true} 
@@ -425,7 +427,8 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               </MarkerContent>
             </MapMarker>
           ))}
-        </UniversalMap>
+          </UniversalMap>
+        </SafeMapWrapper>
       </div>
 
       {/* Layer 1: Top Bar (Glass) */}

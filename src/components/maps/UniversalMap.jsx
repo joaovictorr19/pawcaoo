@@ -21,6 +21,15 @@ export default function UniversalMap({
   show3DControls = false,
   onMapClick
 }) {
+  // CRITICAL: Defensive coordinate validation
+  let safeCenter = center;
+  if (!center || !Array.isArray(center) || center.length !== 2 || 
+      typeof center[0] !== 'number' || typeof center[1] !== 'number' ||
+      isNaN(center[0]) || isNaN(center[1])) {
+    console.warn('⚠️ Map received invalid coordinates, using Porto default:', center);
+    safeCenter = [-8.6291, 41.1579]; // Porto fallback
+  }
+
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [isReady, setIsReady] = useState(false);
@@ -35,8 +44,8 @@ export default function UniversalMap({
       map.current = new maplibregl.Map({
         container: mapContainer.current,
         style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-        center: center,
-        zoom: zoom,
+        center: safeCenter,
+        zoom: zoom || 13,
         attributionControl: false
       });
     } catch (error) {
@@ -90,8 +99,8 @@ export default function UniversalMap({
 
   // Update center when it changes
   useEffect(() => {
-    if (map.current && isReady) {
-      map.current.flyTo({ center, zoom, duration: 1000 });
+    if (map.current && isReady && safeCenter) {
+      map.current.flyTo({ center: safeCenter, zoom: zoom || 13, duration: 1000 });
     }
   }, [center, zoom, isReady]);
 
