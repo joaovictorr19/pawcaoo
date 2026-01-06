@@ -207,32 +207,44 @@ export default function ProfessionalDashboard() {
     refetchInterval: 30000,
   });
 
-  // Real-time bookings - RELAXED FILTERS + ASCENDING SORT
+  // Real-time bookings - FETCH ALL, FILTER LOCALLY (ROBUST)
   const { data: walkBookings = [] } = useQuery({
     queryKey: ['myWalkBookings', walkerProfile?.id, user?.email],
     queryFn: async () => {
-      console.log('🔍 Fetching Walker Bookings:', user?.email);
+      console.log('🔍 FETCHING WALKER BOOKINGS');
+      console.log('   Walker ID:', walkerProfile?.id);
+      console.log('   Walker Email:', user?.email);
       
-      if (!user?.email) return [];
+      if (!user?.email && !walkerProfile?.id) return [];
       
       try {
-        const bookings = await base44.entities.Booking.filter(
-          { walker_email: user.email },
-          'walk_date' // Ascending - next walk first
+        // Fetch ALL bookings and filter locally (most robust approach)
+        const allBookings = await base44.entities.Booking.list('walk_date', 500);
+        
+        console.log('📊 TOTAL BOOKINGS IN DB:', allBookings.length);
+        
+        // Filter for THIS walker using BOTH ID and EMAIL
+        const myBookings = allBookings.filter(b => 
+          b.walker_email === user.email || 
+          b.walker_id === walkerProfile?.id
         );
         
-        console.log('📊 Walker Bookings:', bookings);
-        console.log('   Pending:', bookings.filter(b => b.status === 'pending').length);
-        console.log('   Confirmed:', bookings.filter(b => b.status === 'confirmed').length);
-        console.log('   In Progress:', bookings.filter(b => b.status === 'in_progress').length);
+        console.log('✅ MY BOOKINGS:', myBookings.length);
+        console.log('   Pending:', myBookings.filter(b => b.status === 'pending').length);
+        console.log('   Confirmed:', myBookings.filter(b => b.status === 'confirmed').length);
+        console.log('   In Progress:', myBookings.filter(b => b.status === 'in_progress').length);
         
-        return bookings;
+        myBookings.forEach(b => {
+          console.log(`   📌 ${b.dog_name} (${b.status}) - Walker ID: ${b.walker_id}, Email: ${b.walker_email}`);
+        });
+        
+        return myBookings;
       } catch (error) {
-        console.error('❌ Fetch error:', error);
+        console.error('❌ FETCH ERROR:', error);
         return [];
       }
     },
-    enabled: !!user?.email,
+    enabled: !!user?.email || !!walkerProfile?.id,
     initialData: [],
     refetchInterval: 5000,
     refetchOnWindowFocus: true,

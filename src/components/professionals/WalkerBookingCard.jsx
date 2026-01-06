@@ -12,6 +12,26 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
 
   // Determine main action button
   const getMainActionButton = () => {
+    if (booking.status === 'pending') {
+      return (
+        <div className="grid grid-cols-2 gap-2 w-full">
+          <Button
+            onClick={onAccept}
+            className="h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg font-bold"
+          >
+            ✅ ACEITAR
+          </Button>
+          <Button
+            onClick={onDecline}
+            variant="outline"
+            className="h-12 border-2 border-red-300 text-red-600 hover:bg-red-50 font-bold"
+          >
+            ❌ RECUSAR
+          </Button>
+        </div>
+      );
+    }
+    
     if (booking.status === 'confirmed') {
       return (
         <Button
