@@ -451,37 +451,46 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     };
   }, [conversation?.id, user?.email]);
 
-  const ChatContent = () => (
-    <>
-      <div className="flex-1 overflow-y-auto px-4 py-3 bg-gray-50" ref={scrollRef}>
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <p className="text-sm">Nenhuma mensagem</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {messages.map((msg) => {
-              const isMine = msg.sender_email === user?.email;
-              return (
-                <ChatMessageBubble
-                  key={msg.id}
-                  message={msg}
-                  isMine={isMine}
-                  showAvatar={true}
-                />
-              );
-            })}
-          </div>
-        )}
-      </div>
-      <div className="border-t bg-white">
-        <ChatInput
-          onSendMessage={(data) => sendMessageMutation.mutate(data)}
-          disabled={sendMessageMutation.isPending}
-        />
-      </div>
-    </>
-  );
+  const ChatContent = () => {
+    // Auto-scroll to bottom when new messages arrive
+    React.useEffect(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }, [messages.length]);
+
+    return (
+      <>
+        <div className="flex-1 overflow-y-auto px-4 py-3 bg-gray-50" ref={scrollRef}>
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <p className="text-sm">Nenhuma mensagem</p>
+            </div>
+          ) : (
+            <div className="space-y-2 pb-4">
+              {messages.map((msg) => {
+                const isMine = msg.sender_email === user?.email;
+                return (
+                  <ChatMessageBubble
+                    key={msg.id}
+                    message={msg}
+                    isMine={isMine}
+                    showAvatar={true}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <div className="border-t bg-white shrink-0">
+          <ChatInput
+            onSendMessage={(data) => sendMessageMutation.mutate(data)}
+            disabled={sendMessageMutation.isPending}
+          />
+        </div>
+      </>
+    );
+  };
 
   return (
     <div className="h-[100dvh] md:h-screen relative overflow-hidden bg-gray-900">
@@ -742,12 +751,14 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
         </div>
       </div>
 
-      {/* Chat Drawer (Mobile) - Full Screen Safe */}
+      {/* Chat Drawer (Mobile) - FIXED: Full viewport height */}
       <div className="md:hidden">
         <Drawer open={isChatOpen} onOpenChange={setIsChatOpen}>
-          <DrawerContent className="h-[90dvh] flex flex-col bg-white" style={{ maxHeight: 'calc(100dvh - env(safe-area-inset-top))' }}>
-            <DrawerHeader className="border-b bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-              <DrawerTitle className="text-white">💬 Chat com {otherParticipant?.name}</DrawerTitle>
+          <DrawerContent className="h-[100dvh] flex flex-col bg-white border-0 rounded-t-3xl">
+            <DrawerHeader className="border-b bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-3xl shrink-0">
+              <DrawerTitle className="text-white flex items-center gap-2">
+                💬 Chat com {otherParticipant?.name}
+              </DrawerTitle>
             </DrawerHeader>
             <ChatContent />
           </DrawerContent>
