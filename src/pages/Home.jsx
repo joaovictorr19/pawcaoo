@@ -643,7 +643,7 @@ export default function Home() {
     setCurrentPage(1);
   }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, filterAnimalType, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
 
-  if (isLoadingUser) {
+  if (userLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div>
