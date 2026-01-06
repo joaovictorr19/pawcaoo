@@ -229,6 +229,7 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
           {getMainActionButton()}
 
           {/* Chat button removed - integrated into main action */}
+          </div>
         </div>
       </div>
     </div>
