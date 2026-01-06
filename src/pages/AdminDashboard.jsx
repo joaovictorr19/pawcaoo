@@ -695,11 +695,11 @@ export default function AdminDashboard() {
     onSuccess: (data) => {
       queryClient.invalidateQueries(["allBookings"]);
       toast.success("🧪 Reserva de teste criada!", {
-        description: "Redirecionando para o chat..."
+        description: "Redirecionando para o mapa/chat..."
       });
       setTimeout(() => {
-        navigate(createPageUrl(`Chat?conversationId=${data.conversation.id}`));
-      }, 1000);
+        navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${data.booking.id}`));
+      }, 500);
     },
     onError: (error) => {
       toast.error("Erro ao criar teste", {
