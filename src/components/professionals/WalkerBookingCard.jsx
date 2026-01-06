@@ -92,14 +92,19 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
             setIsProcessing(true);
             
             try {
-              console.log('🚀 Starting service:', booking.id);
+              console.log('🚀 WalkerBookingCard - Starting service for booking:', booking.id);
+              if (!booking.id) {
+                toast.error('Erro: ID de reserva inválido');
+                setIsProcessing(false);
+                return;
+              }
               await base44.entities.Booking.update(booking.id, { 
                 status: 'in_progress',
                 walk_start_time: new Date().toISOString()
               });
               queryClient.invalidateQueries(['myWalkBookings']);
               toast.success('✅ Serviço iniciado!');
-              navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
+              navigate(createPageUrl('ActiveWalkDashboard') + `?bookingId=${booking.id}`);
             } catch (error) {
               console.error('Start service error:', error);
               toast.error('Erro ao iniciar serviço');
@@ -121,7 +126,14 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
     if (booking.status === 'in_progress') {
       return (
         <Button
-          onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
+          onClick={() => {
+            console.log('🚀 WalkerBookingCard - Opening map for booking:', booking.id);
+            if (!booking.id) {
+              toast.error('Erro: ID de reserva inválido');
+              return;
+            }
+            navigate(createPageUrl('ActiveWalkDashboard') + `?bookingId=${booking.id}`);
+          }}
           className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg font-bold text-lg animate-pulse"
         >
           🗺️ ABRIR MAPA / CHAT
