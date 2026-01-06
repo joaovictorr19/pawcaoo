@@ -207,50 +207,68 @@ export default function ProfessionalDashboard() {
     refetchInterval: 30000,
   });
 
-  // Real-time bookings - FETCH ALL, FILTER LOCALLY (ROBUST + SHOW ALL STATUSES)
+  // CRITICAL: Real-time bookings - NO payment filter, show ALL pending/confirmed/in_progress
   const { data: walkBookings = [] } = useQuery({
     queryKey: ['myWalkBookings', walkerProfile?.id, user?.email],
     queryFn: async () => {
-      console.log('🔍 FETCHING WALKER BOOKINGS');
-      console.log('   Walker ID:', walkerProfile?.id);
-      console.log('   Walker Email:', user?.email);
+      console.log('🔍 ========== FETCHING WALKER BOOKINGS ==========');
+      console.log('   My Walker ID:', walkerProfile?.id);
+      console.log('   My Email:', user?.email);
       
-      if (!user?.email && !walkerProfile?.id) return [];
+      if (!user?.email && !walkerProfile?.id) {
+        console.log('❌ No user email or walker ID - skipping fetch');
+        return [];
+      }
       
       try {
-        // Fetch ALL bookings and filter locally (most robust approach)
-        const allBookings = await base44.entities.Booking.list('-created_date', 500);
+        // NUCLEAR OPTION: Fetch ALL bookings from database (no server-side filtering)
+        const allBookings = await base44.entities.Booking.list('-created_date', 1000);
         
-        console.log('📊 TOTAL BOOKINGS IN DB:', allBookings.length);
+        console.log('📊 TOTAL BOOKINGS IN DATABASE:', allBookings.length);
         
-        // Filter for THIS walker using BOTH ID and EMAIL
-        // CRITICAL: Include ALL statuses (pending, confirmed, in_progress, service_completed)
+        // CRITICAL: Show ALL bookings assigned to ME, regardless of payment status
         const myBookings = allBookings.filter(b => {
-          const isMyWalk = b.walker_email === user.email || b.walker_id === walkerProfile?.id;
-          // Show pending, confirmed, in_progress, service_completed - exclude only completed and cancelled
-          const isRelevantStatus = !['completed', 'cancelled', 'rejected'].includes(b.status);
-          return isMyWalk && isRelevantStatus;
+          // Match by email OR id (double check for safety)
+          const emailMatch = b.walker_email === user.email;
+          const idMatch = walkerProfile?.id && b.walker_id === walkerProfile.id;
+          const isMyWalk = emailMatch || idMatch;
+          
+          // Include: pending (CRITICAL), confirmed, in_progress, service_completed
+          // Exclude: completed, cancelled, rejected
+          const isActiveStatus = ['pending', 'confirmed', 'in_progress', 'service_completed'].includes(b.status);
+          
+          if (isMyWalk) {
+            console.log(`   🔎 Found MY booking: ${b.dog_name}`);
+            console.log(`      Status: ${b.status}`);
+            console.log(`      Payment: ${b.payment_status || 'not set'}`);
+            console.log(`      Walker Email: ${b.walker_email} (match: ${emailMatch})`);
+            console.log(`      Walker ID: ${b.walker_id} (match: ${idMatch})`);
+            console.log(`      Will show: ${isActiveStatus}`);
+          }
+          
+          return isMyWalk && isActiveStatus;
         });
         
-        console.log('✅ MY BOOKINGS:', myBookings.length);
-        console.log('   Pending:', myBookings.filter(b => b.status === 'pending').length);
-        console.log('   Confirmed:', myBookings.filter(b => b.status === 'confirmed').length);
-        console.log('   In Progress:', myBookings.filter(b => b.status === 'in_progress').length);
-        console.log('   Service Completed:', myBookings.filter(b => b.status === 'service_completed').length);
+        console.log('✅ ========== MY ACTIVE BOOKINGS: ' + myBookings.length + ' ==========');
+        console.log('   📋 PENDING:', myBookings.filter(b => b.status === 'pending').length);
+        console.log('   ✅ CONFIRMED:', myBookings.filter(b => b.status === 'confirmed').length);
+        console.log('   🔴 IN_PROGRESS:', myBookings.filter(b => b.status === 'in_progress').length);
+        console.log('   💰 SERVICE_COMPLETED:', myBookings.filter(b => b.status === 'service_completed').length);
         
+        // Log each booking for debugging
         myBookings.forEach(b => {
-          console.log(`   📌 ${b.dog_name} (${b.status}) - Payment: ${b.payment_status || 'N/A'} - Walker ID: ${b.walker_id}, Email: ${b.walker_email}`);
+          console.log(`   📌 Booking: ${b.dog_name} by ${b.owner_name} - Status: ${b.status} - Payment: ${b.payment_status || 'N/A'}`);
         });
         
         return myBookings;
       } catch (error) {
-        console.error('❌ FETCH ERROR:', error);
+        console.error('❌ CRITICAL FETCH ERROR:', error);
         return [];
       }
     },
     enabled: !!user?.email || !!walkerProfile?.id,
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: 3000, // Refresh every 3 seconds for testing
     refetchOnWindowFocus: true,
   });
 
