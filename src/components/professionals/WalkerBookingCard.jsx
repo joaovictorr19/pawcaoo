@@ -166,12 +166,24 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all p-4">
-      <div className="grid md:grid-cols-[1fr,auto] gap-4">
-        {/* Left: Booking Details */}
-        <div>
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <h3 className="font-bold text-xl text-gray-900">{booking.dog_name}</h3>
+    <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all overflow-hidden">
+      {/* Test/Paid Badge Banner */}
+      {(booking.is_test_booking || booking.payment_status === 'released' || booking.payment_status === 'completed') && (
+        <div className={`px-4 py-2 text-center text-sm font-bold ${
+          booking.is_test_booking 
+            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+            : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+        }`}>
+          {booking.is_test_booking ? '🧪 RESERVA DE TESTE' : '✅ PAGAMENTO CONFIRMADO'}
+        </div>
+      )}
+      
+      <div className="p-4">
+        <div className="grid md:grid-cols-[1fr,auto] gap-4">
+          {/* Left: Booking Details */}
+          <div>
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <h3 className="font-bold text-xl text-gray-900">{booking.dog_name}</h3>
             <Badge variant="outline" className="text-xs font-semibold">
               {booking.dog_size === 'small' && '🐕 Pequeno'}
               {booking.dog_size === 'medium' && '🐕 Médio'}
