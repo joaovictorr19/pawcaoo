@@ -730,25 +730,22 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             </button>
           </div>
 
-          {/* End Walk Button - Responsive */}
-          <Button
-            size="lg"
-            className="w-full h-12 md:h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl font-bold shadow-lg text-sm md:text-lg touch-manipulation"
-            onClick={async () => {
-              if (confirm('Finalizar o serviço?')) {
-                await base44.entities.Booking.update(bookingId, { 
-                  status: 'service_completed',
-                  distance_km: distanceKm,
-                  completed_date: new Date().toISOString()
-                });
-                toast.success('Serviço concluído!');
-                navigate(createPageUrl('ProfessionalDashboard'));
-              }
+          {/* End Walk Button - QR Scanner */}
+          <WalkScanner
+            booking={booking}
+            type="END"
+            onScanSuccess={async () => {
+              // Status already updated by scanner
+              await base44.entities.Booking.update(bookingId, { 
+                distance_km: distanceKm
+              });
+              queryClient.invalidateQueries(['activeBooking']);
+              navigate(createPageUrl('ProfessionalDashboard'));
             }}
-          >
-            <CheckCircle className="w-5 h-5 md:w-6 md:h-6 mr-2" />
-            Finalizar Serviço
-          </Button>
+            onScanError={() => {
+              toast.error('Verificação falhou - tente novamente');
+            }}
+          />
         </div>
       </div>
 

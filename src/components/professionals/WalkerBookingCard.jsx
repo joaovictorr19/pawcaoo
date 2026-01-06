@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { WalkScanner } from "@/components/booking/WalkScanner";
 
 export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
   const navigate = useNavigate();
@@ -86,40 +87,17 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
     
     if (booking.status === 'confirmed') {
       return (
-        <Button
-          onClick={async () => {
-            if (isProcessing) return;
-            setIsProcessing(true);
-            
-            try {
-              console.log('🚀 WalkerBookingCard - Starting service for booking:', booking.id);
-              if (!booking.id) {
-                toast.error('Erro: ID de reserva inválido');
-                setIsProcessing(false);
-                return;
-              }
-              await base44.entities.Booking.update(booking.id, { 
-                status: 'in_progress',
-                walk_start_time: new Date().toISOString()
-              });
-              queryClient.invalidateQueries(['myWalkBookings']);
-              toast.success('✅ Serviço iniciado!');
-              navigate(createPageUrl('ActiveWalkDashboard') + `?bookingId=${booking.id}`);
-            } catch (error) {
-              console.error('Start service error:', error);
-              toast.error('Erro ao iniciar serviço');
-              setIsProcessing(false);
-            }
+        <WalkScanner 
+          booking={booking}
+          type="START"
+          onScanSuccess={async () => {
+            queryClient.invalidateQueries(['myWalkBookings']);
+            navigate(createPageUrl('ActiveWalkDashboard') + `?bookingId=${booking.id}`);
           }}
-          disabled={isProcessing}
-          className="w-full h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg font-bold text-lg"
-        >
-          {isProcessing ? (
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-          ) : (
-            '⚡ INICIAR PASSEIO'
-          )}
-        </Button>
+          onScanError={() => {
+            toast.error('Código inválido - tente novamente');
+          }}
+        />
       );
     }
 
