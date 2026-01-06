@@ -460,43 +460,55 @@ export default function ProfessionalDashboard() {
 
       // WORKFLOW: ACCEPTANCE
       if (status === 'confirmed') {
-        console.log('✅ ACCEPTING BOOKING - Creating chat conversation...');
+        console.log('✅ ========== ACCEPTING BOOKING ==========');
+        console.log('   Booking ID:', booking.id);
+        console.log('   Dog:', booking.dog_name);
+        console.log('   Owner:', booking.owner_name);
+        console.log('   Payment Status:', booking.payment_status);
         
-        // 1. Create Chat Conversation (CRITICAL)
+        // 1. Create Chat Conversation (CRITICAL - MUST WORK)
         try {
           const existingConvo = await base44.entities.ChatConversation.filter({ 
             booking_id: booking.id 
           });
           
+          console.log('   Existing Conversations:', existingConvo.length);
+          
           if (!existingConvo || existingConvo.length === 0) {
-            console.log('📝 Creating new chat conversation...');
-            await base44.entities.ChatConversation.create({
-              participants: [
-                booking.walker_email || professionalEmail, 
-                booking.owner_email || booking.created_by
-              ],
+            console.log('📝 Creating NEW chat conversation...');
+            
+            const walkerEmail = booking.walker_email || professionalEmail;
+            const ownerEmail = booking.owner_email || booking.created_by;
+            
+            console.log('   Walker Email:', walkerEmail);
+            console.log('   Owner Email:', ownerEmail);
+            
+            const newConvo = await base44.entities.ChatConversation.create({
+              participants: [walkerEmail, ownerEmail],
               participant_names: {
-                [booking.walker_email || professionalEmail]: booking.walker_name || user.full_name,
-                [booking.owner_email || booking.created_by]: booking.owner_name
+                [walkerEmail]: booking.walker_name || user.full_name,
+                [ownerEmail]: booking.owner_name
               },
               booking_id: booking.id,
               tags: ["booking", "walk"],
               last_message: "Reserva confirmada pelo profissional",
               last_message_date: new Date().toISOString(),
               unread_counts: {
-                [booking.walker_email || professionalEmail]: 0,
-                [booking.owner_email || booking.created_by]: 0
+                [walkerEmail]: 0,
+                [ownerEmail]: 0
               },
               is_muted: {},
               pinned_by: [],
               typing_users: []
             });
-            console.log('✅ Chat conversation created!');
+            console.log('✅ Chat conversation created successfully!', newConvo.id);
           } else {
-            console.log('ℹ️ Chat conversation already exists');
+            console.log('ℹ️ Chat conversation already exists:', existingConvo[0].id);
           }
         } catch (chatError) {
-          console.error('❌ Error creating chat:', chatError);
+          console.error('❌ CRITICAL: Chat creation failed:', chatError);
+          toast.error('Aviso: Chat não criado - ' + chatError.message);
+          // Continue anyway - don't block acceptance
         }
         
         // 2. Create Event / Lock Slot
@@ -657,23 +669,44 @@ export default function ProfessionalDashboard() {
   
   const profileCompleteness = calculateCompleteness();
 
-  // Separar Solicitações Diretas (para mim) vs Pedidos Disponíveis (broadcast)
+  // CRITICAL DEBUG: Log ALL bookings to find missing ones
+  console.log('🔍 ========== DIRECT REQUESTS FILTER DEBUG ==========');
+  console.log('   Total Bookings:', allBookings.length);
+  console.log('   Walker Profile ID:', walkerProfile?.id);
+  console.log('   User Email:', user?.email);
+  console.log('   User Role:', user?.role);
+  
+  allBookings.forEach(b => {
+    if (b.status === 'pending') {
+      console.log(`   📋 PENDING: ${b.dog_name} (ID: ${b.id})`);
+      console.log(`      walker_id: ${b.walker_id}`);
+      console.log(`      walker_email: ${b.walker_email}`);
+      console.log(`      payment_status: ${b.payment_status || 'not set'}`);
+    }
+  });
+  
+  // Separar Solicitações Diretas - ADMIN BYPASS + NO PAYMENT FILTER
   const directRequests = allBookings.filter(b => {
     const isPending = b.status === 'pending';
-    // GARANTIR que pega TODOS os pendentes do walker (por ID ou Email)
+    
+    // ADMIN BYPASS: Admins see ALL pending bookings
+    const isAdmin = user?.role === 'admin';
+    
+    // Regular match by ID or Email
     const isForMe = (b.walker_id && b.walker_id === walkerProfile?.id) || 
                     (b.walker_email && b.walker_email === user?.email) ||
                     (b.trainer_id && b.trainer_id === trainerProfile?.id) ||
                     (b.trainer_email && b.trainer_email === user?.email);
     
     if (isPending) {
-      console.log('🔍 PENDING Booking:', b.id, 'Dog:', b.dog_name);
-      console.log('   Walker ID:', b.walker_id, 'vs My ID:', walkerProfile?.id, 'Match:', b.walker_id === walkerProfile?.id);
-      console.log('   Walker Email:', b.walker_email, 'vs My Email:', user?.email, 'Match:', b.walker_email === user?.email);
-      console.log('   IsForMe:', isForMe);
+      console.log(`🔍 Checking PENDING: ${b.dog_name} (${b.id})`);
+      console.log(`   IsAdmin: ${isAdmin}`);
+      console.log(`   IsForMe: ${isForMe}`);
+      console.log(`   Will Show: ${isPending && (isForMe || isAdmin)}`);
     }
     
-    return isPending && isForMe;
+    // Show if pending AND (for me OR admin)
+    return isPending && (isForMe || isAdmin);
   });
   
   console.log('🎯 TOTAL DIRETAS:', directRequests.length);
@@ -1604,53 +1637,19 @@ export default function ProfessionalDashboard() {
                               )}
                               <div className="grid grid-cols-1 gap-2 w-full">
                                 <Button
-                                  onClick={async () => {
-                                    try {
-                                      await base44.entities.Booking.update(booking.id, { status: 'confirmed' });
-
-                                      // Create ChatConversation immediately when accepting
-                                      const existingConvo = await base44.entities.ChatConversation.filter({ booking_id: booking.id });
-                                      if (!existingConvo || existingConvo.length === 0) {
-                                      await base44.entities.ChatConversation.create({
-                                      participants: [booking.walker_email, booking.owner_email || booking.created_by],
-                                      participant_names: {
-                                      [booking.walker_email]: booking.walker_name,
-                                      [booking.owner_email || booking.created_by]: booking.owner_name
-                                      },
-                                      booking_id: booking.id,
-                                      tags: ["booking", "walk"],
-                                      last_message: "Reserva confirmada",
-                                      last_message_date: new Date().toISOString(),
-                                      unread_counts: {},
-                                      is_muted: {},
-                                      pinned_by: [],
-                                      typing_users: []
-                                      });
-                                      }
-
-                                      queryClient.invalidateQueries(['myWalkBookings']);
-                                      queryClient.invalidateQueries(['conversations']);
-                                      toast.success('✅ Pedido aceite!');
-
-                                      // Notificação in-app + email
-                                      await base44.functions.invoke('sendNotification', {
-                                        recipient_email: booking.owner_email || booking.created_by,
-                                        type: 'booking_confirmed',
-                                        title: 'Reserva Confirmada!',
-                                        message: `${user.full_name} confirmou a sua reserva para ${booking.dog_name} no dia ${format(new Date(booking.walk_date), 'dd/MM/yyyy')} às ${booking.walk_time}.`,
-                                        link: '/MyBookings',
-                                        send_email: true,
-                                        email_subject: `Reserva Confirmada - ${booking.dog_name}`,
-                                        email_body: `Olá ${booking.owner_name},\n\nBoas notícias! ${user.full_name} confirmou a sua reserva.\n\nDetalhes:\n- Cão: ${booking.dog_name}\n- Data: ${format(new Date(booking.walk_date), 'dd/MM/yyyy')}\n- Horário: ${booking.walk_time}\n- Local: ${booking.pickup_address}\n\nContacto WhatsApp: ${profile?.whatsapp_number || 'N/A'}\n\nAté breve,\nEquipa PawCão`
-                                      });
-                                    } catch (error) {
-                                      toast.error('Erro ao aceitar');
-                                    }
-                                  }}
-                                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
+                                 onClick={async () => {
+                                   try {
+                                     console.log('🚀 INLINE ACCEPT - Booking:', booking.id);
+                                     await handleBookingAction(booking, 'confirmed');
+                                   } catch (error) {
+                                     console.error('Inline accept error:', error);
+                                     toast.error('Erro ao aceitar');
+                                   }
+                                 }}
+                                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
                                 >
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Aceitar
+                                 <CheckCircle className="w-4 h-4 mr-2" />
+                                 Aceitar
                                 </Button>
                                 <Button
                                   onClick={() => handleBookingAction(booking, 'cancelled')}
