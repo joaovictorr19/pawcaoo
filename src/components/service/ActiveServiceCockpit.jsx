@@ -76,15 +76,57 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     }
   }, [booking, user, navigate]);
 
-  // Fetch conversation
-  const { data: conversation } = useQuery({
+  // Fetch conversation with auto-create
+  const { data: conversation, refetch: refetchConversation } = useQuery({
     queryKey: ['bookingConversation', bookingId],
     queryFn: async () => {
       const convos = await base44.entities.ChatConversation.filter({ booking_id: bookingId });
-      return convos[0] || null;
+      if (convos && convos.length > 0) {
+        return convos[0];
+      }
+      return null;
     },
     enabled: !!bookingId,
   });
+
+  // Auto-create conversation if missing
+  useEffect(() => {
+    const createConversation = async () => {
+      if (booking && !conversation && user) {
+        try {
+          console.log('🔄 Creating missing conversation for booking:', bookingId);
+          const walkerEmail = booking.walker_email;
+          const ownerEmail = booking.owner_email || booking.created_by;
+          
+          if (!walkerEmail || !ownerEmail) return;
+
+          const newConvo = await base44.entities.ChatConversation.create({
+            participants: [walkerEmail, ownerEmail],
+            participant_names: {
+              [walkerEmail]: booking.walker_name || 'Walker',
+              [ownerEmail]: booking.owner_name || 'Cliente'
+            },
+            booking_id: bookingId,
+            tags: ["booking", "walk"],
+            last_message: "Chat iniciado",
+            last_message_date: new Date().toISOString(),
+            unread_counts: {
+              [walkerEmail]: 0,
+              [ownerEmail]: 0
+            }
+          });
+          console.log('✅ Conversation created:', newConvo.id);
+          refetchConversation();
+        } catch (err) {
+          console.error('Error creating conversation:', err);
+        }
+      }
+    };
+    
+    if (booking && conversation === null) {
+      createConversation();
+    }
+  }, [booking, conversation, user, bookingId, refetchConversation]);
 
   // Fetch messages
   const { data: messages = [] } = useQuery({

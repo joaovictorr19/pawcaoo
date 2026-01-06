@@ -227,7 +227,8 @@ export default function Home() {
     queryFn: async () => {
       try {
         console.log('🔍 Fetching walkers from database...');
-        const allWalkers = await base44.entities.WalkerProfile.list('-rating', 100);
+        // Using filter({}) to ensure we get results even if list() behaves differently
+        const allWalkers = await base44.entities.WalkerProfile.filter({}, '-rating', 100);
         console.log('📦 Total walkers fetched:', allWalkers?.length || 0);
         
         if (!Array.isArray(allWalkers)) {
