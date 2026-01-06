@@ -1610,7 +1610,14 @@ export default function ProfessionalDashboard() {
                             <div className="flex flex-col gap-3 min-w-[200px]">
                               <div className="text-4xl font-bold text-green-600 text-center">€{booking.service_amount}</div>
                               <Button
-                                onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
+                                onClick={() => {
+                                  console.log('🚀 Navigating to ActiveWalkDashboard with bookingId:', booking.id);
+                                  if (!booking.id) {
+                                    toast.error('Erro: ID de reserva inválido');
+                                    return;
+                                  }
+                                  navigate(createPageUrl(`ActiveWalkDashboard`) + `?bookingId=${booking.id}`);
+                                }}
                                 size="lg"
                                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-2xl font-bold text-base h-14 animate-pulse"
                               >
@@ -1832,14 +1839,20 @@ export default function ProfessionalDashboard() {
                                 <Button
                                   onClick={async () => {
                                     try {
+                                      console.log('🚀 Starting service for booking:', booking.id);
+                                      if (!booking.id) {
+                                        toast.error('Erro: ID de reserva inválido');
+                                        return;
+                                      }
                                       await base44.entities.Booking.update(booking.id, { 
                                         status: 'in_progress',
                                         walk_start_time: new Date().toISOString()
                                       });
                                       queryClient.invalidateQueries(['myWalkBookings']);
                                       toast.success('✅ Serviço iniciado!');
-                                      navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
+                                      navigate(createPageUrl('ActiveWalkDashboard') + `?bookingId=${booking.id}`);
                                     } catch (error) {
+                                      console.error('Start service error:', error);
                                       toast.error('Erro ao iniciar');
                                     }
                                   }}
@@ -1886,14 +1899,21 @@ export default function ProfessionalDashboard() {
                             )}
                             
                             {(booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'service_completed') && (
-                              <Button
-                                onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
-                                variant="outline"
-                                className="w-full bg-blue-50 border-2 border-blue-300 text-blue-700 hover:bg-blue-100"
-                              >
-                                <MessageCircle className="w-4 h-4 mr-2" />
-                                Abrir Serviço
-                              </Button>
+                             <Button
+                               onClick={() => {
+                                 console.log('🚀 Opening service dashboard for booking:', booking.id);
+                                 if (!booking.id) {
+                                   toast.error('Erro: ID de reserva inválido');
+                                   return;
+                                 }
+                                 navigate(createPageUrl('ActiveWalkDashboard') + `?bookingId=${booking.id}`);
+                               }}
+                               variant="outline"
+                               className="w-full bg-blue-50 border-2 border-blue-300 text-blue-700 hover:bg-blue-100"
+                             >
+                               <MessageCircle className="w-4 h-4 mr-2" />
+                               Abrir Serviço
+                             </Button>
                             )}
                           </div>
                         </div>
