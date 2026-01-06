@@ -26,9 +26,11 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
               setIsProcessing(true);
               
               try {
-                console.log('✅ Accepting booking:', booking.id);
+                console.log('✅ ACCEPTING BOOKING (NO PAYMENT CHECK):', booking.id);
+                console.log('   Payment Status:', booking.payment_status);
+                console.log('   Total Amount:', booking.total_amount);
                 await onAccept();
-                toast.success('✅ Pedido aceite!');
+                toast.success('✅ Pedido aceite SEM verificar pagamento!');
               } catch (error) {
                 console.error('Accept error:', error);
                 toast.error('Erro ao aceitar');
