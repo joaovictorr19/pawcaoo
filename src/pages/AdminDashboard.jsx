@@ -683,27 +683,44 @@ export default function AdminDashboard() {
     onError: (error) => toast.error("Erro ao eliminar perfil de passeador: " + (error.message || "Erro desconhecido")),
   });
 
-  // Criar Reserva de Teste
+  // Criar Reserva de Teste - NUCLEAR OPTION
   const createTestBookingMutation = useMutation({
     mutationFn: async ({ walkerId, walkerEmail }) => {
+      console.log('🧪 Starting test booking creation...');
       const response = await base44.functions.invoke('createTestBooking', {
         walkerId,
         walkerEmail
       });
+      console.log('📦 Backend response:', response.data);
       return response.data;
     },
     onSuccess: (data) => {
+      console.log('✅ Test booking created successfully:', data);
+      
+      if (!data.success) {
+        toast.error('Falha ao criar teste', {
+          description: data.error || 'Erro desconhecido'
+        });
+        return;
+      }
+
       queryClient.invalidateQueries(["allBookings"]);
-      toast.success("🧪 Reserva de teste criada!", {
-        description: "Redirecionando para o mapa/chat..."
+      queryClient.invalidateQueries(["myWalkBookings"]);
+      
+      toast.success("🧪 Serviço de teste iniciado!", {
+        description: "Abrindo mapa GPS ao vivo..."
       });
+      
       setTimeout(() => {
-        navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${data.booking.id}`));
-      }, 500);
+        const url = createPageUrl(`ActiveWalkDashboard?bookingId=${data.bookingId}`);
+        console.log('🗺️ Redirecting to:', url);
+        navigate(url);
+      }, 800);
     },
     onError: (error) => {
+      console.error('❌ Test booking error:', error);
       toast.error("Erro ao criar teste", {
-        description: error.message
+        description: error?.message || 'Erro desconhecido'
       });
     }
   });
@@ -2197,17 +2214,29 @@ export default function AdminDashboard() {
                         <Button
                           size="sm"
                           className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-                          onClick={() =>
-                            createTestBookingMutation.mutate({
-                              walkerId: walker.id,
-                              walkerEmail: walker.created_by
-                            })
-                          }
+                          onClick={async () => {
+                            console.log('⚡ Test button clicked for walker:', walker.id);
+                            try {
+                              createTestBookingMutation.mutate({
+                                walkerId: walker.id,
+                                walkerEmail: walker.created_by
+                              });
+                            } catch (err) {
+                              console.error('Click handler error:', err);
+                              toast.error('Erro: ' + err.message);
+                            }
+                          }}
                           disabled={createTestBookingMutation.isPending}
                           title="Criar reserva de teste para ver chat e mapa em tempo real"
                         >
-                          <Zap className="w-4 h-4 mr-1" />
-                          {createTestBookingMutation.isPending ? 'A criar...' : 'Teste'}
+                          {createTestBookingMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <>
+                              <Zap className="w-4 h-4 mr-1" />
+                              Teste
+                            </>
+                          )}
                         </Button>
                         <Button
                           size="sm"
@@ -2301,17 +2330,32 @@ export default function AdminDashboard() {
                              <Button
                                size="sm"
                                className="bg-purple-600 hover:bg-purple-700 text-white"
-                               onClick={() =>
-                                 createTestBookingMutation.mutate({
-                                   walkerId: walker.id,
-                                   walkerEmail: walker.created_by
-                                 })
-                               }
+                               onClick={async () => {
+                                 console.log('⚡ Test button clicked (desktop) for walker:', walker.id);
+                                 try {
+                                   createTestBookingMutation.mutate({
+                                     walkerId: walker.id,
+                                     walkerEmail: walker.created_by
+                                   });
+                                 } catch (err) {
+                                   console.error('Click handler error:', err);
+                                   toast.error('Erro: ' + err.message);
+                                 }
+                               }}
                                disabled={createTestBookingMutation.isPending}
                                title="Criar reserva de teste para ver chat e mapa em tempo real"
                              >
-                               <Zap className="w-4 h-4 mr-1" />
-                               {createTestBookingMutation.isPending ? 'Criando...' : 'Teste Passeio'}
+                               {createTestBookingMutation.isPending ? (
+                                 <>
+                                   <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                   Criando...
+                                 </>
+                               ) : (
+                                 <>
+                                   <Zap className="w-4 h-4 mr-1" />
+                                   Teste Passeio
+                                 </>
+                               )}
                              </Button>
                              <Button
                                size="sm"
