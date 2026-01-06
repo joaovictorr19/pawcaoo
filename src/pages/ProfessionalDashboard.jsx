@@ -1698,12 +1698,12 @@ export default function ProfessionalDashboard() {
                             
                             {(booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'service_completed') && (
                               <Button
-                                onClick={() => navigate(createPageUrl(`Chat?bookingId=${booking.id}`))}
+                                onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
                                 variant="outline"
                                 className="w-full bg-blue-50 border-2 border-blue-300 text-blue-700 hover:bg-blue-100"
                               >
                                 <MessageCircle className="w-4 h-4 mr-2" />
-                                Chat
+                                Abrir Serviço
                               </Button>
                             )}
                           </div>

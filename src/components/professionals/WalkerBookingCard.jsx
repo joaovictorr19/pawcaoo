@@ -98,17 +98,7 @@ export default function WalkerBookingCard({ booking, onAccept, onDecline }) {
           {/* Main Action Button */}
           {getMainActionButton()}
 
-          {/* Secondary Actions */}
-          {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
-            <Button
-              onClick={() => navigate(createPageUrl(`Chat?bookingId=${booking.id}`))}
-              variant="outline"
-              className="w-full bg-blue-50 border-2 border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Chat
-            </Button>
-          )}
+          {/* Chat button removed - integrated into main action */}
         </div>
       </div>
     </div>
