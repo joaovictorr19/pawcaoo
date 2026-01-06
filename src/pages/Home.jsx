@@ -235,15 +235,30 @@ export default function Home() {
           return [];
         }
 
+        // DEBUG: Log first 3 walkers with all details
+        console.log('🔬 Sample walkers:', allWalkers.slice(0, 3).map(w => ({
+          id: w.id,
+          name: w.walker_name,
+          verification_status: w.verification_status,
+          is_active: w.is_active,
+          location: w.location
+        })));
+
         // Show walkers that are: verified, pending (allowing new registrations), or explicitly active
         // Only hide if rejected or explicitly inactive
         const visibleWalkers = allWalkers.filter(w => {
           const isRejected = w.verification_status === 'rejected';
           const isInactive = w.is_active === false;
-          return !isRejected && !isInactive;
+          const passed = !isRejected && !isInactive;
+          
+          if (!passed) {
+            console.log(`🚫 Filtered out: ${w.walker_name} - rejected: ${isRejected}, inactive: ${isInactive}`);
+          }
+          
+          return passed;
         });
 
-        console.log('✅ Walkers visible:', visibleWalkers.length);
+        console.log('✅ Walkers visible after initial filter:', visibleWalkers.length);
         return visibleWalkers;
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
@@ -582,6 +597,20 @@ export default function Home() {
         status: filtered[0].verification_status,
         active: filtered[0].is_active,
         location: filtered[0].location
+      });
+    } else {
+      console.log('❌ NO WALKERS PASSED FILTER!');
+      console.log('📊 Filter summary:', {
+        totalProcessed: processedWalkers.length,
+        blockedByIdName: processedWalkers.filter(p => !p.id || !p.walker_name).length,
+        blockedByStatus: processedWalkers.filter(p => p.verification_status === 'rejected' || p.is_active === false).length,
+        activeFilters: {
+          searchLocation: !!searchLocation && searchLocation.trim() !== "",
+          filterSize: filterSize !== "all",
+          filterTime: filterTime !== "all",
+          filterAnimalType: filterAnimalType !== "all",
+          filterDogSitting: filterDogSitting !== "all"
+        }
       });
     }
 
