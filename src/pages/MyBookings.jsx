@@ -601,8 +601,8 @@ export default function MyBookings() {
             </Button>
           )}
 
-          {/* Chat - Available for pending/confirmed/in_progress bookings */}
-          {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'in_progress') && (
+          {/* Service Cockpit - Available for confirmed/in_progress bookings */}
+          {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
             <Button 
               size="sm" 
               variant="outline" 
@@ -612,12 +612,11 @@ export default function MyBookings() {
                       toast.error("Erro: ID inválido");
                       return;
                   }
-                  console.log('🔗 Opening chat for booking:', booking.id);
-                  navigate(createPageUrl(`Chat?bookingId=${booking.id}`));
+                  navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
                 }}
               >
-                <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
-                Chat
+                <MapIcon className="w-3.5 h-3.5 mr-1.5" />
+                Abrir
               </Button>
           )}
 
@@ -636,18 +635,7 @@ export default function MyBookings() {
               </Button>
             )}
 
-            {booking.status === 'in_progress' && (
-              <Button 
-                size="sm" 
-                className="flex-1 h-8 text-xs bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={() => {
-                  navigate(createPageUrl('LiveWalkTracking') + `?bookingId=${booking.id}`);
-                }}
-              >
-                <MapIcon className="w-3.5 h-3.5 mr-1.5" />
-                Acompanhar
-              </Button>
-            )}
+            {/* In progress handled by main "Abrir" button above */}
 
             {booking.status === 'completed' && !isProfessional && !hasReview && (
               <Button 
