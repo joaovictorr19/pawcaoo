@@ -235,19 +235,13 @@ export default function Home() {
           return [];
         }
 
-        // Log each walker for debugging
-        allWalkers.forEach((w, idx) => {
-          console.log(`Walker ${idx + 1}:`, {
-            id: w.id,
-            name: w.walker_name,
-            active: w.is_active,
-            status: w.verification_status
-          });
-        });
-
-        // CRITICAL: Show ALL walkers - no filtering at all for debugging
-        console.log('✅ Returning ALL walkers without any filtering');
-        return allWalkers;
+        // Filter: Active OR verified (show verified even if not active)
+        const visibleWalkers = allWalkers.filter(w => 
+          w.verification_status === 'verified' && w.is_active !== false
+        );
+        
+        console.log('✅ Walkers visible:', visibleWalkers.length);
+        return visibleWalkers;
       } catch (error) {
         console.error("❌ Walkers fetch error:", error);
         return [];
