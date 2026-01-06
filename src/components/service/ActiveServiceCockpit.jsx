@@ -40,15 +40,41 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   const [isCorrectionMode, setIsCorrectionMode] = useState(false);
 
   // Fetch booking
-  const { data: booking } = useQuery({
+  const { data: booking, error } = useQuery({
     queryKey: ['activeBooking', bookingId],
     queryFn: async () => {
+      console.log('🔍 [COCKPIT] Fetching booking:', bookingId);
       const bookings = await base44.entities.Booking.filter({ id: bookingId });
-      return bookings[0] || null;
+      console.log('📦 [COCKPIT] Found bookings:', bookings?.length || 0);
+      
+      if (!bookings || bookings.length === 0) {
+        throw new Error('Reserva não encontrada');
+      }
+      
+      return bookings[0];
     },
     enabled: !!bookingId,
     refetchInterval: 2000,
   });
+
+  // SECURITY: Admin Bypass - Admins can view any service
+  useEffect(() => {
+    if (!booking || !user) return;
+
+    const isOwner = booking.owner_email === user.email || booking.created_by === user.email;
+    const isWalker = booking.walker_email === user.email;
+    const isAdmin = user.role === 'admin';
+
+    console.log('🔐 [COCKPIT] Security check:', { isOwner, isWalker, isAdmin, userRole: user.role });
+
+    if (!isOwner && !isWalker && !isAdmin) {
+      console.error('❌ [COCKPIT] Access denied');
+      toast.error('Acesso negado: Não é participante desta reserva');
+      navigate(createPageUrl('Home'));
+    } else {
+      console.log('✅ [COCKPIT] Access granted');
+    }
+  }, [booking, user, navigate]);
 
   // Fetch conversation
   const { data: conversation } = useQuery({
