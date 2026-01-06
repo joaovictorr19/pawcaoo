@@ -21,6 +21,7 @@ import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
+import { WalkScanner } from "@/components/booking/WalkScanner";
 
 export default function ActiveServiceCockpit({ bookingId, user }) {
   const navigate = useNavigate();
