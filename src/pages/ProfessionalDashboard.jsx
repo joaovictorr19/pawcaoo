@@ -39,12 +39,12 @@ import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import ReviewCard from "../components/reviews/ReviewCard";
 import VerificationBanner from "../components/professionals/VerificationBanner";
 import DigitalWalletPass from "../components/professionals/DigitalWalletPass";
-// TimeOffManager removed (integrated into calendar)
 import FiscalComplianceBanner from "../components/fiscal/FiscalComplianceBanner";
 import DataExportPanel from "../components/professionals/DataExportPanel";
 import StripeConnectSetup from "../components/professionals/StripeConnectSetup";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import WalkerBookingCard from "../components/professionals/WalkerBookingCard";
 
 // Traduções do Painel Profissional
 const dashboardTranslations = {
@@ -207,47 +207,35 @@ export default function ProfessionalDashboard() {
     refetchInterval: 30000,
   });
 
-  // Real-time bookings - PEGA TODOS OS PEDIDOS para este Walker
+  // Real-time bookings - RELAXED FILTERS + ASCENDING SORT
   const { data: walkBookings = [] } = useQuery({
     queryKey: ['myWalkBookings', walkerProfile?.id, user?.email],
     queryFn: async () => {
-      console.log('🔍 BUSCANDO RESERVAS - Walker Email:', user?.email, 'Walker ID:', walkerProfile?.id);
+      console.log('🔍 Fetching Walker Bookings:', user?.email);
       
-      if (!user?.email || !walkerProfile?.id) {
-        console.log('❌ Faltam dados para buscar');
-        return [];
-      }
+      if (!user?.email) return [];
       
       try {
-        // MÉTODO SIMPLIFICADO: Buscar TUDO e filtrar localmente
-        const allBookings = await base44.entities.Booking.list('-created_date', 500);
-        console.log('📊 TOTAL na DB:', allBookings.length);
-        
-        // Filtrar para ESTE walker
-        const myBookings = allBookings.filter(b => 
-          b.walker_email === user.email || b.walker_id === walkerProfile.id
+        const bookings = await base44.entities.Booking.filter(
+          { walker_email: user.email },
+          'walk_date' // Ascending - next walk first
         );
         
-        console.log('✅ MINHAS RESERVAS:', myBookings.length);
-        console.log('   Pendentes:', myBookings.filter(b => b.status === 'pending').length);
-        console.log('   Confirmadas:', myBookings.filter(b => b.status === 'confirmed').length);
-        console.log('   Em progresso:', myBookings.filter(b => b.status === 'in_progress').length);
+        console.log('📊 Walker Bookings:', bookings);
+        console.log('   Pending:', bookings.filter(b => b.status === 'pending').length);
+        console.log('   Confirmed:', bookings.filter(b => b.status === 'confirmed').length);
+        console.log('   In Progress:', bookings.filter(b => b.status === 'in_progress').length);
         
-        myBookings.forEach(b => {
-          console.log(`   - ${b.dog_name} (${b.status}) - Walker Email: ${b.walker_email}, Walker ID: ${b.walker_id}`);
-        });
-        
-        return myBookings;
+        return bookings;
       } catch (error) {
-        console.error('❌ Erro ao buscar:', error);
+        console.error('❌ Fetch error:', error);
         return [];
       }
     },
-    enabled: !!user?.email && !!walkerProfile?.id,
+    enabled: !!user?.email,
     initialData: [],
-    refetchInterval: 3000,
+    refetchInterval: 5000,
     refetchOnWindowFocus: true,
-    refetchOnMount: 'always',
   });
 
   // Detect NEW direct requests (apenas para este walker) e mostrar alerta
@@ -1539,10 +1527,9 @@ export default function ProfessionalDashboard() {
                                 </Button>
                               </div>
                             </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                            </div>
+                            </div>
+                            ))}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -1568,17 +1555,34 @@ export default function ProfessionalDashboard() {
                     <p className="text-gray-600">{dt('bookingsWillAppear', language)}</p>
                   </div>
                 ) : (
-                 <div className="space-y-3">
-                   {allBookings.filter(b => {
-                     // NÃO mostrar aqui os que já aparecem em "Solicitações Diretas"
-                     const isPendingForMe = b.status === 'pending' && (
-                       (b.walker_id && b.walker_id === walkerProfile?.id) || 
-                       (b.walker_email && b.walker_email === user?.email) ||
-                       (b.trainer_id && b.trainer_id === trainerProfile?.id) ||
-                       (b.trainer_email && b.trainer_email === user?.email)
-                     );
-                     return !isPendingForMe; // Exclui os que já estão nas solicitações diretas
-                   }).map((booking) => (
+                 <div className="space-y-4">
+                  {allBookings.filter(b => {
+                    const isPendingForMe = b.status === 'pending' && (
+                      (b.walker_id && b.walker_id === walkerProfile?.id) || 
+                      (b.walker_email && b.walker_email === user?.email) ||
+                      (b.trainer_id && b.trainer_id === trainerProfile?.id) ||
+                      (b.trainer_email && b.trainer_email === user?.email)
+                    );
+                    return !isPendingForMe;
+                  }).map((booking) => (
+                    <WalkerBookingCard 
+                      key={booking.id} 
+                      booking={booking}
+                      onAccept={() => handleBookingAction(booking, 'confirmed')}
+                      onDecline={() => handleBookingAction(booking, 'cancelled')}
+                    />
+                  ))}
+
+                  {/* OLD CARD FALLBACK - Hidden */}
+                  {false && allBookings.filter(b => {
+                    const isPendingForMe = b.status === 'pending' && (
+                      (b.walker_id && b.walker_id === walkerProfile?.id) || 
+                      (b.walker_email && b.walker_email === user?.email) ||
+                      (b.trainer_id && b.trainer_id === trainerProfile?.id) ||
+                      (b.trainer_email && b.trainer_email === user?.email)
+                    );
+                    return !isPendingForMe;
+                  }).map((booking) => (
                      <div key={booking.id} className="bg-gradient-to-br from-gray-50 to-white rounded-xl border-2 border-gray-200 hover:border-green-300 shadow-md hover:shadow-lg transition-all p-4">
                        <div className="grid md:grid-cols-[1fr,auto] gap-4">
                          <div>
