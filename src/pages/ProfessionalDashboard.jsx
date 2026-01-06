@@ -207,7 +207,7 @@ export default function ProfessionalDashboard() {
     refetchInterval: 30000,
   });
 
-  // Real-time bookings - FETCH ALL, FILTER LOCALLY (ROBUST)
+  // Real-time bookings - FETCH ALL, FILTER LOCALLY (ROBUST + SHOW ALL STATUSES)
   const { data: walkBookings = [] } = useQuery({
     queryKey: ['myWalkBookings', walkerProfile?.id, user?.email],
     queryFn: async () => {
@@ -219,23 +219,27 @@ export default function ProfessionalDashboard() {
       
       try {
         // Fetch ALL bookings and filter locally (most robust approach)
-        const allBookings = await base44.entities.Booking.list('walk_date', 500);
+        const allBookings = await base44.entities.Booking.list('-created_date', 500);
         
         console.log('📊 TOTAL BOOKINGS IN DB:', allBookings.length);
         
         // Filter for THIS walker using BOTH ID and EMAIL
-        const myBookings = allBookings.filter(b => 
-          b.walker_email === user.email || 
-          b.walker_id === walkerProfile?.id
-        );
+        // CRITICAL: Include ALL statuses (pending, confirmed, in_progress, service_completed)
+        const myBookings = allBookings.filter(b => {
+          const isMyWalk = b.walker_email === user.email || b.walker_id === walkerProfile?.id;
+          // Show pending, confirmed, in_progress, service_completed - exclude only completed and cancelled
+          const isRelevantStatus = !['completed', 'cancelled', 'rejected'].includes(b.status);
+          return isMyWalk && isRelevantStatus;
+        });
         
         console.log('✅ MY BOOKINGS:', myBookings.length);
         console.log('   Pending:', myBookings.filter(b => b.status === 'pending').length);
         console.log('   Confirmed:', myBookings.filter(b => b.status === 'confirmed').length);
         console.log('   In Progress:', myBookings.filter(b => b.status === 'in_progress').length);
+        console.log('   Service Completed:', myBookings.filter(b => b.status === 'service_completed').length);
         
         myBookings.forEach(b => {
-          console.log(`   📌 ${b.dog_name} (${b.status}) - Walker ID: ${b.walker_id}, Email: ${b.walker_email}`);
+          console.log(`   📌 ${b.dog_name} (${b.status}) - Payment: ${b.payment_status || 'N/A'} - Walker ID: ${b.walker_id}, Email: ${b.walker_email}`);
         });
         
         return myBookings;
