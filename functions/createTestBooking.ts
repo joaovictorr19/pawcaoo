@@ -78,8 +78,10 @@ Deno.serve(async (req) => {
       special_notes: '🧪 RESERVA DE TESTE - Criada pelo Admin para testar o sistema',
       
       status: 'confirmed', // JÁ CONFIRMADO
-      payment_status: 'held', // COMO SE JÁ TIVESSE PAGO
-      type: 'walk'
+      payment_status: 'released', // PAGO COMPLETAMENTE (bypass payment)
+      payment_id: 'TEST_PAYMENT_' + Date.now(),
+      type: 'walk',
+      is_test_booking: true // Flag para identificar como teste
     };
 
     const booking = await base44.asServiceRole.entities.Booking.create(bookingData);
