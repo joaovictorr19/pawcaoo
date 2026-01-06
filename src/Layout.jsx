@@ -570,6 +570,17 @@ function LayoutContent({ children, currentPageName }) {
     }
   };
 
+  // Global unhandled rejection handler
+  React.useEffect(() => {
+    const handleUnhandledRejection = (event) => {
+      console.error('🔴 Unhandled Promise Rejection:', event.reason);
+      event.preventDefault(); // Prevent default error logging
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    return () => window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+  }, []);
+
   const handleLogout = () => {
     if (confirm(language === 'pt' ? 'Tem certeza que deseja sair?' : language === 'es' ? '¿Estás seguro de que quieres cerrar sesión?' : 'Are you sure you want to log out?')) {
       base44.auth.logout();
