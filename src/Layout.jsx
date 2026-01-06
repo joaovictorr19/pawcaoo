@@ -1158,31 +1158,33 @@ function LayoutContent({ children, currentPageName }) {
                           borderColor: 'rgba(255, 255, 255, 0.5)',
                           '--sidebar-background': 'rgba(255, 255, 255, 0.92)',
                         }}>
-          <SidebarHeader className="border-b p-4 md:p-6 border-gray-200/50">
+          <SidebarHeader className="border-b p-4 md:p-6 border-gray-200/50 bg-white/95">
             <Link 
               to={createPageUrl("Home")} 
-              className="block hover:opacity-80 transition-opacity"
+              className="block hover:opacity-80 transition-opacity mb-4"
             >
               <PawCaoLogo size="default" />
             </Link>
 
-
-
+            {/* Subtle Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="mt-3 w-full text-xs md:text-sm">
-                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-2" />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full justify-start text-xs h-8 hover:bg-gray-100 text-gray-600 font-medium"
+                >
                   {languageFlags[language]} {languageNames[language]}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-48">
+              <DropdownMenuContent align="start" className="w-44">
                     {availableLanguages.map(lang => (
                       <DropdownMenuItem 
                         key={lang.code} 
                         onClick={() => setLanguage(lang.code)} 
-                        className="cursor-pointer"
+                        className="cursor-pointer text-sm"
                       >
-                        {lang.flag} {lang.name}
+                        <span className="mr-2">{lang.flag}</span> {lang.name}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
@@ -1203,10 +1205,10 @@ function LayoutContent({ children, currentPageName }) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    className={`mb-1.5 rounded-lg transition-all ${
+                    className={`mb-2 rounded-xl transition-all duration-200 ${
                       isRouteActive(item.url)
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 shadow-md" 
-                        : (item.className || "hover:bg-gray-100 text-gray-700")
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg" 
+                        : (item.className || "hover:bg-gray-50 text-gray-700 hover:shadow-sm")
                     }`}
                   >
                     <Link 
@@ -1251,10 +1253,10 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`transition-all duration-200 rounded-lg mb-1 ${
+                          className={`transition-all duration-200 rounded-xl mb-2 ${
                             isRouteActive(item.url) 
-                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md" 
-                              : (item.icon === Zap ? 'border border-orange-300 bg-orange-50 hover:bg-orange-100' : 'hover:bg-gray-100 text-gray-700')
+                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg hover:shadow-xl" 
+                              : (item.icon === Zap ? 'border-2 border-orange-400 bg-orange-50 hover:bg-orange-100 hover:shadow-md' : 'hover:bg-gray-50 text-gray-700 hover:shadow-sm')
                           }`}
                         >
                           <Link to={item.url} id={item.id} className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-2 md:py-2.5 relative">
@@ -1294,10 +1296,10 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`transition-all duration-200 rounded-lg mb-1 ${
+                          className={`transition-all duration-200 rounded-xl mb-2 ${
                             isRouteActive(item.url) 
-                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md" 
-                              : "hover:bg-gray-100 text-gray-700"
+                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg hover:shadow-xl" 
+                              : "hover:bg-gray-50 text-gray-700 hover:shadow-sm"
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
@@ -1375,10 +1377,10 @@ function LayoutContent({ children, currentPageName }) {
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
                           asChild 
-                          className={`transition-all duration-200 rounded-lg mb-1 ${
+                          className={`transition-all duration-200 rounded-xl mb-2 ${
                             isRouteActive(item.url) 
-                              ? 'bg-red-600 text-white shadow-md' 
-                              : 'hover:bg-red-50 text-gray-700'
+                              ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-xl' 
+                              : 'hover:bg-red-50 text-gray-700 hover:shadow-sm'
                           }`}
                         >
                           <Link to={item.url} className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-2.5 relative">
@@ -1403,11 +1405,11 @@ function LayoutContent({ children, currentPageName }) {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       onClick={handleLogout}
-                      className="text-red-600 rounded-lg transition-colors w-full hover:bg-red-50"
+                      className="text-red-600 rounded-xl transition-all w-full hover:bg-red-50 hover:shadow-sm"
                     >
-                      <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3">
+                      <div className="flex items-center gap-2 md:gap-3 px-4 md:px-5 py-3">
                         <LogOut className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                        <span className="font-semibold text-xs md:text-sm truncate">
+                        <span className="font-semibold text-sm truncate">
                           {getMenuText('logout')}
                         </span>
                       </div>
