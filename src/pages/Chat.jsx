@@ -81,9 +81,9 @@ export default function Chat() {
       }
     },
     enabled: !!user?.email,
-    staleTime: 3000,
-    refetchOnWindowFocus: true,
-    refetchInterval: 8000,
+    staleTime: 5000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false, // Disable auto-refetch to prevent loops
   });
 
   // Fetch or create conversation from booking (GUARANTEED UNIQUE)
@@ -431,8 +431,8 @@ export default function Chat() {
     staleTime: 30000,
   });
 
-  // Get other participant info
-  const getOtherParticipant = useCallback(() => {
+  // Get other participant info - Memoized to prevent loops
+  const otherParticipant = React.useMemo(() => {
     if (!selectedConversation || !user?.email) return null;
     
     const otherEmail = selectedConversation.participants?.find((p) => p !== user.email);
@@ -441,14 +441,12 @@ export default function Chat() {
       name: selectedConversation.participant_names?.[otherEmail] || otherEmail?.split("@")[0] || "Utilizador",
       photo: selectedConversation.participant_photos?.[otherEmail],
     };
-  }, [selectedConversation, user?.email]);
+  }, [selectedConversation?.id, user?.email]);
 
-  const otherParticipant = getOtherParticipant();
-
-  // Check if other user is typing
-  const isOtherTyping = selectedConversation?.typing_users?.some(
-    (e) => e !== user?.email
-  );
+  // Check if other user is typing - Memoized
+  const isOtherTyping = React.useMemo(() => {
+    return selectedConversation?.typing_users?.some((e) => e !== user?.email) || false;
+  }, [selectedConversation?.typing_users, user?.email]);
 
   // Handle back button
   const handleBack = () => {
