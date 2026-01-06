@@ -643,13 +643,7 @@ export default function Home() {
     setCurrentPage(1);
   }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, filterAnimalType, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
 
-  // CRITICAL: Add error boundary for failed queries
-  if (userError) {
-    console.error('User fetch error:', userError);
-    // Don't block the page, just continue without user
-  }
-
-  if (userLoading) {
+  if (isLoadingUser) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div>
