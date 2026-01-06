@@ -13,15 +13,19 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("ErrorBoundary caught an error", error, errorInfo);
-    
-    // Safe error logging without .stack.match()
-    if (error && typeof error === 'object') {
+    // Robust error logging to prevent secondary errors
+    try {
+      console.error("ErrorBoundary caught an error", error, errorInfo);
+      
+      const safeError = error || new Error('Unknown error captured by boundary');
+      
       console.error('Error details:', {
-        message: error.message || 'Unknown error',
-        name: error.name || 'Error',
-        stack: error.stack || 'No stack trace available'
+        message: safeError.message || 'Unknown error',
+        name: safeError.name || 'Error',
+        stack: safeError.stack || 'No stack trace available'
       });
+    } catch (loggingError) {
+      console.error("Error while logging error:", loggingError);
     }
   }
 

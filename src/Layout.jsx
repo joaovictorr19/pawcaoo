@@ -569,11 +569,24 @@ function LayoutContent({ children, currentPageName }) {
     }
   };
 
-  // Global unhandled rejection handler
+  // Global unhandled rejection handler with safety checks
   React.useEffect(() => {
     const handleUnhandledRejection = (event) => {
-      console.error('🔴 Unhandled Promise Rejection:', event.reason);
-      event.preventDefault(); // Prevent default error logging
+      try {
+        const reason = event.reason;
+        console.error('🔴 Unhandled Promise Rejection:', reason);
+        
+        // Prevent generic "Script error." or empty stack traces from crashing error reporters
+        if (!reason || typeof reason !== 'object' || !reason.stack) {
+          // If reason is not an error with stack, we log it but don't let it bubble as a crash
+          // This helps prevent "undefined is not an object (evaluating 'stack.match')" in some parsers
+          console.warn('Promise rejected with non-error reason:', reason);
+        }
+        
+        event.preventDefault(); // Prevent default browser error UI
+      } catch (e) {
+        console.error('Error in unhandled rejection handler:', e);
+      }
     };
 
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
