@@ -451,6 +451,11 @@ export default function ProfessionalDashboard() {
   };
 
   const handleBookingAction = async (booking, status) => {
+    console.log('🎯 ========== HANDLE BOOKING ACTION ==========');
+    console.log('   Booking ID:', booking.id);
+    console.log('   Status to set:', status);
+    console.log('   Current status:', booking.status);
+    
     const isTrainingBooking = !!booking.session_date;
     const entity = isTrainingBooking ? base44.entities.TrainingBooking : base44.entities.Booking;
     const professionalEmail = user?.email;
@@ -461,12 +466,16 @@ export default function ProfessionalDashboard() {
       // WORKFLOW: ACCEPTANCE
       if (status === 'confirmed') {
         console.log('✅ ========== ACCEPTING BOOKING ==========');
-        console.log('   Booking ID:', booking.id);
         console.log('   Dog:', booking.dog_name);
         console.log('   Owner:', booking.owner_name);
         console.log('   Payment Status:', booking.payment_status);
         
-        // 1. Create Chat Conversation (CRITICAL - MUST WORK)
+        // 1. Update booking FIRST - This is critical
+        console.log('📝 Step 1: Updating booking status to confirmed...');
+        await entity.update(booking.id, { status: 'confirmed' });
+        console.log('✅ Booking confirmed!');
+        
+        // 2. Create Chat Conversation (non-blocking)
         try {
           const existingConvo = await base44.entities.ChatConversation.filter({ 
             booking_id: booking.id 
@@ -475,13 +484,10 @@ export default function ProfessionalDashboard() {
           console.log('   Existing Conversations:', existingConvo.length);
           
           if (!existingConvo || existingConvo.length === 0) {
-            console.log('📝 Creating NEW chat conversation...');
+            console.log('📝 Step 2: Creating chat conversation...');
             
             const walkerEmail = booking.walker_email || professionalEmail;
             const ownerEmail = booking.owner_email || booking.created_by;
-            
-            console.log('   Walker Email:', walkerEmail);
-            console.log('   Owner Email:', ownerEmail);
             
             const newConvo = await base44.entities.ChatConversation.create({
               participants: [walkerEmail, ownerEmail],
@@ -501,21 +507,60 @@ export default function ProfessionalDashboard() {
               pinned_by: [],
               typing_users: []
             });
-            console.log('✅ Chat conversation created successfully!', newConvo.id);
-          } else {
-            console.log('ℹ️ Chat conversation already exists:', existingConvo[0].id);
+            console.log('✅ Chat created:', newConvo.id);
           }
         } catch (chatError) {
-          console.error('❌ CRITICAL: Chat creation failed:', chatError);
-          toast.error('Aviso: Chat não criado - ' + chatError.message);
-          // Continue anyway - don't block acceptance
+          console.error('⚠️ Chat creation warning:', chatError.message);
+          // Continue - chat is nice-to-have, not critical
         }
         
-        // 2. Create Event / Lock Slot
-        const eventId = await lockCalendarSlot(booking, professionalEmail);
-        if (eventId) {
-          updateData.calendar_event_id = eventId;
+        // 3. Lock Calendar Slot (non-blocking)
+        try {
+          const eventId = await lockCalendarSlot(booking, professionalEmail);
+          if (eventId) {
+            await entity.update(booking.id, { calendar_event_id: eventId });
+            console.log('✅ Calendar slot locked');
+          }
+        } catch (calError) {
+          console.error('⚠️ Calendar lock warning:', calError.message);
+          // Continue - calendar is nice-to-have
         }
+        
+        // EARLY RETURN - booking is already confirmed above
+        queryClient.invalidateQueries(['myWalkBookings']);
+        queryClient.invalidateQueries(['myTrainingBookings']);
+        toast.success('✅ Reserva aceite com sucesso!');
+        
+        // Send notification
+        try {
+          const clientEmail = booking.owner_email || booking.created_by;
+          const dateFormatted = format(new Date(booking.walk_date || booking.session_date), 'dd/MM/yyyy');
+          const timeFormatted = booking.walk_time || booking.session_time;
+          const profile = walkerProfile || trainerProfile;
+          
+          let emailBody = `Olá,\n\nA sua reserva foi confirmada!\n\nProfissional: ${user.full_name}\nData: ${dateFormatted}\nHorário: ${timeFormatted}\nLocal: ${booking.pickup_address || 'N/A'}\n\n`;
+          
+          if (profile?.whatsapp_number) {
+            emailBody += `WhatsApp: ${profile.whatsapp_number}\n\n`;
+          }
+          
+          emailBody += `Obrigado por escolher PawCão!\nEquipa PawCão`;
+
+          await base44.functions.invoke('sendNotification', {
+            recipient_email: clientEmail,
+            type: 'booking_confirmed',
+            title: 'Reserva Confirmada!',
+            message: `A sua reserva com ${user.full_name} para ${dateFormatted} às ${timeFormatted} foi confirmada.`,
+            link: '/MyBookings',
+            send_email: true,
+            email_subject: `Reserva Confirmada - ${booking.dog_name}`,
+            email_body: emailBody
+          });
+        } catch (notifError) {
+          console.error('⚠️ Notification warning:', notifError.message);
+        }
+        
+        return; // Exit early - booking already updated
       }
 
       // WORKFLOW: REFUSAL / CANCELLATION
