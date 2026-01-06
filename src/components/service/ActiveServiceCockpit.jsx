@@ -13,11 +13,21 @@ import {
   Navigation,
   CheckCircle,
   Thermometer,
-  Frown
+  Frown,
+  Plus,
+  X
 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { MarkerTooltip, MarkerPopup } from "@/components/ui/map";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
+} from "@/components/ui/dropdown-menu";
 import UniversalMap from "@/components/maps/UniversalMap";
 import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
 import { MapRoute, MapMarker, MarkerContent } from "@/components/ui/map";

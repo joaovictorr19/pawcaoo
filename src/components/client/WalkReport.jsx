@@ -17,7 +17,12 @@ export function WalkReport({ booking, checkpoints = [] }) {
     '💧': { label: 'Fez xixi', color: 'bg-blue-100 text-blue-700 border-blue-300' },
     '🐕': { label: 'Socializou com outros cães', color: 'bg-pink-100 text-pink-700 border-pink-300' },
     '💦': { label: 'Bebeu água', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
+    '🍖': { label: 'Comeu petisco', color: 'bg-amber-100 text-amber-700 border-amber-300' },
+    '🏃': { label: 'Correu/Brincou', color: 'bg-green-100 text-green-700 border-green-300' },
     '😰': { label: 'Cansado/Pausa', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+    '😠': { label: 'Nervoso/Irritado', color: 'bg-red-100 text-red-700 border-red-300' },
+    '🤢': { label: 'Vomitou/Mal-estar', color: 'bg-rose-100 text-rose-700 border-rose-300' },
+    '😴': { label: 'Descansou', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
     '📷': { label: 'Foto', color: 'bg-purple-100 text-purple-700 border-purple-300' },
   };
 
