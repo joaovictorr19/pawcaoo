@@ -599,6 +599,13 @@ export default function MyBookings() {
             </div>
           </div>
 
+          {/* QR Code Security Pass - Client View */}
+          {!isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress') && booking.type === 'walk' && (
+            <div className="mb-3">
+              <WalkSecurityPass booking={booking} />
+            </div>
+          )}
+
           {/* Actions Row */}
           <div className="flex items-center gap-2 mt-1">
           {/* Cancelar Booking */}

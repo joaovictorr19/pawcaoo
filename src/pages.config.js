@@ -2,7 +2,7 @@ import AIMatches from './pages/AIMatches';
 import AboutUs from './pages/AboutUs';
 import AccountSettings from './pages/AccountSettings';
 import ActiveRide from './pages/ActiveRide';
-import Home from './pages/Home';
+import ActiveWalkDashboard from './pages/ActiveWalkDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminFinanceDashboard from './pages/AdminFinanceDashboard';
 import AdminProductManagement from './pages/AdminProductManagement';
@@ -36,6 +36,7 @@ import Favorites from './pages/Favorites';
 import FiscalSettings from './pages/FiscalSettings';
 import ForumTopicDetails from './pages/ForumTopicDetails';
 import Gamification from './pages/Gamification';
+import Home from './pages/Home';
 import Landing from './pages/Landing';
 import Leaderboard from './pages/Leaderboard';
 import LiveWalkTracking from './pages/LiveWalkTracking';
@@ -86,7 +87,6 @@ import VeterinaryDashboard from './pages/VeterinaryDashboard';
 import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
-import ActiveWalkDashboard from './pages/ActiveWalkDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import __Layout from './Layout.jsx';
 
@@ -96,7 +96,7 @@ export const PAGES = {
     "AboutUs": AboutUs,
     "AccountSettings": AccountSettings,
     "ActiveRide": ActiveRide,
-    "Home": Home,
+    "ActiveWalkDashboard": ActiveWalkDashboard,
     "AdminDashboard": AdminDashboard,
     "AdminFinanceDashboard": AdminFinanceDashboard,
     "AdminProductManagement": AdminProductManagement,
@@ -130,6 +130,7 @@ export const PAGES = {
     "FiscalSettings": FiscalSettings,
     "ForumTopicDetails": ForumTopicDetails,
     "Gamification": Gamification,
+    "Home": Home,
     "Landing": Landing,
     "Leaderboard": Leaderboard,
     "LiveWalkTracking": LiveWalkTracking,
@@ -180,7 +181,6 @@ export const PAGES = {
     "WalkHistory": WalkHistory,
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
-    "ActiveWalkDashboard": ActiveWalkDashboard,
     "ClientDashboard": ClientDashboard,
 }
 

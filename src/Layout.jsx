@@ -330,6 +330,7 @@ function LayoutContent({ children, currentPageName }) {
   const myActivityMenu = [
     { title: t('myFavorites', language), url: createPageUrl("Favorites"), icon: Heart },
     { title: t('myBookings', language), url: createPageUrl("MyBookings"), icon: Calendar },
+    { title: language === 'pt' ? 'Painel Cliente' : 'Client Dashboard', url: createPageUrl("ClientDashboard"), icon: BarChart3 },
     { title: language === 'pt' ? 'Mensagens' : 'Messages', url: createPageUrl("Chat"), icon: MessageCircle },
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
     { title: language === 'pt' ? 'Minhas Encomendas' : 'My Orders', url: createPageUrl("MyOrders"), icon: ShoppingBag },
