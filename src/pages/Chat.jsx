@@ -11,6 +11,7 @@ export default function Chat() {
   useEffect(() => {
     // Redirect to Service Cockpit if bookingId exists
     if (bookingId) {
+      console.log("testeChat");
       navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${bookingId}`), { replace: true });
     } else {
       // Redirect to Dashboard if no booking context
