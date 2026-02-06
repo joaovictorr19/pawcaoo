@@ -633,7 +633,6 @@ export default function WalkerDetails() {
           </div>
         </div>
       </div>
-
       </div>
       {/* Recurring Modal */}
       <AnimatePresence>
