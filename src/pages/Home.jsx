@@ -160,6 +160,27 @@ export default function Home() {
     enabled: !!user?.email,
   });
 
+  const { data: pendingBookingsCount = 0 } = useQuery({
+    queryKey: ['pendingBookingsCount', user?.email],
+    queryFn: async () => {
+      if (!user?.email || !['walker', 'trainer', 'both'].includes(user?.account_type)) return 0;
+      try {
+        const res = await base44.entities.Booking.filter({
+          $or: [
+            { walker_email: user.email, status: 'pending' },
+            { trainer_email: user.email, status: 'pending' }
+          ]
+        });
+        return Array.isArray(res) ? res.length : 0;
+      } catch (error) {
+        return 0;
+      }
+    },
+    enabled: !!user?.email && ['walker', 'trainer', 'both'].includes(user?.account_type),
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+
   // getLevelInfo removed - using calculateTier from tierSystem instead
 
   const priorityData = React.useMemo(() => {
@@ -763,6 +784,29 @@ export default function Home() {
                       <span className="text-[9px] font-semibold text-slate-700">Histórico</span>
                       </button>
                     </div>
+
+                    {/* Professional Pending Bookings Alert */}
+                    {['walker', 'trainer', 'both'].includes(user?.account_type) && pendingBookingsCount > 0 && (
+                      <motion.button
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
+                        className="mt-3 w-full bg-gradient-to-r from-orange-500 to-red-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                            <Calendar className="w-4 h-4" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-xs font-bold">Agendamentos Pendentes</p>
+                            <p className="text-[10px] opacity-90">Clique para responder</p>
+                          </div>
+                        </div>
+                        <div className="bg-white text-red-600 font-bold text-sm px-3 py-1 rounded-full group-hover:scale-110 transition-transform">
+                          {pendingBookingsCount}
+                        </div>
+                      </motion.button>
+                    )}
                   </div>
                 );
               })()}
