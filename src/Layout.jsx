@@ -261,12 +261,11 @@ function LayoutContent({ children, currentPageName }) {
         }, '-created_date', 1);
         return Array.isArray(subs) ? subs[0] : null;
       } catch (error) {
-        console.error("Subscription fetch error:", error);
         return null;
       }
     },
-    enabled: !!authUser,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!authUser?.email,
+    staleTime: 15 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
