@@ -100,28 +100,15 @@ export default function Home() {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
-        const userData = await base44.auth.me();
-
-        // XP is managed in UserProfile entity only - read from there
-        if (userData?.email) {
-          try {
-            const profiles = await base44.entities.UserProfile.filter({ user_email: userData.email });
-            if (profiles.length > 0) {
-              // Always use UserProfile as source of truth
-              userData.gamification_xp = profiles[0].gamification_xp || 0;
-              userData.gamification_level = profiles[0].gamification_level || 1;
-            }
-          } catch (e) {
-            console.log('XP read skipped:', e.message);
-          }
-        }
-
-        return userData;
+        return await base44.auth.me();
       } catch (err) {
         return null;
       }
     },
     retry: false,
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: myDogs = [] } = useQuery({
