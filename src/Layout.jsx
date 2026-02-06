@@ -38,6 +38,7 @@ import { ToastProvider } from "@/components/notifications/NotificationToast";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import MobileNavBar from "@/components/layout/MobileNavBar";
+import SidebarNav from "@/components/layout/SidebarNav";
 import { lazy, Suspense } from "react";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import NotificationArea from "@/components/notifications/NotificationArea";
