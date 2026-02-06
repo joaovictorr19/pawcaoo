@@ -40,26 +40,24 @@ export default function DashboardStats({ totalEarnings, dateRange, directRequest
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200 rounded-none overflow-hidden">
       {stats.map((stat, idx) => (
         <button
           key={idx}
           onClick={stat.onClick}
           disabled={!stat.onClick}
-          className={`relative border rounded-xl p-3 md:p-4 text-left transition-all ${stat.bg} ${stat.onClick ? 'cursor-pointer hover:shadow-md active:scale-[0.98]' : 'cursor-default'}`}
+          className={`relative bg-white p-3 md:p-4 text-left transition-all ${stat.onClick ? 'cursor-pointer hover:bg-gray-50 active:bg-gray-100' : 'cursor-default'}`}
         >
           <div className="flex items-center justify-between mb-2">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${stat.iconBg}`}>
-              <stat.icon className={`w-4 h-4 ${stat.accent}`} />
-            </div>
+            <stat.icon className={`w-4 h-4 ${stat.accent} opacity-60`} />
             {stat.badge && (
-              <span className="text-[10px] font-bold bg-orange-600 text-white px-2 py-0.5 rounded-full animate-pulse">
+              <span className="text-[10px] font-semibold bg-orange-600 text-white px-1.5 py-0.5 rounded animate-pulse">
                 {stat.badge}
               </span>
             )}
           </div>
-          <div className={`text-xl md:text-2xl font-bold ${stat.accent}`}>{stat.value}</div>
-          <div className="text-[11px] text-gray-600 font-medium mt-0.5">{stat.label}</div>
+          <div className={`text-xl md:text-2xl font-bold ${stat.accent} tracking-tight`}>{stat.value}</div>
+          <div className="text-[11px] text-gray-500 font-medium mt-0.5">{stat.label}</div>
         </button>
       ))}
     </div>
