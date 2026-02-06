@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +30,7 @@ import { useCreateNotification } from "@/components/NotificationService";
 import { calculateTier, getLevelFromXP, getXPForLevel } from "@/components/gamification/tierSystem";
 import ProfileAnimalsBar from "../components/profile/ProfileAnimalsBar";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
+import PinnedBadgesDisplay from "../components/profile/PinnedBadgesDisplay";
 
 const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => {
   return (
