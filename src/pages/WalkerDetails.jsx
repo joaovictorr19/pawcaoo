@@ -428,25 +428,40 @@ export default function WalkerDetails() {
                 {/* Badges */}
                 {walkerBadges.length > 0 && (
                   <div className="mb-4">
-                    <h4 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                      <Award className="w-3 h-3" />
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                      <Award className="w-3.5 h-3.5" />
                       Conquistas
                     </h4>
-                    <div className="grid grid-cols-4 gap-2">
-                      {walkerBadges.map((badge) => (
-                        <div key={badge.id} className="flex flex-col items-center p-1.5 bg-purple-50 rounded-lg border border-purple-100">
-                          <div className="text-xl w-6 h-6 flex items-center justify-center">
-                            {badge.image_png_file ? (
-                              <img src={badge.image_png_file} alt={badge.name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
-                            ) : badge.image_url ? (
-                              <img src={badge.image_url} alt={badge.name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
-                            ) : (
-                              <span className="text-xl">{badge.icon || '🏆'}</span>
-                            )}
+                    <div className="space-y-2">
+                      {walkerBadges.map((badge) => {
+                        const rarityStyle = {
+                          legendary: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', dot: 'bg-amber-400' },
+                          epic: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', dot: 'bg-purple-400' },
+                          rare: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', dot: 'bg-blue-400' },
+                          common: { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', dot: 'bg-gray-400' },
+                        }[badge.rarity] || { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', dot: 'bg-gray-400' };
+
+                        return (
+                          <div key={badge.id} className={`flex items-center gap-3 p-2.5 border ${rarityStyle.border} ${rarityStyle.bg}`} style={{ borderRadius: 0 }}>
+                            <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
+                              {badge.image_png_file ? (
+                                <img src={badge.image_png_file} alt={badge.name} className="w-9 h-9 object-contain drop-shadow" loading="lazy" decoding="async" />
+                              ) : badge.image_url ? (
+                                <img src={badge.image_url} alt={badge.name} className="w-9 h-9 object-contain drop-shadow" loading="lazy" decoding="async" />
+                              ) : (
+                                <span className="text-2xl">{badge.icon || '🏆'}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-xs font-semibold ${rarityStyle.text} leading-tight`}>{badge.name}</p>
+                              {badge.description && (
+                                <p className="text-[11px] text-gray-500 leading-snug mt-0.5 line-clamp-2">{badge.description}</p>
+                              )}
+                            </div>
+                            <div className={`w-2 h-2 flex-shrink-0 ${rarityStyle.dot}`} style={{ borderRadius: '50%' }} title={badge.rarity} />
                           </div>
-                          <span className="text-[9px] text-purple-900 line-clamp-1">{badge.name}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
