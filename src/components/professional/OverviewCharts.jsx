@@ -12,7 +12,8 @@ export default function OverviewCharts({ chartData, statusData, timeDistribution
   const totalBookings = statusData.reduce((sum, s) => sum + s.value, 0);
 
   return (
-    <div className="grid md:grid-cols-2 gap-4">
+    <div className="w-full max-w-7xl mx-auto px-4">
+      <div className="grid md:grid-cols-2 gap-4">
       {/* Earnings Chart */}
       <Card className="border-0 shadow-md bg-white rounded-2xl overflow-hidden">
         <CardHeader className="py-4 px-5 bg-gradient-to-r from-emerald-50 to-emerald-100 border-b border-emerald-200">
@@ -79,7 +80,7 @@ export default function OverviewCharts({ chartData, statusData, timeDistribution
       </Card>
 
       {/* Status Distribution */}
-      <Card className="border-0 shadow-md bg-white rounded-2xl overflow-hidden">
+      <Card className="border-0 shadow-md bg-white overflow-hidden" style={{ borderRadius: 0 }}>
         <CardHeader className="py-4 px-5 bg-gradient-to-r from-blue-50 to-indigo-100 border-b border-blue-200">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-blue-800">
@@ -131,7 +132,7 @@ export default function OverviewCharts({ chartData, statusData, timeDistribution
 
       {/* Time Distribution Bar Chart */}
       {timeDistribution && timeDistribution.length > 0 && (
-        <Card className="border-0 shadow-md bg-white rounded-2xl overflow-hidden md:col-span-2">
+        <Card className="border-0 shadow-md bg-white overflow-hidden md:col-span-2" style={{ borderRadius: 0 }}>
           <CardHeader className="py-4 px-5 bg-gradient-to-r from-purple-50 to-pink-100 border-b border-purple-200">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-purple-800">
               <Clock className="w-5 h-5" />
@@ -182,6 +183,7 @@ export default function OverviewCharts({ chartData, statusData, timeDistribution
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }

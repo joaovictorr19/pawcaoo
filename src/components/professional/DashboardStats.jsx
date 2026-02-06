@@ -46,17 +46,19 @@ export default function DashboardStats({ totalEarnings, dateRange, directRequest
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat, idx) => (
-        <motion.button
-          key={idx}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: idx * 0.1 }}
-          onClick={stat.onClick}
-          disabled={!stat.onClick}
-          className={`relative ${stat.bg} p-5 rounded-2xl shadow-sm border border-white/50 text-left transition-all hover:shadow-md ${stat.onClick ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default'} overflow-hidden group`}
-        >
+    <div className="w-full max-w-7xl mx-auto px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, idx) => (
+          <motion.button
+            key={idx}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.1 }}
+            onClick={stat.onClick}
+            disabled={!stat.onClick}
+            className={`relative ${stat.bg} p-5 shadow-sm border border-white/50 text-left transition-all hover:shadow-md ${stat.onClick ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default'} overflow-hidden group`}
+            style={{ borderRadius: 0 }}
+          >
           {/* Background decoration */}
           <div className="absolute top-0 right-0 w-24 h-24 opacity-5">
             <stat.icon className="w-full h-full" />
@@ -64,7 +66,7 @@ export default function DashboardStats({ totalEarnings, dateRange, directRequest
 
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-3">
-              <div className={`${stat.iconBg} p-2.5 rounded-xl shadow-sm`}>
+              <div className={`${stat.iconBg} p-2.5 shadow-sm`} style={{ borderRadius: 0 }}>
                 <stat.icon className="w-5 h-5 text-white" />
               </div>
               {stat.badge && (
@@ -93,7 +95,8 @@ export default function DashboardStats({ totalEarnings, dateRange, directRequest
             </div>
           </div>
         </motion.button>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
