@@ -100,7 +100,7 @@ export default function SidebarNav({ user, unreadCount, onLogout }) {
     { title: language === 'pt' ? 'Loja & Parceiros' : 'Shop & Partners', url: createPageUrl("Shop"), icon: ShoppingBag },
     { title: language === 'pt' ? 'Emergência' : 'Emergency', url: createPageUrl("PostEmergency"), icon: Zap, emergency: true },
     { title: language === 'pt' ? 'Adoção' : 'Adoption', url: createPageUrl("AdoptionListings"), icon: Heart },
-    { title: language === 'pt' ? 'Abrigos' : 'Shelters', url: createPageUrl("ShelterDashboard"), icon: Building2 },
+    { title: language === 'pt' ? 'Abrigos' : 'Shelters', url: createPageUrl("Shelters"), icon: Building2 },
   ];
 
   const myItems = [
