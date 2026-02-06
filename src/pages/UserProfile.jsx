@@ -554,25 +554,21 @@ export default function UserProfile() {
   const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
 
   const updatePinnedBadgesMutation = useMutation({
-    mutationFn: async ({ slotIndex, badgeId }) => { // badgeId here is the badge_id (type identifier)
+    mutationFn: async ({ slotIndex, badgeId }) => {
       if (!profileUser?.id) return;
       
-      // Initialize with 4 null slots
       const currentPinned = Array(4).fill(null);
-      
-      // Copy existing pinned badges up to 4 slots
       (profileUser.pinned_badge_ids || []).slice(0, 4).forEach((id, idx) => {
         currentPinned[idx] = id;
       });
       
-      // Check if the badge being added is already pinned in another slot - REMOVE IT
-      const newBadgeId = badgeId; // This is the badge_id (type identifier)
+      const newBadgeId = badgeId;
       for (let i = 0; i < 4; i++) {
         if (i !== slotIndex && currentPinned[i] === newBadgeId) {
-          currentPinned[i] = null; // Remove from old slot
+          currentPinned[i] = null;
         }
       }
-      currentPinned[slotIndex] = newBadgeId; // Add to the new slot
+      currentPinned[slotIndex] = newBadgeId;
 
       await base44.entities.UserProfile.update(profileUser.id, {
         pinned_badge_ids: currentPinned
@@ -588,16 +584,28 @@ export default function UserProfile() {
     }
   });
 
+  const handleReorder = async (newOrder) => {
+    if (!profileUser?.id) return;
+    
+    try {
+      await base44.entities.UserProfile.update(profileUser.id, {
+        pinned_badge_ids: newOrder
+      });
+      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
+      toast.success('Ordem atualizada!');
+    } catch (error) {
+      toast.error('Erro ao reorganizar emblemas.');
+    }
+  };
+
   const handleSlotClick = (index) => {
     if (!isOwnProfile) return;
     setActiveSlotIndex(index);
     setIsBadgeModalOpen(true);
   };
 
-  const handleBadgeSelect = (badgeIdToPin) => { // badgeIdToPin should be the badge_id (type identifier)
+  const handleBadgeSelect = (badgeIdToPin) => {
     if (activeSlotIndex === null) return;
-    
-    // badgeIdToPin is now the unique badge_id (type identifier)
     updatePinnedBadgesMutation.mutate({ slotIndex: activeSlotIndex, badgeId: badgeIdToPin });
   };
 
@@ -991,79 +999,17 @@ export default function UserProfile() {
                   </div>
                 </div>
 
-                {/* Right Column: Badge Showcase (RPG Inventory Style) & Actions */}
+                {/* Right Column: Badge Showcase & Actions */}
                 <div className="flex flex-col items-center md:items-end gap-3 mt-4 md:mt-1 w-full md:w-auto">
                   
-                  {/* Badge Showcase - Unified (4 Slots) */}
-                  <div className="bg-gray-50/80 backdrop-blur-sm border border-gray-100 rounded-xl p-2 shadow-sm">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 px-1 flex justify-between items-center">
-                      <span>Destaques</span>
-                      {isOwnProfile && <span className="text-[9px] text-blue-500 cursor-pointer hover:underline" onClick={() => handleSlotClick(0)}>Editar</span>}
-                    </div>
-                    <div className="grid grid-cols-4 gap-1.5 md:gap-2">
-                    {[0, 1, 2, 3].map((slotIdx) => {
-                    const pinnedId = profileUser.pinned_badge_ids?.[slotIdx]; // This pinnedId is the badge_id (type identifier)
-                    const badge = pinnedId ? earnedBadges.find(b => b._uniqueId === pinnedId) : null;
-
-                       return (
-                         <TooltipProvider key={`slot-${slotIdx}`} delayDuration={100}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div 
-                                 onClick={() => isOwnProfile && handleSlotClick(slotIdx)}
-                                 className={`w-11 h-11 md:w-12 md:h-12 rounded-lg flex items-center justify-center relative transition-all overflow-hidden group ${
-                                   isOwnProfile ? 'cursor-pointer hover:scale-105 hover:border-blue-300' : ''
-                                 } ${!badge ? 'bg-white/40 border-2 border-dashed border-gray-200' : 'bg-white shadow-sm border border-gray-200'}`}
-                                >
-                                  {/* Slot Number Indicator */}
-                                  <div className="absolute top-0.5 right-0.5 text-[9px] font-bold text-white bg-blue-500 rounded-full w-4 h-4 flex items-center justify-center border border-white shadow-sm z-30">
-                                    {slotIdx + 1}
-                                  </div>
-                                  {badge ? (
-                                    <>
-                                      <div className={`absolute inset-0 opacity-20 ${
-                                        badge.rarity === 'legendary' ? 'bg-yellow-400' :
-                                        badge.rarity === 'epic' ? 'bg-purple-400' :
-                                        badge.rarity === 'rare' ? 'bg-blue-400' :
-                                        'bg-gray-200'
-                                      }`} />
-                                      
-                                      {badge.image_png_file || badge.image_url ? (
-                                        <img 
-                                          src={badge.image_png_file || badge.image_url} 
-                                          alt={badge.name} 
-                                          className="w-full h-full object-contain p-1 z-10" 
-                                          loading="lazy"
-                                          decoding="async"
-                                        />
-                                      ) : (
-                                        <span className="text-xl md:text-2xl z-10 select-none transform group-hover:scale-110 transition-transform">
-                                          {badge.icon || "🛡️"}
-                                        </span>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center opacity-30">
-                                       {isOwnProfile && <Plus className="w-4 h-4 text-gray-400" />}
-                                    </div>
-                                  )}
-                                </div>
-                              </TooltipTrigger>
-                              {badge && (
-                                <TooltipContent className="bg-gray-900 text-white border-gray-800 z-50 shadow-xl">
-                                  <p className="font-bold text-xs">{badge.name}</p>
-                                  {badge.description && <p className="text-[10px] text-gray-300 mb-1 max-w-[150px] leading-tight">{badge.description}</p>}
-                                  <span className="text-[10px] font-mono text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded inline-block mt-1">
-                                    +{badge.xp || 0} XP
-                                  </span>
-                                </TooltipContent>
-                              )}
-                            </Tooltip>
-                          </TooltipProvider>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  {/* Badge Showcase - New Component */}
+                  <PinnedBadgesDisplay
+                    pinnedBadgeIds={profileUser.pinned_badge_ids || []}
+                    earnedBadges={earnedBadges}
+                    isOwnProfile={isOwnProfile}
+                    onSlotClick={handleSlotClick}
+                    onReorder={handleReorder}
+                  />
 
                   {/* Desktop Actions */}
                   {/* Botões removidos - chat apenas em contexto de reserva */}
