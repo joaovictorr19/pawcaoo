@@ -386,13 +386,16 @@ export default function WalkerDetails() {
                     />
                   </div>
                   <div className="flex items-center gap-1.5 justify-center">
-                    <h1 className="text-xl font-bold text-gray-900">{walker.walker_name}</h1>
+                    <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">{walker.walker_name}</h1>
                     {walker.verification_status === 'verified' && (
                       <InstagramVerifiedBadge size="md" />
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                    <MapPin className="w-4 h-4" />
+                  <p className="text-sm font-medium text-green-700 mt-0.5">
+                    {walker.is_verified_trainer ? (language === 'pt' ? 'Treinador & Passeador Profissional' : 'Trainer & Professional Walker') : (language === 'pt' ? 'Passeador Profissional' : 'Professional Walker')}
+                  </p>
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                    <MapPin className="w-3.5 h-3.5" />
                     {walker.location}
                   </div>
                   {averageRating > 0 && (
