@@ -123,6 +123,7 @@ import ScheduledWalks from './pages/ScheduledWalks';
 import ShelterDashboard from './pages/ShelterDashboard';
 import ShelterProfile from './pages/ShelterProfile';
 import ShelterRegister from './pages/ShelterRegister';
+import Shelters from './pages/Shelters';
 import Shop from './pages/Shop';
 import Sitemap from './pages/Sitemap';
 import SocialEvents from './pages/SocialEvents';
@@ -140,7 +141,6 @@ import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import WalkerWallet from './pages/WalkerWallet';
-import Shelters from './pages/Shelters';
 import __Layout from './Layout.jsx';
 
 
@@ -221,6 +221,7 @@ export const PAGES = {
     "ShelterDashboard": ShelterDashboard,
     "ShelterProfile": ShelterProfile,
     "ShelterRegister": ShelterRegister,
+    "Shelters": Shelters,
     "Shop": Shop,
     "Sitemap": Sitemap,
     "SocialEvents": SocialEvents,
@@ -238,7 +239,6 @@ export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
     "WalkerWallet": WalkerWallet,
-    "Shelters": Shelters,
 }
 
 export const pagesConfig = {
