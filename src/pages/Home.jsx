@@ -139,14 +139,15 @@ export default function Home() {
         const res = await base44.entities.Booking.filter({
           created_by: user.email,
           status: { '$in': ['confirmed', 'in_progress', 'completed'] }
-        }, '-walk_date', 20);
+        }, '-walk_date', 10);
         return Array.isArray(res) ? res : [];
       } catch (error) {
-        // console.error("Active bookings fetch error:", error);
         return [];
       }
     },
     enabled: !!user?.email,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: pendingBookingsCount = 0 } = useQuery({
@@ -166,8 +167,8 @@ export default function Home() {
       }
     },
     enabled: !!user?.email && ['walker', 'trainer', 'both'].includes(user?.account_type),
-    staleTime: 30 * 1000,
-    refetchInterval: 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // getLevelInfo removed - using calculateTier from tierSystem instead
