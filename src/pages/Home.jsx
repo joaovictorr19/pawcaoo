@@ -792,7 +792,7 @@ export default function Home() {
                         className="cursor-pointer"
                         onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
                       >
-                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-2 text-center border border-white/50 hover:border-blue-300 hover:bg-white/80 transition-all shadow-md hover:shadow-lg aspect-square flex flex-col items-center justify-center">
+                        <div className="bg-white/20 backdrop-blur-md rounded-xl p-2 text-center border border-white/30 hover:border-blue-300 hover:bg-white/40 transition-all shadow-md hover:shadow-lg aspect-square flex flex-col items-center justify-center">
                           <div className="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-white shadow-md overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
                             {dog.photo_url ? (
                               <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
