@@ -60,6 +60,7 @@ import AdminShopHub from './pages/AdminShopHub';
 import AdoptionListingDetails from './pages/AdoptionListingDetails';
 import AdoptionListings from './pages/AdoptionListings';
 import AffiliateDashboard from './pages/AffiliateDashboard';
+import AnimalProfile from './pages/AnimalProfile';
 import ApiDocs from './pages/ApiDocs';
 import ApplyForAdoption from './pages/ApplyForAdoption';
 import ApproveAnnouncements from './pages/ApproveAnnouncements';
@@ -77,6 +78,7 @@ import Dashboard from './pages/Dashboard';
 import DogConnectPremium from './pages/DogConnectPremium';
 import DogConnectRewards from './pages/DogConnectRewards';
 import DogSittingServices from './pages/DogSittingServices';
+import EditAnimalProfile from './pages/EditAnimalProfile';
 import EditTrainerProfile from './pages/EditTrainerProfile';
 import EditWalkerProfile from './pages/EditWalkerProfile';
 import EmergencyWalkDetails from './pages/EmergencyWalkDetails';
@@ -138,8 +140,6 @@ import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import WalkerWallet from './pages/WalkerWallet';
-import AnimalProfile from './pages/AnimalProfile';
-import EditAnimalProfile from './pages/EditAnimalProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -157,6 +157,7 @@ export const PAGES = {
     "AdoptionListingDetails": AdoptionListingDetails,
     "AdoptionListings": AdoptionListings,
     "AffiliateDashboard": AffiliateDashboard,
+    "AnimalProfile": AnimalProfile,
     "ApiDocs": ApiDocs,
     "ApplyForAdoption": ApplyForAdoption,
     "ApproveAnnouncements": ApproveAnnouncements,
@@ -174,6 +175,7 @@ export const PAGES = {
     "DogConnectPremium": DogConnectPremium,
     "DogConnectRewards": DogConnectRewards,
     "DogSittingServices": DogSittingServices,
+    "EditAnimalProfile": EditAnimalProfile,
     "EditTrainerProfile": EditTrainerProfile,
     "EditWalkerProfile": EditWalkerProfile,
     "EmergencyWalkDetails": EmergencyWalkDetails,
@@ -235,8 +237,6 @@ export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
     "WalkerWallet": WalkerWallet,
-    "AnimalProfile": AnimalProfile,
-    "EditAnimalProfile": EditAnimalProfile,
 }
 
 export const pagesConfig = {
