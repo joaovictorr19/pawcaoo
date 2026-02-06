@@ -40,7 +40,7 @@ export default function DashboardStats({ totalEarnings, dateRange, directRequest
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200 rounded-none overflow-hidden">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200" style={{ borderRadius: 0 }}>
       {stats.map((stat, idx) => (
         <button
           key={idx}
