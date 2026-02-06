@@ -767,64 +767,50 @@ export default function Home() {
                 );
               })()}
 
-              {/* Animals Carousel */}
+              {/* Animals Section - Modern & Transparent */}
               {myDogs && myDogs.length > 0 && (
-                <Card className="glass-panel border-0 shadow-lg rounded-3xl">
-                  <CardContent className="p-3">
-                    <div className="flex items-center gap-2 mb-2">
+                <div className="bg-white/30 backdrop-blur-lg border border-white/40 shadow-xl rounded-3xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
                       <Heart className="w-4 h-4 text-pink-500" />
-                      <h3 className="font-bold text-sm text-gray-900">
-                        {language === 'pt' ? 'Meus Animais' : language === 'es' ? 'Mis Mascotas' : 'My Pets'} ({myDogs.length})
-                      </h3>
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                      {myDogs?.map((dog) => (
-                        <div
-                          key={dog.id}
-                          onClick={() => {
-                            if (!user) {
-                              base44.auth.redirectToLogin(window.location.href);
-                              return;
-                            }
-                            console.log('🐕 Dog clicked:', dog.id);
-                            navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
-                          }}
-                          className="flex-shrink-0 w-16 cursor-pointer"
-                        >
-                          <motion.div
-                            whileHover={{ scale: 1.05, y: -4 }}
-                            className="bg-gradient-to-br from-orange-100 to-pink-100 rounded-xl p-1.5 text-center border-2 border-orange-200 hover:border-orange-400 transition-all shadow-sm hover:shadow-md cursor-pointer"
-                          >
-                            <div className="w-12 h-12 mx-auto mb-1 rounded-xl border-2 border-white shadow-md overflow-hidden bg-white aspect-square">
-                              {dog.photo_url ? (
-                                <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
-                              ) : (
-                                <div className="w-full h-full bg-orange-300 flex items-center justify-center text-white text-lg font-bold">
-                                  {dog.dog_name?.charAt(0)}
-                                </div>
-                              )}
-                            </div>
-                            <p className="font-bold text-[10px] text-gray-900 truncate">{dog.dog_name}</p>
-                          </motion.div>
-                        </div>
-                      ))}
-                      <div
-                        onClick={() => navigate(createPageUrl('AccountSettings?tab=dogs'))}
-                        className="flex-shrink-0 w-16 cursor-pointer"
+                      Meus Animais ({myDogs.length})
+                    </h3>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => navigate(createPageUrl('EditAnimalProfile'))}
+                      className="text-xs h-7 px-3 hover:bg-white/50"
+                    >
+                      + Adicionar
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                    {myDogs?.map((dog) => (
+                      <motion.div
+                        key={dog.id}
+                        whileHover={{ scale: 1.05, y: -4 }}
+                        className="cursor-pointer"
+                        onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
                       >
-                        <motion.div
-                          whileHover={{ scale: 1.05, y: -4 }}
-                          className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl p-1.5 h-full flex flex-col items-center justify-center hover:bg-gray-200 hover:border-gray-400 transition-all"
-                        >
-                          <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-1 aspect-square">
-                            <Plus className="w-5 h-5 text-gray-400" />
+                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-2.5 text-center border border-white/50 hover:border-blue-300 hover:bg-white/80 transition-all shadow-md hover:shadow-lg">
+                          <div className="w-16 h-16 mx-auto mb-2 rounded-full border-3 border-white shadow-lg overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
+                            {dog.photo_url ? (
+                              <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-2xl">
+                                {dog.animal_type === 'cat' ? '🐱' : dog.animal_type === 'bird' ? '🦜' : '🐕'}
+                              </div>
+                            )}
                           </div>
-                          <p className="text-[10px] font-bold text-gray-500">Adicionar</p>
-                        </motion.div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                          <p className="font-bold text-[11px] text-gray-900 truncate">{dog.dog_name}</p>
+                          {dog.breed && (
+                            <p className="text-[9px] text-gray-600 truncate">{dog.breed}</p>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           ) : (
