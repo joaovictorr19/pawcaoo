@@ -15,7 +15,7 @@ export default function OverviewCharts({ chartData, statusData, timeDistribution
     <div className="w-full max-w-7xl mx-auto px-4">
       <div className="grid md:grid-cols-2 gap-4">
       {/* Earnings Chart */}
-      <Card className="border-0 shadow-md bg-white rounded-2xl overflow-hidden">
+      <Card className="border-0 shadow-md bg-white overflow-hidden" style={{ borderRadius: 0 }}>
         <CardHeader className="py-4 px-5 bg-gradient-to-r from-emerald-50 to-emerald-100 border-b border-emerald-200">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-emerald-800">
