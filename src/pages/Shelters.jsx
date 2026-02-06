@@ -86,91 +86,94 @@ export default function Shelters() {
   }, [shelters, searchTerm]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
-      {/* Hero */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
-      >
-        <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-2xl mb-4">
-          <Building2 className="w-7 h-7 text-green-700" />
-        </div>
-        <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">{tx.title}</h1>
-        <p className="text-gray-500 text-base max-w-lg mx-auto">{tx.subtitle}</p>
-      </motion.div>
-
-      {/* Actions + Search */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 max-w-2xl mx-auto mb-8">
-        <div className="relative flex-1 w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder={tx.search}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-11 border-gray-200 bg-white shadow-sm"
-          />
-        </div>
-        {myShelter ? (
-          <Button
-            onClick={() => navigate(createPageUrl("ShelterDashboard"))}
-            className="bg-green-600 hover:bg-green-700 text-white h-11 px-5 whitespace-nowrap shadow-sm"
-          >
-            <Building2 className="w-4 h-4 mr-2" /> {tx.manageMyShelter}
-          </Button>
-        ) : user ? (
-          <Button
-            onClick={() => navigate(createPageUrl("ShelterRegister"))}
-            variant="outline"
-            className="h-11 px-5 whitespace-nowrap border-green-300 text-green-700 hover:bg-green-50"
-          >
-            <Plus className="w-4 h-4 mr-2" /> {tx.register}
-          </Button>
-        ) : null}
-      </div>
-
-      {/* Count */}
-      {!isLoading && filtered.length > 0 && (
-        <p className="text-center text-sm text-gray-400 mb-6">
-          {filtered.length} {tx.results}
-        </p>
-      )}
-
-      {/* Grid */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="overflow-hidden border-0 shadow-md">
-              <Skeleton className="h-44 w-full" />
-              <CardContent className="p-5 space-y-3">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-10 w-full mt-3" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-20">
-          <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-            <HomeIcon className="w-10 h-10 text-gray-300" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-700 mb-2">{tx.noResults}</h2>
-          <p className="text-gray-400 text-sm">{tx.noResultsSub}</p>
-        </div>
-      ) : (
+    <div className="w-full flex justify-center px-4 py-8 md:py-12">
+      <div className="w-full max-w-5xl">
+        {/* Hero */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-          variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } }}
-          initial="hidden"
-          animate="show"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-10"
         >
-          {filtered.map((shelter) => (
-            <ShelterCard key={shelter.id} shelter={shelter} />
-          ))}
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl mb-4">
+            <Building2 className="w-6 h-6 text-gray-600" />
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{tx.title}</h1>
+          <p className="text-gray-500 text-sm max-w-md mx-auto">{tx.subtitle}</p>
         </motion.div>
-      )}
+
+        {/* Actions + Search */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 max-w-xl mx-auto mb-8">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder={tx.search}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-10 border-gray-200 bg-white shadow-sm rounded-lg"
+            />
+          </div>
+          {myShelter ? (
+            <Button
+              onClick={() => navigate(createPageUrl("ShelterDashboard"))}
+              variant="outline"
+              className="h-10 px-5 whitespace-nowrap border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm"
+            >
+              <Building2 className="w-4 h-4 mr-2" /> {tx.manageMyShelter}
+            </Button>
+          ) : user ? (
+            <Button
+              onClick={() => navigate(createPageUrl("ShelterRegister"))}
+              variant="outline"
+              className="h-10 px-5 whitespace-nowrap border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" /> {tx.register}
+            </Button>
+          ) : null}
+        </div>
+
+        {/* Count */}
+        {!isLoading && filtered.length > 0 && (
+          <p className="text-center text-xs text-gray-400 mb-6">
+            {filtered.length} {tx.results}
+          </p>
+        )}
+
+        {/* Grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="overflow-hidden border border-gray-100 shadow-sm">
+                <Skeleton className="h-40 w-full" />
+                <CardContent className="p-4 space-y-3">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-9 w-full mt-3" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <HomeIcon className="w-8 h-8 text-gray-300" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-700 mb-1">{tx.noResults}</h2>
+            <p className="text-gray-400 text-sm">{tx.noResultsSub}</p>
+          </div>
+        ) : (
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+            variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } }}
+            initial="hidden"
+            animate="show"
+          >
+            {filtered.map((shelter) => (
+              <ShelterCard key={shelter.id} shelter={shelter} />
+            ))}
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }

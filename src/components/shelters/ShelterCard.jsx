@@ -88,12 +88,13 @@ export default function ShelterCard({ shelter }) {
           <div className="flex gap-2 mt-auto">
             <Button
               onClick={() => navigate(createPageUrl(`ShelterProfile?id=${shelter.id}`))}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-sm h-9 text-sm"
+              variant="outline"
+              className="flex-1 border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm h-9 text-sm"
             >
               {viewLabel}
             </Button>
             {shelter.website_url && (
-              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" asChild>
+              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0 border-gray-200 text-gray-500 hover:bg-gray-50" asChild>
                 <a href={shelter.website_url} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="w-4 h-4" />
                 </a>
