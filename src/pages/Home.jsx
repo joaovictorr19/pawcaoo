@@ -226,52 +226,27 @@ export default function Home() {
     queryKey: ['walkers'],
     queryFn: async () => {
       try {
-        console.log('🔍 Fetching walkers from database...');
-        const allWalkers = await base44.entities.WalkerProfile.filter({}, '-rating', 100);
-        console.log('📦 Total walkers fetched:', allWalkers?.length || 0);
-
+        const allWalkers = await base44.entities.WalkerProfile.list('-rating', 200);
+        
         if (!Array.isArray(allWalkers)) {
-          console.error('❌ ERROR: Walkers is not an array!', typeof allWalkers);
           return [];
         }
 
-        // DEBUG: Log first 3 walkers with all details
-        console.log('🔬 Sample walkers:', allWalkers.slice(0, 3).map(w => ({
-          id: w.id,
-          name: w.walker_name,
-          verification_status: w.verification_status,
-          is_active: w.is_active,
-          location: w.location
-        })));
+        // SIMPLIFICADO: Mostrar todos exceto explicitamente rejeitados
+        const visibleWalkers = allWalkers.filter(w => 
+          w.verification_status !== 'rejected'
+        );
 
-        // Show walkers that are: verified, pending (allowing new registrations), or explicitly active
-        // Only hide if rejected or explicitly inactive
-        const visibleWalkers = allWalkers.filter(w => {
-          const isRejected = w.verification_status === 'rejected';
-          const isInactive = w.is_active === false;
-          const passed = !isRejected && !isInactive;
-          
-          if (!passed) {
-            console.log(`🚫 Filtered out: ${w.walker_name} - rejected: ${isRejected}, inactive: ${isInactive}`);
-          }
-          
-          return passed;
-        });
-
-        console.log('✅ Walkers visible after initial filter:', visibleWalkers.length);
         return visibleWalkers;
       } catch (error) {
-        console.error("❌ Walkers fetch error:", error);
+        console.error("Erro ao buscar walkers:", error);
         return [];
       }
     },
     initialData: [],
-    staleTime: 3 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    retry: 2,
-    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    retry: 3,
   });
 
   // Trainers integrados no WalkerProfile (is_verified_trainer = true)
@@ -409,23 +384,15 @@ export default function Home() {
   });
 
   const getWalkerDistance = (walker) => {
-    if (!userLocation || !userLocation.lat || !userLocation.lng) {
-      return null; // No user location = no distance calculation (don't filter out)
-    }
-    // Se o passeador não tiver coordenadas, retornamos null (não filtramos)
-    if (!walker.latitude || !walker.longitude) {
-      console.log('⚠️ Walker sem coordenadas:', walker.walker_name, '- será mostrado sem distância');
+    if (!userLocation?.lat || !userLocation?.lng || !walker.latitude || !walker.longitude) {
       return null;
     }
-
-    const dist = calculateDistance(
+    return calculateDistance(
       userLocation.lat,
       userLocation.lng,
       walker.latitude,
       walker.longitude
     );
-    console.log('📍 Distância calculada para', walker.walker_name, ':', dist, 'km');
-    return dist;
   };
 
   const getTrainerDistance = (trainer) => {
@@ -493,32 +460,9 @@ export default function Home() {
     return Math.round((score / totalPossibleScore) * 100);
   };
 
-  // CRITICAL DEBUG: Simplified filter with detailed logging
   const filteredProfessionals = React.useMemo(() => {
-    console.log('=== FILTERING DEBUG START ===');
-    console.log('📦 Raw walkers count:', walkers?.length);
-    console.log('🎯 Active filters:', { 
-      searchLocation,
-      filterSize,
-      filterTime,
-      filterAnimalType,
-      filterDogSitting,
-      selectedServiceTypes,
-      userLocation: !!userLocation
-    });
-
-    if (!Array.isArray(walkers)) {
-      console.error('❌ CRITICAL: Walkers is not an array!', typeof walkers);
-      return [];
-    }
-
-    if (walkers.length === 0) {
-      console.warn('⚠️ No walkers in database!');
-      return [];
-    }
-
-    // Log raw data
-    console.log('📋 First walker sample:', walkers[0]);
+    if (!Array.isArray(walkers)) return [];
+    if (walkers.length === 0) return [];
 
     const processedWalkers = walkers.map(pro => ({
       ...pro,
@@ -527,107 +471,56 @@ export default function Home() {
       matchScore: calculateMatchScore(pro)
     }));
 
-    console.log('✅ Processed count:', processedWalkers.length);
-
-    // ULTRA SIMPLIFIED FILTER - Only block rejected
+    // FILTROS SIMPLIFICADOS - Aplicar apenas se selecionados
     const filtered = processedWalkers.filter(pro => {
-      // Must have ID and name
-      if (!pro.id || !pro.walker_name) {
-        console.log('❌ Missing ID or name:', pro);
-        return false;
+      // Obrigatório: ID e nome
+      if (!pro.id || !pro.walker_name) return false;
+
+      // Pesquisa - só se digitado algo
+      if (searchLocation?.trim()) {
+        const searchTerm = searchLocation.toLowerCase();
+        const matchLocation = (pro.location || "").toLowerCase().includes(searchTerm);
+        const matchName = (pro.walker_name || "").toLowerCase().includes(searchTerm);
+        if (!matchLocation && !matchName) return false;
       }
 
-      // Block rejected and inactive
-      if (pro.verification_status === 'rejected' || pro.is_active === false) {
-        console.log('❌ Blocked walker:', pro.walker_name, 'Status:', pro.verification_status, 'Active:', pro.is_active);
-        return false;
-      }
-
-      // ALL OTHER FILTERS ARE OPTIONAL - only apply if user selected them
-      
-      // Search location - only if user typed something
-      if (searchLocation && searchLocation.trim() !== "") {
-        const matches = (pro.location || "").toLowerCase().includes(searchLocation.toLowerCase()) ||
-          (pro.walker_name || "").toLowerCase().includes(searchLocation.toLowerCase());
-        if (!matches) return false;
-      }
-
-      // Size - only if user selected specific size
-      if (filterSize !== "all" && filterSize) {
+      // Porte - só se selecionado
+      if (filterSize !== "all") {
         if (!pro.dog_sizes?.includes(filterSize)) return false;
       }
 
-      // Time - only if user selected specific time
-      if (filterTime !== "all" && filterTime) {
+      // Horário - só se selecionado
+      if (filterTime !== "all") {
         if (!pro.availability?.includes(filterTime)) return false;
       }
 
-      // Animal - only if user selected specific animal
-      if (filterAnimalType !== "all" && filterAnimalType) {
+      // Animal - só se selecionado
+      if (filterAnimalType !== "all") {
         const accepted = pro.accepted_animals || ['dogs'];
         if (!accepted.includes(filterAnimalType)) return false;
       }
 
-      // Dog Sitting - only if user selected specific service
-      if (filterDogSitting !== "all" && filterDogSitting) {
+      // Dog Sitting - só se selecionado
+      if (filterDogSitting !== "all") {
         const services = pro.services_offered || [];
-        if (services.length === 0) return false;
-        
-        let hasService = false;
-        if (filterDogSitting === "boarding") {
-          hasService = services.some(s => s.service_name?.toLowerCase().includes('boarding'));
-        } else if (filterDogSitting === "house_sitting") {
-          hasService = services.some(s => s.service_name?.toLowerCase().includes('house'));
-        } else if (filterDogSitting === "drop_in") {
-          hasService = services.some(s => s.service_name?.toLowerCase().includes('drop'));
-        }
-        if (!hasService) return false;
+        if (filterDogSitting === "boarding" && !services.some(s => s.service_name?.toLowerCase().includes('boarding'))) return false;
+        if (filterDogSitting === "house_sitting" && !services.some(s => s.service_name?.toLowerCase().includes('house'))) return false;
+        if (filterDogSitting === "drop_in" && !services.some(s => s.service_name?.toLowerCase().includes('drop'))) return false;
       }
 
-      console.log('✅ Walker PASSED:', pro.walker_name, pro.id);
       return true;
     });
 
-    console.log('🎯 FINAL FILTERED COUNT:', filtered.length);
-
-    if (filtered.length > 0) {
-      console.log('✅ Sample filtered walker:', {
-        name: filtered[0].walker_name,
-        id: filtered[0].id,
-        status: filtered[0].verification_status,
-        active: filtered[0].is_active,
-        location: filtered[0].location
-      });
-    } else {
-      console.log('❌ NO WALKERS PASSED FILTER!');
-      console.log('📊 Filter summary:', {
-        totalProcessed: processedWalkers.length,
-        blockedByIdName: processedWalkers.filter(p => !p.id || !p.walker_name).length,
-        blockedByStatus: processedWalkers.filter(p => p.verification_status === 'rejected' || p.is_active === false).length,
-        activeFilters: {
-          searchLocation: !!searchLocation && searchLocation.trim() !== "",
-          filterSize: filterSize !== "all",
-          filterTime: filterTime !== "all",
-          filterAnimalType: filterAnimalType !== "all",
-          filterDogSitting: filterDogSitting !== "all"
-        }
-      });
-    }
-
-    console.log('=== FILTERING DEBUG END ===');
-
-    // Sort: Featured > Distance > Rating
+    // Ordenar: Destacados > Distância > Rating
     return filtered.sort((a, b) => {
       if (a.is_featured && !b.is_featured) return -1;
       if (!a.is_featured && b.is_featured) return 1;
-
       if (userLocation && a.distance !== null && b.distance !== null) {
         return a.distance - b.distance;
       }
-
       return (b.rating || 0) - (a.rating || 0);
     });
-    }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, filterAnimalType, selectedServiceTypes, advancedFilters, userLocation]);
+  }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, filterAnimalType, userLocation]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
@@ -1331,62 +1224,40 @@ export default function Home() {
                           ))}
                         </div>
                       ) : filteredProfessionals.length === 0 ? (
-                       <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden">
-                         <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                           <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
-                         </div>
-                         <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
-                           {language === 'pt' ? 'Nenhum profissional encontrado' : 
-                            language === 'es' ? 'No se encontró ningún profesional' : 
-                            'No professionals found'}
-                         </h3>
-                         <p className="text-sm md:text-base text-gray-600 mb-4">
-                           {language === 'pt' ? 'Verifique a consola do navegador (F12) para ver os logs de debug.' :
-                            'Check browser console (F12) for debug logs.'}
-                         </p>
-                         <div className="bg-gray-100 p-4 rounded-lg text-left text-xs text-gray-700 max-w-md mx-auto mb-4">
-                           <p className="font-bold mb-2">🔍 Debug Info:</p>
-                           <p>• Total walkers in DB: {walkers?.length || 0}</p>
-                           <p>• After filtering: {filteredProfessionals.length}</p>
-                           <p>• Active filters: {[
-                             searchLocation && 'Search',
-                             filterSize !== 'all' && 'Size',
-                             filterTime !== 'all' && 'Time',
-                             filterAnimalType !== 'all' && 'Animal',
-                             filterDogSitting !== 'all' && 'DogSitting'
-                           ].filter(Boolean).join(', ') || 'None'}</p>
-                         </div>
+                      <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden bg-white/90">
+                        <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                          <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
+                          {language === 'pt' ? 'Nenhum profissional encontrado' : 
+                           language === 'es' ? 'No se encontró ningún profesional' : 
+                           'No professionals found'}
+                        </h3>
+                        <p className="text-sm md:text-base text-gray-600 mb-4">
+                          {language === 'pt' ? 'Tente ajustar os filtros de pesquisa.' : 'Try adjusting the search filters.'}
+                        </p>
 
-                         <div className="flex flex-wrap gap-2 justify-center mt-4">
-                           <Button
-                             variant="default"
-                             size="sm"
-                             onClick={() => {
-                                 resetAdvancedFilters();
-                                 resetTrainerFilters();
-                                 setSelectedServiceTypes([]);
-                                 setSelectedSpecializations([]);
-                                 setSearchLocation("");
-                                 setFilterSize("all");
-                                 setFilterTime("all");
-                                 setFilterAnimalType("all");
-                                 setFilterDogSitting("all");
-                             }}
-                             className="text-white hover:opacity-90"
-                             style={{
-                               background: `linear-gradient(to right, ${colors?.primary || '#16a34a'}, ${colors?.primary || '#16a34a'}dd)`
-                             }}
-                           >
-                             Limpar TODOS os Filtros
-                           </Button>
-                         </div>
-                       </Card>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => {
+                              setSearchLocation("");
+                              setFilterSize("all");
+                              setFilterTime("all");
+                              setFilterAnimalType("all");
+                              setFilterDogSitting("all");
+                              setCurrentPage(1);
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          Limpar Filtros
+                        </Button>
+                      </Card>
                       ) : (
                         <>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
-                            {paginatedProfessionals.map((pro) => {
-                              console.log('🎨 Rendering professional:', pro.walker_name, pro.id);
-                              return pro.type === 'trainer_as_walker' ? (
+                            {paginatedProfessionals.map((pro) => 
+                              pro.type === 'trainer_as_walker' ? (
                                 <TrainerCard 
                                   key={pro.id} 
                                   trainer={pro} 
@@ -1401,8 +1272,8 @@ export default function Home() {
                                   matchScore={pro.matchScore}
                                   showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
                                 />
-                              );
-                            })}
+                              )
+                            )}
                           </div>
 
                           {/* Pagination Controls */}
