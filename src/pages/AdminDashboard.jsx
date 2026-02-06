@@ -1488,44 +1488,117 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex flex-wrap justify-start w-full gap-1 md:gap-2 bg-white shadow-lg p-1 md:p-2 h-auto rounded-xl min-h-[3rem] overflow-x-auto">
-            <TabsTrigger value="overview" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Visão Geral</TabsTrigger>
-            <TabsTrigger value="analytics" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Análises</TabsTrigger>
-            <TabsTrigger value="subscriptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Subscrições</TabsTrigger>
-            <TabsTrigger value="crm" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Clientes</TabsTrigger>
-            <TabsTrigger value="users" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Utilizadores</TabsTrigger>
-            <TabsTrigger value="applications" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Verificações</TabsTrigger>
-            <TabsTrigger value="profile_edits" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Edições de Perfil</TabsTrigger>
-            <TabsTrigger value="communication" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Comunicação</TabsTrigger>
-            <TabsTrigger value="active_walkers" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Profissionais Ativos</TabsTrigger>
-            <TabsTrigger value="documents" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Documentos</TabsTrigger>
-            <TabsTrigger value="adoptions" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Adoções</TabsTrigger>
-            <TabsTrigger value="badges" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Emblemas</TabsTrigger>
-            <TabsTrigger value="partners" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Parceiros & Loja</TabsTrigger>
-            <TabsTrigger value="store" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Loja PawPoints</TabsTrigger>
-            <TabsTrigger value="bookings" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Reservas</TabsTrigger>
-            <TabsTrigger value="payments" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Pagamentos</TabsTrigger>
-            <TabsTrigger value="reviews" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9">Avaliações</TabsTrigger>
+          <TabsList className="flex flex-wrap justify-start w-full gap-1 md:gap-2 bg-white shadow-lg p-1 md:p-2 h-auto min-h-[3rem] overflow-x-auto" style={{ borderRadius: 0 }}>
+            <TabsTrigger value="overview" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>📊 Dashboard</TabsTrigger>
+            <TabsTrigger value="professionals" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>👥 Profissionais</TabsTrigger>
+            <TabsTrigger value="users" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🔑 Utilizadores</TabsTrigger>
+            <TabsTrigger value="commerce" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🛍️ Comércio</TabsTrigger>
+            <TabsTrigger value="operations" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>⚡ Operações</TabsTrigger>
+            <TabsTrigger value="gamification" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🏆 Gamificação</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="analytics">
-            <div className="mt-6">
-              <AdminAnalytics
-                users={allUsers}
-                walkers={allWalkers}
-                bookings={allBookings}
-                payments={allPayments}
-                services={allPartnerServices}
-                adoptionListings={adoptionListings}
-              />
+          <TabsContent value="commerce">
+            <div className="space-y-6 mt-6">
+              <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="grid grid-cols-4 w-full mb-4" style={{ borderRadius: 0 }}>
+                  <TabsTrigger value="overview" style={{ borderRadius: 0 }}>Visão Geral</TabsTrigger>
+                  <TabsTrigger value="partners" style={{ borderRadius: 0 }}>Parceiros</TabsTrigger>
+                  <TabsTrigger value="products" style={{ borderRadius: 0 }}>Produtos</TabsTrigger>
+                  <TabsTrigger value="store" style={{ borderRadius: 0 }}>Loja PawPoints</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="glass-panel border-0" style={{ borderRadius: 0 }}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center" style={{ borderRadius: 0 }}>
+                            <Store className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Empresas</p>
+                            <p className="text-2xl font-bold">{companies.length}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className="bg-green-100 text-green-700" style={{ borderRadius: 0 }}>
+                            {companies.filter(c => c.is_active).length} ativas
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="glass-panel border-0" style={{ borderRadius: 0 }}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center" style={{ borderRadius: 0 }}>
+                            <Package className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Produtos</p>
+                            <p className="text-2xl font-bold">{allPartnerProducts.length}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className="bg-orange-100 text-orange-700" style={{ borderRadius: 0 }}>
+                            {pendingProducts.length} pendentes
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="glass-panel border-0" style={{ borderRadius: 0 }}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-pink-600 to-rose-600 flex items-center justify-center" style={{ borderRadius: 0 }}>
+                            <Megaphone className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Anúncios</p>
+                            <p className="text-2xl font-bold">{allAnnouncements.length}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge className="bg-green-100 text-green-700" style={{ borderRadius: 0 }}>
+                            {allAnnouncements.filter(a => a.is_active && a.moderation_status === 'approved').length} ativos
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="partners">
+                  <ProductManagement
+                    products={allPartnerProducts}
+                    isLoading={loadingProducts}
+                  />
+                </TabsContent>
+
+                <TabsContent value="products">
+                  <ProductManagement
+                    products={allPartnerProducts}
+                    isLoading={loadingProducts}
+                  />
+                </TabsContent>
+
+                <TabsContent value="store">
+                  <StoreItemsManager />
+                </TabsContent>
+              </Tabs>
             </div>
           </TabsContent>
 
-          <TabsContent value="subscriptions">
-            <div className="mt-6">
-              <SubscriptionsManager />
-            </div>
-          </TabsContent>
+          <TabsContent value="operations">
+            <div className="space-y-6 mt-6">
+              <Tabs defaultValue="bookings" className="w-full">
+                <TabsList className="grid grid-cols-3 w-full mb-4" style={{ borderRadius: 0 }}>
+                  <TabsTrigger value="bookings" style={{ borderRadius: 0 }}>Reservas</TabsTrigger>
+                  <TabsTrigger value="payments" style={{ borderRadius: 0 }}>Pagamentos</TabsTrigger>
+                  <TabsTrigger value="subscriptions" style={{ borderRadius: 0 }}>Subscrições</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="bookings">
 
           <TabsContent value="overview">
             <div className="space-y-6 mt-6">
@@ -1904,8 +1977,7 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="crm">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
               <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
@@ -1985,7 +2057,6 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="users">
             <AdminUserTable
               users={allUsers}
               isLoading={loadingAllUsers}
@@ -2017,269 +2088,187 @@ export default function AdminDashboard() {
             />
           </TabsContent>
 
-          <TabsContent value="active_walkers">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
+          <TabsContent value="professionals">
+            <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
               <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>{t('activeWalkersManagement', language)} ({activeWalkers.length})</CardTitle>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
-                      onClick={() => {
-                        const walkerId = prompt("ID do Passeador:");
-                        if (!walkerId) return;
-                        const walker = activeWalkers.find(w => w.id === walkerId);
-                        if (!walker) {
-                          toast.error("Passeador não encontrado");
-                          return;
-                        }
-                        createTestBookingMutation.mutate({
-                          walkerId: walker.id,
-                          walkerEmail: walker.created_by
-                        });
-                      }}
-                      disabled={createTestBookingMutation.isPending}
-                    >
-                      <Zap className="w-4 h-4 mr-2" />
-                      Criar Reserva Manual
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-                        queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-                        toast.success("Lista atualizada!");
-                      }}
-                      className="gap-2"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      Atualizar
-                    </Button>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      <Shield className="w-6 h-6 text-green-600" />
+                      Gestão de Profissionais ({activeWalkers.length})
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Controle completo sobre passeadores, selos e privilégios
+                    </p>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+                      toast.success("Lista atualizada!");
+                    }}
+                    className="gap-2"
+                    style={{ borderRadius: 0 }}
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Atualizar
+                  </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="md:hidden space-y-4">
-                  {activeWalkers.map(walker => (
-                    <Card key={walker.id} className="p-4 border border-gray-200">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="font-bold">{walker.walker_name}</div>
-                          <div className="text-sm text-gray-500">{walker.created_by}</div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
-                            {walker.is_active ? t('active', language) : t('inactive', language)}
-                          </Badge>
-                          {walker.is_featured && (
-                            <Badge className="bg-yellow-500">
-                              <Sparkles className="w-3 h-3 mr-1" />
-                              Destaque
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-sm space-y-1 mb-3">
-                        <div>📍 {walker.location}</div>
-                        <div>⭐ {walker.rating?.toFixed(1)}</div>
-                        <div>💰 €{walker.total_earnings || 0}</div>
-                      </div>
-                      <div className="flex gap-2 flex-wrap">
-                        <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}>
-                          <Eye className="w-4 h-4 mr-2" /> Ver
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-                          onClick={async () => {
-                            console.log('⚡ Test button clicked for walker:', walker.id);
-                            try {
-                              createTestBookingMutation.mutate({
-                                walkerId: walker.id,
-                                walkerEmail: walker.created_by
-                              });
-                            } catch (err) {
-                              console.error('Click handler error:', err);
-                              toast.error('Erro: ' + err.message);
-                            }
-                          }}
-                          disabled={createTestBookingMutation.isPending}
-                          title="Criar reserva de teste para ver chat e mapa em tempo real"
-                        >
-                          {createTestBookingMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <>
-                              <Zap className="w-4 h-4 mr-1" />
-                              Teste
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={walker.is_featured ? "default" : "outline"}
-                          className={walker.is_featured ? "bg-yellow-500 text-white" : "text-yellow-600 border-yellow-200"}
-                          onClick={() => {
-                            if(confirm(`${walker.is_featured ? 'Remover' : 'Adicionar'} destaque?`)) {
-                              updateWalkerMutation.mutate({ id: walker.id, data: { is_featured: !walker.is_featured } });
-                            }
-                          }}
-                        >
-                          <Sparkles className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={walker.is_active ? "outline" : "default"}
-                          className={`${walker.is_active ? "text-orange-600 border-orange-200" : "bg-green-600"}`}
-                          onClick={() => {
-                            if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
-                              updateWalkerMutation.mutate({ id: walker.id, data: { is_active: !walker.is_active } });
-                            }
-                          }}
-                        >
-                          {walker.is_active ? t('pause', language) : t('activate', language)}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 border-red-200 px-3"
-                          onClick={() => {
-                            if(confirm(`TEM CERTEZA? Isso apagará permanentemente o perfil de passeador de ${walker.walker_name}.`)) {
-                              deleteWalkerMutation.mutate(walker.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-
-                <div className="hidden md:block">
+          <TabsContent value="professionals">
+            <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
+              <CardContent className="p-6">
+                <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{t('fullName', language)}</TableHead>
-                        <TableHead>{t('email', language)}</TableHead>
-                        <TableHead>{t('location', language)}</TableHead>
-                        <TableHead>{t('rating', language)}</TableHead>
-                        <TableHead>{t('earnings', language)}</TableHead>
-                        <TableHead>{t('status', language)}</TableHead>
-                        <TableHead>{t('actions', language)}</TableHead>
+                        <TableHead className="w-[250px]">Profissional</TableHead>
+                        <TableHead>Localização</TableHead>
+                        <TableHead className="text-center">Avaliação</TableHead>
+                        <TableHead className="text-right">Ganhos</TableHead>
+                        <TableHead className="text-center">Privilégios</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {activeWalkers.map(walker => (
-                        <TableRow key={walker.id}>
-                          <TableCell className="font-medium">
-                            {walker.walker_name}
-                            {walker.verification_status === 'verified' && (
-                              <Badge variant="outline" className="ml-2 border-green-500 text-green-600 text-[10px] h-5">
-                                ✓ {t('verified', language)}
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>{walker.created_by}</TableCell>
-                          <TableCell>{walker.location}</TableCell>
+                        <TableRow key={walker.id} className="hover:bg-gray-50">
                           <TableCell>
-                            <div className="flex items-center gap-1">
-                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                              {walker.rating?.toFixed(1) || 'N/A'}
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10" style={{ borderRadius: 0 }}>
+                                <AvatarImage src={walker.photo_url} />
+                                <AvatarFallback className="bg-green-100 text-green-700" style={{ borderRadius: 0 }}>
+                                  {walker.walker_name?.[0]?.toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-semibold flex items-center gap-2">
+                                  {walker.walker_name}
+                                  {walker.has_pawcao_seal && (
+                                    <Badge className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white text-[9px] h-4 px-1" style={{ borderRadius: 0 }}>
+                                      <Award className="w-2.5 h-2.5 mr-0.5" />
+                                      SELO
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-500">{walker.created_by}</div>
+                                {walker.exempt_from_platform_fees && (
+                                  <Badge className="bg-blue-50 text-blue-700 text-[9px] mt-1" style={{ borderRadius: 0 }}>
+                                    <DollarSign className="w-2.5 h-2.5 mr-0.5" />
+                                    0% Taxa
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
-                          <TableCell>€{walker.total_earnings || 0}</TableCell>
-                          <TableCell>
-                            <Badge className={walker.is_active ? 'bg-green-600' : 'bg-gray-400'}>
-                              {walker.is_active ? t('active', language) : t('inactive', language)}
-                            </Badge>
+                          <TableCell className="text-sm text-gray-700">{walker.location}</TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                              <span className="font-semibold">{walker.rating?.toFixed(1) || '0.0'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-green-700">
+                            €{(walker.total_earnings || 0).toLocaleString('pt-PT')}
                           </TableCell>
                           <TableCell>
-                           <div className="flex gap-2 flex-wrap">
-                             <Button
-                               size="sm"
-                               variant="outline"
-                               onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
-                             >
-                               <Eye className="w-4 h-4 mr-1" />
-                               Ver
-                             </Button>
-                             <Button
-                               size="sm"
-                               className="bg-purple-600 hover:bg-purple-700 text-white"
-                               onClick={async () => {
-                                 console.log('⚡ Test button clicked (desktop) for walker:', walker.id);
-                                 try {
-                                   createTestBookingMutation.mutate({
-                                     walkerId: walker.id,
-                                     walkerEmail: walker.created_by
-                                   });
-                                 } catch (err) {
-                                   console.error('Click handler error:', err);
-                                   toast.error('Erro: ' + err.message);
-                                 }
-                               }}
-                               disabled={createTestBookingMutation.isPending}
-                               title="Criar reserva de teste para ver chat e mapa em tempo real"
-                             >
-                               {createTestBookingMutation.isPending ? (
-                                 <>
-                                   <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                   Criando...
-                                 </>
-                               ) : (
-                                 <>
-                                   <Zap className="w-4 h-4 mr-1" />
-                                   Teste Passeio
-                                 </>
-                               )}
-                             </Button>
-                             <Button
-                               size="sm"
-                               variant={walker.is_featured ? "default" : "outline"}
-                               className={walker.is_featured ? "bg-yellow-500 hover:bg-yellow-600 text-white" : "text-yellow-600 border-yellow-200 hover:bg-yellow-50"}
-                               onClick={() => {
-                                 if(confirm(`${walker.is_featured ? 'Remover' : 'Adicionar'} ${walker.walker_name} ${walker.is_featured ? 'dos' : 'aos'} destaques?`)) {
-                                   updateWalkerMutation.mutate({
-                                     id: walker.id,
-                                     data: { is_featured: !walker.is_featured }
-                                   });
-                                 }
-                               }}
-                               title={walker.is_featured ? "Remover destaque" : "Marcar como destaque"}
-                             >
-                               <Sparkles className="w-4 h-4" />
-                             </Button>
-                             <Button
-                               size="sm"
-                               variant={walker.is_active ? "outline" : "default"}
-                               className={walker.is_active ? "text-orange-600 border-orange-200 hover:bg-orange-50" : "bg-green-600 hover:bg-green-700"}
-                               onClick={() => {
-                                 if(confirm(`Deseja ${walker.is_active ? 'desativar' : 'ativar'} o passeador ${walker.walker_name}?`)) {
-                                   updateWalkerMutation.mutate({
-                                     id: walker.id,
-                                     data: { is_active: !walker.is_active }
-                                   });
-                                 }
-                               }}
-                             >
-                               {walker.is_active ? t('pause', language) : t('activate', language)}
-                             </Button>
-                             <Button
-                               size="sm"
-                               variant="outline"
-                               className="text-red-600 border-red-200 hover:bg-red-50"
-                               onClick={() => {
-                                 if(confirm(`TEM CERTEZA? Isso apagará permanentemente o perfil de passeador de ${walker.walker_name}.\nEsta ação não pode ser desfeita.`)) {
-                                   deleteWalkerMutation.mutate(walker.id);
-                                 }
-                               }}
-                             >
-                               <Trash2 className="w-4 h-4" />
-                             </Button>
-                           </div>
+                            <div className="flex gap-1.5 justify-center">
+                              <Button
+                                size="sm"
+                                variant={walker.has_pawcao_seal ? "default" : "outline"}
+                                className={walker.has_pawcao_seal ? "bg-gradient-to-r from-amber-500 to-yellow-400 text-white h-7 px-2" : "border-amber-300 text-amber-600 h-7 px-2"}
+                                onClick={() => {
+                                  if(confirm(`${walker.has_pawcao_seal ? 'Remover' : 'Conceder'} Selo PawCão ${walker.has_pawcao_seal ? 'de' : 'a'} ${walker.walker_name}?`)) {
+                                    updateWalkerMutation.mutate({
+                                      id: walker.id,
+                                      data: { has_pawcao_seal: !walker.has_pawcao_seal }
+                                    });
+                                  }
+                                }}
+                                style={{ borderRadius: 0 }}
+                                title={walker.has_pawcao_seal ? "Remover Selo PawCão" : "Conceder Selo PawCão"}
+                              >
+                                <Award className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={walker.exempt_from_platform_fees ? "default" : "outline"}
+                                className={walker.exempt_from_platform_fees ? "bg-blue-600 text-white h-7 px-2" : "border-blue-300 text-blue-600 h-7 px-2"}
+                                onClick={() => {
+                                  if(confirm(`${walker.exempt_from_platform_fees ? 'Remover isenção e voltar a cobrar 15%' : 'Isentar de taxas (0%)'} para ${walker.walker_name}?`)) {
+                                    updateWalkerMutation.mutate({
+                                      id: walker.id,
+                                      data: { exempt_from_platform_fees: !walker.exempt_from_platform_fees }
+                                    });
+                                  }
+                                }}
+                                style={{ borderRadius: 0 }}
+                                title={walker.exempt_from_platform_fees ? "Remover Isenção de Taxas" : "Isentar de Taxas"}
+                              >
+                                <DollarSign className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={walker.is_featured ? "default" : "outline"}
+                                className={walker.is_featured ? "bg-yellow-500 text-white h-7 px-2" : "border-yellow-300 text-yellow-600 h-7 px-2"}
+                                onClick={() => {
+                                  if(confirm(`${walker.is_featured ? 'Remover' : 'Marcar'} como destaque?`)) {
+                                    updateWalkerMutation.mutate({
+                                      id: walker.id,
+                                      data: { is_featured: !walker.is_featured }
+                                    });
+                                  }
+                                }}
+                                style={{ borderRadius: 0 }}
+                                title={walker.is_featured ? "Remover Destaque" : "Marcar como Destaque"}
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1.5 justify-end">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                                className="h-8 px-2.5"
+                                style={{ borderRadius: 0 }}
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={walker.is_active ? "outline" : "default"}
+                                className={walker.is_active ? "text-orange-600 border-orange-300 h-8 px-2.5" : "bg-green-600 h-8 px-2.5"}
+                                onClick={() => {
+                                  if(confirm(`${walker.is_active ? 'Pausar' : 'Ativar'} ${walker.walker_name}?`)) {
+                                    updateWalkerMutation.mutate({
+                                      id: walker.id,
+                                      data: { is_active: !walker.is_active }
+                                    });
+                                  }
+                                }}
+                                style={{ borderRadius: 0 }}
+                              >
+                                {walker.is_active ? '⏸' : '▶'}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 border-red-300 h-8 px-2.5"
+                                onClick={() => {
+                                  if(confirm(`ELIMINAR permanentemente ${walker.walker_name}?`)) {
+                                    deleteWalkerMutation.mutate(walker.id);
+                                  }
+                                }}
+                                style={{ borderRadius: 0 }}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -2290,8 +2279,19 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="documents">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
+          <TabsContent value="applications">
+            <div className="space-y-6 mt-6">
+              <AdminVerificationQueue
+                walkers={walkerApplications}
+                trainers={trainerApplications}
+                shelters={shelterApplications}
+                onApprove={handleApproveApplication}
+                onReject={handleRejectApplication}
+                onViewDetails={handleViewApplicationDetails}
+                onRefresh={handleRefreshApplications}
+              />
+              
+              <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
@@ -2452,8 +2452,9 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="adoptions">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
+              </Card>
+              
+              <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
@@ -2619,52 +2620,34 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="profile_edits">
-            <div className="mt-6">
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <AlertCircle className="h-5 w-5 text-yellow-400" />
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-yellow-700">
-                      Aqui você aprova alterações sensíveis (Preço, Serviços) feitas pelos profissionais.
-                      Alterações de bio ou fotos são aplicadas automaticamente.
+              </Card>
+              
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4" style={{ borderRadius: 0 }}>
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-blue-900 mb-1">Edições de Perfil Pendentes</p>
+                    <p className="text-sm text-blue-700">
+                      Alterações sensíveis (Preço, Serviços) requerem aprovação admin.
                     </p>
                   </div>
                 </div>
               </div>
+              
               <ProfileEditRequests />
+              
+              <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Megaphone className="w-6 h-6 text-blue-600" />
+                    Comunicação e Broadcasts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BroadcastManager />
+                </CardContent>
+              </Card>
             </div>
-          </TabsContent>
-
-          <TabsContent value="communication">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Megaphone className="w-6 h-6 text-blue-600" />
-                  Sistema de Comunicação e Broadcasts
-                </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  Envie mensagens em massa ou agendadas para grupos específicos de utilizadores
-                </p>
-              </CardHeader>
-              <CardContent>
-                <BroadcastManager />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="applications">
-            <AdminVerificationQueue
-              walkers={walkerApplications}
-              trainers={trainerApplications}
-              shelters={shelterApplications}
-              onApprove={handleApproveApplication}
-              onReject={handleRejectApplication}
-              onViewDetails={handleViewApplicationDetails}
-              onRefresh={handleRefreshApplications}
-            />
           </TabsContent>
 
           <TabsContent value="badges">
@@ -2981,9 +2964,23 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+                </TabsContent>
+
+                <TabsContent value="analytics">
+                  <AdminAnalytics
+                    users={allUsers}
+                    walkers={allWalkers}
+                    bookings={allBookings}
+                    payments={allPayments}
+                    services={allPartnerServices}
+                    adoptionListings={adoptionListings}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
           </TabsContent>
 
-          <TabsContent value="partners">
+          <TabsContent value="crm">
             <div className="space-y-6 mt-6">
               <Tabs defaultValue="companies" className="w-full">
                 <TabsList className="grid grid-cols-4 w-full mb-4">
@@ -3120,16 +3117,7 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
-                </TabsContent>
 
-                <TabsContent value="products">
-                  <ProductManagement
-                    products={allPartnerProducts}
-                    isLoading={loadingProducts}
-                  />
-                </TabsContent>
-
-                <TabsContent value="services">
             <Card className="glass-panel border-0 shadow-xl">
               <CardHeader>
                 <div className="flex justify-between items-center">
@@ -3258,18 +3246,7 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
-                </TabsContent>
 
-                <TabsContent value="announcements">
-            <div className="mt-6">
-              <StoreItemsManager />
-            </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="store">
             <Card className="glass-panel border-0 shadow-xl">
               <CardHeader>
                 <div className="flex justify-between items-center">
@@ -3448,10 +3425,9 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="bookings">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
+            <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
               <CardHeader>
-                <CardTitle>Todas as Reservas ({allBookings.length})</CardTitle>
+                <CardTitle>Reservas ({allBookings.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 {/* Mobile View */}
@@ -3557,8 +3533,10 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="payments">
-            <Card className="glass-panel border-0 shadow-xl mt-6">
+                </TabsContent>
+
+                <TabsContent value="payments">
+            <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
               <CardHeader>
                 <CardTitle>Pagamentos ({allPayments.length})</CardTitle>
               </CardHeader>
@@ -3631,9 +3609,24 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+                </TabsContent>
+
+                <TabsContent value="subscriptions">
+                  <SubscriptionsManager />
+                </TabsContent>
+              </Tabs>
+            </div>
           </TabsContent>
 
-          <TabsContent value="reviews">
+          <TabsContent value="gamification">
+            <div className="space-y-6 mt-6">
+              <Tabs defaultValue="badges" className="w-full">
+                <TabsList className="grid grid-cols-2 w-full mb-4" style={{ borderRadius: 0 }}>
+                  <TabsTrigger value="badges" style={{ borderRadius: 0 }}>Emblemas</TabsTrigger>
+                  <TabsTrigger value="analytics" style={{ borderRadius: 0 }}>Análises</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="badges">
             <Card className="glass-panel border-0 shadow-xl mt-6">
               <CardHeader>
                 <CardTitle>{t('pendingReviews', language)} ({pendingReviews.length})</CardTitle>
