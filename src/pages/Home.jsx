@@ -328,47 +328,16 @@ export default function Home() {
     queryKey: ['platformStats'],
     queryFn: async () => {
       try {
-        // Buscar todos os dados em paralelo
-        const [activeWalkers, activeTrainers, allBookings, allAdoptions] = await Promise.all([
-          base44.entities.WalkerProfile.list('-created_date', 100),
-          base44.entities.TrainerProfile.list('-created_date', 100),
-          base44.entities.Booking.list('-created_date', 500),
-          base44.entities.AdoptionApplication.list('-created_date', 100)
+        const [activeWalkers, activeTrainers] = await Promise.all([
+          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200),
+          base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 200),
         ]);
 
-        // Filtrar walkers ativos (não rejeitados)
-        const walkersAtivos = activeWalkers.filter(w => w.verification_status !== 'rejected');
-
-        // Filtrar trainers ativos (não rejeitados)
-        const trainersAtivos = activeTrainers.filter(t => t.verification_status !== 'rejected');
-
-        // Filtrar bookings completados
-        const completedBookings = allBookings.filter(b => b.status === 'completed');
-
-        // Contar cães únicos que foram passeados (clientes satisfeitos)
-        const uniqueDogs = new Set();
-        completedBookings.forEach(booking => {
-          if (booking.dog_name) {
-            uniqueDogs.add(`${booking.created_by}-${booking.dog_name}`);
-          }
-        });
-
-        // Filtrar adoções aprovadas
-        const approvedAdoptions = allAdoptions.filter(a => a.status === 'approved');
-
-        console.log('📊 Stats:', {
-          walkers: walkersAtivos.length,
-          trainers: trainersAtivos.length,
-          completedBookings: completedBookings.length,
-          happyDogs: uniqueDogs.size,
-          adoptions: approvedAdoptions.length
-        });
-
         return {
-          totalWalkers: walkersAtivos.length || 0,
-          totalTrainers: trainersAtivos.length || 0,
-          happyDogs: uniqueDogs.size || 0,
-          adoptedDogs: approvedAdoptions.length || 0
+          totalWalkers: activeWalkers?.length || 0,
+          totalTrainers: activeTrainers?.length || 0,
+          happyDogs: 0,
+          adoptedDogs: 0
         };
       } catch (error) {
         console.error("Stats fetch error:", error);
@@ -376,9 +345,9 @@ export default function Home() {
       }
     },
     initialData: { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: 'always',
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const getWalkerDistance = (walker) => {
