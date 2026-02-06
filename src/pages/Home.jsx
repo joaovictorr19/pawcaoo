@@ -784,28 +784,25 @@ export default function Home() {
                       + Adicionar
                     </Button>
                   </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
                     {myDogs?.map((dog) => (
                       <motion.div
                         key={dog.id}
-                        whileHover={{ scale: 1.05, y: -4 }}
+                        whileHover={{ scale: 1.05, y: -2 }}
                         className="cursor-pointer"
                         onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
                       >
-                        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-2.5 text-center border border-white/50 hover:border-blue-300 hover:bg-white/80 transition-all shadow-md hover:shadow-lg">
-                          <div className="w-16 h-16 mx-auto mb-2 rounded-full border-3 border-white shadow-lg overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-2 text-center border border-white/50 hover:border-blue-300 hover:bg-white/80 transition-all shadow-md hover:shadow-lg aspect-square flex flex-col items-center justify-center">
+                          <div className="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-white shadow-md overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
                             {dog.photo_url ? (
                               <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-2xl">
+                              <div className="w-full h-full flex items-center justify-center text-xl">
                                 {dog.animal_type === 'cat' ? '🐱' : dog.animal_type === 'bird' ? '🦜' : '🐕'}
                               </div>
                             )}
                           </div>
-                          <p className="font-bold text-[11px] text-gray-900 truncate">{dog.dog_name}</p>
-                          {dog.breed && (
-                            <p className="text-[9px] text-gray-600 truncate">{dog.breed}</p>
-                          )}
+                          <p className="font-bold text-[10px] text-gray-900 truncate w-full px-1">{dog.dog_name}</p>
                         </div>
                       </motion.div>
                     ))}
