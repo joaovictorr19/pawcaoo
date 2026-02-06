@@ -319,8 +319,8 @@ function LayoutContent({ children, currentPageName }) {
       icon: Heart 
     },
     { 
-      title: language === 'pt' ? 'Área de Abrigo' : (getMenuText('shelterArea') || 'Shelter Area'), 
-      url: createPageUrl("ShelterDashboard"), 
+      title: language === 'pt' ? 'Abrigos' : 'Shelters', 
+      url: createPageUrl("Shelters"), 
       icon: Building2 
     },
     { 
