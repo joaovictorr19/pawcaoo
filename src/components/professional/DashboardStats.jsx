@@ -70,7 +70,7 @@ export default function DashboardStats({ totalEarnings, dateRange, directRequest
                 <stat.icon className="w-5 h-5 text-white" />
               </div>
               {stat.badge && (
-                <span className="text-[10px] font-bold bg-orange-600 text-white px-2 py-1 rounded-full shadow-sm animate-pulse">
+                <span className="text-[10px] font-bold bg-orange-600 text-white px-2 py-1 shadow-sm animate-pulse" style={{ borderRadius: 0 }}>
                   {stat.badge}
                 </span>
               )}
