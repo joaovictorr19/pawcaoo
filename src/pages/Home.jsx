@@ -124,7 +124,9 @@ export default function Home() {
       const points = await base44.entities.LoyaltyPoints.filter({ user_email: user.email });
       return points[0] || { points_balance: 0, total_earned: 0, tier: 'bronze' };
     },
-    enabled: !!user,
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const [reviewBooking, setReviewBooking] = useState(null);
