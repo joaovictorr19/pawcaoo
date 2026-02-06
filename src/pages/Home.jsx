@@ -278,6 +278,7 @@ export default function Home() {
 
   // Stats em tempo real
   // Featured items for floating elements
+  // Only load featured items for non-logged-in users (hero section)
   const { data: featuredWalkers = [] } = useQuery({
     queryKey: ['featuredWalkers'],
     queryFn: async () => {
@@ -287,7 +288,10 @@ export default function Home() {
       }, '-rating', 6);
       return walkers.filter(w => w.photo_url);
     },
+    enabled: !user,
     initialData: [],
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: featuredDogs = [] } = useQuery({
@@ -296,33 +300,13 @@ export default function Home() {
       const dogs = await base44.entities.DogProfile.list('-created_date', 6);
       return dogs.filter(d => d.photo_url);
     },
+    enabled: !user,
     initialData: [],
-  });
-
-  const { data: featuredAdoptions = [] } = useQuery({
-    queryKey: ['featuredAdoptions'],
-    queryFn: async () => {
-      const adoptions = await base44.entities.AdoptionListing.filter({ 
-        status: 'available' 
-      }, '-created_date', 6);
-      return adoptions.filter(a => a.primary_photo_url);
-    },
-    initialData: [],
-  });
-
-  const { data: adoptionListings = [], isLoading: loadingAdoptions } = useQuery({
-    queryKey: ['adoptionListings'],
-    queryFn: async () => {
-      const res = await base44.entities.AdoptionListing.filter({ 
-        status: 'available' 
-      }, '-created_date', 20);
-      return Array.isArray(res) ? res : [];
-    },
-    initialData: [],
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  const featuredAdoptions = [];
 
   const { data: stats } = useQuery({
     queryKey: ['platformStats'],
