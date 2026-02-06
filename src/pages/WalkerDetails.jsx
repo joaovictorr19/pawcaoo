@@ -345,7 +345,8 @@ export default function WalkerDetails() {
         <meta property="og:image" content={walker.photo_url || 'https://pawcao.net/social-preview.jpg'} />
       </Helmet>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="w-full flex justify-center px-4 py-6">
+      <div className="w-full max-w-5xl">
         {/* Header com Voltar */}
         <Button
           variant="ghost"
