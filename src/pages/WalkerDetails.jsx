@@ -634,6 +634,7 @@ export default function WalkerDetails() {
         </div>
       </div>
 
+      </div>
       {/* Recurring Modal */}
       <AnimatePresence>
         {showRecurringModal && selectedDogForRecurring && (
