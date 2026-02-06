@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -383,7 +384,7 @@ export default function UserProfile() {
   const profileEmail = profileUser?.user_email || profileUser?.email;
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
 
-  // Centralized Badge System with Unique ID - FIXED DEDUPLICATION
+  // Centralized Badge System with Unique ID - FIXED DEDUPLICATION BY badge_id
   const { data: earnedBadges = [], isLoading: loadingBadges } = useQuery({
     queryKey: ['userBadges', profileEmail],
     queryFn: async () => {
@@ -396,15 +397,15 @@ export default function UserProfile() {
       
       console.log('📦 Raw badges fetched:', badgesFromTable.length);
       
-      // CRITICAL: Deduplicate using entity ID (most reliable)
+      // CRITICAL: Deduplicate using badge_id (type of badge) to ensure only one of each type
       const uniqueBadges = new Map();
       badgesFromTable.forEach((badge) => {
-        // Use entity record ID as primary key - guaranteed unique
-        const uniqueKey = badge.id;
-        if (!uniqueBadges.has(uniqueKey)) {
+        // Use badge_id as primary key for deduplication by type
+        const uniqueKey = badge.badge_id;
+        if (uniqueKey && !uniqueBadges.has(uniqueKey)) { // Added check for uniqueKey existence
           uniqueBadges.set(uniqueKey, {
             ...badge,
-            _uniqueId: badge.id // Use entity ID as unique identifier
+            _uniqueId: uniqueKey // Use badge_id as unique identifier
           });
         }
       });
@@ -553,7 +554,7 @@ export default function UserProfile() {
   const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
 
   const updatePinnedBadgesMutation = useMutation({
-    mutationFn: async ({ slotIndex, badgeId }) => {
+    mutationFn: async ({ slotIndex, badgeId }) => { // badgeId here is the badge_id (type identifier)
       if (!profileUser?.id) return;
       
       // Initialize with 4 null slots
@@ -564,15 +565,14 @@ export default function UserProfile() {
         currentPinned[idx] = id;
       });
       
-      // Update specific slot
-      currentPinned[slotIndex] = badgeId;
-      
-      // Remove badge from other slots if duplicate
+      // Check if the badge being added is already pinned in another slot - REMOVE IT
+      const newBadgeId = badgeId; // This is the badge_id (type identifier)
       for (let i = 0; i < 4; i++) {
-        if (i !== slotIndex && currentPinned[i] === badgeId) {
-          currentPinned[i] = null;
+        if (i !== slotIndex && currentPinned[i] === newBadgeId) {
+          currentPinned[i] = null; // Remove from old slot
         }
       }
+      currentPinned[slotIndex] = newBadgeId; // Add to the new slot
 
       await base44.entities.UserProfile.update(profileUser.id, {
         pinned_badge_ids: currentPinned
@@ -594,14 +594,11 @@ export default function UserProfile() {
     setIsBadgeModalOpen(true);
   };
 
-  const handleBadgeSelect = (badgeId) => {
+  const handleBadgeSelect = (badgeIdToPin) => { // badgeIdToPin should be the badge_id (type identifier)
     if (activeSlotIndex === null) return;
     
-    // Use centralized _uniqueId
-    const selectedBadge = earnedBadges.find(b => (b.badge_id || b.id) === badgeId);
-    const uniqueId = selectedBadge?._uniqueId || badgeId;
-    
-    updatePinnedBadgesMutation.mutate({ slotIndex: activeSlotIndex, badgeId: uniqueId });
+    // badgeIdToPin is now the unique badge_id (type identifier)
+    updatePinnedBadgesMutation.mutate({ slotIndex: activeSlotIndex, badgeId: badgeIdToPin });
   };
 
   const handleMessageUser = async (targetEmail) => {
@@ -1005,7 +1002,7 @@ export default function UserProfile() {
                     </div>
                     <div className="grid grid-cols-4 gap-1.5 md:gap-2">
                     {[0, 1, 2, 3].map((slotIdx) => {
-                    const pinnedId = profileUser.pinned_badge_ids?.[slotIdx];
+                    const pinnedId = profileUser.pinned_badge_ids?.[slotIdx]; // This pinnedId is the badge_id (type identifier)
                     const badge = pinnedId ? earnedBadges.find(b => b._uniqueId === pinnedId) : null;
 
                        return (
@@ -1146,11 +1143,11 @@ export default function UserProfile() {
                  </div>
                ) : earnedBadges.length > 0 ? (
                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
-                 {earnedBadges.map((badge) => (
+                 {earnedBadges.map((badge, index) => (
                    <BadgeItem 
-                     key={badge._uniqueId}
+                     key={badge._uniqueId || `badge-${index}`}
                      badge={badge} 
-                     idx={0}
+                     idx={index}
                      getBadgeImage={getBadgeImage}
                    />
                  ))}
