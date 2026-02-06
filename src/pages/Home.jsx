@@ -222,31 +222,19 @@ export default function Home() {
 
 
 
-  const { data: walkers, isLoading: loadingWalkers, error: walkersError } = useQuery({
-    queryKey: ['walkers'],
+  const { data: walkers = [], isLoading: loadingWalkers } = useQuery({
+    queryKey: ['allWalkers'],
     queryFn: async () => {
       try {
-        const allWalkers = await base44.entities.WalkerProfile.list('-rating', 200);
-        
-        if (!Array.isArray(allWalkers)) {
-          return [];
-        }
-
-        // SIMPLIFICADO: Mostrar todos exceto explicitamente rejeitados
-        const visibleWalkers = allWalkers.filter(w => 
-          w.verification_status !== 'rejected'
-        );
-
-        return visibleWalkers;
+        const result = await base44.entities.WalkerProfile.list('-created_date', 500);
+        return Array.isArray(result) ? result : [];
       } catch (error) {
-        console.error("Erro ao buscar walkers:", error);
+        console.error("Erro walkers:", error);
         return [];
       }
     },
-    initialData: [],
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: true,
-    retry: 3,
+    staleTime: 2 * 60 * 1000,
+    refetchOnMount: true,
   });
 
   // Trainers integrados no WalkerProfile (is_verified_trainer = true)
@@ -461,66 +449,56 @@ export default function Home() {
   };
 
   const filteredProfessionals = React.useMemo(() => {
-    if (!Array.isArray(walkers)) return [];
-    if (walkers.length === 0) return [];
-
-    const processedWalkers = walkers.map(pro => ({
-      ...pro,
-      type: pro.type || 'walker',
-      distance: getWalkerDistance(pro),
-      matchScore: calculateMatchScore(pro)
+    // SIMPLIFICADO: Mostrar TODOS os walkers válidos
+    const validWalkers = walkers.filter(w => w?.id && w?.walker_name);
+    
+    // Adicionar distância e score
+    const processed = validWalkers.map(w => ({
+      ...w,
+      distance: getWalkerDistance(w),
+      matchScore: calculateMatchScore(w)
     }));
 
-    // FILTROS SIMPLIFICADOS - Aplicar apenas se selecionados
-    const filtered = processedWalkers.filter(pro => {
-      // Obrigatório: ID e nome
-      if (!pro.id || !pro.walker_name) return false;
+    // Aplicar filtros APENAS se usuário selecionou
+    let result = processed;
 
-      // Pesquisa - só se digitado algo
-      if (searchLocation?.trim()) {
-        const searchTerm = searchLocation.toLowerCase();
-        const matchLocation = (pro.location || "").toLowerCase().includes(searchTerm);
-        const matchName = (pro.walker_name || "").toLowerCase().includes(searchTerm);
-        if (!matchLocation && !matchName) return false;
-      }
+    if (searchLocation?.trim()) {
+      const term = searchLocation.toLowerCase();
+      result = result.filter(w => 
+        w.location?.toLowerCase().includes(term) || 
+        w.walker_name?.toLowerCase().includes(term)
+      );
+    }
 
-      // Porte - só se selecionado
-      if (filterSize !== "all") {
-        if (!pro.dog_sizes?.includes(filterSize)) return false;
-      }
+    if (filterSize !== "all") {
+      result = result.filter(w => w.dog_sizes?.includes(filterSize));
+    }
 
-      // Horário - só se selecionado
-      if (filterTime !== "all") {
-        if (!pro.availability?.includes(filterTime)) return false;
-      }
+    if (filterTime !== "all") {
+      result = result.filter(w => w.availability?.includes(filterTime));
+    }
 
-      // Animal - só se selecionado
-      if (filterAnimalType !== "all") {
-        const accepted = pro.accepted_animals || ['dogs'];
-        if (!accepted.includes(filterAnimalType)) return false;
-      }
+    if (filterAnimalType !== "all") {
+      result = result.filter(w => (w.accepted_animals || ['dogs']).includes(filterAnimalType));
+    }
 
-      // Dog Sitting - só se selecionado
-      if (filterDogSitting !== "all") {
-        const services = pro.services_offered || [];
-        if (filterDogSitting === "boarding" && !services.some(s => s.service_name?.toLowerCase().includes('boarding'))) return false;
-        if (filterDogSitting === "house_sitting" && !services.some(s => s.service_name?.toLowerCase().includes('house'))) return false;
-        if (filterDogSitting === "drop_in" && !services.some(s => s.service_name?.toLowerCase().includes('drop'))) return false;
-      }
+    if (filterDogSitting !== "all") {
+      result = result.filter(w => {
+        const services = w.services_offered || [];
+        if (filterDogSitting === "boarding") return services.some(s => s.service_name?.toLowerCase().includes('boarding'));
+        if (filterDogSitting === "house_sitting") return services.some(s => s.service_name?.toLowerCase().includes('house'));
+        if (filterDogSitting === "drop_in") return services.some(s => s.service_name?.toLowerCase().includes('drop'));
+        return true;
+      });
+    }
 
-      return true;
-    });
-
-    // Ordenar: Destacados > Distância > Rating
-    return filtered.sort((a, b) => {
-      if (a.is_featured && !b.is_featured) return -1;
-      if (!a.is_featured && b.is_featured) return 1;
-      if (userLocation && a.distance !== null && b.distance !== null) {
-        return a.distance - b.distance;
-      }
+    // Ordenar
+    return result.sort((a, b) => {
+      if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1;
+      if (a.distance !== null && b.distance !== null) return a.distance - b.distance;
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkers, searchLocation, filterSize, filterTime, filterDogSitting, filterAnimalType, userLocation]);
+  }, [walkers, searchLocation, filterSize, filterTime, filterAnimalType, filterDogSitting, userLocation]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
