@@ -38,7 +38,7 @@ import {
   Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
   CheckCircle2, FileText, Download, Trash2, User, Plus, Edit, Send, ShoppingBag,
   XCircle, Upload, Eye,
-  RefreshCw, Loader2, ArrowLeft, Zap, TrendingUp, MapPin
+  RefreshCw, Loader2, ArrowLeft, Zap, TrendingUp, MapPin, Building2
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -1600,61 +1600,58 @@ export default function AdminDashboard() {
 
                 <TabsContent value="bookings">
 
-          <TabsContent value="overview">
-            <div className="space-y-6 mt-6">
-
-              {/* Financial Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="glass-panel border-0 shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <DollarSign className="w-8 h-8 text-green-600" />
-                      <Badge className="bg-green-100 text-green-700">Total</Badge>
+                <Card className="glass-panel border-0 shadow-lg" style={{ borderRadius: 0 }}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 flex items-center justify-center" style={{ borderRadius: 0 }}>
+                        <DollarSign className="w-6 h-6 text-white" />
+                      </div>
+                      <Badge className="bg-green-100 text-green-700" style={{ borderRadius: 0 }}>Total</Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">Volume de Transações</p>
-                    <p className="text-2xl font-bold text-green-700">
+                    <p className="text-sm text-gray-600 mb-1">Volume Transações</p>
+                    <p className="text-3xl font-black text-gray-900">
                       €{allPayments.reduce((sum, p) => sum + (p.total_amount || 0), 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
                     </p>
                   </CardContent>
                 </Card>
-
-                <Card className="glass-panel border-0 shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <TrendingUp className="w-8 h-8 text-blue-600" />
-                      <Badge className="bg-blue-100 text-blue-700">Plataforma</Badge>
+                <Card className="glass-panel border-0 shadow-lg" style={{ borderRadius: 0 }}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center" style={{ borderRadius: 0 }}>
+                        <TrendingUp className="w-6 h-6 text-white" />
+                      </div>
+                      <Badge className="bg-blue-100 text-blue-700" style={{ borderRadius: 0 }}>Plataforma</Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">Receita da Plataforma</p>
-                    <p className="text-2xl font-bold text-blue-700">
+                    <p className="text-sm text-gray-600 mb-1">Receita Plataforma</p>
+                    <p className="text-3xl font-black text-gray-900">
                       €{allPayments.reduce((sum, p) => sum + (p.platform_fee || 0), 0).toLocaleString('pt-PT', { minimumFractionDigits: 2 })}
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card className="glass-panel border-0 shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <Crown className="w-8 h-8 text-purple-600" />
-                      <Badge className="bg-purple-100 text-purple-700">Subscrições</Badge>
+                <Card className="glass-panel border-0 shadow-lg" style={{ borderRadius: 0 }}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center" style={{ borderRadius: 0 }}>
+                        <Crown className="w-6 h-6 text-white" />
+                      </div>
+                      <Badge className="bg-purple-100 text-purple-700" style={{ borderRadius: 0 }}>MRR</Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">Receita Mensal Recorrente</p>
-                    <p className="text-2xl font-bold text-purple-700">
-                      €{(() => {
-                        const subscriptions = allUsers.map(u => u.email);
-                        return '0.00';
-                      })()}
-                    </p>
+                    <p className="text-sm text-gray-600 mb-1">Receita Recorrente</p>
+                    <p className="text-3xl font-black text-gray-900">€0.00</p>
                   </CardContent>
                 </Card>
 
-                <Card className="glass-panel border-0 shadow-lg">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <Calendar className="w-8 h-8 text-orange-600" />
-                      <Badge className="bg-orange-100 text-orange-700">Hoje</Badge>
+                <Card className="glass-panel border-0 shadow-lg" style={{ borderRadius: 0 }}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center" style={{ borderRadius: 0 }}>
+                        <Calendar className="w-6 h-6 text-white" />
+                      </div>
+                      <Badge className="bg-orange-100 text-orange-700" style={{ borderRadius: 0 }}>Hoje</Badge>
                     </div>
                     <p className="text-sm text-gray-600 mb-1">Reservas Hoje</p>
-                    <p className="text-2xl font-bold text-orange-700">
+                    <p className="text-3xl font-black text-gray-900">
                       {allBookings.filter(b => {
                         const bookingDate = new Date(b.walk_date || b.session_date || b.created_date);
                         const today = new Date();
@@ -1665,8 +1662,7 @@ export default function AdminDashboard() {
                 </Card>
               </div>
 
-              {/* User Distribution */}
-              <Card className="glass-panel border-0 shadow-xl">
+              <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-gray-700" />
@@ -1675,27 +1671,27 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <div className="p-4 bg-blue-50 border border-blue-200" style={{ borderRadius: 0 }}>
                       <p className="text-sm text-gray-600 mb-1">Clientes</p>
-                      <p className="text-3xl font-bold text-blue-700">
+                      <p className="text-3xl font-black text-blue-700">
                         {allUsers.filter(u => !u.account_type || u.account_type === 'owner').length}
                       </p>
                     </div>
-                    <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                    <div className="p-4 bg-green-50 border border-green-200" style={{ borderRadius: 0 }}>
                       <p className="text-sm text-gray-600 mb-1">Passeadores</p>
-                      <p className="text-3xl font-bold text-green-700">
+                      <p className="text-3xl font-black text-green-700">
                         {allUsers.filter(u => u.account_type === 'walker' || u.account_type === 'both').length}
                       </p>
                     </div>
-                    <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                    <div className="p-4 bg-purple-50 border border-purple-200" style={{ borderRadius: 0 }}>
                       <p className="text-sm text-gray-600 mb-1">Treinadores</p>
-                      <p className="text-3xl font-bold text-purple-700">
+                      <p className="text-3xl font-black text-purple-700">
                         {allUsers.filter(u => u.account_type === 'trainer' || u.account_type === 'both').length}
                       </p>
                     </div>
-                    <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
+                    <div className="p-4 bg-orange-50 border border-orange-200" style={{ borderRadius: 0 }}>
                       <p className="text-sm text-gray-600 mb-1">Empresas</p>
-                      <p className="text-3xl font-bold text-orange-700">
+                      <p className="text-3xl font-black text-orange-700">
                         {allUsers.filter(u => u.account_type === 'company').length}
                       </p>
                     </div>
@@ -1703,9 +1699,8 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Activity Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="glass-panel border-0 shadow-lg">
+                <Card className="glass-panel border-0 shadow-lg" style={{ borderRadius: 0 }}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Calendar className="w-5 h-5 text-indigo-600" />
@@ -1738,7 +1733,7 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="glass-panel border-0 shadow-lg">
+                <Card className="glass-panel border-0 shadow-lg" style={{ borderRadius: 0 }}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Heart className="w-5 h-5 text-pink-600" />
@@ -1763,7 +1758,7 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="glass-panel border-0 shadow-lg">
+                <Card className="glass-panel border-0 shadow-lg" style={{ borderRadius: 0 }}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Star className="w-5 h-5 text-yellow-600" />
@@ -1793,9 +1788,8 @@ export default function AdminDashboard() {
                 </Card>
               </div>
 
-              {/* Professional Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="glass-panel border-0 shadow-lg">
+                <Card className="glass-panel border-0 shadow-lg" style={{ borderRadius: 0 }}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Shield className="w-5 h-5 text-green-600" />
@@ -1824,7 +1818,7 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="glass-panel border-0 shadow-lg">
+                <Card className="glass-panel border-0 shadow-lg" style={{ borderRadius: 0 }}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Store className="w-5 h-5 text-indigo-600" />
@@ -1861,8 +1855,7 @@ export default function AdminDashboard() {
                 </Card>
               </div>
 
-              {/* Recent Activity */}
-              <Card className="glass-panel border-0 shadow-xl">
+              <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-gray-700" />
@@ -1893,9 +1886,8 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Pending Actions */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="glass-panel border-0 shadow-lg border-l-4 border-l-orange-500">
+                <Card className="glass-panel border-0 shadow-lg border-l-4 border-l-orange-500" style={{ borderRadius: 0 }}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <AlertCircle className="w-5 h-5 text-orange-600" />
@@ -1907,7 +1899,7 @@ export default function AdminDashboard() {
                       <Button
                         variant="outline"
                         className="w-full justify-between"
-                        onClick={() => setActiveTab('applications')}
+                        onClick={() => setActiveTab('professionals')}
                         disabled={(walkerApplications.length + trainerApplications.length + shelterApplications.length) === 0}
                       >
                         <span className="text-sm">Verificações Pendentes</span>
@@ -1918,7 +1910,7 @@ export default function AdminDashboard() {
                       <Button
                         variant="outline"
                         className="w-full justify-between"
-                        onClick={() => setActiveTab('services')}
+                        onClick={() => setActiveTab('commerce')}
                         disabled={pendingApprovalServices.length === 0}
                       >
                         <span className="text-sm">Serviços para Aprovar</span>
@@ -1927,7 +1919,7 @@ export default function AdminDashboard() {
                       <Button
                         variant="outline"
                         className="w-full justify-between"
-                        onClick={() => setActiveTab('products')}
+                        onClick={() => setActiveTab('commerce')}
                         disabled={pendingProducts.length === 0}
                       >
                         <span className="text-sm">Produtos para Aprovar</span>
@@ -1937,7 +1929,7 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="glass-panel border-0 shadow-lg border-l-4 border-l-blue-500">
+                <Card className="glass-panel border-0 shadow-lg border-l-4 border-l-blue-500" style={{ borderRadius: 0 }}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <BarChart3 className="w-5 h-5 text-blue-600" />
@@ -1977,6 +1969,7 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
+          <TabsContent value="crm">
             <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
               <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -2057,6 +2050,7 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="users">
             <AdminUserTable
               users={allUsers}
               isLoading={loadingAllUsers}
@@ -2280,18 +2274,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="applications">
-            <div className="space-y-6 mt-6">
-              <AdminVerificationQueue
-                walkers={walkerApplications}
-                trainers={trainerApplications}
-                shelters={shelterApplications}
-                onApprove={handleApproveApplication}
-                onReject={handleRejectApplication}
-                onViewDetails={handleViewApplicationDetails}
-                onRefresh={handleRefreshApplications}
-              />
-              
-              <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
+            <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
@@ -2964,23 +2947,7 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
-                </TabsContent>
-
-                <TabsContent value="analytics">
-                  <AdminAnalytics
-                    users={allUsers}
-                    walkers={allWalkers}
-                    bookings={allBookings}
-                    payments={allPayments}
-                    services={allPartnerServices}
-                    adoptionListings={adoptionListings}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
           </TabsContent>
-
-          <TabsContent value="crm">
             <div className="space-y-6 mt-6">
               <Tabs defaultValue="companies" className="w-full">
                 <TabsList className="grid grid-cols-4 w-full mb-4">
