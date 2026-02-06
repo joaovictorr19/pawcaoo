@@ -243,8 +243,9 @@ export default function Home() {
         return [];
       }
     },
-    staleTime: 2 * 60 * 1000,
-    refetchOnMount: true,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Trainers integrados no WalkerProfile (is_verified_trainer = true)
