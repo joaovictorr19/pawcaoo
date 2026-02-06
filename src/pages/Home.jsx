@@ -270,8 +270,9 @@ export default function Home() {
         return [];
       }
     },
+    enabled: activeTab === 'emergency',
     initialData: [],
-    staleTime: 3 * 60 * 1000, // 3 minutes
+    staleTime: 3 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
