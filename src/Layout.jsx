@@ -231,21 +231,21 @@ function LayoutContent({ children, currentPageName }) {
         const allNotifications = await base44.entities.Notification.filter({ 
           recipient_email: authUser.email,
           is_read: false 
-        }, '-created_date', 20);
+        }, '-created_date', 10);
         return Array.isArray(allNotifications) ? allNotifications : [];
       } catch (error) {
         console.error("Notifications fetch error:", error);
         return [];
       }
     },
-    enabled: !!authUser,
+    enabled: !!authUser?.email,
     initialData: [],
-    staleTime: 2 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
     retry: 1,
-    retryDelay: 500,
+    retryDelay: 1000,
   });
 
 
