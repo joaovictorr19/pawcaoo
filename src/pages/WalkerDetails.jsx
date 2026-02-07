@@ -187,7 +187,7 @@ export default function WalkerDetails() {
     initialData: [],
   });
 
-  const { data: userProfile } = useQuery({
+  const { data: walkerUserProfile } = useQuery({
     queryKey: ['walkerUserProfile', walker?.created_by],
     queryFn: async () => {
       if (!walker?.created_by) return null;
