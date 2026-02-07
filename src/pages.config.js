@@ -109,7 +109,6 @@ import MyWishlist from './pages/MyWishlist';
 import Notifications from './pages/Notifications';
 import OrderSuccess from './pages/OrderSuccess';
 import OwnerSubscriptions from './pages/OwnerSubscriptions';
-import PartnerContentSubmission from './pages/PartnerContentSubmission';
 import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerDetails from './pages/PartnerDetails';
 import PartnerServices from './pages/PartnerServices';
@@ -142,6 +141,7 @@ import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import WalkerWallet from './pages/WalkerWallet';
+import PartnerContentSubmission from './pages/PartnerContentSubmission';
 import __Layout from './Layout.jsx';
 
 
@@ -208,7 +208,6 @@ export const PAGES = {
     "Notifications": Notifications,
     "OrderSuccess": OrderSuccess,
     "OwnerSubscriptions": OwnerSubscriptions,
-    "PartnerContentSubmission": PartnerContentSubmission,
     "PartnerDashboard": PartnerDashboard,
     "PartnerDetails": PartnerDetails,
     "PartnerServices": PartnerServices,
@@ -241,6 +240,7 @@ export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
     "WalkerWallet": WalkerWallet,
+    "PartnerContentSubmission": PartnerContentSubmission,
 }
 
 export const pagesConfig = {
