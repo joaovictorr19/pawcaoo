@@ -1433,12 +1433,12 @@ export default function Home() {
                       </Button>
                     </Card>
                   ) : (
-                    <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {communityPosts.slice(0, 6).map((post) => {
                         // Check if it's an external post (partner/publisher)
                         if (post.is_external && post.external_publisher_id) {
                           const publisherData = publishersData.find(p => p.id === post.external_publisher_id);
-                          
+
                           return (
                             <motion.div
                               key={post.id}
@@ -1447,12 +1447,12 @@ export default function Home() {
                               className="cursor-pointer"
                               onClick={() => navigate(createPageUrl('SocialFeed'))}
                             >
-                              <Card className="border-2 border-blue-100 shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-white to-blue-50/30 overflow-hidden">
+                              <Card className="border-2 border-blue-100 shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-white to-blue-50/30 overflow-hidden h-full flex flex-col">
                                 {/* Publisher Header - Compact Editorial */}
-                                <div className="bg-gradient-to-r from-slate-900 via-gray-800 to-slate-900 p-3 border-b-2 border-blue-500">
+                                <div className="bg-gradient-to-r from-slate-900 via-gray-800 to-slate-900 p-2.5 border-b-2 border-blue-500">
                                   <div className="flex items-center gap-2">
                                     {publisherData?.logo_url && (
-                                      <div className="w-10 h-10 bg-white rounded-lg p-1 shadow-md shrink-0">
+                                      <div className="w-8 h-8 bg-white rounded-lg p-0.5 shadow-md shrink-0">
                                         <img 
                                           src={publisherData.logo_url} 
                                           alt={publisherData.publisher_name} 
@@ -1461,20 +1461,20 @@ export default function Home() {
                                       </div>
                                     )}
                                     <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-1.5">
-                                        <h4 className="font-bold text-white text-sm truncate">
+                                      <div className="flex items-center gap-1">
+                                        <h4 className="font-bold text-white text-xs truncate">
                                           {publisherData?.publisher_name || post.author_name}
                                         </h4>
                                         {publisherData?.is_verified && (
-                                          <CheckCircle className="w-4 h-4 text-blue-400 fill-blue-400 shrink-0" />
+                                          <CheckCircle className="w-3 h-3 text-blue-400 fill-blue-400 shrink-0" />
                                         )}
                                       </div>
-                                      <p className="text-gray-300 text-[10px] truncate">
+                                      <p className="text-gray-300 text-[9px] truncate">
                                         {publisherData?.category === 'news' ? 'Notícias' : 
                                          publisherData?.category === 'magazine' ? 'Revista' : 'Blog'}
                                       </p>
                                     </div>
-                                    <Badge className="bg-white/10 text-white border border-white/20 text-[10px] shrink-0">
+                                    <Badge className="bg-white/10 text-white border border-white/20 text-[9px] shrink-0">
                                       Parceiro
                                     </Badge>
                                   </div>
@@ -1482,7 +1482,7 @@ export default function Home() {
 
                                 {/* Hero Image with Title Overlay */}
                                 {post.media_urls?.length > 0 && (
-                                  <div className="relative w-full aspect-[16/9] bg-gray-900 overflow-hidden group">
+                                  <div className="relative w-full aspect-[3/2] bg-gray-900 overflow-hidden group">
                                     <img 
                                       src={post.media_urls[0]} 
                                       alt={post.title || "Artigo"} 
@@ -1490,8 +1490,8 @@ export default function Home() {
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                                     {post.title && (
-                                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                                        <h3 className="text-white font-bold text-lg md:text-xl leading-tight line-clamp-2 drop-shadow-lg">
+                                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                                        <h3 className="text-white font-bold text-sm leading-tight line-clamp-2 drop-shadow-lg">
                                           {post.title}
                                         </h3>
                                       </div>
@@ -1500,27 +1500,27 @@ export default function Home() {
                                 )}
 
                                 {/* Content Preview */}
-                                <div className="p-4">
+                                <div className="p-3 flex-1 flex flex-col">
                                   {(!post.media_urls || post.media_urls.length === 0) && post.title && (
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+                                    <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">
                                       {post.title}
                                     </h3>
                                   )}
-                                  <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed mb-3">
+                                  <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed mb-3 flex-1">
                                     {post.content}
                                   </p>
 
                                   {/* Engagement Stats */}
-                                  <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-200">
+                                  <div className="flex items-center gap-3 text-xs text-gray-500 pt-2 border-t border-gray-200">
                                     <span className="flex items-center gap-1">
-                                      <Heart className="w-3.5 h-3.5 text-red-500" />
+                                      <Heart className="w-3 h-3 text-red-500" />
                                       {post.likes_count || 0}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                      <MessageCircle className="w-3.5 h-3.5 text-blue-500" />
+                                      <MessageCircle className="w-3 h-3 text-blue-500" />
                                       {post.comments_count || 0}
                                     </span>
-                                    <span className="ml-auto text-[10px] text-gray-400 font-mono uppercase">
+                                    <span className="ml-auto text-[9px] text-gray-400 font-mono uppercase">
                                       {new Date(post.created_date).toLocaleDateString('pt-PT', {
                                         day: '2-digit',
                                         month: 'short'
@@ -1543,38 +1543,38 @@ export default function Home() {
                             className="cursor-pointer"
                             onClick={() => navigate(createPageUrl('SocialFeed'))}
                           >
-                            <Card className="border border-gray-200 shadow-md hover:shadow-xl transition-all bg-white overflow-hidden">
+                            <Card className="border border-gray-200 shadow-md hover:shadow-xl transition-all bg-white overflow-hidden h-full flex flex-col">
                               {post.media_urls?.[0] && (
-                                <div className="relative w-full aspect-video bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden group">
+                                <div className="relative w-full aspect-[3/2] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden group">
                                   <img 
                                     src={post.media_urls[0]} 
                                     alt="Post" 
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                   />
                                   {/* Author Badge Overlay */}
-                                  <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1.5">
-                                    <Avatar className="w-6 h-6 ring-2 ring-white/50">
+                                  <div className="absolute bottom-2 left-2 flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-2 py-1">
+                                    <Avatar className="w-5 h-5 ring-2 ring-white/50">
+                                      <AvatarImage src={post.author_photo_url} />
+                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white text-[9px]">
+                                        {post.author_name?.[0]}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="font-semibold text-white text-[10px]">{post.author_name}</span>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="p-3 flex-1 flex flex-col">
+                                {!post.media_urls?.[0] && (
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Avatar className="w-8 h-8 ring-2 ring-gray-200">
                                       <AvatarImage src={post.author_photo_url} />
                                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white text-xs">
                                         {post.author_name?.[0]}
                                       </AvatarFallback>
                                     </Avatar>
-                                    <span className="font-semibold text-white text-xs">{post.author_name}</span>
-                                  </div>
-                                </div>
-                              )}
-                              <div className="p-4">
-                                {!post.media_urls?.[0] && (
-                                  <div className="flex items-center gap-2 mb-3">
-                                    <Avatar className="w-10 h-10 ring-2 ring-gray-200">
-                                      <AvatarImage src={post.author_photo_url} />
-                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
-                                        {post.author_name?.[0]}
-                                      </AvatarFallback>
-                                    </Avatar>
                                     <div>
-                                      <p className="font-semibold text-sm text-gray-900">{post.author_name}</p>
-                                      <p className="text-xs text-gray-500">
+                                      <p className="font-semibold text-xs text-gray-900">{post.author_name}</p>
+                                      <p className="text-[10px] text-gray-500">
                                         {new Date(post.created_date).toLocaleDateString('pt-PT', {
                                           day: '2-digit',
                                           month: 'short'
@@ -1583,15 +1583,15 @@ export default function Home() {
                                     </div>
                                   </div>
                                 )}
-                                <p className="text-sm text-gray-800 line-clamp-3 leading-relaxed mb-3">
+                                <p className="text-xs text-gray-800 line-clamp-2 leading-relaxed mb-2 flex-1">
                                   {post.content}
                                 </p>
-                                
+
                                 {/* Tags */}
                                 {post.tags?.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mb-3">
-                                    {post.tags.slice(0, 3).map((tag, idx) => (
-                                      <Badge key={idx} variant="outline" className="text-[10px] border-blue-200 text-blue-600">
+                                  <div className="flex flex-wrap gap-1 mb-2">
+                                    {post.tags.slice(0, 2).map((tag, idx) => (
+                                      <Badge key={idx} variant="outline" className="text-[9px] border-blue-200 text-blue-600">
                                         #{tag}
                                       </Badge>
                                     ))}
@@ -1599,23 +1599,23 @@ export default function Home() {
                                 )}
 
                                 {/* Engagement Bar */}
-                                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                  <div className="flex items-center gap-2 text-[10px] text-gray-500">
                                     <span className="flex items-center gap-1 hover:text-red-500 transition-colors">
-                                      <Heart className="w-3.5 h-3.5" />
+                                      <Heart className="w-3 h-3" />
                                       {post.likes_count || 0}
                                     </span>
                                     <span className="flex items-center gap-1 hover:text-blue-500 transition-colors">
-                                      <MessageCircle className="w-3.5 h-3.5" />
+                                      <MessageCircle className="w-3 h-3" />
                                       {post.comments_count || 0}
                                     </span>
                                   </div>
                                   <Button 
                                     variant="ghost" 
                                     size="sm"
-                                    className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    className="h-6 px-1.5 text-[9px] text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                   >
-                                    Ver Post
+                                    Ver
                                   </Button>
                                 </div>
                               </div>
