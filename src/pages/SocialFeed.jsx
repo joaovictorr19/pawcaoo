@@ -51,6 +51,7 @@ import OptimizedImageUpload from "../components/adoption/OptimizedImageUpload"; 
 import { Label } from "@/components/ui/label"; // New import
 import { Input } from "@/components/ui/input"; // New import for scheduling
 import TrendingSection from "../components/social/TrendingSection"; // New import
+import ExternalPostCard from "../components/social/ExternalPostCard"; // Import for partner posts
 
 export default function SocialFeed() {
   const navigate = useNavigate();
@@ -220,6 +221,16 @@ export default function SocialFeed() {
     queryFn: async () => {
       const users = await base44.entities.User.list();
       return users;
+    },
+    staleTime: 60000,
+  });
+
+  // Fetch publishers data for external posts
+  const { data: publishersData = [] } = useQuery({
+    queryKey: ['externalPublishers'],
+    queryFn: async () => {
+      const publishers = await base44.entities.ExternalPublisher.list();
+      return publishers;
     },
     staleTime: 60000,
   });
@@ -824,6 +835,25 @@ export default function SocialFeed() {
                   const postComments = postCommentsMap[post.id] || [];
                   const showingComments = commentingPostId === post.id;
 
+                  // RENDER SPECIAL LAYOUT FOR EXTERNAL POSTS (Partner/Publisher)
+                  if (post.is_external && post.external_publisher_id) {
+                    const publisherData = publishersData.find(p => p.id === post.external_publisher_id);
+                    
+                    return (
+                      <ExternalPostCard
+                        key={post.id}
+                        post={post}
+                        publisherData={publisherData}
+                        userLiked={userLiked}
+                        onLike={handleLike}
+                        onComment={(postId) => setCommentingPostId(commentingPostId === postId ? null : postId)}
+                        onNavigateToProfile={handleNavigateToProfile}
+                        isLikePending={likeMutation.isPending}
+                      />
+                    );
+                  }
+
+                  // STANDARD USER POST
                   return (
                     <motion.div key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ delay: index * 0.05 }}>
                       <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow bg-white">

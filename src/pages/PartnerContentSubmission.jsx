@@ -22,10 +22,12 @@ export default function PartnerContentSubmission() {
   const [selectedPublisherId, setSelectedPublisherId] = useState("");
 
   const [postData, setPostData] = useState({
+    title: "",
     content: "",
     media_urls: [],
     tags: [],
     location: "",
+    external_url: "",
     scheduled_publish_date: ""
   });
 
@@ -74,10 +76,12 @@ export default function PartnerContentSubmission() {
       
       // Reset form
       setPostData({
+        title: "",
         content: "",
         media_urls: [],
         tags: [],
         location: "",
+        external_url: "",
         scheduled_publish_date: ""
       });
       setEventData({
@@ -112,8 +116,18 @@ export default function PartnerContentSubmission() {
   });
 
   const handleSubmitPost = () => {
-    if (!postData.content.trim() && postData.media_urls.length === 0) {
-      toast.error("Adicione conteúdo ou mídia para publicar");
+    if (!postData.title.trim()) {
+      toast.error("Adicione um título para o artigo");
+      return;
+    }
+
+    if (!postData.content.trim()) {
+      toast.error("Adicione conteúdo ao artigo");
+      return;
+    }
+
+    if (postData.media_urls.length === 0) {
+      toast.error("Adicione pelo menos uma imagem para o layout editorial");
       return;
     }
 
@@ -284,28 +298,48 @@ export default function PartnerContentSubmission() {
 
             {/* Post Tab */}
             <TabsContent value="SocialPost">
-              <Card className="rounded-2xl shadow-lg border border-gray-200">
-                <CardContent className="p-6 space-y-4">
+              <Card className="rounded-2xl shadow-lg border border-gray-200 bg-gradient-to-br from-white to-blue-50/20">
+                <CardContent className="p-6 space-y-5">
+                  {/* Editorial Title */}
+                  <div className="bg-gradient-to-r from-slate-900 to-gray-800 rounded-xl p-4 mb-2">
+                    <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                      <Newspaper className="w-5 h-5" />
+                      Criar Artigo Editorial
+                    </h3>
+                    <p className="text-gray-300 text-xs mt-1">Layout premium estilo jornal com título em destaque</p>
+                  </div>
+
                   <div>
-                    <Label className="font-semibold text-gray-700">Conteúdo *</Label>
-                    <Textarea
-                      value={postData.content}
-                      onChange={(e) => setPostData({ ...postData, content: e.target.value })}
-                      placeholder="Escreva o conteúdo do post..."
-                      rows={5}
-                      className="rounded-xl shadow-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    <Label className="font-bold text-gray-900 text-sm mb-2 block">Título da Manchete *</Label>
+                    <Input
+                      value={postData.title}
+                      onChange={(e) => setPostData({ ...postData, title: e.target.value })}
+                      placeholder="Ex: Nova Clínica Veterinária Abre na Baixa de Lisboa"
+                      className="text-lg font-semibold rounded-xl shadow-sm border-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
 
                   <div>
-                    <Label className="font-semibold text-gray-700 mb-2 block">Mídia</Label>
+                    <Label className="font-bold text-gray-900 text-sm mb-2 block">Conteúdo do Artigo *</Label>
+                    <Textarea
+                      value={postData.content}
+                      onChange={(e) => setPostData({ ...postData, content: e.target.value })}
+                      placeholder="Escreva o conteúdo completo do artigo..."
+                      rows={8}
+                      className="rounded-xl shadow-sm border-2 border-blue-200 focus:border-blue-500 focus:ring-blue-500 font-serif"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="font-bold text-gray-900 text-sm mb-2 block">Imagem Principal (Obrigatório para layout editorial)</Label>
                     <OptimizedImageUpload
                       onImagesChange={(urls) => setPostData({ ...postData, media_urls: urls })}
                       currentImages={postData.media_urls}
-                      maxImages={10}
-                      maxSizeKB={500}
+                      maxImages={5}
+                      maxSizeKB={800}
                       showPreview={true}
                     />
+                    <p className="text-xs text-gray-500 mt-2">Recomendado: 1200x630px para melhor visualização</p>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
@@ -319,28 +353,51 @@ export default function PartnerContentSubmission() {
                       />
                     </div>
                     <div>
-                      <Label className="font-semibold text-gray-700">Agendar Publicação (Opcional)</Label>
+                      <Label className="font-semibold text-gray-700">Link Externo (Opcional)</Label>
                       <Input
-                        type="datetime-local"
-                        value={postData.scheduled_publish_date}
-                        onChange={(e) => setPostData({ ...postData, scheduled_publish_date: e.target.value })}
-                        min={new Date().toISOString().slice(0, 16)}
+                        value={postData.external_url}
+                        onChange={(e) => setPostData({ ...postData, external_url: e.target.value })}
+                        placeholder="https://seusite.com/artigo"
                         className="rounded-lg shadow-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                   </div>
 
+                  <div>
+                    <Label className="font-semibold text-gray-700">Agendar Publicação (Opcional)</Label>
+                    <Input
+                      type="datetime-local"
+                      value={postData.scheduled_publish_date}
+                      onChange={(e) => setPostData({ ...postData, scheduled_publish_date: e.target.value })}
+                      min={new Date().toISOString().slice(0, 16)}
+                      className="rounded-lg shadow-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Preview Badge */}
+                  {postData.title && postData.content && postData.media_urls.length > 0 && (
+                    <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                      <div className="flex items-center gap-2 text-green-700 mb-2">
+                        <CheckCircle className="w-5 h-5" />
+                        <span className="font-bold">Preview OK - Layout Editorial Pronto</span>
+                      </div>
+                      <p className="text-xs text-green-600">
+                        ✓ Título, imagem e conteúdo preenchidos. Artigo será exibido com layout premium tipo jornal.
+                      </p>
+                    </div>
+                  )}
+
                   <Button
                     onClick={handleSubmitPost}
-                    disabled={submitContentMutation.isPending || (!postData.content.trim() && postData.media_urls.length === 0)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg rounded-xl"
+                    disabled={submitContentMutation.isPending || !postData.title.trim() || !postData.content.trim() || postData.media_urls.length === 0}
+                    className="w-full bg-gradient-to-r from-slate-900 via-gray-800 to-slate-900 hover:from-slate-800 hover:via-gray-700 hover:to-slate-800 text-white shadow-lg rounded-xl font-bold text-base h-12"
                   >
                     {submitContentMutation.isPending ? (
-                      "Enviando..."
+                      "Publicando artigo..."
                     ) : (
                       <>
-                        <Send className="w-4 h-4 mr-2" />
-                        {postData.scheduled_publish_date ? 'Agendar Post' : 'Enviar para Revisão'}
+                        <Newspaper className="w-5 h-5 mr-2" />
+                        {postData.scheduled_publish_date ? 'Agendar Artigo Editorial' : 'Publicar Artigo Agora'}
                       </>
                     )}
                   </Button>
