@@ -132,7 +132,7 @@ export default function UserManagementPanel() {
 
       if (professionalType === "walker" || professionalType === "both") {
         operations.push(
-          base44.entities.WalkerProfile.create({
+          base44.asServiceRole.entities.WalkerProfile.create({
             ...profileData,
             user_id: userId,
             created_by: userEmail,
@@ -143,7 +143,7 @@ export default function UserManagementPanel() {
 
       if (professionalType === "trainer" || professionalType === "both") {
         operations.push(
-          base44.entities.TrainerProfile.create({
+          base44.asServiceRole.entities.TrainerProfile.create({
             trainer_name: profileData.walker_name,
             user_id: userId,
             created_by: userEmail,
@@ -165,7 +165,7 @@ export default function UserManagementPanel() {
       }
 
       operations.push(
-        base44.entities.User.update(userId, { account_type: newAccountType })
+        base44.asServiceRole.entities.User.update(userId, { account_type: newAccountType })
       );
 
       return Promise.all(operations);
