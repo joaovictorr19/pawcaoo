@@ -52,7 +52,9 @@ export default function UserManagementPanel() {
   const [showPointsDialog, setShowPointsDialog] = useState(false);
 
   const [editFormData, setEditFormData] = useState({});
-  const [professionalFormData, setProfessionalFormData] = useState({});
+  const [professionalFormData, setProfessionalFormData] = useState({
+    professionalType: "walker",
+  });
   const [badgesData, setBadgesData] = useState({});
   const [pointsData, setPointsData] = useState({});
 
@@ -64,18 +66,18 @@ export default function UserManagementPanel() {
   });
 
   // Fetch user profiles
-   const { data: userProfiles = [] } = useQuery({
-     queryKey: ["userProfiles"],
-     queryFn: () => base44.entities.UserProfile.list("-created_date", 1000),
-     staleTime: 30000,
-   });
+  const { data: userProfiles = [] } = useQuery({
+    queryKey: ["userProfiles"],
+    queryFn: () => base44.entities.UserProfile.list("-created_date", 1000),
+    staleTime: 30000,
+  });
 
-   // Fetch loyalty points
-   const { data: loyaltyPoints = [] } = useQuery({
-     queryKey: ["loyaltyPoints"],
-     queryFn: () => base44.entities.LoyaltyPoints.list("-created_date", 1000),
-     staleTime: 30000,
-   });
+  // Fetch loyalty points
+  const { data: loyaltyPoints = [] } = useQuery({
+    queryKey: ["loyaltyPoints"],
+    queryFn: () => base44.entities.LoyaltyPoints.list("-created_date", 1000),
+    staleTime: 30000,
+  });
 
   // Mutations
   const updateUserMutation = useMutation({
@@ -89,13 +91,62 @@ export default function UserManagementPanel() {
     onError: (error) => toast.error("Erro: " + error.message),
   });
 
-  const createWalkerMutation = useMutation({
-    mutationFn: (data) => base44.entities.WalkerProfile.create(data),
+  const createProfessionalMutation = useMutation({
+    mutationFn: async (data) => {
+      const { professionalType, ...profileData } = data;
+      const userId = profileData.user_id;
+      const userEmail = selectedUser?.email;
+
+      const operations = [];
+      let newAccountType = "owner";
+
+      if (professionalType === "walker" || professionalType === "both") {
+        operations.push(
+          base44.entities.WalkerProfile.create({
+            ...profileData,
+            user_id: userId,
+            created_by: userEmail,
+          })
+        );
+        newAccountType = professionalType === "both" ? "both" : "walker";
+      }
+
+      if (professionalType === "trainer" || professionalType === "both") {
+        operations.push(
+          base44.entities.TrainerProfile.create({
+            trainer_name: profileData.walker_name,
+            user_id: userId,
+            created_by: userEmail,
+            location: profileData.location,
+            hourly_rate: profileData.hourly_rate,
+            phone: profileData.whatsapp_number,
+            bio: profileData.bio,
+            experience_years: profileData.experience_years,
+            is_verified_trainer: profileData.is_verified_trainer || true,
+            training_specialties: profileData.training_specialties || [],
+            training_philosophy: profileData.training_philosophy || "",
+            availability: profileData.availability || [],
+            dog_sizes: profileData.dog_sizes || [],
+            accepted_animals: ["dogs"],
+            verification_status: "verified",
+          })
+        );
+        newAccountType = professionalType === "both" ? "both" : "trainer";
+      }
+
+      operations.push(
+        base44.entities.User.update(userId, { account_type: newAccountType })
+      );
+
+      return Promise.all(operations);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
-      toast.success("Perfil de passeador criado!");
+      queryClient.invalidateQueries({ queryKey: ["userProfiles"] });
+      toast.success("Conta profissional criada com sucesso!");
       setShowProfessionalDialog(false);
-      setProfessionalFormData({});
+      setProfessionalFormData({ professionalType: "walker" });
+      setSelectedUser(null);
     },
     onError: (error) => toast.error("Erro: " + error.message),
   });
@@ -176,6 +227,10 @@ export default function UserManagementPanel() {
       dog_sizes: [],
       availability: [],
       verification_status: "pending",
+      professionalType: "walker",
+      training_specialties: [],
+      training_philosophy: "",
+      is_verified_trainer: true,
     });
     setShowProfessionalDialog(true);
   };
@@ -186,13 +241,7 @@ export default function UserManagementPanel() {
       return;
     }
 
-    createWalkerMutation.mutate(professionalFormData);
-
-    // Update user account_type
-    updateUserMutation.mutate({
-      id: selectedUser.id,
-      data: { account_type: "walker" },
-    });
+    createProfessionalMutation.mutate(professionalFormData);
   };
 
   const handleOpenBadgesDialog = (user) => {
@@ -474,11 +523,33 @@ export default function UserManagementPanel() {
       <Dialog open={showProfessionalDialog} onOpenChange={setShowProfessionalDialog}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Criar Conta Profissional (Passeador)</DialogTitle>
+            <DialogTitle>Criar Conta Profissional</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="walker_name">Nome do Passeador</Label>
+              <Label htmlFor="professionalType">Tipo de Profissional</Label>
+              <Select
+                value={professionalFormData.professionalType || "walker"}
+                onValueChange={(value) =>
+                  setProfessionalFormData({
+                    ...professionalFormData,
+                    professionalType: value,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="walker">Passeador</SelectItem>
+                  <SelectItem value="trainer">Treinador</SelectItem>
+                  <SelectItem value="both">Ambos (Passeador e Treinador)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="walker_name">Nome do Profissional</Label>
               <Input
                 id="walker_name"
                 value={professionalFormData.walker_name || ""}
@@ -490,6 +561,7 @@ export default function UserManagementPanel() {
                 }
               />
             </div>
+
             <div>
               <Label htmlFor="location">Localização</Label>
               <Input
@@ -503,6 +575,7 @@ export default function UserManagementPanel() {
                 }
               />
             </div>
+
             <div>
               <Label htmlFor="hourly_rate">Taxa Horária (€)</Label>
               <Input
@@ -517,6 +590,7 @@ export default function UserManagementPanel() {
                 }
               />
             </div>
+
             <div>
               <Label htmlFor="whatsapp_number">WhatsApp</Label>
               <Input
@@ -530,6 +604,7 @@ export default function UserManagementPanel() {
                 }
               />
             </div>
+
             <div>
               <Label htmlFor="bio">Biografia</Label>
               <Input
@@ -543,17 +618,73 @@ export default function UserManagementPanel() {
                 }
               />
             </div>
+
+            {professionalFormData.professionalType === "trainer" ||
+            professionalFormData.professionalType === "both" ? (
+              <>
+                <div>
+                  <Label htmlFor="training_specialties">Especialidades (separadas por vírgula)</Label>
+                  <Input
+                    id="training_specialties"
+                    value={professionalFormData.training_specialties?.join(", ") || ""}
+                    onChange={(e) =>
+                      setProfessionalFormData({
+                        ...professionalFormData,
+                        training_specialties: e.target.value.split(",").map((s) => s.trim()),
+                      })
+                    }
+                    placeholder="obediência, agilidade, comportamento"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="training_philosophy">Filosofia de Treino</Label>
+                  <Input
+                    id="training_philosophy"
+                    value={professionalFormData.training_philosophy || ""}
+                    onChange={(e) =>
+                      setProfessionalFormData({
+                        ...professionalFormData,
+                        training_philosophy: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-purple-50 rounded">
+                  <input
+                    type="checkbox"
+                    id="is_verified_trainer"
+                    checked={professionalFormData.is_verified_trainer || false}
+                    onChange={(e) =>
+                      setProfessionalFormData({
+                        ...professionalFormData,
+                        is_verified_trainer: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4"
+                  />
+                  <Label htmlFor="is_verified_trainer" className="flex-1 cursor-pointer">
+                    <span className="font-semibold text-purple-700">🟣 Treinador Verificado</span>
+                    <p className="text-xs text-purple-600 mt-0.5">
+                      Treinadores verificados aparecem com selo especial
+                    </p>
+                  </Label>
+                </div>
+              </>
+            ) : null}
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowProfessionalDialog(false)}>
               Cancelar
             </Button>
             <Button
               onClick={handleCreateProfessional}
-              disabled={createWalkerMutation.isPending}
+              disabled={createProfessionalMutation.isPending}
               className="bg-green-600 hover:bg-green-700"
             >
-              {createWalkerMutation.isPending ? (
+              {createProfessionalMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 "Criar Profissional"
@@ -679,6 +810,6 @@ export default function UserManagementPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </div>
-      );
-      }
+    </div>
+  );
+}
