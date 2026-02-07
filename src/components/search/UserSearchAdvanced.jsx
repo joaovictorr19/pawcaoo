@@ -99,12 +99,12 @@ export default function UserSearchAdvanced({ onSearch, usersSource = [], classNa
     }
   }, [searchTerm, activeSource]);
 
-  // Apply Search
+  // Apply Search - Optimized to prevent infinite loops
   useEffect(() => {
     if (onSearch) {
       onSearch({ searchTerm, filters });
     }
-  }, [searchTerm, filters, onSearch]);
+  }, [searchTerm, filters]);
 
   const handleSaveSearch = useMutation({
     mutationFn: async () => {
