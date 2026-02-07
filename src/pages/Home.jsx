@@ -1372,24 +1372,6 @@ export default function Home() {
 
               <TabsContent value="comunidade">
                 <div>
-                  <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-                        <Rss className="w-6 h-6 md:w-7 md:h-7 text-blue-600" />
-                        {language === 'pt' ? 'Comunidade PawCão' : language === 'es' ? 'Comunidad PawCão' : 'PawCão Community'}
-                      </h2>
-                      <p className="text-xs md:text-base text-gray-700 mt-1">
-                        {language === 'pt' ? 'Partilhe momentos, notícias e conecte-se com outros amantes de pets' : 'Share moments, news and connect with pet lovers'}
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => navigate(createPageUrl('SocialFeed'))}
-                      className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
-                      size="sm"
-                    >
-                      Ver Tudo
-                    </Button>
-                  </div>
 
                   {loadingCommunity ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
