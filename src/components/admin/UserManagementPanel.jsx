@@ -116,18 +116,20 @@ export default function UserManagementPanel() {
         walkerName: selectedUser.full_name,
       });
       if (!response.data?.success) {
-        throw new Error(response.data?.message || "Erro desconhecido");
+        throw new Error(response.data?.error || "Erro desconhecido");
       }
+      // Aguarda um pouco para a DB atualizar
+      await new Promise(resolve => setTimeout(resolve, 500));
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["walkerProfile", selectedUser.email] });
-      toast.success("Perfil de passeador criado com sucesso!");
-      setActivePanel("verification");
+    onSuccess: async (data) => {
+      // Força refetch imediato
+      await queryClient.refetchQueries({ queryKey: ["walkerProfile", selectedUser.email] });
+      toast.success("✅ Perfil criado! ID: " + data.walkerId);
+      setTimeout(() => setActivePanel("verification"), 300);
     },
     onError: (error) => {
-      console.error("Erro ao criar perfil:", error);
-      toast.error(error?.response?.data?.message || error?.message || "Erro ao criar perfil");
+      toast.error("❌ " + (error?.message || "Erro ao criar perfil"));
     },
   });
 
