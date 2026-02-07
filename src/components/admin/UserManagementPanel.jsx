@@ -349,12 +349,13 @@ export default function UserManagementPanel() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2 justify-end">
+                          <div className="flex gap-2 justify-end flex-wrap">
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleEditUser(user)}
                               className="h-8 px-2"
+                              title="Editar perfil"
                             >
                               <Edit className="w-3.5 h-3.5" />
                             </Button>
@@ -363,8 +364,18 @@ export default function UserManagementPanel() {
                               variant="outline"
                               onClick={() => handleOpenBadgesDialog(user)}
                               className="h-8 px-2"
+                              title="Gerir emblemas"
                             >
                               <Award className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenPointsDialog(user)}
+                              className="h-8 px-2 border-yellow-300 text-yellow-600 hover:bg-yellow-50"
+                              title="Gerir pontos de lealdade"
+                            >
+                              <Zap className="w-3.5 h-3.5" />
                             </Button>
                             {(!user.account_type || user.account_type === "owner") && (
                               <Button
@@ -372,6 +383,7 @@ export default function UserManagementPanel() {
                                 variant="outline"
                                 onClick={() => handleOpenProfessionalDialog(user)}
                                 className="h-8 px-2 border-green-300 text-green-600 hover:bg-green-50"
+                                title="Criar conta profissional"
                               >
                                 <Plus className="w-3.5 h-3.5" />
                               </Button>
