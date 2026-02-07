@@ -94,7 +94,7 @@ export default function Home() {
   const [userLocation, setUserLocation] = useState(null);
   const [viewMode, setViewMode] = useState("list");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 8;
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -1348,7 +1348,7 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-md inline-block">
                       <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-                        <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500 fill-orange-500" />
+                        <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-600 fill-orange-600" />
                         {t('dogsNeedingHelpTitle', language)}
                       </h2>
                       <p className="text-xs md:text-sm text-gray-700 mt-1 flex items-center gap-1 font-medium">
@@ -1371,7 +1371,7 @@ export default function Home() {
                   ) : filteredEmergencyWalks.length === 0 ? (
                     <div className="text-center py-12 md:py-16">
                       <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                        <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
+                        <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-600" />
                       </div>
                       <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">{t('noEmergencies', language)}</h3>
                       <p className="text-sm md:text-base text-gray-600">{t('checkBackLater', language)}</p>
