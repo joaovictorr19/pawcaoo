@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -85,7 +84,7 @@ export default function SocialEvents() {
         allowed_dog_sizes: [],
         tags: [],
       });
-      toast.success("Evento criado com sucesso! 🎉");
+      toast.success("Evento criado com sucesso!");
     },
   });
 
@@ -136,18 +135,20 @@ export default function SocialEvents() {
     }
   };
 
-  const getEventTypeIcon = (type) => {
-    const icons = {
-      walk: "🚶",
-      meetup: "👥",
-      training: "🎓",
-      adoption: "🏠",
-      party: "🎉",
-      competition: "🏆",
-      charity: "❤️",
-      other: "📅"
+  const getEventTypeLabel = (type) => {
+    const labels = {
+      walk: "Caminhada",
+      meetup: "Encontro",
+      training: "Treino",
+      adoption: "Adoção",
+      party: "Festa",
+      competition: "Competição",
+      charity: "Caridade",
+      health: "Saúde",
+      educational: "Educacional",
+      other: "Outro"
     };
-    return icons[type] || "📅";
+    return labels[type] || "Evento";
   };
 
   const getEventTypeColor = (type) => {
@@ -172,10 +173,10 @@ export default function SocialEvents() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl md:text-5xl font-black text-gray-900">
-                Eventos Pet-Friendly 🎉
+                Eventos da Comunidade
               </h1>
               <p className="text-gray-600 font-medium mt-2">
-                Encontre e participe de eventos incríveis com outros donos e seus pets
+                Encontre e participe de eventos pet-friendly na sua região
               </p>
             </div>
             <Button
@@ -251,13 +252,16 @@ export default function SocialEvents() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="walk">🚶 Passeio</SelectItem>
-                          <SelectItem value="meetup">👥 Encontro</SelectItem>
-                          <SelectItem value="training">🎓 Treino</SelectItem>
-                          <SelectItem value="adoption">🏠 Adoção</SelectItem>
-                          <SelectItem value="party">🎉 Festa</SelectItem>
-                          <SelectItem value="competition">🏆 Competição</SelectItem>
-                          <SelectItem value="charity">❤️ Caridade</SelectItem>
+                          <SelectItem value="walk">Caminhada em Grupo</SelectItem>
+                          <SelectItem value="meetup">Encontro Pet-Friendly</SelectItem>
+                          <SelectItem value="training">Treino & Workshop</SelectItem>
+                          <SelectItem value="adoption">Feira de Adoção</SelectItem>
+                          <SelectItem value="party">Festa Canina</SelectItem>
+                          <SelectItem value="competition">Competição Pet</SelectItem>
+                          <SelectItem value="charity">Evento de Caridade</SelectItem>
+                          <SelectItem value="health">Saúde & Bem-Estar</SelectItem>
+                          <SelectItem value="educational">Educacional</SelectItem>
+                          <SelectItem value="other">Outro Tipo</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -407,11 +411,12 @@ export default function SocialEvents() {
         <Tabs defaultValue="all" onValueChange={setFilterType} className="mb-6">
           <TabsList className="bg-white/80 backdrop-blur-lg shadow-lg rounded-xl p-2 flex-wrap h-auto">
             <TabsTrigger value="all" className="rounded-lg">Todos</TabsTrigger>
-            <TabsTrigger value="walk" className="rounded-lg">🚶 Passeios</TabsTrigger>
-            <TabsTrigger value="meetup" className="rounded-lg">👥 Encontros</TabsTrigger>
-            <TabsTrigger value="training" className="rounded-lg">🎓 Treinos</TabsTrigger>
-            <TabsTrigger value="adoption" className="rounded-lg">🏠 Adoção</TabsTrigger>
-            <TabsTrigger value="party" className="rounded-lg">🎉 Festas</TabsTrigger>
+            <TabsTrigger value="walk" className="rounded-lg">Caminhadas</TabsTrigger>
+            <TabsTrigger value="meetup" className="rounded-lg">Encontros</TabsTrigger>
+            <TabsTrigger value="training" className="rounded-lg">Treinos</TabsTrigger>
+            <TabsTrigger value="adoption" className="rounded-lg">Adoção</TabsTrigger>
+            <TabsTrigger value="party" className="rounded-lg">Festas</TabsTrigger>
+            <TabsTrigger value="competition" className="rounded-lg">Competições</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -457,8 +462,8 @@ export default function SocialEvents() {
                           alt={event.title}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-6xl">
-                          {getEventTypeIcon(event.event_type)}
+                        <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${getEventTypeColor(event.event_type)}`}>
+                          <Calendar className="w-16 h-16 text-white/80" />
                         </div>
                       )}
                       <div className={`absolute top-4 right-4 px-3 py-1 rounded-full bg-gradient-to-r ${getEventTypeColor(event.event_type)} text-white text-xs font-bold shadow-lg`}>
@@ -494,14 +499,14 @@ export default function SocialEvents() {
                           onClick={() => joinEventMutation.mutate({ eventId: event.id, status: 'going' })}
                           className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                         >
-                          ✓ Vou
+                          Confirmar Presença
                         </Button>
                         <Button
                           onClick={() => joinEventMutation.mutate({ eventId: event.id, status: 'interested' })}
                           variant="outline"
                           className="flex-1"
                         >
-                          ⭐ Interessado
+                          Tenho Interesse
                         </Button>
                       </div>
                     </CardContent>
