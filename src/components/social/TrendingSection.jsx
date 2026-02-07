@@ -3,303 +3,275 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { TrendingUp, Calendar, Heart, Hash, MapPin, CheckCircle, Shield, ShieldCheck, Crown } from "lucide-react";
-import { motion } from "framer-motion";
+import { TrendingUp, Hash, Flame, Eye, MessageCircle, Heart, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function TrendingSection() {
   const navigate = useNavigate();
 
-  // Trending Hashtags
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  // Fetch trending hashtags
   const { data: trendingHashtags = [] } = useQuery({
     queryKey: ['trendingHashtags'],
     queryFn: async () => {
-      const hashtags = await base44.entities.SocialHashtag.filter({ is_trending: true }, '-trending_score', 5);
-      return hashtags;
+      const allPosts = await base44.entities.SocialPost.filter({ 
+        moderation_status: 'approved',
+        is_public: true 
+      });
+
+      // Count hashtag occurrences with engagement weight
+      const hashtagMap = {};
+      
+      allPosts.forEach(post => {
+        const engagementWeight = 1 + (post.likes_count || 0) * 0.3 + (post.comments_count || 0) * 0.5;
+        
+        if (post.hashtags && Array.isArray(post.hashtags)) {
+          post.hashtags.forEach(tag => {
+            if (hashtagMap[tag]) {
+              hashtagMap[tag].count += engagementWeight;
+              hashtagMap[tag].posts++;
+            } else {
+              hashtagMap[tag] = { 
+                tag, 
+                count: engagementWeight, 
+                posts: 1 
+              };
+            }
+          });
+        }
+        
+        // Also parse tags from content
+        if (post.tags && Array.isArray(post.tags)) {
+          post.tags.forEach(tag => {
+            const cleanTag = tag.replace('#', '');
+            if (hashtagMap[cleanTag]) {
+              hashtagMap[cleanTag].count += engagementWeight;
+              hashtagMap[cleanTag].posts++;
+            } else {
+              hashtagMap[cleanTag] = { 
+                tag: cleanTag, 
+                count: engagementWeight, 
+                posts: 1 
+              };
+            }
+          });
+        }
+      });
+
+      // Convert to array and sort by weighted count
+      const trending = Object.values(hashtagMap)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      return trending;
     },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  // Fetch trending posts (high engagement)
+  const { data: trendingPosts = [] } = useQuery({
+    queryKey: ['trendingPosts'],
+    queryFn: async () => {
+      const allPosts = await base44.entities.SocialPost.filter({ 
+        moderation_status: 'approved',
+        is_public: true 
+      }, '-created_date', 50);
+
+      // Calculate trending score
+      const postsWithScore = allPosts.map(post => {
+        const now = Date.now();
+        const postAge = now - new Date(post.created_date).getTime();
+        const hoursOld = postAge / (1000 * 60 * 60);
+        
+        // Viral score: high engagement + recency
+        const engagementScore = 
+          (post.likes_count || 0) * 2 + 
+          (post.comments_count || 0) * 3 + 
+          (post.shares_count || 0) * 5;
+        
+        // Boost recent posts
+        const recencyMultiplier = Math.max(0.5, 2 - (hoursOld / 24));
+        
+        const viralScore = engagementScore * recencyMultiplier;
+        
+        return {
+          ...post,
+          _viralScore: viralScore
+        };
+      });
+
+      // Sort by viral score
+      const trending = postsWithScore
+        .filter(p => p._viralScore > 5) // Minimum threshold
+        .sort((a, b) => b._viralScore - a._viralScore)
+        .slice(0, 5);
+
+      return trending;
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Fetch suggested users to follow
+  const { data: suggestedUsers = [] } = useQuery({
+    queryKey: ['suggestedUsers', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+
+      // Get users with most followers
+      const allUsers = await base44.entities.UserProfile.list('-followers_count');
+      
+      // Filter out self and already followed
+      const userFollows = await base44.entities.SocialFollow.filter({ 
+        follower_email: user.email 
+      });
+      const followingEmails = userFollows.map(f => f.following_email);
+
+      const suggested = allUsers
+        .filter(u => u.user_email !== user.email && !followingEmails.includes(u.user_email))
+        .slice(0, 5);
+
+      return suggested;
+    },
+    enabled: !!user?.email,
     staleTime: 5 * 60 * 1000,
   });
-
-  // Upcoming Events
-  const { data: upcomingEvents = [] } = useQuery({
-    queryKey: ['upcomingEvents'],
-    queryFn: async () => {
-      const now = new Date().toISOString();
-      const events = await base44.entities.SocialEvent.filter({
-        status: 'published',
-        start_date: { $gte: now }
-      }, 'start_date', 3);
-      return events;
-    },
-    staleTime: 10 * 60 * 1000,
-  });
-
-  // Featured Adoption Pets
-  const { data: adoptionPets = [] } = useQuery({
-    queryKey: ['featuredAdoptions'],
-    queryFn: async () => {
-      const pets = await base44.entities.AdoptionListing.filter({
-        status: 'available',
-        urgency_level: { $in: ['urgent', 'critical'] }
-      }, '-created_date', 3);
-      return pets;
-    },
-    staleTime: 15 * 60 * 1000,
-  });
-
-  // Top Contributors (Users com mais posts/atividade)
-  const { data: topUsers = [] } = useQuery({
-    queryKey: ['topContributors'],
-    queryFn: async () => {
-      const users = await base44.entities.User.list('-total_posts', 5);
-      return users.filter(u => u.total_posts > 0);
-    },
-    staleTime: 10 * 60 * 1000,
-  });
-
-  const getBadgeIcon = (badge) => {
-    if (badge.badge_id === 'verified') return <CheckCircle className="w-3 h-3 text-blue-500 fill-blue-500" />;
-    if (badge.badge_id === 'admin') return <Shield className="w-3 h-3 text-red-500" />;
-    if (badge.badge_id === 'moderator') return <ShieldCheck className="w-3 h-3 text-blue-500" />;
-    if (badge.badge_id === 'vip_member') return <Crown className="w-3 h-3 text-yellow-500" />;
-    return null;
-  };
 
   return (
     <div className="space-y-4">
       {/* Trending Hashtags */}
-      {trendingHashtags.length > 0 && (
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-blue-50 overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-            <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-4 h-4" />
-              </div>
-              Tendências
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-4">
-            {trendingHashtags.map((hashtag, idx) => (
-              <motion.div
-                key={hashtag.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex items-center justify-between p-3 hover:bg-blue-100/50 rounded-xl cursor-pointer transition-all group"
-                onClick={() => navigate(createPageUrl(`SocialFeed?hashtag=${hashtag.hashtag}`))}
+      <Card className="border border-gray-200 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Flame className="w-5 h-5 text-orange-500" />
+            Tendências
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {trendingHashtags.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">
+              Sem tendências no momento
+            </p>
+          ) : (
+            trendingHashtags.map((item, index) => (
+              <button
+                key={item.tag}
+                onClick={() => navigate(createPageUrl(`SocialFeed?hashtag=${item.tag}`))}
+                className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors group"
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                    <Hash className="w-4 h-4 text-white" />
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-green-50 text-blue-600 font-bold text-sm">
+                    {index + 1}
                   </div>
-                  <div>
-                    <span className="font-bold text-sm text-gray-900 group-hover:text-blue-600 transition-colors">
-                      #{hashtag.hashtag}
-                    </span>
-                    <p className="text-xs text-gray-500">{hashtag.usage_count} posts</p>
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-900 text-sm group-hover:text-blue-600 transition-colors">
+                      #{item.tag}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {Math.round(item.posts)} {item.posts === 1 ? 'post' : 'posts'}
+                    </p>
                   </div>
                 </div>
-                <Badge className="bg-blue-100 text-blue-700 text-xs font-semibold">
-                  {idx + 1}º
-                </Badge>
-              </motion.div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Top Contributors */}
-      {topUsers.length > 0 && (
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-purple-50 overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-            <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                <Crown className="w-4 h-4" />
-              </div>
-              Top da Semana
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-4">
-            {topUsers.map((user, idx) => {
-              const badges = user.profile_badges || [];
-              const verifiedBadge = badges.find(b => b.badge_id === 'verified');
-              const adminBadge = badges.find(b => b.badge_id === 'admin');
-              const modBadge = badges.find(b => b.badge_id === 'moderator');
-              const vipBadge = badges.find(b => b.badge_id === 'vip_member');
-
-              return (
-                <motion.div
-                  key={user.email}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="flex items-center gap-3 p-2 hover:bg-purple-100/50 rounded-xl cursor-pointer transition-all group"
-                  onClick={() => navigate(createPageUrl(`UserProfile?email=${user.email}`))}
-                >
-                  <div className="relative">
-                    <Avatar className="w-10 h-10 border-2 border-purple-300 group-hover:border-purple-500 transition-all">
-                      <AvatarImage src={user.profile_photo_url} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm">
-                        {user.full_name?.[0]?.toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    {(verifiedBadge || adminBadge || modBadge || vipBadge) && (
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-lg">
-                        {adminBadge && <Shield className="w-3 h-3 text-red-500 fill-red-500" />}
-                        {!adminBadge && modBadge && <ShieldCheck className="w-3 h-3 text-blue-500 fill-blue-500" />}
-                        {!adminBadge && !modBadge && verifiedBadge && <CheckCircle className="w-3 h-3 text-blue-500 fill-blue-500" />}
-                        {!adminBadge && !modBadge && !verifiedBadge && vipBadge && <Crown className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <p className="font-semibold text-sm text-gray-900 truncate group-hover:text-purple-600 transition-colors">
-                        {user.full_name}
-                      </p>
-                    </div>
-                    <p className="text-xs text-gray-500">{user.total_posts} posts</p>
-                  </div>
-                  <Badge className="bg-purple-100 text-purple-700 text-xs font-semibold flex-shrink-0">
-                    #{idx + 1}
-                  </Badge>
-                </motion.div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Upcoming Events */}
-      {upcomingEvents.length > 0 && (
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-green-50 overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                Próximos Eventos
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(createPageUrl('SocialEvents'))}
-                className="text-xs h-7 text-white hover:bg-white/20"
-              >
-                Ver todos
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-4">
-            {upcomingEvents.map((event, idx) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="p-3 hover:bg-green-100/50 rounded-xl cursor-pointer transition-all border border-green-200"
-                onClick={() => navigate(createPageUrl(`SocialEvents?id=${event.id}`))}
-              >
-                <p className="font-semibold text-sm text-gray-900 mb-1 line-clamp-1">{event.title}</p>
-                <div className="flex items-center gap-1 text-xs text-gray-600 mb-1">
-                  <MapPin className="w-3 h-3 text-green-600" />
-                  <span>{event.city}</span>
-                </div>
-                <p className="text-xs text-gray-500">
-                  {new Date(event.start_date).toLocaleDateString('pt-PT', { 
-                    day: 'numeric', 
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
-              </motion.div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Featured Adoptions */}
-      {adoptionPets.length > 0 && (
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-pink-50 to-rose-50 overflow-hidden">
-          <CardHeader className="pb-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Heart className="w-4 h-4" />
-                </div>
-                Adote Urgente
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(createPageUrl('AdoptionListings'))}
-                className="text-xs h-7 text-white hover:bg-white/20"
-              >
-                Ver todos
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-4">
-            {adoptionPets.map((pet, idx) => (
-              <motion.div
-                key={pet.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex items-center gap-2 p-2 bg-white hover:bg-pink-50 rounded-xl cursor-pointer transition-all border-2 border-pink-200 hover:border-pink-400"
-                onClick={() => navigate(createPageUrl(`AdoptionListingDetails?id=${pet.id}`))}
-              >
-                {pet.photos?.[0] ? (
-                  <img 
-                    src={pet.photos[0]} 
-                    alt={pet.pet_name}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-pink-100 flex items-center justify-center text-2xl">
-                    🐕
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-gray-900 truncate">{pet.pet_name}</p>
-                  <div className="flex items-center gap-1">
-                    <Badge 
-                      className={`text-xs ${
-                        pet.urgency_level === 'critical' 
-                          ? 'bg-red-500 text-white' 
-                          : 'bg-orange-500 text-white'
-                      }`}
-                    >
-                      {pet.urgency_level === 'critical' ? '🚨 Crítico' : '⚡ Urgente'}
-                    </Badge>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Quick Create Event */}
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-600 to-indigo-600 overflow-hidden">
-        <CardContent className="p-4">
-          <Button
-            onClick={() => navigate(createPageUrl('SocialEvents'))}
-            className="w-full bg-white hover:bg-gray-100 text-blue-600 font-semibold"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            Criar Evento
-          </Button>
-          <p className="text-xs text-white/80 text-center mt-2">
-            Organize passeios, encontros e mais! 🎉
-          </p>
+                <TrendingUp className="w-4 h-4 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            ))
+          )}
         </CardContent>
       </Card>
+
+      {/* Trending Posts */}
+      {trendingPosts.length > 0 && (
+        <Card className="border border-gray-200 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-yellow-500" />
+              Posts Populares
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {trendingPosts.map((post) => (
+              <button
+                key={post.id}
+                onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}
+                className="w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-start gap-2">
+                  {post.media_urls?.[0] && (
+                    <img 
+                      src={post.media_urls[0]} 
+                      alt="Post" 
+                      className="w-16 h-16 rounded-lg object-cover"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-gray-900 truncate">
+                      {post.author_name}
+                    </p>
+                    <p className="text-xs text-gray-600 line-clamp-2 mt-0.5">
+                      {post.content}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <Heart className="w-3 h-3" />
+                        {post.likes_count || 0}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <MessageCircle className="w-3 h-3" />
+                        {post.comments_count || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Suggested Users */}
+      {suggestedUsers.length > 0 && (
+        <Card className="border border-gray-200 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Eye className="w-5 h-5 text-purple-500" />
+              Sugestões
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {suggestedUsers.map((suggestedUser) => (
+              <button
+                key={suggestedUser.user_email}
+                onClick={() => navigate(createPageUrl(`UserProfile?email=${suggestedUser.user_email}`))}
+                className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-semibold">
+                  {suggestedUser.profile_photo_url ? (
+                    <img 
+                      src={suggestedUser.profile_photo_url} 
+                      alt={suggestedUser.full_name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    suggestedUser.full_name?.[0]
+                  )}
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-semibold text-sm text-gray-900 truncate">
+                    {suggestedUser.full_name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {suggestedUser.followers_count || 0} seguidores
+                  </p>
+                </div>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

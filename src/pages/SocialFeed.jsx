@@ -105,6 +105,20 @@ export default function SocialFeed() {
     staleTime: 0,
   });
 
+  // Fetch user's followed hashtags and authors for personalization
+  const { data: userFollows = [] } = useQuery({
+    queryKey: ['userFollows', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const follows = await base44.entities.SocialFollow.filter({ 
+        follower_email: user.email,
+        status: 'accepted'
+      });
+      return follows;
+    },
+    enabled: !!user?.email
+  });
+
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['socialPosts', selectedTab],
     queryFn: async () => {
@@ -116,9 +130,7 @@ export default function SocialFeed() {
       console.log('🕐 Timestamp:', new Date().toLocaleTimeString());
       
       if (selectedTab === 'following') {
-        const all = await base44.entities.SocialFollow.list();
-        const follows = all.filter(f => f.follower_email === user.email && f.status === 'accepted');
-        const followingEmails = follows.map(f => f.following_email);
+        const followingEmails = userFollows.map(f => f.following_email);
         
         console.log('👥 Seguindo:', followingEmails.length, 'usuários');
 
@@ -136,6 +148,7 @@ export default function SocialFeed() {
         console.log('✅ Posts de quem sigo:', followingPosts.length);
         return followingPosts;
       } else {
+        // EXPLORAR - Algoritmo de Recomendação Inteligente
         const allPosts = await base44.entities.SocialPost.list('-created_date');
         
         console.log('📊 TODOS OS POSTS NO BANCO:', allPosts.length);
@@ -147,7 +160,48 @@ export default function SocialFeed() {
         
         console.log('🌍 POSTS PÚBLICOS E APROVADOS:', publicPosts.length);
         
-        return publicPosts;
+        // Calculate engagement score for each post
+        const postsWithScore = publicPosts.map(post => {
+          const now = Date.now();
+          const postAge = now - new Date(post.created_date).getTime();
+          const hoursOld = postAge / (1000 * 60 * 60);
+          
+          // Recency score (decays over time)
+          const recencyScore = Math.max(0, 100 - (hoursOld * 2));
+          
+          // Engagement score
+          const likesScore = (post.likes_count || 0) * 3;
+          const commentsScore = (post.comments_count || 0) * 5;
+          const sharesScore = (post.shares_count || 0) * 10;
+          const engagementScore = likesScore + commentsScore + sharesScore;
+          
+          // Author popularity boost (if user follows this author)
+          const followingEmails = userFollows.map(f => f.following_email);
+          const authorBoost = followingEmails.includes(post.author_email) ? 50 : 0;
+          
+          // Hashtag relevance (if post has hashtags user might be interested in)
+          const hashtagBoost = (post.hashtags?.length || 0) * 5;
+          
+          // External publisher boost (professional content)
+          const publisherBoost = post.is_external ? 20 : 0;
+          
+          // Final recommendation score
+          const totalScore = recencyScore + engagementScore + authorBoost + hashtagBoost + publisherBoost;
+          
+          return {
+            ...post,
+            _recommendationScore: totalScore
+          };
+        });
+        
+        // Sort by recommendation score (highest first)
+        const sortedPosts = postsWithScore.sort((a, b) => 
+          b._recommendationScore - a._recommendationScore
+        );
+        
+        console.log('🎯 Posts ordenados por score de recomendação');
+        
+        return sortedPosts;
       }
     },
     initialData: [],
