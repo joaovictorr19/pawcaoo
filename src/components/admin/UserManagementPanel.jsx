@@ -581,7 +581,7 @@ export default function UserManagementPanel() {
                 className="w-4 h-4"
               />
               <Label htmlFor="is_verified" className="flex-1 cursor-pointer">
-                <span className="font-semibold text-blue-700">✓ Selo Azul Verificado</span>
+                <span className="font-semibold text-blue-700">🔵 Selo Azul Verificado</span>
                 <p className="text-xs text-blue-600 mt-0.5">
                   Mostra que a conta é verificada e confiável
                 </p>
@@ -606,6 +606,79 @@ export default function UserManagementPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
+
+      {/* Points Dialog */}
+      <Dialog open={showPointsDialog} onOpenChange={setShowPointsDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Gerir Pontos de Lealdade - {selectedUser?.full_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="points_balance">Saldo de Pontos</Label>
+              <Input
+                id="points_balance"
+                type="number"
+                value={pointsData.points_balance || 0}
+                onChange={(e) =>
+                  setPointsData({
+                    ...pointsData,
+                    points_balance: parseInt(e.target.value) || 0,
+                  })
+                }
+              />
+            </div>
+            <div>
+              <Label htmlFor="total_earned">Total Ganho</Label>
+              <Input
+                id="total_earned"
+                type="number"
+                value={pointsData.total_earned || 0}
+                onChange={(e) =>
+                  setPointsData({
+                    ...pointsData,
+                    total_earned: parseInt(e.target.value) || 0,
+                  })
+                }
+              />
+            </div>
+            <div>
+              <Label htmlFor="tier">Nível</Label>
+              <Select
+                value={pointsData.tier || "bronze"}
+                onValueChange={(value) =>
+                  setPointsData({ ...pointsData, tier: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bronze">🥉 Bronze</SelectItem>
+                  <SelectItem value="silver">🥈 Prata</SelectItem>
+                  <SelectItem value="gold">🥇 Ouro</SelectItem>
+                  <SelectItem value="platinum">💎 Platina</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPointsDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSavePoints}
+              disabled={updatePointsMutation.isPending}
+            >
+              {updatePointsMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Guardar"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      </div>
+      );
+      }
