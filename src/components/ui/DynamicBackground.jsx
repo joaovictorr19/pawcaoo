@@ -177,25 +177,25 @@ export default function DynamicBackground() {
           }
         `}</style>
         
-        {/* Midnight Forest texture background */}
+        {/* Realistic Forest Path background */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-in-out"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1448375240586-dfd8d395ea6c?w=1920&q=80)',
+            backgroundImage: weather === 'snowy' 
+              ? 'url(https://images.unsplash.com/photo-1477601263568-180e2c6d046e?w=1920&q=80)' // Snowy forest path
+              : 'url(https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80)', // Green forest path with light
           }}
         />
         
-        {/* Midnight Green / Forest Overlay */}
+        {/* Subtle Overlay for readability */}
         <div 
           className="absolute inset-0"
           style={{
             background: weather === 'rainy' 
-              ? 'linear-gradient(135deg, rgba(2, 44, 34, 0.92) 0%, rgba(6, 78, 59, 0.88) 100%)' // Dark rainy forest
-              : weather === 'sunny'
-              ? 'linear-gradient(135deg, rgba(20, 83, 45, 0.85) 0%, rgba(22, 101, 52, 0.80) 100%)' // Sunlit deep forest
+              ? 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,20,10,0.6))' 
               : weather === 'snowy'
-              ? 'linear-gradient(135deg, rgba(17, 24, 39, 0.85) 0%, rgba(55, 65, 81, 0.6) 100%)' // Cold snowy forest
-              : 'linear-gradient(135deg, rgba(6, 78, 59, 0.9) 0%, rgba(20, 83, 45, 0.85) 100%)' // Cloudy forest
+              ? 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(10,20,30,0.4))'
+              : 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,20,5,0.5))' 
           }}
         />
         
