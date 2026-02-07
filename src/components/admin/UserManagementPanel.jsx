@@ -111,32 +111,18 @@ export default function UserManagementPanel() {
 
   const createWalkerProfileMutation = useMutation({
     mutationFn: async () => {
-      try {
-        console.log('Invocando createWalkerProfile com:', {
-          userEmail: selectedUser.email,
-          walkerName: selectedUser.full_name,
-        });
-        const response = await base44.functions.invoke('createWalkerProfile', {
-          userEmail: selectedUser.email,
-          walkerName: selectedUser.full_name,
-        });
-        console.log('Resposta:', response);
-        return response.data;
-      } catch (err) {
-        console.error('Erro na invocação:', err);
-        throw err;
-      }
+      const response = await base44.functions.invoke('createWalkerProfile', {
+        userEmail: selectedUser.email,
+        walkerName: selectedUser.full_name,
+      });
+      return response.data;
     },
-    onSuccess: (data) => {
-      console.log('Sucesso:', data);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["walkerProfile", selectedUser.email] });
-      toast.success("Perfil de passeador criado!");
-      setActivePanel(null);
+      toast.success("Perfil de passeador criado com sucesso!");
+      setActivePanel("verification");
     },
-    onError: (error) => {
-      console.error('Erro completo:', error);
-      toast.error("Erro ao criar perfil: " + (error.message || JSON.stringify(error)));
-    },
+    onError: (error) => toast.error("Erro: " + error.message),
   });
 
   return (
