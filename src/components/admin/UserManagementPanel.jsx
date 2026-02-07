@@ -32,6 +32,7 @@ import {
   Plus,
   Trash2,
   Check,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
