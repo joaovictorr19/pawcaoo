@@ -251,13 +251,3 @@ export default function AdminDocumentViewer({
     </div>
   );
 }
-
-const EmptyState = ({ message }) => (
-  <div className="flex flex-col items-center justify-center py-16 bg-white/40 rounded-xl border border-dashed border-gray-300">
-    <div className="bg-gray-100 p-4 rounded-full mb-4">
-      <FileText className="w-12 h-12 text-gray-400" />
-    </div>
-    <h3 className="text-xl font-bold text-gray-700">{message}</h3>
-    <p className="text-gray-500 mt-1">Nenhum documento encontrado.</p>
-  </div>
-);
