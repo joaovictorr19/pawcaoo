@@ -43,6 +43,7 @@ export default function UserManagementPanel() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [badgeSearchTerm, setBadgeSearchTerm] = useState("");
   const [selectedBadges, setSelectedBadges] = useState([]);
+  const [editingVerification, setEditingVerification] = useState(false);
 
   // Queries
   const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
