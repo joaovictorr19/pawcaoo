@@ -92,23 +92,27 @@ export default function ExternalPublishersManager() {
     nonprofit: "ONG"
   };
 
+  const handleCreatePublisher = () => {
+    if (!formData.publisher_name || !formData.contact_email) {
+      toast.error("Preencha nome e email!");
+      return;
+    }
+    createPublisherMutation.mutate(formData);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Editores Externos</h2>
-          <p className="text-sm text-gray-500">Gerencie jornais e empresas com acesso à API da Comunidade</p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-end">
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button className="bg-green-600 hover:bg-green-700" style={{ borderRadius: 0 }}>
               <Plus className="w-4 h-4 mr-2" />
-              Adicionar Publisher
+              Novo Publisher
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl" style={{ borderRadius: 0 }}>
             <DialogHeader>
-              <DialogTitle>Criar Novo Publisher</DialogTitle>
+              <DialogTitle>Criar Publisher Externo</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -117,6 +121,7 @@ export default function ExternalPublishersManager() {
                   value={formData.publisher_name}
                   onChange={(e) => setFormData({...formData, publisher_name: e.target.value})}
                   placeholder="Ex: Jornal PawNews"
+                  style={{ borderRadius: 0 }}
                 />
               </div>
               <div>
@@ -126,12 +131,13 @@ export default function ExternalPublishersManager() {
                   value={formData.contact_email}
                   onChange={(e) => setFormData({...formData, contact_email: e.target.value})}
                   placeholder="contato@pawnews.com"
+                  style={{ borderRadius: 0 }}
                 />
               </div>
               <div>
                 <Label>Categoria</Label>
                 <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                  <SelectTrigger>
+                  <SelectTrigger style={{ borderRadius: 0 }}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -149,6 +155,7 @@ export default function ExternalPublishersManager() {
                   value={formData.website_url}
                   onChange={(e) => setFormData({...formData, website_url: e.target.value})}
                   placeholder="https://pawnews.com"
+                  style={{ borderRadius: 0 }}
                 />
               </div>
               <div>
@@ -157,6 +164,7 @@ export default function ExternalPublishersManager() {
                   value={formData.logo_url}
                   onChange={(e) => setFormData({...formData, logo_url: e.target.value})}
                   placeholder="https://..."
+                  style={{ borderRadius: 0 }}
                 />
               </div>
               <div>
@@ -166,14 +174,16 @@ export default function ExternalPublishersManager() {
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   placeholder="Breve descrição do publisher..."
                   rows={3}
+                  style={{ borderRadius: 0 }}
                 />
               </div>
               <Button 
-                onClick={() => createPublisherMutation.mutate(formData)}
-                disabled={!formData.publisher_name || !formData.contact_email}
-                className="w-full"
+                onClick={handleCreatePublisher}
+                disabled={!formData.publisher_name || !formData.contact_email || createPublisherMutation.isPending}
+                className="w-full bg-green-600 hover:bg-green-700"
+                style={{ borderRadius: 0 }}
               >
-                Criar Publisher
+                {createPublisherMutation.isPending ? "Criando..." : "Criar Publisher"}
               </Button>
             </div>
           </DialogContent>
