@@ -503,8 +503,11 @@ export default function UserManagementPanel() {
           </Card>
         </TabsContent>
 
-
-      </Tabs>
+        {/* Badges Tab */}
+        <TabsContent value="badges">
+          <BadgeUploadManager />
+        </TabsContent>
+        </Tabs>
 
       {/* Edit User Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
