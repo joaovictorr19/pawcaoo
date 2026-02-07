@@ -191,105 +191,147 @@ export default function ExternalPublishersManager() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-12">Carregando...</div>
+        <div className="text-center py-12">
+          <div className="animate-spin w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+          <p className="text-gray-600">Carregando publishers...</p>
+        </div>
       ) : publishers.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Newspaper className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">Nenhum publisher cadastrado ainda</p>
+        <Card style={{ borderRadius: 0 }}>
+          <CardContent className="py-16 text-center">
+            <Newspaper className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg font-medium mb-2">Nenhum publisher cadastrado</p>
+            <p className="text-gray-400 text-sm">Crie o primeiro publisher externo para começar</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4">
           {publishers.map((publisher) => (
-            <Card key={publisher.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
+            <Card key={publisher.id} className="border-l-4" style={{ 
+              borderRadius: 0,
+              borderLeftColor: publisher.is_active ? '#16a34a' : '#9ca3af'
+            }}>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     {publisher.logo_url ? (
-                      <img src={publisher.logo_url} alt={publisher.publisher_name} className="w-12 h-12 rounded-lg object-cover" />
+                      <img 
+                        src={publisher.logo_url} 
+                        alt={publisher.publisher_name} 
+                        className="w-14 h-14 object-cover flex-shrink-0" 
+                        style={{ borderRadius: 0 }}
+                      />
                     ) : (
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Newspaper className="w-6 h-6 text-gray-400" />
+                      <div className="w-14 h-14 bg-gray-100 flex items-center justify-center flex-shrink-0" style={{ borderRadius: 0 }}>
+                        <Newspaper className="w-7 h-7 text-gray-400" />
                       </div>
                     )}
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-lg">{publisher.publisher_name}</CardTitle>
-                        {publisher.is_verified && <Badge className="bg-blue-500">Verificado</Badge>}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-lg truncate">{publisher.publisher_name}</CardTitle>
+                        {publisher.is_verified && (
+                          <Badge className="bg-blue-500 text-white" style={{ borderRadius: 0 }}>
+                            Verificado
+                          </Badge>
+                        )}
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                        <span>{categoryLabels[publisher.category]}</span>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1.5 flex-wrap">
+                        <Badge variant="outline" className="text-xs" style={{ borderRadius: 0 }}>
+                          {categoryLabels[publisher.category]}
+                        </Badge>
                         <span>•</span>
                         <span>{publisher.total_posts || 0} posts</span>
                         <span>•</span>
                         <span>{publisher.followers_count || 0} seguidores</span>
                       </div>
+                      {publisher.contact_email && (
+                        <p className="text-xs text-gray-500 mt-1">{publisher.contact_email}</p>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={publisher.is_active ? "default" : "secondary"}>
-                      {publisher.is_active ? "Ativo" : "Inativo"}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Badge 
+                      variant={publisher.is_active ? "default" : "secondary"}
+                      className={publisher.is_active ? "bg-green-600" : "bg-gray-400"}
+                      style={{ borderRadius: 0 }}
+                    >
+                      {publisher.is_active ? "Ativo" : "Pausado"}
                     </Badge>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => toggleActiveMutation.mutate({ id: publisher.id, is_active: publisher.is_active })}
+                      title={publisher.is_active ? "Pausar publisher" : "Ativar publisher"}
+                      style={{ borderRadius: 0 }}
                     >
-                      {publisher.is_active ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                      {publisher.is_active ? <XCircle className="w-4 h-4 text-red-600" /> : <CheckCircle className="w-4 h-4 text-green-600" />}
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 pt-0">
                 {publisher.description && (
-                  <p className="text-sm text-gray-600">{publisher.description}</p>
+                  <p className="text-sm text-gray-700 leading-relaxed">{publisher.description}</p>
                 )}
-                <div className="flex items-center gap-2 text-sm">
-                  <Globe className="w-4 h-4 text-gray-400" />
-                  {publisher.website_url ? (
-                    <a href={publisher.website_url} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">
+                {publisher.website_url && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Globe className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <a 
+                      href={publisher.website_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-green-600 hover:underline truncate"
+                    >
                       {publisher.website_url}
                     </a>
-                  ) : (
-                    <span className="text-gray-400">Sem website</span>
-                  )}
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+                  </div>
+                )}
+                <div className="bg-gray-50 p-4 space-y-3" style={{ borderRadius: 0 }}>
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs text-gray-600">Chave de API</Label>
-                    <div className="flex items-center gap-2">
+                    <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <Key className="w-4 h-4 text-green-600" />
+                      Chave de API
+                    </Label>
+                    <div className="flex items-center gap-1">
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => setShowApiKey({...showApiKey, [publisher.id]: !showApiKey[publisher.id]})}
+                        title={showApiKey[publisher.id] ? "Ocultar chave" : "Mostrar chave"}
+                        style={{ borderRadius: 0 }}
                       >
-                        {showApiKey[publisher.id] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        {showApiKey[publisher.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => copyApiKey(publisher.api_key)}
+                        title="Copiar chave"
+                        style={{ borderRadius: 0 }}
                       >
-                        <Copy className="w-3.5 h-3.5" />
+                        <Copy className="w-4 h-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          if (confirm("Gerar nova chave de API? A chave antiga deixará de funcionar.")) {
+                          if (confirm("⚠️ Gerar nova chave de API?\n\nA chave antiga deixará de funcionar imediatamente.")) {
                             regenerateApiKeyMutation.mutate(publisher.id);
                           }
                         }}
+                        className="text-orange-600 border-orange-300"
+                        style={{ borderRadius: 0 }}
                       >
-                        <Key className="w-3.5 h-3.5 mr-1" />
+                        <Key className="w-4 h-4 mr-1" />
                         Regenerar
                       </Button>
                     </div>
                   </div>
-                  <code className="block text-xs bg-white p-2 rounded border font-mono">
-                    {showApiKey[publisher.id] ? publisher.api_key : '••••••••••••••••••••••••••••••••'}
+                  <code className="block text-xs bg-white p-3 border font-mono overflow-x-auto" style={{ borderRadius: 0 }}>
+                    {showApiKey[publisher.id] ? publisher.api_key : '••••••••••••••••••••••••••••••••••••••••••••••••'}
                   </code>
+                  <p className="text-xs text-gray-500">
+                    💡 Esta chave permite que {publisher.publisher_name} publique conteúdo programaticamente
+                  </p>
                 </div>
               </CardContent>
             </Card>
