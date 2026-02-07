@@ -37,7 +37,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import WalkerVerificationPanel from "./WalkerVerificationPanel";
+import ProfessionalVerificationPanel from "./ProfessionalVerificationPanel";
 import UserWalletPanel from "./UserWalletPanel";
 
 export default function UserManagementPanel() {
@@ -47,7 +47,7 @@ export default function UserManagementPanel() {
   const [editingField, setEditingField] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [copiedId, setCopiedId] = useState(false);
-  const [activePanel, setActivePanel] = useState(null);
+  const [activePanel, setActivePanel] = useState(null); // 'wallet', 'walker_verification', 'trainer_verification'
 
   const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
     queryKey: ["adminUsers"],
@@ -59,6 +59,13 @@ export default function UserManagementPanel() {
     queryKey: ["walkerProfile", selectedUser?.email],
     queryFn: () =>
       base44.entities.WalkerProfile.filter({ created_by: selectedUser.email }),
+    enabled: !!selectedUser?.email,
+  });
+
+  const { data: trainerProfile } = useQuery({
+    queryKey: ["trainerProfile", selectedUser?.email],
+    queryFn: () =>
+      base44.entities.TrainerProfile.filter({ created_by: selectedUser.email }),
     enabled: !!selectedUser?.email,
   });
 
