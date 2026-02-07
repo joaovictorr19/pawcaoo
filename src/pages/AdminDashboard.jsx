@@ -61,6 +61,7 @@ import StoreItemsManager from "../components/admin/StoreItemsManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
+import UserManagementPanel from "../components/admin/UserManagementPanel";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
