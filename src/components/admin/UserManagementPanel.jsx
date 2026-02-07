@@ -82,6 +82,12 @@ export default function UserManagementPanel() {
     staleTime: 30000,
   });
 
+  const { data: badgeDefinitions = [] } = useQuery({
+    queryKey: ["badgeDefinitions"],
+    queryFn: () => base44.entities.BadgeDefinition.filter({ is_active: true }, "-created_date", 500),
+    staleTime: 30000,
+  });
+
   const { data: userBadges = [] } = useQuery({
     queryKey: ["userBadges"],
     queryFn: () => base44.entities.UserBadge.list("-earned_date", 2000),
