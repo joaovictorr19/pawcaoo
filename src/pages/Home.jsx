@@ -247,6 +247,7 @@ export default function Home() {
         return [];
       }
     },
+    enabled: !userLoading,
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -326,7 +327,7 @@ export default function Home() {
       }, '-rating', 6);
       return walkers.filter(w => w.photo_url);
     },
-    enabled: !user,
+    enabled: !user && !userLoading,
     initialData: [],
     staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -338,7 +339,7 @@ export default function Home() {
       const dogs = await base44.entities.DogProfile.list('-created_date', 6);
       return dogs.filter(d => d.photo_url);
     },
-    enabled: !user,
+    enabled: !user && !userLoading,
     initialData: [],
     staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -349,23 +350,36 @@ export default function Home() {
   const { data: stats } = useQuery({
     queryKey: ['platformStats'],
     queryFn: async () => {
-      try {
-        const [activeWalkers, activeTrainers] = await Promise.all([
-          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200),
-          base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 200),
-        ]);
+      let activeWalkers = [];
+      let activeTrainers = [];
 
-        return {
-          totalWalkers: activeWalkers?.length || 0,
-          totalTrainers: activeTrainers?.length || 0,
-          happyDogs: 0,
-          adoptedDogs: 0
-        };
+      try {
+        activeWalkers = await base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200);
+        if (!Array.isArray(activeWalkers)) activeWalkers = [];
       } catch (error) {
-        console.error("Stats fetch error:", error);
-        return { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 };
+        console.warn("Error fetching active walkers for stats:", error);
+        activeWalkers = [];
       }
+
+      try {
+        activeTrainers = await base44.entities.TrainerProfile.filter({ 
+          is_active: true, 
+          verification_status: 'verified' 
+        }, '-created_date', 200);
+        if (!Array.isArray(activeTrainers)) activeTrainers = [];
+      } catch (error) {
+        console.warn("Error fetching active trainers for stats:", error);
+        activeTrainers = [];
+      }
+
+      return {
+        totalWalkers: activeWalkers.length,
+        totalTrainers: activeTrainers.length,
+        happyDogs: 0,
+        adoptedDogs: 0
+      };
     },
+    enabled: !userLoading,
     initialData: { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 },
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
