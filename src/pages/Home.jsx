@@ -847,25 +847,6 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center max-w-6xl mx-auto relative">
-              {/* Hero Title for Visitors */}
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-12"
-              >
-                <div className="bg-white/90 backdrop-blur-md px-8 py-6 rounded-3xl shadow-2xl inline-block border border-white/60">
-                  <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-3 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                    {language === 'pt' ? 'PawCão' : 'PawCão'}
-                  </h1>
-                  <p className="text-base md:text-xl text-gray-700 font-semibold">
-                    {language === 'pt' ? 'O melhor cuidado para o seu Pet' : 
-                     language === 'es' ? 'El mejor cuidado para tu Mascota' :
-                     language === 'fr' ? 'Le meilleur pour votre Animal' :
-                     'The best care for your Pet'}
-                  </p>
-                </div>
-              </motion.div>
-
               {/* Floating Interactive Elements */}
               <div className="relative mb-8">
                 {/* Walkers - Top Left & Top Right */}
