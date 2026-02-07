@@ -327,6 +327,128 @@ export default function UserManagementPanel() {
         </Card>
       )}
 
+      {/* Walker Verification Management */}
+      {selectedUser && walkerProfile && walkerProfile.length > 0 && (
+        <Card className="bg-white shadow-sm border-0">
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-base flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-red-600" />
+                Verificações do Passeador
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setEditingVerification(!editingVerification)}>
+                {editingVerification ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {editingVerification ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium">Verificado Oficialmente (Instagram Badge)</label>
+                  <Select
+                    value={walkerProfile[0].verification_status === 'verified' ? 'true' : 'false'}
+                    onValueChange={(val) => updateWalkerProfileMutation.mutate({ verification_status: val === 'true' ? 'verified' : 'pending' })}
+                  >
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue placeholder="Selecionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Sim</SelectItem>
+                      <SelectItem value="false">Não</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Treinador Verificado (Purple Badge)</label>
+                  <Select
+                    value={walkerProfile[0].is_verified_trainer ? 'true' : 'false'}
+                    onValueChange={(val) => updateWalkerProfileMutation.mutate({ is_verified_trainer: val === 'true' })}
+                  >
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue placeholder="Selecionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Sim</SelectItem>
+                      <SelectItem value="false">Não</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Funcionário PawCão (Gold Badge)</label>
+                  <Select
+                    value={walkerProfile[0].is_pawcao_employee ? 'true' : 'false'}
+                    onValueChange={(val) => updateWalkerProfileMutation.mutate({ is_pawcao_employee: val === 'true' })}
+                  >
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue placeholder="Selecionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Sim</SelectItem>
+                      <SelectItem value="false">Não</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Selo Oficial PawCão (White Paw)</label>
+                  <Select
+                    value={walkerProfile[0].has_pawcao_seal ? 'true' : 'false'}
+                    onValueChange={(val) => updateWalkerProfileMutation.mutate({ has_pawcao_seal: val === 'true' })}
+                  >
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue placeholder="Selecionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Sim</SelectItem>
+                      <SelectItem value="false">Não</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  onClick={() => setEditingVerification(false)}
+                  disabled={updateWalkerProfileMutation.isPending}
+                  className="w-full bg-green-600 hover:bg-green-700 h-9 gap-2"
+                >
+                  {updateWalkerProfileMutation.isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  Guardar
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Verificado Oficialmente:</span>
+                  <Badge variant={walkerProfile[0].verification_status === 'verified' ? "default" : "secondary"}>
+                    {walkerProfile[0].verification_status === 'verified' ? 'Sim' : 'Não'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>Treinador Verificado:</span>
+                  <Badge variant={walkerProfile[0].is_verified_trainer ? "default" : "secondary"}>
+                    {walkerProfile[0].is_verified_trainer ? 'Sim' : 'Não'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>Funcionário PawCão:</span>
+                  <Badge variant={walkerProfile[0].is_pawcao_employee ? "default" : "secondary"}>
+                    {walkerProfile[0].is_pawcao_employee ? 'Sim' : 'Não'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>Selo Oficial PawCão:</span>
+                  <Badge variant={walkerProfile[0].has_pawcao_seal ? "default" : "secondary"}>
+                    {walkerProfile[0].has_pawcao_seal ? 'Sim' : 'Não'}
+                  </Badge>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Badges Management */}
       {selectedUser && (
         <Card className="border-0 shadow-sm">
