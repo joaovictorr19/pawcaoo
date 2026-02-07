@@ -903,53 +903,51 @@ export default function BecomeProfessional() {
                     </div>
 
                     {/* Trainer Specific Fields */}
-                    {(professionalType === 'trainer' || professionalType === 'both') && (
-                      <div className="border-t-2 border-blue-200 pt-6 space-y-6">
-                        <h3 className="text-xl font-bold text-blue-900">
-                          Informações de Treino
-                        </h3>
+                     {(professionalType === 'trainer' || professionalType === 'both') && (
+                       <div className="border-t-2 border-blue-200 pt-6 space-y-6">
+                         <h3 className="text-xl font-bold text-blue-900">
+                           Informações de Treino
+                         </h3>
 
-                        <div className="space-y-2">
-                          <Label>Filosofia de Treino</Label>
-                          <Textarea
-                            value={formData.training_philosophy}
-                            onChange={(e) => setFormData(prev => ({...prev, training_philosophy: e.target.value}))}
-                            placeholder="Descreva sua abordagem e filosofia de treino..."
-                            rows={4}
-                          />
-                        </div>
+                         <div className="space-y-2">
+                           <Label>Filosofia de Treino</Label>
+                           <Textarea
+                             value={formData.training_philosophy}
+                             onChange={(e) => setFormData(prev => ({...prev, training_philosophy: e.target.value}))}
+                             placeholder="Descreva sua abordagem e filosofia de treino..."
+                             rows={4}
+                           />
+                         </div>
 
-                        <TrainingSpecializationManager
-                          specializations={formData.training_specializations || []}
-                          onChange={(specs) => {
-                            console.log('🎓 Specs updated:', specs);
-                            setFormData(prev => ({...prev, training_specializations: specs || []}));
-                          }}
-                        />
+                         <div className="space-y-3">
+                           <Label>Tipo de Consulta</Label>
+                           <div className="flex flex-wrap gap-3">
+                             {[
+                               { value: "in_person", label: "Presencial" },
+                               { value: "online", label: "Online" },
+                               { value: "hybrid", label: "Híbrido" },
+                             ].map(opt => (
+                               <div key={opt.value} className="flex items-center space-x-2">
+                                 <Checkbox
+                                   id={`consult-${opt.value}`}
+                                   checked={formData.consultation_options.includes(opt.value)}
+                                   onCheckedChange={() => toggleArrayItem('consultation_options', opt.value)}
+                                 />
+                                 <label htmlFor={`consult-${opt.value}`} className="text-sm cursor-pointer">
+                                   {opt.label}
+                                 </label>
+                               </div>
+                             ))}
+                           </div>
+                         </div>
 
-                        <div className="space-y-3">
-                          <Label>Tipo de Consulta</Label>
-                          <div className="flex flex-wrap gap-3">
-                            {[
-                              { value: "in_person", label: "Presencial" },
-                              { value: "online", label: "Online" },
-                              { value: "hybrid", label: "Híbrido" },
-                            ].map(opt => (
-                              <div key={opt.value} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`consult-${opt.value}`}
-                                  checked={formData.consultation_options.includes(opt.value)}
-                                  onCheckedChange={() => toggleArrayItem('consultation_options', opt.value)}
-                                />
-                                <label htmlFor={`consult-${opt.value}`} className="text-sm cursor-pointer">
-                                  {opt.label}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                         <Alert className="border-blue-300 bg-blue-50">
+                           <AlertDescription className="text-sm">
+                             <strong>Nota:</strong> As especializações de treino podem ser adicionadas no Painel Profissional após aprovação da candidatura.
+                           </AlertDescription>
+                         </Alert>
+                       </div>
+                     )}
 
                     {/* Portfolio */}
                     <div className="space-y-2 border-t-2 border-green-100 pt-6">
