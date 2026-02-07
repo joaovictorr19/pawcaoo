@@ -47,6 +47,7 @@ export default function UserManagementPanel() {
   const [editingField, setEditingField] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [copiedId, setCopiedId] = useState(false);
+  const [activePanel, setActivePanel] = useState(null);
 
   const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
     queryKey: ["adminUsers"],
