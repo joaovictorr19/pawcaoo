@@ -38,10 +38,21 @@ Deno.serve(async (req) => {
       verification_status: 'requires_documents',
     };
 
+    const commonData = {
+      photo_url: userProfile?.profile_photo_url || null,
+      bio: userProfile?.bio || '',
+      location: userProfile?.city || 'Portugal',
+      created_by: userEmail,
+      user_email: userEmail,
+      user_id: userId || userProfile?.user_id, // Prefer passed userId, fallback to profile
+      is_active: true,
+      verification_status: 'requires_documents',
+    };
+
     // 1. Handle Walker Profile
     if (type === 'walker') {
-      // Check if exists
-      const existingWalker = await base44.asServiceRole.entities.WalkerProfile.filter({ created_by: userEmail });
+      // Check if exists by user_email instead of created_by for reliability
+      const existingWalker = await base44.asServiceRole.entities.WalkerProfile.filter({ user_email: userEmail });
       
       if (existingWalker.length > 0) {
         results.walker = existingWalker[0];
@@ -62,7 +73,7 @@ Deno.serve(async (req) => {
     // 2. Handle Trainer Profile
     if (type === 'trainer') {
       // Check if exists
-      const existingTrainer = await base44.asServiceRole.entities.TrainerProfile.filter({ created_by: userEmail });
+      const existingTrainer = await base44.asServiceRole.entities.TrainerProfile.filter({ user_email: userEmail });
       
       if (existingTrainer.length > 0) {
         results.trainer = existingTrainer[0];
