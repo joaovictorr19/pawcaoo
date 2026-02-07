@@ -116,35 +116,50 @@ export default function UserManagementPanel() {
     setTimeout(() => setCopiedId(false), 2000);
   };
 
-  const createProfileMutation = useMutation({
-    mutationFn: async ({ type }) => {
+  // Split mutations to prevent shared loading state
+  const createWalkerMutation = useMutation({
+    mutationFn: async () => {
       const response = await base44.functions.invoke('createProfessionalProfile', {
         userEmail: selectedUser.email,
+        userId: selectedUser.id,
         userName: selectedUser.full_name,
-        type, // 'walker' or 'trainer'
+        type: 'walker',
       });
       
-      // Axios response check
-      if (response.status !== 200 && response.status !== 201) {
-         throw new Error(response.data?.error || "Erro na requisição");
-      }
-
-      // Business logic check
-      if (!response.data?.success && !response.data?.data) { // Check structure based on backend
-         throw new Error(response.data?.message || response.data?.error || "Erro desconhecido");
-      }
+      if (response.status !== 200 && response.status !== 201) throw new Error(response.data?.error || "Erro na requisição");
+      if (!response.data?.success && !response.data?.data) throw new Error(response.data?.message || response.data?.error || "Erro desconhecido");
       
-      return { ...response.data, type };
+      return response.data;
     },
     onSuccess: (data) => {
-      if (data.type === 'walker') {
         queryClient.invalidateQueries({ queryKey: ["walkerProfile", selectedUser.email] });
         setActivePanel("walker_verification");
-      } else {
+        toast.success(data.message || `Perfil de Passeador criado!`);
+    },
+    onError: (error) => {
+      console.error("Erro ao criar perfil:", error);
+      toast.error(error?.message || "Erro ao criar perfil");
+    },
+  });
+
+  const createTrainerMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('createProfessionalProfile', {
+        userEmail: selectedUser.email,
+        userId: selectedUser.id,
+        userName: selectedUser.full_name,
+        type: 'trainer',
+      });
+      
+      if (response.status !== 200 && response.status !== 201) throw new Error(response.data?.error || "Erro na requisição");
+      if (!response.data?.success && !response.data?.data) throw new Error(response.data?.message || response.data?.error || "Erro desconhecido");
+      
+      return response.data;
+    },
+    onSuccess: (data) => {
          queryClient.invalidateQueries({ queryKey: ["trainerProfile", selectedUser.email] });
          setActivePanel("trainer_verification");
-      }
-      toast.success(data.message || `Perfil de ${data.type === 'walker' ? 'Passeador' : 'Treinador'} processado!`);
+         toast.success(data.message || `Perfil de Treinador criado!`);
     },
     onError: (error) => {
       console.error("Erro ao criar perfil:", error);
