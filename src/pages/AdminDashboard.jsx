@@ -52,6 +52,7 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminUserTable from "../components/admin/AdminUserTable";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
+import AdminDocumentViewer from "../components/admin/AdminDocumentViewer";
 import Pagination from "../components/ui/Pagination";
 import ClientDetails from "../components/admin/ClientDetails";
 import ProductManagement from "../components/admin/ProductManagement";
@@ -678,6 +679,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="commerce" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🛍️ Comércio</TabsTrigger>
             <TabsTrigger value="operations" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>⚡ Operações</TabsTrigger>
             <TabsTrigger value="gamification" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🏆 Gamificação</TabsTrigger>
+            <TabsTrigger value="documents" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>📄 Documentos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -1199,6 +1201,14 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="documents">
+            <AdminDocumentViewer 
+              walkers={allWalkers}
+              trainers={allTrainers}
+              shelters={allShelters}
+            />
           </TabsContent>
 
         </Tabs>
