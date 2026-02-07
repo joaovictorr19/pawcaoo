@@ -109,6 +109,7 @@ import MyWishlist from './pages/MyWishlist';
 import Notifications from './pages/Notifications';
 import OrderSuccess from './pages/OrderSuccess';
 import OwnerSubscriptions from './pages/OwnerSubscriptions';
+import PartnerContentSubmission from './pages/PartnerContentSubmission';
 import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerDetails from './pages/PartnerDetails';
 import PartnerServices from './pages/PartnerServices';
@@ -127,6 +128,7 @@ import Shelters from './pages/Shelters';
 import Shop from './pages/Shop';
 import Sitemap from './pages/Sitemap';
 import SocialEvents from './pages/SocialEvents';
+import SocialFeed from './pages/SocialFeed';
 import StaticExport from './pages/StaticExport';
 import StripeConnectSetup from './pages/StripeConnectSetup';
 import Subscriptions from './pages/Subscriptions';
@@ -140,8 +142,6 @@ import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import WalkerWallet from './pages/WalkerWallet';
-import PartnerContentSubmission from './pages/PartnerContentSubmission';
-import SocialFeed from './pages/SocialFeed';
 import __Layout from './Layout.jsx';
 
 
@@ -208,6 +208,7 @@ export const PAGES = {
     "Notifications": Notifications,
     "OrderSuccess": OrderSuccess,
     "OwnerSubscriptions": OwnerSubscriptions,
+    "PartnerContentSubmission": PartnerContentSubmission,
     "PartnerDashboard": PartnerDashboard,
     "PartnerDetails": PartnerDetails,
     "PartnerServices": PartnerServices,
@@ -226,6 +227,7 @@ export const PAGES = {
     "Shop": Shop,
     "Sitemap": Sitemap,
     "SocialEvents": SocialEvents,
+    "SocialFeed": SocialFeed,
     "StaticExport": StaticExport,
     "StripeConnectSetup": StripeConnectSetup,
     "Subscriptions": Subscriptions,
@@ -239,8 +241,6 @@ export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
     "WalkerWallet": WalkerWallet,
-    "PartnerContentSubmission": PartnerContentSubmission,
-    "SocialFeed": SocialFeed,
 }
 
 export const pagesConfig = {
