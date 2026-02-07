@@ -418,7 +418,7 @@ export default function UserProfile() {
       
       return deduped;
     },
-    enabled: !!profileEmail,
+    enabled: !!profileUser?.user_email || !!profileEmail,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
