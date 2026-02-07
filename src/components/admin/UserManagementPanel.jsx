@@ -142,6 +142,21 @@ export default function UserManagementPanel() {
     onError: (error) => toast.error("Erro: " + error.message),
   });
 
+  const updateWalkerProfileMutation = useMutation({
+    mutationFn: async (data) => {
+      if (!walkerProfile || walkerProfile.length === 0) {
+        throw new Error('Nenhum perfil de passeador encontrado');
+      }
+      return await base44.asServiceRole.entities.WalkerProfile.update(walkerProfile[0].id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["walkerProfile", selectedUser.email] });
+      toast.success('Verificações atualizadas com sucesso!');
+      setEditingVerification(false);
+    },
+    onError: (error) => toast.error('Erro: ' + error.message),
+  });
+
   const toggleBadgeSelection = (badge) => {
     setSelectedBadges((prev) => {
       const exists = prev.find((b) => b.badge_id === badge.badge_id);
