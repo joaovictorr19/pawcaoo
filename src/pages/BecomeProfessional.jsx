@@ -728,7 +728,7 @@ export default function BecomeProfessional() {
                       <Label>Áreas de Serviço</Label>
                       <ServiceAreaSelector
                         serviceAreas={formData.service_areas}
-                        onChange={(areas) => setFormData({...formData, service_areas: areas})}
+                        onChange={(areas) => setFormData(prev => ({...prev, service_areas: areas}))}
                       />
                     </div>
 
@@ -761,9 +761,9 @@ export default function BecomeProfessional() {
                       <Label>Raças com Experiência</Label>
                       <BreedSelector
                         selectedBreeds={formData.dog_breeds_handled}
-                        onChange={(breeds) => setFormData({...formData, dog_breeds_handled: breeds})}
+                        onChange={(breeds) => setFormData(prev => ({...prev, dog_breeds_handled: breeds}))}
                         specializationBreeds={formData.breed_specialization}
-                        onSpecializationChange={(breeds) => setFormData({...formData, breed_specialization: breeds})}
+                        onSpecializationChange={(breeds) => setFormData(prev => ({...prev, breed_specialization: breeds}))}
                       />
                     </div>
 

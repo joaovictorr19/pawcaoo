@@ -64,8 +64,10 @@ export default function BreedSelector({ selectedBreeds = [], onChange, specializ
 
   const handleAddBreed = (breed) => {
     if (!selectedBreeds.includes(breed)) {
-      onChange([...selectedBreeds, breed]);
+      const newBreeds = [...selectedBreeds, breed];
+      onChange(newBreeds);
       setSearchQuery("");
+      setAiSuggestions([]);
     }
   };
 
