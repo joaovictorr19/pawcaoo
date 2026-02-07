@@ -45,7 +45,6 @@ import {
   Check,
   Loader2,
   Trash2,
-  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -757,71 +756,196 @@ export default function UserManagementPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* View Details Dialog */}
-      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      {/* Manage User Dialog - Central Hub */}
+      <Dialog open={showManageUserDialog} onOpenChange={setShowManageUserDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes de {selectedUser?.full_name}</DialogTitle>
+            <DialogTitle className="text-2xl flex items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                {selectedUser?.full_name?.[0]?.toUpperCase() || "U"}
+              </div>
+              Gerir {selectedUser?.full_name}
+            </DialogTitle>
+            <p className="text-sm text-gray-600 mt-2">{selectedUser?.email}</p>
           </DialogHeader>
+
           {selectedUser && (
             <div className="space-y-6">
-              {/* Basic Info */}
-              <div className="space-y-2 pb-4 border-b">
-                <h3 className="font-semibold text-lg">Informações Básicas</h3>
-                <p><span className="text-gray-600">Email:</span> {selectedUser.email}</p>
-                <p><span className="text-gray-600">Tipo Conta:</span> {selectedUser.account_type || "owner"}</p>
-                <p><span className="text-gray-600">Cidade:</span> {selectedUser.city || "—"}</p>
+              {/* Basic Info Card */}
+              <div className="p-4 bg-gray-50 rounded-lg border">
+                <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                  <span className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">👤</span>
+                  Informações Básicas
+                </h3>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <p className="text-xs text-gray-600 font-semibold">Tipo Conta</p>
+                    <p className="text-sm">{selectedUser.account_type || "Cliente"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 font-semibold">Cidade</p>
+                    <p className="text-sm">{selectedUser.city || "—"}</p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowManageUserDialog(false);
+                    setShowEditDialog(true);
+                  }} 
+                  className="w-full gap-2"
+                >
+                  <Edit className="w-3.5 h-3.5" /> Editar Dados Pessoais
+                </Button>
               </div>
 
-              {/* Profile Stats */}
+              {/* Gamification Card */}
               {getUserProfile(selectedUser.email) && (
-                <div className="space-y-2 pb-4 border-b">
-                  <h3 className="font-semibold text-lg">Perfil do Utilizador</h3>
-                  <p><span className="text-gray-600">XP:</span> {getUserProfile(selectedUser.email).gamification_xp} XP</p>
-                  <p><span className="text-gray-600">Nível:</span> {getUserProfile(selectedUser.email).gamification_level}</p>
-                  <p><span className="text-gray-600">Emblemas:</span> {getUserBadges(selectedUser.email).length}</p>
+                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                    <span className="text-xl">⚡</span>
+                    Gamificação
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-white p-3 rounded">
+                      <p className="text-xs text-gray-600 font-semibold">XP Total</p>
+                      <p className="text-lg font-bold text-yellow-600">{getUserProfile(selectedUser.email).gamification_xp}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded">
+                      <p className="text-xs text-gray-600 font-semibold">Nível</p>
+                      <p className="text-lg font-bold text-yellow-600">{getUserProfile(selectedUser.email).gamification_level}</p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleOpenXPDialog(selectedUser)}
+                    className="w-full gap-2"
+                  >
+                    <Zap className="w-3.5 h-3.5" /> Gerir XP e Nível
+                  </Button>
                 </div>
               )}
 
-              {/* Professional Info */}
-              {(getUserWalker(selectedUser.email) || getUserTrainer(selectedUser.email)) && (
-                <div className="space-y-2 pb-4 border-b">
-                  <h3 className="font-semibold text-lg">Conta Profissional</h3>
-                  {getUserWalker(selectedUser.email) && (
-                    <div className="p-3 bg-green-50 rounded">
-                      <p className="font-semibold text-green-700">🚶 Passeador</p>
-                      <p className="text-sm text-gray-600">Taxa: €{getUserWalker(selectedUser.email).hourly_rate}/h</p>
-                      <p className="text-sm text-gray-600">Status: {getUserWalker(selectedUser.email).verification_status}</p>
-                    </div>
-                  )}
-                  {getUserTrainer(selectedUser.email) && (
-                    <div className="p-3 bg-purple-50 rounded">
-                      <p className="font-semibold text-purple-700">🎓 Treinador</p>
-                      <p className="text-sm text-gray-600">Taxa: €{getUserTrainer(selectedUser.email).hourly_rate}/h</p>
-                      <p className="text-sm text-gray-600">Verificado: {getUserTrainer(selectedUser.email).is_verified_trainer ? "Sim ✓" : "Não"}</p>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Professional Account Card */}
+              <div className="p-4 bg-gradient-to-br from-green-50 to-purple-50 rounded-lg border">
+                <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                  <span className="text-xl">💼</span>
+                  Conta Profissional
+                </h3>
+                
+                {getUserWalker(selectedUser.email) || getUserTrainer(selectedUser.email) ? (
+                  <div className="space-y-2 mb-3">
+                    {getUserWalker(selectedUser.email) && (
+                      <div className="p-3 bg-white rounded border border-green-200 flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold text-green-800 text-sm">🚶 Passeador</p>
+                          <p className="text-xs text-gray-600">Taxa: €{getUserWalker(selectedUser.email).hourly_rate}/h</p>
+                          <Badge className="mt-1 bg-green-100 text-green-800 text-xs">{getUserWalker(selectedUser.email).verification_status}</Badge>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => {
+                            setShowManageUserDialog(false);
+                            handleOpenProfessionalDialog(selectedUser);
+                          }}
+                        >
+                          Editar
+                        </Button>
+                      </div>
+                    )}
+                    {getUserTrainer(selectedUser.email) && (
+                      <div className="p-3 bg-white rounded border border-purple-200 flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold text-purple-800 text-sm">🎓 Treinador</p>
+                          <p className="text-xs text-gray-600">Taxa: €{getUserTrainer(selectedUser.email).hourly_rate}/h</p>
+                          <Badge className="mt-1 bg-purple-100 text-purple-800 text-xs">
+                            {getUserTrainer(selectedUser.email).is_verified_trainer ? "Verificado ✓" : "Não Verificado"}
+                          </Badge>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => {
+                            setShowManageUserDialog(false);
+                            handleOpenProfessionalDialog(selectedUser);
+                          }}
+                        >
+                          Editar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600 mb-3">Nenhuma conta profissional criada</p>
+                )}
+                
+                {(!getUserWalker(selectedUser.email) && !getUserTrainer(selectedUser.email)) && (
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      setShowManageUserDialog(false);
+                      handleOpenProfessionalDialog(selectedUser);
+                    }}
+                    className="w-full gap-2 bg-green-600 hover:bg-green-700"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Criar Conta Profissional
+                  </Button>
+                )}
+              </div>
 
-              {/* Badges */}
-              {getUserBadges(selectedUser.email).length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">Emblemas</h3>
-                  <div className="grid grid-cols-2 gap-2">
+              {/* Badges Card */}
+              <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+                  <span className="text-xl">🏆</span>
+                  Emblemas ({getUserBadges(selectedUser.email).length})
+                </h3>
+                
+                {getUserBadges(selectedUser.email).length === 0 ? (
+                  <p className="text-sm text-gray-600 mb-3">Nenhum emblema atribuído</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                     {getUserBadges(selectedUser.email).map((badge) => (
-                      <div key={badge.id} className="p-2 bg-gray-50 rounded border">
-                        <p className="text-sm font-semibold">{badge.icon} {badge.name}</p>
-                        <p className="text-xs text-gray-600">{badge.rarity}</p>
+                      <div key={badge.id} className="p-2 bg-white rounded border flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-2xl flex-shrink-0">{badge.icon || "🏆"}</span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold truncate">{badge.name}</p>
+                            <p className="text-xs text-gray-500">{badge.rarity}</p>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeBadgeMutation.mutate(badge.id)}
+                          disabled={removeBadgeMutation.isPending}
+                          className="flex-shrink-0 h-8 w-8 p-0"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                        </Button>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+                
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleOpenBadgesDialog(selectedUser)}
+                  className="w-full gap-2"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Atribuir Emblema
+                </Button>
+              </div>
             </div>
           )}
-          <DialogFooter>
-            <Button onClick={() => setShowViewDialog(false)}>Fechar</Button>
+
+          <DialogFooter className="mt-6">
+            <Button onClick={() => setShowManageUserDialog(false)} variant="outline">
+              Fechar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
