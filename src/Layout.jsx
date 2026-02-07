@@ -1086,18 +1086,6 @@ function LayoutContent({ children, currentPageName }) {
             >
               <Search className="w-3.5 h-3.5" />
             </Button>
-            {authUser?.role === 'admin' && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate(createPageUrl("PartnerContentSubmission"))}
-                className="h-8 w-8 rounded-lg"
-                aria-label="API & Parceiros"
-                title="Portal de Parceiros & API"
-              >
-                <Megaphone className="w-3.5 h-3.5" />
-              </Button>
-            )}
             {!authUser && (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
