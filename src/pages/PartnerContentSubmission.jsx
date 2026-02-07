@@ -97,9 +97,13 @@ export default function PartnerContentSubmission() {
 
       toast.success(data.message || "Conteúdo enviado com sucesso!");
       
-      // Redirecionar para o feed
+      // Redirecionar para o feed ou eventos dependendo do tipo
       setTimeout(() => {
-        navigate(createPageUrl("SocialFeed"));
+        if (data.content_type === 'SocialEvent') {
+          navigate(createPageUrl("SocialEvents"));
+        } else {
+          navigate(createPageUrl("SocialFeed"));
+        }
       }, 1500);
     },
     onError: (error) => {
@@ -129,6 +133,10 @@ export default function PartnerContentSubmission() {
           is_scheduled: true
         })
       }
+    }, {
+      onSuccess: (data) => {
+        data.content_type = "SocialPost";
+      }
     });
   };
 
@@ -150,6 +158,10 @@ export default function PartnerContentSubmission() {
         ...eventData,
         max_participants: eventData.max_participants ? parseInt(eventData.max_participants) : null,
         price: eventData.is_free ? 0 : parseFloat(eventData.price || 0)
+      }
+    }, {
+      onSuccess: (data) => {
+        data.content_type = "SocialEvent";
       }
     });
   };
@@ -369,14 +381,16 @@ export default function PartnerContentSubmission() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="rounded-lg">
-                          <SelectItem value="walk">Caminhada</SelectItem>
-                          <SelectItem value="meetup">Encontro</SelectItem>
-                          <SelectItem value="training">Treino</SelectItem>
-                          <SelectItem value="adoption">Adoção</SelectItem>
-                          <SelectItem value="party">Festa</SelectItem>
-                          <SelectItem value="competition">Competição</SelectItem>
-                          <SelectItem value="charity">Caridade</SelectItem>
-                          <SelectItem value="other">Outro</SelectItem>
+                          <SelectItem value="walk">Caminhada em Grupo</SelectItem>
+                          <SelectItem value="meetup">Encontro Pet-Friendly</SelectItem>
+                          <SelectItem value="training">Treino & Workshop</SelectItem>
+                          <SelectItem value="adoption">Feira de Adoção</SelectItem>
+                          <SelectItem value="party">Festa Canina</SelectItem>
+                          <SelectItem value="competition">Competição Pet</SelectItem>
+                          <SelectItem value="charity">Evento de Caridade</SelectItem>
+                          <SelectItem value="health">Saúde & Bem-Estar</SelectItem>
+                          <SelectItem value="educational">Educacional</SelectItem>
+                          <SelectItem value="other">Outro Tipo de Evento</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
