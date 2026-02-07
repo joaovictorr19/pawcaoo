@@ -379,6 +379,25 @@ export default function UserManagementPanel() {
               </div>
             </div>
 
+            {/* Panels */}
+            {activePanel === "verification" && (
+              <div className="border-t pt-6 space-y-4">
+                <WalkerVerificationPanel 
+                  user={selectedUser} 
+                  onClose={() => setActivePanel(null)}
+                />
+              </div>
+            )}
+            
+            {activePanel === "wallet" && (
+              <div className="border-t pt-6 space-y-4">
+                <UserWalletPanel 
+                  user={selectedUser} 
+                  onClose={() => setActivePanel(null)}
+                />
+              </div>
+            )}
+
             {/* Footer */}
             <div className="border-t pt-4">
               <Button
