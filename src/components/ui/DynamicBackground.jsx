@@ -153,7 +153,7 @@ export default function DynamicBackground() {
     }
   }, [weather]);
 
-  // If not logged in, show park grass background with weather
+  // If not logged in, show illustrative background with weather
   if (!user) {
     return (
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
@@ -178,34 +178,22 @@ export default function DynamicBackground() {
           }
         `}</style>
         
-        {/* Realistic Forest Path background */}
+        {/* Illustrative Background */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-in-out"
+          className="absolute inset-0 bg-cover bg-top bg-no-repeat"
           style={{
-            backgroundImage: weather === 'snowy' 
-              ? 'url(https://images.unsplash.com/photo-1477601263568-180e2c6d046e?w=1920&q=80)' // Snowy forest path
-              : 'url(https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80)', // Green forest path with light
-          }}
-        />
-        
-        {/* Subtle Overlay for readability */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: weather === 'rainy' 
-              ? 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,20,10,0.6))' 
-              : weather === 'snowy'
-              ? 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(10,20,30,0.4))'
-              : 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,20,5,0.5))' 
+            backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/c02acbe07_Gemini_Generated_Image_ogi8fogi8fogi8fo.png)',
+            backgroundSize: 'cover', // or '100% auto' to maintain aspect ratio at top
           }}
         />
         
         {/* Weather effects */}
+        {/* Sun rays handled by the image itself mostly, but adding subtle effect if sunny */}
         {weather === 'sunny' && <SunRays />}
         
         {weather === 'rainy' && (
           <>
-            <div className="absolute inset-0 bg-slate-900/30" />
+            <div className="absolute inset-0 bg-slate-900/20" />
             <div className="absolute inset-0">
               {raindrops.map((drop) => (
                 <Raindrop key={drop.id} delay={drop.delay} left={drop.left} />
@@ -224,45 +212,6 @@ export default function DynamicBackground() {
             </div>
           </>
         )}
-        
-        {/* Realistic Animals & Nature Elements (Photo Overlays) */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          
-          {/* Real Dog Image - Bottom Right - Golden Retriever */}
-          <div 
-            className="absolute bottom-[-20px] right-[5%] w-[250px] md:w-[350px] h-[300px] opacity-90 z-10"
-            style={{
-              backgroundImage: 'url(https://purepng.com/public/uploads/large/purepng.com-golden-retriever-dogdoganimalgolden-retriever-9815246727220i2cw.png)',
-              backgroundSize: 'contain',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'bottom right',
-              filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))'
-            }}
-          />
-
-          {/* Real Dog Image - Bottom Left - Sitting Dog */}
-          <div 
-            className="absolute bottom-[5%] left-[5%] w-[180px] md:w-[220px] h-[220px] opacity-80 z-0"
-            style={{
-              backgroundImage: 'url(https://purepng.com/public/uploads/large/purepng.com-dog-sittingdoganimalpet-981524673352ki2w7.png)',
-              backgroundSize: 'contain',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'bottom left',
-              filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.4))'
-            }}
-          />
-
-          {/* Floating Leaves/Particles for realism */}
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse" />
-
-        </div>
-        
-        {/* Vignette for depth */}
-        <div className="absolute inset-0" 
-          style={{
-            background: 'radial-gradient(ellipse at center, transparent 40%, rgba(27,94,32,0.15) 100%)'
-          }}
-        />
       </div>
     );
   }
