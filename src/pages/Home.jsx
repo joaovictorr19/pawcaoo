@@ -1127,63 +1127,7 @@ export default function Home() {
               <TabsContent value="professionals">
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-md inline-block">
-                        {filterDogSitting !== "all" ? (
-                          <>
-                            {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
-                            {filterDogSitting === "house_sitting" && t('walkersForHouseSitting', language)}
-                            {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
-                          </>
-                        ) : (
-                          language === 'pt' ? 'Profissionais Disponíveis' : 
-                          language === 'es' ? 'Profesionales Disponibles' : 
-                          'Available Professionals'
-                        )}
-                      </h2>
-                      <div className="flex items-center gap-2 flex-wrap mt-2">
-                        <p className="text-xs md:text-sm text-gray-700 bg-white/70 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm inline-flex items-center gap-1 font-medium">
-                          <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
-                          {filteredProfessionals.length} {t('found', language)}
-                        </p>
-                        
-                        {selectedServiceTypes.length > 0 && (
-                          <Badge className="bg-green-100 text-green-800 text-xs">
-                            {selectedServiceTypes.length} {t('serviceCount', language)}
-                          </Badge>
-                        )}
-                        {selectedSpecializations.length > 0 && (
-                          <Badge className="bg-purple-100 text-purple-800 text-xs">
-                            {selectedSpecializations.length} {t('specializationCount', language)}
-                          </Badge>
-                        )}
-                        
-                        {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
-                          <Badge className="bg-green-100 text-green-800 text-xs">
-                            {t('sortedByMatch', language)}
-                          </Badge>
-                        )}
-                        
-                        {filterDogSitting !== "all" && (
-                          <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                            {filterDogSitting === "boarding" && t('dogBoarding', language)}
-                            {filterDogSitting === "house_sitting" && t('houseSitting', language)}
-                            {filterDogSitting === "drop_in" && t('dropInVisits', language)}
-                          </span>
-                        )}
-                        {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
-                          <span className="text-purple-700 font-semibold bg-purple-50 px-2 py-1 rounded-lg shadow-sm">
-                            ({t('upToDistance', language)} {advancedFilters.radius}km)
-                          </span>
-                        )}
-                        {filteredProfessionals.some(w => w.distance !== null) && 
-                         !(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
-                          <span className="text-purple-700 font-semibold bg-purple-50 px-2 py-1 rounded-lg shadow-sm">
-                            ({t('sortedByDistance', language)})
-                          </span>
-                        )}
-                      </div>
-                    </div>
+
                     </div>
 
                     {viewMode === "map" ? (
