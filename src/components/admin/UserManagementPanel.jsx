@@ -30,15 +30,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
   RefreshCw,
   Edit,
-  Eye,
   Award,
   Zap,
   Plus,
   X,
   Check,
   Loader2,
+  Trash2,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,36 +53,51 @@ export default function UserManagementPanel() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("users");
+
+  // Dialogs
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showProfessionalDialog, setShowProfessionalDialog] = useState(false);
   const [showBadgesDialog, setShowBadgesDialog] = useState(false);
-  const [showPointsDialog, setShowPointsDialog] = useState(false);
+  const [showXPDialog, setShowXPDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
 
+  // Form data
   const [editFormData, setEditFormData] = useState({});
   const [professionalFormData, setProfessionalFormData] = useState({
     professionalType: "walker",
   });
-  const [badgesData, setBadgesData] = useState({});
-  const [pointsData, setPointsData] = useState({});
+  const [badgesFormData, setBadgesFormData] = useState({});
+  const [xpFormData, setXpFormData] = useState({});
 
-  // Fetch all users
+  // Queries
   const { data: allUsers = [], isLoading: loadingUsers, refetch: refetchUsers } = useQuery({
     queryKey: ["adminUsers"],
     queryFn: () => base44.entities.User.list("-created_date", 1000),
     staleTime: 30000,
   });
 
-  // Fetch user profiles
   const { data: userProfiles = [] } = useQuery({
     queryKey: ["userProfiles"],
     queryFn: () => base44.entities.UserProfile.list("-created_date", 1000),
     staleTime: 30000,
   });
 
-  // Fetch loyalty points
-  const { data: loyaltyPoints = [] } = useQuery({
-    queryKey: ["loyaltyPoints"],
-    queryFn: () => base44.entities.LoyaltyPoints.list("-created_date", 1000),
+  const { data: userBadges = [] } = useQuery({
+    queryKey: ["userBadges"],
+    queryFn: () => base44.entities.UserBadge.list("-earned_date", 2000),
+    staleTime: 30000,
+  });
+
+  const { data: walkerProfiles = [] } = useQuery({
+    queryKey: ["walkerProfiles"],
+    queryFn: () => base44.entities.WalkerProfile.list("-created_date", 1000),
+    staleTime: 30000,
+  });
+
+  const { data: trainerProfiles = [] } = useQuery({
+    queryKey: ["trainerProfiles"],
+    queryFn: () => base44.entities.TrainerProfile.list("-created_date", 1000),
     staleTime: 30000,
   });
 
@@ -142,7 +164,8 @@ export default function UserManagementPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
-      queryClient.invalidateQueries({ queryKey: ["userProfiles"] });
+      queryClient.invalidateQueries({ queryKey: ["walkerProfiles"] });
+      queryClient.invalidateQueries({ queryKey: ["trainerProfiles"] });
       toast.success("Conta profissional criada com sucesso!");
       setShowProfessionalDialog(false);
       setProfessionalFormData({ professionalType: "walker" });
@@ -151,38 +174,43 @@ export default function UserManagementPanel() {
     onError: (error) => toast.error("Erro: " + error.message),
   });
 
-  const updateBadgesMutation = useMutation({
-    mutationFn: ({ userId, profileId, data }) =>
-      Promise.all([
-        base44.entities.User.update(userId, data),
-        profileId &&
-          base44.entities.UserProfile.update(profileId, {
-            is_verified: data.is_verified,
-          }),
-      ]),
+  const addBadgeMutation = useMutation({
+    mutationFn: async (badgeData) => {
+      await base44.entities.UserBadge.create(badgeData);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
-      queryClient.invalidateQueries({ queryKey: ["userProfiles"] });
-      toast.success("Emblemas atualizados!");
+      queryClient.invalidateQueries({ queryKey: ["userBadges"] });
+      toast.success("Emblema adicionado!");
       setShowBadgesDialog(false);
-      setSelectedUser(null);
+      setBadgesFormData({});
     },
     onError: (error) => toast.error("Erro: " + error.message),
   });
 
-  const updatePointsMutation = useMutation({
-    mutationFn: ({ loyaltyId, data }) =>
-      base44.entities.LoyaltyPoints.update(loyaltyId, data),
+  const removeBadgeMutation = useMutation({
+    mutationFn: async (badgeId) => {
+      await base44.entities.UserBadge.delete(badgeId);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["loyaltyPoints"] });
-      toast.success("Pontos atualizados!");
-      setShowPointsDialog(false);
-      setSelectedUser(null);
+      queryClient.invalidateQueries({ queryKey: ["userBadges"] });
+      toast.success("Emblema removido!");
     },
     onError: (error) => toast.error("Erro: " + error.message),
   });
 
-  // Filter and search users
+  const updateXpMutation = useMutation({
+    mutationFn: ({ profileId, xpData }) =>
+      base44.entities.UserProfile.update(profileId, xpData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userProfiles"] });
+      toast.success("XP atualizado!");
+      setShowXPDialog(false);
+      setXpFormData({});
+    },
+    onError: (error) => toast.error("Erro: " + error.message),
+  });
+
+  // Filters
   const filteredUsers = useMemo(() => {
     return allUsers.filter((user) => {
       const searchLower = searchTerm.toLowerCase();
@@ -201,7 +229,6 @@ export default function UserManagementPanel() {
       email: user.email || "",
       city: user.city || "",
       phone: user.phone || "",
-      social_role: user.social_role || "user",
     });
     setShowEditDialog(true);
   };
@@ -226,7 +253,6 @@ export default function UserManagementPanel() {
       experience_years: 1,
       dog_sizes: [],
       availability: [],
-      verification_status: "pending",
       professionalType: "walker",
       training_specialties: [],
       training_philosophy: "",
@@ -240,63 +266,81 @@ export default function UserManagementPanel() {
       toast.error("Preencha os dados obrigatórios");
       return;
     }
-
     createProfessionalMutation.mutate(professionalFormData);
   };
 
   const handleOpenBadgesDialog = (user) => {
-    const userProfile = userProfiles.find((p) => p.user_email === user.email);
     setSelectedUser(user);
-    setBadgesData({
-      is_verified: userProfile?.is_verified || user.is_verified || false,
+    setBadgesFormData({
+      user_email: user.email,
+      badge_id: "",
+      name: "",
+      description: "",
+      rarity: "common",
     });
     setShowBadgesDialog(true);
   };
 
-  const handleSaveBadges = () => {
-    if (!selectedUser) return;
-    const userProfile = userProfiles.find((p) => p.user_email === selectedUser.email);
-    updateBadgesMutation.mutate({
-      userId: selectedUser.id,
-      profileId: userProfile?.id,
-      data: badgesData,
-    });
-  };
-
-  const handleOpenPointsDialog = (user) => {
-    const userLoyalty = loyaltyPoints.find((p) => p.user_email === user.email);
-    setSelectedUser(user);
-    setPointsData({
-      points_balance: userLoyalty?.points_balance || 0,
-      total_earned: userLoyalty?.total_earned || 0,
-      tier: userLoyalty?.tier || "bronze",
-    });
-    setShowPointsDialog(true);
-  };
-
-  const handleSavePoints = () => {
-    if (!selectedUser) return;
-    const userLoyalty = loyaltyPoints.find((p) => p.user_email === selectedUser.email);
-    if (!userLoyalty?.id) {
-      toast.error("Registo de pontos não encontrado");
+  const handleAddBadge = () => {
+    if (!badgesFormData.user_email || !badgesFormData.badge_id || !badgesFormData.name) {
+      toast.error("Preencha os campos obrigatórios");
       return;
     }
-    updatePointsMutation.mutate({
-      loyaltyId: userLoyalty.id,
-      data: pointsData,
+    addBadgeMutation.mutate({
+      user_email: badgesFormData.user_email,
+      badge_id: badgesFormData.badge_id,
+      name: badgesFormData.name,
+      description: badgesFormData.description || "",
+      icon: "🏆",
+      rarity: badgesFormData.rarity || "common",
+      earned_date: new Date().toISOString(),
+      category: "admin",
     });
   };
+
+  const handleOpenXPDialog = (user) => {
+    const profile = userProfiles.find((p) => p.user_email === user.email);
+    setSelectedUser(user);
+    setXpFormData({
+      gamification_xp: profile?.gamification_xp || 0,
+      gamification_level: profile?.gamification_level || 1,
+    });
+    setShowXPDialog(true);
+  };
+
+  const handleUpdateXP = () => {
+    const profile = userProfiles.find((p) => p.user_email === selectedUser.email);
+    if (!profile) {
+      toast.error("Perfil não encontrado");
+      return;
+    }
+    updateXpMutation.mutate({
+      profileId: profile.id,
+      xpData: xpFormData,
+    });
+  };
+
+  const handleViewDetails = (user) => {
+    setSelectedUser(user);
+    setShowViewDialog(true);
+  };
+
+  // Helper functions
+  const getUserProfile = (email) => userProfiles.find((p) => p.user_email === email);
+  const getUserBadges = (email) => userBadges.filter((b) => b.user_email === email);
+  const getUserWalker = (email) => walkerProfiles.find((w) => w.created_by === email);
+  const getUserTrainer = (email) => trainerProfiles.find((t) => t.created_by === email);
 
   return (
     <div className="space-y-6">
-      {/* Header with Search and Refresh */}
+      {/* Header */}
       <Card className="glass-panel border-0 shadow-lg">
         <CardHeader>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <CardTitle className="text-2xl">Gestão de Utilizadores</CardTitle>
+              <CardTitle className="text-2xl">Gestão Completa de Utilizadores</CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                Editar perfis, criar contas profissionais e gerenciar emblemas
+                Editar perfis, criar profissionais, gerir emblemas e XP
               </p>
             </div>
             <Button
@@ -320,134 +364,194 @@ export default function UserManagementPanel() {
         </CardContent>
       </Card>
 
-      {/* Users Table */}
-      <Card className="glass-panel border-0 shadow-lg">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[250px]">Utilizador</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Tipo Conta</TableHead>
-                  <TableHead className="text-center">Emblemas</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loadingUsers ? (
-                  <TableRow>
-                    <TableCell colSpan="5" className="text-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin mx-auto text-gray-400" />
-                    </TableCell>
-                  </TableRow>
-                ) : filteredUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan="5" className="text-center py-8 text-gray-500">
-                      Nenhum utilizador encontrado
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredUsers.map((user) => {
-                    const userProfile = userProfiles.find(
-                      (p) => p.user_email === user.email
-                    );
-                    return (
-                      <TableRow key={user.id} className="hover:bg-gray-50">
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={user.profile_photo_url} />
-                              <AvatarFallback className="bg-blue-100 text-blue-700">
-                                {user.full_name?.[0]?.toUpperCase() || "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-semibold text-sm">
-                                {user.full_name || "Sem nome"}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {userProfile?.username || "Sem username"}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm">{user.email}</TableCell>
-                        <TableCell>
-                          <Badge className="bg-blue-100 text-blue-700">
-                            {user.account_type || "owner"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            {userProfile?.is_verified && (
-                              <Badge className="bg-blue-100 text-blue-700 text-xs w-fit">
-                                🔵 Selo Azul
-                              </Badge>
-                            )}
-                            {user.gamification_xp > 0 && (
-                              <Badge className="bg-purple-100 text-purple-700 text-xs w-fit">
-                                ⚡ {user.gamification_xp} XP
-                              </Badge>
-                            )}
-                            {userProfiles.find(p => p.user_email === user.email)?.pinned_badge_ids?.length > 0 && (
-                              <Badge className="bg-yellow-100 text-yellow-700 text-xs w-fit">
-                                🏅 {userProfiles.find(p => p.user_email === user.email).pinned_badge_ids.length} Emblemas
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2 justify-end flex-wrap">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditUser(user)}
-                              className="h-8 px-2"
-                              title="Editar perfil"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleOpenBadgesDialog(user)}
-                              className="h-8 px-2"
-                              title="Gerir emblemas"
-                            >
-                              <Award className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleOpenPointsDialog(user)}
-                              className="h-8 px-2 border-yellow-300 text-yellow-600 hover:bg-yellow-50"
-                              title="Gerir pontos de lealdade"
-                            >
-                              <Zap className="w-3.5 h-3.5" />
-                            </Button>
-                            {(!user.account_type || user.account_type === "owner") && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleOpenProfessionalDialog(user)}
-                                className="h-8 px-2 border-green-300 text-green-600 hover:bg-green-50"
-                                title="Criar conta profissional"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                              </Button>
-                            )}
-                          </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="users">Utilizadores</TabsTrigger>
+          <TabsTrigger value="emblemas">Emblemas</TabsTrigger>
+        </TabsList>
+
+        {/* Users Tab */}
+        <TabsContent value="users">
+          <Card className="glass-panel border-0 shadow-lg">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[250px]">Utilizador</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>XP</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loadingUsers ? (
+                      <TableRow>
+                        <TableCell colSpan="5" className="text-center py-8">
+                          <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                         </TableCell>
                       </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                    ) : filteredUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan="5" className="text-center py-8 text-gray-500">
+                          Nenhum utilizador encontrado
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredUsers.map((user) => {
+                        const profile = getUserProfile(user.email);
+                        const walker = getUserWalker(user.email);
+                        const trainer = getUserTrainer(user.email);
+
+                        return (
+                          <TableRow key={user.id} className="hover:bg-gray-50">
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="w-10 h-10">
+                                  <AvatarImage src={user.profile_photo_url} />
+                                  <AvatarFallback className="bg-blue-100">
+                                    {user.full_name?.[0]?.toUpperCase() || "U"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-semibold text-sm">{user.full_name}</div>
+                                  <div className="text-xs text-gray-500">{user.account_type || "owner"}</div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm">{user.email}</TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                {walker && <Badge className="bg-green-100 text-green-700 text-xs">🚶 Walker</Badge>}
+                                {trainer && <Badge className="bg-purple-100 text-purple-700 text-xs">🎓 Trainer</Badge>}
+                                {!walker && !trainer && <Badge variant="outline" className="text-xs">Cliente</Badge>}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm font-semibold">
+                              {profile?.gamification_xp || 0} XP
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2 justify-end flex-wrap">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleViewDetails(user)}
+                                  className="h-8 px-2"
+                                  title="Ver detalhes"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEditUser(user)}
+                                  className="h-8 px-2"
+                                  title="Editar perfil"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleOpenXPDialog(user)}
+                                  className="h-8 px-2 border-yellow-300 text-yellow-600 hover:bg-yellow-50"
+                                  title="Gerir XP"
+                                >
+                                  <Zap className="w-3.5 h-3.5" />
+                                </Button>
+                                {(!user.account_type || user.account_type === "owner") && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleOpenProfessionalDialog(user)}
+                                    className="h-8 px-2 border-green-300 text-green-600 hover:bg-green-50"
+                                    title="Criar profissional"
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Badges Tab */}
+        <TabsContent value="emblemas">
+          <Card className="glass-panel border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle>Gestão de Emblemas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Utilizador</TableHead>
+                      <TableHead>Emblema</TableHead>
+                      <TableHead>Raridade</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userBadges.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan="5" className="text-center py-8 text-gray-500">
+                          Nenhum emblema atribuído
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      userBadges.map((badge) => (
+                        <TableRow key={badge.id} className="hover:bg-gray-50">
+                          <TableCell className="font-semibold">{badge.user_email}</TableCell>
+                          <TableCell className="flex items-center gap-2">
+                            <span className="text-xl">{badge.icon || "🏆"}</span>
+                            <span>{badge.name}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`text-xs ${
+                              badge.rarity === 'legendary' ? 'bg-yellow-100 text-yellow-700' :
+                              badge.rarity === 'epic' ? 'bg-purple-100 text-purple-700' :
+                              badge.rarity === 'rare' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {badge.rarity || 'comum'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600">
+                            {new Date(badge.earned_date).toLocaleDateString('pt-PT')}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => removeBadgeMutation.mutate(badge.id)}
+                              disabled={removeBadgeMutation.isPending}
+                              className="h-8 px-2 border-red-300 text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Edit User Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
@@ -457,69 +561,43 @@ export default function UserManagementPanel() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="full_name">Nome Completo</Label>
+              <Label>Nome Completo</Label>
               <Input
-                id="full_name"
                 value={editFormData.full_name || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, full_name: e.target.value })
-                }
+                onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
               />
             </div>
             <div>
-              <Label htmlFor="city">Cidade</Label>
+              <Label>Email</Label>
+              <Input value={editFormData.email || ""} disabled className="bg-gray-50" />
+            </div>
+            <div>
+              <Label>Cidade</Label>
               <Input
-                id="city"
                 value={editFormData.city || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, city: e.target.value })
-                }
+                onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })}
               />
             </div>
             <div>
-              <Label htmlFor="phone">Telefone</Label>
+              <Label>Telefone</Label>
               <Input
-                id="phone"
                 value={editFormData.phone || ""}
-                onChange={(e) =>
-                  setEditFormData({ ...editFormData, phone: e.target.value })
-                }
+                onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
               />
-            </div>
-            <div>
-              <Label htmlFor="social_role">Papel Social</Label>
-              <Select
-                value={editFormData.social_role || "user"}
-                onValueChange={(value) =>
-                  setEditFormData({ ...editFormData, social_role: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">Utilizador</SelectItem>
-                  <SelectItem value="moderator">Moderador</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleSaveUser}
-              disabled={updateUserMutation.isPending}
-            >
+            <Button onClick={handleSaveUser} disabled={updateUserMutation.isPending}>
               {updateUserMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Create Professional Dialog */}
+      {/* Professional Dialog */}
       <Dialog open={showProfessionalDialog} onOpenChange={setShowProfessionalDialog}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -527,59 +605,44 @@ export default function UserManagementPanel() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="professionalType">Tipo de Profissional</Label>
+              <Label>Tipo de Profissional</Label>
               <Select
                 value={professionalFormData.professionalType || "walker"}
                 onValueChange={(value) =>
-                  setProfessionalFormData({
-                    ...professionalFormData,
-                    professionalType: value,
-                  })
+                  setProfessionalFormData({ ...professionalFormData, professionalType: value })
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecionar tipo" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="walker">Passeador</SelectItem>
                   <SelectItem value="trainer">Treinador</SelectItem>
-                  <SelectItem value="both">Ambos (Passeador e Treinador)</SelectItem>
+                  <SelectItem value="both">Ambos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
             <div>
-              <Label htmlFor="walker_name">Nome do Profissional</Label>
+              <Label>Nome do Profissional</Label>
               <Input
-                id="walker_name"
                 value={professionalFormData.walker_name || ""}
                 onChange={(e) =>
-                  setProfessionalFormData({
-                    ...professionalFormData,
-                    walker_name: e.target.value,
-                  })
+                  setProfessionalFormData({ ...professionalFormData, walker_name: e.target.value })
                 }
               />
             </div>
-
             <div>
-              <Label htmlFor="location">Localização</Label>
+              <Label>Localização</Label>
               <Input
-                id="location"
                 value={professionalFormData.location || ""}
                 onChange={(e) =>
-                  setProfessionalFormData({
-                    ...professionalFormData,
-                    location: e.target.value,
-                  })
+                  setProfessionalFormData({ ...professionalFormData, location: e.target.value })
                 }
               />
             </div>
-
             <div>
-              <Label htmlFor="hourly_rate">Taxa Horária (€)</Label>
+              <Label>Taxa Horária (€)</Label>
               <Input
-                id="hourly_rate"
                 type="number"
                 value={professionalFormData.hourly_rate || 15}
                 onChange={(e) =>
@@ -590,11 +653,9 @@ export default function UserManagementPanel() {
                 }
               />
             </div>
-
             <div>
-              <Label htmlFor="whatsapp_number">WhatsApp</Label>
+              <Label>WhatsApp</Label>
               <Input
-                id="whatsapp_number"
                 value={professionalFormData.whatsapp_number || ""}
                 onChange={(e) =>
                   setProfessionalFormData({
@@ -604,28 +665,21 @@ export default function UserManagementPanel() {
                 }
               />
             </div>
-
             <div>
-              <Label htmlFor="bio">Biografia</Label>
+              <Label>Biografia</Label>
               <Input
-                id="bio"
                 value={professionalFormData.bio || ""}
                 onChange={(e) =>
-                  setProfessionalFormData({
-                    ...professionalFormData,
-                    bio: e.target.value,
-                  })
+                  setProfessionalFormData({ ...professionalFormData, bio: e.target.value })
                 }
               />
             </div>
-
-            {professionalFormData.professionalType === "trainer" ||
-            professionalFormData.professionalType === "both" ? (
+            {(professionalFormData.professionalType === "trainer" ||
+              professionalFormData.professionalType === "both") && (
               <>
                 <div>
-                  <Label htmlFor="training_specialties">Especialidades (separadas por vírgula)</Label>
+                  <Label>Especialidades (separadas por vírgula)</Label>
                   <Input
-                    id="training_specialties"
                     value={professionalFormData.training_specialties?.join(", ") || ""}
                     onChange={(e) =>
                       setProfessionalFormData({
@@ -633,14 +687,11 @@ export default function UserManagementPanel() {
                         training_specialties: e.target.value.split(",").map((s) => s.trim()),
                       })
                     }
-                    placeholder="obediência, agilidade, comportamento"
                   />
                 </div>
-
                 <div>
-                  <Label htmlFor="training_philosophy">Filosofia de Treino</Label>
+                  <Label>Filosofia de Treino</Label>
                   <Input
-                    id="training_philosophy"
                     value={professionalFormData.training_philosophy || ""}
                     onChange={(e) =>
                       setProfessionalFormData({
@@ -650,8 +701,7 @@ export default function UserManagementPanel() {
                     }
                   />
                 </div>
-
-                <div className="flex items-center gap-3 p-3 bg-purple-50 rounded">
+                <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     id="is_verified_trainer"
@@ -662,19 +712,12 @@ export default function UserManagementPanel() {
                         is_verified_trainer: e.target.checked,
                       })
                     }
-                    className="w-4 h-4"
                   />
-                  <Label htmlFor="is_verified_trainer" className="flex-1 cursor-pointer">
-                    <span className="font-semibold text-purple-700">🟣 Treinador Verificado</span>
-                    <p className="text-xs text-purple-600 mt-0.5">
-                      Treinadores verificados aparecem com selo especial
-                    </p>
-                  </Label>
+                  <Label htmlFor="is_verified_trainer">Treinador Verificado (🟣)</Label>
                 </div>
               </>
-            ) : null}
+            )}
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowProfessionalDialog(false)}>
               Cancelar
@@ -698,115 +741,174 @@ export default function UserManagementPanel() {
       <Dialog open={showBadgesDialog} onOpenChange={setShowBadgesDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Gerir Emblemas de {selectedUser?.full_name}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded">
-              <input
-                type="checkbox"
-                id="is_verified"
-                checked={badgesData.is_verified || false}
-                onChange={(e) =>
-                  setBadgesData({ ...badgesData, is_verified: e.target.checked })
-                }
-                className="w-4 h-4"
-              />
-              <Label htmlFor="is_verified" className="flex-1 cursor-pointer">
-                <span className="font-semibold text-blue-700">🔵 Selo Azul Verificado</span>
-                <p className="text-xs text-blue-600 mt-0.5">
-                  Mostra que a conta é verificada e confiável
-                </p>
-              </Label>
-              {badgesData.is_verified && <Check className="w-5 h-5 text-green-600" />}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBadgesDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSaveBadges}
-              disabled={updateBadgesMutation.isPending}
-            >
-              {updateBadgesMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Guardar"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Points Dialog */}
-      <Dialog open={showPointsDialog} onOpenChange={setShowPointsDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Gerir Pontos de Lealdade - {selectedUser?.full_name}</DialogTitle>
+            <DialogTitle>Adicionar Emblema a {selectedUser?.full_name}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="points_balance">Saldo de Pontos</Label>
+              <Label>ID do Emblema</Label>
               <Input
-                id="points_balance"
-                type="number"
-                value={pointsData.points_balance || 0}
+                value={badgesFormData.badge_id || ""}
+                onChange={(e) => setBadgesFormData({ ...badgesFormData, badge_id: e.target.value })}
+                placeholder="ex: achievement_1"
+              />
+            </div>
+            <div>
+              <Label>Nome do Emblema</Label>
+              <Input
+                value={badgesFormData.name || ""}
+                onChange={(e) => setBadgesFormData({ ...badgesFormData, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Descrição</Label>
+              <Input
+                value={badgesFormData.description || ""}
                 onChange={(e) =>
-                  setPointsData({
-                    ...pointsData,
-                    points_balance: parseInt(e.target.value) || 0,
-                  })
+                  setBadgesFormData({ ...badgesFormData, description: e.target.value })
                 }
               />
             </div>
             <div>
-              <Label htmlFor="total_earned">Total Ganho</Label>
-              <Input
-                id="total_earned"
-                type="number"
-                value={pointsData.total_earned || 0}
-                onChange={(e) =>
-                  setPointsData({
-                    ...pointsData,
-                    total_earned: parseInt(e.target.value) || 0,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <Label htmlFor="tier">Nível</Label>
+              <Label>Raridade</Label>
               <Select
-                value={pointsData.tier || "bronze"}
+                value={badgesFormData.rarity || "common"}
                 onValueChange={(value) =>
-                  setPointsData({ ...pointsData, tier: value })
+                  setBadgesFormData({ ...badgesFormData, rarity: value })
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bronze">🥉 Bronze</SelectItem>
-                  <SelectItem value="silver">🥈 Prata</SelectItem>
-                  <SelectItem value="gold">🥇 Ouro</SelectItem>
-                  <SelectItem value="platinum">💎 Platina</SelectItem>
+                  <SelectItem value="common">Comum</SelectItem>
+                  <SelectItem value="rare">Rara</SelectItem>
+                  <SelectItem value="epic">Épica</SelectItem>
+                  <SelectItem value="legendary">Lendária</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPointsDialog(false)}>
+            <Button variant="outline" onClick={() => setShowBadgesDialog(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleSavePoints}
-              disabled={updatePointsMutation.isPending}
-            >
-              {updatePointsMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Guardar"
-              )}
+            <Button onClick={handleAddBadge} disabled={addBadgeMutation.isPending}>
+              {addBadgeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Adicionar"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* XP Dialog */}
+      <Dialog open={showXPDialog} onOpenChange={setShowXPDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Gerir XP - {selectedUser?.full_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>XP Total</Label>
+              <Input
+                type="number"
+                value={xpFormData.gamification_xp || 0}
+                onChange={(e) =>
+                  setXpFormData({
+                    ...xpFormData,
+                    gamification_xp: parseInt(e.target.value) || 0,
+                  })
+                }
+              />
+            </div>
+            <div>
+              <Label>Nível</Label>
+              <Input
+                type="number"
+                value={xpFormData.gamification_level || 1}
+                onChange={(e) =>
+                  setXpFormData({
+                    ...xpFormData,
+                    gamification_level: parseInt(e.target.value) || 1,
+                  })
+                }
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowXPDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateXP} disabled={updateXpMutation.isPending}>
+              {updateXpMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Atualizar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Details Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes de {selectedUser?.full_name}</DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div className="space-y-2 pb-4 border-b">
+                <h3 className="font-semibold text-lg">Informações Básicas</h3>
+                <p><span className="text-gray-600">Email:</span> {selectedUser.email}</p>
+                <p><span className="text-gray-600">Tipo Conta:</span> {selectedUser.account_type || "owner"}</p>
+                <p><span className="text-gray-600">Cidade:</span> {selectedUser.city || "—"}</p>
+              </div>
+
+              {/* Profile Stats */}
+              {getUserProfile(selectedUser.email) && (
+                <div className="space-y-2 pb-4 border-b">
+                  <h3 className="font-semibold text-lg">Perfil do Utilizador</h3>
+                  <p><span className="text-gray-600">XP:</span> {getUserProfile(selectedUser.email).gamification_xp} XP</p>
+                  <p><span className="text-gray-600">Nível:</span> {getUserProfile(selectedUser.email).gamification_level}</p>
+                  <p><span className="text-gray-600">Emblemas:</span> {getUserBadges(selectedUser.email).length}</p>
+                </div>
+              )}
+
+              {/* Professional Info */}
+              {(getUserWalker(selectedUser.email) || getUserTrainer(selectedUser.email)) && (
+                <div className="space-y-2 pb-4 border-b">
+                  <h3 className="font-semibold text-lg">Conta Profissional</h3>
+                  {getUserWalker(selectedUser.email) && (
+                    <div className="p-3 bg-green-50 rounded">
+                      <p className="font-semibold text-green-700">🚶 Passeador</p>
+                      <p className="text-sm text-gray-600">Taxa: €{getUserWalker(selectedUser.email).hourly_rate}/h</p>
+                      <p className="text-sm text-gray-600">Status: {getUserWalker(selectedUser.email).verification_status}</p>
+                    </div>
+                  )}
+                  {getUserTrainer(selectedUser.email) && (
+                    <div className="p-3 bg-purple-50 rounded">
+                      <p className="font-semibold text-purple-700">🎓 Treinador</p>
+                      <p className="text-sm text-gray-600">Taxa: €{getUserTrainer(selectedUser.email).hourly_rate}/h</p>
+                      <p className="text-sm text-gray-600">Verificado: {getUserTrainer(selectedUser.email).is_verified_trainer ? "Sim ✓" : "Não"}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Badges */}
+              {getUserBadges(selectedUser.email).length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-lg">Emblemas</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {getUserBadges(selectedUser.email).map((badge) => (
+                      <div key={badge.id} className="p-2 bg-gray-50 rounded border">
+                        <p className="text-sm font-semibold">{badge.icon} {badge.name}</p>
+                        <p className="text-xs text-gray-600">{badge.rarity}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setShowViewDialog(false)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
