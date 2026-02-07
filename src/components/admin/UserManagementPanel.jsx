@@ -66,6 +66,13 @@ export default function UserManagementPanel() {
     enabled: !!selectedUser?.email,
   });
 
+  const { data: walkerProfile } = useQuery({
+    queryKey: ["walkerProfile", selectedUser?.email],
+    queryFn: () =>
+      base44.entities.WalkerProfile.filter({ created_by: selectedUser.email }),
+    enabled: !!selectedUser?.email,
+  });
+
   // Filter users
   const filteredUsers = useMemo(() => {
     return allUsers.filter((user) => {
