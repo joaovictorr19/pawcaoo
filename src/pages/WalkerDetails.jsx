@@ -269,6 +269,27 @@ export default function WalkerDetails() {
     queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
   };
 
+  const updateWalkerProfileMutation = useMutation({
+    mutationFn: async (data) => {
+        if (!user || user.role !== 'admin') {
+            throw new Error('Unauthorized');
+        }
+        return await base44.asServiceRole.entities.WalkerProfile.update(walker.id, data);
+    },
+    onSuccess: () => {
+        queryClient.invalidateQueries(['walker', walkerId]);
+        toast.success('Perfil do passeador atualizado com sucesso!');
+        setEditingVerification(false);
+    },
+    onError: (error) => {
+        toast.error('Erro ao atualizar perfil: ' + error.message);
+    }
+  });
+
+  const handleVerificationChange = (field, value) => {
+    updateWalkerProfileMutation.mutate({ [field]: value });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
