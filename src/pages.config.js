@@ -127,7 +127,6 @@ import Shelters from './pages/Shelters';
 import Shop from './pages/Shop';
 import Sitemap from './pages/Sitemap';
 import SocialEvents from './pages/SocialEvents';
-import SocialFeed from './pages/SocialFeed';
 import StaticExport from './pages/StaticExport';
 import StripeConnectSetup from './pages/StripeConnectSetup';
 import Subscriptions from './pages/Subscriptions';
@@ -142,6 +141,7 @@ import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import WalkerWallet from './pages/WalkerWallet';
 import PartnerContentSubmission from './pages/PartnerContentSubmission';
+import SocialFeed from './pages/SocialFeed';
 import __Layout from './Layout.jsx';
 
 
@@ -226,7 +226,6 @@ export const PAGES = {
     "Shop": Shop,
     "Sitemap": Sitemap,
     "SocialEvents": SocialEvents,
-    "SocialFeed": SocialFeed,
     "StaticExport": StaticExport,
     "StripeConnectSetup": StripeConnectSetup,
     "Subscriptions": Subscriptions,
@@ -241,6 +240,7 @@ export const PAGES = {
     "WalkerTrack": WalkerTrack,
     "WalkerWallet": WalkerWallet,
     "PartnerContentSubmission": PartnerContentSubmission,
+    "SocialFeed": SocialFeed,
 }
 
 export const pagesConfig = {

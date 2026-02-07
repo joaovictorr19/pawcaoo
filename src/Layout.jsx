@@ -304,7 +304,7 @@ function LayoutContent({ children, currentPageName }) {
     { 
       title: language === 'pt' ? 'Comunidade' : language === 'es' ? 'Comunidad' : 'Community', 
       url: createPageUrl("SocialFeed"), 
-      icon: MessageCircle 
+      icon: Globe 
     },
     { 
       title: language === 'pt' ? 'Loja & Parceiros' : 'Shop & Partners',

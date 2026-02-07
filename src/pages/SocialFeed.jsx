@@ -57,6 +57,7 @@ export default function SocialFeed() {
   const [selectedTab, setSelectedTab] = useState("feed");
   const [showCreateStory, setShowCreateStory] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // NOVO: Estado para comentários
   const [commentingPostId, setCommentingPostId] = useState(null);
@@ -608,40 +609,104 @@ export default function SocialFeed() {
   const isPremium = socialSubscription?.plan_type === 'premium' || socialSubscription?.plan_type === 'pro';
   const isPro = socialSubscription?.plan_type === 'pro';
 
+  // Scroll to top functionality
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Delete post mutation
+  const deletePostMutation = useMutation({
+    mutationFn: async (postId) => {
+      await base44.entities.SocialPost.delete(postId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
+      toast.success('Post removido com sucesso');
+    },
+    onError: (error) => {
+      toast.error('Erro ao remover post: ' + error.message);
+    }
+  });
+
+  const handleDeletePost = (postId) => {
+    if (confirm('Tem certeza que deseja remover este post?')) {
+      deletePostMutation.mutate(postId);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50">
       {/* MODERN CLEAN HEADER */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3">
+      <div className="bg-white/95 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Comunidade PawCão</h1>
+              <p className="text-sm text-gray-600">Conecte-se com outros donos de pets</p>
+            </div>
+          </div>
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <DogConnectLogo size="default" />
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(createPageUrl('Home'))}
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                Voltar
+              </Button>
+            </div>
 
             {/* Navigation */}
             <div className="hidden md:flex items-center gap-2">
-              <Button variant="ghost" size="sm" className={selectedTab === 'feed' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-100'} onClick={() => setSelectedTab('feed')}>
-                <Home className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => setShowFilters(!showFilters)}>
-                <Search className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => navigate(createPageUrl('SocialEvents'))}>
-                <Calendar className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => navigate(createPageUrl('Notifications'))}>
-                <Bell className="w-5 h-5" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={selectedTab === 'feed' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-gray-700 hover:bg-gray-100'}
+                onClick={() => setSelectedTab('feed')}
+              >
+                <Compass className="w-4 h-4 mr-1.5" />
+                Explorar
               </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-gray-600 hover:bg-gray-100" 
+                className={selectedTab === 'following' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-gray-700 hover:bg-gray-100'}
+                onClick={() => setSelectedTab('following')}
+              >
+                <Users className="w-4 h-4 mr-1.5" />
+                Seguindo
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-700 hover:bg-gray-100" 
+                onClick={() => navigate(createPageUrl('SocialEvents'))}
+              >
+                <Calendar className="w-4 h-4 mr-1.5" />
+                Eventos
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-700 hover:bg-gray-100" 
                 onClick={() => {
                   if (user?.email) {
                     navigate(createPageUrl(`UserProfile?email=${user.email}`));
                   }
                 }}
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4 mr-1.5" />
+                Perfil
               </Button>
             </div>
 
@@ -661,9 +726,13 @@ export default function SocialFeed() {
                 </Badge>
               )}
 
-              <Button onClick={() => setShowCreateStory(true)} className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-sm" size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Story
+              <Button 
+                onClick={() => setShowCreatePost(true)} 
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all"
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-1.5" />
+                Criar Post
               </Button>
             </div>
           </div>
@@ -671,34 +740,10 @@ export default function SocialFeed() {
       </div>
 
       {/* Main Content with Sidebar */}
-      <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Feed Column */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="max-w-2xl mx-auto space-y-6">
           {/* Stories */}
           <StoriesBar />
-
-          {/* Filters */}
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="mb-6">
-                <SearchAndFilters />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Tabs */}
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
-            <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm border border-gray-200">
-              <TabsTrigger value="feed" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                <Compass className="w-4 h-4 mr-2" />
-                Explorar
-              </TabsTrigger>
-              <TabsTrigger value="following" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                <Users className="w-4 h-4 mr-2" />
-                Seguindo
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
 
           {/* Create Post */}
           <Card className="mb-6 border border-gray-200 shadow-sm bg-white">
@@ -724,19 +769,19 @@ export default function SocialFeed() {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate(createPageUrl('SocialEvents'))}
-                  className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                  className="flex-1 text-green-700 hover:text-green-800 hover:bg-green-50 font-medium"
                 >
                   <Calendar className="w-4 h-4 mr-2" />
-                  Evento
+                  Criar Evento
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowCreateStory(true)}
-                  className="flex-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                  className="flex-1 text-purple-700 hover:text-purple-800 hover:bg-purple-50 font-medium"
                 >
                   <Camera className="w-4 h-4 mr-2" />
-                  Story
+                  Criar Story
                 </Button>
               </div>
             </CardContent>
@@ -837,10 +882,17 @@ export default function SocialFeed() {
                                 )}
                               </div>
                             </div>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="w-5 h-5" />
-                            </Button>
-                          </div>
+                            {(user?.email === post.author_email || user?.role === 'admin') && (
+                             <Button 
+                               variant="ghost" 
+                               size="sm"
+                               onClick={() => handleDeletePost(post.id)}
+                               className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                             >
+                               <X className="w-5 h-5" />
+                             </Button>
+                            )}
+                            </div>
 
                           {/* Post Image */}
                           {post.media_urls?.length > 0 && (
@@ -1032,13 +1084,22 @@ export default function SocialFeed() {
               </AnimatePresence>
             )}
           </div>
-        </div>
 
-        {/* Right Sidebar - Trending Section */}
-        <div className="hidden lg:block">
-          <div className="sticky top-20">
-            <TrendingSection />
-          </div>
+          {/* Scroll to Top Button */}
+          <AnimatePresence>
+            {showScrollTop && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                onClick={scrollToTop}
+                className="fixed bottom-24 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg z-40 transition-all hover:scale-110"
+                aria-label="Voltar ao topo"
+              >
+                <ChevronRight className="w-6 h-6 rotate-[-90deg]" />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -1090,15 +1151,15 @@ export default function SocialFeed() {
 
                 {/* Content Textarea */}
                 <Textarea
-                  placeholder="Compartilhe um momento com seu pet... 🐾"
+                  placeholder="Compartilhe um momento com seu pet..."
                   value={newPostData.content}
                   onChange={(e) => setNewPostData({ ...newPostData, content: e.target.value })}
-                  className="min-h-[120px] border-2 border-gray-200 focus:border-blue-300 rounded-xl resize-none"
+                  className="min-h-[120px] border-2 border-gray-200 focus:border-blue-400 rounded-xl resize-none text-base"
                 />
 
                 {/* Media Upload */}
                 <div>
-                  <Label className="mb-2 block text-gray-700 font-medium">📸 Fotos/Vídeos</Label>
+                  <Label className="mb-2 block text-gray-800 font-semibold">Fotos e Vídeos</Label>
                   <OptimizedImageUpload
                     onImagesChange={(urls) => setNewPostData({ ...newPostData, media_urls: urls })}
                     currentImages={newPostData.media_urls}
@@ -1110,7 +1171,7 @@ export default function SocialFeed() {
 
                 {/* NEW: Post Scheduling */}
                 <div>
-                  <Label className="mb-2 block text-gray-700 font-medium">⏰ Agendar Publicação (Opcional)</Label>
+                  <Label className="mb-2 block text-gray-800 font-semibold">Agendar Publicação (Opcional)</Label>
                   <Input
                     type="datetime-local"
                     value={newPostData.scheduled_date}
