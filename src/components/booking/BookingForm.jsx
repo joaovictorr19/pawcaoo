@@ -49,8 +49,13 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     walk_time: "09:00",
     duration_hours: 1,
     special_notes: "",
-    owner_phone: ""
+    owner_phone: "",
+    session_type: "in_person" // Default to in_person
   });
+
+  // Check if trainer supports online
+  const supportsOnline = !isWalker && pro?.consultation_options?.includes("online");
+  const supportsInPerson = isWalker || pro?.consultation_options?.includes("in_person") || !pro?.consultation_options;
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
 
@@ -456,12 +461,12 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       setStep(2);
       
     } else if (step === 2) {
-      if (!pickupAddress?.trim()) {
-        toast.error('⚠️ Indique o local de recolha', {
-          description: 'A morada é obrigatória para o passeador ir buscar o cão',
+      // Validate address only if in-person
+      if (formData.session_type === "in_person" && !pickupAddress?.trim()) {
+        toast.error('⚠️ Indique a morada', {
+          description: 'A morada é obrigatória para sessões presenciais',
           duration: 4000
         });
-        // Scroll para o campo de morada
         setTimeout(() => {
           const addressInput = document.querySelector('input[placeholder*="Rua"]');
           if (addressInput) {
@@ -814,10 +819,43 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 </div>
               </div>
 
+              {/* Session Type Selection (Online/In-Person) */}
+              {!isWalker && (supportsOnline || supportsInPerson) && (
+                <div className="mb-4">
+                  <Label className="text-sm font-semibold mb-2 block">Formato da Sessão</Label>
+                  <div className="flex gap-2">
+                    {supportsInPerson && (
+                      <div 
+                        onClick={() => setFormData({...formData, session_type: "in_person"})}
+                        className={`flex-1 p-2 rounded-lg border-2 cursor-pointer text-center text-sm ${
+                          formData.session_type === "in_person" 
+                            ? 'border-purple-500 bg-purple-50 text-purple-700 font-bold' 
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        🏠 Presencial
+                      </div>
+                    )}
+                    {supportsOnline && (
+                      <div 
+                        onClick={() => setFormData({...formData, session_type: "online"})}
+                        className={`flex-1 p-2 rounded-lg border-2 cursor-pointer text-center text-sm ${
+                          formData.session_type === "online" 
+                            ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold' 
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        💻 Online
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Service Selection */}
               {availableServices.length > 0 && (
                 <div>
-                  <Label className="text-sm font-semibold mb-2 block">Tipo de Serviço</Label>
+                  <Label className="text-sm font-semibold mb-2 block">Tipo de Serviço / Pacote</Label>
                   <div className="grid gap-2">
                     {availableServices.map((service, idx) => (
                       <div
@@ -833,6 +871,9 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                           <div>
                             <p className="font-semibold text-gray-900 text-sm">{service.service_name}</p>
                             <p className="text-xs text-gray-500">{service.description?.substring(0, 50) || 'Serviço profissional'}</p>
+                            {service.package_options?.length > 0 && (
+                              <Badge variant="secondary" className="text-[10px] mt-1">Pacotes Disponíveis</Badge>
+                            )}
                           </div>
                           <span className="font-bold text-green-600">€{service.price}</span>
                         </div>
@@ -849,8 +890,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                     >
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="font-semibold text-gray-900 text-sm">Passeio por hora</p>
-                          <p className="text-xs text-gray-500">Duração personalizada</p>
+                          <p className="font-semibold text-gray-900 text-sm">Sessão Avulsa</p>
+                          <p className="text-xs text-gray-500">Por hora</p>
                         </div>
                         <span className="font-bold text-green-600">€{pro?.hourly_rate || 15}/h</span>
                       </div>
@@ -919,36 +960,50 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                  <MapPin className="w-4 h-4 text-green-600" /> 
-                  Morada de Recolha *
-                </Label>
-                <Input 
-                  value={pickupAddress}
-                  onChange={(e) => setPickupAddress(e.target.value)}
-                  placeholder="Rua, Número, Cidade"
-                  className="h-10 border-2"
-                  required
-                />
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    onClick={captureCurrentLocation}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7 bg-green-50 border-green-200 text-green-700"
-                  >
-                    <MapPin className="w-3 h-3 mr-1" />
-                    Usar GPS
-                  </Button>
+              {formData.session_type === "in_person" ? (
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <MapPin className="w-4 h-4 text-green-600" /> 
+                    {isWalker ? "Morada de Recolha *" : "Local da Sessão *"}
+                  </Label>
+                  <Input 
+                    value={pickupAddress}
+                    onChange={(e) => setPickupAddress(e.target.value)}
+                    placeholder="Rua, Número, Cidade"
+                    className="h-10 border-2"
+                    required
+                  />
                   
-                  {pickupCoords.lat && (
-                    <span className="text-xs text-green-600 font-medium">✓ Localização OK</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={captureCurrentLocation}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7 bg-green-50 border-green-200 text-green-700"
+                    >
+                      <MapPin className="w-3 h-3 mr-1" />
+                      Usar GPS
+                    </Button>
+                    
+                    {pickupCoords.lat && (
+                      <span className="text-xs text-green-600 font-medium">✓ Localização OK</span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-blue-900">Sessão Online</h4>
+                    <p className="text-xs text-blue-700">
+                      Você receberá um link de videochamada (Zoom/Google Meet) após a confirmação da reserva.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <Label className="text-sm">Observações</Label>
@@ -1069,8 +1124,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       return;
                     }
 
-                    if (!pickupAddress?.trim()) {
-                      toast.error('Morada de recolha é obrigatória');
+                    if (formData.session_type === "in_person" && !pickupAddress?.trim()) {
+                      toast.error('Morada é obrigatória para sessões presenciais');
                       setIsProcessing(false);
                       return;
                     }
@@ -1100,9 +1155,10 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       platform_fee: amounts.platformFee,
                       total_amount: amounts.totalAmount,
                       special_notes: formData.special_notes,
-                      pickup_address: pickupAddress,
+                      pickup_address: formData.session_type === "in_person" ? pickupAddress : "Online Session",
                       pickup_lat: pickupCoords.lat || 0,
                       pickup_lng: pickupCoords.lng || 0,
+                      session_type: formData.session_type,
                       status: isTestBooking ? 'confirmed' : 'pending',
                       payment_status: isTestBooking ? 'released' : 'pending',
                       is_test_booking: isTestBooking,
