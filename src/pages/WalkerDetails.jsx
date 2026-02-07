@@ -412,9 +412,10 @@ export default function WalkerDetails() {
                   </div>
                   <div className="flex items-center gap-1.5 justify-center">
                     <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">{walker.walker_name}</h1>
-                    {walker.verification_status === 'verified' && (
-                      <InstagramVerifiedBadge size="md" />
-                    )}
+                    {walker.verification_status === 'verified' && (<InstagramVerifiedBadge size="md" />)}
+                    {walker.is_pawcao_employee && (<GoldEmployeeBadge size="md" />)}
+                    {walker.is_verified_trainer && (<TrainerVerifiedBadge size="md" />)}
+                    {walker.has_pawcao_seal && (<PawCaoSealBadge size="md" />)}
                   </div>
                   <p className="text-sm font-medium text-green-700 mt-0.5">
                     {walker.is_verified_trainer ? (language === 'pt' ? 'Treinador & Passeador Profissional' : 'Trainer & Professional Walker') : (language === 'pt' ? 'Passeador Profissional' : 'Professional Walker')}
