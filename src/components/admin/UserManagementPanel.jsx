@@ -384,34 +384,69 @@ export default function UserManagementPanel() {
                   <Wallet className="w-4 h-4" />
                   Wallet
                 </Button>
-                <Button 
-                  variant={activePanel === "verification" ? "default" : "outline"}
-                  className="h-9 gap-2"
-                  onClick={() => setActivePanel(activePanel === "verification" ? null : "verification")}
-                >
-                  <Shield className="w-4 h-4" />
-                  Verificações
-                </Button>
-                <Button 
-                  className="h-9 gap-2 bg-green-600 hover:bg-green-700"
-                  onClick={() => createWalkerProfileMutation.mutate()}
-                  disabled={createWalkerProfileMutation.isPending}
-                >
-                  {createWalkerProfileMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <MoreVertical className="w-4 h-4" />
-                  )}
-                  Criar Perfil
-                </Button>
+
+                {/* Walker Actions */}
+                {walkerProfile && walkerProfile.length > 0 ? (
+                  <Button 
+                    variant={activePanel === "walker_verification" ? "default" : "outline"}
+                    className="h-9 gap-2 border-purple-200 hover:bg-purple-50 hover:text-purple-700"
+                    onClick={() => setActivePanel(activePanel === "walker_verification" ? null : "walker_verification")}
+                  >
+                    <Shield className="w-4 h-4 text-purple-500" />
+                    Gerir Passeador
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline"
+                    className="h-9 gap-2 border-dashed border-purple-300 text-purple-600 hover:bg-purple-50"
+                    onClick={() => createProfileMutation.mutate({ type: 'walker' })}
+                    disabled={createProfileMutation.isPending}
+                  >
+                     {createProfileMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreVertical className="w-4 h-4" />}
+                    Criar Passeador
+                  </Button>
+                )}
+
+                {/* Trainer Actions */}
+                {trainerProfile && trainerProfile.length > 0 ? (
+                   <Button 
+                    variant={activePanel === "trainer_verification" ? "default" : "outline"}
+                    className="h-9 gap-2 border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                    onClick={() => setActivePanel(activePanel === "trainer_verification" ? null : "trainer_verification")}
+                  >
+                    <Shield className="w-4 h-4 text-blue-500" />
+                    Gerir Treinador
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline"
+                    className="h-9 gap-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
+                    onClick={() => createProfileMutation.mutate({ type: 'trainer' })}
+                    disabled={createProfileMutation.isPending}
+                  >
+                    {createProfileMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreVertical className="w-4 h-4" />}
+                    Criar Treinador
+                  </Button>
+                )}
               </div>
             </div>
 
             {/* Panels */}
-            {activePanel === "verification" && (
+            {activePanel === "walker_verification" && (
               <div className="border-t pt-6 space-y-4">
-                <WalkerVerificationPanel 
+                <ProfessionalVerificationPanel 
                   user={selectedUser} 
+                  type="walker"
+                  onClose={() => setActivePanel(null)}
+                />
+              </div>
+            )}
+
+            {activePanel === "trainer_verification" && (
+              <div className="border-t pt-6 space-y-4">
+                <ProfessionalVerificationPanel 
+                  user={selectedUser} 
+                  type="trainer"
                   onClose={() => setActivePanel(null)}
                 />
               </div>
