@@ -214,6 +214,30 @@ export default function UserManagementPanel() {
     });
   };
 
+  const handleOpenPointsDialog = (user) => {
+    const userLoyalty = loyaltyPoints.find((p) => p.user_email === user.email);
+    setSelectedUser(user);
+    setPointsData({
+      points_balance: userLoyalty?.points_balance || 0,
+      total_earned: userLoyalty?.total_earned || 0,
+      tier: userLoyalty?.tier || "bronze",
+    });
+    setShowPointsDialog(true);
+  };
+
+  const handleSavePoints = () => {
+    if (!selectedUser) return;
+    const userLoyalty = loyaltyPoints.find((p) => p.user_email === selectedUser.email);
+    if (!userLoyalty?.id) {
+      toast.error("Registo de pontos não encontrado");
+      return;
+    }
+    updatePointsMutation.mutate({
+      loyaltyId: userLoyalty.id,
+      data: pointsData,
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with Search and Refresh */}
