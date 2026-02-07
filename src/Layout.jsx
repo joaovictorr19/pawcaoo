@@ -302,6 +302,11 @@ function LayoutContent({ children, currentPageName }) {
       id: "nav-home" 
     },
     { 
+      title: language === 'pt' ? 'Comunidade' : language === 'es' ? 'Comunidad' : 'Community', 
+      url: createPageUrl("SocialFeed"), 
+      icon: MessageCircle 
+    },
+    { 
       title: language === 'pt' ? 'Loja & Parceiros' : 'Shop & Partners',
       url: createPageUrl("Shop"),
       icon: ShoppingBag

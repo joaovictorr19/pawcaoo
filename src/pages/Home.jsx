@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
@@ -26,6 +26,7 @@ import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Map as MapIcon, List, ChevronLeft, ChevronRight, Star as StarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -277,6 +278,27 @@ export default function Home() {
     cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
+  });
+
+  // Community Posts (SocialPost + ExternalPublisher)
+  const { data: communityPosts = [], isLoading: loadingCommunity } = useQuery({
+    queryKey: ['communityPosts'],
+    queryFn: async () => {
+      try {
+        const posts = await base44.entities.SocialPost.filter({ 
+          moderation_status: 'approved',
+          is_public: true
+        }, '-created_date', 20);
+        return Array.isArray(posts) ? posts : [];
+      } catch (error) {
+        console.error("Community posts fetch error:", error);
+        return [];
+      }
+    },
+    enabled: activeTab === 'comunidade',
+    initialData: [],
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   // Stats em tempo real
@@ -1033,21 +1055,22 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="flex items-center justify-center gap-3 max-w-md mx-auto bg-white/80 backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
+              <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto bg-white/80 backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
                 <button
                   onClick={() => setActiveTab('professionals')}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-all flex-1 ${
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
                     activeTab === 'professionals'
                       ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   <Users className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
+                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
+                  <span className="truncate sm:hidden">Pro</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('emergency')}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-all flex-1 ${
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
                     activeTab === 'emergency'
                       ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md'
                       : 'text-gray-700 hover:bg-gray-100'
@@ -1055,6 +1078,18 @@ export default function Home() {
                 >
                   <Zap className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">SOS</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('comunidade')}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                    activeTab === 'comunidade'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Rss className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Comunidade' : 'Community'}</span>
+                  <span className="truncate sm:hidden">Feed</span>
                 </button>
               </div>
 
@@ -1331,6 +1366,113 @@ export default function Home() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                       {filteredEmergencyWalks.map((walk) => (
                         <EmergencyDogCard key={walk.id} walk={walk} distance={walk.distance} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="comunidade">
+                <div>
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
+                        <Rss className="w-6 h-6 md:w-7 md:h-7 text-blue-500" />
+                        {language === 'pt' ? 'Comunidade PawCão' : language === 'es' ? 'Comunidad PawCão' : 'PawCão Community'}
+                      </h2>
+                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1">
+                        {language === 'pt' ? 'Partilhe momentos, notícias e conecte-se com outros amantes de pets' : 'Share moments, news and connect with pet lovers'}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => navigate(createPageUrl('SocialFeed'))}
+                      className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                      size="sm"
+                    >
+                      Ver Tudo
+                    </Button>
+                  </div>
+
+                  {loadingCommunity ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {[1, 2, 3, 4, 5, 6].map(i => (
+                        <div key={`community-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="w-10 h-10 rounded-full bg-gray-200" />
+                            <Skeleton className="h-4 w-32 bg-gray-200" />
+                          </div>
+                          <Skeleton className="w-full h-48 rounded-lg bg-gray-200" />
+                          <Skeleton className="h-4 w-full bg-gray-200" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : communityPosts.length === 0 ? (
+                    <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden bg-white/90">
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                        <Rss className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
+                        {language === 'pt' ? 'Nenhum post na comunidade ainda' : 'No community posts yet'}
+                      </h3>
+                      <p className="text-sm md:text-base text-gray-600 mb-4">
+                        {language === 'pt' ? 'Seja o primeiro a partilhar!' : 'Be the first to share!'}
+                      </p>
+                      <Button
+                        onClick={() => navigate(createPageUrl('SocialFeed'))}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <PlusCircle className="w-4 h-4 mr-2" />
+                        {language === 'pt' ? 'Criar Post' : 'Create Post'}
+                      </Button>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {communityPosts.slice(0, 6).map((post) => (
+                        <motion.div
+                          key={post.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          whileHover={{ scale: 1.02 }}
+                          className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer"
+                          onClick={() => navigate(createPageUrl('SocialFeed'))}
+                        >
+                          {post.media_urls?.[0] && (
+                            <div className="relative w-full aspect-square bg-gray-100">
+                              <img 
+                                src={post.media_urls[0]} 
+                                alt="Post" 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Avatar className="w-8 h-8 ring-2 ring-gray-200">
+                                <AvatarImage src={post.author_photo_url} />
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white text-xs">
+                                  {post.author_name?.[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-semibold text-sm text-gray-900">{post.author_name}</p>
+                                {post.is_external && (
+                                  <Badge className="bg-blue-500 text-white text-[10px]">Parceiro</Badge>
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-700 line-clamp-2">{post.content}</p>
+                            <div className="flex items-center gap-3 mt-3 text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <Heart className="w-3.5 h-3.5" />
+                                {post.likes_count || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MessageCircle className="w-3.5 h-3.5" />
+                                {post.comments_count || 0}
+                              </span>
+                            </div>
+                          </div>
+                        </motion.div>
                       ))}
                     </div>
                   )}
