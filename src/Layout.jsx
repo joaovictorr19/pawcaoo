@@ -988,21 +988,27 @@ function LayoutContent({ children, currentPageName }) {
       {/* ========== HEADER PREMIUM FLUTUANTE ========== */}
       {/* Desktop Header - Flutuante ao lado da Sidebar */}
       <header 
-        className="hidden md:block fixed top-[10px] z-[99999] px-3 py-1.5 right-[15px]"
+        className="hidden md:block fixed top-[12px] z-[99999] right-[20px]"
         style={{
-          left: authUser ? '295px' : '15px',
-          background: authUser ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.5)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          border: authUser ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '16px',
-          boxShadow: authUser ? '0 2px 15px rgba(0, 0, 0, 0.06)' : '0 1px 10px rgba(0, 0, 0, 0.03)',
+          left: authUser ? '300px' : '20px',
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.5)',
+          borderRadius: '20px',
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
         }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-9">
+        <div className="flex items-center justify-between gap-4 w-full px-5 py-3">
+          {!authUser && (
+            <Link to={createPageUrl("Home")} className="hover:opacity-80 transition-opacity shrink-0">
+              <PawCaoLogo size="small" showText={true} />
+            </Link>
+          )}
+          
           {/* Menu de Navegação Desktop */}
-          <nav className="flex items-center justify-center flex-1 px-2">
-            <div className="flex items-center gap-1 lg:gap-2">
+          <nav className="flex items-center justify-center flex-1">
+            <div className="flex items-center gap-2">
               {authUser ? (
                 // Menu completo para usuários logados
                 mainMenu.map((item) => (
@@ -1014,40 +1020,53 @@ function LayoutContent({ children, currentPageName }) {
                     e.preventDefault();
                     navigate(item.url);
                   }}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold transition-all hover:scale-105 whitespace-nowrap ${
                     isRouteActive(item.url)
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
+                      : item.icon === Zap 
+                      ? "bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md hover:shadow-lg"
+                      : "text-gray-700 hover:bg-white/80 shadow-sm"
                   }`}
                 >
-                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
-                    <span className="hidden lg:inline">{item.title}</span>
+                    <item.icon className={`w-5 h-5 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-white" : ""}`} />
+                    <span className="text-sm">{item.title}</span>
                   </Link>
                 ))
               ) : (
-                // Menu simplificado para visitantes (não logados)
+                // Menu expandido para visitantes
                 <>
                   <button
                     onClick={() => navigate(createPageUrl("Home"))}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all hover:scale-105 shadow-sm ${
                       location.pathname === createPageUrl("Home") && !location.search.includes('tab=')
-                        ? "bg-gray-200 text-gray-900"
-                        : "text-gray-600 hover:bg-gray-100"
+                        ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg"
+                        : "bg-white/70 text-gray-700 hover:bg-white"
                     }`}
                   >
-                    <Home className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="hidden lg:inline">{language === 'pt' ? 'Início' : language === 'es' ? 'Inicio' : 'Home'}</span>
+                    <Users className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm">{language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals'}</span>
+                  </button>
+                  <button
+                    onClick={() => navigate(createPageUrl("SocialFeed"))}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all hover:scale-105 shadow-sm ${
+                      location.pathname === createPageUrl("SocialFeed")
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
+                        : "bg-white/70 text-gray-700 hover:bg-white"
+                    }`}
+                  >
+                    <Globe className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm">{language === 'pt' ? 'Comunidade' : language === 'es' ? 'Comunidad' : 'Community'}</span>
                   </button>
                   <button
                     onClick={() => navigate(createPageUrl("Shop"))}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all hover:scale-105 shadow-sm ${
                       location.pathname === createPageUrl("Shop")
-                        ? "bg-gray-200 text-gray-900"
-                        : "text-gray-600 hover:bg-gray-100"
+                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
+                        : "bg-white/70 text-gray-700 hover:bg-white"
                     }`}
                   >
-                    <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="hidden lg:inline">{language === 'pt' ? 'Loja' : 'Shop'}</span>
+                    <ShoppingBag className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm">{language === 'pt' ? 'Loja' : 'Shop'}</span>
                   </button>
                 </>
               )}
@@ -1060,16 +1079,15 @@ function LayoutContent({ children, currentPageName }) {
               variant="ghost"
               size="icon"
               onClick={() => setIsSearchOpen(true)}
-              className="h-8 w-8 rounded-lg"
+              className="h-10 w-10 rounded-xl hover:bg-white/80 transition-all"
               aria-label="Search"
             >
-              <Search className="w-3.5 h-3.5" />
+              <Search className="w-5 h-5 text-gray-700" />
             </Button>
             {!authUser && (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                className="bg-gray-800 text-white hover:bg-gray-900 shadow-sm text-xs px-3 h-8"
-                size="sm"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl text-sm px-5 h-10 rounded-full font-semibold"
               >
                 {getMenuText('login')}
               </Button>
