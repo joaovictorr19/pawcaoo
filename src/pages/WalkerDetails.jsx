@@ -645,7 +645,7 @@ export default function WalkerDetails() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Dog className="w-4 h-4 text-green-600" />
-                    Animais Aceitos
+                    Animais Aceites
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
