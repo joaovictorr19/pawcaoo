@@ -377,11 +377,13 @@ export default function BecomeProfessional() {
   };
 
   const toggleArrayItem = (field, value) => {
-    const current = formData[field];
-    const updated = current.includes(value)
-      ? current.filter(item => item !== value)
-      : [...current, value];
-    setFormData({ ...formData, [field]: updated });
+    setFormData(prev => {
+      const current = prev[field];
+      const updated = current.includes(value)
+        ? current.filter(item => item !== value)
+        : [...current, value];
+      return { ...prev, [field]: updated };
+    });
   };
 
   const progress = currentStep === 1 ? 33 : currentStep === 2 ? 66 : 100;
@@ -537,7 +539,11 @@ export default function BecomeProfessional() {
                                   variant="secondary"
                                   size="sm"
                                   className="absolute bottom-2 right-2"
-                                  onClick={() => document.getElementById('cover_photo_input').click()}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    document.getElementById('cover_photo_input').click();
+                                  }}
                                 >
                                   Alterar
                                 </Button>
@@ -546,7 +552,11 @@ export default function BecomeProfessional() {
                               <Button
                                 type="button"
                                 variant="ghost"
-                                onClick={() => document.getElementById('cover_photo_input').click()}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  document.getElementById('cover_photo_input').click();
+                                }}
                               >
                                 <Upload className="w-4 h-4 mr-2" />
                                 Carregar Capa
@@ -569,7 +579,7 @@ export default function BecomeProfessional() {
                             <Input
                               required
                               value={formData.name}
-                              onChange={(e) => setFormData({...formData, name: e.target.value})}
+                              onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
                               placeholder="João Silva"
                             />
                           </div>
@@ -579,7 +589,7 @@ export default function BecomeProfessional() {
                             <Input
                               type="number"
                               value={formData.age}
-                              onChange={(e) => setFormData({...formData, age: e.target.value})}
+                              onChange={(e) => setFormData(prev => ({...prev, age: e.target.value}))}
                               placeholder="25"
                             />
                           </div>
@@ -589,7 +599,7 @@ export default function BecomeProfessional() {
                             <Input
                               required
                               value={formData.phone}
-                              onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                              onChange={(e) => setFormData(prev => ({...prev, phone: e.target.value}))}
                               placeholder="+351 21 123 4567"
                             />
                           </div>
@@ -599,7 +609,7 @@ export default function BecomeProfessional() {
                             <Input
                               required
                               value={formData.whatsapp_number}
-                              onChange={(e) => setFormData({...formData, whatsapp_number: e.target.value.replace(/\D/g, '')})}
+                              onChange={(e) => setFormData(prev => ({...prev, whatsapp_number: e.target.value.replace(/\D/g, '')}))}
                               placeholder="351912345678"
                             />
                           </div>
@@ -609,7 +619,7 @@ export default function BecomeProfessional() {
                             <Input
                               required
                               value={formData.location}
-                              onChange={(e) => setFormData({...formData, location: e.target.value})}
+                              onChange={(e) => setFormData(prev => ({...prev, location: e.target.value}))}
                               placeholder="Lisboa, Portugal"
                             />
                           </div>
@@ -621,7 +631,7 @@ export default function BecomeProfessional() {
                               step="0.01"
                               required
                               value={formData.hourly_rate}
-                              onChange={(e) => setFormData({...formData, hourly_rate: e.target.value})}
+                              onChange={(e) => setFormData(prev => ({...prev, hourly_rate: e.target.value}))}
                               placeholder="25"
                             />
                           </div>
@@ -631,7 +641,7 @@ export default function BecomeProfessional() {
                             <Input
                               type="number"
                               value={formData.experience_years}
-                              onChange={(e) => setFormData({...formData, experience_years: e.target.value})}
+                              onChange={(e) => setFormData(prev => ({...prev, experience_years: e.target.value}))}
                               placeholder="3"
                             />
                           </div>
@@ -642,7 +652,7 @@ export default function BecomeProfessional() {
                           <Label>Sobre Você</Label>
                           <Textarea
                             value={formData.bio}
-                            onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                            onChange={(e) => setFormData(prev => ({...prev, bio: e.target.value}))}
                             placeholder="Conte-nos sobre sua experiência com cães..."
                             rows={5}
                           />
@@ -655,7 +665,9 @@ export default function BecomeProfessional() {
                     <div className="flex justify-end">
                       <Button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           if (!professionalType) {
                             toast.error("Selecione o tipo de profissional");
                             return;
@@ -708,7 +720,7 @@ export default function BecomeProfessional() {
                           <Checkbox
                             id="hasBoarding"
                             checked={formData.hasBoarding}
-                            onCheckedChange={(c) => setFormData({...formData, hasBoarding: c})}
+                            onCheckedChange={(c) => setFormData(prev => ({...prev, hasBoarding: c}))}
                           />
                         </div>
                         <div className="flex-1 space-y-2">
@@ -722,7 +734,7 @@ export default function BecomeProfessional() {
                                   className="h-8 pl-5 text-sm" 
                                   placeholder="25"
                                   value={formData.boardingPrice}
-                                  onChange={(e) => setFormData({...formData, boardingPrice: e.target.value})}
+                                  onChange={(e) => setFormData(prev => ({...prev, boardingPrice: e.target.value}))}
                                 />
                               </div>
                             )}
@@ -737,7 +749,7 @@ export default function BecomeProfessional() {
                           <Checkbox
                             id="hasHouseSitting"
                             checked={formData.hasHouseSitting}
-                            onCheckedChange={(c) => setFormData({...formData, hasHouseSitting: c})}
+                            onCheckedChange={(c) => setFormData(prev => ({...prev, hasHouseSitting: c}))}
                           />
                         </div>
                         <div className="flex-1 space-y-2">
@@ -751,7 +763,7 @@ export default function BecomeProfessional() {
                                   className="h-8 pl-5 text-sm" 
                                   placeholder="30"
                                   value={formData.houseSittingPrice}
-                                  onChange={(e) => setFormData({...formData, houseSittingPrice: e.target.value})}
+                                  onChange={(e) => setFormData(prev => ({...prev, houseSittingPrice: e.target.value}))}
                                 />
                               </div>
                             )}
@@ -766,7 +778,7 @@ export default function BecomeProfessional() {
                           <Checkbox
                             id="hasDropIn"
                             checked={formData.hasDropIn}
-                            onCheckedChange={(c) => setFormData({...formData, hasDropIn: c})}
+                            onCheckedChange={(c) => setFormData(prev => ({...prev, hasDropIn: c}))}
                           />
                         </div>
                         <div className="flex-1 space-y-2">
@@ -780,7 +792,7 @@ export default function BecomeProfessional() {
                                   className="h-8 pl-5 text-sm" 
                                   placeholder="15"
                                   value={formData.dropInPrice}
-                                  onChange={(e) => setFormData({...formData, dropInPrice: e.target.value})}
+                                  onChange={(e) => setFormData(prev => ({...prev, dropInPrice: e.target.value}))}
                                 />
                               </div>
                             )}
@@ -888,7 +900,7 @@ export default function BecomeProfessional() {
                           <Label>Filosofia de Treino</Label>
                           <Textarea
                             value={formData.training_philosophy}
-                            onChange={(e) => setFormData({...formData, training_philosophy: e.target.value})}
+                            onChange={(e) => setFormData(prev => ({...prev, training_philosophy: e.target.value}))}
                             placeholder="Descreva sua abordagem e filosofia de treino..."
                             rows={4}
                           />
@@ -898,7 +910,7 @@ export default function BecomeProfessional() {
                           specializations={formData.training_specializations || []}
                           onChange={(specs) => {
                             console.log('🎓 Specs updated:', specs);
-                            setFormData({...formData, training_specializations: specs || []});
+                            setFormData(prev => ({...prev, training_specializations: specs || []}));
                           }}
                         />
 
@@ -941,7 +953,7 @@ export default function BecomeProfessional() {
                             category: 'walk',
                             is_featured: false
                           }));
-                          setFormData({ ...formData, portfolio });
+                          setFormData(prev => ({ ...prev, portfolio }));
                         }}
                         currentImages={formData.portfolio?.map(p => p.media_url) || []}
                         maxImages={12}
@@ -951,12 +963,25 @@ export default function BecomeProfessional() {
                     </div>
 
                     <div className="flex gap-3">
-                      <Button type="button" variant="outline" onClick={() => setCurrentStep(1)} className="flex-1">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setCurrentStep(1);
+                        }} 
+                        className="flex-1"
+                      >
                         ← Anterior
                       </Button>
                       <Button
                         type="button"
-                        onClick={() => setCurrentStep(3)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setCurrentStep(3);
+                        }}
                         className="flex-1 bg-gradient-to-r from-green-600 to-blue-600"
                       >
                         Próximo: Verificação & Pagamento →
@@ -982,14 +1007,14 @@ export default function BecomeProfessional() {
                     
                     <div className="space-y-2">
                       <Label>Onde Presta Serviços? *</Label>
-                      <RadioGroup value={formData.country_of_operation} onValueChange={(val) => setFormData({...formData, country_of_operation: val})}>
+                      <RadioGroup value={formData.country_of_operation} onValueChange={(val) => setFormData(prev => ({...prev, country_of_operation: val}))}>
                         <div className="grid grid-cols-3 gap-3">
                           <div 
                             className={`cursor-pointer transition-all rounded-lg border-2 p-4 text-center ${formData.country_of_operation === 'portugal' ? 'ring-2 ring-green-500 bg-green-50 border-green-500' : 'border-gray-200 hover:shadow-md hover:border-green-300'}`}
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setFormData({...formData, country_of_operation: 'portugal'});
+                              setFormData(prev => ({...prev, country_of_operation: 'portugal'}));
                             }}>
                             <div className="text-3xl mb-2">🇵🇹</div>
                             <h4 className="font-bold text-sm">Portugal</h4>
@@ -1000,7 +1025,7 @@ export default function BecomeProfessional() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setFormData({...formData, country_of_operation: 'spain'});
+                              setFormData(prev => ({...prev, country_of_operation: 'spain'}));
                             }}>
                             <div className="text-3xl mb-2">🇪🇸</div>
                             <h4 className="font-bold text-sm">Espanha</h4>
@@ -1011,7 +1036,7 @@ export default function BecomeProfessional() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setFormData({...formData, country_of_operation: 'france'});
+                              setFormData(prev => ({...prev, country_of_operation: 'france'}));
                             }}>
                             <div className="text-3xl mb-2">🇫🇷</div>
                             <h4 className="font-bold text-sm">França</h4>
@@ -1027,7 +1052,7 @@ export default function BecomeProfessional() {
                         <Input
                           required
                           value={formData.tax_id_portugal}
-                          onChange={(e) => setFormData({...formData, tax_id_portugal: e.target.value})}
+                          onChange={(e) => setFormData(prev => ({...prev, tax_id_portugal: e.target.value}))}
                           placeholder="123456789"
                           maxLength={9}
                         />
@@ -1042,7 +1067,7 @@ export default function BecomeProfessional() {
                         <Input
                           required
                           value={formData.tax_id_spain}
-                          onChange={(e) => setFormData({...formData, tax_id_spain: e.target.value})}
+                          onChange={(e) => setFormData(prev => ({...prev, tax_id_spain: e.target.value}))}
                           placeholder="12345678A ou X1234567A"
                         />
                         <p className="text-xs text-gray-600">Obrigatório para autónomos ou empresas (Hacienda)</p>
@@ -1060,7 +1085,7 @@ export default function BecomeProfessional() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setFormData({...formData, france_professional_type: 'professional'});
+                              setFormData(prev => ({...prev, france_professional_type: 'professional'}));
                             }}>
                             <div className="font-semibold text-sm">Profissional</div>
                             <p className="text-xs text-gray-600">Auto-entrepreneur / Empresa</p>
@@ -1071,7 +1096,7 @@ export default function BecomeProfessional() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setFormData({...formData, france_professional_type: 'individual', tax_id_france: ''});
+                              setFormData(prev => ({...prev, france_professional_type: 'individual', tax_id_france: ''}));
                             }}>
                             <div className="font-semibold text-sm">Particular</div>
                             <p className="text-xs text-gray-600">Pessoa física</p>
@@ -1084,7 +1109,7 @@ export default function BecomeProfessional() {
                           <Input
                             required={formData.france_professional_type === 'professional'}
                             value={formData.tax_id_france}
-                            onChange={(e) => setFormData({...formData, tax_id_france: e.target.value})}
+                            onChange={(e) => setFormData(prev => ({...prev, tax_id_france: e.target.value}))}
                             placeholder={formData.france_professional_type === 'professional' ? "12345678901234 (SIRET)" : "Número fiscal (se tiver)"}
                           />
                           <p className="text-xs text-gray-600">
@@ -1158,7 +1183,7 @@ export default function BecomeProfessional() {
                         <Label>Nome do Titular da Conta (Opcional)</Label>
                         <Input
                           value={formData.bank_account_holder || ""}
-                          onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
+                          onChange={(e) => setFormData(prev => ({...prev, bank_account_holder: e.target.value}))}
                           placeholder="João Silva"
                         />
                       </div>
@@ -1167,7 +1192,7 @@ export default function BecomeProfessional() {
                         <Label>IBAN (Opcional)</Label>
                         <Input
                           value={formData.bank_account_number || ""}
-                          onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
+                          onChange={(e) => setFormData(prev => ({...prev, bank_account_number: e.target.value}))}
                           placeholder="PT50000201231234567890154"
                         />
                       </div>
@@ -1176,7 +1201,7 @@ export default function BecomeProfessional() {
                         <Label>SWIFT/BIC (Opcional)</Label>
                         <Input
                           value={formData.bank_routing_number || ""}
-                          onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
+                          onChange={(e) => setFormData(prev => ({...prev, bank_routing_number: e.target.value}))}
                           placeholder="BOFAPORTXXX"
                         />
                       </div>
@@ -1185,7 +1210,7 @@ export default function BecomeProfessional() {
                         <Label>MBWay (Opcional)</Label>
                         <Input
                           value={formData.mbway_number || ""}
-                          onChange={(e) => setFormData({...formData, mbway_number: e.target.value})}
+                          onChange={(e) => setFormData(prev => ({...prev, mbway_number: e.target.value}))}
                           placeholder="912345678"
                         />
                         <p className="text-xs text-gray-500">
@@ -1196,7 +1221,16 @@ export default function BecomeProfessional() {
                   </div>
 
                   <div className="flex gap-3 pt-6">
-                    <Button type="button" variant="outline" onClick={() => setCurrentStep(2)} className="flex-1">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setCurrentStep(2);
+                      }} 
+                      className="flex-1"
+                    >
                       ← Anterior
                     </Button>
                     <Button
