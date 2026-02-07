@@ -45,6 +45,7 @@ import ActiveServiceBanner from "../components/professional/ActiveServiceBanner"
 import BookingsList from "../components/professional/BookingsList";
 import OverviewCharts from "../components/professional/OverviewCharts";
 import RecentActivity from "../components/professional/RecentActivity";
+import TrainingSpecializationManager from "../components/trainers/TrainingSpecializationManager";
 
 const TABS = [
   { id: "overview", label: "Resumo", icon: BarChart3 },
