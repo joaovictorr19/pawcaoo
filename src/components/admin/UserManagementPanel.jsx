@@ -115,6 +115,9 @@ export default function UserManagementPanel() {
         userEmail: selectedUser.email,
         walkerName: selectedUser.full_name,
       });
+      if (!response.data?.success) {
+        throw new Error(response.data?.message || "Erro desconhecido");
+      }
       return response.data;
     },
     onSuccess: () => {
@@ -122,7 +125,10 @@ export default function UserManagementPanel() {
       toast.success("Perfil de passeador criado com sucesso!");
       setActivePanel("verification");
     },
-    onError: (error) => toast.error("Erro: " + error.message),
+    onError: (error) => {
+      console.error("Erro ao criar perfil:", error);
+      toast.error(error?.response?.data?.message || error?.message || "Erro ao criar perfil");
+    },
   });
 
   return (
