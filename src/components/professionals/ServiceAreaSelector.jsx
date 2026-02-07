@@ -42,7 +42,7 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
   const [newArea, setNewArea] = useState({
     area_name: "",
     postal_codes: "",
-    radius_km: "5",
+    radius_km: 5,
     latitude: null,
     longitude: null
   });
@@ -110,11 +110,11 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
     // If no coordinates yet, try to geocode first before adding
     if (!lat || !lon) {
        const result = await geocodeArea(true);
-       if (result && result.latitude) {
+       if (result && typeof result.latitude === 'number' && typeof result.longitude === 'number') {
          lat = result.latitude;
          lon = result.longitude;
        } else {
-         // Failed to geocode
+         toast.error("Não foi possível determinar a localização. Por favor, arraste o marcador no mapa.");
          return;
        }
     }
@@ -229,8 +229,11 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                 }} />
 
                 {/* Preview Current New Area */}
-                {newArea.latitude && newArea.longitude && (
-                    <>
+                {(() => {
+                  const currentRadius = parseFloat(newArea.radius_km);
+                  if (newArea.latitude && newArea.longitude && typeof newArea.latitude === 'number' && typeof newArea.longitude === 'number' && !isNaN(currentRadius) && currentRadius > 0) {
+                    return (
+                      <>
                         <Marker 
                           position={[newArea.latitude, newArea.longitude]} 
                           draggable={true}
@@ -245,19 +248,17 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                               }));
                             }
                           }}
-                          ref={(ref) => {
-                            if (ref) {
-                              // Force update if needed or just keep ref
-                            }
-                          }}
                         />
                         <Circle 
-                            center={[newArea.latitude, newArea.longitude]}
-                            radius={newArea.radius_km * 1000}
-                            pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }}
+                          center={[newArea.latitude, newArea.longitude]}
+                          radius={currentRadius * 1000}
+                          pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }}
                         />
-                    </>
-                )}
+                      </>
+                    );
+                  }
+                  return null;
+                })()}
 
                 {/* Existing Areas */}
                 {serviceAreas.map((area, idx) => {

@@ -188,7 +188,12 @@ export default function BreedSelector({ selectedBreeds = [], onChange, specializ
             {aiSuggestions.map(breed => (
               <button
                 key={breed}
-                onClick={() => handleAddBreed(breed)}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleAddBreed(breed);
+                }}
                 className="px-3 py-1 bg-white border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
               >
                 <Plus className="w-3 h-3 inline mr-1" />
