@@ -25,6 +25,19 @@ Deno.serve(async (req) => {
       messages: []
     };
 
+    // Fetch UserProfile to sync data
+    const userProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail });
+    const userProfile = userProfiles.length > 0 ? userProfiles[0] : null;
+
+    const commonData = {
+      photo_url: userProfile?.profile_photo_url || null,
+      bio: userProfile?.bio || '',
+      location: userProfile?.city || 'Portugal',
+      created_by: userEmail,
+      is_active: true,
+      verification_status: 'requires_documents',
+    };
+
     // 1. Handle Walker Profile
     if (type === 'walker') {
       // Check if exists
@@ -35,19 +48,14 @@ Deno.serve(async (req) => {
         results.messages.push('Perfil de passeador já existe.');
       } else {
         const newWalker = await base44.asServiceRole.entities.WalkerProfile.create({
+          ...commonData,
           walker_name: userName,
-          location: 'Portugal',
+          cover_photo_url: userProfile?.cover_photo_url || null,
           hourly_rate: 15,
           whatsapp_number: '+351000000000',
-          is_active: true,
-          verification_status: 'requires_documents',
-          created_by: userEmail,
         });
         results.walker = newWalker;
         results.messages.push('Perfil de passeador criado com sucesso.');
-        
-        // Update user role if needed, purely cosmetic or for permissions if logic relies on it
-        // But mainly existence of profile dictates capability
       }
     }
 
@@ -61,12 +69,9 @@ Deno.serve(async (req) => {
         results.messages.push('Perfil de treinador já existe.');
       } else {
         const newTrainer = await base44.asServiceRole.entities.TrainerProfile.create({
+          ...commonData,
           trainer_name: userName,
-          location: 'Portugal',
           hourly_rate: 25,
-          is_active: true,
-          verification_status: 'requires_documents',
-          created_by: userEmail,
         });
         results.trainer = newTrainer;
         results.messages.push('Perfil de treinador criado com sucesso.');
