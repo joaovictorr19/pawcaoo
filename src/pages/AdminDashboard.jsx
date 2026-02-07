@@ -1097,9 +1097,21 @@ export default function AdminDashboard() {
 
           <TabsContent value="operations">
             <div className="mt-6 space-y-6">
+              <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-blue-600" />
+                    Gestão de APIs Externas
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">Configure chaves de API para publishers externos publicarem na comunidade</p>
+                </CardHeader>
+                <CardContent>
+                  <ExternalPublishersManager />
+                </CardContent>
+              </Card>
+              
               <SubscriptionsManager />
               <BroadcastManager />
-              <ExternalPublishersManager />
             </div>
           </TabsContent>
 
