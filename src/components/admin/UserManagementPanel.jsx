@@ -212,19 +212,18 @@ export default function UserManagementPanel() {
                         <Badge className="bg-blue-100 text-blue-800">User</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
+                    <TableCell className="text-right">
+                      <button
                         onClick={() => {
                           setSelectedUser(user);
                           setEditingUser(user);
                         }}
-                        className="h-8 gap-1"
+                        type="button"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700 active:scale-95 transition-all cursor-pointer"
                       >
                         <Edit className="w-3.5 h-3.5" />
                         Editar
-                      </Button>
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))
