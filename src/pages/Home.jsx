@@ -1134,7 +1134,6 @@ export default function Home() {
                         )}
                       </div>
                     </div>
-                    </div>
 
                     {viewMode === "map" ? (
                     <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
