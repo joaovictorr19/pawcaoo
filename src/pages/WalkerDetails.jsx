@@ -198,29 +198,30 @@ export default function WalkerDetails() {
   });
 
   const { data: walkerBadges = [] } = useQuery({
-    queryKey: ['walkerPinnedBadges', userProfile?.pinned_badge_ids, userProfile?.highlighted_emblem_id],
+    queryKey: ['walkerPinnedBadges', walkerUserProfile?.pinned_badge_ids, walkerUserProfile?.highlighted_emblem_id, walkerUserProfile?.user_email],
     queryFn: async () => {
-      if (!userProfile) return [];
+      if (!walkerUserProfile?.user_email) return [];
       
       const pinnedIds = [];
-      if (userProfile.highlighted_emblem_id) {
-        pinnedIds.push(userProfile.highlighted_emblem_id);
+      if (walkerUserProfile.highlighted_emblem_id) {
+        pinnedIds.push(walkerUserProfile.highlighted_emblem_id);
       }
-      if (userProfile.pinned_badge_ids && userProfile.pinned_badge_ids.length > 0) {
-        pinnedIds.push(...userProfile.pinned_badge_ids.filter(id => id !== userProfile.highlighted_emblem_id));
+      if (walkerUserProfile.pinned_badge_ids && walkerUserProfile.pinned_badge_ids.length > 0) {
+        pinnedIds.push(...walkerUserProfile.pinned_badge_ids.filter(id => id !== walkerUserProfile.highlighted_emblem_id));
       }
       
       if (pinnedIds.length === 0) return [];
       
-      const allBadges = await base44.entities.UserBadge.filter({ user_email: walker.created_by });
+      const allBadges = await base44.entities.UserBadge.filter({ user_email: walkerUserProfile.user_email });
       const badgeDefinitions = await base44.entities.BadgeDefinition.list();
       
       return pinnedIds.slice(0, 4).map(id => {
-        return allBadges.find(b => (b.badge_id || b.id) === id) || 
-               badgeDefinitions.find(b => b.id === id);
+        const userBadge = allBadges.find(b => (b.badge_id || b.id) === id);
+        if (userBadge) return userBadge;
+        return badgeDefinitions.find(b => b.badge_id === id || b.id === id);
       }).filter(Boolean);
     },
-    enabled: !!userProfile && !!walker?.created_by,
+    enabled: !!walkerUserProfile?.user_email,
     initialData: [],
   });
 
