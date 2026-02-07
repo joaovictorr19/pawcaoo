@@ -35,7 +35,8 @@ import {
   X, // New import for close button in modal
   CheckCircle, // New import for verified badge
   Shield, // New import for admin badge
-  ShieldCheck // New import for moderator badge
+  ShieldCheck, // New import for moderator badge
+  Megaphone // New import for API & Partners button
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -783,6 +784,17 @@ export default function SocialFeed() {
                   <Camera className="w-4 h-4 mr-2" />
                   Criar Story
                 </Button>
+                {user?.role === 'admin' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(createPageUrl('PartnerContentSubmission'))}
+                    className="flex-1 text-blue-700 hover:text-blue-800 hover:bg-blue-50 font-medium"
+                  >
+                    <Megaphone className="w-4 h-4 mr-2" />
+                    API & Parceiros
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
