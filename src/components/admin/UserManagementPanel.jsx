@@ -109,6 +109,21 @@ export default function UserManagementPanel() {
     setTimeout(() => setCopiedId(false), 2000);
   };
 
+  const createWalkerProfileMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('createWalkerProfile', {
+        userEmail: selectedUser.email,
+        walkerName: selectedUser.full_name,
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["walkerProfile", selectedUser.email] });
+      toast.success("Perfil de passeador criado!");
+    },
+    onError: (error) => toast.error("Erro: " + error.message),
+  });
+
   return (
     <div className="space-y-6 p-4 md:p-6">
       {/* Search Bar */}
