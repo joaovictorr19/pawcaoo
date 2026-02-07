@@ -112,19 +112,29 @@ export default function BecomeProfessional() {
   
   const [formData, setFormData] = useState(getInitialFormData);
 
-  // Auto-save formData to sessionStorage
+  // Auto-save formData to sessionStorage with debounce
   React.useEffect(() => {
-    try {
-      sessionStorage.setItem('becomeProfessional_formData', JSON.stringify(formData));
-    } catch (e) {
-      console.log('Failed to save form data');
-    }
+    const timeoutId = setTimeout(() => {
+      try {
+        const currentSaved = sessionStorage.getItem('becomeProfessional_formData');
+        const newData = JSON.stringify(formData);
+        if (currentSaved !== newData) {
+          sessionStorage.setItem('becomeProfessional_formData', newData);
+        }
+      } catch (e) {
+        console.log('Failed to save form data');
+      }
+    }, 500);
+    return () => clearTimeout(timeoutId);
   }, [formData]);
 
   // Auto-save step to sessionStorage
   React.useEffect(() => {
     try {
-      sessionStorage.setItem('becomeProfessional_step', currentStep.toString());
+      const currentSaved = sessionStorage.getItem('becomeProfessional_step');
+      if (currentSaved !== currentStep.toString()) {
+        sessionStorage.setItem('becomeProfessional_step', currentStep.toString());
+      }
     } catch (e) {
       console.log('Failed to save step');
     }
@@ -133,7 +143,10 @@ export default function BecomeProfessional() {
   // Auto-save type to sessionStorage
   React.useEffect(() => {
     try {
-      sessionStorage.setItem('becomeProfessional_type', professionalType);
+      const currentSaved = sessionStorage.getItem('becomeProfessional_type');
+      if (currentSaved !== professionalType) {
+        sessionStorage.setItem('becomeProfessional_type', professionalType);
+      }
     } catch (e) {
       console.log('Failed to save type');
     }
