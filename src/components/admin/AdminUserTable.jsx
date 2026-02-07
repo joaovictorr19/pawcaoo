@@ -202,23 +202,73 @@ export default function AdminUserTable({
                     </div>
                     
                     <div className="flex gap-1.5 pt-2 border-t border-gray-100">
-                      <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="flex-1 h-8 text-xs" title="Ver Perfil">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank');
+                        }} 
+                        className="flex-1 h-8 text-xs" 
+                        title="Ver Perfil"
+                      >
                         <Eye className="w-3 h-3 mr-1" /> Ver
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => onEdit(user)} className="flex-1 h-8 text-xs" title="Editar">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onEdit(user);
+                        }} 
+                        className="flex-1 h-8 text-xs" 
+                        title="Editar"
+                      >
                         <Edit className="w-3 h-3 mr-1" /> Editar
                       </Button>
                       {onEditBadges && (
-                        <Button size="sm" variant="outline" onClick={() => onEditBadges(user)} className="h-8 px-2 text-purple-600 border-purple-200" title="Editar Emblemas">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onEditBadges(user);
+                          }} 
+                          className="h-8 px-2 text-purple-600 border-purple-200" 
+                          title="Editar Emblemas"
+                        >
                           <Award className="w-3 h-3" />
                         </Button>
                       )}
                       {onImpersonate && (
-                        <Button size="sm" variant="outline" onClick={() => onImpersonate(user)} className="h-8 px-2 text-blue-600 border-blue-200" title="Login as User">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onImpersonate(user);
+                          }} 
+                          className="h-8 px-2 text-blue-600 border-blue-200" 
+                          title="Login as User"
+                        >
                           <UserCircle className="w-3 h-3" />
                         </Button>
                       )}
-                      <Button size="sm" variant="outline" onClick={() => onDelete(user)} className="text-red-600 border-red-200 h-8 px-2" title="Eliminar">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onDelete(user);
+                        }} 
+                        className="text-red-600 border-red-200 h-8 px-2" 
+                        title="Eliminar"
+                      >
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
@@ -279,25 +329,75 @@ export default function AdminUserTable({
                       <TableCell className="text-[10px] text-gray-500 whitespace-nowrap">
                         {user.created_date ? new Date(user.created_date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'N/A'}
                       </TableCell>
-                      <TableCell className="text-right sticky right-0 bg-white">
+                      <TableCell className="text-right sticky right-0 bg-white z-10">
                         <div className="flex gap-1 justify-end">
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title="Ver Perfil">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 w-7 p-0 hover:bg-gray-200 rounded-full" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank');
+                            }} 
+                            title="Ver Perfil"
+                          >
                             <Eye className="w-3.5 h-3.5 text-gray-500" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              onEdit(user);
+                            }} 
+                            title="Editar Conta"
+                          >
                             <Edit className="w-3.5 h-3.5 text-blue-600" />
                           </Button>
                           {onEditBadges && (
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-purple-100 rounded-full" onClick={() => onEditBadges(user)} title="Editar Emblemas & XP">
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="h-7 w-7 p-0 hover:bg-purple-100 rounded-full" 
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onEditBadges(user);
+                              }} 
+                              title="Editar Emblemas & XP"
+                            >
                               <Award className="w-3.5 h-3.5 text-purple-600" />
                             </Button>
                           )}
                           {onImpersonate && (
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onImpersonate(user)} title="Login as User">
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" 
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onImpersonate(user);
+                              }} 
+                              title="Login as User"
+                            >
                               <UserCircle className="w-3.5 h-3.5 text-blue-600" />
                             </Button>
                           )}
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-red-100 rounded-full" onClick={() => onDelete(user)} title="Eliminar Conta">
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 w-7 p-0 hover:bg-red-100 rounded-full" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              onDelete(user);
+                            }} 
+                            title="Eliminar Conta"
+                          >
                             <Trash2 className="w-3.5 h-3.5 text-red-600" />
                           </Button>
                         </div>
