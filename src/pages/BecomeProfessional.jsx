@@ -334,13 +334,13 @@ export default function BecomeProfessional() {
             <Progress value={progress} className="h-3 mb-3" />
             <div className="flex justify-between text-sm">
               <span className={`font-semibold ${currentStep >= 1 ? 'text-green-600' : 'text-gray-400'}`}>
-                Tipo & Perfil
+                Tipo & Pessoal
               </span>
               <span className={`font-semibold ${currentStep >= 2 ? 'text-green-600' : 'text-gray-400'}`}>
-                Documentos
+                Serviços & Disponibilidade
               </span>
               <span className={`font-semibold ${currentStep >= 3 ? 'text-green-600' : 'text-gray-400'}`}>
-                Pagamento
+                Verificação & Pagamento
               </span>
             </div>
           </div>
@@ -386,9 +386,9 @@ export default function BecomeProfessional() {
         <Card className="border-0 shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-green-600 to-blue-600 text-white">
             <CardTitle className="text-2xl flex items-center gap-2">
-              {currentStep === 1 && <>📋 Tipo de Profissional & Perfil</>}
-              {currentStep === 2 && <>📄 Documentos de Verificação</>}
-              {currentStep === 3 && <>💳 Informação de Pagamento</>}
+              {currentStep === 1 && <>👤 Tipo de Profissional & Dados Pessoais</>}
+              {currentStep === 2 && <>🎯 Serviços & Disponibilidade</>}
+              {currentStep === 3 && <>✅ Verificação & Pagamento</>}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
@@ -973,13 +973,13 @@ export default function BecomeProfessional() {
                         className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
                         disabled={!professionalType}
                       >
-                        Próximo: Documentos →
+                        Próximo: Serviços & Disponibilidade →
                       </Button>
                     </div>
                   </motion.div>
                 )}
 
-                {/* STEP 2: DOCUMENTS */}
+                {/* STEP 2: SERVICES & AVAILABILITY */}
                 {currentStep === 2 && (
                   <motion.div
                     key="step2"
@@ -988,15 +988,416 @@ export default function BecomeProfessional() {
                     exit={{ opacity: 0, x: -20 }}
                     className="space-y-6"
                   >
+                    {/* Fixed Service Selection */}
+                    <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                      <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                        Serviços Adicionais
+                      </h3>
+                      
+                      {/* Alojamento */}
+                      <div className="flex items-start gap-4">
+                        <div className="flex items-center h-10">
+                          <Checkbox
+                            id="hasBoarding"
+                            checked={formData.hasBoarding}
+                            onCheckedChange={(c) => setFormData({...formData, hasBoarding: c})}
+                          />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <Label htmlFor="hasBoarding" className="font-semibold text-gray-800">Alojamento para Cães (Boarding)</Label>
+                            {formData.hasBoarding && (
+                              <div className="relative w-24">
+                                <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">€</span>
+                                <Input 
+                                  type="number" 
+                                  className="h-8 pl-5 text-sm" 
+                                  placeholder="25"
+                                  value={formData.boardingPrice}
+                                  onChange={(e) => setFormData({...formData, boardingPrice: e.target.value})}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600">Cuidado 24/7 na sua casa, ambiente familiar, fotos diárias.</p>
+                        </div>
+                      </div>
+
+                      {/* Casa Sitting */}
+                      <div className="flex items-start gap-4">
+                        <div className="flex items-center h-10">
+                          <Checkbox
+                            id="hasHouseSitting"
+                            checked={formData.hasHouseSitting}
+                            onCheckedChange={(c) => setFormData({...formData, hasHouseSitting: c})}
+                          />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <Label htmlFor="hasHouseSitting" className="font-semibold text-gray-800">Casa-Sitting</Label>
+                            {formData.hasHouseSitting && (
+                              <div className="relative w-24">
+                                <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">€</span>
+                                <Input 
+                                  type="number" 
+                                  className="h-8 pl-5 text-sm" 
+                                  placeholder="30"
+                                  value={formData.houseSittingPrice}
+                                  onChange={(e) => setFormData({...formData, houseSittingPrice: e.target.value})}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600">Você fica na casa do cliente. Segurança da casa, mantém a rotina do cão.</p>
+                        </div>
+                      </div>
+
+                      {/* Visitas */}
+                      <div className="flex items-start gap-4">
+                        <div className="flex items-center h-10">
+                          <Checkbox
+                            id="hasDropIn"
+                            checked={formData.hasDropIn}
+                            onCheckedChange={(c) => setFormData({...formData, hasDropIn: c})}
+                          />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <Label htmlFor="hasDropIn" className="font-semibold text-gray-800">Visitas de Controlo (Drop-in)</Label>
+                            {formData.hasDropIn && (
+                              <div className="relative w-24">
+                                <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">€</span>
+                                <Input 
+                                  type="number" 
+                                  className="h-8 pl-5 text-sm" 
+                                  placeholder="15"
+                                  value={formData.dropInPrice}
+                                  onChange={(e) => setFormData({...formData, dropInPrice: e.target.value})}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600">Visitas de 30-60 min para alimentação, medicação e companhia.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Service Areas */}
+                    <div className="space-y-2">
+                      <Label>Áreas de Serviço</Label>
+                      <ServiceAreaSelector
+                        serviceAreas={formData.service_areas}
+                        onChange={(areas) => setFormData({...formData, service_areas: areas})}
+                      />
+                    </div>
+
+                    {/* Dog Sizes */}
+                    <div className="space-y-3">
+                      <Label>Tamanhos de Cães</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          { value: "small", label: "Pequeno" },
+                          { value: "medium", label: "Médio" },
+                          { value: "large", label: "Grande" },
+                          { value: "extra_large", label: "Extra Grande" },
+                        ].map(size => (
+                          <div key={size.value} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`size-${size.value}`}
+                              checked={formData.dog_sizes.includes(size.value)}
+                              onCheckedChange={() => toggleArrayItem('dog_sizes', size.value)}
+                            />
+                            <label htmlFor={`size-${size.value}`} className="text-sm font-medium cursor-pointer">
+                              {size.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Breeds */}
+                    <div className="space-y-2">
+                      <Label>Raças com Experiência</Label>
+                      <BreedSelector
+                        selectedBreeds={formData.dog_breeds_handled}
+                        onChange={(breeds) => setFormData({...formData, dog_breeds_handled: breeds})}
+                        specializationBreeds={formData.breed_specialization}
+                        onSpecializationChange={(breeds) => setFormData({...formData, breed_specialization: breeds})}
+                      />
+                    </div>
+
+                    {/* Availability */}
+                    <div className="space-y-3">
+                      <Label>Disponibilidade</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          { value: "morning", label: "Manhã" },
+                          { value: "afternoon", label: "Tarde" },
+                          { value: "evening", label: "Noite" },
+                          { value: "night", label: "Madrugada" },
+                        ].map(time => (
+                          <div key={time.value} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`time-${time.value}`}
+                              checked={formData.availability.includes(time.value)}
+                              onCheckedChange={() => toggleArrayItem('availability', time.value)}
+                            />
+                            <label htmlFor={`time-${time.value}`} className="text-sm font-medium cursor-pointer">
+                              {time.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Languages */}
+                    <div className="space-y-3">
+                      <Label>Idiomas Falados</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {["Português", "English", "Español", "Français", "Deutsch"].map(lang => (
+                          <div key={lang} className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border">
+                            <Checkbox
+                              id={`lang-${lang}`}
+                              checked={formData.languages_spoken?.includes(lang)}
+                              onCheckedChange={() => toggleArrayItem('languages_spoken', lang)}
+                            />
+                            <label htmlFor={`lang-${lang}`} className="text-sm cursor-pointer">
+                              {lang}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Trainer Specific Fields */}
+                    {(professionalType === 'trainer' || professionalType === 'both') && (
+                      <div className="border-t-2 border-blue-200 pt-6 space-y-6">
+                        <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2">
+                          <GraduationCap className="w-6 h-6" />
+                          Informações de Treino
+                        </h3>
+
+                        <div className="space-y-2">
+                          <Label>Filosofia de Treino</Label>
+                          <Textarea
+                            value={formData.training_philosophy}
+                            onChange={(e) => setFormData({...formData, training_philosophy: e.target.value})}
+                            placeholder="Descreva sua abordagem e filosofia de treino..."
+                            rows={4}
+                          />
+                        </div>
+
+                        <TrainingSpecializationManager
+                          specializations={formData.training_specializations || []}
+                          onChange={(specs) => {
+                            console.log('🎓 Specs updated:', specs);
+                            setFormData({...formData, training_specializations: specs || []});
+                          }}
+                        />
+
+                        <div className="space-y-3">
+                          <Label>Tipo de Consulta</Label>
+                          <div className="flex flex-wrap gap-3">
+                            {[
+                              { value: "in_person", label: "Presencial" },
+                              { value: "online", label: "Online" },
+                              { value: "hybrid", label: "Híbrido" },
+                            ].map(opt => (
+                              <div key={opt.value} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`consult-${opt.value}`}
+                                  checked={formData.consultation_options.includes(opt.value)}
+                                  onCheckedChange={() => toggleArrayItem('consultation_options', opt.value)}
+                                />
+                                <label htmlFor={`consult-${opt.value}`} className="text-sm cursor-pointer">
+                                  {opt.label}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Portfolio */}
+                    <div className="space-y-2 border-t-2 border-green-100 pt-6">
+                      <Label className="block text-base font-semibold">🖼️ Portfólio (Opcional)</Label>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Fotos de passeios anteriores, cães felizes, etc.
+                      </p>
+                      <OptimizedImageUpload
+                        onImagesChange={(urls) => {
+                          const portfolio = urls.map(url => ({
+                            media_url: url,
+                            media_type: 'photo',
+                            title: 'Trabalho',
+                            category: 'walk',
+                            is_featured: false
+                          }));
+                          setFormData({ ...formData, portfolio });
+                        }}
+                        currentImages={formData.portfolio?.map(p => p.media_url) || []}
+                        maxImages={12}
+                        maxSizeKB={500}
+                        showPreview={true}
+                      />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button type="button" variant="outline" onClick={() => setCurrentStep(1)} className="flex-1">
+                        ← Anterior
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setCurrentStep(3)}
+                        className="flex-1 bg-gradient-to-r from-green-600 to-blue-600"
+                      >
+                        Próximo: Verificação & Pagamento →
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* STEP 3: VERIFICATION & PAYMENT */}
+                {currentStep === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  {/* País e Dados Fiscais */}
+                  <div className="space-y-4 bg-yellow-50 border-2 border-yellow-300 p-6 rounded-xl">
+                    <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                      🌍 País de Atuação & Dados Fiscais
+                    </h3>
+                    
+                    <div className="space-y-2">
+                      <Label>Onde Presta Serviços? *</Label>
+                      <RadioGroup value={formData.country_of_operation} onValueChange={(val) => setFormData({...formData, country_of_operation: val})}>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div 
+                            className={`cursor-pointer transition-all rounded-lg border-2 p-4 text-center ${formData.country_of_operation === 'portugal' ? 'ring-2 ring-green-500 bg-green-50 border-green-500' : 'border-gray-200 hover:shadow-md hover:border-green-300'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setFormData({...formData, country_of_operation: 'portugal'});
+                            }}>
+                            <div className="text-3xl mb-2">🇵🇹</div>
+                            <h4 className="font-bold text-sm">Portugal</h4>
+                          </div>
+
+                          <div 
+                            className={`cursor-pointer transition-all rounded-lg border-2 p-4 text-center ${formData.country_of_operation === 'spain' ? 'ring-2 ring-red-500 bg-red-50 border-red-500' : 'border-gray-200 hover:shadow-md hover:border-red-300'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setFormData({...formData, country_of_operation: 'spain'});
+                            }}>
+                            <div className="text-3xl mb-2">🇪🇸</div>
+                            <h4 className="font-bold text-sm">Espanha</h4>
+                          </div>
+
+                          <div 
+                            className={`cursor-pointer transition-all rounded-lg border-2 p-4 text-center ${formData.country_of_operation === 'france' ? 'ring-2 ring-blue-500 bg-blue-50 border-blue-500' : 'border-gray-200 hover:shadow-md hover:border-blue-300'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setFormData({...formData, country_of_operation: 'france'});
+                            }}>
+                            <div className="text-3xl mb-2">🇫🇷</div>
+                            <h4 className="font-bold text-sm">França</h4>
+                          </div>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {/* Portugal: NIF */}
+                    {formData.country_of_operation === 'portugal' && (
+                      <div className="space-y-2 bg-white p-4 rounded-lg border-2 border-green-200">
+                        <Label>NIF (Número de Identificação Fiscal) *</Label>
+                        <Input
+                          required
+                          value={formData.tax_id_portugal}
+                          onChange={(e) => setFormData({...formData, tax_id_portugal: e.target.value})}
+                          placeholder="123456789"
+                          maxLength={9}
+                        />
+                        <p className="text-xs text-gray-600">Obrigatório para emissão de Recibos Verdes ou Fatura</p>
+                      </div>
+                    )}
+
+                    {/* Spain: NIF/NIE/CIF */}
+                    {formData.country_of_operation === 'spain' && (
+                      <div className="space-y-2 bg-white p-4 rounded-lg border-2 border-red-200">
+                        <Label>NIF / NIE / CIF *</Label>
+                        <Input
+                          required
+                          value={formData.tax_id_spain}
+                          onChange={(e) => setFormData({...formData, tax_id_spain: e.target.value})}
+                          placeholder="12345678A ou X1234567A"
+                        />
+                        <p className="text-xs text-gray-600">Obrigatório para autónomos ou empresas (Hacienda)</p>
+                      </div>
+                    )}
+
+                    {/* France: Profissional ou Particular */}
+                    {formData.country_of_operation === 'france' && (
+                      <div className="space-y-4 bg-white p-4 rounded-lg border-2 border-blue-200">
+                        <div className="space-y-2">
+                        <Label>Tipo de Prestador *</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div 
+                            className={`cursor-pointer rounded-lg border-2 p-3 text-center ${formData.france_professional_type === 'professional' ? 'ring-2 ring-blue-500 bg-blue-50 border-blue-500' : 'border-gray-200 hover:shadow-md'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setFormData({...formData, france_professional_type: 'professional'});
+                            }}>
+                            <div className="font-semibold text-sm">Profissional</div>
+                            <p className="text-xs text-gray-600">Auto-entrepreneur / Empresa</p>
+                          </div>
+
+                          <div 
+                            className={`cursor-pointer rounded-lg border-2 p-3 text-center ${formData.france_professional_type === 'individual' ? 'ring-2 ring-green-500 bg-green-50 border-green-500' : 'border-gray-200 hover:shadow-md'}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setFormData({...formData, france_professional_type: 'individual', tax_id_france: ''});
+                            }}>
+                            <div className="font-semibold text-sm">Particular</div>
+                            <p className="text-xs text-gray-600">Pessoa física</p>
+                          </div>
+                        </div>
+                        </div>
+
+                        <div className="space-y-2 bg-blue-50 p-4 rounded-lg border border-blue-300">
+                          <Label>Número Fiscal Francês {formData.france_professional_type === 'professional' ? '*' : '(Opcional)'}</Label>
+                          <Input
+                            required={formData.france_professional_type === 'professional'}
+                            value={formData.tax_id_france}
+                            onChange={(e) => setFormData({...formData, tax_id_france: e.target.value})}
+                            placeholder={formData.france_professional_type === 'professional' ? "12345678901234 (SIRET)" : "Número fiscal (se tiver)"}
+                          />
+                          <p className="text-xs text-gray-600">
+                            {formData.france_professional_type === 'professional' 
+                              ? "SIRET obrigatório para auto-entrepreneurs e empresas" 
+                              : "Particulares não precisam de SIRET. Declaração via CESU."}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Documentos de Verificação */}
+                  <div className="space-y-4 bg-purple-50 border-2 border-purple-300 p-6 rounded-xl">
+                    <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                      📄 Documentos de Verificação
+                    </h3>
                     <Alert className="border-blue-200 bg-blue-50">
                       <AlertDescription>
-                        <strong>Verificação Simplificada:</strong> Apenas ID e Comprovativo de Morada são necessários.
-                      </AlertDescription>
-                    </Alert>
-
-                    <Alert className="border-blue-200 bg-blue-50 mb-4">
-                      <AlertDescription>
-                        <strong>Documentos Opcionais:</strong> Pode enviar agora ou depois no Painel Profissional.
+                        <strong>Opcional:</strong> Pode enviar agora ou depois no Painel Profissional.
                       </AlertDescription>
                     </Alert>
 
@@ -1031,76 +1432,59 @@ export default function BecomeProfessional() {
                         </div>
                       )}
                     </div>
+                  </div>
 
-                    <div className="flex gap-3">
-                      <Button type="button" variant="outline" onClick={() => setCurrentStep(1)} className="flex-1">
-                        ← Anterior
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={() => setCurrentStep(3)}
-                        className="flex-1 bg-gradient-to-r from-green-600 to-blue-600"
-                      >
-                        Próximo: Pagamento →
-                      </Button>
-                    </div>
-                  </motion.div>
-                )}
+                  {/* Informação de Pagamento */}
+                  <div className="space-y-4 bg-orange-50 border-2 border-orange-300 p-6 rounded-xl">
+                    <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
+                      💳 Informação de Pagamento
+                    </h3>
+                    <Alert className="border-blue-300 bg-blue-50">
+                      <AlertDescription className="text-sm">
+                        ℹ️ <strong>Opcional:</strong> Pode adicionar seus dados bancários agora ou depois no Painel Profissional. 
+                        Os pagamentos ficarão retidos na sua carteira até configurar o método de saque.
+                      </AlertDescription>
+                    </Alert>
 
-                {/* STEP 3: PAYMENT - OPCIONAL */}
-                {currentStep === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
-                >
-                  <Alert className="border-blue-300 bg-blue-50">
-                    <AlertDescription className="text-sm">
-                      ℹ️ <strong>Opcional:</strong> Pode adicionar seus dados bancários agora ou depois no Painel Profissional. 
-                      Os pagamentos ficarão retidos na sua carteira até configurar o método de saque.
-                    </AlertDescription>
-                  </Alert>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>Nome do Titular da Conta (Opcional)</Label>
+                        <Input
+                          value={formData.bank_account_holder || ""}
+                          onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
+                          placeholder="João Silva"
+                        />
+                      </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>Nome do Titular da Conta (Opcional)</Label>
-                      <Input
-                        value={formData.bank_account_holder || ""}
-                        onChange={(e) => setFormData({...formData, bank_account_holder: e.target.value})}
-                        placeholder="João Silva"
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label>IBAN (Opcional)</Label>
+                        <Input
+                          value={formData.bank_account_number || ""}
+                          onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
+                          placeholder="PT50000201231234567890154"
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label>IBAN (Opcional)</Label>
-                      <Input
-                        value={formData.bank_account_number || ""}
-                        onChange={(e) => setFormData({...formData, bank_account_number: e.target.value})}
-                        placeholder="PT50000201231234567890154"
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label>SWIFT/BIC (Opcional)</Label>
+                        <Input
+                          value={formData.bank_routing_number || ""}
+                          onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
+                          placeholder="BOFAPORTXXX"
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label>SWIFT/BIC (Opcional)</Label>
-                      <Input
-                        value={formData.bank_routing_number || ""}
-                        onChange={(e) => setFormData({...formData, bank_routing_number: e.target.value})}
-                        placeholder="BOFAPORTXXX"
-                      />
-                    </div>
-
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>MBWay (Opcional)</Label>
-                      <Input
-                        value={formData.mbway_number || ""}
-                        onChange={(e) => setFormData({...formData, mbway_number: e.target.value})}
-                        placeholder="912345678"
-                      />
-                      <p className="text-xs text-gray-500">
-                        💡 Sugestão: MBWay é o método mais rápido para receber pagamentos
-                      </p>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>MBWay (Opcional)</Label>
+                        <Input
+                          value={formData.mbway_number || ""}
+                          onChange={(e) => setFormData({...formData, mbway_number: e.target.value})}
+                          placeholder="912345678"
+                        />
+                        <p className="text-xs text-gray-500">
+                          💡 Sugestão: MBWay é o método mais rápido para receber pagamentos
+                        </p>
+                      </div>
                     </div>
                   </div>
 
