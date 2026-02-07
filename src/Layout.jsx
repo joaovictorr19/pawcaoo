@@ -465,20 +465,16 @@ function LayoutContent({ children, currentPageName }) {
             is_verified: false
           });
         } else {
-          // 3. SYNC: UserProfile -> Auth User (if different)
+          // 3. SYNC: UserProfile -> Auth User (ALWAYS sync, no cache key)
           const profile = profiles[0];
-          const currentXPKey = `${profile.gamification_xp}_${profile.gamification_level}`;
-          
-          if (profileSetupRef.current.syncedXP !== currentXPKey &&
-              (authUser.gamification_xp !== profile.gamification_xp || 
-               authUser.gamification_level !== profile.gamification_level)) {
-            console.log('🔄 Syncing XP from UserProfile to Auth:', profile.gamification_xp);
-            profileSetupRef.current.syncedXP = currentXPKey;
+          if (authUser.gamification_xp !== profile.gamification_xp || 
+              authUser.gamification_level !== profile.gamification_level) {
+            console.log('🔄 Syncing XP from UserProfile to Auth:', profile.gamification_xp, 'Level:', profile.gamification_level);
             await base44.auth.updateMe({
               gamification_xp: profile.gamification_xp || 0,
               gamification_level: profile.gamification_level || 1
             });
-            queryClient.invalidateQueries(['currentUser']);
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
           }
         }
       } catch (err) {
@@ -491,7 +487,7 @@ function LayoutContent({ children, currentPageName }) {
   
   // Reset initialization when user changes
   React.useEffect(() => {
-    profileSetupRef.current = { initialized: false, syncedXP: null };
+    profileSetupRef.current = { initialized: false };
   }, [authUser?.email]);
 
 
