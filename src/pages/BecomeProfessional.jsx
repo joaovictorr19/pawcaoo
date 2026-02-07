@@ -28,13 +28,17 @@ export default function BecomeProfessional() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { language } = useLanguage();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [uploading, setUploading] = useState({ photo: false, video: false, id: false, address: false });
-  
-  const [professionalType, setProfessionalType] = useState(""); // walker, trainer, both
-  
-  const [formData, setFormData] = useState({
+  // Recuperar dados salvos do sessionStorage
+  const getInitialFormData = () => {
+    try {
+      const saved = sessionStorage.getItem('becomeProfessional_formData');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.log('No saved data');
+    }
+    return {
     name: "",
     age: "",
     photo_url: "",
@@ -79,7 +83,61 @@ export default function BecomeProfessional() {
     tax_id_spain: "",
     france_professional_type: "",
     tax_id_france: "",
-  });
+    };
+  };
+
+  const getInitialStep = () => {
+    try {
+      const saved = sessionStorage.getItem('becomeProfessional_step');
+      return saved ? parseInt(saved) : 1;
+    } catch (e) {
+      return 1;
+    }
+  };
+
+  const getInitialType = () => {
+    try {
+      const saved = sessionStorage.getItem('becomeProfessional_type');
+      return saved || "";
+    } catch (e) {
+      return "";
+    }
+  };
+
+  const [currentStep, setCurrentStep] = useState(getInitialStep);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [uploading, setUploading] = useState({ photo: false, video: false, id: false, address: false });
+  
+  const [professionalType, setProfessionalType] = useState(getInitialType);
+  
+  const [formData, setFormData] = useState(getInitialFormData);
+
+  // Auto-save formData to sessionStorage
+  React.useEffect(() => {
+    try {
+      sessionStorage.setItem('becomeProfessional_formData', JSON.stringify(formData));
+    } catch (e) {
+      console.log('Failed to save form data');
+    }
+  }, [formData]);
+
+  // Auto-save step to sessionStorage
+  React.useEffect(() => {
+    try {
+      sessionStorage.setItem('becomeProfessional_step', currentStep.toString());
+    } catch (e) {
+      console.log('Failed to save step');
+    }
+  }, [currentStep]);
+
+  // Auto-save type to sessionStorage
+  React.useEffect(() => {
+    try {
+      sessionStorage.setItem('becomeProfessional_type', professionalType);
+    } catch (e) {
+      console.log('Failed to save type');
+    }
+  }, [professionalType]);
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -146,6 +204,14 @@ export default function BecomeProfessional() {
     },
     onSuccess: (data) => {
       console.log('✅ Profile created successfully:', data);
+      // Limpar dados salvos após sucesso
+      try {
+        sessionStorage.removeItem('becomeProfessional_formData');
+        sessionStorage.removeItem('becomeProfessional_step');
+        sessionStorage.removeItem('becomeProfessional_type');
+      } catch (e) {
+        console.log('Failed to clear saved data');
+      }
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['walkers'] });
       queryClient.invalidateQueries({ queryKey: ['trainers'] });
@@ -168,7 +234,8 @@ export default function BecomeProfessional() {
     setUploading(prev => ({ ...prev, [uploadingKey]: true }));
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData({ ...formData, [fieldName]: file_url });
+      setFormData(prev => ({ ...prev, [fieldName]: file_url }));
+      toast.success("Ficheiro carregado com sucesso!");
     } catch (error) {
       console.error("Error uploading file:", error);
       toast.error("Erro ao fazer upload do ficheiro.");
