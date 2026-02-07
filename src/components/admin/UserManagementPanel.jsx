@@ -37,6 +37,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import WalkerVerificationPanel from "./WalkerVerificationPanel";
+import UserWalletPanel from "./UserWalletPanel";
 
 export default function UserManagementPanel() {
   const queryClient = useQueryClient();
