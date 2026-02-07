@@ -286,7 +286,6 @@ export default function Home() {
     queryFn: async () => {
       try {
         const posts = await base44.entities.SocialPost.filter({ 
-          moderation_status: 'approved',
           is_public: true
         }, '-created_date', 20);
         return Array.isArray(posts) ? posts : [];
