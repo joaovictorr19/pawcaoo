@@ -900,10 +900,10 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9 }}
                 >
-                  <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
+                  <div className="flex flex-wrap justify-center items-center gap-3 mb-6">
                     <motion.div 
                       whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
+                      className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2.5 rounded-full shadow-lg cursor-pointer min-w-[140px]"
                       onClick={() => navigate(createPageUrl('Home') + '?tab=professionals')}
                     >
                       <Users className="w-4 h-4" />
@@ -913,7 +913,7 @@ export default function Home() {
 
                     <motion.div 
                       whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer ring-2 ring-yellow-400/50"
+                      className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 text-white px-6 py-2.5 rounded-full shadow-lg cursor-pointer ring-2 ring-yellow-400/50 min-w-[140px]"
                       onClick={() => navigate(createPageUrl('Trainers'))}
                     >
                       <GraduationCap className="w-4 h-4" />
