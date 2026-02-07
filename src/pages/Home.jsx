@@ -1654,7 +1654,7 @@ export default function Home() {
               <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-emerald-600 rounded-full flex items-center justify-center shadow-md">
                 <Award className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-semibold text-white/90">{t('verifiedProfessionals', language)}</span>
+              <span className="text-xs font-semibold text-gray-900 drop-shadow-sm">{t('verifiedProfessionals', language)}</span>
             </motion.div>
 
             <motion.div 
@@ -1664,7 +1664,7 @@ export default function Home() {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
                 <ShieldCheck className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-semibold text-white/90">{t('securePayment', language)}</span>
+              <span className="text-xs font-semibold text-gray-900 drop-shadow-sm">{t('securePayment', language)}</span>
             </motion.div>
           </div>
           </div>
