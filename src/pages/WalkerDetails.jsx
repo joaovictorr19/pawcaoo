@@ -103,8 +103,8 @@ export default function WalkerDetails() {
   
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [selectedDogForRecurring, setSelectedDogForRecurring] = useState(null);
-  
   const [selectedDate, setSelectedDate] = useState(null);
+  const [editingVerification, setEditingVerification] = useState(false);
 
   // Scroll to top on mount
   React.useEffect(() => {
