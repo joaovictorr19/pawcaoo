@@ -90,6 +90,9 @@ import { t } from "@/components/translations";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import InstagramVerifiedBadge from "@/components/ui/InstagramVerifiedBadge";
 import { AnimalIconsWithLabels } from "@/components/professionals/AnimalIcons";
+import PawCaoSealBadge from "@/components/ui/PawCaoSealBadge";
+import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
+import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
 
 export default function WalkerDetails() {
   const { language } = useLanguage();
