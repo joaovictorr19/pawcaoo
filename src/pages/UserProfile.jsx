@@ -33,6 +33,9 @@ import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import PinnedBadgesDisplay from "../components/profile/PinnedBadgesDisplay";
 
 const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => {
+  // Prioridade: Imagem enviada > Emoji
+  const hasImage = badge.image_url || badge.image_png_file;
+  
   return (
     <TooltipProvider delayDuration={200}>
       <Tooltip>
@@ -47,6 +50,8 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
             <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-2 md:mb-3 border-2 shadow-lg relative overflow-hidden ${
               locked 
                 ? 'border-gray-700 bg-gray-800/50 border-dashed' 
+                : hasImage 
+                ? 'border-white/30 bg-white/10'
                 : badge.rarity === 'legendary' ? 'border-yellow-400/50 bg-gradient-to-br from-yellow-900/40 to-orange-900/40' 
                 : badge.rarity === 'epic' ? 'border-purple-400/50 bg-gradient-to-br from-purple-900/40 to-pink-900/40'
                 : badge.rarity === 'rare' ? 'border-blue-400/50 bg-gradient-to-br from-blue-900/40 to-cyan-900/40'
@@ -54,21 +59,17 @@ const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => 
             }`}>
               {!locked && <div className="absolute inset-0 bg-white/5 blur-xl rounded-full transform scale-75" />}
               
-              {badge.image_png_file ? (
+              {hasImage ? (
                 <img 
-                  src={badge.image_png_file} 
+                  src={badge.image_url || badge.image_png_file} 
                   alt={badge.name} 
-                  className="w-12 h-12 md:w-14 md:h-14 object-contain z-10 drop-shadow-lg" 
+                  className="w-12 h-12 md:w-14 md:h-14 object-contain z-10 drop-shadow-lg rounded-md" 
                   loading="lazy"
                   decoding="async"
-                />
-              ) : badge.image_url ? (
-                <img 
-                  src={badge.image_url} 
-                  alt={badge.name}
-                  className="w-12 h-12 md:w-14 md:h-14 object-contain z-10 drop-shadow-lg rounded-md"
-                  loading="lazy"
-                  decoding="async"
+                  onError={(e) => {
+                    console.error('Erro ao carregar imagem do emblema:', badge.name);
+                    e.target.style.display = 'none';
+                  }}
                 />
               ) : (
                 <span className="text-3xl md:text-4xl z-10 drop-shadow-md">{badge.icon || getBadgeImage(badge.badge_id || badge.id)}</span>
