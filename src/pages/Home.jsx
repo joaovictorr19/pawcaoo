@@ -847,6 +847,25 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center max-w-6xl mx-auto relative">
+              {/* Hero Title for Visitors */}
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-12"
+              >
+                <div className="bg-white/90 backdrop-blur-md px-8 py-6 rounded-3xl shadow-2xl inline-block border border-white/60">
+                  <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-3 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                    {language === 'pt' ? 'PawCão' : 'PawCão'}
+                  </h1>
+                  <p className="text-base md:text-xl text-gray-700 font-semibold">
+                    {language === 'pt' ? 'O melhor cuidado para o seu Pet' : 
+                     language === 'es' ? 'El mejor cuidado para tu Mascota' :
+                     language === 'fr' ? 'Le meilleur pour votre Animal' :
+                     'The best care for your Pet'}
+                  </p>
+                </div>
+              </motion.div>
+
               {/* Floating Interactive Elements */}
               <div className="relative mb-8">
                 {/* Walkers - Top Left & Top Right */}
@@ -1143,7 +1162,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-md inline-block">
                         {filterDogSitting !== "all" ? (
                           <>
                             {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
@@ -1157,8 +1176,8 @@ export default function Home() {
                         )}
                       </h2>
                       <div className="flex items-center gap-2 flex-wrap mt-2">
-                        <p className="text-xs md:text-base text-white/90 drop-shadow-md flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                        <p className="text-xs md:text-sm text-gray-700 bg-white/70 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm inline-flex items-center gap-1 font-medium">
+                          <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
                           {filteredProfessionals.length} {t('found', language)}
                         </p>
                         
@@ -1187,13 +1206,13 @@ export default function Home() {
                           </span>
                         )}
                         {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
-                          <span className="text-purple-600 font-semibold ml-2">
+                          <span className="text-purple-700 font-semibold bg-purple-50 px-2 py-1 rounded-lg shadow-sm">
                             ({t('upToDistance', language)} {advancedFilters.radius}km)
                           </span>
                         )}
                         {filteredProfessionals.some(w => w.distance !== null) && 
                          !(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
-                          <span className="text-purple-600 font-semibold ml-2">
+                          <span className="text-purple-700 font-semibold bg-purple-50 px-2 py-1 rounded-lg shadow-sm">
                             ({t('sortedByDistance', language)})
                           </span>
                         )}
@@ -1346,13 +1365,13 @@ export default function Home() {
               <TabsContent value="emergency">
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
+                    <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-md inline-block">
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
                         <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500 fill-orange-500" />
                         {t('dogsNeedingHelpTitle', language)}
                       </h2>
-                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1 flex items-center gap-1">
-                        <Clock className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                      <p className="text-xs md:text-sm text-gray-700 mt-1 flex items-center gap-1 font-medium">
+                        <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
                         {filteredEmergencyWalks.length} {t('dogsNeedHelpCount', language)}
                       </p>
                     </div>
@@ -1652,10 +1671,10 @@ export default function Home() {
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
             
             <div className="relative z-10 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
                 {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
               </h2>
-              <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
+              <p className="text-sm md:text-base text-white/95 mb-6 max-w-2xl mx-auto drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)] font-medium">
                 {language === 'pt' 
                   ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
                   : 'Earn money doing what you love. Become a certified walker or trainer.'}
