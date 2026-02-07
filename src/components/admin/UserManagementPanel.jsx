@@ -688,59 +688,40 @@ export default function UserManagementPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* Badges Dialog - NEW DESIGN */}
+      {/* Badges Dialog - PROFESSIONAL DESIGN */}
       <Dialog open={showBadgesDialog} onOpenChange={handleCloseBadgesDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Atribuir Emblemas a {selectedUser?.full_name}</DialogTitle>
-            <p className="text-sm text-gray-600 mt-2">Selecione um ou mais emblemas para atribuir a este utilizador</p>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="pb-3">
+            <DialogTitle className="text-xl">Atribuir Emblemas</DialogTitle>
+            <p className="text-sm text-gray-600 mt-1">{selectedUser?.full_name}</p>
           </DialogHeader>
 
-          <div className="space-y-4">
-            {/* Search Box */}
-            <div>
-              <Input
-                placeholder="Procurar emblemas por nome, descrição ou categoria..."
-                value={badgeSearchTerm}
-                onChange={(e) => setBadgeSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
+          <div className="flex-1 overflow-hidden flex flex-col gap-4">
+            {/* Search */}
+            <Input
+              placeholder="Procurar emblema..."
+              value={badgeSearchTerm}
+              onChange={(e) => setBadgeSearchTerm(e.target.value)}
+              className="h-9"
+            />
 
-            {/* Selected Badges Preview */}
+            {/* Selected Counter */}
             {selectedBadgesForAssignment.length > 0 && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-semibold text-blue-900 mb-2">
-                  Emblemas selecionados ({selectedBadgesForAssignment.length})
+              <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm font-medium text-blue-900">
+                  {selectedBadgesForAssignment.length} emblema(s) selecionado(s)
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedBadgesForAssignment.map((badge) => (
-                    <Badge key={badge.badge_id} className="gap-1 px-3 py-1.5 text-sm">
-                      <span className="text-lg">{badge.icon}</span>
-                      {badge.name}
-                      <button
-                        onClick={() => toggleBadgeSelection(badge)}
-                        className="ml-1 hover:opacity-70"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
               </div>
             )}
 
-            {/* Available Badges Grid */}
-            <div>
-              <p className="text-sm font-semibold mb-3 text-gray-700">Emblemas Disponíveis</p>
+            {/* Badges Grid - Scrollable */}
+            <div className="flex-1 overflow-y-auto">
               {filteredBadgeDefinitions.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  {badgeDefinitions.length === 0 
-                    ? "Nenhum emblema definido ainda"
-                    : "Nenhum emblema corresponde à pesquisa"}
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  <p className="text-sm">{badgeDefinitions.length === 0 ? "Nenhum emblema disponível" : "Nenhuma correspondência"}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
+                <div className="grid grid-cols-1 gap-2 pr-2">
                   {filteredBadgeDefinitions.map((badge) => {
                     const isSelected = selectedBadgesForAssignment.some(
                       (b) => b.badge_id === badge.badge_id
@@ -755,31 +736,42 @@ export default function UserManagementPanel() {
                             : "border-gray-200 bg-white hover:border-gray-300"
                         }`}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="text-3xl flex-shrink-0">{badge.icon || "🏆"}</div>
+                        <div className="flex items-center gap-3">
+                          {/* Badge Image/Icon */}
+                          <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-100">
+                            {badge.image_png_file ? (
+                              <img src={badge.image_png_file} alt={badge.name} className="w-8 h-8 object-contain" />
+                            ) : badge.image_url ? (
+                              <img src={badge.image_url} alt={badge.name} className="w-8 h-8 object-contain rounded-md" />
+                            ) : (
+                              <span className="text-lg">{badge.icon || "•"}</span>
+                            )}
+                          </div>
+
+                          {/* Info */}
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-sm text-gray-900">{badge.name}</p>
-                            <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">
-                              {badge.description}
-                            </p>
-                            <div className="flex gap-1 mt-2 flex-wrap">
-                              <Badge
-                                variant="outline"
-                                className="text-xs"
-                              >
+                            <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{badge.description}</p>
+                            <div className="flex gap-1.5 mt-1 flex-wrap">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                                 {badge.rarity}
-                              </Badge>
-                              <Badge
-                                variant="outline"
-                                className="text-xs"
-                              >
+                              </span>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                                 {badge.category}
-                              </Badge>
+                              </span>
                             </div>
                           </div>
-                          {isSelected && (
-                            <Check className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                          )}
+
+                          {/* Checkbox */}
+                          <div className="flex-shrink-0">
+                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                              isSelected
+                                ? "border-blue-600 bg-blue-600"
+                                : "border-gray-300 bg-white"
+                            }`}>
+                              {isSelected && <Check className="w-3 h-3 text-white" />}
+                            </div>
+                          </div>
                         </div>
                       </button>
                     );
@@ -789,17 +781,16 @@ export default function UserManagementPanel() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="pt-3 border-t">
             <Button variant="outline" onClick={handleCloseBadgesDialog}>
               Cancelar
             </Button>
             <Button
               onClick={handleAddBadge}
               disabled={selectedBadgesForAssignment.length === 0}
-              className="bg-blue-600 hover:bg-blue-700 gap-2"
+              className="bg-blue-600 hover:bg-blue-700"
             >
-              {selectedBadgesForAssignment.length > 0 && <Check className="w-4 h-4" />}
-              Atribuir {selectedBadgesForAssignment.length > 0 && `(${selectedBadgesForAssignment.length})`}
+              Atribuir ({selectedBadgesForAssignment.length})
             </Button>
           </DialogFooter>
         </DialogContent>
