@@ -348,27 +348,34 @@ export default function UserManagementPanel() {
                   <MessageSquare className="w-4 h-4" />
                   Chat
                 </Button>
-                <Button variant="outline" className="h-9 gap-2" disabled>
+                <Button 
+                  variant={activePanel === "wallet" ? "default" : "outline"}
+                  className="h-9 gap-2"
+                  onClick={() => setActivePanel(activePanel === "wallet" ? null : "wallet")}
+                >
                   <Wallet className="w-4 h-4" />
                   Wallet
                 </Button>
-                <Button variant="outline" className="h-9 gap-2">
+                <Button 
+                  variant={activePanel === "verification" ? "default" : "outline"}
+                  className="h-9 gap-2"
+                  onClick={() => setActivePanel(activePanel === "verification" ? null : "verification")}
+                >
                   <Shield className="w-4 h-4" />
                   Verificações
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="h-9 gap-2">
-                      <MoreVertical className="w-4 h-4" />
-                      Mais
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Ver Perfil Público</DropdownMenuItem>
-                    <DropdownMenuItem>Ver Atividades</DropdownMenuItem>
-                    <DropdownMenuItem>Exporter Dados</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button 
+                  className="h-9 gap-2 bg-green-600 hover:bg-green-700"
+                  onClick={() => createWalkerProfileMutation.mutate()}
+                  disabled={createWalkerProfileMutation.isPending}
+                >
+                  {createWalkerProfileMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <MoreVertical className="w-4 h-4" />
+                  )}
+                  Criar Perfil
+                </Button>
               </div>
             </div>
 
