@@ -92,6 +92,7 @@ export default function Home() {
   // Check URL for tab parameter
   const urlTabParam = new URLSearchParams(window.location.search).get('tab');
   const [activeTab, setActiveTab] = useState(urlTabParam || "professionals");
+  const [showHeroFilters, setShowHeroFilters] = useState(false);
 
   const [userLocation, setUserLocation] = useState(null);
   const [viewMode, setViewMode] = useState("list");
@@ -927,95 +928,7 @@ export default function Home() {
 
 
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-3 max-w-xl mx-auto"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 min-w-0">
-                    <LocationSearch
-                      onLocationChange={(loc) => {
-                          setUserLocation(loc);
-                          if(loc && loc.lat && loc.lng) {
-                            setTimeout(() => {
-                              document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                            }, 500);
-                          }
-                      }}
-                      currentLocation={userLocation}
-                      className="border-0 bg-gray-100 h-10 text-sm focus:ring-2 focus:ring-green-500 rounded-xl"
-                      placeholder="📍 Onde procura?"
-                    />
-                  </div>
-                  <Button 
-                    id="find-walker-btn"
-                    size="icon"
-                    onClick={() => {
-                      setActiveTab('walkers');
-                      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="h-10 w-10 shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"
-                  >
-                    <Search className="w-5 h-5" />
-                  </Button>
-                </div>
-                
-                {/* Filtros compactos em linha */}
-                <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 scrollbar-hide">
-                  <Select value={filterSize} onValueChange={setFilterSize}>
-                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
-                      <SelectValue placeholder="Porte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Porte</SelectItem>
-                      <SelectItem value="small">Pequeno</SelectItem>
-                      <SelectItem value="medium">Médio</SelectItem>
-                      <SelectItem value="large">Grande</SelectItem>
-                    </SelectContent>
-                  </Select>
 
-                  <Select value={filterTime} onValueChange={setFilterTime}>
-                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
-                      <SelectValue placeholder="Horário" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Horário</SelectItem>
-                      <SelectItem value="morning">Manhã</SelectItem>
-                      <SelectItem value="afternoon">Tarde</SelectItem>
-                      <SelectItem value="evening">Noite</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
-                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
-                      <SelectValue placeholder="Animal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Animal</SelectItem>
-                      <SelectItem value="dogs">Cães</SelectItem>
-                      <SelectItem value="cats">Gatos</SelectItem>
-                      <SelectItem value="reptiles">Répteis</SelectItem>
-                      <SelectItem value="rodents">Roedores</SelectItem>
-                      <SelectItem value="birds">Aves</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all") && (
-                    <button
-                      onClick={() => {
-                        setFilterSize("all");
-                        setFilterTime("all");
-                        setFilterAnimalType("all");
-                      }}
-                      className="h-8 px-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              </motion.div>
 
 
             </div>
@@ -1102,8 +1015,118 @@ export default function Home() {
                   <Rss className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate hidden sm:inline">{language === 'pt' ? 'Comunidade' : 'Community'}</span>
                   <span className="truncate sm:hidden">Feed</span>
-                </button>
-              </div>
+                  </button>
+
+                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
+
+                  <button
+                  onClick={() => setShowHeroFilters(!showHeroFilters)}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${
+                    showHeroFilters
+                      ? 'bg-gray-200 text-gray-900'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  >
+                  <Sliders className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Filtrar' : 'Filter'}</span>
+                  </button>
+                  </div>
+
+                  <AnimatePresence>
+                  {showHeroFilters && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden mb-6"
+                  >
+                    <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-3 max-w-xl mx-auto border border-white/50">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <LocationSearch
+                            onLocationChange={(loc) => {
+                                setUserLocation(loc);
+                                if(loc && loc.lat && loc.lng) {
+                                  setTimeout(() => {
+                                    document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                                  }, 500);
+                                }
+                            }}
+                            currentLocation={userLocation}
+                            className="border-0 bg-gray-100 h-10 text-sm focus:ring-2 focus:ring-green-500 rounded-xl"
+                            placeholder="📍 Onde procura?"
+                          />
+                        </div>
+                        <Button 
+                          id="find-walker-btn"
+                          size="icon"
+                          onClick={() => {
+                            setActiveTab('professionals');
+                            document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                          className="h-10 w-10 shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"
+                        >
+                          <Search className="w-5 h-5" />
+                        </Button>
+                      </div>
+
+                      {/* Filtros compactos em linha */}
+                      <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 scrollbar-hide">
+                        <Select value={filterSize} onValueChange={setFilterSize}>
+                          <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
+                            <SelectValue placeholder="Porte" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Porte</SelectItem>
+                            <SelectItem value="small">Pequeno</SelectItem>
+                            <SelectItem value="medium">Médio</SelectItem>
+                            <SelectItem value="large">Grande</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        <Select value={filterTime} onValueChange={setFilterTime}>
+                          <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
+                            <SelectValue placeholder="Horário" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Horário</SelectItem>
+                            <SelectItem value="morning">Manhã</SelectItem>
+                            <SelectItem value="afternoon">Tarde</SelectItem>
+                            <SelectItem value="evening">Noite</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
+                          <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
+                            <SelectValue placeholder="Animal" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Animal</SelectItem>
+                            <SelectItem value="dogs">Cães</SelectItem>
+                            <SelectItem value="cats">Gatos</SelectItem>
+                            <SelectItem value="reptiles">Répteis</SelectItem>
+                            <SelectItem value="rodents">Roedores</SelectItem>
+                            <SelectItem value="birds">Aves</SelectItem>
+                          </SelectContent>
+                        </Select>
+
+                        {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all") && (
+                          <button
+                            onClick={() => {
+                              setFilterSize("all");
+                              setFilterTime("all");
+                              setFilterAnimalType("all");
+                            }}
+                            className="h-8 px-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                  )}
+                  </AnimatePresence>
 
               <TabsContent value="professionals">
                 <div>
