@@ -49,10 +49,12 @@ export default function UserManagementPanel() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showProfessionalDialog, setShowProfessionalDialog] = useState(false);
   const [showBadgesDialog, setShowBadgesDialog] = useState(false);
+  const [showPointsDialog, setShowPointsDialog] = useState(false);
 
   const [editFormData, setEditFormData] = useState({});
   const [professionalFormData, setProfessionalFormData] = useState({});
   const [badgesData, setBadgesData] = useState({});
+  const [pointsData, setPointsData] = useState({});
 
   // Fetch all users
   const { data: allUsers = [], isLoading: loadingUsers, refetch: refetchUsers } = useQuery({
