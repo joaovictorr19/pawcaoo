@@ -839,46 +839,93 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <div className="relative w-full h-[500px] rounded-[40px] overflow-hidden shadow-2xl mb-8 group">
-              {/* Background Image Container */}
-              <div 
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105"
-                style={{
-                  backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/c02acbe07_Gemini_Generated_Image_ogi8fogi8fogi8fo.png)',
-                }}
-              >
-                {/* Gradient Overlay for text readability if needed */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-transparent"></div>
-              </div>
+            <div className="text-center max-w-6xl mx-auto relative">
+              {/* Floating Interactive Elements */}
+              <div className="relative mb-8">
+                {/* Walkers - Top Left & Top Right */}
+                {featuredWalkers.slice(0, 2).map((walker, idx) => (
+                  <motion.div
+                    key={`walker-${walker.id}`}
+                    initial={{ opacity: 0, scale: 0.5, y: -20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: idx * 0.15, duration: 0.5 }}
+                    className={`absolute hidden md:block ${idx === 0 ? '-left-16 top-0' : '-right-16 top-0'} cursor-pointer group z-20`}
+                    onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                  >
+                    <motion.div
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
+                      className="relative"
+                    >
+                      <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
+                        <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                        Walker
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ))}
 
-              {/* Content Container - Replicating the positioning */}
-              <div className="relative z-10 h-full flex flex-col justify-center px-8 md:px-16 max-w-7xl mx-auto">
-                
-                {/* "Premium" Card - Left Aligned */}
+                {/* Happy Dogs - Middle Left & Right */}
+                {featuredDogs.slice(0, 2).map((dog, idx) => (
+                  <motion.div
+                    key={`dog-${dog.id}`}
+                    initial={{ opacity: 0, scale: 0.5, x: idx === 0 ? -20 : 20 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
+                    className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
+                    onClick={() => {
+                      if (!user) {
+                        base44.auth.redirectToLogin(window.location.href);
+                        return;
+                      }
+                      navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
+                    }}
+                  >
+                    <motion.div
+                      animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
+                      className="relative"
+                    >
+                      <div className="w-16 h-16 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
+                        <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
+                        {dog.dog_name}
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                ))}
+
+                {/* Center Title with Stats */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="bg-white/90 backdrop-blur-md p-8 rounded-[32px] shadow-lg max-w-[420px] w-full"
+                  transition={{ delay: 0.9 }}
                 >
-                  <span className="text-gray-500 font-medium text-sm mb-1 block">Premium</span>
-                  <h1 className="text-4xl font-bold text-gray-900 mb-3 leading-tight tracking-tight">
-                    Caminhadas Premium
-                  </h1>
-                  <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-                    Os melhores passeadores, prontos para o seu pet.
-                  </p>
-                  <Button
-                    onClick={() => {
-                        setActiveTab('professionals');
-                        document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="bg-[#4a5d23] hover:bg-[#3b4a1c] text-white rounded-full px-8 py-6 h-auto text-base font-semibold shadow-xl hover:shadow-2xl transition-all w-fit"
-                  >
-                    Encontrar Passeador
-                  </Button>
-                </motion.div>
+                  <div className="flex flex-wrap justify-center items-center gap-3 mb-6">
+                    <motion.div 
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2.5 rounded-full shadow-lg cursor-pointer min-w-[140px]"
+                      onClick={() => navigate(createPageUrl('Home') + '?tab=professionals')}
+                    >
+                      <Users className="w-4 h-4" />
+                      <span className="text-sm font-bold">{stats.totalWalkers}</span>
+                      <span className="text-xs opacity-90">Walkers</span>
+                    </motion.div>
 
+                    <motion.div 
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 via-orange-700 to-orange-800 text-white px-6 py-2.5 rounded-full shadow-lg cursor-pointer ring-2 ring-orange-500/50 min-w-[140px]"
+                      onClick={() => navigate(createPageUrl('Trainers'))}
+                    >
+                      <GraduationCap className="w-4 h-4" />
+                      <span className="text-sm font-bold">{stats.totalTrainers}</span>
+                      <span className="text-xs opacity-90">Trainers</span>
+                    </motion.div>
+                   </div>
+                </motion.div>
               </div>
             </div>
           )}
@@ -929,66 +976,57 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              {/* Navigation Bar - Positioned overlapping the hero image bottom */}
-              <div className="relative -mt-20 mb-12 z-30 px-4">
-                <div className="bg-white/95 backdrop-blur-xl rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 max-w-3xl mx-auto flex items-center justify-between border border-white/60">
-                  
-                  {/* Profissionais Tab */}
-                  <button
-                    onClick={() => setActiveTab('professionals')}
-                    className={`flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-                      activeTab === 'professionals'
-                        ? 'bg-white shadow-lg text-gray-900 ring-1 ring-black/5 transform scale-105'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <Users className={`w-4 h-4 ${activeTab === 'professionals' ? 'text-green-600' : ''}`} />
-                    <span>Profissionais</span>
-                  </button>
-                  
-                  {/* SOS Tab */}
-                  <button
-                    onClick={() => setActiveTab('emergency')}
-                    className={`flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-                      activeTab === 'emergency'
-                        ? 'bg-white shadow-lg text-gray-900 ring-1 ring-black/5 transform scale-105'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <Zap className={`w-4 h-4 ${activeTab === 'emergency' ? 'text-orange-500' : ''}`} />
-                    <span>SOS</span>
-                  </button>
-
-                  {/* Comunidade Tab */}
-                  <button
-                    onClick={() => setActiveTab('comunidade')}
-                    className={`flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-                      activeTab === 'comunidade'
-                        ? 'bg-white shadow-lg text-gray-900 ring-1 ring-black/5 transform scale-105'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
-                    <Rss className={`w-4 h-4 ${activeTab === 'comunidade' ? 'text-blue-500' : ''}`} />
-                    <span>Comunidade</span>
+              <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto bg-white/80 backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
+                <button
+                  onClick={() => setActiveTab('professionals')}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                    activeTab === 'professionals'
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Users className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
+                  <span className="truncate sm:hidden">Pro</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('emergency')}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                    activeTab === 'emergency'
+                      ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Zap className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">SOS</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('comunidade')}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                    activeTab === 'comunidade'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Rss className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Comunidade' : 'Community'}</span>
+                  <span className="truncate sm:hidden">Feed</span>
                   </button>
 
-                  <div className="w-px h-8 bg-gray-200 mx-2"></div>
+                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
-                  {/* Filter & Search */}
-                  <div className="flex items-center gap-1 pr-2">
-                    <button
-                      onClick={() => setShowHeroFilters(!showHeroFilters)}
-                      className="flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-semibold px-4 py-2 rounded-full hover:bg-gray-100 transition-all"
-                    >
-                      <Sliders className="w-4 h-4" />
-                      <span>Filtrar</span>
-                    </button>
-                    <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
-                      <Search className="w-5 h-5 text-gray-500" />
-                    </button>
+                  <button
+                  onClick={() => setShowHeroFilters(!showHeroFilters)}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${
+                    showHeroFilters
+                      ? 'bg-gray-200 text-gray-900'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  >
+                  <Sliders className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Filtrar' : 'Filter'}</span>
+                  </button>
                   </div>
-                </div>
-              </div>
 
                   <AnimatePresence>
                   {showHeroFilters && (
@@ -1088,31 +1126,26 @@ export default function Home() {
 
               <TabsContent value="professionals">
                 <div>
-                  <div className="mb-8">
-                    {/* Header Section */}
-                    <div className="flex items-center gap-4 mb-2">
-                      <div className="bg-[#B8C99D]/90 backdrop-blur-sm px-6 py-2 rounded-xl shadow-sm inline-block">
-                        <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-                          {filterDogSitting !== "all" ? (
-                            <>
-                              {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
-                              {filterDogSitting === "house_sitting" && t('walkersForHouseSitting', language)}
-                              {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
-                            </>
-                          ) : (
-                            'Profissionais Disponíveis'
-                          )}
-                        </h2>
-                      </div>
-                    </div>
-                    
-                    {/* Count Badge */}
-                    <div className="inline-flex items-center gap-2 bg-[#94A778]/80 backdrop-blur-sm px-4 py-1.5 rounded-full text-white text-sm font-medium shadow-sm">
-                      <TrendingUp className="w-3 h-3" />
-                      {filteredProfessionals.length} encontrados
-                    </div>
-
-                    <div className="flex items-center gap-2 flex-wrap mt-4">
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-md inline-block">
+                        {filterDogSitting !== "all" ? (
+                          <>
+                            {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
+                            {filterDogSitting === "house_sitting" && t('walkersForHouseSitting', language)}
+                            {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
+                          </>
+                        ) : (
+                          language === 'pt' ? 'Profissionais Disponíveis' : 
+                          language === 'es' ? 'Profesionales Disponibles' : 
+                          'Available Professionals'
+                        )}
+                      </h2>
+                      <div className="flex items-center gap-2 flex-wrap mt-2">
+                        <p className="text-xs md:text-sm text-gray-700 bg-white/70 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm inline-flex items-center gap-1 font-medium">
+                          <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
+                          {filteredProfessionals.length} {t('found', language)}
+                        </p>
                         
                         {selectedServiceTypes.length > 0 && (
                           <Badge className="bg-green-100 text-green-800 text-xs">
@@ -1150,6 +1183,7 @@ export default function Home() {
                           </span>
                         )}
                       </div>
+                    </div>
                     </div>
 
                     {viewMode === "map" ? (

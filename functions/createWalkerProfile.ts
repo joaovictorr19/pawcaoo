@@ -6,14 +6,17 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
 
     if (user?.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      return new Response(JSON.stringify({ error: 'Forbidden: Admin access required' }), { status: 403 });
     }
 
     const body = await req.json();
     const { userEmail, walkerName } = body;
 
     if (!userEmail || !walkerName) {
-      return Response.json({ error: 'userEmail e walkerName são obrigatórios' }, { status: 400 });
+      return new Response(
+        JSON.stringify({ error: 'userEmail e walkerName são obrigatórios' }),
+        { status: 400 }
+      );
     }
 
     // Criar perfil de passeador
@@ -27,16 +30,19 @@ Deno.serve(async (req) => {
       created_by: userEmail,
     });
 
-    return Response.json({
-      success: true,
-      walkerId: walkerProfile.id,
-      message: 'Perfil de passeador criado com sucesso',
-    }, { status: 201 });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        walkerId: walkerProfile.id,
+        message: 'Perfil de passeador criado com sucesso',
+      }),
+      { status: 201, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
-    console.error('Erro ao criar perfil:', error.message || error);
-    return Response.json({ 
-      error: error.message || 'Erro ao criar perfil',
-      success: false 
-    }, { status: 500 });
+    console.error('Erro ao criar perfil:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 });
