@@ -60,7 +60,7 @@ export default function UserManagementPanel() {
   const [showProfessionalDialog, setShowProfessionalDialog] = useState(false);
   const [showBadgesDialog, setShowBadgesDialog] = useState(false);
   const [showXPDialog, setShowXPDialog] = useState(false);
-  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showManageUserDialog, setShowManageUserDialog] = useState(false);
 
   // Form data
   const [editFormData, setEditFormData] = useState({});
@@ -278,7 +278,13 @@ export default function UserManagementPanel() {
       description: "",
       rarity: "common",
     });
+    setShowManageUserDialog(false);
     setShowBadgesDialog(true);
+  };
+
+  const handleCloseBadgesDialog = () => {
+    setShowBadgesDialog(false);
+    setShowManageUserDialog(true);
   };
 
   const handleAddBadge = () => {
@@ -301,11 +307,17 @@ export default function UserManagementPanel() {
   const handleOpenXPDialog = (user) => {
     const profile = userProfiles.find((p) => p.user_email === user.email);
     setSelectedUser(user);
+    setShowManageUserDialog(false);
     setXpFormData({
       gamification_xp: profile?.gamification_xp || 0,
       gamification_level: profile?.gamification_level || 1,
     });
     setShowXPDialog(true);
+  };
+
+  const handleCloseXPDialog = () => {
+    setShowXPDialog(false);
+    setShowManageUserDialog(true);
   };
 
   const handleUpdateXP = () => {
@@ -320,9 +332,9 @@ export default function UserManagementPanel() {
     });
   };
 
-  const handleViewDetails = (user) => {
+  const handleManageUser = (user) => {
     setSelectedUser(user);
-    setShowViewDialog(true);
+    setShowManageUserDialog(true);
   };
 
   // Helper functions
@@ -366,9 +378,8 @@ export default function UserManagementPanel() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="users">Utilizadores</TabsTrigger>
-          <TabsTrigger value="emblemas">Emblemas</TabsTrigger>
         </TabsList>
 
         {/* Users Tab */}
@@ -433,46 +444,13 @@ export default function UserManagementPanel() {
                               {profile?.gamification_xp || 0} XP
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-2 justify-end flex-wrap">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleViewDetails(user)}
-                                  className="h-8 px-2"
-                                  title="Ver detalhes"
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleEditUser(user)}
-                                  className="h-8 px-2"
-                                  title="Editar perfil"
-                                >
-                                  <Edit className="w-3.5 h-3.5" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleOpenXPDialog(user)}
-                                  className="h-8 px-2 border-yellow-300 text-yellow-600 hover:bg-yellow-50"
-                                  title="Gerir XP"
-                                >
-                                  <Zap className="w-3.5 h-3.5" />
-                                </Button>
-                                {(!user.account_type || user.account_type === "owner") && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleOpenProfessionalDialog(user)}
-                                    className="h-8 px-2 border-green-300 text-green-600 hover:bg-green-50"
-                                    title="Criar profissional"
-                                  >
-                                    <Plus className="w-3.5 h-3.5" />
-                                  </Button>
-                                )}
-                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => handleManageUser(user)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4"
+                              >
+                                Gerir
+                              </Button>
                             </TableCell>
                           </TableRow>
                         );
@@ -485,72 +463,7 @@ export default function UserManagementPanel() {
           </Card>
         </TabsContent>
 
-        {/* Badges Tab */}
-        <TabsContent value="emblemas">
-          <Card className="glass-panel border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle>Gestão de Emblemas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Utilizador</TableHead>
-                      <TableHead>Emblema</TableHead>
-                      <TableHead>Raridade</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {userBadges.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan="5" className="text-center py-8 text-gray-500">
-                          Nenhum emblema atribuído
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      userBadges.map((badge) => (
-                        <TableRow key={badge.id} className="hover:bg-gray-50">
-                          <TableCell className="font-semibold">{badge.user_email}</TableCell>
-                          <TableCell className="flex items-center gap-2">
-                            <span className="text-xl">{badge.icon || "🏆"}</span>
-                            <span>{badge.name}</span>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={`text-xs ${
-                              badge.rarity === 'legendary' ? 'bg-yellow-100 text-yellow-700' :
-                              badge.rarity === 'epic' ? 'bg-purple-100 text-purple-700' :
-                              badge.rarity === 'rare' ? 'bg-blue-100 text-blue-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
-                              {badge.rarity || 'comum'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm text-gray-600">
-                            {new Date(badge.earned_date).toLocaleDateString('pt-PT')}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => removeBadgeMutation.mutate(badge.id)}
-                              disabled={removeBadgeMutation.isPending}
-                              className="h-8 px-2 border-red-300 text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
       </Tabs>
 
       {/* Edit User Dialog */}
@@ -738,7 +651,7 @@ export default function UserManagementPanel() {
       </Dialog>
 
       {/* Badges Dialog */}
-      <Dialog open={showBadgesDialog} onOpenChange={setShowBadgesDialog}>
+      <Dialog open={showBadgesDialog} onOpenChange={handleCloseBadgesDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Adicionar Emblema a {selectedUser?.full_name}</DialogTitle>
@@ -789,7 +702,7 @@ export default function UserManagementPanel() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBadgesDialog(false)}>
+            <Button variant="outline" onClick={handleCloseBadgesDialog}>
               Cancelar
             </Button>
             <Button onClick={handleAddBadge} disabled={addBadgeMutation.isPending}>
@@ -800,7 +713,7 @@ export default function UserManagementPanel() {
       </Dialog>
 
       {/* XP Dialog */}
-      <Dialog open={showXPDialog} onOpenChange={setShowXPDialog}>
+      <Dialog open={showXPDialog} onOpenChange={handleCloseXPDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Gerir XP - {selectedUser?.full_name}</DialogTitle>
@@ -834,7 +747,7 @@ export default function UserManagementPanel() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowXPDialog(false)}>
+            <Button variant="outline" onClick={handleCloseXPDialog}>
               Cancelar
             </Button>
             <Button onClick={handleUpdateXP} disabled={updateXpMutation.isPending}>
