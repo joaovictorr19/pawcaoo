@@ -1184,19 +1184,6 @@ export default function Home() {
                           <span className="hidden sm:inline">Mapa</span>
                         </button>
                       </div>
-
-                      {filterDogSitting !== "all" && (
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setFilterDogSitting("all");
-                            navigate(createPageUrl("Home"));
-                          }}
-                          className="text-sm"
-                        >
-                          {t('viewAll', language)}
-                        </Button>
-                      )}
                     </div>
                   </div>
 
