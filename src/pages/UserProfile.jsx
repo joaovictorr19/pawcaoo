@@ -386,14 +386,17 @@ export default function UserProfile() {
 
   // Centralized Badge System with Unique ID - FIXED DEDUPLICATION BY badge_id
   const { data: earnedBadges = [], isLoading: loadingBadges } = useQuery({
-    queryKey: ['userBadges', profileEmail],
+    queryKey: ['userBadges', profileUser?.id, profileEmail],
     queryFn: async () => {
-      if (!profileEmail) return [];
+      if (!profileUser?.user_email && !profileEmail) return [];
       
-      console.log('🔍 Fetching badges for:', profileEmail);
+      // CRITICAL FIX: Use profileUser.user_email to avoid cross-user contamination
+      const emailToUse = profileUser?.user_email || profileEmail;
+      
+      console.log('🔍 Fetching badges for:', emailToUse);
       
       // SINGLE SOURCE OF TRUTH: UserBadge entity only
-      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
+      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: emailToUse }, '-earned_date');
       
       console.log('📦 Raw badges fetched:', badgesFromTable.length);
       
