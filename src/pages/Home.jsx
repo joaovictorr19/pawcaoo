@@ -839,35 +839,47 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <div className="relative w-full h-[400px] md:h-[500px] flex items-center">
-              {/* Hero Overlay Card */}
-              <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 z-20 max-w-sm w-full"
+            <div className="relative w-full h-[500px] rounded-[40px] overflow-hidden shadow-2xl mb-8 group">
+              {/* Background Image Container */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105"
+                style={{
+                  backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6907b3be1ec43db5676a2085/c02acbe07_Gemini_Generated_Image_ogi8fogi8fogi8fo.png)',
+                }}
               >
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-xl border border-white/60">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">
-                    Premium
-                  </span>
-                  <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3 leading-tight">
+                {/* Gradient Overlay for text readability if needed */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-transparent"></div>
+              </div>
+
+              {/* Content Container - Replicating the positioning */}
+              <div className="relative z-10 h-full flex flex-col justify-center px-8 md:px-16 max-w-7xl mx-auto">
+                
+                {/* "Premium" Card - Left Aligned */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  className="bg-white/90 backdrop-blur-md p-8 rounded-[32px] shadow-lg max-w-[420px] w-full"
+                >
+                  <span className="text-gray-500 font-medium text-sm mb-1 block">Premium</span>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-3 leading-tight tracking-tight">
                     Caminhadas Premium
                   </h1>
-                  <p className="text-sm text-gray-700 mb-6 leading-relaxed">
-                    Os melhores passeadores, prontos para o seu pet. Segurança, confiança e diversão garantida.
+                  <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                    Os melhores passeadores, prontos para o seu pet.
                   </p>
                   <Button
                     onClick={() => {
                         setActiveTab('professionals');
                         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="bg-[#4F5D2F] hover:bg-[#3d4a23] text-white rounded-full px-6 py-5 font-semibold shadow-lg hover:shadow-xl transition-all w-full md:w-auto"
+                    className="bg-[#4a5d23] hover:bg-[#3b4a1c] text-white rounded-full px-8 py-6 h-auto text-base font-semibold shadow-xl hover:shadow-2xl transition-all w-fit"
                   >
                     Encontrar Passeador
                   </Button>
-                </div>
-              </motion.div>
+                </motion.div>
+
+              </div>
             </div>
           )}
         </div>
@@ -917,58 +929,63 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              {/* Modern Floating Navigation Pill */}
-              <div className="relative -mt-16 mb-10 z-30">
-                <div className="bg-white/90 backdrop-blur-xl rounded-full shadow-2xl p-1.5 max-w-2xl mx-auto flex items-center justify-between border border-white/50">
+              {/* Navigation Bar - Positioned overlapping the hero image bottom */}
+              <div className="relative -mt-20 mb-12 z-30 px-4">
+                <div className="bg-white/95 backdrop-blur-xl rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 max-w-3xl mx-auto flex items-center justify-between border border-white/60">
+                  
+                  {/* Profissionais Tab */}
                   <button
                     onClick={() => setActiveTab('professionals')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium transition-all ${
+                    className={`flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                       activeTab === 'professionals'
-                        ? 'bg-white shadow-md text-gray-900'
-                        : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                        ? 'bg-white shadow-lg text-gray-900 ring-1 ring-black/5 transform scale-105'
+                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <Users className="w-4 h-4" />
+                    <Users className={`w-4 h-4 ${activeTab === 'professionals' ? 'text-green-600' : ''}`} />
                     <span>Profissionais</span>
                   </button>
                   
+                  {/* SOS Tab */}
                   <button
                     onClick={() => setActiveTab('emergency')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium transition-all ${
+                    className={`flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                       activeTab === 'emergency'
-                        ? 'bg-white shadow-md text-gray-900'
-                        : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                        ? 'bg-white shadow-lg text-gray-900 ring-1 ring-black/5 transform scale-105'
+                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <Zap className="w-4 h-4" />
+                    <Zap className={`w-4 h-4 ${activeTab === 'emergency' ? 'text-orange-500' : ''}`} />
                     <span>SOS</span>
                   </button>
 
+                  {/* Comunidade Tab */}
                   <button
                     onClick={() => setActiveTab('comunidade')}
-                    className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium transition-all ${
+                    className={`flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                       activeTab === 'comunidade'
-                        ? 'bg-white shadow-md text-gray-900'
-                        : 'text-gray-600 hover:bg-white/50 hover:text-gray-900'
+                        ? 'bg-white shadow-lg text-gray-900 ring-1 ring-black/5 transform scale-105'
+                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <Rss className="w-4 h-4" />
+                    <Rss className={`w-4 h-4 ${activeTab === 'comunidade' ? 'text-blue-500' : ''}`} />
                     <span>Comunidade</span>
                   </button>
 
-                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                  <div className="w-px h-8 bg-gray-200 mx-2"></div>
 
-                  <div className="flex items-center pl-1 pr-2 gap-2">
+                  {/* Filter & Search */}
+                  <div className="flex items-center gap-1 pr-2">
                     <button
                       onClick={() => setShowHeroFilters(!showHeroFilters)}
-                      className="flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-medium px-3 py-2 rounded-full hover:bg-white/50 transition-all"
+                      className="flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-semibold px-4 py-2 rounded-full hover:bg-gray-100 transition-all"
                     >
                       <Sliders className="w-4 h-4" />
                       <span>Filtrar</span>
                     </button>
-                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent hover:bg-gray-100 cursor-pointer">
-                      <Search className="w-4 h-4 text-gray-500" />
-                    </div>
+                    <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+                      <Search className="w-5 h-5 text-gray-500" />
+                    </button>
                   </div>
                 </div>
               </div>
