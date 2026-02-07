@@ -116,25 +116,39 @@ export default function UserManagementPanel() {
     setTimeout(() => setCopiedId(false), 2000);
   };
 
-  const createWalkerProfileMutation = useMutation({
-    mutationFn: async () => {
-      const response = await base44.functions.invoke('createWalkerProfile', {
+  const createProfileMutation = useMutation({
+    mutationFn: async ({ type }) => {
+      const response = await base44.functions.invoke('createProfessionalProfile', {
         userEmail: selectedUser.email,
-        walkerName: selectedUser.full_name,
+        userName: selectedUser.full_name,
+        type, // 'walker' or 'trainer'
       });
-      if (!response.data?.success) {
-        throw new Error(response.data?.message || "Erro desconhecido");
+      
+      // Axios response check
+      if (response.status !== 200 && response.status !== 201) {
+         throw new Error(response.data?.error || "Erro na requisição");
       }
-      return response.data;
+
+      // Business logic check
+      if (!response.data?.success && !response.data?.data) { // Check structure based on backend
+         throw new Error(response.data?.message || response.data?.error || "Erro desconhecido");
+      }
+      
+      return { ...response.data, type };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["walkerProfile", selectedUser.email] });
-      toast.success("Perfil de passeador criado com sucesso!");
-      setActivePanel("verification");
+    onSuccess: (data) => {
+      if (data.type === 'walker') {
+        queryClient.invalidateQueries({ queryKey: ["walkerProfile", selectedUser.email] });
+        setActivePanel("walker_verification");
+      } else {
+         queryClient.invalidateQueries({ queryKey: ["trainerProfile", selectedUser.email] });
+         setActivePanel("trainer_verification");
+      }
+      toast.success(data.message || `Perfil de ${data.type === 'walker' ? 'Passeador' : 'Treinador'} processado!`);
     },
     onError: (error) => {
       console.error("Erro ao criar perfil:", error);
-      toast.error(error?.response?.data?.message || error?.message || "Erro ao criar perfil");
+      toast.error(error?.message || "Erro ao criar perfil");
     },
   });
 
