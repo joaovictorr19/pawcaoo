@@ -924,17 +924,9 @@ export default function Home() {
                       <span className="text-sm font-bold">{stats.totalTrainers}</span>
                       <span className="text-xs opacity-90">Trainers</span>
                     </motion.div>
-                    </div>
-
-
+                   </div>
                 </motion.div>
               </div>
-
-
-
-
-
-
             </div>
           )}
         </div>
