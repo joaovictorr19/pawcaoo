@@ -414,10 +414,10 @@ export default function UserManagementPanel() {
                   <Button 
                     variant="outline"
                     className="h-9 gap-2 border-dashed border-purple-300 text-purple-600 hover:bg-purple-50"
-                    onClick={() => createProfileMutation.mutate({ type: 'walker' })}
-                    disabled={createProfileMutation.isPending}
+                    onClick={(e) => { e.stopPropagation(); createWalkerMutation.mutate(); }}
+                    disabled={createWalkerMutation.isPending}
                   >
-                     {createProfileMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreVertical className="w-4 h-4" />}
+                     {createWalkerMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreVertical className="w-4 h-4" />}
                     Criar Passeador
                   </Button>
                 )}
@@ -436,10 +436,10 @@ export default function UserManagementPanel() {
                   <Button 
                     variant="outline"
                     className="h-9 gap-2 border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
-                    onClick={() => createProfileMutation.mutate({ type: 'trainer' })}
-                    disabled={createProfileMutation.isPending}
+                    onClick={(e) => { e.stopPropagation(); createTrainerMutation.mutate(); }}
+                    disabled={createTrainerMutation.isPending}
                   >
-                    {createProfileMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreVertical className="w-4 h-4" />}
+                    {createTrainerMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreVertical className="w-4 h-4" />}
                     Criar Treinador
                   </Button>
                 )}
