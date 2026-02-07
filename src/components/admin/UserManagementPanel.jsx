@@ -305,6 +305,8 @@ export default function UserManagementPanel() {
           name: badgeDef.name,
           description: badgeDef.description || "",
           icon: badgeDef.icon || "🏆",
+          image_url: badgeDef.image_url || "",
+          image_png_file: badgeDef.image_png_file || "",
           rarity: badgeDef.rarity || "common",
           earned_date: new Date().toISOString(),
           category: badgeDef.category || "admin",
