@@ -11,15 +11,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Calendar, MapPin, Users, DollarSign, Plus, X,
-  Heart, Share2, Clock, PawPrint, Sparkles, Upload
+  Heart, Share2, Clock, PawPrint, Sparkles, Upload, ArrowLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export default function SocialEvents() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [filterType, setFilterType] = useState("all");
@@ -166,10 +169,19 @@ export default function SocialEvents() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Header */}
         <div className="mb-8">
+          <Button 
+            variant="outline" 
+            className="mb-4"
+            onClick={() => navigate(createPageUrl('SocialFeed'))}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar à Comunidade
+          </Button>
+
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-4xl md:text-5xl font-black text-gray-900">
@@ -181,7 +193,7 @@ export default function SocialEvents() {
             </div>
             <Button
               onClick={() => setShowCreateForm(!showCreateForm)}
-              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl shadow-lg"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl shadow-lg"
             >
               <Plus className="w-5 h-5 mr-2" />
               Criar Evento
@@ -281,9 +293,9 @@ export default function SocialEvents() {
                   <div>
                     <Label>Imagem de Capa</Label>
                     <label className="cursor-pointer">
-                      <div className="mt-2 border-2 border-dashed border-purple-300 rounded-xl p-6 hover:bg-purple-50 transition-colors text-center">
-                        <Upload className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-purple-700">
+                      <div className="mt-2 border-2 border-dashed border-green-300 rounded-xl p-6 hover:bg-green-50 transition-colors text-center">
+                        <Upload className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                        <p className="text-sm font-medium text-green-700">
                           {uploading ? "Carregando..." : "Clique para carregar imagem"}
                         </p>
                       </div>
@@ -396,7 +408,7 @@ export default function SocialEvents() {
                     <Button
                       onClick={() => createEventMutation.mutate(formData)}
                       disabled={!formData.title || !formData.location || !formData.start_date || createEventMutation.isPending}
-                      className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600"
+                      className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                     >
                       {createEventMutation.isPending ? "Criando..." : "Criar Evento"}
                     </Button>
@@ -429,18 +441,18 @@ export default function SocialEvents() {
           </div>
         ) : events.length === 0 ? (
           <Card className="border-0 shadow-xl">
-            <CardContent className="p-12 text-center">
-              <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum evento encontrado</h3>
-              <p className="text-gray-600 mb-4">Seja o primeiro a criar um evento!</p>
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                className="bg-gradient-to-r from-violet-600 to-purple-600"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Evento
-              </Button>
-            </CardContent>
+          <CardContent className="p-12 text-center">
+          <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum evento encontrado</h3>
+          <p className="text-gray-600 mb-4">Seja o primeiro a criar um evento!</p>
+          <Button
+            onClick={() => setShowCreateForm(true)}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Criar Evento
+          </Button>
+          </CardContent>
           </Card>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
