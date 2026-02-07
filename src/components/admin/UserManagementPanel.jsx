@@ -287,24 +287,58 @@ export default function UserManagementPanel() {
   const handleCloseBadgesDialog = () => {
     setShowBadgesDialog(false);
     setShowManageUserDialog(true);
+    setBadgeSearchTerm("");
+    setSelectedBadgesForAssignment([]);
   };
 
-  const handleAddBadge = () => {
-    if (!badgesFormData.user_email || !badgesFormData.badge_id || !badgesFormData.name) {
-      toast.error("Preencha os campos obrigatórios");
+  const handleAddBadge = async () => {
+    if (!selectedUser?.email || selectedBadgesForAssignment.length === 0) {
+      toast.error("Selecione pelo menos um emblema");
       return;
     }
-    addBadgeMutation.mutate({
-      user_email: badgesFormData.user_email,
-      badge_id: badgesFormData.badge_id,
-      name: badgesFormData.name,
-      description: badgesFormData.description || "",
-      icon: "🏆",
-      rarity: badgesFormData.rarity || "common",
-      earned_date: new Date().toISOString(),
-      category: "admin",
+
+    try {
+      for (const badgeDef of selectedBadgesForAssignment) {
+        await base44.entities.UserBadge.create({
+          user_email: selectedUser.email,
+          badge_id: badgeDef.badge_id,
+          name: badgeDef.name,
+          description: badgeDef.description || "",
+          icon: badgeDef.icon || "🏆",
+          rarity: badgeDef.rarity || "common",
+          earned_date: new Date().toISOString(),
+          category: badgeDef.category || "admin",
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["userBadges"] });
+      toast.success(`${selectedBadgesForAssignment.length} emblema(s) adicionado(s)!`);
+      handleCloseBadgesDialog();
+    } catch (error) {
+      toast.error("Erro: " + error.message);
+    }
+  };
+
+  const toggleBadgeSelection = (badge) => {
+    setSelectedBadgesForAssignment(prev => {
+      const exists = prev.find(b => b.badge_id === badge.badge_id);
+      if (exists) {
+        return prev.filter(b => b.badge_id !== badge.badge_id);
+      } else {
+        return [...prev, badge];
+      }
     });
   };
+
+  const filteredBadgeDefinitions = useMemo(() => {
+    return badgeDefinitions.filter(badge => {
+      const searchLower = badgeSearchTerm.toLowerCase();
+      return (
+        badge.name?.toLowerCase().includes(searchLower) ||
+        badge.description?.toLowerCase().includes(searchLower) ||
+        badge.category?.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [badgeDefinitions, badgeSearchTerm]);
 
   const handleOpenXPDialog = (user) => {
     const profile = userProfiles.find((p) => p.user_email === user.email);
