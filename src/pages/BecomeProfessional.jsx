@@ -89,15 +89,13 @@ export default function BecomeProfessional() {
 
   const createProfileMutation = useMutation({
     mutationFn: async (data) => {
-      const results = {};
-      
       // SEMPRE criar apenas WalkerProfile (unificado)
       // Se for "both" ou "trainer", marcamos is_verified_trainer = true
       const isAlsoTrainer = professionalType === 'trainer' || professionalType === 'both';
       
       console.log('📝 Creating WalkerProfile with data:', { isAlsoTrainer, training_specializations: data.training_specializations });
       
-      results.walker = await base44.entities.WalkerProfile.create({
+      const walkerProfile = await base44.entities.WalkerProfile.create({
         walker_name: data.name,
         age: data.age || 0,
         photo_url: data.photo_url || "",
@@ -139,17 +137,19 @@ export default function BecomeProfessional() {
         tax_id_france: data.tax_id_france || ""
       });
       
-      console.log('✅ WalkerProfile created:', results.walker.id);
+      console.log('✅ WalkerProfile created:', walkerProfile.id);
 
       // Update user account_type
       await base44.auth.updateMe({ account_type: professionalType });
       
-      return results;
+      return { walker: walkerProfile };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ Profile created successfully:', data);
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['walkers'] });
       queryClient.invalidateQueries({ queryKey: ['trainers'] });
+      queryClient.invalidateQueries({ queryKey: ['allWalkers'] });
       setShowSuccess(true);
       setTimeout(() => {
         navigate(createPageUrl('Home'));
@@ -208,6 +208,12 @@ export default function BecomeProfessional() {
       return;
     }
 
+    // Validação básica obrigatória
+    if (!formData.name || !formData.location || !formData.whatsapp_number) {
+      toast.error("Preencha todos os campos obrigatórios (Nome, Localização, WhatsApp)");
+      return;
+    }
+
     // Validação Fiscal por País
     if (!formData.country_of_operation) {
       toast.error("Selecione o país de atuação");
@@ -240,12 +246,7 @@ export default function BecomeProfessional() {
     const ageNum = parseFloat(formData.age) || 0;
 
     if (isNaN(rate) || rate <= 0) {
-      toast.error("Taxa horária inválida.");
-      return;
-    }
-
-    if (!formData.whatsapp_number) {
-      toast.error("WhatsApp é obrigatório.");
+      toast.error("Por favor indique uma taxa horária válida (maior que 0)");
       return;
     }
 
@@ -590,6 +591,22 @@ export default function BecomeProfessional() {
                         onClick={() => {
                           if (!professionalType) {
                             toast.error("Selecione o tipo de profissional");
+                            return;
+                          }
+                          if (!formData.name?.trim()) {
+                            toast.error("Por favor indique o seu nome");
+                            return;
+                          }
+                          if (!formData.location?.trim()) {
+                            toast.error("Por favor indique a sua localização");
+                            return;
+                          }
+                          if (!formData.whatsapp_number?.trim()) {
+                            toast.error("Por favor indique o seu WhatsApp");
+                            return;
+                          }
+                          if (!formData.hourly_rate || parseFloat(formData.hourly_rate) <= 0) {
+                            toast.error("Por favor indique uma taxa horária válida");
                             return;
                           }
                           setCurrentStep(2);
