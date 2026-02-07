@@ -1388,11 +1388,11 @@ export default function Home() {
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
-                        <Rss className="w-6 h-6 md:w-7 md:h-7 text-blue-500" />
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                        <Rss className="w-6 h-6 md:w-7 md:h-7 text-blue-600" />
                         {language === 'pt' ? 'Comunidade PawCão' : language === 'es' ? 'Comunidad PawCão' : 'PawCão Community'}
                       </h2>
-                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1">
+                      <p className="text-xs md:text-base text-gray-700 mt-1">
                         {language === 'pt' ? 'Partilhe momentos, notícias e conecte-se com outros amantes de pets' : 'Share moments, news and connect with pet lovers'}
                       </p>
                     </div>
