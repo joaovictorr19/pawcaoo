@@ -913,7 +913,7 @@ export default function Home() {
 
                     <motion.div 
                       whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
+                      className="flex items-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer ring-2 ring-yellow-400/50"
                       onClick={() => navigate(createPageUrl('Trainers'))}
                     >
                       <GraduationCap className="w-4 h-4" />
