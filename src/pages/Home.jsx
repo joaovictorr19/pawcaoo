@@ -856,7 +856,7 @@ export default function Home() {
                         <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
                       </div>
                       <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        🚶 Walker
+                        Walker
                       </div>
                     </motion.div>
                   </motion.div>
@@ -887,7 +887,7 @@ export default function Home() {
                         <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
                       </div>
                       <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        🐕 {dog.dog_name}
+                        {dog.dog_name}
                       </div>
                     </motion.div>
                   </motion.div>
@@ -1141,15 +1141,15 @@ export default function Home() {
                         
                         {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
                           <Badge className="bg-green-100 text-green-800 text-xs">
-                            📊 {t('sortedByMatch', language)}
+                            {t('sortedByMatch', language)}
                           </Badge>
                         )}
                         
                         {filterDogSitting !== "all" && (
                           <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                            {filterDogSitting === "boarding" && `🏠 ${t('dogBoarding', language)}`}
-                            {filterDogSitting === "house_sitting" && `🏡 ${t('houseSitting', language)}`}
-                            {filterDogSitting === "drop_in" && `🚪 ${t('dropInVisits', language)}`}
+                            {filterDogSitting === "boarding" && t('dogBoarding', language)}
+                            {filterDogSitting === "house_sitting" && t('houseSitting', language)}
+                            {filterDogSitting === "drop_in" && t('dropInVisits', language)}
                           </span>
                         )}
                         {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
@@ -1443,8 +1443,8 @@ export default function Home() {
                                         )}
                                       </div>
                                       <p className="text-gray-300 text-[10px] truncate">
-                                        {publisherData?.category === 'news' ? '📰 Notícias' : 
-                                         publisherData?.category === 'magazine' ? '📖 Revista' : '✍️ Blog'}
+                                        {publisherData?.category === 'news' ? 'Notícias' : 
+                                         publisherData?.category === 'magazine' ? 'Revista' : 'Blog'}
                                       </p>
                                     </div>
                                     <Badge className="bg-white/10 text-white border border-white/20 text-[10px] shrink-0">
