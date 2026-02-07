@@ -59,6 +59,9 @@ export default function DynamicBackground() {
   const [weather, setWeather] = useState('sunny'); // sunny, rainy, cloudy, snowy
   const [raindrops, setRaindrops] = useState([]);
   const [snowflakes, setSnowflakes] = useState([]);
+  
+  // CRITICAL: Always call useTheme BEFORE conditional returns
+  const { colors, level } = useTheme();
 
   // Check if user is logged in
   const { data: user } = useQuery({
@@ -150,10 +153,8 @@ export default function DynamicBackground() {
     }
   }, [weather]);
 
-  const isLoggedIn = !!user;
-
   // If not logged in, show park grass background with weather
-  if (!isLoggedIn) {
+  if (!user) {
     return (
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         {/* CSS for rain animation */}
@@ -266,7 +267,7 @@ export default function DynamicBackground() {
     );
   }
 
-  const { colors, level } = useTheme();
+  // Theme colors already called at the top (before conditional return)
   
   const getOrbColorsByTheme = (themeName) => {
     const themeMap = {
