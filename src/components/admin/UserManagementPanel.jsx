@@ -118,15 +118,12 @@ export default function UserManagementPanel() {
       if (!response.data?.success) {
         throw new Error(response.data?.error || "Erro desconhecido");
       }
-      // Aguarda um pouco para a DB atualizar
-      await new Promise(resolve => setTimeout(resolve, 500));
       return response.data;
     },
-    onSuccess: async (data) => {
-      // Força refetch imediato
-      await queryClient.refetchQueries({ queryKey: ["walkerProfile", selectedUser.email] });
-      toast.success("✅ Perfil criado! ID: " + data.walkerId);
-      setTimeout(() => setActivePanel("verification"), 300);
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["walkerProfile", selectedUser.email], exact: true });
+      toast.success("✅ Perfil criado com sucesso!");
+      setActivePanel("verification");
     },
     onError: (error) => {
       toast.error("❌ " + (error?.message || "Erro ao criar perfil"));
