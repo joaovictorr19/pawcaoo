@@ -15,6 +15,22 @@ const Raindrop = ({ delay, left }) => (
   />
 );
 
+// Snowflake component
+const Snowflake = ({ delay, left, size }) => (
+  <div
+    className="absolute bg-white rounded-full animate-snow"
+    style={{
+      left: `${left}%`,
+      width: `${size}px`,
+      height: `${size}px`,
+      opacity: `${0.4 + Math.random() * 0.6}`,
+      animationDelay: `${delay}s`,
+      animationDuration: `${5 + Math.random() * 5}s`,
+      filter: 'blur(0.5px)'
+    }}
+  />
+);
+
 // Sun rays component
 const SunRays = () => (
   <div className="absolute top-0 right-0 w-[60vw] h-[60vw] overflow-hidden">
@@ -40,8 +56,9 @@ const SunRays = () => (
 );
 
 export default function DynamicBackground() {
-  const [weather, setWeather] = useState('sunny'); // sunny, rainy, cloudy
+  const [weather, setWeather] = useState('sunny'); // sunny, rainy, cloudy, snowy
   const [raindrops, setRaindrops] = useState([]);
+  const [snowflakes, setSnowflakes] = useState([]);
 
   // Check if user is logged in
   const { data: user } = useQuery({
@@ -76,6 +93,8 @@ export default function DynamicBackground() {
                 // Weather codes: 0-3 = clear/cloudy, 51-67 = rain, 71-77 = snow, 80-82 = showers
                 if ([51, 53, 55, 61, 63, 65, 67, 80, 81, 82].includes(weatherCode)) {
                   setWeather('rainy');
+                } else if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) { // Snow codes
+                  setWeather('snowy');
                 } else if ([0, 1].includes(weatherCode)) {
                   setWeather('sunny');
                 } else {
@@ -116,6 +135,21 @@ export default function DynamicBackground() {
     }
   }, [weather]);
 
+  // Generate snowflakes when snowing
+  useEffect(() => {
+    if (weather === 'snowy') {
+      const flakes = [...Array(40)].map((_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 8,
+        size: 3 + Math.random() * 4
+      }));
+      setSnowflakes(flakes);
+    } else {
+      setSnowflakes([]);
+    }
+  }, [weather]);
+
   const isLoggedIn = !!user;
 
   // If not logged in, show park grass background with weather
@@ -130,28 +164,38 @@ export default function DynamicBackground() {
             90% { opacity: 1; }
             100% { transform: translateY(100vh); opacity: 0; }
           }
+          @keyframes snow {
+            0% { transform: translateY(-10vh) translateX(-10px); opacity: 0; }
+            10% { opacity: 0.8; }
+            100% { transform: translateY(110vh) translateX(20px); opacity: 0.3; }
+          }
           .animate-rain {
             animation: rain linear infinite;
           }
+          .animate-snow {
+            animation: snow linear infinite;
+          }
         `}</style>
         
-        {/* Dark grass/park texture background */}
+        {/* Midnight Forest texture background */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1557683316-973673baf926?w=1920&q=80)',
+            backgroundImage: 'url(https://images.unsplash.com/photo-1448375240586-dfd8d395ea6c?w=1920&q=80)',
           }}
         />
         
-        {/* Dark green grass overlay */}
+        {/* Midnight Green / Forest Overlay */}
         <div 
           className="absolute inset-0"
           style={{
             background: weather === 'rainy' 
-              ? 'linear-gradient(135deg, rgba(27,94,32,0.96) 0%, rgba(46,125,50,0.94) 50%, rgba(56,142,60,0.95) 100%)'
+              ? 'linear-gradient(135deg, rgba(2, 44, 34, 0.92) 0%, rgba(6, 78, 59, 0.88) 100%)' // Dark rainy forest
               : weather === 'sunny'
-              ? 'linear-gradient(135deg, rgba(46,125,50,0.92) 0%, rgba(56,142,60,0.88) 50%, rgba(76,175,80,0.90) 100%)'
-              : 'linear-gradient(135deg, rgba(37,105,42,0.94) 0%, rgba(51,130,55,0.92) 50%, rgba(66,155,70,0.93) 100%)'
+              ? 'linear-gradient(135deg, rgba(20, 83, 45, 0.85) 0%, rgba(22, 101, 52, 0.80) 100%)' // Sunlit deep forest
+              : weather === 'snowy'
+              ? 'linear-gradient(135deg, rgba(17, 24, 39, 0.85) 0%, rgba(55, 65, 81, 0.6) 100%)' // Cold snowy forest
+              : 'linear-gradient(135deg, rgba(6, 78, 59, 0.9) 0%, rgba(20, 83, 45, 0.85) 100%)' // Cloudy forest
           }}
         />
         
@@ -160,12 +204,21 @@ export default function DynamicBackground() {
         
         {weather === 'rainy' && (
           <>
-            {/* Rain overlay darkness */}
-            <div className="absolute inset-0 bg-slate-900/20" />
-            {/* Raindrops */}
+            <div className="absolute inset-0 bg-slate-900/30" />
             <div className="absolute inset-0">
               {raindrops.map((drop) => (
                 <Raindrop key={drop.id} delay={drop.delay} left={drop.left} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {weather === 'snowy' && (
+          <>
+            <div className="absolute inset-0 bg-white/5" />
+            <div className="absolute inset-0">
+              {snowflakes.map((flake) => (
+                <Snowflake key={flake.id} delay={flake.delay} left={flake.left} size={flake.size} />
               ))}
             </div>
           </>
@@ -202,188 +255,62 @@ export default function DynamicBackground() {
           }}
         />
         
-        {/* Dog toys scattered on grass */}
+        {/* Forest Elements: Trails, Trees, Birds */}
         <div className="absolute inset-0 overflow-hidden">
-          {/* Tennis balls */}
-          <div className="absolute top-[15%] left-[8%] w-8 h-8 rounded-full opacity-40 shadow-lg"
-            style={{
-              background: 'radial-gradient(circle at 30% 30%, #c0ca33, #9e9d24)',
-              boxShadow: 'inset -2px -2px 4px rgba(0,0,0,0.2), inset 2px 2px 4px rgba(255,255,255,0.3)'
-            }}
-          >
-            <div className="absolute inset-[25%] rounded-full border-2 border-white/40" style={{ borderStyle: 'dashed' }} />
-          </div>
           
-          <div className="absolute top-[45%] right-[12%] w-6 h-6 rounded-full opacity-35 shadow-lg"
+          {/* Forest Trails - Organic paths */}
+          <div className="absolute top-[20%] left-0 right-0 h-32 opacity-20"
             style={{
-              background: 'radial-gradient(circle at 30% 30%, #c0ca33, #9e9d24)',
-              boxShadow: 'inset -2px -2px 4px rgba(0,0,0,0.2)'
-            }}
-          >
-            <div className="absolute inset-[25%] rounded-full border border-white/30" style={{ borderStyle: 'dashed' }} />
-          </div>
-          
-          <div className="absolute bottom-[25%] left-[25%] w-5 h-5 rounded-full opacity-30 shadow-lg"
-            style={{
-              background: 'radial-gradient(circle at 30% 30%, #ef5350, #c62828)',
-              boxShadow: 'inset -2px -2px 4px rgba(0,0,0,0.2)'
+              background: 'linear-gradient(170deg, transparent 0%, rgba(93, 64, 55, 0.4) 40%, rgba(93, 64, 55, 0.3) 60%, transparent 100%)',
+              transform: 'skewY(-3deg) scale(1.1)'
             }}
           />
           
-          <div className="absolute top-[70%] right-[30%] w-7 h-7 rounded-full opacity-35 shadow-lg"
+          <div className="absolute bottom-[20%] left-0 right-0 h-24 opacity-15"
             style={{
-              background: 'radial-gradient(circle at 30% 30%, #42a5f5, #1565c0)',
-              boxShadow: 'inset -2px -2px 4px rgba(0,0,0,0.2)'
+              background: 'linear-gradient(10deg, transparent 0%, rgba(62, 39, 35, 0.5) 45%, rgba(93, 64, 55, 0.4) 55%, transparent 100%)',
+              transform: 'skewY(2deg) scale(1.2)'
             }}
           />
-          
-          {/* Dog bones */}
-          <svg className="absolute top-[20%] right-[20%] w-12 h-6 opacity-40" viewBox="0 0 48 24" style={{ transform: 'rotate(-15deg)' }}>
-            <ellipse cx="6" cy="6" rx="6" ry="5" fill="#f5f5dc" />
-            <ellipse cx="6" cy="18" rx="6" ry="5" fill="#f5f5dc" />
-            <ellipse cx="42" cy="6" rx="6" ry="5" fill="#f5f5dc" />
-            <ellipse cx="42" cy="18" rx="6" ry="5" fill="#f5f5dc" />
-            <rect x="6" y="8" width="36" height="8" fill="#f5f5dc" />
-            <ellipse cx="6" cy="6" rx="5" ry="4" fill="#fafad2" />
-            <ellipse cx="42" cy="6" rx="5" ry="4" fill="#fafad2" />
+
+          {/* Birds in distance */}
+          <svg className="absolute top-[15%] left-[25%] w-8 h-4 opacity-40 animate-pulse" viewBox="0 0 24 12" style={{ animationDuration: '4s' }}>
+             <path d="M1,6 Q6,1 12,6 T23,6" fill="none" stroke="#1a2e1a" strokeWidth="2" />
           </svg>
-          
-          <svg className="absolute bottom-[35%] left-[15%] w-10 h-5 opacity-35" viewBox="0 0 48 24" style={{ transform: 'rotate(25deg)' }}>
-            <ellipse cx="6" cy="6" rx="6" ry="5" fill="#f5f5dc" />
-            <ellipse cx="6" cy="18" rx="6" ry="5" fill="#f5f5dc" />
-            <ellipse cx="42" cy="6" rx="6" ry="5" fill="#f5f5dc" />
-            <ellipse cx="42" cy="18" rx="6" ry="5" fill="#f5f5dc" />
-            <rect x="6" y="8" width="36" height="8" fill="#f5f5dc" />
+          <svg className="absolute top-[12%] left-[22%] w-6 h-3 opacity-30 animate-pulse" viewBox="0 0 24 12" style={{ animationDuration: '5s' }}>
+             <path d="M1,6 Q6,1 12,6 T23,6" fill="none" stroke="#1a2e1a" strokeWidth="2" />
           </svg>
-          
-          <svg className="absolute top-[55%] left-[60%] w-8 h-4 opacity-30" viewBox="0 0 48 24" style={{ transform: 'rotate(-45deg)' }}>
-            <ellipse cx="6" cy="6" rx="6" ry="5" fill="#f5f5dc" />
-            <ellipse cx="6" cy="18" rx="6" ry="5" fill="#f5f5dc" />
-            <ellipse cx="42" cy="6" rx="6" ry="5" fill="#f5f5dc" />
-            <ellipse cx="42" cy="18" rx="6" ry="5" fill="#f5f5dc" />
-            <rect x="6" y="8" width="36" height="8" fill="#f5f5dc" />
+
+          {/* Deer Silhouette (Subtle) */}
+          <svg className="absolute bottom-[18%] right-[15%] w-16 h-20 opacity-20" viewBox="0 0 100 100">
+             <path d="M50,80 L50,60 L60,50 L70,60 L70,80 M60,50 L60,30 L55,20 M65,20 L60,30" fill="none" stroke="#3e2723" strokeWidth="2" />
+             <circle cx="55" cy="20" r="1" fill="#3e2723" />
           </svg>
-          
-          <svg className="absolute bottom-[15%] right-[8%] w-14 h-7 opacity-40" viewBox="0 0 48 24" style={{ transform: 'rotate(10deg)' }}>
-            <ellipse cx="6" cy="6" rx="6" ry="5" fill="#ffe4b5" />
-            <ellipse cx="6" cy="18" rx="6" ry="5" fill="#ffe4b5" />
-            <ellipse cx="42" cy="6" rx="6" ry="5" fill="#ffe4b5" />
-            <ellipse cx="42" cy="18" rx="6" ry="5" fill="#ffe4b5" />
-            <rect x="6" y="8" width="36" height="8" fill="#ffe4b5" />
+
+          {/* Majestic Forest Trees */}
+          <svg className="absolute top-[10%] left-[5%] w-24 h-32 opacity-30" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#3e2723" />
+            <path d="M30 10 L10 50 L50 50 Z" fill="#1b5e20" />
+            <path d="M30 25 L15 50 L45 50 Z" fill="#2e7d32" />
+          </svg>
+
+          <svg className="absolute bottom-[20%] left-[8%] w-32 h-40 opacity-25" viewBox="0 0 60 80">
+            <rect x="26" y="60" width="8" height="20" fill="#3e2723" />
+            <path d="M30 15 L5 60 L55 60 Z" fill="#1b5e20" />
+            <path d="M30 30 L10 60 L50 60 Z" fill="#2e7d32" />
+          </svg>
+
+          <svg className="absolute top-[30%] right-[5%] w-20 h-28 opacity-30" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#3e2723" />
+            <path d="M30 10 L10 50 L50 50 Z" fill="#1b5e20" />
+            <path d="M30 25 L15 50 L45 50 Z" fill="#2e7d32" />
           </svg>
           
-          {/* Extra small balls scattered */}
-          <div className="absolute top-[35%] left-[45%] w-4 h-4 rounded-full opacity-25"
-            style={{ background: 'radial-gradient(circle at 30% 30%, #ff9800, #e65100)' }}
-          />
-          <div className="absolute bottom-[45%] right-[45%] w-3 h-3 rounded-full opacity-20"
-            style={{ background: 'radial-gradient(circle at 30% 30%, #9c27b0, #6a1b9a)' }}
-          />
-          <div className="absolute top-[80%] left-[70%] w-5 h-5 rounded-full opacity-30"
-            style={{ background: 'radial-gradient(circle at 30% 30%, #c0ca33, #9e9d24)' }}
-          >
-            <div className="absolute inset-[25%] rounded-full border border-white/30" style={{ borderStyle: 'dashed' }} />
-          </div>
-
-          {/* Cycling paths/roads - subtle gray paths */}
-          <div className="absolute top-[20%] left-0 right-0 h-16 opacity-20"
-            style={{
-              background: 'linear-gradient(180deg, transparent 0%, #424242 20%, #616161 50%, #424242 80%, transparent 100%)',
-              transform: 'skewY(-2deg)'
-            }}
-          >
-            {/* Dashed white line for bike path */}
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/40 opacity-60"
-              style={{
-                backgroundImage: 'repeating-linear-gradient(90deg, white 0px, white 20px, transparent 20px, transparent 40px)'
-              }}
-            />
-          </div>
-
-          <div className="absolute bottom-[30%] left-0 right-0 h-20 opacity-15"
-            style={{
-              background: 'linear-gradient(180deg, transparent 0%, #757575 25%, #9e9e9e 50%, #757575 75%, transparent 100%)',
-              transform: 'skewY(1deg)'
-            }}
-          >
-            {/* Road yellow divider line */}
-            <div className="absolute top-1/2 left-0 right-0 h-1 bg-yellow-300/50 opacity-70"
-              style={{
-                backgroundImage: 'repeating-linear-gradient(90deg, #ffd54f 0px, #ffd54f 30px, transparent 30px, transparent 50px)'
-              }}
-            />
-          </div>
-
-          {/* Fire Hydrants scattered on the grass */}
-          <svg className="absolute top-[25%] right-[15%] w-8 h-10 opacity-40" viewBox="0 0 32 40" style={{ transform: 'rotate(-5deg)' }}>
-            {/* Base */}
-            <rect x="10" y="30" width="12" height="4" fill="#8b0000" rx="1" />
-            {/* Main body */}
-            <rect x="8" y="12" width="16" height="18" fill="#dc143c" rx="2" />
-            {/* Cap */}
-            <ellipse cx="16" cy="10" rx="9" ry="4" fill="#b22222" />
-            {/* Side valves */}
-            <rect x="3" y="18" width="5" height="3" fill="#ff6347" rx="1" />
-            <rect x="24" y="18" width="5" height="3" fill="#ff6347" rx="1" />
-            {/* Top nozzle */}
-            <rect x="13" y="6" width="6" height="6" fill="#8b0000" rx="1" />
-            {/* Shine effect */}
-            <ellipse cx="12" cy="16" rx="2" ry="4" fill="#ff6b6b" opacity="0.3" />
+          <svg className="absolute bottom-[40%] right-[12%] w-16 h-24 opacity-20" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#3e2723" />
+            <path d="M30 10 L10 50 L50 50 Z" fill="#1b5e20" />
           </svg>
 
-          <svg className="absolute bottom-[20%] left-[10%] w-7 h-9 opacity-35" viewBox="0 0 32 40" style={{ transform: 'rotate(8deg)' }}>
-            <rect x="10" y="30" width="12" height="4" fill="#8b0000" rx="1" />
-            <rect x="8" y="12" width="16" height="18" fill="#dc143c" rx="2" />
-            <ellipse cx="16" cy="10" rx="9" ry="4" fill="#b22222" />
-            <rect x="3" y="18" width="5" height="3" fill="#ff6347" rx="1" />
-            <rect x="24" y="18" width="5" height="3" fill="#ff6347" rx="1" />
-            <rect x="13" y="6" width="6" height="6" fill="#8b0000" rx="1" />
-          </svg>
-
-          <svg className="absolute top-[60%] right-[35%] w-6 h-8 opacity-30" viewBox="0 0 32 40" style={{ transform: 'rotate(-12deg)' }}>
-            <rect x="10" y="30" width="12" height="4" fill="#8b0000" rx="1" />
-            <rect x="8" y="12" width="16" height="18" fill="#dc143c" rx="2" />
-            <ellipse cx="16" cy="10" rx="9" ry="4" fill="#b22222" />
-            <rect x="3" y="18" width="5" height="3" fill="#ff6347" rx="1" />
-            <rect x="24" y="18" width="5" height="3" fill="#ff6347" rx="1" />
-            <rect x="13" y="6" width="6" height="6" fill="#8b0000" rx="1" />
-          </svg>
-
-          {/* Trees scattered in the park */}
-          <svg className="absolute top-[10%] left-[20%] w-16 h-20 opacity-35" viewBox="0 0 60 80">
-            <rect x="26" y="50" width="8" height="30" fill="#5d4037" />
-            <ellipse cx="30" cy="35" rx="20" ry="25" fill="#2e7d32" />
-            <ellipse cx="30" cy="28" rx="16" ry="20" fill="#388e3c" />
-            <ellipse cx="30" cy="22" rx="12" ry="15" fill="#43a047" />
-          </svg>
-
-          <svg className="absolute top-[40%] left-[5%] w-12 h-16 opacity-30" viewBox="0 0 60 80">
-            <rect x="26" y="50" width="8" height="30" fill="#4e342e" />
-            <ellipse cx="30" cy="35" rx="18" ry="23" fill="#1b5e20" />
-            <ellipse cx="30" cy="28" rx="14" ry="18" fill="#2e7d32" />
-            <ellipse cx="30" cy="22" rx="10" ry="13" fill="#388e3c" />
-          </svg>
-
-          <svg className="absolute bottom-[25%] right-[10%] w-14 h-18 opacity-40" viewBox="0 0 60 80">
-            <rect x="26" y="50" width="8" height="30" fill="#5d4037" />
-            <ellipse cx="30" cy="35" rx="22" ry="27" fill="#2e7d32" />
-            <ellipse cx="30" cy="28" rx="18" ry="22" fill="#388e3c" />
-            <ellipse cx="30" cy="22" rx="14" ry="17" fill="#4caf50" />
-          </svg>
-
-          <svg className="absolute top-[65%] left-[75%] w-10 h-14 opacity-28" viewBox="0 0 60 80">
-            <rect x="26" y="50" width="8" height="30" fill="#4e342e" />
-            <ellipse cx="30" cy="35" rx="16" ry="21" fill="#1b5e20" />
-            <ellipse cx="30" cy="28" rx="12" ry="16" fill="#2e7d32" />
-            <ellipse cx="30" cy="22" rx="9" ry="12" fill="#388e3c" />
-          </svg>
-
-          <svg className="absolute top-[15%] right-[8%] w-13 h-17 opacity-35" viewBox="0 0 60 80">
-            <rect x="26" y="50" width="8" height="30" fill="#5d4037" />
-            <ellipse cx="30" cy="35" rx="19" ry="24" fill="#2e7d32" />
-            <ellipse cx="30" cy="28" rx="15" ry="19" fill="#388e3c" />
-            <ellipse cx="30" cy="22" rx="11" ry="14" fill="#43a047" />
-          </svg>
         </div>
         
         {/* Vignette for depth */}
