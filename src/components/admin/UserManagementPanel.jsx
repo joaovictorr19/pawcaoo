@@ -278,13 +278,8 @@ export default function UserManagementPanel() {
 
   const handleOpenBadgesDialog = (user) => {
     setSelectedUser(user);
-    setBadgesFormData({
-      user_email: user.email,
-      badge_id: "",
-      name: "",
-      description: "",
-      rarity: "common",
-    });
+    setBadgeSearchTerm("");
+    setSelectedBadgesForAssignment([]);
     setShowManageUserDialog(false);
     setShowBadgesDialog(true);
   };
