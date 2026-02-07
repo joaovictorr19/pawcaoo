@@ -381,7 +381,7 @@ function LayoutContent({ children, currentPageName }) {
             badge_id: 'welcome',
             name: language === 'pt' ? 'Bem-vindo à PawCão!' : (language === 'es' ? '¡Bienvenido a PawCão!' : 'Welcome to PawCão!'),
             description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nuestra comunidad!' : 'Thanks for joining our community!'),
-            icon: '🎉',
+            icon: 'Award',
             rarity: 'common',
             earned_date: new Date().toISOString(),
             category: 'milestone',
@@ -516,10 +516,10 @@ function LayoutContent({ children, currentPageName }) {
       vip: "bg-yellow-500"
     };
     const planIcons = {
-      free: "⚡",
-      basic: "💼",
-      premium: "🥇",
-      vip: "👑"
+      free: "Free",
+      basic: "Basic",
+      premium: "Premium",
+      vip: "VIP"
     };
     return {
       color: planColors[ownerSubscription.plan_type] || "bg-gray-500",
@@ -1239,7 +1239,7 @@ function LayoutContent({ children, currentPageName }) {
                 steps={[
                   {
                     targetId: '#nav-home',
-                    title: language === 'pt' ? 'Bem-vindo à PawCão! 🐾' : 'Welcome to PawCão! 🐾',
+                    title: language === 'pt' ? 'Bem-vindo à PawCão!' : 'Welcome to PawCão!',
                     content: language === 'pt' 
                       ? 'Encontra passeadores e treinadores verificados perto de ti. Todos passam por verificação de segurança!'
                       : 'Find verified walkers and trainers near you. All go through security verification!'
@@ -1253,7 +1253,7 @@ function LayoutContent({ children, currentPageName }) {
                   },
                   {
                     targetId: '#nav-gamification',
-                    title: language === 'pt' ? 'Ganha Prémios! 🏆' : 'Earn Rewards! 🏆',
+                    title: language === 'pt' ? 'Ganha Prémios!' : 'Earn Rewards!',
                     content: language === 'pt'
                       ? 'Acumula XP em cada passeio, desbloqueia emblemas e sobe no ranking da comunidade!'
                       : 'Earn XP on every walk, unlock badges and climb the community ranking!'
@@ -1317,9 +1317,10 @@ function LayoutContent({ children, currentPageName }) {
                   </p>
                   <div className="flex items-center gap-2">
                     <PawCaoLogo size="small" showText={false} />
-                    <span className="text-sm text-green-700 font-semibold">
-                      ✓ {t('verifiedProfessionals', language)}
-                    </span>
+                    <div className="flex items-center gap-1 text-green-700 font-semibold">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span className="text-sm">{t('verifiedProfessionals', language)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
