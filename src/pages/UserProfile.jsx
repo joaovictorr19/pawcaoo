@@ -148,7 +148,7 @@ export default function UserProfile() {
   const targetId = profileIdParam;
   const targetName = profileNameParam;
   const targetUsername = profileUsernameParam;
-  const targetEmail = !targetId && !targetName && !targetUsername ? profileEmailParam : null;
+  const targetEmail = profileEmailParam && profileEmailParam.includes('@') ? profileEmailParam : null;
 
   const isSelfView = (!targetId && !targetEmail && !targetName && !targetUsername) || 
                      (currentUser && targetId === currentUser.id) || 
