@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { userEmail, userName, type } = body; // type: 'walker', 'trainer'
+    const { userEmail, userId, userName, type } = body; // type: 'walker', 'trainer'
 
     if (!userEmail || !userName || !type) {
       return new Response(
@@ -28,15 +28,6 @@ Deno.serve(async (req) => {
     // Fetch UserProfile to sync data
     const userProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: userEmail });
     const userProfile = userProfiles.length > 0 ? userProfiles[0] : null;
-
-    const commonData = {
-      photo_url: userProfile?.profile_photo_url || null,
-      bio: userProfile?.bio || '',
-      location: userProfile?.city || 'Portugal',
-      created_by: userEmail,
-      is_active: true,
-      verification_status: 'requires_documents',
-    };
 
     const commonData = {
       photo_url: userProfile?.profile_photo_url || null,
