@@ -164,72 +164,75 @@ export default function UserManagementPanel() {
           <CardTitle>Utilizadores ({filteredUsers.length})</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50 hover:bg-gray-50">
-                <TableHead className="font-semibold">Utilizador</TableHead>
-                <TableHead className="font-semibold">Email</TableHead>
-                <TableHead className="font-semibold">Tipo</TableHead>
-                <TableHead className="text-right font-semibold">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loadingUsers ? (
-                <TableRow>
-                  <TableCell colSpan="4" className="text-center py-8">
-                    <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-                  </TableCell>
-                </TableRow>
-              ) : filteredUsers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan="4" className="text-center py-8 text-gray-500">
-                    Nenhum utilizador encontrado
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredUsers.map((user) => (
-                  <TableRow key={user.id} className="hover:bg-gray-50">
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={user.profile_photo_url} />
-                          <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-bold">
-                            {user.full_name?.[0]?.toUpperCase() || "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <p className="font-medium text-sm">{user.full_name}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                        {user.email}
-                      </code>
-                    </TableCell>
-                    <TableCell>
-                      {user.role === "admin" ? (
-                        <Badge className="bg-red-100 text-red-800">Admin</Badge>
-                      ) : (
-                        <Badge className="bg-blue-100 text-blue-800">User</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setEditingUser(user);
-                        }}
-                        type="button"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700 active:scale-95 transition-all cursor-pointer"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                        Editar
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 border-b">
+                  <th className="px-4 py-3 text-left font-semibold text-sm">Utilizador</th>
+                  <th className="px-4 py-3 text-left font-semibold text-sm">Email</th>
+                  <th className="px-4 py-3 text-left font-semibold text-sm">Tipo</th>
+                  <th className="px-4 py-3 text-right font-semibold text-sm">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingUsers ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-8">
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                    </td>
+                  </tr>
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-8 text-gray-500">
+                      Nenhum utilizador encontrado
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <tr key={user.id} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="w-8 h-8">
+                            <AvatarImage src={user.profile_photo_url} />
+                            <AvatarFallback className="bg-blue-100 text-blue-700 text-xs font-bold">
+                              {user.full_name?.[0]?.toUpperCase() || "U"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <p className="font-medium text-sm">{user.full_name}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                          {user.email}
+                        </code>
+                      </td>
+                      <td className="px-4 py-3">
+                        {user.role === "admin" ? (
+                          <Badge className="bg-red-100 text-red-800">Admin</Badge>
+                        ) : (
+                          <Badge className="bg-blue-100 text-blue-800">User</Badge>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setEditingUser(user);
+                          }}
+                          type="button"
+                          style={{ pointerEvents: 'auto', zIndex: 10 }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700 active:scale-95 transition-all cursor-pointer relative"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          Editar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
 
