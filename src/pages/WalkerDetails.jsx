@@ -88,7 +88,6 @@ import PawCaoLogo from "@/components/PawCaoLogo";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
-import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
 import InstagramVerifiedBadge from "@/components/ui/InstagramVerifiedBadge";
 import { AnimalIconsWithLabels } from "@/components/professionals/AnimalIcons";
 
