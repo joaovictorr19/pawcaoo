@@ -62,11 +62,18 @@ export default function UserManagementPanel() {
   });
 
   // Fetch user profiles
-  const { data: userProfiles = [] } = useQuery({
-    queryKey: ["userProfiles"],
-    queryFn: () => base44.entities.UserProfile.list("-created_date", 1000),
-    staleTime: 30000,
-  });
+   const { data: userProfiles = [] } = useQuery({
+     queryKey: ["userProfiles"],
+     queryFn: () => base44.entities.UserProfile.list("-created_date", 1000),
+     staleTime: 30000,
+   });
+
+   // Fetch loyalty points
+   const { data: loyaltyPoints = [] } = useQuery({
+     queryKey: ["loyaltyPoints"],
+     queryFn: () => base44.entities.LoyaltyPoints.list("-created_date", 1000),
+     staleTime: 30000,
+   });
 
   // Mutations
   const updateUserMutation = useMutation({
