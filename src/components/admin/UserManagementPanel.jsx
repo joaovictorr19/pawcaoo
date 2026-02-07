@@ -330,15 +330,20 @@ export default function UserManagementPanel() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-1 justify-center">
+                          <div className="flex flex-col gap-1">
                             {userProfile?.is_verified && (
-                              <Badge className="bg-green-100 text-green-700 text-xs">
-                                ✓ Verificado
+                              <Badge className="bg-blue-100 text-blue-700 text-xs w-fit">
+                                🔵 Selo Azul
                               </Badge>
                             )}
                             {user.gamification_xp > 0 && (
-                              <Badge className="bg-purple-100 text-purple-700 text-xs">
-                                {user.gamification_xp} XP
+                              <Badge className="bg-purple-100 text-purple-700 text-xs w-fit">
+                                ⚡ {user.gamification_xp} XP
+                              </Badge>
+                            )}
+                            {userProfiles.find(p => p.user_email === user.email)?.pinned_badge_ids?.length > 0 && (
+                              <Badge className="bg-yellow-100 text-yellow-700 text-xs w-fit">
+                                🏅 {userProfiles.find(p => p.user_email === user.email).pinned_badge_ids.length} Emblemas
                               </Badge>
                             )}
                           </div>
