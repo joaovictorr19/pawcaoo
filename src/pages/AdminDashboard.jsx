@@ -1241,22 +1241,47 @@ export default function AdminDashboard() {
                     for (const email of usersToGrantBadge) {
                       const targetUser = allUsers.find(u => u.email === email);
                       if (!targetUser) continue;
+
                       const badge = {
                         badge_id: selectedBadgeForAll.badge_id,
                         name: selectedBadgeForAll.name,
                         description: selectedBadgeForAll.description,
                         icon: selectedBadgeForAll.icon,
+                        image_url: selectedBadgeForAll.image_url,
+                        image_png_file: selectedBadgeForAll.image_png_file,
                         rarity: selectedBadgeForAll.rarity,
-                        xp: selectedBadgeForAll.xp,
+                        category: selectedBadgeForAll.category,
+                        xp_reward: selectedBadgeForAll.xp || 0,
                         earned_date: new Date().toISOString()
                       };
-                      await base44.entities.User.update(targetUser.id, {
-                        public_badges: [...(targetUser.public_badges || []), badge]
-                      });
+
+                      const currentBadges = targetUser.public_badges || [];
+                      const badgeExists = currentBadges.some(b => b.badge_id === badge.badge_id);
+
+                      if (!badgeExists) {
+                        await base44.entities.User.update(targetUser.id, {
+                          public_badges: [...currentBadges, badge],
+                          gamification_xp: (targetUser.gamification_xp || 0) + (selectedBadgeForAll.xp || 0)
+                        });
+
+                        // Sync to UserProfile entity
+                        try {
+                          const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
+                          if (profiles.length > 0) {
+                            await base44.entities.UserProfile.update(profiles[0].id, {
+                              gamification_xp: (targetUser.gamification_xp || 0) + (selectedBadgeForAll.xp || 0)
+                            });
+                          }
+                        } catch (e) {
+                          console.log('UserProfile sync skip');
+                        }
+                      }
                     }
                     queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+                    queryClient.invalidateQueries({ queryKey: ['currentUser'] });
                     toast.success(`Emblema concedido a ${usersToGrantBadge.length} utilizadores!`);
                     setShowGrantAllUsersModal(false);
+                    setUsersToGrantBadge([]);
                   }}
                   className="w-full bg-purple-600"
                   style={{ borderRadius: 0 }}
