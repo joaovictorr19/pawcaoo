@@ -1165,26 +1165,7 @@ export default function Home() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="bg-gray-100 p-1 rounded-lg flex items-center shadow-inner">
-                        <button 
-                          onClick={() => setViewMode('list')}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'list' ? 'bg-white shadow-sm text-gray-900 scale-105' : 'text-gray-500 hover:text-gray-900'}`}
-                          title="Lista"
-                        >
-                          <List className="w-4 h-4" />
-                          <span className="hidden sm:inline">Lista</span>
-                        </button>
-                        <button 
-                          onClick={() => setViewMode('map')}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'map' ? 'bg-white shadow-sm text-gray-900 scale-105' : 'text-gray-500 hover:text-gray-900'}`}
-                          title="Mapa"
-                        >
-                          <MapIcon className="w-4 h-4" />
-                          <span className="hidden sm:inline">Mapa</span>
-                        </button>
-                      </div>
-                    </div>
+
                   </div>
 
                   {viewMode === "map" ? (
