@@ -318,16 +318,6 @@ function LayoutContent({ children, currentPageName }) {
       className: "text-red-600 font-bold bg-red-50 hover:bg-red-100" 
     },
     { 
-      title: language === 'pt' ? 'Adotar um Pet' : (t('adoptAPet', language) || 'Adopt a Pet'), 
-      url: createPageUrl("AdoptionListings"), 
-      icon: Heart 
-    },
-    { 
-      title: language === 'pt' ? 'Abrigos' : 'Shelters', 
-      url: createPageUrl("Shelters"), 
-      icon: Building2 
-    },
-    { 
       title: language === 'pt' ? 'Painel Profissional' : (t('professionalDashboard', language) || 'Professional Dashboard'), 
       url: (authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both') 
         ? createPageUrl("ProfessionalDashboard") 
@@ -1058,17 +1048,6 @@ function LayoutContent({ children, currentPageName }) {
                   >
                     <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Loja' : 'Shop'}</span>
-                  </button>
-                  <button
-                    onClick={() => navigate(createPageUrl("AdoptionListings"))}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                      location.pathname === createPageUrl("AdoptionListings")
-                        ? "bg-gray-200 text-gray-900"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    <Heart className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="hidden lg:inline">{language === 'pt' ? 'Adoção' : language === 'es' ? 'Adopción' : 'Adoption'}</span>
                   </button>
                 </>
               )}
