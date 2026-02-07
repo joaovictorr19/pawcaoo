@@ -1061,32 +1061,9 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="users">
-            <AdminUserTable
-              users={allUsers}
-              isLoading={loadingAllUsers}
-              onEdit={handleEditUser}
-              onDelete={handleDeleteUser}
-              onEditBadges={handleOpenBadgesDialog}
-              onSyncProfiles={handleSyncUserProfiles}
-              isSyncing={isSyncingProfiles}
-              onImpersonate={async (user) => {
-                if (!confirm(`Login como ${user.full_name}?`)) return;
-                toast.info('Redirecionando...');
-                try {
-                  const response = await base44.functions.invoke('impersonateUser', {
-                    targetUserId: user.id
-                  });
-                  if (response.data?.success) {
-                    localStorage.setItem('impersonation', JSON.stringify(response.data.impersonationData));
-                    window.location.href = createPageUrl('Home');
-                  } else {
-                    toast.error('Erro ao iniciar');
-                  }
-                } catch (error) {
-                  toast.error('Erro: ' + error.message);
-                }
-              }}
-            />
+            <div className="mt-6">
+              <UserManagementPanel />
+            </div>
           </TabsContent>
 
           <TabsContent value="commerce">
