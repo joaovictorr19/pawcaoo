@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Calendar, Image as ImageIcon, Newspaper, Info, CheckCircle } from "lucide-react";
+import { Send, Calendar, Image as ImageIcon, Newspaper, Info, CheckCircle, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import OptimizedImageUpload from "@/components/adoption/OptimizedImageUpload";
 import { useNavigate } from "react-router-dom";
@@ -213,7 +213,17 @@ export default function PartnerContentSubmission() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8 px-4">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(createPageUrl("SocialFeed"))}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ChevronRight className="w-5 h-5 rotate-180 mr-1" />
+            Voltar
+          </Button>
+        </div>
+
         <Card className="rounded-2xl shadow-lg border border-gray-200">
           <CardHeader className="border-b border-gray-100">
             <div className="flex items-center justify-between">
