@@ -431,6 +431,14 @@ export default function WalkerDetails() {
                       <span className="text-xs text-gray-500">({reviews.length})</span>
                     </div>
                   )}
+
+                  {/* Gamification Info (Nível, XP) */}
+                  {walkerUserProfile && (
+                      <div className="mt-3 text-sm text-gray-600">
+                          <p className="font-semibold">Nível: {walkerUserProfile.gamification_level}</p>
+                          <p>XP: {walkerUserProfile.gamification_xp}</p>
+                      </div>
+                  )}
                 </div>
 
                 {/* Bio */}
