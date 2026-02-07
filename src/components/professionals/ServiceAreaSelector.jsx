@@ -154,8 +154,17 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
               <Input
                 placeholder="Ex: Baixa Lisboa"
                 value={newArea.area_name}
-                onChange={(e) => setNewArea({ ...newArea, area_name: e.target.value })}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), geocodeArea())}
+                onChange={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setNewArea(prev => ({ ...prev, area_name: e.target.value }));
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    geocodeArea();
+                  }
+                }}
               />
             </div>
             
@@ -165,14 +174,27 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                 <Input
                   placeholder="Ex: 1100-001"
                   value={newArea.postal_codes}
-                  onChange={(e) => setNewArea({ ...newArea, postal_codes: e.target.value })}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), geocodeArea())}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setNewArea(prev => ({ ...prev, postal_codes: e.target.value }));
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      geocodeArea();
+                    }
+                  }}
                 />
                 <Button 
                   type="button" 
                   variant="outline" 
                   size="icon" 
-                  onClick={geocodeArea}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    geocodeArea();
+                  }}
                   disabled={isSearching}
                   title="Buscar no mapa"
                 >
@@ -189,13 +211,28 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                 min="1"
                 max="50"
                 value={newArea.radius_km}
-                onChange={(e) => setNewArea({ ...newArea, radius_km: e.target.value })}
+                onChange={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const value = e.target.value;
+                  const numValue = value === "" ? 5 : parseFloat(value);
+                  setNewArea(prev => ({ ...prev, radius_km: isNaN(numValue) ? 5 : numValue }));
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
               />
             </div>
 
             <Button
               type="button"
-              onClick={handleAddArea}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddArea();
+              }}
               disabled={!newArea.area_name.trim()}
               className="w-full bg-green-600 hover:bg-green-700"
             >
@@ -315,7 +352,11 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleRemoveArea(index)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemoveArea(index);
+                      }}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <X className="w-4 h-4" />
