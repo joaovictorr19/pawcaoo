@@ -60,6 +60,8 @@ export default function UserManagementPanel() {
   const [showBadgesDialog, setShowBadgesDialog] = useState(false);
   const [showXPDialog, setShowXPDialog] = useState(false);
   const [showManageUserDialog, setShowManageUserDialog] = useState(false);
+  const [badgeSearchTerm, setBadgeSearchTerm] = useState("");
+  const [selectedBadgesForAssignment, setSelectedBadgesForAssignment] = useState([]);
 
   // Form data
   const [editFormData, setEditFormData] = useState({});
