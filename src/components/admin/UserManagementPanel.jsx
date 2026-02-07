@@ -416,13 +416,14 @@ export default function UserManagementPanel() {
       </Card>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-1">
-          <TabsTrigger value="users">Utilizadores</TabsTrigger>
-        </TabsList>
+       <Tabs value={activeTab} onValueChange={setActiveTab}>
+         <TabsList className="grid w-full grid-cols-2">
+           <TabsTrigger value="users">Utilizadores</TabsTrigger>
+           <TabsTrigger value="badges">Emblemas</TabsTrigger>
+         </TabsList>
 
-        {/* Users Tab */}
-        <TabsContent value="users">
+         {/* Users Tab */}
+         <TabsContent value="users">
           <Card className="glass-panel border-0 shadow-lg">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
