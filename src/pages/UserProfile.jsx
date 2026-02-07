@@ -870,10 +870,16 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
-        <Button variant="outline" className="mb-6" onClick={() => navigate(createPageUrl('Home'))}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
-        </Button>
+        <div className="flex gap-2 mb-6">
+          <Button variant="outline" onClick={() => navigate(createPageUrl('SocialFeed'))}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Comunidade
+          </Button>
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+        </div>
 
         <Card className="glass-panel border-0 shadow-xl mb-6 overflow-hidden rounded-2xl md:rounded-3xl">
           <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
