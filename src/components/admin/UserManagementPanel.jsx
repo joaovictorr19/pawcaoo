@@ -119,6 +119,18 @@ export default function UserManagementPanel() {
     onError: (error) => toast.error("Erro: " + error.message),
   });
 
+  const updatePointsMutation = useMutation({
+    mutationFn: ({ loyaltyId, data }) =>
+      base44.entities.LoyaltyPoints.update(loyaltyId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loyaltyPoints"] });
+      toast.success("Pontos atualizados!");
+      setShowPointsDialog(false);
+      setSelectedUser(null);
+    },
+    onError: (error) => toast.error("Erro: " + error.message),
+  });
+
   // Filter and search users
   const filteredUsers = useMemo(() => {
     return allUsers.filter((user) => {
