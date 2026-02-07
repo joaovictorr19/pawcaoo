@@ -351,25 +351,14 @@ export default function Home() {
       let activeTrainers = [];
 
       try {
-        activeWalkers = await base44.entities.WalkerProfile.filter({ 
-          is_active: true,
-          is_verified_trainer: { $ne: true }
-        }, '-created_date', 200);
-        if (!Array.isArray(activeWalkers)) activeWalkers = [];
+        const allWalkers = await base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 500);
+        if (Array.isArray(allWalkers)) {
+          activeWalkers = allWalkers.filter(w => !w.is_verified_trainer);
+          activeTrainers = allWalkers.filter(w => w.is_verified_trainer && w.verification_status === 'verified');
+        }
       } catch (error) {
-        console.warn("Error fetching active walkers for stats:", error);
+        console.warn("Error fetching walkers for stats:", error);
         activeWalkers = [];
-      }
-
-      try {
-        activeTrainers = await base44.entities.WalkerProfile.filter({ 
-          is_active: true,
-          is_verified_trainer: true,
-          verification_status: 'verified'
-        }, '-created_date', 200);
-        if (!Array.isArray(activeTrainers)) activeTrainers = [];
-      } catch (error) {
-        console.warn("Error fetching active trainers for stats:", error);
         activeTrainers = [];
       }
 
