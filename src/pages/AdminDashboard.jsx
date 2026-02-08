@@ -354,7 +354,6 @@ export default function AdminDashboard() {
   const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || !t.verification_status);
   const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || !s.verification_status);
   const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified' || w.is_active === true);
-  const activeTrainersList = allTrainers.filter(t => t.verification_status === 'verified' || t.is_active === true);
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
   const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
 
@@ -912,7 +911,7 @@ export default function AdminDashboard() {
                                     </Badge>
                                   )}
                                 </div>
-                                <div className="text-xs text-gray-500">{walker.user_email || walker.created_by}</div>
+                                <div className="text-xs text-gray-500">{walker.created_by}</div>
                                 {walker.exempt_from_platform_fees && (
                                   <Badge className="bg-blue-50 text-blue-700 text-[9px] mt-1" style={{ borderRadius: 0 }}>
                                     <DollarSign className="w-2.5 h-2.5 mr-0.5" />
@@ -1039,130 +1038,6 @@ export default function AdminDashboard() {
                   <div className="text-center py-12">
                     <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <p className="text-gray-600">Nenhum profissional ativo</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Trainer Management Table */}
-            <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
-              <CardHeader>
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div>
-                    <CardTitle className="text-2xl flex items-center gap-2">
-                      <GraduationCap className="w-6 h-6 text-blue-600" />
-                      Gestão de Treinadores ({activeTrainersList.length})
-                    </CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Controle de treinadores verificados
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-                      toast.success("Atualizado!");
-                    }}
-                    className="gap-2"
-                    style={{ borderRadius: 0 }}
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Atualizar
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[250px]">Treinador</TableHead>
-                        <TableHead>Localização</TableHead>
-                        <TableHead className="text-center">Avaliação</TableHead>
-                        <TableHead className="text-right">Ganhos</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {activeTrainersList.map(trainer => (
-                        <TableRow key={trainer.id} className="hover:bg-gray-50">
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="w-10 h-10" style={{ borderRadius: 0 }}>
-                                <AvatarImage src={trainer.photo_url} />
-                                <AvatarFallback className="bg-blue-100 text-blue-700" style={{ borderRadius: 0 }}>
-                                  {trainer.trainer_name?.[0]?.toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-semibold flex items-center gap-2">
-                                  {trainer.trainer_name}
-                                  {trainer.is_verified && (
-                                    <Badge className="bg-blue-100 text-blue-700 text-[9px] h-4 px-1" style={{ borderRadius: 0 }}>
-                                      VERIFICADO
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="text-xs text-gray-500">{trainer.user_email || trainer.created_by}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm text-gray-700">{trainer.location}</TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                              <span className="font-semibold">{trainer.rating?.toFixed(1) || '0.0'}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right font-semibold text-green-700">
-                            €{(trainer.total_earnings || 0).toLocaleString('pt-PT')}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1.5 justify-end">
-                              <Button
-                                size="sm"
-                                variant={trainer.is_active ? "outline" : "default"}
-                                className={trainer.is_active ? "text-orange-600 border-orange-300 h-8 px-2.5" : "bg-green-600 h-8 px-2.5"}
-                                onClick={() => {
-                                  if(confirm(`${trainer.is_active ? 'Pausar' : 'Ativar'} ${trainer.trainer_name}?`)) {
-                                    base44.entities.TrainerProfile.update(trainer.id, { is_active: !trainer.is_active }).then(() => {
-                                        queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-                                        toast.success("Atualizado!");
-                                    });
-                                  }
-                                }}
-                                style={{ borderRadius: 0 }}
-                              >
-                                {trainer.is_active ? '⏸' : '▶'}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-red-600 border-red-300 h-8 px-2.5"
-                                onClick={() => {
-                                  if(confirm(`ELIMINAR ${trainer.trainer_name}?`)) {
-                                    base44.entities.TrainerProfile.delete(trainer.id).then(() => {
-                                        queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-                                        toast.success("Eliminado!");
-                                    });
-                                  }
-                                }}
-                                style={{ borderRadius: 0 }}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                {activeTrainersList.length === 0 && (
-                  <div className="text-center py-12">
-                    <GraduationCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">Nenhum treinador ativo</p>
                   </div>
                 )}
               </CardContent>

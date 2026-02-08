@@ -311,19 +311,6 @@ export default function TrainerDetails() {
           <div className="px-8 pb-8 pt-4">
             <ServiceList services={trainer.services_offered} type="trainer" />
 
-            {/* Filosofia de Treino - DESTACADA */}
-            {trainer.training_philosophy && (
-              <div className="mb-8 bg-gradient-to-br from-indigo-50 to-blue-50 border-l-4 border-indigo-500 rounded-r-xl p-6 shadow-sm">
-                <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <span className="text-2xl">🧠</span>
-                  Filosofia de Treino
-                </h3>
-                <p className="text-gray-700 italic text-lg leading-relaxed">
-                  "{trainer.training_philosophy}"
-                </p>
-              </div>
-            )}
-
             {/* Training Specialties - ENHANCED */}
             {trainer.training_specialties && trainer.training_specialties.length > 0 && (
               <div className="mb-6">
@@ -363,151 +350,44 @@ export default function TrainerDetails() {
 
             {/* Training Methodologies - ENHANCED */}
             {trainer.training_methodologies && trainer.training_methodologies.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Award className="w-6 h-6 text-purple-600" />
-                  Metodologias & Abordagem
+                  Training Methodologies & Approach
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {trainer.training_methodologies.map((method, idx) => (
                     <div
                       key={idx}
-                      className={`rounded-xl p-5 transition-all hover:shadow-md ${
+                      className={`rounded-xl p-5 ${
                         method.primary
-                          ? 'bg-white border-2 border-purple-500 shadow-sm'
+                          ? 'bg-gradient-to-r from-purple-100 to-purple-50 border-2 border-purple-500 ring-2 ring-purple-200'
                           : 'bg-gray-50 border border-gray-200'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                        <h4 className="font-semibold text-gray-900 text-lg">
                           {getMethodologyLabel(method.methodology_name)}
-                          {method.primary && (
-                            <Badge className="bg-purple-600 text-white text-xs border-0">
-                              ★ Principal
-                            </Badge>
-                          )}
                         </h4>
+                        {method.primary && (
+                         <Badge 
+                           className="text-white text-sm border-0"
+                           style={{
+                             background: `linear-gradient(to right, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
+                           }}
+                         >
+                           ★ Primary Method
+                         </Badge>
+                        )}
                       </div>
-                      <p className="text-gray-700 leading-relaxed">{method.description}</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{method.description}</p>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Certificações Detalhadas - NOVA SECÇÃO */}
-            {(trainer.certifications_detailed?.length > 0 || trainer.certifications?.length > 0) && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <ShieldCheck className="w-6 h-6 text-green-600" />
-                  Certificações Profissionais
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {(trainer.certifications_detailed || []).map((cert, idx) => (
-                    <div key={`cert-d-${idx}`} className="bg-white border border-gray-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                      <div className="bg-green-100 p-2 rounded-lg">
-                        <Award className="w-5 h-5 text-green-700" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900">{cert.name}</h4>
-                        <p className="text-sm text-gray-600">{cert.issuing_organization}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                            {cert.issue_date ? new Date(cert.issue_date).getFullYear() : 'N/A'}
-                          </span>
-                          {cert.verification_url && (
-                            <a href={cert.verification_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                              Verificar <Target className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {(trainer.certifications || []).map((cert, idx) => (
-                    <div key={`cert-${idx}`} className="bg-white border border-gray-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
-                      <div className="bg-gray-100 p-2 rounded-lg">
-                        <Award className="w-5 h-5 text-gray-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900">{cert.name}</h4>
-                        <p className="text-sm text-gray-600">{cert.issuing_organization}</p>
-                        <p className="text-xs text-gray-500 mt-1">{cert.year}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Histórias de Sucesso / Portfólio - NOVA SECÇÃO */}
-            {((trainer.success_stories && trainer.success_stories.length > 0) || (trainer.portfolio && trainer.portfolio.length > 0)) && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-500" />
-                  Histórias de Sucesso & Portfólio
-                </h3>
-                
-                {/* Stories Grid */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  {(trainer.success_stories || []).map((story, idx) => (
-                    <Card key={`story-${idx}`} className="overflow-hidden border-0 shadow-lg flex flex-col h-full">
-                      <div className="relative h-48 bg-gray-100">
-                        {story.after_photo_url ? (
-                          <div className="flex h-full">
-                            {story.before_photo_url && (
-                              <div className="w-1/2 relative border-r border-white">
-                                <img src={story.before_photo_url} alt="Antes" className="w-full h-full object-cover" />
-                                <span className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">ANTES</span>
-                              </div>
-                            )}
-                            <div className={story.before_photo_url ? "w-1/2 relative" : "w-full relative"}>
-                              <img src={story.after_photo_url} alt="Depois" className="w-full h-full object-cover" />
-                              <span className="absolute bottom-2 right-2 bg-green-600 text-white text-[10px] px-2 py-0.5 rounded">DEPOIS</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-purple-50 text-purple-300">
-                            <Star className="w-12 h-12" />
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-4 flex-1 flex flex-col">
-                        <h4 className="font-bold text-lg mb-1">{story.title}</h4>
-                        <div className="flex gap-2 mb-2">
-                          <Badge variant="outline" className="text-xs">{story.dog_breed}</Badge>
-                          {story.duration_weeks && <Badge variant="secondary" className="text-xs">{story.duration_weeks} semanas</Badge>}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2 italic">"{story.testimonial}"</p>
-                        <div className="mt-auto pt-3 border-t border-gray-100">
-                          <p className="text-xs font-semibold text-gray-500">Problema:</p>
-                          <p className="text-sm text-red-600 mb-2">{story.initial_problem}</p>
-                          <p className="text-xs font-semibold text-gray-500">Solução:</p>
-                          <p className="text-sm text-green-600">{story.solution}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-
-                  {/* Portfolio Items if any */}
-                  {(trainer.portfolio || []).filter(p => !p.category?.includes('before_after')).map((item, idx) => (
-                    <Card key={`portfolio-${idx}`} className="overflow-hidden border-0 shadow-md">
-                      <div className="relative h-48">
-                        {item.media_url ? (
-                          <img src={item.media_url} alt={item.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full bg-gray-100" />
-                        )}
-                        <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded text-xs font-bold shadow-sm">
-                          {item.category}
-                        </div>
-                      </div>
-                      <CardContent className="p-3">
-                        <h4 className="font-bold text-sm">{item.title}</h4>
-                        <p className="text-xs text-gray-600">{item.description}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                  <p className="text-sm text-blue-900">
+                    <strong>💡 Training Philosophy:</strong> This trainer uses evidence-based methods tailored to your dog's individual needs and learning style.
+                  </p>
                 </div>
               </div>
             )}
