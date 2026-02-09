@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Map as MapIcon, List, ChevronLeft, ChevronRight, Star as StarIcon, Trophy, Plus } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss } from "lucide-react";
 import WalkerCard from "../components/marketplace/WalkerCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
@@ -27,6 +27,7 @@ import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Map as MapIcon, List, ChevronLeft, ChevronRight, Star as StarIcon } from "lucide-react";
 import ExternalPostCard from "../components/social/ExternalPostCard";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,8 @@ import { calculateTier } from "@/components/gamification/tierSystem";
 import { useTheme } from "@/components/ThemeContext";
 import { CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Trophy } from "lucide-react";
+import { Plus } from "lucide-react";
 
 
 
@@ -89,12 +92,11 @@ export default function Home() {
   // Check URL for tab parameter
   const urlTabParam = new URLSearchParams(window.location.search).get('tab');
   const [activeTab, setActiveTab] = useState(urlTabParam || "professionals");
-  const [showHeroFilters, setShowHeroFilters] = useState(false);
 
   const [userLocation, setUserLocation] = useState(null);
   const [viewMode, setViewMode] = useState("list");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 12;
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -244,7 +246,6 @@ export default function Home() {
         return [];
       }
     },
-    enabled: !userLoading,
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -286,6 +287,7 @@ export default function Home() {
     queryFn: async () => {
       try {
         const posts = await base44.entities.SocialPost.filter({ 
+          moderation_status: 'approved',
           is_public: true
         }, '-created_date', 20);
         return Array.isArray(posts) ? posts : [];
@@ -294,11 +296,10 @@ export default function Home() {
         return [];
       }
     },
+    enabled: activeTab === 'comunidade',
     initialData: [],
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: 30 * 1000,
   });
 
   // Fetch publishers data for community posts
@@ -324,7 +325,7 @@ export default function Home() {
       }, '-rating', 6);
       return walkers.filter(w => w.photo_url);
     },
-    enabled: !user && !userLoading,
+    enabled: !user,
     initialData: [],
     staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -336,7 +337,7 @@ export default function Home() {
       const dogs = await base44.entities.DogProfile.list('-created_date', 6);
       return dogs.filter(d => d.photo_url);
     },
-    enabled: !user && !userLoading,
+    enabled: !user,
     initialData: [],
     staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -347,29 +348,23 @@ export default function Home() {
   const { data: stats } = useQuery({
     queryKey: ['platformStats'],
     queryFn: async () => {
-      let activeWalkers = [];
-      let activeTrainers = [];
-
       try {
-        const allWalkers = await base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 500);
-        if (Array.isArray(allWalkers)) {
-          activeWalkers = allWalkers.filter(w => !w.is_verified_trainer);
-          activeTrainers = allWalkers.filter(w => w.is_verified_trainer && w.verification_status === 'verified');
-        }
-      } catch (error) {
-        console.warn("Error fetching walkers for stats:", error);
-        activeWalkers = [];
-        activeTrainers = [];
-      }
+        const [activeWalkers, activeTrainers] = await Promise.all([
+          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200),
+          base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 200),
+        ]);
 
-      return {
-        totalWalkers: activeWalkers.length,
-        totalTrainers: activeTrainers.length,
-        happyDogs: 0,
-        adoptedDogs: 0
-      };
+        return {
+          totalWalkers: activeWalkers?.length || 0,
+          totalTrainers: activeTrainers?.length || 0,
+          happyDogs: 0,
+          adoptedDogs: 0
+        };
+      } catch (error) {
+        console.error("Stats fetch error:", error);
+        return { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 };
+      }
     },
-    enabled: !userLoading,
     initialData: { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 },
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
@@ -861,7 +856,7 @@ export default function Home() {
                         <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
                       </div>
                       <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        Walker
+                        🚶 Walker
                       </div>
                     </motion.div>
                   </motion.div>
@@ -892,7 +887,7 @@ export default function Home() {
                         <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
                       </div>
                       <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        {dog.dog_name}
+                        🐕 {dog.dog_name}
                       </div>
                     </motion.div>
                   </motion.div>
@@ -904,10 +899,10 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9 }}
                 >
-                  <div className="flex flex-wrap justify-center items-center gap-3 mb-6">
+                  <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
                     <motion.div 
                       whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2.5 rounded-full shadow-lg cursor-pointer min-w-[140px]"
+                      className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
                       onClick={() => navigate(createPageUrl('Home') + '?tab=professionals')}
                     >
                       <Users className="w-4 h-4" />
@@ -917,16 +912,112 @@ export default function Home() {
 
                     <motion.div 
                       whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 via-orange-700 to-orange-800 text-white px-6 py-2.5 rounded-full shadow-lg cursor-pointer ring-2 ring-orange-500/50 min-w-[140px]"
+                      className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
                       onClick={() => navigate(createPageUrl('Trainers'))}
                     >
                       <GraduationCap className="w-4 h-4" />
                       <span className="text-sm font-bold">{stats.totalTrainers}</span>
                       <span className="text-xs opacity-90">Trainers</span>
                     </motion.div>
-                   </div>
+                    </div>
+
+
                 </motion.div>
               </div>
+
+
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-3 max-w-xl mx-auto"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <LocationSearch
+                      onLocationChange={(loc) => {
+                          setUserLocation(loc);
+                          if(loc && loc.lat && loc.lng) {
+                            setTimeout(() => {
+                              document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                            }, 500);
+                          }
+                      }}
+                      currentLocation={userLocation}
+                      className="border-0 bg-gray-100 h-10 text-sm focus:ring-2 focus:ring-green-500 rounded-xl"
+                      placeholder="📍 Onde procura?"
+                    />
+                  </div>
+                  <Button 
+                    id="find-walker-btn"
+                    size="icon"
+                    onClick={() => {
+                      setActiveTab('walkers');
+                      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="h-10 w-10 shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"
+                  >
+                    <Search className="w-5 h-5" />
+                  </Button>
+                </div>
+                
+                {/* Filtros compactos em linha */}
+                <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 scrollbar-hide">
+                  <Select value={filterSize} onValueChange={setFilterSize}>
+                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
+                      <SelectValue placeholder="Porte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Porte</SelectItem>
+                      <SelectItem value="small">Pequeno</SelectItem>
+                      <SelectItem value="medium">Médio</SelectItem>
+                      <SelectItem value="large">Grande</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterTime} onValueChange={setFilterTime}>
+                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
+                      <SelectValue placeholder="Horário" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Horário</SelectItem>
+                      <SelectItem value="morning">Manhã</SelectItem>
+                      <SelectItem value="afternoon">Tarde</SelectItem>
+                      <SelectItem value="evening">Noite</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
+                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
+                      <SelectValue placeholder="Animal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Animal</SelectItem>
+                      <SelectItem value="dogs">Cães</SelectItem>
+                      <SelectItem value="cats">Gatos</SelectItem>
+                      <SelectItem value="reptiles">Répteis</SelectItem>
+                      <SelectItem value="rodents">Roedores</SelectItem>
+                      <SelectItem value="birds">Aves</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all") && (
+                    <button
+                      onClick={() => {
+                        setFilterSize("all");
+                        setFilterTime("all");
+                        setFilterAnimalType("all");
+                      }}
+                      className="h-8 px-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+
+
             </div>
           )}
         </div>
@@ -1011,126 +1102,73 @@ export default function Home() {
                   <Rss className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate hidden sm:inline">{language === 'pt' ? 'Comunidade' : 'Community'}</span>
                   <span className="truncate sm:hidden">Feed</span>
-                  </button>
-
-                  <div className="w-px h-6 bg-gray-300 mx-1"></div>
-
-                  <button
-                  onClick={() => setShowHeroFilters(!showHeroFilters)}
-                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all ${
-                    showHeroFilters
-                      ? 'bg-gray-200 text-gray-900'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                  >
-                  <Sliders className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Filtrar' : 'Filter'}</span>
-                  </button>
-                  </div>
-
-                  <AnimatePresence>
-                  {showHeroFilters && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden mb-6"
-                  >
-                    <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-3 max-w-xl mx-auto border border-white/50">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 min-w-0">
-                          <LocationSearch
-                            onLocationChange={(loc) => {
-                                setUserLocation(loc);
-                                if(loc && loc.lat && loc.lng) {
-                                  setTimeout(() => {
-                                    document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                                  }, 500);
-                                }
-                            }}
-                            currentLocation={userLocation}
-                            className="border-0 bg-gray-100 h-10 text-sm focus:ring-2 focus:ring-green-500 rounded-xl"
-                            placeholder="📍 Onde procura?"
-                          />
-                        </div>
-                        <Button 
-                          id="find-walker-btn"
-                          size="icon"
-                          onClick={() => {
-                            setActiveTab('professionals');
-                            document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                          className="h-10 w-10 shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"
-                        >
-                          <Search className="w-5 h-5" />
-                        </Button>
-                      </div>
-
-                      {/* Filtros compactos em linha */}
-                      <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 scrollbar-hide">
-                        <Select value={filterSize} onValueChange={setFilterSize}>
-                          <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
-                            <SelectValue placeholder="Porte" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Porte</SelectItem>
-                            <SelectItem value="small">Pequeno</SelectItem>
-                            <SelectItem value="medium">Médio</SelectItem>
-                            <SelectItem value="large">Grande</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        <Select value={filterTime} onValueChange={setFilterTime}>
-                          <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
-                            <SelectValue placeholder="Horário" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Horário</SelectItem>
-                            <SelectItem value="morning">Manhã</SelectItem>
-                            <SelectItem value="afternoon">Tarde</SelectItem>
-                            <SelectItem value="evening">Noite</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
-                          <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
-                            <SelectValue placeholder="Animal" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Animal</SelectItem>
-                            <SelectItem value="dogs">Cães</SelectItem>
-                            <SelectItem value="cats">Gatos</SelectItem>
-                            <SelectItem value="reptiles">Répteis</SelectItem>
-                            <SelectItem value="rodents">Roedores</SelectItem>
-                            <SelectItem value="birds">Aves</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all") && (
-                          <button
-                            onClick={() => {
-                              setFilterSize("all");
-                              setFilterTime("all");
-                              setFilterAnimalType("all");
-                            }}
-                            className="h-8 px-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                  )}
-                  </AnimatePresence>
+                </button>
+              </div>
 
               <TabsContent value="professionals">
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
-
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
+                        {filterDogSitting !== "all" ? (
+                          <>
+                            {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
+                            {filterDogSitting === "house_sitting" && t('walkersForHouseSitting', language)}
+                            {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
+                          </>
+                        ) : (
+                          language === 'pt' ? 'Profissionais Disponíveis' : 
+                          language === 'es' ? 'Profesionales Disponibles' : 
+                          'Available Professionals'
+                        )}
+                      </h2>
+                      <div className="flex items-center gap-2 flex-wrap mt-2">
+                        <p className="text-xs md:text-base text-white/90 drop-shadow-md flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                          {filteredProfessionals.length} {t('found', language)}
+                        </p>
+                        
+                        {selectedServiceTypes.length > 0 && (
+                          <Badge className="bg-green-100 text-green-800 text-xs">
+                            {selectedServiceTypes.length} {t('serviceCount', language)}
+                          </Badge>
+                        )}
+                        {selectedSpecializations.length > 0 && (
+                          <Badge className="bg-purple-100 text-purple-800 text-xs">
+                            {selectedSpecializations.length} {t('specializationCount', language)}
+                          </Badge>
+                        )}
+                        
+                        {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
+                          <Badge className="bg-green-100 text-green-800 text-xs">
+                            📊 {t('sortedByMatch', language)}
+                          </Badge>
+                        )}
+                        
+                        {filterDogSitting !== "all" && (
+                          <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                            {filterDogSitting === "boarding" && `🏠 ${t('dogBoarding', language)}`}
+                            {filterDogSitting === "house_sitting" && `🏡 ${t('houseSitting', language)}`}
+                            {filterDogSitting === "drop_in" && `🚪 ${t('dropInVisits', language)}`}
+                          </span>
+                        )}
+                        {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
+                          <span className="text-purple-600 font-semibold ml-2">
+                            ({t('upToDistance', language)} {advancedFilters.radius}km)
+                          </span>
+                        )}
+                        {filteredProfessionals.some(w => w.distance !== null) && 
+                         !(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
+                          <span className="text-purple-600 font-semibold ml-2">
+                            ({t('sortedByDistance', language)})
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {viewMode === "map" ? (
+                  </div>
+
+                  {viewMode === "map" ? (
                     <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
                       <WalkerSearchMap
                         walkers={filteredProfessionals}
@@ -1274,13 +1312,13 @@ export default function Home() {
               <TabsContent value="emergency">
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-md inline-block">
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-                        <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-600 fill-orange-600" />
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
+                        <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500 fill-orange-500" />
                         {t('dogsNeedingHelpTitle', language)}
                       </h2>
-                      <p className="text-xs md:text-sm text-gray-700 mt-1 flex items-center gap-1 font-medium">
-                        <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
+                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3 md:w-4 md:h-4 text-white" />
                         {filteredEmergencyWalks.length} {t('dogsNeedHelpCount', language)}
                       </p>
                     </div>
@@ -1299,7 +1337,7 @@ export default function Home() {
                   ) : filteredEmergencyWalks.length === 0 ? (
                     <div className="text-center py-12 md:py-16">
                       <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                        <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-600" />
+                        <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
                       </div>
                       <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">{t('noEmergencies', language)}</h3>
                       <p className="text-sm md:text-base text-gray-600">{t('checkBackLater', language)}</p>
@@ -1316,6 +1354,24 @@ export default function Home() {
 
               <TabsContent value="comunidade">
                 <div>
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                        <Rss className="w-6 h-6 md:w-7 md:h-7 text-blue-600" />
+                        {language === 'pt' ? 'Comunidade PawCão' : language === 'es' ? 'Comunidad PawCão' : 'PawCão Community'}
+                      </h2>
+                      <p className="text-xs md:text-base text-gray-700 mt-1">
+                        {language === 'pt' ? 'Partilhe momentos, notícias e conecte-se com outros amantes de pets' : 'Share moments, news and connect with pet lovers'}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => navigate(createPageUrl('SocialFeed'))}
+                      className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                      size="sm"
+                    >
+                      Ver Tudo
+                    </Button>
+                  </div>
 
                   {loadingCommunity ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1350,12 +1406,12 @@ export default function Home() {
                       </Button>
                     </Card>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-6">
                       {communityPosts.slice(0, 6).map((post) => {
                         // Check if it's an external post (partner/publisher)
                         if (post.is_external && post.external_publisher_id) {
                           const publisherData = publishersData.find(p => p.id === post.external_publisher_id);
-
+                          
                           return (
                             <motion.div
                               key={post.id}
@@ -1364,12 +1420,12 @@ export default function Home() {
                               className="cursor-pointer"
                               onClick={() => navigate(createPageUrl('SocialFeed'))}
                             >
-                              <Card className="border-2 border-blue-100 shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-white to-blue-50/30 overflow-hidden h-full flex flex-col">
+                              <Card className="border-2 border-blue-100 shadow-lg hover:shadow-xl transition-all bg-gradient-to-br from-white to-blue-50/30 overflow-hidden">
                                 {/* Publisher Header - Compact Editorial */}
-                                <div className="bg-gradient-to-r from-slate-900 via-gray-800 to-slate-900 p-2.5 border-b-2 border-blue-500">
+                                <div className="bg-gradient-to-r from-slate-900 via-gray-800 to-slate-900 p-3 border-b-2 border-blue-500">
                                   <div className="flex items-center gap-2">
                                     {publisherData?.logo_url && (
-                                      <div className="w-8 h-8 bg-white rounded-lg p-0.5 shadow-md shrink-0">
+                                      <div className="w-10 h-10 bg-white rounded-lg p-1 shadow-md shrink-0">
                                         <img 
                                           src={publisherData.logo_url} 
                                           alt={publisherData.publisher_name} 
@@ -1378,20 +1434,20 @@ export default function Home() {
                                       </div>
                                     )}
                                     <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-1">
-                                        <h4 className="font-bold text-white text-xs truncate">
+                                      <div className="flex items-center gap-1.5">
+                                        <h4 className="font-bold text-white text-sm truncate">
                                           {publisherData?.publisher_name || post.author_name}
                                         </h4>
                                         {publisherData?.is_verified && (
-                                          <CheckCircle className="w-3 h-3 text-blue-400 fill-blue-400 shrink-0" />
+                                          <CheckCircle className="w-4 h-4 text-blue-400 fill-blue-400 shrink-0" />
                                         )}
                                       </div>
-                                      <p className="text-gray-300 text-[9px] truncate">
-                                        {publisherData?.category === 'news' ? 'Notícias' : 
-                                         publisherData?.category === 'magazine' ? 'Revista' : 'Blog'}
+                                      <p className="text-gray-300 text-[10px] truncate">
+                                        {publisherData?.category === 'news' ? '📰 Notícias' : 
+                                         publisherData?.category === 'magazine' ? '📖 Revista' : '✍️ Blog'}
                                       </p>
                                     </div>
-                                    <Badge className="bg-white/10 text-white border border-white/20 text-[9px] shrink-0">
+                                    <Badge className="bg-white/10 text-white border border-white/20 text-[10px] shrink-0">
                                       Parceiro
                                     </Badge>
                                   </div>
@@ -1399,7 +1455,7 @@ export default function Home() {
 
                                 {/* Hero Image with Title Overlay */}
                                 {post.media_urls?.length > 0 && (
-                                  <div className="relative w-full aspect-[3/2] bg-gray-900 overflow-hidden group">
+                                  <div className="relative w-full aspect-[16/9] bg-gray-900 overflow-hidden group">
                                     <img 
                                       src={post.media_urls[0]} 
                                       alt={post.title || "Artigo"} 
@@ -1407,8 +1463,8 @@ export default function Home() {
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                                     {post.title && (
-                                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                                        <h3 className="text-white font-bold text-sm leading-tight line-clamp-2 drop-shadow-lg">
+                                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                                        <h3 className="text-white font-bold text-lg md:text-xl leading-tight line-clamp-2 drop-shadow-lg">
                                           {post.title}
                                         </h3>
                                       </div>
@@ -1417,27 +1473,27 @@ export default function Home() {
                                 )}
 
                                 {/* Content Preview */}
-                                <div className="p-3 flex-1 flex flex-col">
+                                <div className="p-4">
                                   {(!post.media_urls || post.media_urls.length === 0) && post.title && (
-                                    <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
                                       {post.title}
                                     </h3>
                                   )}
-                                  <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed mb-3 flex-1">
+                                  <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed mb-3">
                                     {post.content}
                                   </p>
 
                                   {/* Engagement Stats */}
-                                  <div className="flex items-center gap-3 text-xs text-gray-500 pt-2 border-t border-gray-200">
+                                  <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-200">
                                     <span className="flex items-center gap-1">
-                                      <Heart className="w-3 h-3 text-red-500" />
+                                      <Heart className="w-3.5 h-3.5 text-red-500" />
                                       {post.likes_count || 0}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                      <MessageCircle className="w-3 h-3 text-blue-500" />
+                                      <MessageCircle className="w-3.5 h-3.5 text-blue-500" />
                                       {post.comments_count || 0}
                                     </span>
-                                    <span className="ml-auto text-[9px] text-gray-400 font-mono uppercase">
+                                    <span className="ml-auto text-[10px] text-gray-400 font-mono uppercase">
                                       {new Date(post.created_date).toLocaleDateString('pt-PT', {
                                         day: '2-digit',
                                         month: 'short'
@@ -1460,38 +1516,38 @@ export default function Home() {
                             className="cursor-pointer"
                             onClick={() => navigate(createPageUrl('SocialFeed'))}
                           >
-                            <Card className="border border-gray-200 shadow-md hover:shadow-xl transition-all bg-white overflow-hidden h-full flex flex-col">
+                            <Card className="border border-gray-200 shadow-md hover:shadow-xl transition-all bg-white overflow-hidden">
                               {post.media_urls?.[0] && (
-                                <div className="relative w-full aspect-[3/2] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden group">
+                                <div className="relative w-full aspect-video bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden group">
                                   <img 
                                     src={post.media_urls[0]} 
                                     alt="Post" 
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                   />
                                   {/* Author Badge Overlay */}
-                                  <div className="absolute bottom-2 left-2 flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-2 py-1">
-                                    <Avatar className="w-5 h-5 ring-2 ring-white/50">
-                                      <AvatarImage src={post.author_photo_url} />
-                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white text-[9px]">
-                                        {post.author_name?.[0]}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="font-semibold text-white text-[10px]">{post.author_name}</span>
-                                  </div>
-                                </div>
-                              )}
-                              <div className="p-3 flex-1 flex flex-col">
-                                {!post.media_urls?.[0] && (
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <Avatar className="w-8 h-8 ring-2 ring-gray-200">
+                                  <div className="absolute bottom-3 left-3 flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-3 py-1.5">
+                                    <Avatar className="w-6 h-6 ring-2 ring-white/50">
                                       <AvatarImage src={post.author_photo_url} />
                                       <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white text-xs">
                                         {post.author_name?.[0]}
                                       </AvatarFallback>
                                     </Avatar>
+                                    <span className="font-semibold text-white text-xs">{post.author_name}</span>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="p-4">
+                                {!post.media_urls?.[0] && (
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Avatar className="w-10 h-10 ring-2 ring-gray-200">
+                                      <AvatarImage src={post.author_photo_url} />
+                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-green-500 text-white">
+                                        {post.author_name?.[0]}
+                                      </AvatarFallback>
+                                    </Avatar>
                                     <div>
-                                      <p className="font-semibold text-xs text-gray-900">{post.author_name}</p>
-                                      <p className="text-[10px] text-gray-500">
+                                      <p className="font-semibold text-sm text-gray-900">{post.author_name}</p>
+                                      <p className="text-xs text-gray-500">
                                         {new Date(post.created_date).toLocaleDateString('pt-PT', {
                                           day: '2-digit',
                                           month: 'short'
@@ -1500,15 +1556,15 @@ export default function Home() {
                                     </div>
                                   </div>
                                 )}
-                                <p className="text-xs text-gray-800 line-clamp-2 leading-relaxed mb-2 flex-1">
+                                <p className="text-sm text-gray-800 line-clamp-3 leading-relaxed mb-3">
                                   {post.content}
                                 </p>
-
+                                
                                 {/* Tags */}
                                 {post.tags?.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mb-2">
-                                    {post.tags.slice(0, 2).map((tag, idx) => (
-                                      <Badge key={idx} variant="outline" className="text-[9px] border-blue-200 text-blue-600">
+                                  <div className="flex flex-wrap gap-1 mb-3">
+                                    {post.tags.slice(0, 3).map((tag, idx) => (
+                                      <Badge key={idx} variant="outline" className="text-[10px] border-blue-200 text-blue-600">
                                         #{tag}
                                       </Badge>
                                     ))}
@@ -1516,23 +1572,23 @@ export default function Home() {
                                 )}
 
                                 {/* Engagement Bar */}
-                                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                                  <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                  <div className="flex items-center gap-3 text-xs text-gray-500">
                                     <span className="flex items-center gap-1 hover:text-red-500 transition-colors">
-                                      <Heart className="w-3 h-3" />
+                                      <Heart className="w-3.5 h-3.5" />
                                       {post.likes_count || 0}
                                     </span>
                                     <span className="flex items-center gap-1 hover:text-blue-500 transition-colors">
-                                      <MessageCircle className="w-3 h-3" />
+                                      <MessageCircle className="w-3.5 h-3.5" />
                                       {post.comments_count || 0}
                                     </span>
                                   </div>
                                   <Button 
                                     variant="ghost" 
                                     size="sm"
-                                    className="h-6 px-1.5 text-[9px] text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                   >
-                                    Ver
+                                    Ver Post
                                   </Button>
                                 </div>
                               </div>
@@ -1562,10 +1618,10 @@ export default function Home() {
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
             
             <div className="relative z-10 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">
                 {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
               </h2>
-              <p className="text-sm md:text-base text-white/95 mb-6 max-w-2xl mx-auto drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)] font-medium">
+              <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
                 {language === 'pt' 
                   ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
                   : 'Earn money doing what you love. Become a certified walker or trainer.'}

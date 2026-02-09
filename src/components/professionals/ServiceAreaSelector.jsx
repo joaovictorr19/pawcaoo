@@ -42,7 +42,7 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
   const [newArea, setNewArea] = useState({
     area_name: "",
     postal_codes: "",
-    radius_km: 5,
+    radius_km: "5",
     latitude: null,
     longitude: null
   });
@@ -110,11 +110,11 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
     // If no coordinates yet, try to geocode first before adding
     if (!lat || !lon) {
        const result = await geocodeArea(true);
-       if (result && typeof result.latitude === 'number' && typeof result.longitude === 'number') {
+       if (result && result.latitude) {
          lat = result.latitude;
          lon = result.longitude;
        } else {
-         toast.error("Não foi possível determinar a localização. Por favor, arraste o marcador no mapa.");
+         // Failed to geocode
          return;
        }
     }
@@ -154,17 +154,8 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
               <Input
                 placeholder="Ex: Baixa Lisboa"
                 value={newArea.area_name}
-                onChange={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setNewArea(prev => ({ ...prev, area_name: e.target.value }));
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    geocodeArea();
-                  }
-                }}
+                onChange={(e) => setNewArea({ ...newArea, area_name: e.target.value })}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), geocodeArea())}
               />
             </div>
             
@@ -174,27 +165,14 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                 <Input
                   placeholder="Ex: 1100-001"
                   value={newArea.postal_codes}
-                  onChange={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setNewArea(prev => ({ ...prev, postal_codes: e.target.value }));
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      geocodeArea();
-                    }
-                  }}
+                  onChange={(e) => setNewArea({ ...newArea, postal_codes: e.target.value })}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), geocodeArea())}
                 />
                 <Button 
                   type="button" 
                   variant="outline" 
                   size="icon" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    geocodeArea();
-                  }}
+                  onClick={geocodeArea}
                   disabled={isSearching}
                   title="Buscar no mapa"
                 >
@@ -211,28 +189,13 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                 min="1"
                 max="50"
                 value={newArea.radius_km}
-                onChange={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const value = e.target.value;
-                  const numValue = value === "" ? 5 : parseFloat(value);
-                  setNewArea(prev => ({ ...prev, radius_km: isNaN(numValue) ? 5 : numValue }));
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                  }
-                }}
+                onChange={(e) => setNewArea({ ...newArea, radius_km: e.target.value })}
               />
             </div>
 
             <Button
               type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleAddArea();
-              }}
+              onClick={handleAddArea}
               disabled={!newArea.area_name.trim()}
               className="w-full bg-green-600 hover:bg-green-700"
             >
@@ -266,11 +229,8 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                 }} />
 
                 {/* Preview Current New Area */}
-                {(() => {
-                  const currentRadius = parseFloat(newArea.radius_km);
-                  if (newArea.latitude && newArea.longitude && typeof newArea.latitude === 'number' && typeof newArea.longitude === 'number' && !isNaN(currentRadius) && currentRadius > 0) {
-                    return (
-                      <>
+                {newArea.latitude && newArea.longitude && (
+                    <>
                         <Marker 
                           position={[newArea.latitude, newArea.longitude]} 
                           draggable={true}
@@ -285,17 +245,19 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                               }));
                             }
                           }}
+                          ref={(ref) => {
+                            if (ref) {
+                              // Force update if needed or just keep ref
+                            }
+                          }}
                         />
                         <Circle 
-                          center={[newArea.latitude, newArea.longitude]}
-                          radius={currentRadius * 1000}
-                          pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }}
+                            center={[newArea.latitude, newArea.longitude]}
+                            radius={newArea.radius_km * 1000}
+                            pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.2 }}
                         />
-                      </>
-                    );
-                  }
-                  return null;
-                })()}
+                    </>
+                )}
 
                 {/* Existing Areas */}
                 {serviceAreas.map((area, idx) => {
@@ -352,11 +314,7 @@ export default function ServiceAreaSelector({ serviceAreas = [], onChange }) {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleRemoveArea(index);
-                      }}
+                      onClick={() => handleRemoveArea(index)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <X className="w-4 h-4" />

@@ -45,7 +45,6 @@ import ActiveServiceBanner from "../components/professional/ActiveServiceBanner"
 import BookingsList from "../components/professional/BookingsList";
 import OverviewCharts from "../components/professional/OverviewCharts";
 import RecentActivity from "../components/professional/RecentActivity";
-import TrainingSpecializationManager from "../components/trainers/TrainingSpecializationManager";
 
 const TABS = [
   { id: "overview", label: "Resumo", icon: BarChart3 },
@@ -629,32 +628,6 @@ export default function ProfessionalDashboard() {
 
           {activeTab === 'services' && (
             <div className="space-y-3">
-              {/* Trainer Specializations */}
-              {(profile?.is_verified_trainer || walkerProfile?.is_verified_trainer) && (
-                <Card className="border border-purple-200 shadow-sm bg-purple-50">
-                  <CardHeader className="py-3 px-4">
-                    <CardTitle className="text-sm font-semibold text-purple-900">Especializações de Treino</CardTitle>
-                    <p className="text-xs text-purple-700 mt-0.5">Adicione suas certificações e expertise</p>
-                  </CardHeader>
-                  <CardContent className="p-3">
-                    <TrainingSpecializationManager
-                      specializations={profile?.training_specializations || []}
-                      onChange={async (specs) => {
-                        try {
-                          const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
-                          await entity.update(profile.id, { training_specializations: specs || [] });
-                          queryClient.invalidateQueries(['myWalkerProfile']);
-                          queryClient.invalidateQueries(['myTrainerProfile']);
-                          toast.success('Especializações atualizadas!');
-                        } catch (e) {
-                          toast.error('Erro ao atualizar especializações');
-                        }
-                      }}
-                    />
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Quick Services */}
               <Card className="border border-gray-200 shadow-sm">
                 <CardHeader className="py-3 px-4">

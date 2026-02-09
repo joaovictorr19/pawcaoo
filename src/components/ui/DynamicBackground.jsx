@@ -59,9 +59,6 @@ export default function DynamicBackground() {
   const [weather, setWeather] = useState('sunny'); // sunny, rainy, cloudy, snowy
   const [raindrops, setRaindrops] = useState([]);
   const [snowflakes, setSnowflakes] = useState([]);
-  
-  // CRITICAL: Always call useTheme BEFORE conditional returns
-  const { colors, level } = useTheme();
 
   // Check if user is logged in
   const { data: user } = useQuery({
@@ -153,8 +150,10 @@ export default function DynamicBackground() {
     }
   }, [weather]);
 
+  const isLoggedIn = !!user;
+
   // If not logged in, show park grass background with weather
-  if (!user) {
+  if (!isLoggedIn) {
     return (
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         {/* CSS for rain animation */}
@@ -178,25 +177,25 @@ export default function DynamicBackground() {
           }
         `}</style>
         
-        {/* Realistic Forest Path background */}
+        {/* Midnight Forest texture background */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-in-out"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: weather === 'snowy' 
-              ? 'url(https://images.unsplash.com/photo-1477601263568-180e2c6d046e?w=1920&q=80)' // Snowy forest path
-              : 'url(https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80)', // Green forest path with light
+            backgroundImage: 'url(https://images.unsplash.com/photo-1448375240586-dfd8d395ea6c?w=1920&q=80)',
           }}
         />
         
-        {/* Subtle Overlay for readability */}
+        {/* Midnight Green / Forest Overlay */}
         <div 
           className="absolute inset-0"
           style={{
             background: weather === 'rainy' 
-              ? 'linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,20,10,0.6))' 
+              ? 'linear-gradient(135deg, rgba(2, 44, 34, 0.92) 0%, rgba(6, 78, 59, 0.88) 100%)' // Dark rainy forest
+              : weather === 'sunny'
+              ? 'linear-gradient(135deg, rgba(20, 83, 45, 0.85) 0%, rgba(22, 101, 52, 0.80) 100%)' // Sunlit deep forest
               : weather === 'snowy'
-              ? 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(10,20,30,0.4))'
-              : 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,20,5,0.5))' 
+              ? 'linear-gradient(135deg, rgba(17, 24, 39, 0.85) 0%, rgba(55, 65, 81, 0.6) 100%)' // Cold snowy forest
+              : 'linear-gradient(135deg, rgba(6, 78, 59, 0.9) 0%, rgba(20, 83, 45, 0.85) 100%)' // Cloudy forest
           }}
         />
         
@@ -225,35 +224,92 @@ export default function DynamicBackground() {
           </>
         )}
         
-        {/* Realistic Animals & Nature Elements (Photo Overlays) */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Soft gradient glow spots - grass tones */}
+        <div className="absolute inset-0">
+          <div 
+            className="absolute top-[10%] left-[5%] w-[40vw] h-[40vw] rounded-full filter blur-[120px] opacity-25"
+            style={{ backgroundColor: weather === 'sunny' ? '#7cb342' : '#558b2f' }}
+          />
+          <div 
+            className="absolute bottom-[20%] right-[5%] w-[35vw] h-[35vw] rounded-full filter blur-[100px] opacity-20"
+            style={{ backgroundColor: weather === 'sunny' ? '#8bc34a' : '#689f38' }}
+          />
+        </div>
+        
+        {/* Realistic grass texture pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.15]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='grass1' x1='0%25' y1='100%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%231b5e20'/%3E%3Cstop offset='100%25' stop-color='%232e7d32'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M5 100 Q6 85 5 70 Q4 85 5 100' fill='url(%23grass1)'/%3E%3Cpath d='M8 100 Q10 80 8 60 Q6 80 8 100' fill='%23388e3c'/%3E%3Cpath d='M12 100 Q13 88 12 75 Q11 88 12 100' fill='%231b5e20'/%3E%3Cpath d='M18 100 Q20 78 18 55 Q16 78 18 100' fill='%232e7d32'/%3E%3Cpath d='M22 100 Q23 85 22 70 Q21 85 22 100' fill='%23388e3c'/%3E%3Cpath d='M28 100 Q30 75 28 50 Q26 75 28 100' fill='%231b5e20'/%3E%3Cpath d='M32 100 Q33 90 32 80 Q31 90 32 100' fill='%232e7d32'/%3E%3Cpath d='M38 100 Q40 82 38 65 Q36 82 38 100' fill='%23388e3c'/%3E%3Cpath d='M42 100 Q43 88 42 75 Q41 88 42 100' fill='%231b5e20'/%3E%3Cpath d='M48 100 Q50 76 48 52 Q46 76 48 100' fill='%232e7d32'/%3E%3Cpath d='M52 100 Q53 85 52 70 Q51 85 52 100' fill='%23388e3c'/%3E%3Cpath d='M58 100 Q60 80 58 60 Q56 80 58 100' fill='%231b5e20'/%3E%3Cpath d='M62 100 Q63 92 62 83 Q61 92 62 100' fill='%232e7d32'/%3E%3Cpath d='M68 100 Q70 78 68 55 Q66 78 68 100' fill='%23388e3c'/%3E%3Cpath d='M72 100 Q73 86 72 72 Q71 86 72 100' fill='%231b5e20'/%3E%3Cpath d='M78 100 Q80 74 78 48 Q76 74 78 100' fill='%232e7d32'/%3E%3Cpath d='M82 100 Q83 88 82 76 Q81 88 82 100' fill='%23388e3c'/%3E%3Cpath d='M88 100 Q90 82 88 64 Q86 82 88 100' fill='%231b5e20'/%3E%3Cpath d='M92 100 Q93 90 92 80 Q91 90 92 100' fill='%232e7d32'/%3E%3Cpath d='M98 100 Q100 84 98 68 Q96 84 98 100' fill='%23388e3c'/%3E%3C/svg%3E")`,
+            backgroundSize: '80px 80px'
+          }}
+        />
+        
+        {/* Second grass layer for depth */}
+        <div 
+          className="absolute inset-0 opacity-[0.08]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 60 Q5 45 3 30 Q1 45 3 60' fill='%234caf50'/%3E%3Cpath d='M15 60 Q17 50 15 40 Q13 50 15 60' fill='%2366bb6a'/%3E%3Cpath d='M27 60 Q29 42 27 25 Q25 42 27 60' fill='%234caf50'/%3E%3Cpath d='M39 60 Q41 48 39 36 Q37 48 39 60' fill='%2366bb6a'/%3E%3Cpath d='M51 60 Q53 44 51 28 Q49 44 51 60' fill='%234caf50'/%3E%3C/svg%3E")`,
+            backgroundSize: '60px 60px',
+            transform: 'translateX(20px)'
+          }}
+        />
+        
+        {/* Forest Elements: Trails, Trees, Birds */}
+        <div className="absolute inset-0 overflow-hidden">
           
-          {/* Real Dog Image - Bottom Right - Golden Retriever */}
-          <div 
-            className="absolute bottom-[-20px] right-[5%] w-[250px] md:w-[350px] h-[300px] opacity-90 z-10"
+          {/* Forest Trails - Organic paths */}
+          <div className="absolute top-[20%] left-0 right-0 h-32 opacity-20"
             style={{
-              backgroundImage: 'url(https://purepng.com/public/uploads/large/purepng.com-golden-retriever-dogdoganimalgolden-retriever-9815246727220i2cw.png)',
-              backgroundSize: 'contain',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'bottom right',
-              filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))'
+              background: 'linear-gradient(170deg, transparent 0%, rgba(93, 64, 55, 0.4) 40%, rgba(93, 64, 55, 0.3) 60%, transparent 100%)',
+              transform: 'skewY(-3deg) scale(1.1)'
+            }}
+          />
+          
+          <div className="absolute bottom-[20%] left-0 right-0 h-24 opacity-15"
+            style={{
+              background: 'linear-gradient(10deg, transparent 0%, rgba(62, 39, 35, 0.5) 45%, rgba(93, 64, 55, 0.4) 55%, transparent 100%)',
+              transform: 'skewY(2deg) scale(1.2)'
             }}
           />
 
-          {/* Real Dog Image - Bottom Left - Sitting Dog */}
-          <div 
-            className="absolute bottom-[5%] left-[5%] w-[180px] md:w-[220px] h-[220px] opacity-80 z-0"
-            style={{
-              backgroundImage: 'url(https://purepng.com/public/uploads/large/purepng.com-dog-sittingdoganimalpet-981524673352ki2w7.png)',
-              backgroundSize: 'contain',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'bottom left',
-              filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.4))'
-            }}
-          />
+          {/* Birds in distance */}
+          <svg className="absolute top-[15%] left-[25%] w-8 h-4 opacity-40 animate-pulse" viewBox="0 0 24 12" style={{ animationDuration: '4s' }}>
+             <path d="M1,6 Q6,1 12,6 T23,6" fill="none" stroke="#1a2e1a" strokeWidth="2" />
+          </svg>
+          <svg className="absolute top-[12%] left-[22%] w-6 h-3 opacity-30 animate-pulse" viewBox="0 0 24 12" style={{ animationDuration: '5s' }}>
+             <path d="M1,6 Q6,1 12,6 T23,6" fill="none" stroke="#1a2e1a" strokeWidth="2" />
+          </svg>
 
-          {/* Floating Leaves/Particles for realism */}
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse" />
+          {/* Deer Silhouette (Subtle) */}
+          <svg className="absolute bottom-[18%] right-[15%] w-16 h-20 opacity-20" viewBox="0 0 100 100">
+             <path d="M50,80 L50,60 L60,50 L70,60 L70,80 M60,50 L60,30 L55,20 M65,20 L60,30" fill="none" stroke="#3e2723" strokeWidth="2" />
+             <circle cx="55" cy="20" r="1" fill="#3e2723" />
+          </svg>
+
+          {/* Majestic Forest Trees */}
+          <svg className="absolute top-[10%] left-[5%] w-24 h-32 opacity-30" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#3e2723" />
+            <path d="M30 10 L10 50 L50 50 Z" fill="#1b5e20" />
+            <path d="M30 25 L15 50 L45 50 Z" fill="#2e7d32" />
+          </svg>
+
+          <svg className="absolute bottom-[20%] left-[8%] w-32 h-40 opacity-25" viewBox="0 0 60 80">
+            <rect x="26" y="60" width="8" height="20" fill="#3e2723" />
+            <path d="M30 15 L5 60 L55 60 Z" fill="#1b5e20" />
+            <path d="M30 30 L10 60 L50 60 Z" fill="#2e7d32" />
+          </svg>
+
+          <svg className="absolute top-[30%] right-[5%] w-20 h-28 opacity-30" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#3e2723" />
+            <path d="M30 10 L10 50 L50 50 Z" fill="#1b5e20" />
+            <path d="M30 25 L15 50 L45 50 Z" fill="#2e7d32" />
+          </svg>
+          
+          <svg className="absolute bottom-[40%] right-[12%] w-16 h-24 opacity-20" viewBox="0 0 60 80">
+            <rect x="26" y="50" width="8" height="30" fill="#3e2723" />
+            <path d="M30 10 L10 50 L50 50 Z" fill="#1b5e20" />
+          </svg>
 
         </div>
         
@@ -267,7 +323,7 @@ export default function DynamicBackground() {
     );
   }
 
-  // Theme colors already called at the top (before conditional return)
+  const { colors, level } = useTheme();
   
   const getOrbColorsByTheme = (themeName) => {
     const themeMap = {

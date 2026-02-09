@@ -52,7 +52,6 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminUserTable from "../components/admin/AdminUserTable";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
-import AdminDocumentViewer from "../components/admin/AdminDocumentViewer";
 import Pagination from "../components/ui/Pagination";
 import ClientDetails from "../components/admin/ClientDetails";
 import ProductManagement from "../components/admin/ProductManagement";
@@ -61,7 +60,6 @@ import StoreItemsManager from "../components/admin/StoreItemsManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
-import UserManagementPanel from "../components/admin/UserManagementPanel";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -680,7 +678,6 @@ export default function AdminDashboard() {
             <TabsTrigger value="commerce" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🛍️ Comércio</TabsTrigger>
             <TabsTrigger value="operations" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>⚡ Operações</TabsTrigger>
             <TabsTrigger value="gamification" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🏆 Gamificação</TabsTrigger>
-            <TabsTrigger value="documents" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>📄 Documentos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -1061,9 +1058,32 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="users">
-            <div className="mt-6">
-              <UserManagementPanel />
-            </div>
+            <AdminUserTable
+              users={allUsers}
+              isLoading={loadingAllUsers}
+              onEdit={handleEditUser}
+              onDelete={handleDeleteUser}
+              onEditBadges={handleOpenBadgesDialog}
+              onSyncProfiles={handleSyncUserProfiles}
+              isSyncing={isSyncingProfiles}
+              onImpersonate={async (user) => {
+                if (!confirm(`Login como ${user.full_name}?`)) return;
+                toast.info('Redirecionando...');
+                try {
+                  const response = await base44.functions.invoke('impersonateUser', {
+                    targetUserId: user.id
+                  });
+                  if (response.data?.success) {
+                    localStorage.setItem('impersonation', JSON.stringify(response.data.impersonationData));
+                    window.location.href = createPageUrl('Home');
+                  } else {
+                    toast.error('Erro ao iniciar');
+                  }
+                } catch (error) {
+                  toast.error('Erro: ' + error.message);
+                }
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="commerce">
@@ -1181,14 +1201,6 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="documents">
-            <AdminDocumentViewer 
-              walkers={allWalkers}
-              trainers={allTrainers}
-              shelters={allShelters}
-            />
-          </TabsContent>
-
         </Tabs>
 
         {/* Dialogs */}
@@ -1219,47 +1231,22 @@ export default function AdminDashboard() {
                     for (const email of usersToGrantBadge) {
                       const targetUser = allUsers.find(u => u.email === email);
                       if (!targetUser) continue;
-
                       const badge = {
                         badge_id: selectedBadgeForAll.badge_id,
                         name: selectedBadgeForAll.name,
                         description: selectedBadgeForAll.description,
                         icon: selectedBadgeForAll.icon,
-                        image_url: selectedBadgeForAll.image_url,
-                        image_png_file: selectedBadgeForAll.image_png_file,
                         rarity: selectedBadgeForAll.rarity,
-                        category: selectedBadgeForAll.category,
-                        xp_reward: selectedBadgeForAll.xp || 0,
+                        xp: selectedBadgeForAll.xp,
                         earned_date: new Date().toISOString()
                       };
-
-                      const currentBadges = targetUser.public_badges || [];
-                      const badgeExists = currentBadges.some(b => b.badge_id === badge.badge_id);
-
-                      if (!badgeExists) {
-                        await base44.entities.User.update(targetUser.id, {
-                          public_badges: [...currentBadges, badge],
-                          gamification_xp: (targetUser.gamification_xp || 0) + (selectedBadgeForAll.xp || 0)
-                        });
-
-                        // Sync to UserProfile entity
-                        try {
-                          const profiles = await base44.entities.UserProfile.filter({ user_email: targetUser.email });
-                          if (profiles.length > 0) {
-                            await base44.entities.UserProfile.update(profiles[0].id, {
-                              gamification_xp: (targetUser.gamification_xp || 0) + (selectedBadgeForAll.xp || 0)
-                            });
-                          }
-                        } catch (e) {
-                          console.log('UserProfile sync skip');
-                        }
-                      }
+                      await base44.entities.User.update(targetUser.id, {
+                        public_badges: [...(targetUser.public_badges || []), badge]
+                      });
                     }
                     queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-                    queryClient.invalidateQueries({ queryKey: ['currentUser'] });
                     toast.success(`Emblema concedido a ${usersToGrantBadge.length} utilizadores!`);
                     setShowGrantAllUsersModal(false);
-                    setUsersToGrantBadge([]);
                   }}
                   className="w-full bg-purple-600"
                   style={{ borderRadius: 0 }}

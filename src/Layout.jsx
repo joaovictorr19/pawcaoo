@@ -381,7 +381,7 @@ function LayoutContent({ children, currentPageName }) {
             badge_id: 'welcome',
             name: language === 'pt' ? 'Bem-vindo à PawCão!' : (language === 'es' ? '¡Bienvenido a PawCão!' : 'Welcome to PawCão!'),
             description: language === 'pt' ? 'Obrigado por se juntar à nossa comunidade!' : (language === 'es' ? '¡Gracias por unirte a nuestra comunidad!' : 'Thanks for joining our community!'),
-            icon: 'Award',
+            icon: '🎉',
             rarity: 'common',
             earned_date: new Date().toISOString(),
             category: 'milestone',
@@ -462,19 +462,23 @@ function LayoutContent({ children, currentPageName }) {
             gamification_level: authUser.gamification_level || 1,
             followers_count: 0,
             following_count: 0,
-            is_verified: false
+            is_verified: authUser.is_verified || false
           });
         } else {
-          // 3. SYNC: UserProfile -> Auth User (ALWAYS sync, no cache key)
+          // 3. SYNC: UserProfile -> Auth User (if different)
           const profile = profiles[0];
-          if (authUser.gamification_xp !== profile.gamification_xp || 
-              authUser.gamification_level !== profile.gamification_level) {
-            console.log('🔄 Syncing XP from UserProfile to Auth:', profile.gamification_xp, 'Level:', profile.gamification_level);
+          const currentXPKey = `${profile.gamification_xp}_${profile.gamification_level}`;
+          
+          if (profileSetupRef.current.syncedXP !== currentXPKey &&
+              (authUser.gamification_xp !== profile.gamification_xp || 
+               authUser.gamification_level !== profile.gamification_level)) {
+            console.log('🔄 Syncing XP from UserProfile to Auth:', profile.gamification_xp);
+            profileSetupRef.current.syncedXP = currentXPKey;
             await base44.auth.updateMe({
               gamification_xp: profile.gamification_xp || 0,
               gamification_level: profile.gamification_level || 1
             });
-            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+            queryClient.invalidateQueries(['currentUser']);
           }
         }
       } catch (err) {
@@ -487,7 +491,7 @@ function LayoutContent({ children, currentPageName }) {
   
   // Reset initialization when user changes
   React.useEffect(() => {
-    profileSetupRef.current = { initialized: false };
+    profileSetupRef.current = { initialized: false, syncedXP: null };
   }, [authUser?.email]);
 
 
@@ -512,10 +516,10 @@ function LayoutContent({ children, currentPageName }) {
       vip: "bg-yellow-500"
     };
     const planIcons = {
-      free: "Free",
-      basic: "Basic",
-      premium: "Premium",
-      vip: "VIP"
+      free: "⚡",
+      basic: "💼",
+      premium: "🥇",
+      vip: "👑"
     };
     return {
       color: planColors[ownerSubscription.plan_type] || "bg-gray-500",
@@ -984,27 +988,21 @@ function LayoutContent({ children, currentPageName }) {
       {/* ========== HEADER PREMIUM FLUTUANTE ========== */}
       {/* Desktop Header - Flutuante ao lado da Sidebar */}
       <header 
-        className="hidden md:block fixed top-[12px] z-[99999] right-[20px]"
+        className="hidden md:block fixed top-[10px] z-[99999] px-3 py-1.5 right-[15px]"
         style={{
-          left: authUser ? '300px' : '20px',
-          background: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.5)',
-          borderRadius: '20px',
-          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+          left: authUser ? '295px' : '15px',
+          background: authUser ? 'rgba(255, 255, 255, 0.75)' : 'rgba(255, 255, 255, 0.5)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: authUser ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(255, 255, 255, 0.2)',
+          borderRadius: '16px',
+          boxShadow: authUser ? '0 2px 15px rgba(0, 0, 0, 0.06)' : '0 1px 10px rgba(0, 0, 0, 0.03)',
         }}
       >
-        <div className="flex items-center justify-between gap-4 w-full px-5 py-3">
-          {!authUser && (
-            <Link to={createPageUrl("Home")} className="hover:opacity-80 transition-opacity shrink-0">
-              <PawCaoLogo size="small" showText={true} />
-            </Link>
-          )}
-          
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-9">
           {/* Menu de Navegação Desktop */}
-          <nav className="flex items-center justify-center flex-1">
-            <div className="flex items-center gap-2">
+          <nav className="flex items-center justify-center flex-1 px-2">
+            <div className="flex items-center gap-1 lg:gap-2">
               {authUser ? (
                 // Menu completo para usuários logados
                 mainMenu.map((item) => (
@@ -1016,53 +1014,40 @@ function LayoutContent({ children, currentPageName }) {
                     e.preventDefault();
                     navigate(item.url);
                   }}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold transition-all hover:scale-105 whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 whitespace-nowrap ${
                     isRouteActive(item.url)
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
-                      : item.icon === Zap 
-                      ? "bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md hover:shadow-lg"
-                      : "text-gray-700 hover:bg-white/80 shadow-sm"
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                    <item.icon className={`w-5 h-5 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-white" : ""}`} />
-                    <span className="text-sm">{item.title}</span>
+                    <item.icon className={`w-4 h-4 flex-shrink-0 ${isRouteActive(item.url) ? "text-white" : item.icon === Zap ? "text-red-500" : ""}`} />
+                    <span className="hidden lg:inline">{item.title}</span>
                   </Link>
                 ))
               ) : (
-                // Menu expandido para visitantes
+                // Menu simplificado para visitantes (não logados)
                 <>
                   <button
                     onClick={() => navigate(createPageUrl("Home"))}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all hover:scale-105 shadow-sm ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                       location.pathname === createPageUrl("Home") && !location.search.includes('tab=')
-                        ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg"
-                        : "bg-white/70 text-gray-700 hover:bg-white"
+                        ? "bg-gray-200 text-gray-900"
+                        : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <Users className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-sm">{language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals'}</span>
-                  </button>
-                  <button
-                    onClick={() => navigate(createPageUrl("SocialFeed"))}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all hover:scale-105 shadow-sm ${
-                      location.pathname === createPageUrl("SocialFeed")
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
-                        : "bg-white/70 text-gray-700 hover:bg-white"
-                    }`}
-                  >
-                    <Globe className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-sm">{language === 'pt' ? 'Comunidade' : language === 'es' ? 'Comunidad' : 'Community'}</span>
+                    <Home className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="hidden lg:inline">{language === 'pt' ? 'Início' : language === 'es' ? 'Inicio' : 'Home'}</span>
                   </button>
                   <button
                     onClick={() => navigate(createPageUrl("Shop"))}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold transition-all hover:scale-105 shadow-sm ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                       location.pathname === createPageUrl("Shop")
-                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
-                        : "bg-white/70 text-gray-700 hover:bg-white"
+                        ? "bg-gray-200 text-gray-900"
+                        : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <ShoppingBag className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-sm">{language === 'pt' ? 'Loja' : 'Shop'}</span>
+                    <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="hidden lg:inline">{language === 'pt' ? 'Loja' : 'Shop'}</span>
                   </button>
                 </>
               )}
@@ -1075,15 +1060,16 @@ function LayoutContent({ children, currentPageName }) {
               variant="ghost"
               size="icon"
               onClick={() => setIsSearchOpen(true)}
-              className="h-10 w-10 rounded-xl hover:bg-white/80 transition-all"
+              className="h-8 w-8 rounded-lg"
               aria-label="Search"
             >
-              <Search className="w-5 h-5 text-gray-700" />
+              <Search className="w-3.5 h-3.5" />
             </Button>
             {!authUser && (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl text-sm px-5 h-10 rounded-full font-semibold"
+                className="bg-gray-800 text-white hover:bg-gray-900 shadow-sm text-xs px-3 h-8"
+                size="sm"
               >
                 {getMenuText('login')}
               </Button>
@@ -1253,7 +1239,7 @@ function LayoutContent({ children, currentPageName }) {
                 steps={[
                   {
                     targetId: '#nav-home',
-                    title: language === 'pt' ? 'Bem-vindo à PawCão!' : 'Welcome to PawCão!',
+                    title: language === 'pt' ? 'Bem-vindo à PawCão! 🐾' : 'Welcome to PawCão! 🐾',
                     content: language === 'pt' 
                       ? 'Encontra passeadores e treinadores verificados perto de ti. Todos passam por verificação de segurança!'
                       : 'Find verified walkers and trainers near you. All go through security verification!'
@@ -1267,7 +1253,7 @@ function LayoutContent({ children, currentPageName }) {
                   },
                   {
                     targetId: '#nav-gamification',
-                    title: language === 'pt' ? 'Ganha Prémios!' : 'Earn Rewards!',
+                    title: language === 'pt' ? 'Ganha Prémios! 🏆' : 'Earn Rewards! 🏆',
                     content: language === 'pt'
                       ? 'Acumula XP em cada passeio, desbloqueia emblemas e sobe no ranking da comunidade!'
                       : 'Earn XP on every walk, unlock badges and climb the community ranking!'
@@ -1276,65 +1262,64 @@ function LayoutContent({ children, currentPageName }) {
               />
             )}
 
-            <footer className="mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-0 bg-white/90 border-gray-200 w-full shadow-lg">
+            <footer className="mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-0 bg-white/30 border-white/40 w-full">
               <div className="max-w-7xl mx-auto px-6 py-8 w-full">
                 <div className="grid md:grid-cols-4 gap-8 mb-8">
                   <div>
                     <PawCaoLogo size="default" className="mb-4" />
-                    <p className="text-sm text-gray-700 mb-4 font-medium">
+                    <p className="text-sm text-gray-600 mb-4">
                       {t('footerTagline', language)}
                     </p>
                     <div className="space-y-2">
-                      <a href="mailto:support@pawcao.net" className="flex items-center gap-2 text-sm text-gray-700 hover:text-green-600 transition-colors font-medium">
+                      <a href="mailto:support@pawcao.net" className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors">
                         <MessageCircle className="w-4 h-4" />
                         support@pawcao.net
                       </a>
-                      <a href="https://instagram.com/paw.cao" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-700 hover:text-green-600 transition-colors font-medium">
+                      <a href="https://instagram.com/paw.cao" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors">
                         <Camera className="w-4 h-4" />
                         @Paw.cao
                       </a>
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 mb-3 text-base">{t('services', language)}</h4>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                      <li><Link to={createPageUrl("Home")} className="hover:text-green-600 transition-colors font-medium">{t('findWalkers', language)}</Link></li>
-                      <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600 transition-colors font-medium">{t('findTrainers', language)}</Link></li>
-                      <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600 transition-colors font-medium">{t('dogSitting', language)}</Link></li>
-                      <li><Link to={createPageUrl("Shop")} className="hover:text-green-600 transition-colors font-medium">{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</Link></li>
+                    <h4 className="font-semibold text-gray-900 mb-3">{t('services', language)}</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li><Link to={createPageUrl("Home")} className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
+                      <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
+                      <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
+                      <li><Link to={createPageUrl("Shop")} className="hover:text-green-600 transition-colors">{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</Link></li>
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 mb-3 text-base">{t('forProfessionals', language)}</h4>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                      <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600 transition-colors font-medium">{t('becomeWalker', language)}</Link></li>
-                      <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600 transition-colors font-medium">{t('becomeTrainer', language)}</Link></li>
-                      <li><Link to={createPageUrl("ProfessionalDashboard")} className="hover:text-green-600 transition-colors font-medium">{t('professionalDashboard', language)}</Link></li>
+                    <h4 className="font-semibold text-gray-900 mb-3">{t('forProfessionals', language)}</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600 transition-colors">{t('becomeWalker', language)}</Link></li>
+                      <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600 transition-colors">{t('becomeTrainer', language)}</Link></li>
+                      <li><Link to={createPageUrl("ProfessionalDashboard")} className="hover:text-green-600 transition-colors">{t('professionalDashboard', language)}</Link></li>
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 mb-3 text-base">{t('company', language)}</h4>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                      <li><Link to={createPageUrl("AboutUs")} className="hover:text-green-600 transition-colors font-medium">{t('aboutUs', language)}</Link></li>
-                      <li><Link to={createPageUrl("Contact")} className="hover:text-green-600 transition-colors font-medium">{t('contactUs', language)}</Link></li>
-                      <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors font-medium">FAQ</Link></li>
-                      <li><Link to={createPageUrl("TermsOfService")} className="hover:text-green-600 transition-colors font-medium">{t('termsOfService', language)}</Link></li>
-                      <li><Link to={createPageUrl("PrivacyPolicy")} className="hover:text-green-600 transition-colors font-medium">{t('privacyPolicy', language)}</Link></li>
-                      <li><Link to={createPageUrl("CookiesPolicy")} className="hover:text-green-600 transition-colors font-medium">{t('cookiesPolicy', language)}</Link></li>
+                    <h4 className="font-semibold text-gray-900 mb-3">{t('company', language)}</h4>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li><Link to={createPageUrl("AboutUs")} className="hover:text-green-600 transition-colors">{t('aboutUs', language)}</Link></li>
+                      <li><Link to={createPageUrl("Contact")} className="hover:text-green-600 transition-colors">{t('contactUs', language)}</Link></li>
+                      <li><Link to={createPageUrl("FAQ")} className="hover:text-green-600 transition-colors">FAQ</Link></li>
+                      <li><Link to={createPageUrl("TermsOfService")} className="hover:text-green-600 transition-colors">{t('termsOfService', language)}</Link></li>
+                      <li><Link to={createPageUrl("PrivacyPolicy")} className="hover:text-green-600 transition-colors">{t('privacyPolicy', language)}</Link></li>
+                      <li><Link to={createPageUrl("CookiesPolicy")} className="hover:text-green-600 transition-colors">{t('cookiesPolicy', language)}</Link></li>
                     </ul>
                   </div>
                 </div>
                 
-                <div className="border-t border-gray-300 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                  <p className="text-sm text-gray-700 font-medium">
+                <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                  <p className="text-sm text-gray-600">
                     © 2025 PawCão. {t('allRightsReserved', language)}.
                   </p>
                   <div className="flex items-center gap-2">
                     <PawCaoLogo size="small" showText={false} />
-                    <div className="flex items-center gap-1 text-green-700 font-bold">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span className="text-sm">{t('verifiedProfessionals', language)}</span>
-                    </div>
+                    <span className="text-sm text-green-700 font-semibold">
+                      ✓ {t('verifiedProfessionals', language)}
+                    </span>
                   </div>
                 </div>
               </div>

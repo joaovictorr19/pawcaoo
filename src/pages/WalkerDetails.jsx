@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown, User as UserIcon, MessageCircle, Heart, Info, Dog, Home, Cat, Bird, Edit, Save, X, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown, User as UserIcon, MessageCircle, Heart, Info, Dog, Home, Cat, Bird } from "lucide-react";
 import { ReptileIcon, ArachnidIcon, RodentIcon } from "@/components/professionals/AnimalIcons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
@@ -90,9 +90,6 @@ import { t } from "@/components/translations";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import InstagramVerifiedBadge from "@/components/ui/InstagramVerifiedBadge";
 import { AnimalIconsWithLabels } from "@/components/professionals/AnimalIcons";
-import PawCaoSealBadge from "@/components/ui/PawCaoSealBadge";
-import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
-import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
 
 export default function WalkerDetails() {
   const { language } = useLanguage();
@@ -103,8 +100,8 @@ export default function WalkerDetails() {
   
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [selectedDogForRecurring, setSelectedDogForRecurring] = useState(null);
+  
   const [selectedDate, setSelectedDate] = useState(null);
-  const [editingVerification, setEditingVerification] = useState(false);
 
   // Scroll to top on mount
   React.useEffect(() => {
@@ -187,7 +184,7 @@ export default function WalkerDetails() {
     initialData: [],
   });
 
-  const { data: walkerUserProfile } = useQuery({
+  const { data: userProfile } = useQuery({
     queryKey: ['walkerUserProfile', walker?.created_by],
     queryFn: async () => {
       if (!walker?.created_by) return null;
@@ -198,30 +195,29 @@ export default function WalkerDetails() {
   });
 
   const { data: walkerBadges = [] } = useQuery({
-    queryKey: ['walkerPinnedBadges', walkerUserProfile?.pinned_badge_ids, walkerUserProfile?.highlighted_emblem_id, walkerUserProfile?.user_email],
+    queryKey: ['walkerPinnedBadges', userProfile?.pinned_badge_ids, userProfile?.highlighted_emblem_id],
     queryFn: async () => {
-      if (!walkerUserProfile?.user_email) return [];
+      if (!userProfile) return [];
       
       const pinnedIds = [];
-      if (walkerUserProfile.highlighted_emblem_id) {
-        pinnedIds.push(walkerUserProfile.highlighted_emblem_id);
+      if (userProfile.highlighted_emblem_id) {
+        pinnedIds.push(userProfile.highlighted_emblem_id);
       }
-      if (walkerUserProfile.pinned_badge_ids && walkerUserProfile.pinned_badge_ids.length > 0) {
-        pinnedIds.push(...walkerUserProfile.pinned_badge_ids.filter(id => id !== walkerUserProfile.highlighted_emblem_id));
+      if (userProfile.pinned_badge_ids && userProfile.pinned_badge_ids.length > 0) {
+        pinnedIds.push(...userProfile.pinned_badge_ids.filter(id => id !== userProfile.highlighted_emblem_id));
       }
       
       if (pinnedIds.length === 0) return [];
       
-      const allBadges = await base44.entities.UserBadge.filter({ user_email: walkerUserProfile.user_email });
+      const allBadges = await base44.entities.UserBadge.filter({ user_email: walker.created_by });
       const badgeDefinitions = await base44.entities.BadgeDefinition.list();
       
       return pinnedIds.slice(0, 4).map(id => {
-        const userBadge = allBadges.find(b => (b.badge_id || b.id) === id);
-        if (userBadge) return userBadge;
-        return badgeDefinitions.find(b => b.badge_id === id || b.id === id);
+        return allBadges.find(b => (b.badge_id || b.id) === id) || 
+               badgeDefinitions.find(b => b.id === id);
       }).filter(Boolean);
     },
-    enabled: !!walkerUserProfile?.user_email,
+    enabled: !!userProfile && !!walker?.created_by,
     initialData: [],
   });
 
@@ -267,27 +263,6 @@ export default function WalkerDetails() {
     toast.success("Solicitação Enviada! Aguarde a confirmação do profissional.", { duration: 6000 });
 
     queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
-  };
-
-  const updateWalkerProfileMutation = useMutation({
-    mutationFn: async (data) => {
-        if (!user || user.role !== 'admin') {
-            throw new Error('Unauthorized');
-        }
-        return await base44.asServiceRole.entities.WalkerProfile.update(walker.id, data);
-    },
-    onSuccess: () => {
-        queryClient.invalidateQueries(['walker', walkerId]);
-        toast.success('Perfil do passeador atualizado com sucesso!');
-        setEditingVerification(false);
-    },
-    onError: (error) => {
-        toast.error('Erro ao atualizar perfil: ' + error.message);
-    }
-  });
-
-  const handleVerificationChange = (field, value) => {
-    updateWalkerProfileMutation.mutate({ [field]: value });
   };
 
   if (isLoading) {
@@ -412,10 +387,9 @@ export default function WalkerDetails() {
                   </div>
                   <div className="flex items-center gap-1.5 justify-center">
                     <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">{walker.walker_name}</h1>
-                    {walker.verification_status === 'verified' && (<InstagramVerifiedBadge size="md" />)}
-                    {walker.is_pawcao_employee && (<GoldEmployeeBadge size="md" />)}
-                    {walker.is_verified_trainer && (<TrainerVerifiedBadge size="md" />)}
-                    {walker.has_pawcao_seal && (<PawCaoSealBadge size="md" />)}
+                    {walker.verification_status === 'verified' && (
+                      <InstagramVerifiedBadge size="md" />
+                    )}
                   </div>
                   <p className="text-sm font-medium text-green-700 mt-0.5">
                     {walker.is_verified_trainer ? (language === 'pt' ? 'Treinador & Passeador Profissional' : 'Trainer & Professional Walker') : (language === 'pt' ? 'Passeador Profissional' : 'Professional Walker')}
@@ -430,14 +404,6 @@ export default function WalkerDetails() {
                       <span className="font-semibold">{averageRating.toFixed(1)}</span>
                       <span className="text-xs text-gray-500">({reviews.length})</span>
                     </div>
-                  )}
-
-                  {/* Gamification Info (Nível, XP) */}
-                  {walkerUserProfile && (
-                      <div className="mt-3 text-sm text-gray-600">
-                          <p className="font-semibold">Nível: {walkerUserProfile.gamification_level}</p>
-                          <p>XP: {walkerUserProfile.gamification_xp}</p>
-                      </div>
                   )}
                 </div>
 
@@ -509,143 +475,13 @@ export default function WalkerDetails() {
               </CardContent>
             </Card>
 
-            {/* Moderator Actions */}
-            {user?.role === 'admin' && (
-              <Card className="bg-white shadow-sm border-0">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <ShieldCheck className="w-5 h-5 text-red-600" />
-                      Ações de Moderador
-                    </CardTitle>
-                    <Button variant="ghost" size="sm" onClick={() => setEditingVerification(!editingVerification)}>
-                      {editingVerification ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {editingVerification ? (
-                    <div className="space-y-3">
-                      <div>
-                        <label htmlFor="is_verified" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Verificado Oficialmente (Instagram Badge)
-                        </label>
-                        <Select
-                          value={walker.verification_status === 'verified' ? 'true' : 'false'}
-                          onValueChange={(val) => handleVerificationChange('verification_status', val === 'true' ? 'verified' : 'pending')}
-                        >
-                          <SelectTrigger className="w-full mt-1">
-                            <SelectValue placeholder="Selecionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="true">Sim</SelectItem>
-                            <SelectItem value="false">Não</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label htmlFor="is_verified_trainer" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Treinador Verificado (Purple Badge)
-                        </label>
-                        <Select
-                          value={walker.is_verified_trainer ? 'true' : 'false'}
-                          onValueChange={(val) => handleVerificationChange('is_verified_trainer', val === 'true')}
-                        >
-                          <SelectTrigger className="w-full mt-1">
-                            <SelectValue placeholder="Selecionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="true">Sim</SelectItem>
-                            <SelectItem value="false">Não</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label htmlFor="is_pawcao_employee" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Funcionário PawCão (Gold Badge)
-                        </label>
-                        <Select
-                          value={walker.is_pawcao_employee ? 'true' : 'false'}
-                          onValueChange={(val) => handleVerificationChange('is_pawcao_employee', val === 'true')}
-                        >
-                          <SelectTrigger className="w-full mt-1">
-                            <SelectValue placeholder="Selecionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="true">Sim</SelectItem>
-                            <SelectItem value="false">Não</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label htmlFor="has_pawcao_seal" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Selo Oficial PawCão (White Paw)
-                        </label>
-                        <Select
-                          value={walker.has_pawcao_seal ? 'true' : 'false'}
-                          onValueChange={(val) => handleVerificationChange('has_pawcao_seal', val === 'true')}
-                        >
-                          <SelectTrigger className="w-full mt-1">
-                            <SelectValue placeholder="Selecionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="true">Sim</SelectItem>
-                            <SelectItem value="false">Não</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button 
-                          onClick={() => setEditingVerification(false)}
-                          disabled={updateWalkerProfileMutation.isPending}
-                          className="w-full bg-blue-600 hover:bg-blue-700 h-9 gap-2"
-                      >
-                          {updateWalkerProfileMutation.isPending ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                              <Save className="w-3.5 h-3.5" />
-                          )}
-                          Guardar Alterações
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Verificado Oficialmente:</span>
-                        <Badge variant={walker.verification_status === 'verified' ? "default" : "secondary"}>
-                          {walker.verification_status === 'verified' ? 'Sim' : 'Não'}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Treinador Verificado:</span>
-                        <Badge variant={walker.is_verified_trainer ? "default" : "secondary"}>
-                          {walker.is_verified_trainer ? 'Sim' : 'Não'}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Funcionário PawCão:</span>
-                        <Badge variant={walker.is_pawcao_employee ? "default" : "secondary"}>
-                          {walker.is_pawcao_employee ? 'Sim' : 'Não'}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Selo Oficial PawCão:</span>
-                        <Badge variant={walker.has_pawcao_seal ? "default" : "secondary"}>
-                          {walker.has_pawcao_seal ? 'Sim' : 'Não'}
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
             {/* Card Animais Aceitos */}
             {walker.accepted_animals && walker.accepted_animals.length > 0 && (
               <Card className="bg-white shadow-sm border-0">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Dog className="w-4 h-4 text-green-600" />
-                    Animais Aceites
+                    Animais Aceitos
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
