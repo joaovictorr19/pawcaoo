@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Calendar, Trophy, Bell, User, Search } from "lucide-react";
+import { Home, Calendar, Trophy, Bell, User, Search, PawPrint } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "../ThemeContext";
