@@ -142,6 +142,7 @@ import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import WalkerWallet from './pages/WalkerWallet';
+import RequestWalk from './pages/RequestWalk';
 import __Layout from './Layout.jsx';
 
 
@@ -241,6 +242,7 @@ export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
     "WalkerWallet": WalkerWallet,
+    "RequestWalk": RequestWalk,
 }
 
 export const pagesConfig = {
