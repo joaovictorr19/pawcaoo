@@ -108,6 +108,9 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               )}
 
               <div className="relative">
+                {item.isHighlight && (
+                  <div className={`absolute inset-0 -m-2 rounded-full ${active ? "bg-green-100" : ""} transition-all`} />
+                )}
                 {item.isProfile && user ? (
                   <Avatar 
                     className={`w-5 h-5 ${active ? `ring-2 ring-offset-1 ${colors?.ring || 'ring-blue-500'}` : ""}`}
