@@ -45,9 +45,11 @@ import ActiveServiceBanner from "../components/professional/ActiveServiceBanner"
 import BookingsList from "../components/professional/BookingsList";
 import OverviewCharts from "../components/professional/OverviewCharts";
 import RecentActivity from "../components/professional/RecentActivity";
+import OpenWalksList from "../components/professional/OpenWalksList";
 
 const TABS = [
   { id: "overview", label: "Resumo", icon: BarChart3 },
+  { id: "requests", label: "Pedidos", icon: Bell },
   { id: "bookings", label: "Reservas", icon: Calendar },
   { id: "services", label: "Serviços", icon: Package },
   { id: "calendar", label: "Agenda", icon: Calendar },
@@ -603,6 +605,10 @@ export default function ProfessionalDashboard() {
                 </CardContent>
               </Card>
             </div>
+          )}
+
+          {activeTab === 'requests' && (
+            <OpenWalksList walkerProfile={walkerProfile || trainerProfile} />
           )}
 
           {activeTab === 'bookings' && (
