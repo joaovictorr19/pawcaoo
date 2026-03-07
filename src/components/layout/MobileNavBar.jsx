@@ -38,10 +38,11 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       id: "nav-home"
     },
     {
-      label: language === 'pt' ? 'Painel' : language === 'es' ? 'Panel' : 'Panel',
-      icon: Calendar,
-      path: createPageUrl("ProfessionalDashboard"),
-      activeColor: "text-blue-600"
+      label: language === 'pt' ? 'Passeio' : language === 'es' ? 'Paseo' : 'Walk',
+      icon: PawPrint,
+      path: createPageUrl("RequestWalk"),
+      activeColor: "text-green-600",
+      isHighlight: true
     },
     {
       label: getLabel('hallOfFame'),
