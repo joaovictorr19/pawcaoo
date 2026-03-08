@@ -50,6 +50,7 @@ import { t } from "@/components/translations";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
+import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import Pagination from "../components/ui/Pagination";
@@ -678,6 +679,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="commerce" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🛍️ Comércio</TabsTrigger>
             <TabsTrigger value="operations" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>⚡ Operações</TabsTrigger>
             <TabsTrigger value="gamification" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🏆 Gamificação</TabsTrigger>
+            <TabsTrigger value="debug" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9 bg-red-100 text-red-700" style={{ borderRadius: 0 }}>🐞 Debug</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -1112,6 +1114,14 @@ export default function AdminDashboard() {
               
               <SubscriptionsManager />
               <BroadcastManager />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="debug">
+            <div className="mt-6">
+              {React.lazy(() => import("./AdminDebug"))}
+              {/* Fallback inline load if lazy fails or complex import */}
+              <AdminDebug />
             </div>
           </TabsContent>
 

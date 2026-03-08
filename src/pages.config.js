@@ -120,6 +120,7 @@ import PostEmergency from './pages/PostEmergency';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ProfessionalDashboard from './pages/ProfessionalDashboard';
 import RegisterCompany from './pages/RegisterCompany';
+import RequestWalk from './pages/RequestWalk';
 import ScheduledWalks from './pages/ScheduledWalks';
 import ShelterDashboard from './pages/ShelterDashboard';
 import ShelterProfile from './pages/ShelterProfile';
@@ -142,7 +143,7 @@ import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import WalkerWallet from './pages/WalkerWallet';
-import RequestWalk from './pages/RequestWalk';
+import AdminDebug from './pages/AdminDebug';
 import __Layout from './Layout.jsx';
 
 
@@ -220,6 +221,7 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "ProfessionalDashboard": ProfessionalDashboard,
     "RegisterCompany": RegisterCompany,
+    "RequestWalk": RequestWalk,
     "ScheduledWalks": ScheduledWalks,
     "ShelterDashboard": ShelterDashboard,
     "ShelterProfile": ShelterProfile,
@@ -242,7 +244,7 @@ export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
     "WalkerWallet": WalkerWallet,
-    "RequestWalk": RequestWalk,
+    "AdminDebug": AdminDebug,
 }
 
 export const pagesConfig = {

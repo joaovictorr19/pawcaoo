@@ -1,14 +1,30 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Wallet, CalendarDays, TrendingUp, DollarSign, Clock, CheckCircle } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { 
+  ArrowUpRight, Wallet, CalendarDays, TrendingUp, DollarSign, 
+  Clock, CheckCircle, ExternalLink, Settings, AlertTriangle, Loader2 
+} from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export default function WalkerWallet({ walkerEmail }) {
-  // Fetch completed bookings for this walker
-  const { data: completedBookings = [], isLoading } = useQuery({
+  const queryClient = useQueryClient();
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
+
+  const { data: walkerProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['walkerProfile', walkerEmail],
+    queryFn: async () => {
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: walkerEmail });
+      return profiles[0];
+    },
+    enabled: !!walkerEmail,
+  });
+
+  const { data: completedBookings = [], isLoading: bookingsLoading } = useQuery({
     queryKey: ['walkerEarnings', walkerEmail],
     queryFn: async () => {
       const bookings = await base44.entities.Booking.filter({
@@ -20,9 +36,8 @@ export default function WalkerWallet({ walkerEmail }) {
     enabled: !!walkerEmail,
   });
 
-  // Calculate earnings
   const availableBalance = completedBookings
-    .filter(b => b.completed_date)
+    .filter(b => b.payment_status === 'held')
     .reduce((sum, b) => sum + (b.service_amount || 0) + (b.tip_amount || 0), 0);
 
   const todayEarnings = completedBookings
@@ -42,31 +57,77 @@ export default function WalkerWallet({ walkerEmail }) {
     })
     .reduce((sum, b) => sum + (b.service_amount || 0) + (b.tip_amount || 0), 0);
 
+  const handleWithdraw = async () => {
+    if (availableBalance <= 0) return;
+    setIsWithdrawing(true);
+    
+    try {
+      const pendingPayouts = completedBookings.filter(b => b.payment_status === 'held');
+      let successCount = 0;
+
+      // Process individually to avoid full failure
+      for (const booking of pendingPayouts) {
+        try {
+          const amountCents = Math.round(((booking.service_amount || 0) + (booking.tip_amount || 0)) * 100);
+          if (amountCents > 0) {
+            await base44.functions.invoke('createPayoutToWalker', {
+              booking_id: booking.id,
+              amount_cents: amountCents
+            });
+            successCount++;
+          }
+        } catch (err) {
+          console.error(`Failed payout for booking ${booking.id}:`, err);
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Transferido €${availableBalance.toFixed(2)} para sua conta Stripe!`);
+        queryClient.invalidateQueries({ queryKey: ['walkerEarnings'] });
+      } else {
+        toast.error("Não foi possível processar a transferência. Tente novamente.");
+      }
+    } catch (error) {
+      toast.error("Erro ao processar levantamento");
+    } finally {
+      setIsWithdrawing(false);
+    }
+  };
+
+  const handleSetupStripe = async () => {
+    setIsSettingUp(true);
+    try {
+      // Use onboarding link which handles both creation and login
+      const response = await base44.functions.invoke('createStripeOnboardingLink', {
+        return_url: window.location.href
+      });
+      
+      if (response?.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        toast.error("Erro ao conectar com Stripe");
+      }
+    } catch (error) {
+      toast.error("Erro ao iniciar configuração");
+    } finally {
+      setIsSettingUp(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "Data desconhecida";
     const date = new Date(dateString);
-    const today = new Date().toDateString();
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    
-    if (date.toDateString() === today) {
-      return `Hoje, ${date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (date.toDateString() === yesterday) {
-      return "Ontem";
-    }
     return date.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
   };
 
-  if (isLoading) {
+  const formatCurrency = (val) => {
+    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(val);
+  };
+
+  if (profileLoading || bookingsLoading) {
     return (
-      <div className="p-4 space-y-6 max-w-md mx-auto pb-24">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-48 bg-gray-200 rounded-2xl"></div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-24 bg-gray-200 rounded-xl"></div>
-            <div className="h-24 bg-gray-200 rounded-xl"></div>
-          </div>
-        </div>
+      <div className="flex justify-center p-12">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
       </div>
     );
   }
@@ -75,11 +136,33 @@ export default function WalkerWallet({ walkerEmail }) {
     <div className="p-4 space-y-6 max-w-md mx-auto pb-24">
       <h1 className="text-2xl font-bold text-gray-900">Minha Carteira</h1>
 
+      {/* WARNING IF NO STRIPE */}
+      {walkerProfile && !walkerProfile.stripe_account_id && (
+        <Card className="bg-orange-50 border-orange-200">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
+              <div>
+                <h3 className="font-bold text-orange-900">Configure os Pagamentos</h3>
+                <p className="text-sm text-orange-800 mt-1 mb-3">
+                  Para receber seus ganhos, você precisa conectar uma conta bancária via Stripe.
+                </p>
+                <Button 
+                  size="sm" 
+                  onClick={handleSetupStripe} 
+                  disabled={isSettingUp}
+                  className="bg-orange-600 hover:bg-orange-700 text-white border-0"
+                >
+                  {isSettingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Conectar Conta"}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* MAIN BALANCE CARD */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <Card className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border-0 shadow-2xl overflow-hidden relative">
           <div className="absolute top-0 right-0 p-3 opacity-10">
             <Wallet size={120} />
@@ -88,12 +171,26 @@ export default function WalkerWallet({ walkerEmail }) {
           <CardContent className="p-6 relative z-10">
             <p className="text-slate-300 text-sm font-medium mb-1">Saldo Disponível</p>
             <div className="flex items-baseline gap-1 mb-6">
-              <span className="text-5xl font-bold">€{availableBalance.toFixed(2)}</span>
+              <span className="text-5xl font-bold">{formatCurrency(availableBalance)}</span>
             </div>
             
-            <Button className="w-full bg-green-500 hover:bg-green-600 text-white font-bold h-12 rounded-xl shadow-lg shadow-green-900/30 transition-all hover:scale-[1.02]">
-              <ArrowUpRight className="mr-2 h-5 w-5" /> Levantar Fundos
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                onClick={handleWithdraw}
+                disabled={availableBalance <= 0 || isWithdrawing || !walkerProfile?.stripe_account_id}
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold h-12 rounded-xl shadow-lg shadow-green-900/30"
+              >
+                {isWithdrawing ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ArrowUpRight className="mr-2 h-5 w-5" /> Levantar</>}
+              </Button>
+              
+              <Button 
+                onClick={handleSetupStripe}
+                variant="outline"
+                className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20 font-medium h-12 rounded-xl backdrop-blur-sm"
+              >
+                <Settings className="mr-2 h-5 w-5" /> {walkerProfile?.stripe_account_id ? "Dashboard" : "Configurar"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
@@ -106,7 +203,7 @@ export default function WalkerWallet({ walkerEmail }) {
               <CalendarDays size={16} />
               <span className="text-xs font-semibold">Hoje</span>
             </div>
-            <p className="text-2xl font-bold text-blue-900">€{todayEarnings.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-blue-900">{formatCurrency(todayEarnings)}</p>
           </CardContent>
         </Card>
 
@@ -116,7 +213,7 @@ export default function WalkerWallet({ walkerEmail }) {
               <TrendingUp size={16} />
               <span className="text-xs font-semibold">Esta Semana</span>
             </div>
-            <p className="text-2xl font-bold text-green-900">€{weekEarnings.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-green-900">{formatCurrency(weekEarnings)}</p>
           </CardContent>
         </Card>
       </div>
@@ -126,7 +223,7 @@ export default function WalkerWallet({ walkerEmail }) {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-green-600" />
-            Histórico de Transações
+            Histórico Recente
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -138,31 +235,22 @@ export default function WalkerWallet({ walkerEmail }) {
           ) : (
             completedBookings.slice(0, 10).map((booking) => {
               const total = (booking.service_amount || 0) + (booking.tip_amount || 0);
+              const isPaid = booking.payment_status === 'released';
+              
               return (
-                <div
-                  key={booking.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
-                >
+                <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isPaid ? 'bg-green-100' : 'bg-yellow-100'}`}>
+                      {isPaid ? <CheckCircle className="w-5 h-5 text-green-600" /> : <Clock className="w-5 h-5 text-yellow-600" />}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {booking.dog_name || 'Passeio'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatDate(booking.completed_date)}
-                      </p>
+                      <p className="font-semibold text-gray-900 text-sm">{booking.dog_name || 'Passeio'}</p>
+                      <p className="text-xs text-gray-500">{formatDate(booking.completed_date)}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-green-600">+€{total.toFixed(2)}</p>
-                    {booking.tip_amount > 0 && (
-                      <p className="text-xs text-gray-500">
-                        (Gorjeta: €{booking.tip_amount.toFixed(2)})
-                      </p>
-                    )}
+                    <p className={`font-bold ${isPaid ? 'text-green-600' : 'text-yellow-600'}`}>+{formatCurrency(total)}</p>
+                    <p className="text-[10px] text-gray-400">{isPaid ? 'Pago' : 'Pendente'}</p>
                   </div>
                 </div>
               );
@@ -170,21 +258,6 @@ export default function WalkerWallet({ walkerEmail }) {
           )}
         </CardContent>
       </Card>
-
-      {/* PENDING BALANCE INFO */}
-      {completedBookings.some(b => b.status === 'service_completed') && (
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardContent className="p-4 flex items-start gap-3">
-            <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-yellow-900 text-sm">Pagamentos Pendentes</p>
-              <p className="text-xs text-yellow-700 mt-1">
-                Alguns pagamentos estão a ser processados. Estarão disponíveis em breve.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
