@@ -5,8 +5,10 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Navigation, StopCircle, AlertTriangle, Clock, Loader2 } from "lucide-react";
+import { Navigation, StopCircle, AlertTriangle, Clock, Loader2, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import UniversalMap from "@/components/maps/UniversalMap";
+import maplibregl from 'maplibre-gl';
 
 // Haversine formula for distance in meters
 const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => {
@@ -49,10 +51,20 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
   const [distance, setDistance] = useState(0);
   const [duration, setDuration] = useState(0);
   const [lastPos, setLastPos] = useState(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
   
   // Refs for closure-safe access in geolocation callback
   const distanceRef = useRef(0);
   const lastPosRef = useRef(null);
+  const routeRef = useRef({
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'LineString',
+      coordinates: []
+    }
+  });
   
   const watchId = useRef(null);
   const timerRef = useRef(null);
@@ -71,6 +83,66 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
     retry: 1,
     refetchInterval: 5000 // Atualizar dados a cada 5s
   });
+
+  // Initialize route from booking data if available
+  useEffect(() => {
+    if (booking?.route_coordinates && routeRef.current.geometry.coordinates.length === 0) {
+      const coords = booking.route_coordinates.map(p => [p.lng, p.lat]);
+      routeRef.current.geometry.coordinates = coords;
+      if (booking.status === 'in_progress') {
+        setIsTracking(true);
+      }
+    }
+  }, [booking]);
+
+  const updateMap = (lat, lng) => {
+    if (!mapRef.current) return;
+
+    // Update Route Source
+    routeRef.current.geometry.coordinates.push([lng, lat]);
+    const source = mapRef.current.getSource('route');
+    if (source) {
+      source.setData(routeRef.current);
+    } else {
+      // If source doesn't exist yet (map just loaded), add it
+      try {
+        mapRef.current.addSource('route', {
+          type: 'geojson',
+          data: routeRef.current
+        });
+        mapRef.current.addLayer({
+          id: 'route',
+          type: 'line',
+          source: 'route',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#22c55e',
+            'line-width': 5,
+            'line-opacity': 0.8
+          }
+        });
+      } catch (e) {
+        console.error("Map layer error", e);
+      }
+    }
+
+    // Update Marker
+    if (!markerRef.current) {
+      const el = document.createElement('div');
+      el.className = 'w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-lg animate-pulse';
+      markerRef.current = new maplibregl.Marker({ element: el })
+        .setLngLat([lng, lat])
+        .addTo(mapRef.current);
+    } else {
+      markerRef.current.setLngLat([lng, lat]);
+    }
+
+    // Pan map
+    mapRef.current.panTo([lng, lat], { duration: 1000 });
+  };
 
   // 3. Estado de Loading (Mostra Spinner enquanto carrega)
   if (isLoading) {
@@ -204,6 +276,9 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
             
             distanceRef.current += dist;
             setDistance(distanceRef.current);
+
+            // Update Map Visuals
+            updateMap(latitude, longitude);
             
             // ✅ PERSISTIR COM WHERE id = bookingId
             try {
@@ -269,8 +344,56 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-50">
-      <div className="max-w-md mx-auto space-y-4">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+      {/* Map Background */}
+      <div className="flex-1 relative">
+        <UniversalMap
+          onMapLoad={(map) => {
+            mapRef.current = map;
+            // Initialize route if data exists
+            if (routeRef.current.geometry.coordinates.length > 0) {
+              map.on('load', () => {
+                try {
+                  map.addSource('route', { type: 'geojson', data: routeRef.current });
+                  map.addLayer({
+                    id: 'route',
+                    type: 'line',
+                    source: 'route',
+                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    paint: { 'line-color': '#22c55e', 'line-width': 5, 'line-opacity': 0.8 }
+                  });
+                  // Fit bounds
+                  const bounds = new maplibregl.LngLatBounds();
+                  routeRef.current.geometry.coordinates.forEach(coord => bounds.extend(coord));
+                  map.fitBounds(bounds, { padding: 50 });
+                } catch (e) { console.error(e); }
+              });
+            }
+          }}
+          showControls={false}
+        />
+        
+        {/* Top Bar Overlay */}
+        <div className="absolute top-4 left-4 right-4 bg-white/90 backdrop-blur-md p-3 rounded-xl shadow-lg border border-white/50 flex justify-between items-center z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+              {booking?.dog_name?.[0] || '🐶'}
+            </div>
+            <div>
+              <div className="font-bold text-gray-900">{booking?.dog_name}</div>
+              <div className="text-xs text-gray-500">{booking?.owner_name}</div>
+            </div>
+          </div>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full" onClick={() => navigate(-1)}>
+            <AlertTriangle className="w-4 h-4 text-gray-400" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Bottom Controls */}
+      <div className="bg-white border-t border-gray-200 p-4 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] rounded-t-3xl relative -mt-6">
+        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4" />
+        <div className="max-w-md mx-auto space-y-4">
         
         {/* Status Display */}
         <div className="flex items-center justify-between px-2">
@@ -310,6 +433,7 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
             Ecrã mantido ligado para GPS
           </div>
         )}
+      </div>
       </div>
 
     </div>
