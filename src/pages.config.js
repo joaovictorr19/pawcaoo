@@ -53,6 +53,7 @@ import AccountSettings from './pages/AccountSettings';
 import ActiveRide from './pages/ActiveRide';
 import ActiveWalkDashboard from './pages/ActiveWalkDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminDebug from './pages/AdminDebug';
 import AdminFinanceDashboard from './pages/AdminFinanceDashboard';
 import AdminProductManagement from './pages/AdminProductManagement';
 import AdminShelterVerification from './pages/AdminShelterVerification';
@@ -143,7 +144,6 @@ import WalkHistory from './pages/WalkHistory';
 import WalkerDetails from './pages/WalkerDetails';
 import WalkerTrack from './pages/WalkerTrack';
 import WalkerWallet from './pages/WalkerWallet';
-import AdminDebug from './pages/AdminDebug';
 import __Layout from './Layout.jsx';
 
 
@@ -154,6 +154,7 @@ export const PAGES = {
     "ActiveRide": ActiveRide,
     "ActiveWalkDashboard": ActiveWalkDashboard,
     "AdminDashboard": AdminDashboard,
+    "AdminDebug": AdminDebug,
     "AdminFinanceDashboard": AdminFinanceDashboard,
     "AdminProductManagement": AdminProductManagement,
     "AdminShelterVerification": AdminShelterVerification,
@@ -244,7 +245,6 @@ export const PAGES = {
     "WalkerDetails": WalkerDetails,
     "WalkerTrack": WalkerTrack,
     "WalkerWallet": WalkerWallet,
-    "AdminDebug": AdminDebug,
 }
 
 export const pagesConfig = {
