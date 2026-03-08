@@ -46,9 +46,11 @@ import BookingsList from "../components/professional/BookingsList";
 import OverviewCharts from "../components/professional/OverviewCharts";
 import RecentActivity from "../components/professional/RecentActivity";
 import OpenWalksList from "../components/professional/OpenWalksList";
+import AdvancedAnalyticsDashboard from "@/components/professional/AdvancedAnalyticsDashboard";
 
 const TABS = [
   { id: "overview", label: "Resumo", icon: BarChart3 },
+  { id: "analytics", label: "Performance", icon: TrendingUp },
   { id: "requests", label: "Pedidos", icon: Bell },
   { id: "bookings", label: "Reservas", icon: Calendar },
   { id: "services", label: "Serviços", icon: Package },
@@ -605,6 +607,10 @@ export default function ProfessionalDashboard() {
                 </CardContent>
               </Card>
             </div>
+          )}
+
+          {activeTab === 'analytics' && (
+            <AdvancedAnalyticsDashboard walkerEmail={user?.email} />
           )}
 
           {activeTab === 'requests' && (
