@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
 import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
+import ClientPetsSection from "./ClientPetsSection";
 
 const TAG_PRESETS = [
   { name: 'VIP', color: 'purple' },
@@ -288,6 +289,14 @@ export default function ClientDetails({ user, onClose }) {
                 <div className="text-xs text-gray-600">Avaliações</div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Pets Section - New Integration */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <span className="bg-blue-100 p-1.5 rounded-lg text-blue-600">🐾</span> Pets do Cliente
+            </h3>
+            <ClientPetsSection userEmail={user.email} />
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
