@@ -610,7 +610,9 @@ export default function ProfessionalDashboard() {
           )}
 
           {activeTab === 'analytics' && (
-            <AdvancedAnalyticsDashboard walkerEmail={user?.email} />
+            <React.Suspense fallback={<div className="p-12 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-gray-400" /></div>}>
+              <AdvancedAnalyticsDashboard walkerEmail={user?.email} />
+            </React.Suspense>
           )}
 
           {activeTab === 'requests' && (

@@ -1119,8 +1119,6 @@ export default function AdminDashboard() {
 
           <TabsContent value="debug">
             <div className="mt-6">
-              {React.lazy(() => import("./AdminDebug"))}
-              {/* Fallback inline load if lazy fails or complex import */}
               <AdminDebug />
             </div>
           </TabsContent>
