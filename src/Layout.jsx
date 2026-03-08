@@ -195,7 +195,28 @@ function LayoutContent({ children, currentPageName }) {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
-        const userData = await base44.auth.me();
+        // 1. Check for impersonation
+        const impersonation = JSON.parse(localStorage.getItem('impersonation'));
+        let userData = null;
+
+        if (impersonation?.targetUserId) {
+          // Verify real admin session first
+          const realUser = await base44.auth.me();
+          if (realUser?.role === 'admin') {
+            const targets = await base44.entities.User.filter({ id: impersonation.targetUserId });
+            if (targets.length > 0) {
+              userData = { ...targets[0], isImpersonating: true };
+            }
+          } else {
+            // If not admin anymore, clear impersonation
+            localStorage.removeItem('impersonation');
+          }
+        }
+
+        // 2. Normal login if not impersonating or failed
+        if (!userData) {
+          userData = await base44.auth.me();
+        }
 
         // XP is managed in UserProfile entity only - read from there
         if (userData?.email) {
