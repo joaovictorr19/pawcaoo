@@ -62,6 +62,7 @@ import StoreItemsManager from "../components/admin/StoreItemsManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
+import AdminProfessionalManager from "../components/admin/AdminProfessionalManager";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -116,6 +117,7 @@ export default function AdminDashboard() {
   const [selectedBadgeToGrant, setSelectedBadgeToGrant] = useState(null);
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [badgeSearchTerm, setBadgeSearchTerm] = useState("");
+  const [showProfessionalManager, setShowProfessionalManager] = useState(false);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -537,15 +539,7 @@ export default function AdminDashboard() {
 
   const handleEditUser = (user) => {
     setSelectedUser(user);
-    setUserFormData({
-      full_name: user.full_name || "",
-      role: user.role || "user",
-      account_type: user.account_type || "owner",
-      phone: user.phone || "",
-      city: user.city || "",
-      social_role: user.social_role || 'user',
-    });
-    setShowUserDialog(true);
+    setShowProfessionalManager(true);
   };
 
   const handleSaveUser = () => {
@@ -708,19 +702,33 @@ export default function AdminDashboard() {
                       Controle completo: Selo PawCão, isenção de taxas e privilégios
                     </p>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-                      toast.success("Atualizado!");
-                    }}
-                    className="gap-2"
-                    style={{ borderRadius: 0 }}
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Atualizar
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setSelectedUser(null);
+                        setShowProfessionalManager(true);
+                      }}
+                      className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                      style={{ borderRadius: 0 }}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Novo Profissional
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                        toast.success("Atualizado!");
+                      }}
+                      className="gap-2"
+                      style={{ borderRadius: 0 }}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Atualizar
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-6">
@@ -1131,6 +1139,12 @@ export default function AdminDashboard() {
           onApprove={(type, item) => handleApproveApplication(type, item)}
           onReject={(type, item) => handleRejectApplication(type, item)}
           language={language}
+        />
+
+        <AdminProfessionalManager 
+          isOpen={showProfessionalManager}
+          onClose={() => setShowProfessionalManager(false)}
+          userToEdit={selectedUser}
         />
 
         </ErrorBoundary>
