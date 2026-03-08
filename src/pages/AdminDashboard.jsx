@@ -63,6 +63,7 @@ import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
 import AdminProfessionalManager from "../components/admin/AdminProfessionalManager";
+import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -669,6 +670,7 @@ export default function AdminDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex flex-wrap justify-start w-full gap-1 md:gap-2 bg-white shadow-lg p-1 md:p-2 h-auto min-h-[3rem]" style={{ borderRadius: 0 }}>
             <TabsTrigger value="overview" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>📊 Dashboard</TabsTrigger>
+            <TabsTrigger value="calendar" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>📅 Agenda</TabsTrigger>
             <TabsTrigger value="professionals" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>👥 Profissionais</TabsTrigger>
             <TabsTrigger value="users" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🔑 Utilizadores</TabsTrigger>
             <TabsTrigger value="commerce" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🛍️ Comércio</TabsTrigger>
@@ -686,6 +688,12 @@ export default function AdminDashboard() {
                 payments={allPayments}
                 isLoading={loadingStats}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="calendar">
+            <div className="mt-6">
+              <AdminInteractiveCalendar />
             </div>
           </TabsContent>
 
