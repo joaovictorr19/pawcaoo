@@ -1166,14 +1166,14 @@ export default function UserProfile() {
 
 
                   
-                  {profileUser.bio && (
-                    <p className="text-gray-600 mt-2 max-w-lg mx-auto md:mx-0 leading-relaxed">{profileUser.bio}</p>
+                  {displayBio && (
+                    <p className="text-gray-600 mt-2 max-w-lg mx-auto md:mx-0 leading-relaxed">{displayBio}</p>
                   )}
                   
-                  {profileUser.city && (
+                  {displayCity && (
                     <div className="flex items-center gap-1 text-sm text-gray-500 mt-2 justify-center md:justify-start">
                       <MapPin className="w-4 h-4" />
-                      {profileUser.city}
+                      {displayCity}
                     </div>
                   )}
 
