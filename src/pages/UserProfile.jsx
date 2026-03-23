@@ -1294,7 +1294,7 @@ export default function UserProfile() {
                       <div key={index} className={`bg-white p-5 rounded-2xl border transition-all flex justify-between items-center group ${selectedService === service.service_name ? 'border-orange-500 shadow-md ring-2 ring-orange-200' : 'border-gray-100 shadow-sm hover:shadow-md'}`}>
                         <div className="flex items-center gap-4">
                           <div className={`p-3 rounded-xl transition-colors ${selectedService === service.service_name ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white'}`}>
-                            {service.service_name.toLowerCase().includes('passeio') ? <Dog className="w-6 h-6" /> : <Star className="w-6 h-6" />}
+                            {service?.service_name?.toLowerCase()?.includes('passeio') ? <Dog className="w-6 h-6" /> : <Star className="w-6 h-6" />}
                           </div>
                           <div>
                             <p className="font-bold text-gray-900">{service.service_name}</p>
