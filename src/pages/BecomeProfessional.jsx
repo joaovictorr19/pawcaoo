@@ -1062,14 +1062,17 @@ export default function BecomeProfessional() {
                   </div>
 
                   {/* Informação de Pagamento */}
-                  <div className="space-y-4 bg-orange-50 border-2 border-orange-300 p-6 rounded-xl">
-                    <h3 className="font-bold text-lg text-gray-900">
+                  <div className="space-y-4 bg-orange-50 border-2 border-orange-300 p-6 rounded-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 bg-green-500 text-white px-3 py-1 rounded-bl-xl text-xs font-bold flex items-center gap-1 shadow-md">
+                      <Shield className="w-3 h-3" /> Criptografado & Seguro
+                    </div>
+                    <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
                       Informação de Pagamento
                     </h3>
                     <Alert className="border-blue-300 bg-blue-50">
                       <AlertDescription className="text-sm">
-                        <strong>Opcional:</strong> Pode adicionar seus dados bancários agora ou depois no Painel Profissional. 
-                        Os pagamentos ficarão retidos na sua carteira até configurar o método de saque.
+                        <strong>Opcional:</strong> Pode adicionar seus dados bancários agora ou depois na sua Carteira Segura. 
+                        Estes dados são protegidos e usados exclusivamente para seus recebimentos.
                       </AlertDescription>
                     </Alert>
 
