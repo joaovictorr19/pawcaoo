@@ -1308,7 +1308,7 @@ export default function UserProfile() {
                          professional={walkerProfile || trainerProfile}
                          onClose={handleBookingInitiated}
                          initialDate={selectedDate}
-                         selectedServiceType={null}
+                         selectedServiceType={serviceParam}
                          key={selectedDate?.toISOString()}
                        />
                      ) : (
