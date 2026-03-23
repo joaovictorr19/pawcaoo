@@ -264,16 +264,29 @@ export default function AdminUserTable({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="capitalize bg-white/50 text-[10px] h-5 whitespace-nowrap">
-                          {user.account_type || 'owner'}
+                        <Badge className={`capitalize text-white text-[10px] h-5 whitespace-nowrap ${
+                          user.account_type === 'walker' || user.account_type === 'trainer' || user.account_type === 'both' 
+                            ? 'bg-green-600' 
+                            : 'bg-blue-600'
+                        }`}>
+                          {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1 flex-wrap">
-                          <Badge className={`${user.role === 'admin' ? 'bg-purple-600' : 'bg-blue-600'} text-white text-[10px] h-5`}>
+                        <div className="flex gap-1 flex-wrap items-center">
+                          <Badge className={`${user.role === 'admin' ? 'bg-purple-600' : 'bg-gray-600'} text-white text-[10px] h-5`}>
                             {user.role === 'admin' ? 'Admin' : 'User'}
                           </Badge>
-                          {user.is_verified && <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 text-[10px] h-5">✓</Badge>}
+                          {user.professional_profile?.verification_status === 'pending' ? (
+                            <div className="flex gap-1 animate-pulse">
+                              <Button size="sm" onClick={() => onApproveUser?.(user)} className="h-5 px-2 text-[9px] bg-green-600">Aprovar</Button>
+                              <Button size="sm" onClick={() => onRejectUser?.(user)} className="h-5 px-2 text-[9px] bg-red-600">Rejeitar</Button>
+                            </div>
+                          ) : user.professional_profile?.verification_status === 'verified' || user.is_verified ? (
+                            <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 text-[10px] h-5">✓ Verificado</Badge>
+                          ) : user.professional_profile?.verification_status === 'rejected' ? (
+                            <Badge variant="outline" className="border-red-500 text-red-600 bg-red-50 text-[10px] h-5">✗ Rejeitado</Badge>
+                          ) : null}
                         </div>
                       </TableCell>
                       <TableCell className="text-[10px] text-gray-500 whitespace-nowrap">
