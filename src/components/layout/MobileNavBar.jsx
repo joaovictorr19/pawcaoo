@@ -40,7 +40,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     {
       label: "PawGo",
       icon: PawPrint,
-      path: createPageUrl("PostEmergency"),
+      path: user && ['walker', 'trainer', 'both'].includes(user.account_type) ? createPageUrl("ProfessionalDashboard") : createPageUrl("PostEmergency"),
       activeColor: "text-orange-500",
       isHighlight: true
     },
