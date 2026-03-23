@@ -1177,9 +1177,28 @@ export default function AdminDashboard() {
                         xp: selectedBadgeForAll.xp,
                         earned_date: new Date().toISOString()
                       };
-                      await base44.entities.User.update(targetUser.id, {
+                      
+                      const updates = {
                         public_badges: [...(targetUser.public_badges || []), badge]
-                      });
+                      };
+                      
+                      // Auto-update social_role base on rarity
+                      if (badge.rarity === 'legendary') updates.social_role = 'ambassador';
+                      else if (badge.rarity === 'epic' && targetUser.social_role !== 'ambassador') updates.social_role = 'influencer';
+
+                      // Fee exemptions for specific badges
+                      if (badge.name.toLowerCase().includes('ouro') || badge.name.toLowerCase().includes('gold')) {
+                        updates.professional_profile = {
+                          ...(targetUser.professional_profile || {}),
+                          platform_fee_percentage: 0
+                        };
+                        const walkers = await base44.entities.WalkerProfile.filter({ created_by: email });
+                        if (walkers.length) {
+                          await base44.entities.WalkerProfile.update(walkers[0].id, { exempt_from_platform_fees: true });
+                        }
+                      }
+
+                      await base44.entities.User.update(targetUser.id, updates);
                     }
                     queryClient.invalidateQueries({ queryKey: ['allUsers'] });
                     toast.success(`Emblema concedido a ${usersToGrantBadge.length} utilizadores!`);
