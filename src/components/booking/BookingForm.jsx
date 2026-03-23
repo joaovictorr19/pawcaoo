@@ -599,7 +599,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
               {selectedService ? (
                 <span className="truncate">{selectedService.service_name}</span>
               ) : (
-                isWalker ? 'Agendar Passeio' : 'Agendar Sessão'
+                isWalker ? 'Agendar PawGo' : 'Agendar Sessão'
               )}
             </span>
             <div className="flex gap-1">

@@ -98,7 +98,7 @@ export default function SidebarNav({ user, unreadCount, onLogout }) {
   const exploreItems = [
     { title: language === 'pt' ? 'Profissionais' : 'Professionals', url: createPageUrl("Home"), icon: Users, id: "nav-home" },
     { title: language === 'pt' ? 'Loja & Parceiros' : 'Shop & Partners', url: createPageUrl("Shop"), icon: ShoppingBag },
-    { title: language === 'pt' ? 'Emergência' : 'Emergency', url: createPageUrl("PostEmergency"), icon: Zap, emergency: true },
+    { title: 'PawGo', url: createPageUrl("PostEmergency"), icon: Zap, emergency: true },
     { title: language === 'pt' ? 'Adoção' : 'Adoption', url: createPageUrl("AdoptionListings"), icon: Heart },
     { title: language === 'pt' ? 'Abrigos' : 'Shelters', url: createPageUrl("Shelters"), icon: Building2 },
   ];
