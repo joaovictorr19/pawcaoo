@@ -12,8 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
-import UniversalMap from "@/components/maps/UniversalMap";
-import maplibregl from 'maplibre-gl';
+import LiveTrackingView from "@/components/tracking/LiveTrackingView";
 
 export default function LiveWalkTracking() {
   const navigate = useNavigate();
@@ -44,59 +43,6 @@ export default function LiveWalkTracking() {
     enabled: !!bookingId,
     refetchInterval: 5000,
   });
-
-  // Update Map Effect
-  useEffect(() => {
-    if (!mapRef.current || !booking) return;
-
-    const map = mapRef.current;
-    
-    // 1. Update Route
-    if (booking.route_coordinates && booking.route_coordinates.length > 0) {
-      const geojson = {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: booking.route_coordinates.map(p => [p.lng, p.lat])
-        }
-      };
-
-      const source = map.getSource('route');
-      if (source) {
-        source.setData(geojson);
-      } else {
-        // If source missing (should be added on load, but safety check)
-        try {
-          map.addSource('route', { type: 'geojson', data: geojson });
-          map.addLayer({
-            id: 'route',
-            type: 'line',
-            source: 'route',
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': '#22c55e', 'line-width': 5, 'line-opacity': 0.8 }
-          });
-        } catch(e) {}
-      }
-
-      // Pan to walker
-      if (booking.walker_lat && booking.walker_lng) {
-        map.panTo([booking.walker_lng, booking.walker_lat], { animate: true });
-        
-        // Update Marker
-        if (!walkerMarkerRef.current) {
-          const el = document.createElement('div');
-          el.className = 'w-8 h-8 bg-blue-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white text-xs';
-          el.innerHTML = '🐕';
-          walkerMarkerRef.current = new maplibregl.Marker({ element: el })
-            .setLngLat([booking.walker_lng, booking.walker_lat])
-            .addTo(map);
-        } else {
-          walkerMarkerRef.current.setLngLat([booking.walker_lng, booking.walker_lat]);
-        }
-      }
-    }
-  }, [booking]);
 
   const { data: checkpoints, isLoading } = useQuery({
     queryKey: ['liveCheckpoints', bookingId],
@@ -144,6 +90,26 @@ export default function LiveWalkTracking() {
     return colors[level] || "bg-gray-100 text-gray-800";
   };
 
+  const getDistanceInMeters = (lat1, lon1, lat2, lon2) => {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c;
+  };
+
+  const distanceToHome = (booking?.pickup_lat && booking?.walker_lat) 
+    ? getDistanceInMeters(booking.pickup_lat, booking.pickup_lng, booking.walker_lat, booking.walker_lng)
+    : null;
+    
+  const formattedDistance = distanceToHome 
+    ? (distanceToHome > 1000 ? `${(distanceToHome / 1000).toFixed(1)}km` : `${Math.round(distanceToHome)}m`)
+    : '';
+
   if (!bookingId) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
@@ -176,41 +142,14 @@ export default function LiveWalkTracking() {
         </div>
 
         {/* MAP VISUALIZATION */}
-        <div className="h-[400px] w-full rounded-2xl overflow-hidden shadow-xl border-4 border-white mb-8 relative">
-          <UniversalMap
-            center={booking?.walker_lat ? [booking.walker_lng, booking.walker_lat] : undefined}
-            zoom={15}
-            onMapLoad={(map) => {
-              mapRef.current = map;
-              // Add route source/layer on load
-              map.on('load', () => {
-                if (booking?.route_coordinates) {
-                  const geojson = {
-                    type: 'Feature',
-                    geometry: {
-                      type: 'LineString',
-                      coordinates: booking.route_coordinates.map(p => [p.lng, p.lat])
-                    }
-                  };
-                  map.addSource('route', { type: 'geojson', data: geojson });
-                  map.addLayer({
-                    id: 'route',
-                    type: 'line',
-                    source: 'route',
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: { 'line-color': '#22c55e', 'line-width': 5, 'line-opacity': 0.8 }
-                  });
-                }
-              });
-            }}
+        <div className="mb-8">
+          <LiveTrackingView
+            walkerCoords={{ lat: booking?.walker_lat, lng: booking?.walker_lng }}
+            routeHistory={booking?.route_coordinates}
+            destination={{ lat: booking?.pickup_lat, lng: booking?.pickup_lng }}
+            dogName={booking?.dog_name}
+            distanceToHome={formattedDistance}
           />
-          {(!booking?.route_coordinates || booking.route_coordinates.length === 0) && (
-            <div className="absolute inset-0 bg-gray-100/50 flex items-center justify-center backdrop-blur-sm z-10 pointer-events-none">
-              <div className="bg-white px-4 py-2 rounded-full shadow-lg text-gray-500 font-medium">
-                Waiting for GPS signal...
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Status Banner */}
