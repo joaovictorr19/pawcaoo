@@ -927,47 +927,102 @@ export default function AdminDashboard() {
             <div className="mt-6">
               <ProfileEditRequests />
             </div>
+            </>
+            )}
           </TabsContent>
 
           <TabsContent value="users">
-            <AdminUserTable
-              users={allUsers}
-              isLoading={loadingAllUsers}
-              onEdit={handleEditUser}
-              onDelete={handleDeleteUser}
-              onEditBadges={handleOpenBadgesDialog}
-              onSyncProfiles={handleSyncUserProfiles}
-              isSyncing={isSyncingProfiles}
-              onImpersonate={async (user) => {
-                if (!confirm(`Login como ${user.full_name}?`)) return;
-                toast.info('Redirecionando...');
-                try {
-                  const response = await base44.functions.invoke('impersonateUser', {
-                    targetUserId: user.id
-                  });
-                  if (response.data?.success) {
-                    localStorage.setItem('impersonation', JSON.stringify(response.data.impersonationData));
-                    window.location.href = createPageUrl('Home');
-                  } else {
-                    toast.error('Erro ao iniciar');
+            {activeTab === 'users' && (
+              <AdminUserTable
+                users={allUsers}
+                isLoading={loadingAllUsers}
+                onEdit={handleEditUser}
+                onDelete={handleDeleteUser}
+                onEditBadges={handleOpenBadgesDialog}
+                onSyncProfiles={handleSyncUserProfiles}
+                isSyncing={isSyncingProfiles}
+                onApproveUser={async (u) => {
+                  try {
+                    await base44.entities.User.update(u.id, {
+                      professional_profile: {
+                        ...(u.professional_profile || {}),
+                        verification_status: 'verified',
+                        is_verified: true
+                      }
+                    });
+                    if (u.account_type === 'walker' || u.account_type === 'both') {
+                      const w = await base44.entities.WalkerProfile.filter({ created_by: u.email });
+                      if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'verified', is_active: true });
+                    }
+                    if (u.account_type === 'trainer' || u.account_type === 'both') {
+                      const t = await base44.entities.TrainerProfile.filter({ created_by: u.email });
+                      if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'verified', is_active: true });
+                    }
+                    queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+                    toast.success("Usuário aprovado!");
+                  } catch (e) {
+                    toast.error("Erro ao aprovar");
                   }
-                } catch (error) {
-                  toast.error('Erro: ' + error.message);
-                }
-              }}
-            />
+                }}
+                onRejectUser={async (u) => {
+                  const reason = prompt("Motivo da rejeição:");
+                  if (!reason) return;
+                  try {
+                    await base44.entities.User.update(u.id, {
+                      professional_profile: {
+                        ...(u.professional_profile || {}),
+                        verification_status: 'rejected',
+                        rejection_reason: reason
+                      }
+                    });
+                    if (u.account_type === 'walker' || u.account_type === 'both') {
+                      const w = await base44.entities.WalkerProfile.filter({ created_by: u.email });
+                      if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'rejected', rejection_reason: reason });
+                    }
+                    if (u.account_type === 'trainer' || u.account_type === 'both') {
+                      const t = await base44.entities.TrainerProfile.filter({ created_by: u.email });
+                      if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'rejected', rejection_reason: reason });
+                    }
+                    queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+                    toast.success("Usuário rejeitado!");
+                  } catch (e) {
+                    toast.error("Erro ao rejeitar");
+                  }
+                }}
+                onImpersonate={async (user) => {
+                  if (!confirm(`Login como ${user.full_name}?`)) return;
+                  toast.info('Redirecionando...');
+                  try {
+                    const response = await base44.functions.invoke('impersonateUser', {
+                      targetUserId: user.id
+                    });
+                    if (response.data?.success) {
+                      localStorage.setItem('impersonation', JSON.stringify(response.data.impersonationData));
+                      window.location.href = createPageUrl('Home');
+                    } else {
+                      toast.error('Erro ao iniciar');
+                    }
+                  } catch (error) {
+                    toast.error('Erro: ' + error.message);
+                  }
+                }}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="commerce">
-            <div className="mt-6">
-              <ProductManagement
-                products={allPartnerProducts}
-                isLoading={false}
-              />
-            </div>
+            {activeTab === 'commerce' && (
+              <div className="mt-6">
+                <ProductManagement
+                  products={allPartnerProducts}
+                  isLoading={false}
+                />
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="operations">
+            {activeTab === 'operations' && (
             <div className="mt-6 space-y-6">
               <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
                 <CardHeader>
