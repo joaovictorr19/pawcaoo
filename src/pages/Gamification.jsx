@@ -483,8 +483,8 @@ export default function Gamification() {
     queryKey: ['allUsersRanking'],
     queryFn: async () => {
       const profiles = await base44.entities.UserProfile.list('-gamification_xp', 1000);
+      // Removemos o filtro de XP > 0 para garantir que todos os utilizadores (mesmo com 0 pontos) apareçam no pódio se não houver utilizadores suficientes.
       return profiles
-        .filter(p => (p.gamification_xp || 0) > 0)
         .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
     },
     staleTime: 0,
