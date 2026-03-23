@@ -45,6 +45,18 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
   const isProfessional = currentUser?.email === (isTraining ? booking.trainer_email : booking.walker_email);
   const canReview = booking.status === 'completed';
   
+  // Fetch Checkpoints for Map
+  const { data: checkpoints } = useQuery({
+    queryKey: ['checkpoints', booking?.id],
+    queryFn: () => base44.entities.WalkCheckpoint.filter(
+      { booking_id: booking.id },
+      'created_date'
+    ),
+    enabled: !!booking?.id && open && !isTraining && (booking.status === 'completed' || booking.status === 'in_progress'),
+    initialData: [],
+    staleTime: 5 * 60 * 1000
+  });
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
