@@ -614,36 +614,101 @@ export default function ApplicationDetailsModal({
             </DialogFooter>
           ) : (
             // Para candidaturas novas - aprovar/rejeitar
-            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-              <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
-                Fechar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  const reason = prompt("Motivo da rejeição:");
-                  if (reason) {
-                    onReject(type, selectedApp);
-                    onClose();
-                  }
-                }}
-                className="w-full sm:w-auto"
-              >
-                <XCircle className="w-4 h-4 mr-2" />
-                Rejeitar Candidatura
-              </Button>
-              <Button
-                className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
-                onClick={() => {
-                  onApprove(type, selectedApp);
-                  onClose();
-                }}
-                disabled={!selectedApp.id_document_url || !selectedApp.proof_of_address_url}
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Aprovar Candidatura
-              </Button>
-            </DialogFooter>
+            <div className="flex flex-col gap-4 w-full">
+              {/* Opções Avançadas de Admin */}
+              {!isShelter && (
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 flex flex-wrap gap-2 items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-700">Ações de Admin:</span>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-7 text-xs border-purple-200 text-purple-700 hover:bg-purple-50"
+                      onClick={async () => {
+                        try {
+                          const entity = isWalker ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                          await entity.update(selectedApp.id, { has_pawcao_seal: !selectedApp.has_pawcao_seal });
+                          setSelectedApp(prev => ({...prev, has_pawcao_seal: !prev.has_pawcao_seal}));
+                          toast.success("Selo PawCão atualizado!");
+                          queryClient.invalidateQueries(['allWalkersAdmin']);
+                        } catch (e) { toast.error("Erro ao atualizar selo"); }
+                      }}
+                    >
+                      <ShieldCheck className="w-3 h-3 mr-1" />
+                      {selectedApp.has_pawcao_seal ? 'Remover Selo' : 'Dar Selo PawCão'}
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-7 text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
+                      onClick={async () => {
+                        const newRate = prompt("Alterar Taxa Horária (€):", selectedApp.hourly_rate);
+                        if (newRate && !isNaN(newRate)) {
+                          try {
+                            const entity = isWalker ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                            await entity.update(selectedApp.id, { hourly_rate: parseFloat(newRate) });
+                            setSelectedApp(prev => ({...prev, hourly_rate: parseFloat(newRate)}));
+                            toast.success("Taxa atualizada!");
+                            queryClient.invalidateQueries(['allWalkersAdmin']);
+                          } catch (e) { toast.error("Erro ao atualizar taxa"); }
+                        }
+                      }}
+                    >
+                      Editar Taxa
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 mt-2 w-full">
+                <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+                  Fechar
+                </Button>
+                <div className="flex-1"></div>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    const reason = prompt("Motivo da rejeição:");
+                    if (reason) {
+                      onReject(type, selectedApp);
+                      onClose();
+                    }
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Rejeitar Candidatura
+                </Button>
+                <Button
+                  className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                  onClick={async () => {
+                    // Force approval if documents are present or bypass
+                    try {
+                      const entity = isWalker 
+                        ? base44.entities.WalkerProfile 
+                        : isTrainer 
+                        ? base44.entities.TrainerProfile 
+                        : base44.entities.ShelterProfile;
+                      
+                      await entity.update(selectedApp.id, { 
+                        verification_status: 'verified',
+                        is_active: true
+                      });
+                      
+                      toast.success("Aprovado com sucesso!");
+                      queryClient.invalidateQueries(['allWalkersAdmin']);
+                      queryClient.invalidateQueries(['allTrainersAdmin']);
+                      onClose();
+                    } catch(e) {
+                      toast.error("Erro ao aprovar.");
+                    }
+                  }}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Aprovar Forçadamente (Admin)
+                </Button>
+              </DialogFooter>
+            </div>
           )}
         </div>
       </DialogContent>

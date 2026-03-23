@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -590,14 +591,42 @@ export default function ProfessionalDashboard() {
           <VerificationBanner profile={profile} type={walkerProfile ? 'walker' : 'trainer'} />
 
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Painel Profissional</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                Painel Profissional
+                <Badge variant="outline" className="text-xs px-2 py-0 border-gray-300 font-medium">
+                  {profile.verification_status === 'verified' ? '✓ Verificado' : 'Pendente'}
+                </Badge>
+              </h1>
               <p className="text-xs text-gray-500 mt-0.5">{profile.walker_name || profile.trainer_name}</p>
             </div>
-            <Badge variant="outline" className="text-xs px-2 py-1 border-gray-300 font-medium">
-              {profile.verification_status === 'verified' ? '✓ Verificado' : 'Pendente'}
-            </Badge>
+            
+            {profile.verification_status === 'verified' && (
+              <div className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                <div className="flex flex-col items-end">
+                  <span className="text-xs font-semibold text-gray-700">Modo PawGo</span>
+                  <span className={`text-[10px] font-bold ${profile.is_online ? 'text-green-600' : 'text-gray-400'}`}>
+                    {profile.is_online ? 'RECEBENDO PEDIDOS' : 'OFFLINE'}
+                  </span>
+                </div>
+                <Switch 
+                  checked={profile.is_online || false}
+                  onCheckedChange={async (checked) => {
+                    try {
+                      const entity = walkerProfile ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                      await entity.update(profile.id, { is_online: checked });
+                      queryClient.invalidateQueries(['myWalkerProfile']);
+                      queryClient.invalidateQueries(['myTrainerProfile']);
+                      toast.success(checked ? "Você está Online no PawGo!" : "Você está Offline.");
+                    } catch(e) {
+                      toast.error("Erro ao alterar status.");
+                    }
+                  }}
+                  className={`${profile.is_online ? 'bg-green-500' : 'bg-gray-300'}`}
+                />
+              </div>
+            )}
           </div>
 
           {/* Quick Actions */}

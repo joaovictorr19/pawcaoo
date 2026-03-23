@@ -98,7 +98,8 @@ export default function BecomeProfessional() {
       console.log('📝 Creating WalkerProfile with data:', { isAlsoTrainer, training_specializations: data.training_specializations });
       
       results.walker = await base44.entities.WalkerProfile.create({
-        walker_name: data.name,
+      user_id: user.id,
+      walker_name: data.name,
         age: data.age || 0,
         photo_url: data.photo_url || "",
         cover_photo_url: data.cover_photo_url || "",
@@ -401,10 +402,11 @@ export default function BecomeProfessional() {
                 {currentStep === 1 && (
                   <motion.div
                     key="step1"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-6 pb-24"
                   >
                     {/* Professional Type Selection */}
                     <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-2xl border-2 border-blue-200">
@@ -611,10 +613,11 @@ export default function BecomeProfessional() {
                 {currentStep === 2 && (
                   <motion.div
                     key="step2"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-6 pb-24"
                   >
                     {/* Fixed Service Selection */}
                     <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
@@ -889,10 +892,11 @@ export default function BecomeProfessional() {
                 {currentStep === 3 && (
                 <motion.div
                   key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-6"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-6 pb-24"
                 >
                   {/* País e Dados Fiscais */}
                   <div className="space-y-4 bg-yellow-50 border-2 border-yellow-300 p-6 rounded-xl">
