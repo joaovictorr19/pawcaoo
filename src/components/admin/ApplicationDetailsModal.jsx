@@ -654,7 +654,27 @@ export default function ApplicationDetailsModal({
                         }
                       }}
                     >
-                      Editar Taxa
+                      Editar Preço/h
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-7 text-xs border-orange-200 text-orange-700 hover:bg-orange-50"
+                      onClick={async () => {
+                        const currentFee = selectedApp.platform_fee_percentage !== undefined ? selectedApp.platform_fee_percentage : 15;
+                        const newFee = prompt("Definir Comissão da Plataforma (%):", currentFee);
+                        if (newFee && !isNaN(newFee)) {
+                          try {
+                            const entity = isWalker ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+                            await entity.update(selectedApp.id, { platform_fee_percentage: parseFloat(newFee) });
+                            setSelectedApp(prev => ({...prev, platform_fee_percentage: parseFloat(newFee)}));
+                            toast.success("Comissão atualizada!");
+                            queryClient.invalidateQueries(['allWalkersAdmin']);
+                          } catch (e) { toast.error("Erro ao atualizar comissão"); }
+                        }
+                      }}
+                    >
+                      Editar Comissão (%)
                     </Button>
                   </div>
                 </div>
