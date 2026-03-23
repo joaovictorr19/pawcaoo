@@ -295,32 +295,10 @@ export default function AdminUserTable({
                         {user.created_date ? new Date(user.created_date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'N/A'}
                       </TableCell>
                       <TableCell className="text-right sticky right-0 bg-white">
-                        <div className="flex gap-1 justify-end">
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title="Ver Perfil">
-                            <Eye className="w-3.5 h-3.5 text-gray-500" />
-                          </Button>
-                          {/* AdminQuickVerify as requested by the user */}
-                          <AdminQuickVerify 
-                            userProfile={user} 
-                            walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} 
-                          />
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
-                            <Edit className="w-3.5 h-3.5 text-blue-600" />
-                          </Button>
-                          {onEditBadges && (
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-purple-100 rounded-full" onClick={() => onEditBadges(user)} title="Editar Emblemas & XP">
-                              <Award className="w-3.5 h-3.5 text-purple-600" />
-                            </Button>
-                          )}
-                          {onImpersonate && (
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onImpersonate(user)} title="Login as User">
-                              <UserCircle className="w-3.5 h-3.5 text-blue-600" />
-                            </Button>
-                          )}
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-red-100 rounded-full" onClick={() => onDelete(user)} title="Eliminar Conta">
-                            <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                          </Button>
-                        </div>
+                        <AdminQuickVerify 
+                          userProfile={user} 
+                          walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} 
+                        />
                       </TableCell>
                     </TableRow>
                   ))
