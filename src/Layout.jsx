@@ -40,7 +40,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import MobileNavBar from "@/components/layout/MobileNavBar";
 import SidebarNav from "@/components/layout/SidebarNav";
 import { lazy, Suspense } from "react";
-import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+
 import PawGoFab from "@/components/ui/PawGoFab";
 import NotificationArea from "@/components/notifications/NotificationArea";
 import PullToRefresh from "@/components/ui/PullToRefresh";
@@ -1255,34 +1255,7 @@ function LayoutContent({ children, currentPageName }) {
 
 
 
-            {authUser && (
-              <OnboardingWizard 
-                user={authUser}
-                steps={[
-                  {
-                    targetId: '#nav-home',
-                    title: language === 'pt' ? 'Bem-vindo à PawCão! 🐾' : 'Welcome to PawCão! 🐾',
-                    content: language === 'pt' 
-                      ? 'Encontra passeadores e treinadores verificados perto de ti. Todos passam por verificação de segurança!'
-                      : 'Find verified walkers and trainers near you. All go through security verification!'
-                  },
-                  {
-                    targetId: '#header-profile',
-                    title: language === 'pt' ? 'O Teu Perfil' : 'Your Profile',
-                    content: language === 'pt'
-                      ? 'Adiciona os teus cães, edita preferências e acompanha o teu nível e estatísticas.'
-                      : 'Add your dogs, edit preferences and track your level and stats.'
-                  },
-                  {
-                    targetId: '#nav-gamification',
-                    title: language === 'pt' ? 'Ganha Prémios! 🏆' : 'Earn Rewards! 🏆',
-                    content: language === 'pt'
-                      ? 'Acumula XP em cada passeio, desbloqueia emblemas e sobe no ranking da comunidade!'
-                      : 'Earn XP on every walk, unlock badges and climb the community ranking!'
-                  }
-                ]}
-              />
-            )}
+
 
             <footer className="mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-0 bg-white/30 border-white/40 w-full">
               <div className="max-w-7xl mx-auto px-6 py-8 w-full">
