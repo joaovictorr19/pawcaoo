@@ -479,7 +479,7 @@ export default function Gamification() {
     enabled: !!user?.email,
   });
 
-  const { data: allUsers = [] } = useQuery({
+  const { data: allUsers = [], refetch } = useQuery({
     queryKey: ['allUsersRanking'],
     queryFn: async () => {
       const profiles = await base44.entities.UserProfile.list('-gamification_xp', 1000);
@@ -487,7 +487,13 @@ export default function Gamification() {
         .filter(p => (p.gamification_xp || 0) > 0)
         .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
     },
+    staleTime: 0,
   });
+
+  // Forçar recarregamento ao montar para garantir ranking atualizado
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const topUsers = allUsers.slice(0, 10);
   const userRank = allUsers.findIndex(p => p.user_email === user?.email) + 1;
@@ -604,221 +610,8 @@ export default function Gamification() {
         />
       </div>
 
-      {/* ========== SECÇÃO 1: O TEU LEGADO ========== */}
+      {/* ========== SECÇÃO 1: O PÓDIO DOS TITÃS ========== */}
       <section className="relative pt-12 pb-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Título da secção */}
-          <motion.h2
-            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-12"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            O Teu Legado
-          </motion.h2>
-
-          <div className="flex flex-col md:flex-row items-center justify-center gap-12">
-            {/* Totem de Poder */}
-            <motion.div
-              className="relative"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-            >
-              {/* Barra vertical do totem */}
-              <div className="relative w-12 h-48 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
-                {/* Preenchimento de lava - começa de baixo */}
-                <motion.div
-                  className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-700 via-orange-500 to-amber-400"
-                  style={{ height: `${progressInLevel}%` }}
-                  initial={{ height: 0 }}
-                  animate={{ height: `${progressInLevel}%` }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                >
-                  {/* Efeito de lava borbulhante */}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-t from-red-600/80 via-orange-400/50 to-yellow-300/30"
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                  />
-                  {/* Bolhas */}
-                  <motion.div
-                    className="absolute top-2 left-3 w-2 h-2 bg-yellow-300 rounded-full"
-                    animate={{ y: [-5, -15, -5], opacity: [1, 0, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <motion.div
-                    className="absolute top-4 right-4 w-1.5 h-1.5 bg-yellow-200 rounded-full"
-                    animate={{ y: [-5, -20, -5], opacity: [1, 0, 1] }}
-                    transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-                  />
-                </motion.div>
-
-                {/* Marcadores de nível */}
-                {[25, 50, 75].map((mark) => (
-                  <div 
-                    key={mark} 
-                    className="absolute left-0 right-0 h-0.5 bg-amber-500/20"
-                    style={{ bottom: `${mark}%` }}
-                  />
-                ))}
-              </div>
-
-              {/* Avatar flutuante - sobe junto com o progresso do nível */}
-              <motion.div
-                className="absolute left-1/2 -translate-x-1/2"
-                style={{ bottom: `${Math.min(95, progressInLevel + 5)}%` }}
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                {/* Aura */}
-                <motion.div
-                  className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-lg scale-125`}
-                  animate={{ 
-                    scale: [1.25, 1.5, 1.25], 
-                    opacity: [0.4, 0.6, 0.4] 
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-                
-                <Avatar className="w-10 h-10 border-2 border-amber-500 shadow-xl shadow-amber-500/50 relative z-10">
-                  <AvatarImage src={user?.profile_photo_url} />
-                  <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm font-black">
-                    {user?.full_name?.[0] || '?'}
-                  </AvatarFallback>
-                </Avatar>
-              </motion.div>
-
-              {/* XP atual na base */}
-              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                <Badge className="bg-black border border-amber-500/50 text-amber-400">
-                  <Flame className="w-3 h-3 mr-1" />
-                  {currentXP.toLocaleString()} XP
-                </Badge>
-              </div>
-            </motion.div>
-
-            {/* Info do Nível */}
-            <motion.div
-              className="text-center md:text-left"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <motion.div
-                className="inline-flex items-center gap-2 bg-black/50 border border-amber-500/30 rounded-full px-4 py-1 mb-4"
-                animate={{ boxShadow: ['0 0 10px rgba(245,158,11,0.2)', '0 0 20px rgba(245,158,11,0.4)', '0 0 10px rgba(245,158,11,0.2)'] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <Star className="w-4 h-4 text-amber-400" />
-                <span className="text-amber-400 text-sm font-bold uppercase tracking-wider">
-                  Nível {currentLevel}
-                </span>
-              </motion.div>
-
-              <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">
-                {title}
-              </h1>
-
-              <p className="text-gray-500 text-sm mb-6">
-                Faltam <span className="text-amber-400 font-bold">{xpNeeded.toLocaleString()} XP</span> para o próximo nível
-              </p>
-
-              {/* Mini barra de progresso */}
-              <div className="w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-amber-500/20">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-orange-600 to-amber-400"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressInLevel}%` }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                />
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========== SECÇÃO 2: AS PROVAÇÕES ========== */}
-      <section className="relative py-16 px-4 border-y border-amber-500/10">
-        <div className="max-w-6xl mx-auto">
-          <motion.h2
-            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-4"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            As Provações
-          </motion.h2>
-          <p className="text-center text-gray-600 text-xs mb-12">
-            Completa missões para ganhar XP e recompensas exclusivas
-          </p>
-
-          {/* Carrossel de Cartas */}
-          <div className="relative">
-            {/* Botões de navegação */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={prevCard}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 h-12 w-12 rounded-full"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={nextCard}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 h-12 w-12 rounded-full"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </Button>
-
-            {/* Container das cartas */}
-            <div className="flex justify-center items-center gap-4 overflow-hidden px-16 py-8">
-              <AnimatePresence mode="popLayout">
-                {MISSIONS.slice(carouselIndex, carouselIndex + 3).concat(
-                  MISSIONS.slice(0, Math.max(0, carouselIndex + 3 - MISSIONS.length))
-                ).slice(0, 3).map((mission, idx) => (
-                  <motion.div
-                    key={mission.id}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ 
-                      opacity: idx === 1 ? 1 : 0.6, 
-                      scale: idx === 1 ? 1 : 0.85,
-                      zIndex: idx === 1 ? 10 : 0
-                    }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3 }}
-                    className={idx === 1 ? '' : 'hidden md:block'}
-                  >
-                    <MissionCard
-                      mission={mission}
-                      isFlipped={flippedCard === mission.id}
-                      onFlip={() => setFlippedCard(flippedCard === mission.id ? null : mission.id)}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-
-            {/* Indicadores */}
-            <div className="flex justify-center gap-2 mt-6">
-              {MISSIONS.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCarouselIndex(idx)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    idx === carouselIndex ? 'bg-amber-500 w-6' : 'bg-neutral-700 hover:bg-neutral-600'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========== SECÇÃO 3: O PÓDIO DOS TITÃS ========== */}
-      <section className="relative py-12 px-4">
         <div className="max-w-2xl mx-auto">
           <motion.h2
             className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-4"
@@ -983,6 +776,219 @@ export default function Gamification() {
               )}
             </motion.div>
           )}
+        </div>
+      </section>
+
+      {/* ========== SECÇÃO 2: O TEU LEGADO ========== */}
+      <section className="relative py-12 px-4 border-t border-amber-500/10">
+        <div className="max-w-4xl mx-auto">
+          {/* Título da secção */}
+          <motion.h2
+            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-12"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            O Teu Legado
+          </motion.h2>
+
+          <div className="flex flex-col md:flex-row items-center justify-center gap-12">
+            {/* Totem de Poder */}
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8 }}
+            >
+              {/* Barra vertical do totem */}
+              <div className="relative w-12 h-48 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
+                {/* Preenchimento de lava - começa de baixo */}
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-700 via-orange-500 to-amber-400"
+                  style={{ height: `${progressInLevel}%` }}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${progressInLevel}%` }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                >
+                  {/* Efeito de lava borbulhante */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-t from-red-600/80 via-orange-400/50 to-yellow-300/30"
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  />
+                  {/* Bolhas */}
+                  <motion.div
+                    className="absolute top-2 left-3 w-2 h-2 bg-yellow-300 rounded-full"
+                    animate={{ y: [-5, -15, -5], opacity: [1, 0, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <motion.div
+                    className="absolute top-4 right-4 w-1.5 h-1.5 bg-yellow-200 rounded-full"
+                    animate={{ y: [-5, -20, -5], opacity: [1, 0, 1] }}
+                    transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+                  />
+                </motion.div>
+
+                {/* Marcadores de nível */}
+                {[25, 50, 75].map((mark) => (
+                  <div 
+                    key={mark} 
+                    className="absolute left-0 right-0 h-0.5 bg-amber-500/20"
+                    style={{ bottom: `${mark}%` }}
+                  />
+                ))}
+              </div>
+
+              {/* Avatar flutuante - sobe junto com o progresso do nível */}
+              <motion.div
+                className="absolute left-1/2 -translate-x-1/2"
+                style={{ bottom: `${Math.min(95, progressInLevel + 5)}%` }}
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                {/* Aura */}
+                <motion.div
+                  className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-lg scale-125`}
+                  animate={{ 
+                    scale: [1.25, 1.5, 1.25], 
+                    opacity: [0.4, 0.6, 0.4] 
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+                
+                <Avatar className="w-10 h-10 border-2 border-amber-500 shadow-xl shadow-amber-500/50 relative z-10">
+                  <AvatarImage src={user?.profile_photo_url} />
+                  <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm font-black">
+                    {user?.full_name?.[0] || '?'}
+                  </AvatarFallback>
+                </Avatar>
+              </motion.div>
+
+              {/* XP atual na base */}
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                <Badge className="bg-black border border-amber-500/50 text-amber-400">
+                  <Flame className="w-3 h-3 mr-1" />
+                  {currentXP.toLocaleString()} XP
+                </Badge>
+              </div>
+            </motion.div>
+
+            {/* Info do Nível */}
+            <motion.div
+              className="text-center md:text-left"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <motion.div
+                className="inline-flex items-center gap-2 bg-black/50 border border-amber-500/30 rounded-full px-4 py-1 mb-4"
+                animate={{ boxShadow: ['0 0 10px rgba(245,158,11,0.2)', '0 0 20px rgba(245,158,11,0.4)', '0 0 10px rgba(245,158,11,0.2)'] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Star className="w-4 h-4 text-amber-400" />
+                <span className="text-amber-400 text-sm font-bold uppercase tracking-wider">
+                  Nível {currentLevel}
+                </span>
+              </motion.div>
+
+              <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">
+                {title}
+              </h1>
+
+              <p className="text-gray-500 text-sm mb-6">
+                Faltam <span className="text-amber-400 font-bold">{xpNeeded.toLocaleString()} XP</span> para o próximo nível
+              </p>
+
+              {/* Mini barra de progresso */}
+              <div className="w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-amber-500/20">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-orange-600 to-amber-400"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressInLevel}%` }}
+                  transition={{ duration: 1, delay: 0.5 }}
+                />
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== SECÇÃO 3: AS PROVAÇÕES ========== */}
+      <section className="relative py-16 px-4 border-t border-amber-500/10">
+        <div className="max-w-6xl mx-auto">
+          <motion.h2
+            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-4"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            As Provações
+          </motion.h2>
+          <p className="text-center text-gray-600 text-xs mb-12">
+            Completa missões para ganhar XP e recompensas exclusivas
+          </p>
+
+          {/* Carrossel de Cartas */}
+          <div className="relative">
+            {/* Botões de navegação */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={prevCard}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 h-12 w-12 rounded-full"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextCard}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 h-12 w-12 rounded-full"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </Button>
+
+            {/* Container das cartas */}
+            <div className="flex justify-center items-center gap-4 overflow-hidden px-16 py-8">
+              <AnimatePresence mode="popLayout">
+                {MISSIONS.slice(carouselIndex, carouselIndex + 3).concat(
+                  MISSIONS.slice(0, Math.max(0, carouselIndex + 3 - MISSIONS.length))
+                ).slice(0, 3).map((mission, idx) => (
+                  <motion.div
+                    key={mission.id}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ 
+                      opacity: idx === 1 ? 1 : 0.6, 
+                      scale: idx === 1 ? 1 : 0.85,
+                      zIndex: idx === 1 ? 10 : 0
+                    }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.3 }}
+                    className={idx === 1 ? '' : 'hidden md:block'}
+                  >
+                    <MissionCard
+                      mission={mission}
+                      isFlipped={flippedCard === mission.id}
+                      onFlip={() => setFlippedCard(flippedCard === mission.id ? null : mission.id)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Indicadores */}
+            <div className="flex justify-center gap-2 mt-6">
+              {MISSIONS.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCarouselIndex(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    idx === carouselIndex ? 'bg-amber-500 w-6' : 'bg-neutral-700 hover:bg-neutral-600'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
