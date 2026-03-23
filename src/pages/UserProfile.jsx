@@ -1249,26 +1249,109 @@ export default function UserProfile() {
           </TabsContent>
 
           {(profileUser?.role === 'walker' || profileUser?.is_verified || walkerProfile || trainerProfile) && (
-            <TabsContent value="services" className="mt-0">
-              <Card className="glass-panel border-0 shadow-lg rounded-2xl">
-                <CardHeader>
-                  <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-blue-600" />
-                    Histórico de Serviços
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="text-center py-12">
-                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">Histórico de serviços prestados aparecerá aqui.</p>
-                    {isOwnProfile && (
-                      <Button className="mt-4 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}>
-                        Acessar Painel Profissional
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="pawgo" className="mt-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                   {/* Calendário */}
+                   <Card className="glass-panel border-0 shadow-lg rounded-2xl">
+                     <CardHeader className="pb-3">
+                       <CardTitle className="text-base flex items-center gap-2">
+                         <Calendar className="w-5 h-5 text-green-600" />
+                         Selecione uma Data
+                       </CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                       <AvailabilityCalendar
+                         availabilityData={availability}
+                         bookings={walkerBookings}
+                         selectedDate={selectedDate}
+                         onDateSelect={handleDateSelect}
+                         locale={pt}
+                         walkerEmail={profileEmail}
+                         isInteractive={false}
+                       />
+                     </CardContent>
+                   </Card>
+
+                   {/* Serviços Oferecidos */}
+                   {(walkerProfile?.services_offered?.length > 0 || trainerProfile?.services_offered?.length > 0) && (
+                     <Card className="glass-panel border-0 shadow-lg rounded-2xl">
+                       <CardHeader className="pb-3">
+                         <CardTitle className="text-base flex items-center gap-2">
+                           <Award className="w-5 h-5 text-indigo-600" />
+                           Serviços Disponíveis
+                         </CardTitle>
+                       </CardHeader>
+                       <CardContent>
+                         <div className="space-y-3">
+                           {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
+                             <div key={idx} className="flex justify-between items-center p-3 rounded-lg bg-white/50 border border-gray-100">
+                               <div className="flex-1">
+                                 <p className="font-semibold text-gray-900 text-sm">{service.service_name}</p>
+                                 <p className="text-xs text-gray-500 line-clamp-1">{service.description}</p>
+                               </div>
+                               <span className="font-bold text-green-600 ml-4">€{service.price}</span>
+                             </div>
+                           ))}
+                         </div>
+                       </CardContent>
+                     </Card>
+                   )}
+                </div>
+
+                <div className="space-y-6">
+                   {/* Formulário de Reserva */}
+                   <div id="booking-form-section">
+                     {selectedDate ? (
+                       <BookingForm
+                         professional={walkerProfile || trainerProfile}
+                         onClose={handleBookingInitiated}
+                         initialDate={selectedDate}
+                         selectedServiceType={null}
+                         key={selectedDate?.toISOString()}
+                       />
+                     ) : (
+                       <Card className="glass-panel border-2 border-dashed border-gray-300 h-full min-h-[300px] flex items-center justify-center rounded-2xl shadow-none">
+                         <CardContent className="py-12 text-center w-full">
+                           <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                           <h3 className="text-lg font-semibold text-gray-900 mb-2">Selecione uma data</h3>
+                           <p className="text-sm text-gray-500">
+                             Clique em um dia disponível no calendário ao lado
+                           </p>
+                         </CardContent>
+                       </Card>
+                     )}
+                   </div>
+
+                   {/* Avaliações */}
+                   <Card className="glass-panel border-0 shadow-lg rounded-2xl">
+                     <CardHeader className="pb-3">
+                       <CardTitle className="text-base flex items-center justify-between">
+                         <div className="flex items-center gap-2">
+                           <Star className="w-5 h-5 text-yellow-500" />
+                           Avaliações ({reviews.length})
+                         </div>
+                       </CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                       {loadingReviews ? (
+                         <div className="h-32 animate-pulse bg-gray-100 rounded-lg" />
+                       ) : reviews.length === 0 ? (
+                         <div className="text-center py-8">
+                           <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                           <p className="text-sm text-gray-500">Nenhuma avaliação ainda</p>
+                         </div>
+                       ) : (
+                         <div className="space-y-4">
+                           {reviews.slice(0, 3).map((review) => (
+                             <ReviewCard key={review.id} review={review} />
+                           ))}
+                         </div>
+                       )}
+                     </CardContent>
+                   </Card>
+                </div>
+              </div>
             </TabsContent>
           )}
 
