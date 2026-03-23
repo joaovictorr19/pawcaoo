@@ -8,7 +8,7 @@ export function ServiceCard({ service }) {
           {service.type === 'walk' ? <Dog className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
         </div>
         <div>
-          <h4 className="font-bold text-slate-900 leading-tight">{service.name}</h4>
+          <h4 className="font-bold text-slate-900 leading-tight">{service.name || "Serviço"}</h4>
           <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
             {service.duration || "Tempo Variável"} • {service.animal_type || "Cães"}
           </p>
