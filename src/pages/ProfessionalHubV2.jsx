@@ -7,7 +7,7 @@ import {
 import { 
   Play, Pause, AlertOctagon, Wallet, Calendar, 
   Map as MapIcon, Settings, CheckCircle, Clock, ShieldCheck,
-  ChevronRight, Activity, Zap, Dog, Award
+  ChevronRight, Activity, Zap, Dog, Award, Package, Plus
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
