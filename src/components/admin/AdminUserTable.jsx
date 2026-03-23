@@ -21,6 +21,7 @@ import { AdminQuickVerify } from "./AdminQuickVerify";
 
 export default function AdminUserTable({ 
   users = [], 
+  walkers = [],
   isLoading = false, 
   onEdit, 
   onDelete, 
@@ -301,7 +302,7 @@ export default function AdminUserTable({
                           {/* AdminQuickVerify as requested by the user */}
                           <AdminQuickVerify 
                             userProfile={user} 
-                            walkerData={user.professional_profile} 
+                            walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} 
                           />
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
                             <Edit className="w-3.5 h-3.5 text-blue-600" />

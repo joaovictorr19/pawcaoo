@@ -935,6 +935,7 @@ export default function AdminDashboard() {
             {activeTab === 'users' && (
               <AdminUserTable
                 users={allUsers}
+                walkers={allWalkers}
                 isLoading={loadingAllUsers}
                 onEdit={handleEditUser}
                 onDelete={handleDeleteUser}
