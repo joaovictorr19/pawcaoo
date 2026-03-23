@@ -176,7 +176,17 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
         phone: data.phone,
         city: data.city,
         account_type: data.account_type,
-        role: data.role
+        role: data.role,
+        pawgo_status: {
+          ...(userToEdit.pawgo_status || {}),
+          is_online: data.is_online
+        },
+        professional_profile: {
+          ...(userToEdit.professional_profile || {}),
+          verification_status: data.verification_status,
+          is_verified: data.verification_status === 'verified',
+          platform_fee_percentage: parseFloat(data.platform_fee_percentage || 15)
+        }
       });
 
       // 2. Update Profile if exists
