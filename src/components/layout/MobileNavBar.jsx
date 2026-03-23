@@ -38,11 +38,12 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       id: "nav-home"
     },
     {
-      label: "PawGo",
-      icon: PawPrint,
+      label: user?.pawgo_status?.is_online ? "Online" : "PawGo",
+      icon: user?.pawgo_status?.is_online ? Zap : PawPrint,
       path: user && ['walker', 'trainer', 'both'].includes(user.account_type) ? createPageUrl("ProfessionalDashboard") : createPageUrl("PostEmergency"),
-      activeColor: "text-orange-500",
-      isHighlight: true
+      activeColor: user?.pawgo_status?.is_online ? "text-green-500" : "text-orange-500",
+      isHighlight: true,
+      customBg: user?.pawgo_status?.is_online ? "bg-green-100" : "bg-orange-100"
     },
     {
       label: getLabel('hallOfFame'),
@@ -109,7 +110,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
               <div className="relative">
                 {item.isHighlight && (
-                  <div className={`absolute inset-0 -m-2 rounded-full ${active ? "bg-green-100" : ""} transition-all`} />
+                  <div className={`absolute inset-0 -m-2 rounded-full ${active ? (item.customBg || "bg-orange-100") : ""} transition-all`} />
                 )}
                 {item.isProfile && user ? (
                   <Avatar 

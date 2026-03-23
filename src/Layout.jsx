@@ -1078,18 +1078,61 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Ações Direita */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Role Switcher para Profissionais */}
+            {/* Role Switcher Avançado para Profissionais */}
             {authUser && ['walker', 'trainer', 'both'].includes(authUser.account_type) && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden lg:flex h-8 text-xs font-bold border-green-200 text-green-700 bg-green-50 hover:bg-green-100 mr-2"
-                onClick={() => navigate(createPageUrl("ProfessionalDashboard"))}
-              >
-                <Zap className="w-3.5 h-3.5 mr-1" />
-                Modo: Trabalhar
-              </Button>
+              <div className="hidden lg:flex items-center bg-gray-100 rounded-lg p-1 border border-gray-200">
+                {/* Modo Tutor (Client) */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`h-7 px-3 text-xs font-semibold rounded-md transition-all ${
+                    !authUser.pawgo_status?.is_online 
+                      ? 'bg-white shadow-sm text-gray-900' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  onClick={async () => {
+                    try {
+                      await base44.auth.updateMe({ pawgo_status: { ...authUser.pawgo_status, is_online: false }});
+                      queryClient.invalidateQueries(['currentUser']);
+                      toast.success("Modo Tutor Ativado. Você está offline no PawGo.");
+                    } catch(e) {
+                      toast.error("Erro ao alterar modo.");
+                    }
+                  }}
+                >
+                  <User className="w-3.5 h-3.5 mr-1" />
+                  Modo Tutor
+                </Button>
+                
+                {/* Modo Profissional (Online) */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`h-7 px-3 text-xs font-bold rounded-md transition-all ${
+                    authUser.pawgo_status?.is_online 
+                      ? 'bg-green-500 shadow-sm text-white' 
+                      : 'text-gray-500 hover:text-green-600'
+                  }`}
+                  onClick={async () => {
+                    try {
+                      await base44.auth.updateMe({ pawgo_status: { ...authUser.pawgo_status, is_online: true }});
+                      queryClient.invalidateQueries(['currentUser']);
+                      toast.success("Modo Trabalhar Ativado! Você está Online no PawGo.");
+                      // Redireciona opcionalmente para o dashboard
+                      if (location.pathname !== createPageUrl("ProfessionalDashboard")) {
+                        navigate(createPageUrl("ProfessionalDashboard"));
+                      }
+                    } catch(e) {
+                      toast.error("Erro ao alterar modo.");
+                    }
+                  }}
+                >
+                  <Zap className="w-3.5 h-3.5 mr-1" />
+                  Ficar Online
+                </Button>
+              </div>
             )}
+            
             <Button
               variant="ghost"
               size="icon"
