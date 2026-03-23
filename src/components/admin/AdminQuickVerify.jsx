@@ -1,0 +1,137 @@
+import React, { useState } from "react";
+import { Check, X, Eye, FileText, ShieldCheck, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { 
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter 
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+export function AdminQuickVerify({ userProfile, walkerData }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Mutação Única para Aprovar e Ativar no PawGo
+  const verifyMutation = useMutation({
+    mutationFn: async (status) => {
+      // 1. Atualiza o Perfil de Walker
+      if (walkerData && walkerData.id) {
+        await base44.entities.WalkerProfile.update(walkerData.id, {
+          verification_status: status,
+          is_active: status === 'verified',
+          has_pawcao_seal: status === 'verified' // Dá o selo automaticamente
+        });
+      }
+
+      // 2. Atualiza o Usuário Global (Unificação)
+      if (userProfile && userProfile.id) {
+        await base44.entities.User.update(userProfile.id, {
+          is_verified: status === 'verified',
+          role: status === 'verified' ? 'professional' : 'user'
+        });
+      }
+    },
+    onSuccess: (_, status) => {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+      toast.success(status === 'verified' ? "Profissional Ativado no PawGo!" : "Candidatura Rejeitada.");
+      setIsOpen(false);
+    }
+  });
+
+  if (!walkerData) return null;
+
+  return (
+    <>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => setIsOpen(true)}
+        className="h-8 gap-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+      >
+        <Eye className="w-4 h-4" /> Validar
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-2xl border-0 shadow-2xl overflow-hidden p-0 sm:max-w-2xl">
+          <DialogHeader className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
+            <div className="flex justify-between items-center">
+              <DialogTitle className="text-xl flex items-center gap-2">
+                <ShieldCheck className="text-green-400" /> 
+                Verificação: {walkerData.walker_name}
+              </DialogTitle>
+              <Badge variant="outline" className="text-white border-white/20">
+                ID: {walkerData.id ? walkerData.id.slice(0,8) : 'N/A'}
+              </Badge>
+            </div>
+          </DialogHeader>
+
+          <div className="p-6 grid md:grid-cols-2 gap-6 bg-gray-50 max-h-[60vh] overflow-y-auto">
+            {/* Lado Esquerdo: Documento */}
+            <div className="space-y-2">
+              <Label className="text-xs uppercase font-bold text-gray-500">Documento de Identificação</Label>
+              <div className="aspect-[4/3] bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden group cursor-zoom-in">
+                {walkerData.id_document_url ? (
+                  <img 
+                    src={walkerData.id_document_url} 
+                    alt="ID Document" 
+                    className="w-full h-full object-contain transition-transform group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="text-center p-4">
+                    <FileText className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                    <p className="text-xs text-gray-400">Nenhum documento anexado</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Lado Direito: Info de Cadastro */}
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-lg shadow-sm border">
+                <h4 className="font-bold text-sm mb-3 border-b pb-2">Dados Fiscais (NIF)</h4>
+                <p className="text-lg font-mono text-blue-700">{walkerData.tax_id_portugal || "Não informado"}</p>
+                <p className="text-xs text-gray-500 mt-1">País: {walkerData.country_of_operation}</p>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg shadow-sm border">
+                <h4 className="font-bold text-sm mb-3 border-b pb-2">Resumo Profissional</h4>
+                <div className="space-y-1 text-sm">
+                  <p><strong>Experiência:</strong> {walkerData.experience_years} anos</p>
+                  <p><strong>Taxa Horária:</strong> {walkerData.hourly_rate}€</p>
+                  <p><strong>WhatsApp:</strong> {walkerData.whatsapp_number}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-4 bg-white border-t gap-2 sm:gap-0 flex-col sm:flex-row">
+            <Button 
+              variant="ghost" 
+              className="text-red-600 hover:bg-red-50"
+              onClick={() => verifyMutation.mutate('rejected')}
+              disabled={verifyMutation.isPending}
+            >
+              <X className="w-4 h-4 mr-2" /> Rejeitar
+            </Button>
+            
+            <Button 
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => verifyMutation.mutate('verified')}
+              disabled={verifyMutation.isPending}
+            >
+              {verifyMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <><Check className="w-4 h-4 mr-2" /> Aprovar e Ativar PawGo</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
