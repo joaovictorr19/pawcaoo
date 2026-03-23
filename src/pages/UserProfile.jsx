@@ -123,6 +123,13 @@ export default function UserProfile() {
   const { language } = useLanguage();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("badges");
+
+  // Se houver um parâmetro de serviço na URL, ou se for um profissional, focar na aba PawGo
+  useEffect(() => {
+    if (serviceParam) {
+      setActiveTab("pawgo");
+    }
+  }, [serviceParam]);
   const createNotification = useCreateNotification();
 
   const urlParams = new URLSearchParams(window.location.search);
