@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ProfessionalHubV2 from './pages/ProfessionalHubV2';
 import ProfessionalSetup from './pages/ProfessionalSetup';
+import AdminProfessionalApprovals from './pages/AdminProfessionalApprovals';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -56,6 +57,7 @@ const AuthenticatedApp = () => {
         ))}
         <Route path="/ProfessionalHubV2" element={<ProfessionalHubV2 />} />
         <Route path="/ProfessionalSetup" element={<ProfessionalSetup />} />
+        <Route path="/AdminProfessionalApprovals" element={<AdminProfessionalApprovals />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </LayoutWrapper>

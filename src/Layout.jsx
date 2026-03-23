@@ -363,6 +363,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const adminMenu = authUser?.role === 'admin' ? [
           { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
+          { title: "Aprovações Profissionais", url: createPageUrl("AdminProfessionalApprovals"), icon: ShieldCheck },
           { title: "Teste Pagamentos", url: createPageUrl("TestPayments"), icon: CreditCard },
           { title: getMenuText('verifyWalkers'), url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
           { title: "Shop Hub", url: createPageUrl("AdminShopHub"), icon: Store },
