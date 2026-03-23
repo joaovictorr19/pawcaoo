@@ -394,6 +394,85 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="pawgo" className="space-y-4 py-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-orange-50 border-orange-200">
+              <div className="space-y-0.5">
+                <Label className="text-base text-orange-900">Estado PawGo (Online)</Label>
+                <p className="text-sm text-orange-700">Forçar offline se o profissional estiver ausente</p>
+              </div>
+              <Switch 
+                checked={formData.is_online}
+                onCheckedChange={(checked) => setFormData({...formData, is_online: checked})}
+              />
+            </div>
+
+            <div className="p-4 border rounded-lg bg-blue-50 border-blue-200 space-y-4">
+              <div className="space-y-0.5">
+                <Label className="text-base text-blue-900">Gestão de Taxas / Comissões</Label>
+                <p className="text-sm text-blue-700">Defina a percentagem que a plataforma cobra sobre os serviços</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative w-32">
+                  <Input 
+                    type="number" 
+                    value={formData.platform_fee_percentage} 
+                    onChange={(e) => setFormData({...formData, platform_fee_percentage: e.target.value})} 
+                  />
+                  <span className="absolute right-3 top-2.5 text-gray-500">%</span>
+                </div>
+                <p className="text-xs text-gray-600">
+                  O profissional receberá {100 - (formData.platform_fee_percentage || 0)}%.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 border rounded-lg bg-gray-50 space-y-4">
+              <div className="space-y-0.5">
+                <Label className="text-base">Documentos Submetidos</Label>
+                <p className="text-sm text-gray-500">Valide a identidade do profissional</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                <div className="space-y-2">
+                  <Label className="text-sm">ID / Passaporte</Label>
+                  {formData.documents?.id_url ? (
+                    <a href={formData.documents.id_url} target="_blank" rel="noreferrer" className="block text-blue-600 text-sm hover:underline border p-2 rounded bg-white">Ver Documento</a>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic border p-2 rounded bg-gray-100">Não enviado</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Comprovativo de Morada</Label>
+                  {formData.documents?.address_proof_url ? (
+                    <a href={formData.documents.address_proof_url} target="_blank" rel="noreferrer" className="block text-blue-600 text-sm hover:underline border p-2 rounded bg-white">Ver Comprovativo</a>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic border p-2 rounded bg-gray-100">Não enviado</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-200">
+                 {formData.verification_status !== 'verified' && (
+                    <Button 
+                      size="sm" 
+                      onClick={() => setFormData({...formData, verification_status: 'verified'})}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Aprovar Documentos
+                    </Button>
+                 )}
+                 {formData.verification_status !== 'rejected' && (
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => setFormData({...formData, verification_status: 'rejected'})}
+                    >
+                      Rejeitar Documentos
+                    </Button>
+                 )}
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
 
         <DialogFooter>
