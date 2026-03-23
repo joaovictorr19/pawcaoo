@@ -178,29 +178,35 @@ export default function PushNotificationManager({ user }) {
                 </button>
                 
                 {/* Layout horizontal compacto */}
-                <div className="flex items-center gap-3 pr-6">
-                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg flex-shrink-0">
-                    <Bell className="w-5 h-5 text-white" />
+                <div className="flex items-start gap-3 pr-6">
+                  <div className="bg-blue-100 p-1.5 rounded-lg flex-shrink-0 mt-0.5">
+                    <Bell className="w-4 h-4 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-sm text-gray-900 mb-0.5">
-                      Ativar Notificações
+                    <h3 className="font-semibold text-sm text-gray-900 mb-0.5">
+                      Ativar notificações?
                     </h3>
-                    <p className="text-xs text-gray-500 leading-snug">
-                      Alertas sobre passeios e reservas
+                    <p className="text-xs text-gray-500 leading-snug mb-2">
+                      Receba alertas sobre seus passeios e mensagens importantes.
                     </p>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={dismissBanner}
+                        variant="ghost"
+                        className="h-7 px-3 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+                      >
+                        Agora não
+                      </Button>
+                      <Button
+                        onClick={requestPermission}
+                        className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-sm rounded-lg"
+                      >
+                        Ativar
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                
-                {/* Botão */}
-                <Button
-                  onClick={requestPermission}
-                  className="w-full mt-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md font-semibold rounded-xl h-9 text-sm"
-                  size="sm"
-                >
-                  <Bell className="w-3.5 h-3.5 mr-1.5" />
-                  Ativar Agora
-                </Button>
               </CardContent>
             </Card>
           </motion.div>
