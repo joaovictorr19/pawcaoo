@@ -1084,12 +1084,12 @@ export default function Home() {
                   onClick={() => setActiveTab('emergency')}
                   className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
                     activeTab === 'emergency'
-                      ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <Zap className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">SOS</span>
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate font-bold">PawGo</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('comunidade')}
@@ -1313,13 +1313,13 @@ export default function Home() {
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
-                        <Zap className="w-6 h-6 md:w-7 md:h-7 text-orange-500 fill-orange-500" />
-                        {t('dogsNeedingHelpTitle', language)}
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                        <MapPin className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
+                        Pedidos PawGo
                       </h2>
-                      <p className="text-xs md:text-base text-white/90 drop-shadow-md mt-1 flex items-center gap-1">
-                        <Clock className="w-3 h-3 md:w-4 md:h-4 text-white" />
-                        {filteredEmergencyWalks.length} {t('dogsNeedHelpCount', language)}
+                      <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
+                        {filteredEmergencyWalks.length} cães precisam de passeio imediato
                       </p>
                     </div>
                   </div>
@@ -1335,12 +1335,22 @@ export default function Home() {
                       ))}
                     </div>
                   ) : filteredEmergencyWalks.length === 0 ? (
-                    <div className="text-center py-12 md:py-16">
-                      <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                        <Zap className="w-8 h-8 md:w-10 md:h-10 text-orange-500" />
+                    <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100">
+                      <div className="relative w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-orange-100 to-red-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                        <MapPin className="w-8 h-8 md:w-10 md:h-10 text-orange-500 z-10" />
+                        <div className="absolute inset-0 border-2 border-orange-300 rounded-full animate-ping opacity-20"></div>
                       </div>
-                      <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">{t('noEmergencies', language)}</h3>
-                      <p className="text-sm md:text-base text-gray-600">{t('checkBackLater', language)}</p>
+                      <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2">Nenhum PawGo Ativo</h3>
+                      <p className="text-sm md:text-base text-gray-600">A área está tranquila por agora.</p>
+                      
+                      {!['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                        <Button 
+                          onClick={() => navigate(createPageUrl("PostEmergency"))}
+                          className="mt-6 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-transform"
+                        >
+                          Precisa de um passeio agora?
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">

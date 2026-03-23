@@ -41,6 +41,7 @@ import MobileNavBar from "@/components/layout/MobileNavBar";
 import SidebarNav from "@/components/layout/SidebarNav";
 import { lazy, Suspense } from "react";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import PawGoFab from "@/components/ui/PawGoFab";
 import NotificationArea from "@/components/notifications/NotificationArea";
 import PullToRefresh from "@/components/ui/PullToRefresh";
 import BadgeNotification from "@/components/gamification/BadgeNotification";
@@ -333,10 +334,10 @@ function LayoutContent({ children, currentPageName }) {
       icon: ShoppingBag
     },
     { 
-      title: language === 'pt' ? 'Passeio de Emergência' : (t('postEmergency', language) || 'Emergency Walk'), 
+      title: "PawGo", 
       url: createPageUrl("PostEmergency"), 
       icon: Zap, 
-      className: "text-red-600 font-bold bg-red-50 hover:bg-red-100" 
+      className: "text-orange-600 font-bold bg-orange-50 hover:bg-orange-100" 
     },
     { 
       title: language === 'pt' ? 'Painel Profissional' : (t('professionalDashboard', language) || 'Professional Dashboard'), 
@@ -1366,6 +1367,7 @@ export default function Layout({ children, currentPageName }) {
           </ThemeProvider>
         </LocalizationProvider>
       </LanguageProvider>
+      <PawGoFab />
     </HelmetProvider>
   );
 }

@@ -348,18 +348,19 @@ export default function PostEmergency() {
               exit={{ opacity: 0, y: -20 }}
             >
         <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-white border-2 border-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
-            <Zap className="w-8 h-8 text-gray-700" />
+          <div className="relative w-20 h-20 bg-gradient-to-br from-orange-400 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-orange-500/30">
+            <div className="absolute inset-0 bg-white opacity-20 rounded-3xl animate-ping" style={{ animationDuration: '2s' }}></div>
+            <Zap className="w-10 h-10 text-white z-10" fill="currentColor" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{t('emergencyWalkRequest', language)}</h1>
-          <p className="text-gray-600 text-sm md:text-base">{t('findWalkerNow', language)}</p>
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 tracking-tight">PawGo</h1>
+          <p className="text-gray-600 text-sm md:text-lg font-medium">O seu passeador em minutos, à distância de um toque.</p>
         </div>
 
-        <Card className="border border-gray-200 shadow-md rounded-2xl overflow-hidden bg-white">
-          <CardHeader className="bg-white text-gray-900 border-b border-gray-200 py-4">
-            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-              <Zap className="w-5 h-5 text-gray-700" />
-              {t('postEmergency', language)}
+        <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-white/90 backdrop-blur-lg ring-1 ring-gray-100">
+          <CardHeader className="bg-gray-50/50 border-b border-gray-100 py-5">
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2 text-gray-800">
+              <Zap className="w-5 h-5 text-orange-500 fill-orange-500" />
+              Solicitar PawGo Imediato
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 md:p-6 bg-white">
@@ -631,17 +632,17 @@ export default function PostEmergency() {
                 <Button
                   type="submit"
                   disabled={createEmergencyWalkMutation.isPending || uploading || !formData.owner_name || !formData.owner_phone || !formData.location || !formData.needed_time || !formData.offered_amount || (selectedDogs.length === 0 && !formData.dog_name)}
-                  className="flex-1 text-white h-10 text-sm font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 text-white h-12 text-sm font-black tracking-wide shadow-xl hover:shadow-2xl hover:shadow-orange-500/30 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-500 to-red-500 rounded-xl"
                 >
                   {createEmergencyWalkMutation.isPending ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                      Publicando...
+                      Iniciando Radar...
                     </>
                   ) : (
                     <>
-                      <Zap className="w-4 h-4 mr-2" />
-                      Publicar Emergência
+                      <Zap className="w-5 h-5 mr-2 fill-current" />
+                      Acionar PawGo
                     </>
                   )}
                 </Button>
