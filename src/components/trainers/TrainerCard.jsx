@@ -60,6 +60,7 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
   };
 
   const getMethodologyLabel = (methodology) => {
+    if (!methodology) return "";
     const labels = {
       positive_reinforcement: "Positive Reinforcement",
       aversive_training: "Aversive Training",
@@ -73,7 +74,7 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
       cognitive_training: "Cognitive Training"
     };
     // Fallback: replace underscores and capitalize each word
-    return labels[methodology] || methodology.replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    return labels[methodology] || String(methodology).replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
   const getConsultationIcon = (method) => {
