@@ -740,42 +740,50 @@ export default function Home() {
                     
                     <div className="flex items-center justify-center mb-6">
                       {['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                        <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md p-1.5 rounded-2xl border border-white/30 shadow-inner">
-                          <button
-                            onClick={async () => {
-                              try {
-                                await base44.auth.updateMe({ preferences: { ...user.preferences, current_mode: 'client' } });
-                                toast.success("Modo Tutor ativado");
-                                queryClient.invalidateQueries(['currentUser']);
-                              } catch (e) { }
-                            }}
-                            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
-                              user.preferences?.current_mode !== 'professional'
-                                ? 'bg-white text-blue-600 shadow-md scale-105'
-                                : 'text-white/80 hover:bg-white/10 hover:text-white'
-                            }`}
-                          >
-                            <Users className="w-5 h-5" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Tutor</span>
-                          </button>
+                        <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/20 shadow-inner">
+                          <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode !== 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
+                            Tutor
+                          </span>
                           
                           <button
                             onClick={async () => {
                               try {
-                                await base44.auth.updateMe({ preferences: { ...user.preferences, current_mode: 'professional' } });
-                                toast.success("Modo Profissional ativado");
-                                queryClient.invalidateQueries(['currentUser']);
-                              } catch (e) { }
+                                const newMode = user.preferences?.current_mode === 'professional' ? 'client' : 'professional';
+                                await base44.auth.updateMe({ preferences: { ...user.preferences, current_mode: newMode } });
+                                
+                                if (user.account_type === 'walker' || user.account_type === 'both') {
+                                    const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+                                    if (walkers.length > 0) {
+                                        await base44.entities.WalkerProfile.update(walkers[0].id, { is_online: newMode === 'professional' });
+                                    }
+                                }
+                                if (user.account_type === 'trainer' || user.account_type === 'both') {
+                                    const trainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+                                    if (trainers.length > 0) {
+                                        await base44.entities.TrainerProfile.update(trainers[0].id, { is_online: newMode === 'professional' });
+                                    }
+                                }
+
+                                toast.success(newMode === 'professional' ? "Modo Profissional (Online) ativado" : "Modo Tutor ativado");
+                                queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+                              } catch (e) { 
+                                toast.error("Erro ao alterar o modo");
+                              }
                             }}
-                            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
-                              user.preferences?.current_mode === 'professional'
-                                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md scale-105'
-                                : 'text-white/80 hover:bg-white/10 hover:text-white'
+                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${
+                              user.preferences?.current_mode === 'professional' ? 'bg-green-500' : 'bg-slate-400/80'
                             }`}
                           >
-                            <Briefcase className="w-5 h-5" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Profissional</span>
+                            <span
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                user.preferences?.current_mode === 'professional' ? 'translate-x-5' : 'translate-x-0'
+                              }`}
+                            />
                           </button>
+
+                          <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode === 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
+                            Profissional
+                          </span>
                         </div>
                       )}
                     </div>
