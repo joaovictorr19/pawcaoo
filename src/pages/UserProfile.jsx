@@ -124,14 +124,6 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("badges");
 
-  // Se houver um parâmetro de serviço na URL, ou se for um profissional, focar na aba PawGo
-  useEffect(() => {
-    if (serviceParam) {
-      setActiveTab("pawgo");
-    }
-  }, [serviceParam]);
-  const createNotification = useCreateNotification();
-
   const urlParams = new URLSearchParams(window.location.search);
   // Handle potentially double-encoded emails from redirect loops
   const rawEmail = urlParams.get('email');
@@ -152,6 +144,15 @@ export default function UserProfile() {
   const profileNameParam = urlParams.get('name');
   const profileUsernameParam = urlParams.get('username');
   const serviceParam = urlParams.get('service');
+
+  // Se houver um parâmetro de serviço na URL, ou se for um profissional, focar na aba PawGo
+  useEffect(() => {
+    if (serviceParam) {
+      setActiveTab("pawgo");
+    }
+  }, [serviceParam]);
+
+  const createNotification = useCreateNotification();
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
