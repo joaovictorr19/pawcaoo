@@ -255,7 +255,7 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
                       onClick={(e) => {
                         if (isQuick) {
                           e.stopPropagation();
-                          navigate(createPageUrl(`WalkerDetails?id=${walker.id}&service=${service.service_type}`));
+                          navigate(createPageUrl(`UserProfile?id=${walker.id}&service=${service.service_type}`));
                         }
                       }}
                     >
