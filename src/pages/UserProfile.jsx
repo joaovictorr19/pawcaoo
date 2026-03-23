@@ -788,6 +788,77 @@ export default function UserProfile() {
     }
   });
 
+  // 1. O Mutante de Sincronização
+  const updateProfileMediaMutation = useMutation({
+    mutationFn: async ({ type, url }) => {
+      if (!profileUser?.id) throw new Error("No profile found");
+      const updateData = {};
+      
+      if (type === 'avatar') {
+        updateData.profile_photo_url = url; 
+        updateData.global_profile = { 
+          ...(profileUser.global_profile || {}), 
+          avatar_url: url 
+        };
+        // Update auth user if it's our own profile
+        if (isOwnProfile) await base44.auth.updateMe({ profile_photo_url: url });
+      } else if (type === 'cover') {
+        updateData.cover_photo_url = url;
+        if (isOwnProfile) await base44.auth.updateMe({ cover_photo_url: url });
+      }
+
+      return await base44.entities.UserProfile.update(profileUser.id, updateData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      toast.success("Imagem atualizada com sucesso!");
+    },
+    onError: () => toast.error("Falha ao sincronizar imagem.")
+  });
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const toastId = toast.loading("Enviando nova capa...");
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file: reader.result });
+          updateProfileMediaMutation.mutate({ type: 'cover', url: file_url });
+          toast.success("Upload concluído!", { id: toastId });
+        } catch (err) {
+          toast.error("Erro no upload", { id: toastId });
+        }
+      }
+    } catch (e) {
+      toast.error("Erro ao processar imagem", { id: toastId });
+    }
+  };
+
+  const banUserMutation = useMutation({
+    mutationFn: async (id) => {
+      // Definindo role como banned para bloquear acesso
+      return await base44.entities.UserProfile.update(id, { role: 'banned', is_active: false });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
+      toast.success("Usuário banido.");
+    }
+  });
+
+  const toggleVerificationMutation = useMutation({
+    mutationFn: async (id) => {
+      return await base44.entities.UserProfile.update(id, { is_verified: !profileUser.is_verified });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profileUser'] });
+      toast.success("Status de verificação atualizado.");
+    }
+  });
+
   const totalBadges = displayBadges.length;
 
   const getBadgeImage = (badgeId) => {
