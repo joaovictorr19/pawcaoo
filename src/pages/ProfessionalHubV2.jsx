@@ -223,9 +223,9 @@ export default function ProfessionalHubV2() {
               <ServiceCard 
                 key={idx} 
                 service={{
-                  name: service.service_name,
+                  name: service.service_name || service.name,
                   type: service.service_type?.includes('train') ? 'train' : 'walk',
-                  duration: service.duration_options?.[0] || 'Varia',
+                  duration: service.duration_options?.[0] || service.duration || 'Varia',
                   animal_type: service.animal_type || 'Cães',
                   price: service.price
                 }} 
