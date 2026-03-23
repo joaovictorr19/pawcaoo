@@ -51,8 +51,11 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
         hourly_rate: 0,
         bio: "",
         is_active: false,
-        verification_status: "pending",
-        location: ""
+        verification_status: userToEdit.professional_profile?.verification_status || "pending",
+        location: "",
+        is_online: userToEdit.pawgo_status?.is_online || false,
+        platform_fee_percentage: userToEdit.professional_profile?.platform_fee_percentage || 15,
+        documents: userToEdit.professional_profile?.documents || { tax_id: '', id_url: '', address_proof_url: '' }
       });
     } else {
       // Reset for creation
