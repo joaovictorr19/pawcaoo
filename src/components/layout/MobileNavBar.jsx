@@ -1,16 +1,18 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Calendar, Trophy, Bell, User, Search, PawPrint, Zap } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useTheme } from "../ThemeContext";
-import { useLanguage } from "../LanguageContext";
+import { Map, Calendar, User, Zap, LayoutDashboard, Globe, MessageCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
-  const { colors } = useTheme();
-  const { language } = useLanguage();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const isProf = user?.preferences?.current_mode === "professional";
+  const isOnline = user?.pawgo_status?.is_online;
 
   const isActive = (path) => {
     if (path === createPageUrl("Home") && location.pathname === path) return true;
@@ -18,132 +20,110 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     return false;
   };
 
-  // Labels traduzidos
-  const labels = {
-    explore: { pt: 'Explorar', es: 'Explorar', en: 'Explore' },
-    bookings: { pt: 'Reservas', es: 'Reservas', en: 'Bookings' },
-    hallOfFame: { pt: 'Legado', es: 'Legado', en: 'Legacy' },
-    alerts: { pt: 'Alertas', es: 'Alertas', en: 'Alerts' },
-    profile: { pt: 'Perfil', es: 'Perfil', en: 'Profile' }
+  const handleCenterButtonClick = async () => {
+    if (isProf) {
+      // Se estiver como Profissional, o botão central ativa o seu radar de trabalho.
+      const newStatus = !isOnline;
+      
+      await base44.auth.updateMe({
+        pawgo_status: { ...user?.pawgo_status, is_online: newStatus }
+      });
+      
+      if (user?.account_type === 'walker' || user?.account_type === 'both') {
+        const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+        if (walkers.length > 0) {
+          await base44.entities.WalkerProfile.update(walkers[0].id, { is_online: newStatus });
+        }
+      }
+      if (user?.account_type === 'trainer' || user?.account_type === 'both') {
+        const trainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+        if (trainers.length > 0) {
+          await base44.entities.TrainerProfile.update(trainers[0].id, { is_online: newStatus });
+        }
+      }
+      
+      if ("vibrate" in navigator) navigator.vibrate([50, 30, 50]);
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      
+    } else {
+      // Se estiver como Dono, o botão central pede um passeio.
+      if ("vibrate" in navigator) navigator.vibrate(50);
+      navigate(createPageUrl("Dashboard"));
+    }
   };
 
-  const getLabel = (key) => labels[key]?.[language] || labels[key]?.en;
-
-  const navItems = [
-    {
-      label: getLabel('explore'),
-      icon: Search,
-      path: createPageUrl("Home"),
-      activeColor: "text-green-600",
-      id: "nav-home"
-    },
-    {
-      label: user?.pawgo_status?.is_online ? "Online" : "PawGo",
-      icon: user?.pawgo_status?.is_online ? Zap : PawPrint,
-      path: createPageUrl("Dashboard"),
-      activeColor: user?.pawgo_status?.is_online ? "text-green-500" : "text-orange-500",
-      isHighlight: true,
-      customBg: user?.pawgo_status?.is_online ? "bg-green-100" : "bg-orange-100"
-    },
-    {
-      label: getLabel('hallOfFame'),
-      icon: Trophy,
-      path: createPageUrl("Gamification"),
-      activeColor: "text-yellow-500",
-      isSpecial: true,
-      id: "nav-gamification"
-    },
-    {
-      label: getLabel('alerts'),
-      icon: Bell,
-      path: createPageUrl("Notifications"),
-      activeColor: "text-red-500",
-      badge: unreadCount > 0 ? unreadCount : null
-    },
-    {
-      label: getLabel('profile'),
-      icon: User,
-      path: user ? (user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user?.id}`)) : createPageUrl("Login"),
-      activeColor: "text-purple-600",
-      isProfile: true,
-      id: "header-profile"
-    }
-  ];
+  if (!user) return null;
 
   return (
-    <div 
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe mb-3 mx-3 rounded-2xl shadow-2xl border"
-      style={{
-        background: 'rgba(255, 255, 255, 0.85)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderColor: 'rgba(255, 255, 255, 0.5)',
-        boxShadow: '0 -4px 30px rgba(0, 0, 0, 0.1)'
-      }}
-    >
-      <nav className="flex justify-around items-center h-14 px-1">
-        {navItems.map((item, index) => {
-          const active = isActive(item.path);
-          const Icon = item.icon;
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] px-6 pb-8 pt-4 bg-white/80 backdrop-blur-2xl border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-t-3xl">
+      <div className="max-w-md mx-auto flex items-center justify-between">
+        
+        {/* ABA 1: MAPA / DASHBOARD */}
+        <button 
+          onClick={() => navigate(createPageUrl("Home"))}
+          className={`flex flex-col items-center gap-1 transition-all ${isActive(createPageUrl("Home")) ? "text-orange-500 scale-110" : "text-slate-400"}`}
+        >
+          {isProf ? <LayoutDashboard size={24} /> : <Map size={24} />}
+          <span className="text-[10px] font-black uppercase tracking-tighter">
+            {isProf ? "Painel" : "Explorar"}
+          </span>
+        </button>
 
-          return (
-            <Link
-              key={index}
-              id={item.id}
-              to={item.path}
-              onClick={(e) => {
-                if (item.label === getLabel('alerts') && onNotificationsClick) {
-                  e.preventDefault();
-                  onNotificationsClick();
-                }
-              }}
-              className={`flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group ${
-                active ? "transform -translate-y-1" : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {/* Glow Effect for Active */}
-              {active && (
-                <div 
-                  className={`absolute -top-2 w-8 h-1 rounded-full opacity-60 blur-sm ${colors?.accent?.replace('text-', 'bg-') || 'bg-blue-600'}`}
-                />
-              )}
+        {/* ABA 2: AGENDA / RESERVAS */}
+        <button 
+          onClick={() => navigate(createPageUrl("MyBookings"))}
+          className={`flex flex-col items-center gap-1 transition-all ${isActive(createPageUrl("MyBookings")) ? "text-orange-500 scale-110" : "text-slate-400"}`}
+        >
+          <Calendar size={24} />
+          <span className="text-[10px] font-black uppercase tracking-tighter">Agenda</span>
+        </button>
 
-              <div className="relative">
-                {item.isHighlight && (
-                  <div className={`absolute inset-0 -m-2 rounded-full ${active ? (item.customBg || "bg-orange-100") : ""} transition-all`} />
-                )}
-                {item.isProfile && user ? (
-                  <Avatar 
-                    className={`w-5 h-5 ${active ? `ring-2 ring-offset-1 ${colors?.ring || 'ring-blue-500'}` : ""}`}
-                  >
-                    <AvatarImage src={user.profile_photo_url} className="aspect-square object-cover object-center" />
-                    <AvatarFallback className="text-[8px] bg-gray-200">
-                      {user.full_name?.[0] || "EU"}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <Icon 
-                    className={`w-5 h-5 ${active ? `${colors?.accent || 'text-blue-600'} scale-110` : ""} ${item.isSpecial && active ? "fill-current" : ""} transition-all duration-200`}
-                    strokeWidth={active ? 2.5 : 1.8}
-                  />
-                )}
+        {/* BOTÃO CENTRAL: O GATILHO DE MODO (O "UAU" DO APP) */}
+        <div className="relative -top-8 flex flex-col items-center">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={handleCenterButtonClick}
+            className={`w-16 h-16 rounded-3xl shadow-2xl flex items-center justify-center transition-all border-4 border-white
+              ${isProf 
+                ? (isOnline ? "bg-slate-900" : "bg-slate-500") 
+                : "bg-orange-500"}
+            `}
+          >
+            {isProf ? (
+              <Globe className={`text-white w-8 h-8 ${isOnline ? "animate-spin-slow" : "opacity-50"}`} />
+            ) : (
+              <Zap className="text-white w-8 h-8 fill-current" />
+            )}
+          </motion.button>
+          <div className="absolute -bottom-6 whitespace-nowrap">
+             <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-full shadow-sm">
+                {isProf ? (isOnline ? "Radar On" : "Radar Off") : "Pedir PawGo"}
+             </span>
+          </div>
+        </div>
 
-                {item.badge && (
-                  <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white border border-white">
-                    {item.badge > 9 ? "9+" : item.badge}
-                  </span>
-                )}
-              </div>
+        {/* ABA 3: CHAT / MENSAGENS */}
+        <button 
+          onClick={() => navigate(createPageUrl("Chat"))}
+          className={`flex flex-col items-center gap-1 transition-all ${isActive(createPageUrl("Chat")) ? "text-orange-500 scale-110" : "text-slate-400"}`}
+        >
+          <div className="relative">
+            <MessageCircle size={24} className={isActive(createPageUrl("Chat")) ? "" : "opacity-60"} /> 
+            {unreadCount > 0 && <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />}
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-tighter">Mensagens</span>
+        </button>
 
-              <span 
-                className={`text-[9px] mt-0.5 font-medium truncate max-w-[50px] ${active ? `${colors?.accent || 'text-blue-600'}` : "text-gray-500"}`}
-              >
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
+        {/* ABA 4: PERFIL / DEFINIÇÕES */}
+        <button 
+          onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user?.id}`))}
+          className={`flex flex-col items-center gap-1 transition-all ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 scale-110" : "text-slate-400"}`}
+        >
+          <User size={24} />
+          <span className="text-[10px] font-black uppercase tracking-tighter">Perfil</span>
+        </button>
+
+      </div>
     </div>
   );
 }
