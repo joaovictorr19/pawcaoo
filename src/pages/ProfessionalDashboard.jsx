@@ -47,6 +47,7 @@ import OverviewCharts from "../components/professional/OverviewCharts";
 import RecentActivity from "../components/professional/RecentActivity";
 import OpenWalksList from "../components/professional/OpenWalksList";
 import AdvancedAnalyticsDashboard from "@/components/professional/AdvancedAnalyticsDashboard";
+import IncomingRequestModal from "../components/professional/IncomingRequestModal";
 
 const TABS = [
   { id: "overview", label: "Resumo", icon: BarChart3 },
@@ -68,6 +69,10 @@ export default function ProfessionalDashboard() {
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [dateRange, setDateRange] = useState("7days");
+  
+  // Real-time Incoming Requests
+  const [incomingRequest, setIncomingRequest] = useState(null);
+  const [rejectedRequests, setRejectedRequests] = useState(new Set());
 
   // ─── Data Fetching ────────────────────────────────────
   const { data: user, isLoading: loadingUser } = useQuery({
@@ -178,6 +183,58 @@ export default function ProfessionalDashboard() {
     initialData: [],
     staleTime: 2 * 60 * 1000,
   });
+
+  // ─── Real-Time Subscription for On-Demand Walks ────────
+  React.useEffect(() => {
+    const profile = walkerProfile || trainerProfile;
+    if (!profile || !user) return;
+
+    // Check existing available requests
+    const checkExisting = async () => {
+      try {
+        const available = await base44.entities.EmergencyWalk.filter({ status: 'available' });
+        if (available && available.length > 0) {
+          const valid = available.find(req => !rejectedRequests.has(req.id) && req.created_by !== user.email);
+          if (valid && !incomingRequest) setIncomingRequest(valid);
+        }
+      } catch (e) {}
+    };
+    checkExisting();
+
+    const unsubscribe = base44.entities.EmergencyWalk.subscribe((event) => {
+      if ((event.type === 'create' || event.type === 'update') && event.data.status === 'available') {
+        if (!rejectedRequests.has(event.data.id) && event.data.created_by !== user.email) {
+          setIncomingRequest(event.data);
+        }
+      } else if (event.type === 'update' && event.data.status !== 'available') {
+        setIncomingRequest(prev => prev?.id === event.data.id ? null : prev);
+      }
+    });
+    
+    return () => unsubscribe();
+  }, [walkerProfile, trainerProfile, rejectedRequests, incomingRequest, user]);
+
+  const handleAcceptIncomingRequest = async (request) => {
+    try {
+      const profile = walkerProfile || trainerProfile;
+      await base44.entities.EmergencyWalk.update(request.id, {
+        status: 'accepted',
+        accepted_by_walker: user.email,
+        walker_name: profile.walker_name || profile.trainer_name
+      });
+      setIncomingRequest(null);
+      toast.success("Passeio Aceite! Dirija-se ao local.");
+      navigate(createPageUrl('ActiveWalkDashboard') + `?emergencyId=${request.id}`);
+    } catch (e) {
+      toast.error("Alguém já aceitou este pedido ou ocorreu um erro.");
+      setIncomingRequest(null);
+    }
+  };
+
+  const handleRejectIncomingRequest = (request) => {
+    setRejectedRequests(prev => new Set(prev).add(request.id));
+    setIncomingRequest(null);
+  };
 
   // ─── Derived Data ─────────────────────────────────────
   const allBookings = [...walkBookings, ...trainingBookings];
@@ -956,6 +1013,12 @@ export default function ProfessionalDashboard() {
           )}
 
           {showServiceForm && <ServiceForm />}
+          
+          <IncomingRequestModal 
+            request={incomingRequest} 
+            onAccept={handleAcceptIncomingRequest} 
+            onReject={handleRejectIncomingRequest} 
+          />
         </ErrorBoundary>
       </div>
     </div>

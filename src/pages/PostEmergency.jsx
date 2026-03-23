@@ -12,6 +12,9 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import NotificationService from "../components/NotificationService";
+import SearchStatus from "../components/client/SearchStatus";
+import { motion, AnimatePresence } from "framer-motion";
+import { CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import { useQuery } from "@tanstack/react-query";
@@ -24,6 +27,10 @@ export default function PostEmergency() {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   
+  const [matchStatus, setMatchStatus] = useState("idle"); // idle, searching, matched
+  const [activeWalkId, setActiveWalkId] = useState(null);
+  const [matchedWalker, setMatchedWalker] = useState(null);
+
   const [selectedDogs, setSelectedDogs] = useState([]);
   const [formData, setFormData] = useState({
     dog_name: "",
@@ -120,6 +127,41 @@ export default function PostEmergency() {
     }
   }, [selectedDogs, user]);
 
+  // Subscribe to real-time updates for the walk
+  React.useEffect(() => {
+    if (!activeWalkId) return;
+    
+    const unsubscribe = base44.entities.EmergencyWalk.subscribe((event) => {
+      if (event.type === 'update' && event.data.id === activeWalkId) {
+        if (event.data.status === 'accepted') {
+          setMatchStatus("matched");
+          setMatchedWalker({
+            name: event.data.walker_name,
+            email: event.data.accepted_by_walker
+          });
+          setTimeout(() => {
+            navigate(createPageUrl('ActiveWalkDashboard') + `?emergencyId=${activeWalkId}`);
+          }, 3000);
+        } else if (event.data.status === 'cancelled') {
+           setMatchStatus("idle");
+           setActiveWalkId(null);
+           toast.error("O pedido foi cancelado.");
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [activeWalkId, navigate]);
+
+  const handleCancelSearch = async () => {
+    if (activeWalkId) {
+      await base44.entities.EmergencyWalk.update(activeWalkId, { status: 'cancelled' });
+      toast.info("Pedido cancelado.");
+    }
+    setMatchStatus("idle");
+    setActiveWalkId(null);
+  };
+
   const createEmergencyWalkMutation = useMutation({
     mutationFn: async (walkData) => {
       const walk = await base44.entities.EmergencyWalk.create({
@@ -154,8 +196,8 @@ export default function PostEmergency() {
     },
     onSuccess: ({ walk }) => {
       queryClient.invalidateQueries({ queryKey: ['emergencyWalks'] });
-      toast.success('🚨 Emergência publicada! Agora proceda com o pagamento para ativar.');
-      navigate(createPageUrl('Home?tab=emergency'));
+      setActiveWalkId(walk.id);
+      setMatchStatus("searching");
     },
     onError: (error) => {
       console.error("❌ Error posting emergency walk:", error);
@@ -262,8 +304,49 @@ export default function PostEmergency() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-3 md:p-6 relative">
-      <div className="max-w-2xl mx-auto relative z-10">
+    <div className="min-h-screen bg-white p-3 md:p-6 relative flex items-center justify-center">
+      <div className="w-full max-w-2xl mx-auto relative z-10">
+        
+        <AnimatePresence mode="wait">
+          {matchStatus === "searching" && (
+            <motion.div 
+              key="searching"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="w-full"
+            >
+              <SearchStatus onCancel={handleCancelSearch} />
+            </motion.div>
+          )}
+
+          {matchStatus === "matched" && (
+            <motion.div 
+              key="matched"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-3xl shadow-2xl p-8 text-center border-2 border-green-500"
+            >
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-12 h-12 text-green-600" />
+              </div>
+              <h2 className="text-3xl font-black text-gray-900 mb-2">Passeador Encontrado!</h2>
+              <p className="text-lg text-gray-600 mb-6">
+                <strong className="text-gray-900">{matchedWalker?.name}</strong> aceitou o seu pedido e está a caminho.
+              </p>
+              <div className="animate-pulse bg-green-50 text-green-700 py-3 rounded-xl font-medium">
+                A redirecionar para o mapa em tempo real...
+              </div>
+            </motion.div>
+          )}
+
+          {matchStatus === "idle" && (
+            <motion.div 
+              key="form"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-white border-2 border-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
             <Zap className="w-8 h-8 text-gray-700" />
@@ -566,6 +649,9 @@ export default function PostEmergency() {
             </form>
           </CardContent>
         </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
