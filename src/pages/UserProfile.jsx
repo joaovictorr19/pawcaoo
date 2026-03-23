@@ -145,7 +145,7 @@ export default function UserProfile() {
   const profileUsernameParam = urlParams.get('username');
   const serviceParam = urlParams.get('service');
 
-  // Se houver um parâmetro de serviço na URL, ou se for um profissional, focar na aba PawGo
+  // Focar na aba PawGo se houver um serviço selecionado na URL
   useEffect(() => {
     if (serviceParam) {
       setActiveTab("pawgo");
