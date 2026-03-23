@@ -173,23 +173,29 @@ export default function AdminUserTable({
                         <div className="font-bold text-sm">{user.full_name || 'Sem Nome'}</div>
                         <div className="text-xs text-gray-500 break-all">{user.email}</div>
                       </div>
-                      <Badge variant="outline" className="capitalize text-[10px] bg-gray-100 flex-shrink-0 h-5">
-                        {user.account_type || 'owner'}
+                      <Badge className={`capitalize text-[10px] flex-shrink-0 h-5 text-white ${user.account_type === 'walker' || user.account_type === 'trainer' || user.account_type === 'both' ? 'bg-green-600' : 'bg-blue-600'}`}>
+                        {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
                       </Badge>
                     </div>
 
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 flex-wrap items-center">
                       <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-[10px] h-5">
                         {user.gamification_xp || 0} XP
                       </Badge>
-                      <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'} text-[10px] text-white h-5`}>
+                      <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-gray-600'} text-[10px] text-white h-5`}>
                         {user.role === 'admin' ? 'Admin' : 'User'}
                       </Badge>
-                      {user.is_verified ? (
+                      {user.professional_profile?.verification_status === 'pending' ? (
+                        <div className="flex gap-1 animate-pulse">
+                          <Button size="sm" onClick={() => onApproveUser?.(user)} className="h-5 px-2 text-[9px] bg-green-600">Aprovar</Button>
+                          <Button size="sm" onClick={() => onRejectUser?.(user)} className="h-5 px-2 text-[9px] bg-red-600">Rejeitar</Button>
+                        </div>
+                      ) : user.professional_profile?.verification_status === 'verified' || user.is_verified ? (
                         <Badge variant="outline" className="border-green-500 text-green-600 text-[10px] bg-green-50 h-5">✓</Badge>
-                      ) : (
-                        <Badge variant="outline" className="border-gray-300 text-gray-600 text-[10px] bg-gray-50 h-5">○</Badge>
-                      )}
+                      ) : user.professional_profile?.verification_status === 'rejected' ? (
+                        <Badge variant="outline" className="border-red-500 text-red-600 text-[10px] bg-red-50 h-5">✗</Badge>
+                      ) : null}
+                      
                       {user.created_date && (
                         <Badge variant="outline" className="text-[10px] h-5">
                           {new Date(user.created_date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: '2-digit' })}
