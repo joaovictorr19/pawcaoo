@@ -1491,8 +1491,8 @@ export default function UserProfile() {
           <TabsContent value="about">
            <Card className="glass-panel border-0 shadow-lg rounded-2xl">
              <CardContent className="pt-4 md:pt-6">
-               {profileUser.about_me || profileUser.bio ? (
-                 <p className="text-sm md:text-base text-gray-700">{profileUser.about_me || profileUser.bio}</p>
+               {profileUser.about_me || displayBio ? (
+                 <p className="text-sm md:text-base text-gray-700">{profileUser.about_me || displayBio}</p>
                ) : (
                  <p className="text-sm text-gray-500 text-center italic">Nenhuma informação adicional.</p>
                )}
