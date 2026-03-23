@@ -91,15 +91,46 @@ export default function BecomeProfessional() {
     mutationFn: async (data) => {
       const results = {};
       
-      // SEMPRE criar apenas WalkerProfile (unificado)
-      // Se for "both" ou "trainer", marcamos is_verified_trainer = true
       const isAlsoTrainer = professionalType === 'trainer' || professionalType === 'both';
       
-      console.log('📝 Creating WalkerProfile with data:', { isAlsoTrainer, training_specializations: data.training_specializations });
+      // Construir o perfil profissional de acordo com a nova estrutura unificada do User
+      const newProfessionalProfile = {
+        is_verified: false,
+        verification_status: "pending",
+        documents: {
+          tax_id: data.country_of_operation === 'portugal' ? data.tax_id_portugal : (data.country_of_operation === 'spain' ? data.tax_id_spain : data.tax_id_france),
+          id_url: data.id_document_url || "",
+          address_proof_url: data.proof_of_address_url || ""
+        },
+        rating: 0,
+        services: data.services_offered.map(s => ({
+          name: s.service_name,
+          price: s.price,
+          active: true
+        })),
+        platform_fee_percentage: 15, // default
+        // Campos extras mapeados para a nova estrutura se necessário
+      };
+
+      // Atualizar no User usando updateMe
+      await base44.auth.updateMe({ 
+        account_type: professionalType,
+        professional_profile: newProfessionalProfile,
+        global_profile: {
+          ...(user.global_profile || {}),
+          full_name: data.name,
+          phone: data.phone,
+          avatar_url: data.photo_url || user.profile_photo_url
+        }
+      });
       
+      console.log('✅ User updated with unified professional profile');
+      
+      // Mantemos a criação no WalkerProfile para retrocompatibilidade caso algo antigo o use, 
+      // mas o foco principal é a nova entidade unificada.
       results.walker = await base44.entities.WalkerProfile.create({
-      user_id: user.id,
-      walker_name: data.name,
+        user_id: user.id,
+        walker_name: data.name,
         age: data.age || 0,
         photo_url: data.photo_url || "",
         cover_photo_url: data.cover_photo_url || "",
@@ -126,24 +157,17 @@ export default function BecomeProfessional() {
         mbway_number: data.mbway_number || "",
         portfolio: Array.isArray(data.portfolio) ? data.portfolio : [],
         languages_spoken: Array.isArray(data.languages_spoken) ? data.languages_spoken : [],
-        // Trainer fields (stored in same profile)
         is_verified_trainer: isAlsoTrainer,
         training_specialties: isAlsoTrainer ? (Array.isArray(data.training_specialties) ? data.training_specialties : []) : [],
         training_specializations: isAlsoTrainer ? (Array.isArray(data.training_specializations) ? data.training_specializations : []) : [],
         training_philosophy: isAlsoTrainer ? (data.training_philosophy || "") : "",
         consultation_options: isAlsoTrainer ? (Array.isArray(data.consultation_options) ? data.consultation_options : []) : [],
-        // Multi-Country Tax Fields
         country_of_operation: data.country_of_operation,
         tax_id_portugal: data.tax_id_portugal || "",
         tax_id_spain: data.tax_id_spain || "",
         france_professional_type: data.france_professional_type || "",
         tax_id_france: data.tax_id_france || ""
       });
-      
-      console.log('✅ WalkerProfile created:', results.walker.id);
-
-      // Update user account_type
-      await base44.auth.updateMe({ account_type: professionalType });
       
       return results;
     },
