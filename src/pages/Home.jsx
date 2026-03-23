@@ -740,7 +740,7 @@ export default function Home() {
                     
                     <div className="flex items-center justify-center mb-6">
                       {['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                        <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md px-3 py-2 rounded-full border border-white/20 shadow-inner">
+                        <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/20 shadow-inner">
                           <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode !== 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
                             Tutor
                           </span>
