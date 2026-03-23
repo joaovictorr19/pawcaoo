@@ -680,24 +680,31 @@ export default function AdminDashboard() {
           </TabsList>
 
           <TabsContent value="overview">
-            <div className="mt-6">
-              <AdminOverviewDashboard 
-                bookings={allBookings}
-                users={allUsers}
-                walkers={activeWalkers}
-                payments={allPayments}
-                isLoading={loadingStats}
-              />
-            </div>
+            {activeTab === 'overview' && (
+              <div className="mt-6">
+                <AdminOverviewDashboard 
+                  bookings={allBookings}
+                  users={allUsers}
+                  walkers={activeWalkers}
+                  trainers={allTrainers}
+                  payments={allPayments}
+                  isLoading={loadingStats}
+                />
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="calendar">
-            <div className="mt-6">
-              <AdminInteractiveCalendar />
-            </div>
+            {activeTab === 'calendar' && (
+              <div className="mt-6">
+                <AdminInteractiveCalendar />
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="professionals">
+            {activeTab === 'professionals' && (
+              <>
             <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
               <CardHeader>
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
