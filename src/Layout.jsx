@@ -1078,6 +1078,18 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Ações Direita */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Role Switcher para Profissionais */}
+            {authUser && ['walker', 'trainer', 'both'].includes(authUser.account_type) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden lg:flex h-8 text-xs font-bold border-green-200 text-green-700 bg-green-50 hover:bg-green-100 mr-2"
+                onClick={() => navigate(createPageUrl("ProfessionalDashboard"))}
+              >
+                <Zap className="w-3.5 h-3.5 mr-1" />
+                Modo: Trabalhar
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
