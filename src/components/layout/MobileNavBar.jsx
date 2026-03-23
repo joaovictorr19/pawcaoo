@@ -38,10 +38,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       id: "nav-home"
     },
     {
-      label: language === 'pt' ? 'Passeio' : language === 'es' ? 'Paseo' : 'Walk',
+      label: "PawGo",
       icon: PawPrint,
-      path: createPageUrl("RequestWalk"),
-      activeColor: "text-green-600",
+      path: createPageUrl("PostEmergency"),
+      activeColor: "text-orange-500",
       isHighlight: true
     },
     {
