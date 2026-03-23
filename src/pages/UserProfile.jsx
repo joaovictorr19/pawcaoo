@@ -493,6 +493,14 @@ export default function UserProfile() {
     refetchOnWindowFocus: false,
   });
 
+  // Variáveis unificadas para garantir a fusão visual entre UserProfile e Perfis Profissionais
+  // Movidas para aqui após a inicialização do walkerProfile e trainerProfile
+  const displayPhotoUrl = profileUser?.profile_photo_url || walkerProfile?.photo_url || trainerProfile?.photo_url;
+  const displayCoverUrl = profileUser?.cover_photo_url || walkerProfile?.cover_photo_url || trainerProfile?.cover_photo_url;
+  const displayName = profileUser?.full_name || walkerProfile?.walker_name || trainerProfile?.trainer_name || "Utilizador";
+  const displayBio = profileUser?.bio || walkerProfile?.bio || trainerProfile?.bio || "";
+  const displayCity = profileUser?.city || walkerProfile?.location || trainerProfile?.location || "";
+
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedService, setSelectedService] = useState(serviceParam);
 
