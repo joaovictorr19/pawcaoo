@@ -1134,14 +1134,25 @@ export default function UserProfile() {
                  </div>
                ) : earnedBadges.length > 0 ? (
                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
-                 {earnedBadges.map((badge, index) => (
-                   <BadgeItem 
-                     key={badge._uniqueId || `badge-${index}`}
-                     badge={badge} 
-                     idx={index}
-                     getBadgeImage={getBadgeImage}
-                   />
-                 ))}
+                 <AnimatePresence>
+                   {earnedBadges.map((badge, index) => (
+                     <motion.div
+                       key={badge._uniqueId || `badge-${index}`}
+                       initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+                       animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                       transition={{ type: "spring", stiffness: 300, damping: 20, delay: index * 0.05 }}
+                       className="relative group flex justify-center"
+                     >
+                       <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-amber-600 rounded-full blur opacity-0 group-hover:opacity-75 transition duration-500 z-0"></div>
+                       <BadgeItem 
+                         badge={badge} 
+                         idx={index}
+                         getBadgeImage={getBadgeImage}
+                       />
+                       <Sparkles className="absolute -top-1 -right-1 w-5 h-5 text-yellow-400 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity z-20 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
+                     </motion.div>
+                   ))}
+                 </AnimatePresence>
                </div>
                ) : (
                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-4 md:gap-y-6">
