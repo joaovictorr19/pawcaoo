@@ -1041,36 +1041,75 @@ export default function UserProfile() {
               </div>
             </div>
 
-            {/* Barra de Animais do Utilizador */}
-            <ProfileAnimalsBar 
-              userEmail={profileEmail}
-              isOwnProfile={isOwnProfile}
-              onAddDog={() => setIsAnimalModalOpen(true)}
-            />
           </CardContent>
         </Card>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="badges">
-          <TabsList className="grid w-full grid-cols-4 bg-white shadow-lg rounded-xl p-1 h-11 md:h-12 mb-4">
-            <TabsTrigger value="badges" className="text-xs md:text-sm">
-              <Award className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
+        <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="pets" className="w-full">
+          <TabsList className="flex w-full overflow-x-auto bg-white shadow-lg rounded-xl p-1 h-12 mb-6 scrollbar-hide">
+            <TabsTrigger value="pets" className="flex-1 text-xs md:text-sm whitespace-nowrap px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white">
+              <Dog className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Meus Pets</span>
+              <span className="md:hidden">Pets</span>
+            </TabsTrigger>
+
+            {(profileUser?.role === 'walker' || profileUser?.is_verified || walkerProfile || trainerProfile) && (
+              <TabsTrigger value="services" className="flex-1 text-xs md:text-sm whitespace-nowrap px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white">
+                <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-2" />
+                <span className="hidden md:inline">Meus Serviços Prestados</span>
+                <span className="md:hidden">Serviços</span>
+              </TabsTrigger>
+            )}
+
+            <TabsTrigger value="badges" className="flex-1 text-xs md:text-sm whitespace-nowrap px-4">
+              <Award className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-2" />
               <span className="hidden md:inline">Emblemas</span>
+              <span className="md:hidden">Prêmios</span>
             </TabsTrigger>
-            <TabsTrigger value="about" className="text-xs md:text-sm">
-              <User className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
+            
+            <TabsTrigger value="about" className="flex-1 text-xs md:text-sm whitespace-nowrap px-4">
+              <User className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-2" />
               <span className="hidden md:inline">Sobre</span>
-            </TabsTrigger>
-            <TabsTrigger value="gamification" className="text-xs md:text-sm">
-              <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
-              <span className="hidden md:inline">XP</span>
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="text-xs md:text-sm">
-              <BarChart2 className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
-              <span className="hidden md:inline">Stats</span>
+              <span className="md:hidden">Info</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="badges">
+          <TabsContent value="pets" className="mt-0">
+            <Card className="glass-panel border-0 shadow-lg rounded-2xl">
+              <CardContent className="pt-6">
+                <ProfileAnimalsBar 
+                  userEmail={profileEmail}
+                  isOwnProfile={isOwnProfile}
+                  onAddDog={() => setIsAnimalModalOpen(true)}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {(profileUser?.role === 'walker' || profileUser?.is_verified || walkerProfile || trainerProfile) && (
+            <TabsContent value="services" className="mt-0">
+              <Card className="glass-panel border-0 shadow-lg rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                    Histórico de Serviços
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="text-center py-12">
+                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">Histórico de serviços prestados aparecerá aqui.</p>
+                    {isOwnProfile && (
+                      <Button className="mt-4 bg-blue-600 hover:bg-blue-700" onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}>
+                        Acessar Painel Profissional
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+          <TabsContent value="badges" className="mt-0">
            <Card className="bg-gradient-to-br from-gray-900 via-slate-900 to-black text-white border-0 shadow-2xl rounded-2xl">
              <CardHeader className="pb-2 border-b border-white/5">
                <div className="flex items-center justify-between flex-wrap gap-2">
