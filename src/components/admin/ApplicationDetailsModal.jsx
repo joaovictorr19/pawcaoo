@@ -50,7 +50,7 @@ export default function ApplicationDetailsModal({
     enabled: isOpen && !!(selectedApp?.created_by || selectedApp?.contact_email)
   });
 
-  if (!selectedApp) return null;
+  if (!isOpen || !selectedApp) return null;
 
   const type = selectedApp.type;
   const isWalker = type === 'walker';
