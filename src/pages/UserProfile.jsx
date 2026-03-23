@@ -1267,15 +1267,91 @@ export default function UserProfile() {
           </TabsContent>
 
           {(profileUser?.role === 'walker' || profileUser?.is_verified || walkerProfile || trainerProfile) && (
-            <TabsContent value="pawgo" className="mt-0">
+            <TabsContent value="pawgo" className="mt-0 space-y-6 py-4">
+              {/* Status de Disponibilidade */}
+              <div className={`p-4 rounded-2xl flex items-center justify-between ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                  <div>
+                    <p className="font-bold text-sm text-gray-900">
+                      {(walkerProfile?.is_online || trainerProfile?.is_online) ? "Disponível Agora" : "Indisponível no momento"}
+                    </p>
+                    <p className="text-xs text-gray-500">Última atividade: {new Date(walkerProfile?.updated_date || trainerProfile?.updated_date || profileUser?.updated_date || Date.now()).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                {(walkerProfile?.is_online || trainerProfile?.is_online) && (
+                  <Badge className="bg-green-600 text-white border-0">PAWGO ATIVO</Badge>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-6">
+                  {/* Lista de Serviços Extraída do professional_profile */}
+                  <div className="grid gap-4">
+                    <h3 className="font-bold text-lg px-1">Serviços Disponíveis</h3>
+                    
+                    {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, index) => (
+                      <div key={index} className={`bg-white p-5 rounded-2xl border transition-all flex justify-between items-center group ${selectedService === service.service_name ? 'border-orange-500 shadow-md ring-2 ring-orange-200' : 'border-gray-100 shadow-sm hover:shadow-md'}`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-xl transition-colors ${selectedService === service.service_name ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white'}`}>
+                            {service.service_name.toLowerCase().includes('passeio') ? <Dog className="w-6 h-6" /> : <Star className="w-6 h-6" />}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900">{service.service_name}</p>
+                            <p className="text-xs text-gray-500 italic">
+                              {service.description ? service.description : 'Preço base'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="text-right">
+                          <p className="text-2xl font-black text-gray-900">{service.price}€</p>
+                          <Button 
+                            size="sm" 
+                            className="mt-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6"
+                            onClick={() => handleBookingClick(service)}
+                          >
+                            Reservar
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {!(walkerProfile?.services_offered?.length > 0 || trainerProfile?.services_offered?.length > 0) && (
+                      <div className="text-center p-10 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                        <p className="text-gray-400">Este profissional ainda não configurou os serviços.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Skills e Bio Profissional */}
+                  <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+                    <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                      <Award className="w-5 h-5" /> Especialidades & Skills
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {(walkerProfile?.specializations || trainerProfile?.training_specialties || []).map((skill, i) => (
+                        <Badge key={i} variant="secondary" className="bg-white border-blue-200 text-blue-700 capitalize">
+                          {skill.replace(/_/g, ' ')}
+                        </Badge>
+                      ))}
+                      {!(walkerProfile?.specializations?.length || trainerProfile?.training_specialties?.length) && (
+                         <span className="text-sm text-gray-500">Nenhuma especialidade listada.</span>
+                      )}
+                    </div>
+                    <p className="mt-4 text-sm text-gray-600 leading-relaxed italic">
+                      "{walkerProfile?.bio || trainerProfile?.bio || profileUser?.about_me || profileUser?.bio || "Sem descrição profissional adicional."}"
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
                    {/* Calendário */}
-                   <Card className="glass-panel border-0 shadow-lg rounded-2xl">
+                   <Card id="calendar-section" className="glass-panel border-0 shadow-lg rounded-2xl scroll-mt-24">
                      <CardHeader className="pb-3">
                        <CardTitle className="text-base flex items-center gap-2">
                          <Calendar className="w-5 h-5 text-green-600" />
-                         Selecione uma Data
+                         Selecione uma Data para Agendar
                        </CardTitle>
                      </CardHeader>
                      <CardContent>
@@ -1291,33 +1367,6 @@ export default function UserProfile() {
                      </CardContent>
                    </Card>
 
-                   {/* Serviços Oferecidos */}
-                   {(walkerProfile?.services_offered?.length > 0 || trainerProfile?.services_offered?.length > 0) && (
-                     <Card className="glass-panel border-0 shadow-lg rounded-2xl">
-                       <CardHeader className="pb-3">
-                         <CardTitle className="text-base flex items-center gap-2">
-                           <Award className="w-5 h-5 text-indigo-600" />
-                           Serviços Disponíveis
-                         </CardTitle>
-                       </CardHeader>
-                       <CardContent>
-                         <div className="space-y-3">
-                           {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
-                             <div key={idx} className="flex justify-between items-center p-3 rounded-lg bg-white/50 border border-gray-100">
-                               <div className="flex-1">
-                                 <p className="font-semibold text-gray-900 text-sm">{service.service_name}</p>
-                                 <p className="text-xs text-gray-500 line-clamp-1">{service.description}</p>
-                               </div>
-                               <span className="font-bold text-green-600 ml-4">€{service.price}</span>
-                             </div>
-                           ))}
-                         </div>
-                       </CardContent>
-                     </Card>
-                   )}
-                </div>
-
-                <div className="space-y-6">
                    {/* Formulário de Reserva */}
                    <div id="booking-form-section">
                      {selectedDate ? (
@@ -1325,16 +1374,16 @@ export default function UserProfile() {
                          professional={walkerProfile || trainerProfile}
                          onClose={handleBookingInitiated}
                          initialDate={selectedDate}
-                         selectedServiceType={serviceParam}
+                         selectedServiceType={selectedService || serviceParam}
                          key={selectedDate?.toISOString()}
                        />
                      ) : (
-                       <Card className="glass-panel border-2 border-dashed border-gray-300 h-full min-h-[300px] flex items-center justify-center rounded-2xl shadow-none">
-                         <CardContent className="py-12 text-center w-full">
-                           <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                           <h3 className="text-lg font-semibold text-gray-900 mb-2">Selecione uma data</h3>
-                           <p className="text-sm text-gray-500">
-                             Clique em um dia disponível no calendário ao lado
+                       <Card className="glass-panel border-2 border-dashed border-gray-300 h-full min-h-[150px] flex items-center justify-center rounded-2xl shadow-none">
+                         <CardContent className="py-8 text-center w-full">
+                           <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                           <h3 className="text-base font-semibold text-gray-900 mb-1">Selecione uma data</h3>
+                           <p className="text-xs text-gray-500">
+                             Escolha um dia disponível no calendário acima para fazer a reserva{selectedService ? ` do serviço ${selectedService}` : ''}
                            </p>
                          </CardContent>
                        </Card>
