@@ -4,9 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown, User as UserIcon, MessageCircle, Heart, Info, Dog, Home, Cat, Bird } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, Phone, Calendar, ShieldCheck, Video, Repeat, CheckCircle, Award, PlayCircle, HelpCircle, ChevronDown, User as UserIcon, MessageCircle, Heart, Info, Dog, Home, Cat, Bird, Grid } from "lucide-react";
 import { ReptileIcon, ArachnidIcon, RodentIcon } from "@/components/professionals/AnimalIcons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import BookingForm from "../components/booking/BookingForm";
@@ -194,6 +195,23 @@ export default function WalkerDetails() {
     initialData: [],
   });
 
+  // Mapeamento de Emblemas Hospedados (PNGs)
+  const BADGE_ASSETS = {
+    "verified": "/assets/badges/verified-pro.png",
+    "top-walker": "/assets/badges/crown-walker.png",
+    "dog-lover": "/assets/badges/heart-gold.png"
+  };
+
+  const { data: profileUser } = useQuery({
+    queryKey: ['profileUser', walker?.created_by],
+    queryFn: async () => {
+      if (!walker?.created_by) return null;
+      const users = await base44.entities.User.filter({ email: walker.created_by });
+      return users[0] || null;
+    },
+    enabled: !!walker?.created_by,
+  });
+
   const { data: userProfile } = useQuery({
     queryKey: ['walkerUserProfile', walker?.created_by],
     queryFn: async () => {
@@ -354,294 +372,188 @@ export default function WalkerDetails() {
         <meta property="og:image" content={walker.photo_url || 'https://pawcao.net/social-preview.jpg'} />
       </Helmet>
 
-      <div className="w-full px-3 sm:px-4 md:px-6 py-4 md:py-6">
-      <div className="w-full max-w-5xl mx-auto">
-        {/* Header com Voltar */}
-        <Button
-          variant="ghost"
-          className="mb-4 hover:bg-white/50"
-          onClick={() => navigate(createPageUrl('Home'))}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
-        </Button>
-
-        {/* Layout em 2 Colunas: Perfil | Calendário + Formulário */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* COLUNA ESQUERDA: Perfil Compacto */}
-          <div className="lg:col-span-1 space-y-4">
-            
-            {/* Card Perfil */}
-            <Card className="bg-white shadow-sm border-0 overflow-hidden">
-              {/* Foto de Capa */}
-              {walker.cover_photo_url && (
-                <div className="h-32 w-full bg-gradient-to-br from-green-100 to-blue-100 relative overflow-hidden">
-                  <img 
-                    src={walker.cover_photo_url} 
-                    alt="Capa"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              
-              <CardContent className={`p-5 ${walker.cover_photo_url ? '-mt-12' : ''}`}>
-                {/* Foto + Nome */}
-                <div className="flex flex-col items-center text-center mb-4">
-                  <div className="relative mb-3">
-                    <img 
-                      src={walker.photo_url || 'https://via.placeholder.com/150'} 
-                      alt={walker.walker_name}
-                      className={`w-24 h-24 rounded-full object-cover shadow-lg ${walker.cover_photo_url ? 'border-4 border-white' : 'border-4 border-gray-100'}`}
-                    />
-                  </div>
-                  <div className="flex items-center gap-1.5 justify-center">
-                    <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">{walker.walker_name}</h1>
-                    {walker.verification_status === 'verified' && (
-                      <InstagramVerifiedBadge size="md" />
-                    )}
-                  </div>
-                  <p className="text-sm font-medium text-green-700 mt-0.5">
-                    {walker.is_verified_trainer ? (language === 'pt' ? 'Treinador & Passeador Profissional' : 'Trainer & Professional Walker') : (language === 'pt' ? 'Passeador Profissional' : 'Professional Walker')}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {walker.location}
-                  </div>
-                  {averageRating > 0 && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span className="font-semibold">{averageRating.toFixed(1)}</span>
-                      <span className="text-xs text-gray-500">({reviews.length})</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bio */}
-                {walker.bio && (
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4 text-center">
-                    {walker.bio}
-                  </p>
-                )}
-
-                {/* Preços */}
-                <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Tarifa por hora</span>
-                    <span className="font-bold text-lg text-green-600">€{walker.hourly_rate}</span>
-                  </div>
-                  {walker.exotic_rate && (
-                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200">
-                      <span className="text-sm text-gray-600">Animais exóticos</span>
-                      <span className="font-bold text-green-600">€{walker.exotic_rate}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Badges */}
-                {walkerBadges.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                      <Award className="w-3.5 h-3.5" />
-                      Conquistas
-                    </h4>
-                    <div className="space-y-2">
-                      {walkerBadges.map((badge) => {
-                        const rarityStyle = {
-                          legendary: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', dot: 'bg-amber-400' },
-                          epic: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', dot: 'bg-purple-400' },
-                          rare: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', dot: 'bg-blue-400' },
-                          common: { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', dot: 'bg-gray-400' },
-                        }[badge.rarity] || { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', dot: 'bg-gray-400' };
-
-                        return (
-                          <div key={badge.id} className={`flex items-center gap-3 p-2.5 border ${rarityStyle.border} ${rarityStyle.bg}`} style={{ borderRadius: 0 }}>
-                            <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
-                              {badge.image_png_file ? (
-                                <img src={badge.image_png_file} alt={badge.name} className="w-9 h-9 object-contain drop-shadow" loading="lazy" decoding="async" />
-                              ) : badge.image_url ? (
-                                <img src={badge.image_url} alt={badge.name} className="w-9 h-9 object-contain drop-shadow" loading="lazy" decoding="async" />
-                              ) : (
-                                <span className="text-2xl">{badge.icon || '🏆'}</span>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-xs font-semibold ${rarityStyle.text} leading-tight`}>{badge.name}</p>
-                              {badge.description && (
-                                <p className="text-[11px] text-gray-500 leading-snug mt-0.5 line-clamp-2">{badge.description}</p>
-                              )}
-                            </div>
-                            <div className={`w-2 h-2 flex-shrink-0 ${rarityStyle.dot}`} style={{ borderRadius: '50%' }} title={badge.rarity} />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-center">
-                  <FavoriteButton walker={walker} user={user} />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Card Animais Aceitos */}
-            {walker.accepted_animals && walker.accepted_animals.length > 0 && (
-              <Card className="bg-white shadow-sm border-0">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Dog className="w-4 h-4 text-green-600" />
-                    Animais Aceitos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex flex-wrap gap-2">
-                    <AnimalIconsWithLabels acceptedAnimals={walker.accepted_animals} language={language} />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Card Horários */}
-            {walker.availability && walker.availability.length > 0 && (
-              <Card className="bg-white shadow-sm border-0">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-blue-600" />
-                    Disponibilidade
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex flex-wrap gap-1.5">
-                    {walker.availability.map(time => (
-                      <Badge key={time} className="bg-blue-50 text-blue-700 text-xs">
-                        {getTimeLabel(time)}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Card Tamanhos */}
-            {walker.dog_sizes && walker.dog_sizes.length > 0 && (
-              <Card className="bg-white shadow-sm border-0">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Tamanhos Aceites</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex flex-wrap gap-1.5">
-                    {walker.dog_sizes.map(size => (
-                      <Badge key={size} className="bg-gray-100 text-gray-700 text-xs">
-                        {getSizeLabel(size)}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+      <div className="max-w-4xl mx-auto pt-6 pb-20 px-4">
+        {/* HEADER ESTILO INSTAGRAM */}
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-10 mb-8">
+          <div className="relative group">
+            <div className="w-24 h-24 md:w-36 md:h-36 rounded-full p-[3px] bg-gradient-to-tr from-yellow-400 via-orange-500 to-fuchsia-600">
+              <img 
+                src={profileUser?.profile_photo_url || walker?.photo_url || 'https://via.placeholder.com/150'} 
+                className="w-full h-full rounded-full object-cover border-4 border-white" 
+                alt={walker.walker_name}
+              />
+            </div>
+            {(profileUser?.pawgo_status?.is_online || walker?.is_online) && (
+              <span className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-4 border-white rounded-full animate-pulse shadow-sm" />
             )}
           </div>
 
-          {/* COLUNA DIREITA: Calendário + Formulário */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Calendário */}
-            <Card className="bg-white shadow-sm border-0">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-green-600" />
-                  Selecione uma Data
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <AvailabilityCalendar
-                  availabilityData={availability}
-                  bookings={walkerBookings}
-                  selectedDate={selectedDate}
-                  onDateSelect={handleDateSelect}
-                  locale={currentLocale}
-                  walkerEmail={walker?.created_by}
-                  isInteractive={false}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Formulário de Reserva */}
-            <div id="booking-form-section">
-              {selectedDate ? (
-                <BookingForm
-                  professional={walker}
-                  onClose={handleBookingInitiated}
-                  initialDate={selectedDate}
-                  selectedServiceType={serviceParam}
-                  key={selectedDate?.toISOString()}
-                />
-              ) : (
-                <Card className="bg-white shadow-sm border-2 border-dashed border-gray-300">
-                  <CardContent className="py-12 text-center">
-                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Selecione uma data</h3>
-                    <p className="text-sm text-gray-500">
-                      Clique em um dia disponível no calendário acima
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
+          <div className="flex-1 text-center md:text-left space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-5">
+              <h2 className="text-xl font-light">@{profileUser?.username || walker?.walker_name?.replace(/\s+/g, '').toLowerCase() || 'usuario'}</h2>
+              <div className="flex gap-2 justify-center md:justify-start">
+                <Button size="sm" variant="outline" className="font-bold border-gray-300">Mensagem</Button>
+                {(profileUser?.is_verified || walker?.verification_status === 'verified') && <ShieldCheck className="w-6 h-6 text-blue-500" />}
+                <FavoriteButton walker={walker} user={user} />
+              </div>
             </div>
 
-            {/* Serviços Oferecidos */}
-            {walker.services_offered?.length > 0 && (
-              <Card className="bg-white shadow-sm border-0">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Award className="w-5 h-5 text-indigo-600" />
-                    Serviços Disponíveis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {walker.services_offered.map((service, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 rounded-lg bg-gray-50 border border-gray-100">
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-900 text-sm">{service.service_name}</p>
-                          <p className="text-xs text-gray-500 line-clamp-1">{service.description}</p>
-                        </div>
-                        <span className="font-bold text-green-600 ml-4">€{service.price}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <div className="flex justify-center md:justify-start gap-8 text-sm">
+              <span><strong>{profileUser?.global_profile?.total_posts || 0}</strong> posts</span>
+              <span><strong>{profileUser?.total_referrals || 0}</strong> indicações</span>
+              <span><strong>{profileUser?.gamification_level || userProfile?.gamification_level || 1}</strong> nível</span>
+            </div>
 
-            {/* Reviews */}
-            <Card className="bg-white shadow-sm border-0">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Star className="w-5 h-5 text-yellow-500" />
-                  Avaliações ({reviews.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingReviews ? (
-                  <Skeleton className="h-32" />
-                ) : reviews.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-sm text-gray-500">Nenhuma avaliação ainda</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {reviews.slice(0, 3).map((review) => (
-                      <ReviewCard key={review.id} review={review} />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <div>
+              <p className="font-bold text-gray-900">{profileUser?.global_profile?.full_name || walker?.walker_name}</p>
+              <p className="text-sm text-gray-700 whitespace-pre-line">{profileUser?.bio || walker?.bio}</p>
+            </div>
+
+            {/* VITRINE DE EMBLEMAS (PNGs REAIS) */}
+            <div className="flex gap-3 pt-2 justify-center md:justify-start">
+              {walkerBadges.map((badge, i) => (
+                <img 
+                  key={i} 
+                  src={badge.image_png_file || badge.image_url || BADGE_ASSETS[badge.slug] || '/assets/badges/default.png'} 
+                  className="w-10 h-10 drop-shadow-md hover:scale-110 transition-transform object-contain"
+                  title={badge.name}
+                  alt={badge.name}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* TABS DE CONTEÚDO */}
+        <Tabs defaultValue="pawgo" className="w-full">
+          <TabsList className="w-full justify-center bg-transparent border-t rounded-none h-12 gap-12">
+            <TabsTrigger value="feed" className="data-[state=active]:border-t-2 border-black rounded-none h-full uppercase text-[10px] tracking-widest gap-2">
+              <Grid className="w-4 h-4" /> Publicações
+            </TabsTrigger>
+            <TabsTrigger value="pawgo" className="data-[state=active]:border-t-2 border-black rounded-none h-full uppercase text-[10px] tracking-widest gap-2">
+              <Dog className="w-4 h-4" /> Serviços PawGo
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="feed" className="mt-4">
+            {/* O Feed da Rede Social será injetado aqui */}
+            <div className="grid grid-cols-3 gap-1 md:gap-4">
+               <div className="aspect-square bg-gray-100 flex items-center justify-center text-gray-400 col-span-3 py-20 rounded-xl">
+                 Sem publicações ainda
+               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="pawgo" className="mt-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                 {/* Calendário */}
+                 <Card className="bg-white shadow-sm border border-gray-200">
+                   <CardHeader className="pb-3">
+                     <CardTitle className="text-base flex items-center gap-2">
+                       <Calendar className="w-5 h-5 text-green-600" />
+                       Selecione uma Data
+                     </CardTitle>
+                   </CardHeader>
+                   <CardContent>
+                     <AvailabilityCalendar
+                       availabilityData={availability}
+                       bookings={walkerBookings}
+                       selectedDate={selectedDate}
+                       onDateSelect={handleDateSelect}
+                       locale={currentLocale}
+                       walkerEmail={walker?.created_by}
+                       isInteractive={false}
+                     />
+                   </CardContent>
+                 </Card>
+
+                 {/* Serviços Oferecidos */}
+                 {walker.services_offered?.length > 0 && (
+                   <Card className="bg-white shadow-sm border border-gray-200">
+                     <CardHeader className="pb-3">
+                       <CardTitle className="text-base flex items-center gap-2">
+                         <Award className="w-5 h-5 text-indigo-600" />
+                         Serviços Disponíveis
+                       </CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                       <div className="space-y-3">
+                         {walker.services_offered.map((service, idx) => (
+                           <div key={idx} className="flex justify-between items-center p-3 rounded-lg bg-gray-50 border border-gray-100">
+                             <div className="flex-1">
+                               <p className="font-semibold text-gray-900 text-sm">{service.service_name}</p>
+                               <p className="text-xs text-gray-500 line-clamp-1">{service.description}</p>
+                             </div>
+                             <span className="font-bold text-green-600 ml-4">€{service.price}</span>
+                           </div>
+                         ))}
+                       </div>
+                     </CardContent>
+                   </Card>
+                 )}
+              </div>
+
+              <div className="space-y-6">
+                 {/* Formulário de Reserva */}
+                 <div id="booking-form-section">
+                   {selectedDate ? (
+                     <BookingForm
+                       professional={walker}
+                       onClose={handleBookingInitiated}
+                       initialDate={selectedDate}
+                       selectedServiceType={serviceParam}
+                       key={selectedDate?.toISOString()}
+                     />
+                   ) : (
+                     <Card className="bg-white shadow-sm border-2 border-dashed border-gray-300 h-full min-h-[300px] flex items-center justify-center">
+                       <CardContent className="py-12 text-center w-full">
+                         <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Selecione uma data</h3>
+                         <p className="text-sm text-gray-500">
+                           Clique em um dia disponível no calendário ao lado
+                         </p>
+                       </CardContent>
+                     </Card>
+                   )}
+                 </div>
+
+                 {/* Avaliações */}
+                 <Card className="bg-white shadow-sm border border-gray-200">
+                   <CardHeader className="pb-3">
+                     <CardTitle className="text-base flex items-center justify-between">
+                       <div className="flex items-center gap-2">
+                         <Star className="w-5 h-5 text-yellow-500" />
+                         Avaliações ({reviews.length})
+                       </div>
+                       {averageRating > 0 && (
+                         <div className="flex items-center gap-1 text-sm bg-yellow-50 px-2 py-1 rounded-full text-yellow-700 font-bold">
+                           {averageRating.toFixed(1)} <Star className="w-3 h-3 fill-yellow-500" />
+                         </div>
+                       )}
+                     </CardTitle>
+                   </CardHeader>
+                   <CardContent>
+                     {loadingReviews ? (
+                       <Skeleton className="h-32" />
+                     ) : reviews.length === 0 ? (
+                       <div className="text-center py-8">
+                         <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                         <p className="text-sm text-gray-500">Nenhuma avaliação ainda</p>
+                       </div>
+                     ) : (
+                       <div className="space-y-4">
+                         {reviews.slice(0, 3).map((review) => (
+                           <ReviewCard key={review.id} review={review} />
+                         ))}
+                       </div>
+                     )}
+                   </CardContent>
+                 </Card>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
       {/* Recurring Modal */}
       <AnimatePresence>

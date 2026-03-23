@@ -186,15 +186,10 @@ export default function AdminUserTable({
                       <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-gray-600'} text-[10px] text-white h-5`}>
                         {user.role === 'admin' ? 'Admin' : 'User'}
                       </Badge>
-                      {user.professional_profile?.verification_status === 'pending' ? (
-                        <div className="flex gap-1">
-                          <AdminQuickVerify userProfile={user} walkerData={user.professional_profile} />
-                        </div>
-                      ) : user.professional_profile?.verification_status === 'verified' || user.is_verified ? (
-                        <Badge variant="outline" className="border-green-500 text-green-600 text-[10px] bg-green-50 h-5">✓</Badge>
-                      ) : user.professional_profile?.verification_status === 'rejected' ? (
-                        <Badge variant="outline" className="border-red-500 text-red-600 text-[10px] bg-red-50 h-5">✗</Badge>
-                      ) : null}
+                      
+                      <div className="flex gap-1">
+                        <AdminQuickVerify userProfile={user} walkerData={user.professional_profile} />
+                      </div>
                       
                       {user.created_date && (
                         <Badge variant="outline" className="text-[10px] h-5">
@@ -211,6 +206,7 @@ export default function AdminUserTable({
                       <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="flex-1 h-8 text-xs" title="Ver Perfil">
                         <Eye className="w-3 h-3 mr-1" /> Ver
                       </Button>
+                      {/* Substituted Edit button as requested, but keeping it visible if needed */}
                       <Button size="sm" variant="outline" onClick={() => onEdit(user)} className="flex-1 h-8 text-xs" title="Editar">
                         <Edit className="w-3 h-3 mr-1" /> Editar
                       </Button>
@@ -302,6 +298,11 @@ export default function AdminUserTable({
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title="Ver Perfil">
                             <Eye className="w-3.5 h-3.5 text-gray-500" />
                           </Button>
+                          {/* AdminQuickVerify as requested by the user */}
+                          <AdminQuickVerify 
+                            userProfile={user} 
+                            walkerData={user.professional_profile} 
+                          />
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
                             <Edit className="w-3.5 h-3.5 text-blue-600" />
                           </Button>
