@@ -91,7 +91,20 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
-      const currentUser = await base44.auth.me();
+      let currentUser = await base44.auth.me();
+      
+      try {
+        const imp = JSON.parse(localStorage.getItem('impersonation') || 'null');
+        if (imp?.targetUserId && currentUser?.role === 'admin') {
+           const targets = await base44.entities.User.filter({ id: imp.targetUserId });
+           if (targets.length > 0) {
+             currentUser = { ...targets[0], isImpersonating: true };
+           }
+        } else if (imp && (!currentUser || currentUser.role !== 'admin')) {
+           localStorage.removeItem('impersonation');
+        }
+      } catch(e) {}
+      
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);

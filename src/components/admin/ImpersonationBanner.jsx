@@ -18,9 +18,9 @@ export default function ImpersonationBanner() {
 
   return (
     <motion.div
-      initial={{ y: -100 }}
+      initial={{ y: 100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-[99999] bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-2xl"
+      className="fixed bottom-0 left-0 right-0 z-[999999] bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-2xl pb-safe"
     >
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">

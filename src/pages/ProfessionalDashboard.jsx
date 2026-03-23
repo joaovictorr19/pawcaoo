@@ -78,7 +78,17 @@ export default function ProfessionalDashboard() {
   // ─── Data Fetching ────────────────────────────────────
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: async () => {
+      let u = await base44.auth.me();
+      try {
+        const imp = JSON.parse(localStorage.getItem('impersonation') || 'null');
+        if (imp?.targetUserId && u?.role === 'admin') {
+           const t = await base44.entities.User.filter({ id: imp.targetUserId });
+           if (t.length > 0) u = { ...t[0], isImpersonating: true };
+        }
+      } catch(e) {}
+      return u;
+    },
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
