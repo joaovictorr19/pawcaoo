@@ -43,6 +43,7 @@ import { toast } from "sonner";
 
 
 export default function Home() {
+  const queryClient = useQueryClient();
   const { language } = useLanguage();
   const { colors } = useTheme();
   const navigate = useNavigate();
