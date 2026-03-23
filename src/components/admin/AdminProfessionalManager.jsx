@@ -257,10 +257,11 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="basic">Dados Básicos</TabsTrigger>
-            <TabsTrigger value="profile">Perfil Profissional</TabsTrigger>
-            <TabsTrigger value="access">Acesso & Segurança</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="basic">Básico</TabsTrigger>
+            <TabsTrigger value="profile">Perfil</TabsTrigger>
+            <TabsTrigger value="access">Acesso</TabsTrigger>
+            <TabsTrigger value="pawgo">PawGo & Taxas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 py-4">
