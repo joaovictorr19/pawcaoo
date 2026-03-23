@@ -32,6 +32,9 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
     is_active: false,
     verification_status: "pending", // pending, verified
     location: "", // Main location for profile
+    is_online: false,
+    platform_fee_percentage: 15,
+    documents: { tax_id: '', id_url: '', address_proof_url: '' }
   });
 
   // Load data if editing
