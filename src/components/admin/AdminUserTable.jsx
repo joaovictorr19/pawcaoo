@@ -189,7 +189,7 @@ export default function AdminUserTable({
                       </Badge>
                       
                       <div className="flex gap-1">
-                        <AdminQuickVerify userProfile={user} walkerData={user.professional_profile} />
+                        <AdminQuickVerify userProfile={user} walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} />
                       </div>
                       
                       {user.created_date && (
