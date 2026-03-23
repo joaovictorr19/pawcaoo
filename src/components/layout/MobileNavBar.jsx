@@ -40,7 +40,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     {
       label: user?.pawgo_status?.is_online ? "Online" : "PawGo",
       icon: user?.pawgo_status?.is_online ? Zap : PawPrint,
-      path: user && ['walker', 'trainer', 'both'].includes(user.account_type) ? createPageUrl("ProfessionalDashboard") : createPageUrl("PostEmergency"),
+      path: createPageUrl("Dashboard"),
       activeColor: user?.pawgo_status?.is_online ? "text-green-500" : "text-orange-500",
       isHighlight: true,
       customBg: user?.pawgo_status?.is_online ? "bg-green-100" : "bg-orange-100"
