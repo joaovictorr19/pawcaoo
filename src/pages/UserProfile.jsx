@@ -9,8 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin, Calendar, Heart, Camera, Edit, Share2,
   Award, Bookmark, Grid, ArrowLeft, Dog, Zap, Crown,
-  CheckCircle, Shield, ShieldCheck, Users, User, Plus, MessageCircle, BarChart2, Sparkles
+  CheckCircle, Shield, ShieldCheck, Users, User, Plus, MessageCircle, BarChart2, Sparkles, Star
 } from "lucide-react";
+import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
+import BookingForm from "../components/booking/BookingForm";
+import ReviewCard from "../components/reviews/ReviewCard";
+import { pt } from "date-fns/locale";
 import { t } from "@/components/translations";
 import { useLanguage } from "@/components/LanguageContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
