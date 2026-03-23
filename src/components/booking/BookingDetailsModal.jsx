@@ -186,6 +186,17 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
                </div>
             )}
           </div>
+
+          {/* Interactive GPS Route Map */}
+          {!isTraining && booking.route_coordinates?.length > 0 && (
+            <div className="space-y-3 pt-4 border-t">
+              <h4 className="font-medium flex items-center gap-2">
+                <MapIcon className="w-4 h-4 text-blue-600" /> Rota do Passeio
+              </h4>
+              <WalkRouteMap booking={booking} checkpoints={checkpoints} />
+            </div>
+          )}
+
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
