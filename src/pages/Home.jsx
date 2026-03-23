@@ -969,7 +969,7 @@ export default function Home() {
                         base44.auth.redirectToLogin(window.location.href);
                         return;
                       }
-                      navigate(createPageUrl(`PostEmergency?dogId=${dog.id}`));
+                      navigate(createPageUrl(`Dashboard?dogId=${dog.id}`));
                     }}
                   >
                     <motion.div
@@ -1428,7 +1428,7 @@ export default function Home() {
                       
                       {!['walker', 'trainer', 'both'].includes(user?.account_type) && (
                         <Button 
-                          onClick={() => navigate(createPageUrl("PostEmergency"))}
+                          onClick={() => navigate(createPageUrl("Dashboard"))}
                           className="mt-6 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-xl hover:shadow-orange-500/30 hover:scale-105 transition-all active:scale-95 px-8 h-12"
                         >
                           <Zap className="w-5 h-5 mr-2 fill-current" />

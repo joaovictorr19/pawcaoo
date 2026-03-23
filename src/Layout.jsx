@@ -331,7 +331,7 @@ function LayoutContent({ children, currentPageName }) {
     },
     { 
       title: "PawGo", 
-      url: createPageUrl("PostEmergency"), 
+      url: createPageUrl("Dashboard"), 
       icon: Zap, 
       className: "text-orange-600 font-bold bg-orange-50 hover:bg-orange-100" 
     },
