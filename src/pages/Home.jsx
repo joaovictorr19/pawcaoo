@@ -281,7 +281,7 @@ export default function Home() {
         return [];
       }
     },
-    enabled: activeTab === 'emergency',
+    enabled: activeTab === 'emergency' || user?.preferences?.current_mode === 'professional',
     initialData: [],
     staleTime: 3 * 60 * 1000,
     cacheTime: 10 * 60 * 1000,
