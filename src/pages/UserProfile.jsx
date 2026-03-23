@@ -1058,8 +1058,8 @@ export default function UserProfile() {
 
         <Card className="glass-panel border-0 shadow-xl mb-6 overflow-hidden rounded-2xl md:rounded-3xl">
           <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 group">
-            {profileUser.cover_photo_url && (
-              <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" loading="lazy" decoding="async" />
+            {displayCoverUrl && (
+              <img src={displayCoverUrl} alt="Cover" className="w-full h-full object-cover object-center" loading="lazy" decoding="async" />
             )}
             
             {isOwnProfile && (
