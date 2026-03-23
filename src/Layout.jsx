@@ -353,7 +353,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: language === 'pt' ? 'Minhas Encomendas' : 'My Orders', url: createPageUrl("MyOrders"), icon: ShoppingBag },
     { title: language === 'pt' ? 'Lista de Desejos' : 'Wishlist', url: createPageUrl("MyWishlist"), icon: Heart },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
-    { title: language === 'pt' ? 'Pódio' : language === 'es' ? 'Podio' : 'Podium', url: createPageUrl("Gamification"), icon: Trophy, id: "nav-gamification" },
+    { title: language === 'pt' ? 'Legado' : language === 'es' ? 'Legado' : 'Legacy', url: createPageUrl("Gamification"), icon: Trophy, id: "nav-gamification" },
     { title: language === 'pt' ? 'Programa Afiliados' : language === 'es' ? 'Programa de Afiliados' : 'Affiliate Program', url: createPageUrl("AffiliateDashboard"), icon: Users },
   ];
 

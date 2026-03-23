@@ -802,7 +802,7 @@ export default function Home() {
                       className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation"
                       >
                       <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
-                      <span className="text-[9px] font-semibold text-slate-700">Pódio</span>
+                      <span className="text-[9px] font-semibold text-slate-700">Legado</span>
                       </button>
 
                       <button
