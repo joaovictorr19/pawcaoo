@@ -244,10 +244,13 @@ export default function BecomeProfessional() {
       return;
     }
 
-    if (!formData.whatsapp_number) {
+    const cleanWhatsApp = formData.whatsapp_number.replace(/\D/g, '');
+    if (!cleanWhatsApp) {
       toast.error("WhatsApp é obrigatório.");
       return;
     }
+    // Update formData with cleaned number before saving
+    formData.whatsapp_number = cleanWhatsApp;
 
     // Construct Services Array
     const services = [];
