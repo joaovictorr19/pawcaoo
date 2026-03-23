@@ -53,6 +53,7 @@ const AuthenticatedApp = () => {
         {Object.entries(Pages).map(([path, Page]) => (
           <Route key={path} path={`/${path}`} element={<Page />} />
         ))}
+        <Route path="/ProfessionalHubV2" element={<ProfessionalHubV2 />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </LayoutWrapper>
