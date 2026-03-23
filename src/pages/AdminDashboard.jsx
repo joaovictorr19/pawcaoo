@@ -1040,15 +1040,19 @@ export default function AdminDashboard() {
               <SubscriptionsManager />
               <BroadcastManager />
             </div>
+            )}
           </TabsContent>
 
           <TabsContent value="debug">
-            <div className="mt-6">
-              <AdminDebug />
-            </div>
+            {activeTab === 'debug' && (
+              <div className="mt-6">
+                <AdminDebug />
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="gamification">
+            {activeTab === 'gamification' && (
             <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
