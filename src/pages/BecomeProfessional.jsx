@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Dog, GraduationCap, Upload, CheckCircle2, Sparkles, PlusCircle, Users } from "lucide-react";
+import { Dog, GraduationCap, Upload, CheckCircle2, Sparkles, PlusCircle, Users, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
