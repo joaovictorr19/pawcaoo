@@ -76,19 +76,19 @@ export default function ProfessionalHubV2() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] pb-24">
-        <div className="h-20 bg-slate-200 animate-pulse w-full"></div>
+      <div className="min-h-screen bg-slate-950 pb-24">
+        <div className="h-20 bg-slate-900 animate-pulse w-full"></div>
         <main className="max-w-5xl mx-auto p-4 md:p-6 space-y-6 mt-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-28 w-full rounded-xl" />)}
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-28 w-full rounded-xl bg-slate-900" />)}
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-6">
-              <Skeleton className="h-80 w-full rounded-xl" />
+              <Skeleton className="h-80 w-full rounded-xl bg-slate-900" />
             </div>
             <div className="space-y-4">
-              <Skeleton className="h-20 w-full rounded-2xl" />
-              <Skeleton className="h-48 w-full rounded-2xl" />
+              <Skeleton className="h-20 w-full rounded-2xl bg-slate-900" />
+              <Skeleton className="h-48 w-full rounded-2xl bg-slate-900" />
             </div>
           </div>
         </main>
@@ -113,9 +113,9 @@ export default function ProfessionalHubV2() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24">
+    <div className="min-h-screen bg-slate-950 text-white pb-24">
       {/* 🟢 BARRA DE STATUS INTELIGENTE */}
-      <div className={`sticky top-0 z-50 p-4 transition-all duration-500 ${user.pawgo_status?.is_online ? 'bg-emerald-600 shadow-emerald-200' : 'bg-slate-900'} text-white shadow-xl`}>
+      <div className={`sticky top-0 z-50 p-4 transition-all duration-500 ${user.pawgo_status?.is_online ? 'bg-emerald-600 shadow-emerald-900/20' : 'bg-slate-900 border-b border-slate-800'} text-white shadow-xl`}>
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className={`w-3 h-3 rounded-full ${user.pawgo_status?.is_online ? 'bg-white animate-ping' : 'bg-slate-500'}`} />
@@ -139,13 +139,13 @@ export default function ProfessionalHubV2() {
         {/* 📊 DASHBOARD DE MÉTRICAS RÁPIDAS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((s, i) => (
-            <Card key={i} className="border-none shadow-sm hover:shadow-md transition-shadow cursor-default">
+            <Card key={i} className="bg-slate-900 border-slate-800 shadow-sm hover:shadow-md transition-shadow cursor-default">
               <CardContent className="p-4 flex flex-col items-center text-center">
-                <div className={`p-2 rounded-lg bg-slate-50 ${s.color} mb-2`}>
+                <div className={`p-2 rounded-lg bg-slate-800 ${s.color} mb-2`}>
                   <s.icon className="w-5 h-5" />
                 </div>
-                <p className="text-[10px] text-slate-500 uppercase font-black">{s.label}</p>
-                <h3 className="text-xl font-black text-slate-900">{s.value}</h3>
+                <p className="text-[10px] text-slate-400 uppercase font-black">{s.label}</p>
+                <h3 className="text-xl font-black text-white">{s.value}</h3>
               </CardContent>
             </Card>
           ))}
@@ -155,9 +155,9 @@ export default function ProfessionalHubV2() {
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             {/* Gráfico de Ganhos Realista */}
-            <Card className="border-none shadow-sm p-6 bg-white">
-              <h3 className="font-black text-slate-800 mb-4 flex items-center gap-2 italic">
-                <AreaChart className="w-5 h-5" /> DESEMPENHO FINANCEIRO
+            <Card className="bg-slate-900 border-slate-800 shadow-sm p-6">
+              <h3 className="font-black text-white mb-4 flex items-center gap-2 italic">
+                <Activity className="w-5 h-5" /> DESEMPENHO FINANCEIRO
               </h3>
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -168,7 +168,7 @@ export default function ProfessionalHubV2() {
                         <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
                     <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#94a3b8'}} />
                     <Tooltip 
                       contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
@@ -186,7 +186,7 @@ export default function ProfessionalHubV2() {
             <SOSButton userId={user.id} />
 
             {/* CARD DE PRÓXIMO SERVIÇO (Exemplo Estático para a UI) */}
-            <Card className="border-none shadow-lg bg-slate-900 text-white overflow-hidden relative group cursor-pointer" onClick={() => navigate(createPageUrl('MyBookings'))}>
+            <Card className="border-none shadow-lg bg-gradient-to-br from-slate-800 to-slate-900 text-white overflow-hidden relative group cursor-pointer" onClick={() => navigate(createPageUrl('MyBookings'))}>
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                 <Dog className="w-24 h-24" />
               </div>
@@ -208,12 +208,12 @@ export default function ProfessionalHubV2() {
         </div>
 
         {/* 📋 GESTÃO DE SERVIÇOS (UNIFICADO COM USER.JSON) */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+        <div className="bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-800">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+            <h3 className="text-lg font-black text-white flex items-center gap-2">
               <Package className="w-5 h-5 text-slate-400" /> Meus Serviços PawGo
             </h3>
-            <Button size="sm" variant="outline" className="rounded-full border-slate-200" onClick={() => navigate(createPageUrl('AccountSettings'))}>
+            <Button size="sm" variant="outline" className="rounded-full border-slate-700 bg-slate-800 text-white hover:bg-slate-700 hover:text-white" onClick={() => navigate(createPageUrl('AccountSettings'))}>
               <Settings className="w-4 h-4 mr-2" /> Gerenciar
             </Button>
           </div>
@@ -237,33 +237,13 @@ export default function ProfessionalHubV2() {
                 <p>Nenhum serviço configurado. Vá às definições para adicionar.</p>
               </div>
             )}
-            <Button variant="ghost" onClick={() => navigate(createPageUrl('AccountSettings'))} className="w-full border-2 border-dashed border-slate-200 h-20 text-slate-500 hover:bg-slate-50 hover:border-orange-300 rounded-2xl md:col-span-2 mt-2 font-bold">
+            <Button variant="ghost" onClick={() => navigate(createPageUrl('AccountSettings'))} className="w-full border-2 border-dashed border-slate-700 h-20 text-slate-400 hover:bg-slate-800 hover:text-white hover:border-orange-500 rounded-2xl md:col-span-2 mt-2 font-bold">
               <Plus className="w-5 h-5 mr-2" /> ADICIONAR NOVO SERVIÇO
             </Button>
           </div>
         </div>
 
       </main>
-
-      {/* 📱 MENU MOBILE MASTER (FIXO) */}
-      <nav className="fixed bottom-0 left-0 right-0 h-20 pb-4 bg-white/90 backdrop-blur-xl border-t border-slate-200 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] flex items-center justify-around px-2 md:hidden z-50">
-        <button className="p-3 flex flex-col items-center gap-1 text-orange-600 bg-orange-50 rounded-xl min-w-[70px]">
-          <Activity className="w-6 h-6" />
-          <span className="text-[9px] font-black uppercase">Painel</span>
-        </button>
-        <button onClick={() => navigate(createPageUrl('MyBookings'))} className="p-3 flex flex-col items-center gap-1 text-slate-400 hover:text-slate-700 min-w-[70px]">
-          <Calendar className="w-6 h-6" />
-          <span className="text-[9px] font-bold uppercase">Agenda</span>
-        </button>
-        <button onClick={() => navigate(createPageUrl('MyWallet'))} className="p-3 flex flex-col items-center gap-1 text-slate-400 hover:text-slate-700 min-w-[70px]">
-          <Wallet className="w-6 h-6" />
-          <span className="text-[9px] font-bold uppercase">Ganhos</span>
-        </button>
-        <button onClick={() => navigate(createPageUrl('AccountSettings'))} className="p-3 flex flex-col items-center gap-1 text-slate-400 hover:text-slate-700 min-w-[70px]">
-          <Settings className="w-6 h-6" />
-          <span className="text-[9px] font-bold uppercase">Ajustes</span>
-        </button>
-      </nav>
     </div>
   );
 }

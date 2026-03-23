@@ -1,9 +1,9 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { useUserMode } from '@/hooks/useUserMode';
 import ProfessionalHubV2 from './ProfessionalHubV2';
 import PostEmergency from './PostEmergency';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Dashboard() {
   const { data: user, isLoading } = useQuery({
@@ -18,11 +18,27 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {isProfessionalMode ? (
-        <ProfessionalHubV2 /> 
-      ) : (
-        <PostEmergency /> 
-      )}
+      <AnimatePresence mode="wait">
+        {isProfessionalMode ? (
+          <motion.div 
+            key="professional"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+          >
+            <ProfessionalHubV2 /> 
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="client"
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+          >
+            <PostEmergency /> 
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
