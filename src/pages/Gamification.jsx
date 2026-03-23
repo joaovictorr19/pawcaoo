@@ -610,7 +610,7 @@ export default function Gamification() {
         />
       </div>
 
-      {/* ========== SECÇÃO 1: O PÓDIO DOS TITÃS ========== */}
+      {/* ========== SECÇÃO 1: O LEGADO DOS TITÃS ========== */}
       <section className="relative pt-12 pb-16 px-4">
         <div className="max-w-2xl mx-auto">
           <motion.h2
@@ -619,7 +619,7 @@ export default function Gamification() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            O Pódio dos Titãs
+            O Legado dos Titãs
           </motion.h2>
           <p className="text-center text-gray-600 text-xs mb-8">
             Os guerreiros mais poderosos da Alcateia
