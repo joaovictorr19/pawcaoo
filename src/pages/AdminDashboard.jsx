@@ -36,7 +36,7 @@ import {
   Calendar, DollarSign, Star, AlertCircle, BarChart3, Store,
   Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
   FileText, Trash2, Plus, Edit,
-  RefreshCw, Loader2, Zap, TrendingUp, Eye
+  RefreshCw, Loader2, Zap, TrendingUp, Eye, AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
