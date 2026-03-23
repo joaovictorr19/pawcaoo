@@ -34,8 +34,8 @@ export default function PushNotificationManager({ user }) {
     const shouldShow = permission === 'default' && (!dismissed || (dismissedTime && parseInt(dismissedTime) < sevenDaysAgo));
 
     if (shouldShow) {
-      // Mostrar após 3 segundos (menos intrusivo)
-      const timer = setTimeout(() => setShowBanner(true), 3000);
+      // Mostrar após 10 segundos para ser menos intrusivo na primeira experiência
+      const timer = setTimeout(() => setShowBanner(true), 10000);
       return () => clearTimeout(timer);
     }
   }, [user, permission]);
