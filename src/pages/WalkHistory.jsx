@@ -237,42 +237,53 @@ export default function WalkHistory() {
           </div>
         )}
 
-        {/* Photo Modal */}
-        {selectedBooking && checkpoints.length > 0 && (
+        {/* Photo & Route Modal */}
+        {selectedBooking && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6">
             <Card className="glass-panel max-w-4xl w-full max-h-[90vh] overflow-auto border-0 shadow-2xl">
               <CardHeader>
-                <CardTitle>Walk Photos & Checkpoints</CardTitle>
+                <CardTitle>{modalMode === 'photos' ? 'Fotos e Checkpoints' : 'Rota do Passeio'}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {checkpoints.map((checkpoint) => (
-                  <div key={checkpoint.id} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <Badge>{checkpoint.checkpoint_type.replace('_', ' ')}</Badge>
-                      <span className="text-sm text-gray-600">
-                        {format(new Date(checkpoint.timestamp || checkpoint.created_date), "h:mm a")}
-                      </span>
-                    </div>
-                    {checkpoint.photo_url && (
-                      <img
-                        src={checkpoint.photo_url}
-                        alt={checkpoint.checkpoint_type}
-                        className="w-full rounded-lg mb-3"
-                      />
+                {modalMode === 'photos' ? (
+                  <>
+                    {checkpoints.length === 0 && (
+                      <div className="text-center p-6 text-gray-500">
+                        Nenhum checkpoint com foto encontrado.
+                      </div>
                     )}
-                    {checkpoint.location_address && (
-                      <p className="text-sm text-gray-600 flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        {checkpoint.location_address}
-                      </p>
-                    )}
-                    {checkpoint.notes && (
-                      <p className="text-sm text-gray-700 mt-2">{checkpoint.notes}</p>
-                    )}
-                  </div>
-                ))}
+                    {checkpoints.map((checkpoint) => (
+                      <div key={checkpoint.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge>{checkpoint.checkpoint_type.replace('_', ' ')}</Badge>
+                          <span className="text-sm text-gray-600">
+                            {format(new Date(checkpoint.timestamp || checkpoint.created_date), "HH:mm")}
+                          </span>
+                        </div>
+                        {checkpoint.photo_url && (
+                          <img
+                            src={checkpoint.photo_url}
+                            alt={checkpoint.checkpoint_type}
+                            className="w-full rounded-lg mb-3 max-h-96 object-contain bg-gray-100"
+                          />
+                        )}
+                        {checkpoint.location_address && (
+                          <p className="text-sm text-gray-600 flex items-center gap-2">
+                            <MapPin className="w-4 h-4" />
+                            {checkpoint.location_address}
+                          </p>
+                        )}
+                        {checkpoint.notes && (
+                          <p className="text-sm text-gray-700 mt-2">{checkpoint.notes}</p>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <WalkRouteMap booking={selectedBooking} checkpoints={checkpoints} />
+                )}
                 <Button onClick={() => setSelectedBooking(null)} className="w-full">
-                  Close
+                  Fechar
                 </Button>
               </CardContent>
             </Card>
