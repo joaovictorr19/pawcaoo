@@ -484,6 +484,69 @@ export default function UserProfile() {
     refetchOnWindowFocus: false,
   });
 
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    if (!currentUser) {
+      toast.error('Faça login para agendar');
+    }
+  };
+
+  const handleBookingInitiated = async (booking) => {
+    setSelectedDate(null);
+    try {
+      createNotification.mutate({
+        recipient_email: profileEmail,
+        title: 'Nova Solicitação de Agendamento',
+        message: `${currentUser.full_name} solicitou um agendamento.`,
+        type: 'booking',
+        related_id: booking.id,
+        priority: 'high'
+      });
+    } catch (e) {}
+    toast.success("Solicitação Enviada! Aguarde a confirmação.");
+    queryClient.invalidateQueries({ queryKey: ['walkerBookings'] });
+  };
+
+  const { data: reviews = [], isLoading: loadingReviews } = useQuery({
+    queryKey: ['professionalReviews', profileEmail],
+    queryFn: async () => {
+      if (!profileEmail) return [];
+      const wId = walkerProfile?.id;
+      const tId = trainerProfile?.id;
+      if (!wId && !tId) return [];
+      
+      let allReviews = [];
+      if (wId) {
+         allReviews = [...allReviews, ...await base44.entities.Review.filter({ walker_id: wId }, '-created_date')];
+      }
+      if (tId) {
+         allReviews = [...allReviews, ...await base44.entities.Review.filter({ trainer_id: tId }, '-created_date')];
+      }
+      return allReviews;
+    },
+    enabled: !!profileEmail && (!!walkerProfile || !!trainerProfile),
+  });
+
+  const { data: availability = [] } = useQuery({
+    queryKey: ['professionalAvailability', profileEmail],
+    queryFn: () => base44.entities.CalendarAvailability.filter({
+      professional_email: profileEmail
+    }),
+    enabled: !!profileEmail && (!!walkerProfile || !!trainerProfile),
+  });
+
+  const { data: walkerBookings = [] } = useQuery({
+    queryKey: ['walkerBookings', profileEmail],
+    queryFn: async () => {
+       const wId = walkerProfile?.id;
+       if (!wId) return [];
+       return await base44.entities.Booking.filter({ walker_id: wId });
+    },
+    enabled: !!walkerProfile?.id,
+  });
+
   // Sync Verification Status
   React.useEffect(() => {
     const syncVerification = async () => {
