@@ -87,7 +87,9 @@ export default function ReviewCard({ review }) {
             <div className="flex items-center gap-2">
               <div className="flex">{renderStars(review.rating)}</div>
               <span className="text-sm text-gray-600">
-                {format(new Date(review.created_date), "MMM d, yyyy")}
+                {review.created_date && !isNaN(new Date(review.created_date).getTime()) 
+                  ? format(new Date(review.created_date), "MMM d, yyyy") 
+                  : "Data desconhecida"}
               </span>
             </div>
           </div>
