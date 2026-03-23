@@ -1107,7 +1107,7 @@ export default function UserProfile() {
               <div className="flex flex-col items-center md:items-start -mt-20 md:-mt-24 px-4 md:pl-0 z-10">
                 <div className="relative">
                         <EditableAvatar 
-                          url={profileUser.profile_photo_url} 
+                          url={displayPhotoUrl} 
                           isPending={updateProfileMediaMutation.isPending && updateProfileMediaMutation.variables?.type === 'avatar'}
                           onUpload={(url) => updateProfileMediaMutation.mutate({ type: 'avatar', url })}
                           disabled={!isOwnProfile}
