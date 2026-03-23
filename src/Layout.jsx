@@ -1212,14 +1212,14 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationTriggers user={authUser} />
 
           {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
+          <div className="flex-1 flex flex-col min-w-0 pb-32 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
             {/* Breadcrumbs */}
             <Breadcrumbs />
 
-            <div className="flex-1 relative pb-24 md:pb-8 px-0">
+            <div className="flex-1 relative pb-32 md:pb-8 px-0">
               <div className="md:hidden">
                 <PullToRefresh>
-                  <div className="relative mb-24" style={{ zIndex: 1 }}>
+                  <div className="relative mb-32" style={{ zIndex: 1 }}>
                     {children}
                   </div>
                 </PullToRefresh>
