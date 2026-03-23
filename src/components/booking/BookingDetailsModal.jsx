@@ -9,10 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Dog, DollarSign, User, FileText, Info } from "lucide-react";
+import { Calendar, Clock, MapPin, Dog, DollarSign, User, FileText, Info, Map as MapIcon } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useTheme } from "@/components/ThemeContext";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import WalkRouteMap from "../walk/WalkRouteMap";
 
 export default function BookingDetailsModal({ booking, open, onOpenChange, type, currentUser, onReview }) {
   const { colors } = useTheme();
