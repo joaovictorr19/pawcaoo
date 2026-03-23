@@ -22,7 +22,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   const labels = {
     explore: { pt: 'Explorar', es: 'Explorar', en: 'Explore' },
     bookings: { pt: 'Reservas', es: 'Reservas', en: 'Bookings' },
-    hallOfFame: { pt: 'Fama', es: 'Fama', en: 'Fame' },
+    hallOfFame: { pt: 'Pódio', es: 'Podio', en: 'Podium' },
     alerts: { pt: 'Alertas', es: 'Alertas', en: 'Alerts' },
     profile: { pt: 'Perfil', es: 'Perfil', en: 'Profile' }
   };
