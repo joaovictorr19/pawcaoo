@@ -1216,10 +1216,10 @@ export default function UserProfile() {
             </TabsTrigger>
 
             {(profileUser?.role === 'walker' || profileUser?.is_verified || walkerProfile || trainerProfile) && (
-              <TabsTrigger value="services" className="flex-1 text-xs md:text-sm whitespace-nowrap px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white">
-                <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-2" />
-                <span className="hidden md:inline">Meus Serviços Prestados</span>
-                <span className="md:hidden">Serviços</span>
+              <TabsTrigger value="pawgo" className="flex-1 text-xs md:text-sm whitespace-nowrap px-4 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
+                <Dog className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-2" />
+                <span className="hidden md:inline">Serviços PawGo</span>
+                <span className="md:hidden">PawGo</span>
               </TabsTrigger>
             )}
 
