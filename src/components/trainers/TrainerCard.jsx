@@ -257,11 +257,11 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
           )}
 
           <div className="flex flex-wrap gap-1 md:gap-2">
-            {trainer.training_specialties?.slice(0, 2).map(specialty => (
-              <Badge key={specialty} variant="outline" className="border-purple-200 text-purple-700 bg-purple-50 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
+            {trainer.training_specialties?.slice(0, 2).map((specialty, idx) => specialty ? (
+              <Badge key={specialty || idx} variant="outline" className="border-purple-200 text-purple-700 bg-purple-50 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
                 {getSpecialtyLabel(specialty)}
               </Badge>
-            ))}
+            ) : null)}
             {trainer.training_specialties?.length > 2 && (
               <Badge variant="outline" className="border-gray-200 text-gray-600 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
                 +{trainer.training_specialties.length - 2}
@@ -271,12 +271,12 @@ const TrainerCard = React.memo(({ trainer, distance }) => {
 
           {trainer.consultation_options && trainer.consultation_options.length > 0 && (
             <div className="flex gap-1 md:gap-2 flex-wrap">
-              {trainer.consultation_options.map(method => (
-                <Badge key={method} className="bg-blue-100 text-blue-700 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
+              {trainer.consultation_options.map((method, idx) => method ? (
+                <Badge key={method || idx} className="bg-blue-100 text-blue-700 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5">
                   {getConsultationIcon(method)}
-                  <span className="ml-1 capitalize">{method.replace('_', ' ')}</span>
+                  <span className="ml-1 capitalize">{String(method).replace('_', ' ')}</span>
                 </Badge>
-              ))}
+              ) : null)}
             </div>
           )}
 
