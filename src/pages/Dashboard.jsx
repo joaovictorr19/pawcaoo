@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useUserMode } from '@/hooks/useUserMode';
 import ProfessionalHubV2 from './ProfessionalHubV2';
-import ClientDashboard from './ClientDashboard';
+import PostEmergency from './PostEmergency';
 
 export default function Dashboard() {
   const { data: user, isLoading } = useQuery({
@@ -14,14 +14,14 @@ export default function Dashboard() {
 
   if (isLoading) return <div className="p-8 text-center pt-24 text-slate-500 font-medium">A carregar...</div>;
 
-  const { isViewingAsProfessional } = useUserMode(user);
+  const isProfessionalMode = user?.preferences?.current_mode === 'professional';
 
   return (
-    <div className="main-layout">
-      {isViewingAsProfessional ? (
+    <div className="min-h-screen bg-slate-50">
+      {isProfessionalMode ? (
         <ProfessionalHubV2 /> 
       ) : (
-        <ClientDashboard /> 
+        <PostEmergency /> 
       )}
     </div>
   );
