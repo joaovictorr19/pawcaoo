@@ -941,6 +941,17 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-screen">
+      {currentUser?.role === 'admin' && (
+        <div className="bg-red-600 text-white p-2 text-center text-xs font-bold flex justify-center gap-4 z-50 relative shadow-md">
+          <span className="flex items-center gap-2"><Shield className="w-4 h-4" /> MODO ADMINISTRADOR ATIVO</span>
+          <button onClick={() => {
+            if(window.confirm('Tem certeza que deseja banir este usuário?')) banUserMutation.mutate(profileUser.id);
+          }} className="underline hover:text-red-200 transition-colors">Banir Conta</button>
+          <button onClick={() => toggleVerificationMutation.mutate(profileUser.id)} className="underline hover:text-red-200 transition-colors">
+             {profileUser.is_verified ? 'Remover Selo' : 'Dar Selo Verificado'}
+          </button>
+        </div>
+      )}
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         <div className="flex gap-2 mb-6">
           <Button variant="outline" onClick={() => navigate(createPageUrl('SocialFeed'))}>
@@ -954,9 +965,22 @@ export default function UserProfile() {
         </div>
 
         <Card className="glass-panel border-0 shadow-xl mb-6 overflow-hidden rounded-2xl md:rounded-3xl">
-          <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+          <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 group">
             {profileUser.cover_photo_url && (
               <img src={profileUser.cover_photo_url} alt="Cover" className="w-full h-full object-cover object-center" loading="lazy" decoding="async" />
+            )}
+            
+            {isOwnProfile && (
+              <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10 text-white">
+                <Camera className="w-8 h-8 mb-2" />
+                <span className="font-medium text-sm drop-shadow-md">Alterar Capa</span>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleCoverUpload} 
+                />
+              </label>
             )}
             
             {/* Carimbo Oficial PawCão - Canto Superior Esquerdo */}
@@ -990,12 +1014,12 @@ export default function UserProfile() {
               {/* Avatar Column - Pulled up to overlap cover */}
               <div className="flex flex-col items-center md:items-start -mt-20 md:-mt-24 px-4 md:pl-0 z-10">
                 <div className="relative">
-                        <Avatar className="w-28 h-28 md:w-32 md:h-32 border-4 border-white shadow-xl ring-4 ring-purple-100 bg-white rounded-xl">
-                          <AvatarImage src={profileUser.profile_photo_url} className="aspect-square object-cover object-center rounded-xl" loading="lazy" decoding="async" />
-                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-3xl md:text-4xl rounded-xl">
-                            {profileUser.full_name?.[0]?.toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                        <EditableAvatar 
+                          url={profileUser.profile_photo_url} 
+                          isPending={updateProfileMediaMutation.isPending && updateProfileMediaMutation.variables?.type === 'avatar'}
+                          onUpload={(url) => updateProfileMediaMutation.mutate({ type: 'avatar', url })}
+                          disabled={!isOwnProfile}
+                        />
 
                         {/* Trainer Verified Badge - Top Right Corner */}
                         {trainerProfile?.is_verified_trainer && (
