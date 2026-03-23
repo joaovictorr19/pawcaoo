@@ -1332,7 +1332,7 @@ export default function UserProfile() {
                     <div className="flex flex-wrap gap-2">
                       {(walkerProfile?.specializations || trainerProfile?.training_specialties || []).map((skill, i) => (
                         <Badge key={i} variant="secondary" className="bg-white border-blue-200 text-blue-700 capitalize">
-                          {skill.replace(/_/g, ' ')}
+                          {String(skill || '').replace(/_/g, ' ')}
                         </Badge>
                       ))}
                       {!(walkerProfile?.specializations?.length || trainerProfile?.training_specialties?.length) && (
