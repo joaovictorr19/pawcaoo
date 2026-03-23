@@ -493,6 +493,16 @@ export default function UserProfile() {
   });
 
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedService, setSelectedService] = useState(serviceParam);
+
+  const handleBookingClick = (service) => {
+    setSelectedService(service.service_name);
+    const calendarEl = document.getElementById('calendar-section');
+    if (calendarEl) {
+      calendarEl.scrollIntoView({ behavior: 'smooth' });
+    }
+    toast.info(`Serviço "${service.service_name}" selecionado. Por favor, escolha uma data no calendário para continuar.`);
+  };
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
