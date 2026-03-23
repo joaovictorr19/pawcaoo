@@ -187,9 +187,8 @@ export default function AdminUserTable({
                         {user.role === 'admin' ? 'Admin' : 'User'}
                       </Badge>
                       {user.professional_profile?.verification_status === 'pending' ? (
-                        <div className="flex gap-1 animate-pulse">
-                          <Button size="sm" onClick={() => onApproveUser?.(user)} className="h-5 px-2 text-[9px] bg-green-600">Aprovar</Button>
-                          <Button size="sm" onClick={() => onRejectUser?.(user)} className="h-5 px-2 text-[9px] bg-red-600">Rejeitar</Button>
+                        <div className="flex gap-1">
+                          <AdminQuickVerify userProfile={user} walkerData={user.professional_profile} />
                         </div>
                       ) : user.professional_profile?.verification_status === 'verified' || user.is_verified ? (
                         <Badge variant="outline" className="border-green-500 text-green-600 text-[10px] bg-green-50 h-5">✓</Badge>
