@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Settings, User, Mail, Phone, MapPin, LogOut, Upload, Save,
-  Lock, Bell, Globe, Shield, ChevronRight, CreditCard, Dog
+  Lock, Bell, Globe, Shield, ChevronRight, CreditCard, Dog, Briefcase
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -414,6 +414,17 @@ export default function AccountSettings() {
                 <Dog className="w-4 h-4 mr-2" />
                 Meus Animais
               </Button>
+              {['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                <Button
+                  variant={activeSection === "professional" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveSection("professional")}
+                  className="rounded-full border-green-200 text-green-700 bg-green-50"
+                >
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  Área Profissional
+                </Button>
+              )}
             </div>
           </div>
 
@@ -475,6 +486,17 @@ export default function AccountSettings() {
                     <Dog className="w-4 h-4 mr-2" />
                     Meus Animais
                   </Button>
+                  {['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                    <Button
+                      variant={activeSection === "professional" ? "default" : "ghost"}
+                      className="w-full justify-start text-green-700 hover:text-green-800 hover:bg-green-50"
+                      size="sm"
+                      onClick={() => setActiveSection("professional")}
+                    >
+                      <Briefcase className="w-4 h-4 mr-2" />
+                      Área Profissional
+                    </Button>
+                  )}
                 </nav>
               </CardContent>
             </Card>
@@ -1006,6 +1028,55 @@ export default function AccountSettings() {
                     >
                       <Dog className="w-5 h-5 mr-2" />
                       Gerir Meus Animais
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {activeSection === "professional" && ['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                <Card className="border-gray-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-green-700">
+                      <Briefcase className="w-6 h-6" />
+                      Gestão Profissional (Atalho)
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">Configurações rápidas da sua carreira PawCão.</p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <Label>Taxa Horária Principal (€)</Label>
+                      <div className="flex gap-2 mt-2">
+                        <Input 
+                          type="number" 
+                          placeholder="Ex: 15" 
+                          defaultValue={walkerProfile?.hourly_rate || trainerProfile?.hourly_rate} 
+                          id="quick-hourly-rate"
+                        />
+                        <Button 
+                          onClick={async () => {
+                            const val = document.getElementById('quick-hourly-rate').value;
+                            if(val) {
+                              try {
+                                if (walkerProfile) await base44.entities.WalkerProfile.update(walkerProfile.id, { hourly_rate: parseFloat(val) });
+                                if (trainerProfile) await base44.entities.TrainerProfile.update(trainerProfile.id, { hourly_rate: parseFloat(val) });
+                                toast.success("Taxa atualizada com sucesso!");
+                              } catch(e) {
+                                toast.error("Erro ao atualizar taxa");
+                              }
+                            }
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          Atualizar
+                        </Button>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => navigate(createPageUrl("ProfessionalDashboard"))}
+                    >
+                      Abrir Painel Profissional Completo
                     </Button>
                   </CardContent>
                 </Card>
