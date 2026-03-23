@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin, Calendar, Heart, Camera, Edit, Share2,
   Award, Bookmark, Grid, ArrowLeft, Dog, Zap, Crown,
-  CheckCircle, Shield, ShieldCheck, Users, User, Plus, MessageCircle, BarChart2
+  CheckCircle, Shield, ShieldCheck, Users, User, Plus, MessageCircle, BarChart2, Sparkles
 } from "lucide-react";
 import { t } from "@/components/translations";
 import { useLanguage } from "@/components/LanguageContext";
