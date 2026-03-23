@@ -144,6 +144,7 @@ export default function UserProfile() {
   const profileIdParam = urlParams.get('id');
   const profileNameParam = urlParams.get('name');
   const profileUsernameParam = urlParams.get('username');
+  const serviceParam = urlParams.get('service');
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
