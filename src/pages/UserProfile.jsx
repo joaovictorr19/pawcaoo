@@ -1131,7 +1131,7 @@ export default function UserProfile() {
                 <div className="text-center w-full md:w-auto">
                   <div className="flex items-center gap-2 justify-center">
                    <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">
-                     {profileUser.full_name}
+                     {displayName}
                    </h1>
 
                   {/* Lógica de verificação e Badges */}
