@@ -770,12 +770,12 @@ export default function Home() {
                                 toast.error("Erro ao alterar o modo");
                               }
                             }}
-                            className={`relative inline-flex h-[31px] w-[51px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                              user.preferences?.current_mode === 'professional' ? 'bg-[#34C759]' : 'bg-white/30'
+                            className={`relative inline-flex h-[31px] w-[51px] flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
+                              user.preferences?.current_mode === 'professional' ? 'bg-[#34C759]' : 'bg-white/40'
                             }`}
                           >
                             <span
-                              className={`pointer-events-none inline-block h-[27px] w-[27px] transform rounded-full bg-white shadow-[0_3px_8px_rgba(0,0,0,0.15),0_1px_1px_rgba(0,0,0,0.16)] ring-0 transition-transform duration-200 ease-in-out ${
+                              className={`pointer-events-none mt-[1px] ml-[1px] inline-block h-[29px] w-[29px] transform rounded-full bg-white shadow-[0_3px_8px_rgba(0,0,0,0.15),0_1px_1px_rgba(0,0,0,0.16)] ring-0 transition-transform duration-200 ease-in-out ${
                                 user.preferences?.current_mode === 'professional' ? 'translate-x-[20px]' : 'translate-x-0'
                               }`}
                             />
