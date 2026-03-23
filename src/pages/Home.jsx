@@ -740,8 +740,8 @@ export default function Home() {
                     
                     <div className="flex items-center justify-center mb-6">
                       {['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                        <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/20 shadow-inner">
-                          <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode !== 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
+                        <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md px-3 py-2 rounded-full border border-white/20 shadow-inner">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode !== 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
                             Tutor
                           </span>
                           
@@ -770,18 +770,18 @@ export default function Home() {
                                 toast.error("Erro ao alterar o modo");
                               }
                             }}
-                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${
+                            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${
                               user.preferences?.current_mode === 'professional' ? 'bg-green-500' : 'bg-slate-400/80'
                             }`}
                           >
                             <span
-                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                user.preferences?.current_mode === 'professional' ? 'translate-x-5' : 'translate-x-0'
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                user.preferences?.current_mode === 'professional' ? 'translate-x-4' : 'translate-x-0'
                               }`}
                             />
                           </button>
 
-                          <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode === 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode === 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
                             Profissional
                           </span>
                         </div>
