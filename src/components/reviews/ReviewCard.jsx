@@ -22,9 +22,9 @@ export default function ReviewCard({ review }) {
     initialData: [],
   });
 
-  const userVote = helpfulVotes.find(v => v.user_email === user?.email);
-  const helpfulCount = helpfulVotes.filter(v => v.is_helpful).length;
-  const notHelpfulCount = helpfulVotes.filter(v => !v.is_helpful).length;
+  const userVote = (helpfulVotes || []).find(v => v.user_email === user?.email);
+  const helpfulCount = (helpfulVotes || []).filter(v => v.is_helpful).length;
+  const notHelpfulCount = (helpfulVotes || []).filter(v => !v.is_helpful).length;
 
   const voteHelpfulMutation = useMutation({
     mutationFn: async (isHelpful) => {
