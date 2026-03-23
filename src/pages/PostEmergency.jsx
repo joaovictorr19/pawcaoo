@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Zap, Upload, AlertCircle } from "lucide-react";
+import { Zap, Upload, AlertCircle, Dog, MapPin, Navigation } from "lucide-react";
+import { Map, MapControls, MapMarker, MarkerContent, MarkerPopup, MapRoute } from "@/components/ui/map";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
@@ -32,6 +34,40 @@ export default function PostEmergency() {
   const [matchedWalker, setMatchedWalker] = useState(null);
 
   const [selectedDogs, setSelectedDogs] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          });
+        },
+        (err) => {
+          console.error("Location error", err);
+          setUserLocation({ lat: 38.7223, lng: -9.1393 });
+        }
+      );
+    } else {
+      setUserLocation({ lat: 38.7223, lng: -9.1393 });
+    }
+  }, []);
+
+  const { data: availableWalkers = [] } = useQuery({
+    queryKey: ['availableWalkers'],
+    queryFn: async () => {
+      try {
+        const result = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 50);
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
   const [formData, setFormData] = useState({
     dog_name: "",
     dog_photo_url: "",
@@ -304,355 +340,231 @@ export default function PostEmergency() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-3 md:p-6 relative flex items-center justify-center">
-      <div className="w-full max-w-2xl mx-auto relative z-10">
-        
-        <AnimatePresence mode="wait">
-          {matchStatus === "searching" && (
-            <motion.div 
-              key="searching"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="w-full"
-            >
-              <SearchStatus onCancel={handleCancelSearch} />
-            </motion.div>
-          )}
-
-          {matchStatus === "matched" && (
-            <motion.div 
-              key="matched"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-3xl shadow-2xl p-8 text-center border-2 border-green-500"
-            >
-              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="w-12 h-12 text-green-600" />
-              </div>
-              <h2 className="text-3xl font-black text-gray-900 mb-2">Passeador Encontrado!</h2>
-              <p className="text-lg text-gray-600 mb-6">
-                <strong className="text-gray-900">{matchedWalker?.name}</strong> aceitou o seu pedido e está a caminho.
-              </p>
-              <div className="animate-pulse bg-green-50 text-green-700 py-3 rounded-xl font-medium">
-                A redirecionar para o mapa em tempo real...
-              </div>
-            </motion.div>
-          )}
-
-          {matchStatus === "idle" && (
-            <motion.div 
-              key="form"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-        <div className="text-center mb-6">
-          <div className="relative w-20 h-20 bg-gradient-to-br from-orange-400 to-red-500 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-orange-500/30">
-            <div className="absolute inset-0 bg-white opacity-20 rounded-3xl animate-ping" style={{ animationDuration: '2s' }}></div>
-            <Zap className="w-10 h-10 text-white z-10" fill="currentColor" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 tracking-tight">PawGo</h1>
-          <p className="text-gray-600 text-sm md:text-lg font-medium">O seu passeador em minutos, à distância de um toque.</p>
+    <div className="w-full h-[calc(100vh-60px)] relative overflow-hidden bg-slate-100 flex flex-col">
+      {/* Loading State Overlay */}
+      {(!isLoaded || !userLocation) && (
+        <div className="absolute inset-0 z-[60] bg-slate-50 flex flex-col items-center justify-center">
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="text-orange-500 mb-4"
+          >
+            <Dog className="w-16 h-16" />
+          </motion.div>
+          <p className="text-gray-500 font-medium">A localizar a sua posição...</p>
         </div>
+      )}
 
-        <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-white/90 backdrop-blur-lg ring-1 ring-gray-100">
-          <CardHeader className="bg-gray-50/50 border-b border-gray-100 py-5">
-            <CardTitle className="text-lg md:text-xl flex items-center gap-2 text-gray-800">
-              <Zap className="w-5 h-5 text-orange-500 fill-orange-500" />
-              Solicitar PawGo Imediato
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 bg-white">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Multi-Animal Selection */}
-              {myDogs?.length > 0 && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4">
-                  <Label className="font-semibold text-gray-700 text-sm mb-2 block flex items-center gap-2">
-                    Meus Animais {selectedDogs.length > 0 && <span className="text-xs bg-gray-700 text-white px-2 py-0.5 rounded-full">{selectedDogs.length}</span>}
-                  </Label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {myDogs.map((dog) => {
-                      const isSelected = selectedDogs.find(d => d.id === dog.id);
-                      return (
-                        <div
-                          key={dog.id}
-                          onClick={() => toggleDog(dog)}
-                          className={`cursor-pointer transition-all rounded-lg p-2 border ${
-                            isSelected 
-                              ? 'bg-gray-700 border-gray-800 text-white shadow-md scale-105' 
-                              : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div className={`w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border ${
-                              isSelected ? 'border-white' : 'border-gray-200'
-                            }`}>
-                              {dog.photo_url ? (
-                                <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className={`w-full h-full flex items-center justify-center text-sm font-bold ${
-                                  isSelected ? 'bg-white text-gray-700' : 'bg-gray-100 text-gray-600'
-                                }`}>
-                                  {dog.dog_name?.charAt(0)}
+      {/* Map Layer */}
+      {userLocation && (
+        <div className="absolute inset-0 z-0 h-[calc(100vh-60px)]">
+          <Map 
+            initialViewState={{
+              longitude: userLocation.lng,
+              latitude: userLocation.lat,
+              zoom: 14
+            }}
+            onMapLoad={() => setIsLoaded(true)}
+            className="w-full h-full"
+          >
+            <MapControls position="top-right" showLocate={true} />
+            
+            {/* Cliente Atual (Origem) */}
+            <MapMarker longitude={userLocation.lng} latitude={userLocation.lat}>
+              <MarkerContent>
+                <div className="relative">
+                  <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center border-4 border-white shadow-xl">
+                    <Avatar className="w-10 h-10 border-2 border-white">
+                      <AvatarImage src={user?.profile_photo_url} />
+                      <AvatarFallback className="bg-orange-200 text-orange-700 font-bold">
+                        {user?.full_name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-4 bg-orange-500 rotate-45 border-r-4 border-b-4 border-white shadow-sm" style={{ zIndex: -1 }}></div>
+                </div>
+              </MarkerContent>
+            </MapMarker>
+
+            {/* Profissionais Disponíveis */}
+            {availableWalkers.map(walker => {
+              if (!walker.longitude || !walker.latitude) return null;
+              // Mock ETA between 1 and 15 mins for realism
+              const eta = Math.floor(Math.random() * 14) + 1;
+              return (
+                <MapMarker key={walker.id} longitude={walker.longitude} latitude={walker.latitude}>
+                  <MarkerContent>
+                    <div className="relative group cursor-pointer transition-transform hover:scale-110">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={walker.photo_url} />
+                          <AvatarFallback className="bg-blue-200 text-blue-700 text-xs">
+                            {walker.walker_name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                    </div>
+                  </MarkerContent>
+                  <MarkerPopup className="bg-white rounded-xl shadow-xl border-0 p-3 min-w-[150px]">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={walker.photo_url} />
+                        <AvatarFallback>{walker.walker_name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm leading-none">{walker.walker_name}</p>
+                        <p className="text-xs text-gray-500 mt-1">A {eta} minutos</p>
+                      </div>
+                    </div>
+                  </MarkerPopup>
+                </MapMarker>
+              );
+            })}
+
+            {/* Rota Ativa Falsa (efeito Uber, ativada ao focar local ou se quiser) */}
+            {/* Poderíamos colocar caso o form tenha local preenchido, mas por agora está comentado ou pronto a injetar coordenadas reais */}
+          </Map>
+        </div>
+      )}
+
+      {/* Interface Limpa sobreposta (Bottom Sheet para os status do PawGo) */}
+      <div className="absolute bottom-0 left-0 right-0 z-[50] w-full pointer-events-none pb-4 md:pb-8 pt-20 bg-gradient-to-t from-black/20 via-black/5 to-transparent">
+        <div className="max-w-2xl mx-auto px-4 pointer-events-auto">
+          <AnimatePresence mode="wait">
+            {matchStatus === "searching" && (
+              <motion.div 
+                key="searching"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 50 }}
+                className="w-full bg-white rounded-3xl shadow-2xl overflow-hidden"
+              >
+                <SearchStatus onCancel={handleCancelSearch} />
+              </motion.div>
+            )}
+
+            {matchStatus === "matched" && (
+              <motion.div 
+                key="matched"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-3xl shadow-2xl p-6 text-center border-2 border-green-500"
+              >
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-black text-gray-900 mb-2">Passeador a caminho!</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  <strong className="text-gray-900">{matchedWalker?.name}</strong> aceitou o seu pedido.
+                </p>
+                <div className="animate-pulse bg-green-50 text-green-700 py-2 rounded-xl text-sm font-medium">
+                  A redirecionar...
+                </div>
+              </motion.div>
+            )}
+
+            {matchStatus === "idle" && (
+              <motion.div 
+                key="form"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 50 }}
+              >
+                <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-white/95 backdrop-blur-xl ring-1 ring-gray-200">
+                  <CardContent className="p-4 md:p-6 bg-white/90">
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      {/* Seleção de Animais Minimalista */}
+                      {myDogs?.length > 0 && (
+                        <div>
+                          <Label className="font-semibold text-gray-700 text-sm mb-2 block flex items-center gap-2">
+                            Selecione o seu Cão
+                          </Label>
+                          <div className="flex gap-2 overflow-x-auto pb-2">
+                            {myDogs.map((dog) => {
+                              const isSelected = selectedDogs.find(d => d.id === dog.id);
+                              return (
+                                <div
+                                  key={dog.id}
+                                  onClick={() => toggleDog(dog)}
+                                  className={`cursor-pointer transition-all rounded-full px-3 py-1.5 border flex items-center gap-2 shrink-0 ${
+                                    isSelected 
+                                      ? 'bg-orange-500 border-orange-600 text-white shadow-md' 
+                                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                                  }`}
+                                >
+                                  <Avatar className="w-6 h-6">
+                                    <AvatarImage src={dog.photo_url} />
+                                    <AvatarFallback className="text-[10px] text-black bg-gray-200">{dog.dog_name?.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-sm font-bold">{dog.dog_name}</span>
                                 </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className={`font-bold text-xs truncate ${isSelected ? 'text-white' : 'text-gray-900'}`}>
-                                {dog.dog_name}
-                              </p>
-                              <p className={`text-[10px] truncate ${isSelected ? 'text-gray-300' : 'text-gray-600'}`}>
-                                {dog.breed || 'SRD'}
-                              </p>
-                            </div>
+                              );
+                            })}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+                      )}
 
-              {/* Urgency Level */}
-              <div className="bg-white">
-                <Label htmlFor="urgency_level" className="text-sm font-semibold mb-1.5 block text-gray-900">{t('urgencyLevel', language)} *</Label>
-                <Select 
-                  required
-                  value={formData.urgency_level}
-                  onValueChange={(value) => setFormData({...formData, urgency_level: value})}
-                >
-                  <SelectTrigger className="h-10 bg-white border-gray-300 text-gray-900">
-                    <SelectValue className="text-gray-900" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="urgent" className="text-gray-900">{t('urgentTime', language)}</SelectItem>
-                    <SelectItem value="very_urgent" className="text-gray-900">{t('veryUrgentTime', language)}</SelectItem>
-                    <SelectItem value="immediate" className="text-gray-900">{t('immediateTime', language)}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                      {/* Inputs compactos */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="col-span-2 relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500" />
+                          <Input
+                            id="location"
+                            value={formData.location}
+                            onChange={(e) => setFormData({...formData, location: e.target.value})}
+                            placeholder="Onde está o seu cão?"
+                            className="h-12 pl-10 text-sm bg-gray-50 border-transparent focus:bg-white rounded-xl shadow-inner font-medium text-gray-900"
+                          />
+                        </div>
+                        
+                        <div className="relative">
+                          <Input
+                            id="needed_time"
+                            value={formData.needed_time}
+                            onChange={(e) => setFormData({...formData, needed_time: e.target.value})}
+                            placeholder="Para quando?"
+                            className="h-10 text-sm bg-gray-50 border-transparent focus:bg-white rounded-xl"
+                          />
+                        </div>
 
-              {/* Animal Info - Only if manual entry */}
-              {selectedDogs.length === 0 && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 space-y-3">
-                  <Label className="text-sm font-semibold block text-gray-700">Informacoes do Animal</Label>
-                  
-                  <div className="flex items-center gap-3">
-                    {formData.dog_photo_url ? (
-                      <img
-                        src={formData.dog_photo_url}
-                        alt="Dog preview"
-                        className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-gray-200">
-                        <Upload className="w-6 h-6 text-gray-400" />
+                        <div className="relative">
+                          <Input
+                            id="offered_amount"
+                            type="number"
+                            step="0.01"
+                            min="1"
+                            value={formData.offered_amount}
+                            onChange={(e) => setFormData({...formData, offered_amount: e.target.value})}
+                            placeholder="Preço (€)"
+                            className="h-10 text-sm font-semibold bg-gray-50 border-transparent focus:bg-white rounded-xl text-green-700"
+                          />
+                        </div>
                       </div>
-                    )}
-                    <div className="flex-1">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        disabled={uploading}
-                        className="text-xs h-9 bg-white"
-                      />
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label htmlFor="dog_name" className="text-xs text-gray-900">Nome *</Label>
-                      <Input
-                        id="dog_name"
-                        value={formData.dog_name}
-                        onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
-                        placeholder="Max"
-                        className="h-9 text-sm bg-white text-gray-900"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="dog_size" className="text-xs text-gray-900">Tamanho *</Label>
-                      <Select 
-                        value={formData.dog_size}
-                        onValueChange={(value) => setFormData({...formData, dog_size: value})}
+                      <Button
+                        type="submit"
+                        disabled={createEmergencyWalkMutation.isPending || uploading || !formData.location || !formData.needed_time || !formData.offered_amount || (selectedDogs.length === 0 && !formData.dog_name)}
+                        className="w-full text-white h-12 text-sm md:text-base font-black tracking-wide shadow-xl hover:shadow-orange-500/30 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl"
                       >
-                        <SelectTrigger className="h-9 text-sm bg-white text-gray-900">
-                          <SelectValue placeholder="Tamanho" className="text-gray-900" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          <SelectItem value="small" className="text-gray-900">Pequeno</SelectItem>
-                          <SelectItem value="medium" className="text-gray-900">Médio</SelectItem>
-                          <SelectItem value="large" className="text-gray-900">Grande</SelectItem>
-                          <SelectItem value="extra_large" className="text-gray-900">XL</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="col-span-2">
-                      <Label htmlFor="dog_breed" className="text-xs text-gray-900">Raça</Label>
-                      <Input
-                        id="dog_breed"
-                        value={formData.dog_breed}
-                        onChange={(e) => setFormData({...formData, dog_breed: e.target.value})}
-                        placeholder="Golden Retriever, SRD..."
-                        className="h-9 text-sm bg-white text-gray-900"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Owner Info */}
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 space-y-3">
-                <Label className="text-sm font-semibold block text-gray-700">Seus Dados</Label>
-                <div className="grid md:grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="owner_name" className="text-xs text-gray-900">Seu Nome *</Label>
-                    <Input
-                      id="owner_name"
-                      value={formData.owner_name}
-                      onChange={(e) => setFormData({...formData, owner_name: e.target.value})}
-                      placeholder="João Silva"
-                      className="h-9 text-sm bg-white text-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="owner_phone" className="text-xs text-gray-900">Telefone *</Label>
-                    <Input
-                      id="owner_phone"
-                      value={formData.owner_phone}
-                      onChange={(e) => setFormData({...formData, owner_phone: e.target.value})}
-                      placeholder="+351 912 345 678"
-                      className="h-9 text-sm bg-white text-gray-900"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Walk Details */}
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 space-y-3">
-                <Label className="text-sm font-semibold block text-gray-700">Detalhes do Passeio</Label>
-                <div className="grid md:grid-cols-2 gap-3">
-                  <div className="md:col-span-2">
-                    <Label htmlFor="location" className="text-xs text-gray-900">Local de Recolha *</Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => setFormData({...formData, location: e.target.value})}
-                      placeholder="Morada completa..."
-                      className="h-9 text-sm bg-white text-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="needed_time" className="text-xs text-gray-900">Quando *</Label>
-                    <Input
-                      id="needed_time"
-                      value={formData.needed_time}
-                      onChange={(e) => setFormData({...formData, needed_time: e.target.value})}
-                      placeholder="Agora, 30min..."
-                      className="h-9 text-sm bg-white text-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="duration_hours" className="text-xs text-gray-900">Duração (h) *</Label>
-                    <Input
-                      id="duration_hours"
-                      type="number"
-                      min="0.5"
-                      step="0.5"
-                      value={formData.duration_hours}
-                      onChange={(e) => setFormData({...formData, duration_hours: e.target.value})}
-                      className="h-9 text-sm bg-white text-gray-900"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <Label htmlFor="offered_amount" className="text-xs text-gray-900">Valor Oferecido (€) *</Label>
-                    <Input
-                      id="offered_amount"
-                      type="number"
-                      step="0.01"
-                      min="1"
-                      value={formData.offered_amount}
-                      onChange={(e) => setFormData({...formData, offered_amount: e.target.value})}
-                      placeholder="50"
-                      className="h-10 text-sm font-semibold bg-white text-gray-900"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Special Notes */}
-              <div>
-                <Label htmlFor="special_notes" className="text-sm font-semibold mb-1.5 block text-gray-900">Notas Especiais <span className="text-xs text-gray-500 font-normal">(opcional)</span></Label>
-                <Textarea
-                  id="special_notes"
-                  value={formData.special_notes}
-                  onChange={(e) => setFormData({...formData, special_notes: e.target.value})}
-                  placeholder="Temperamento, cuidados especiais, medicamentos..."
-                  rows={3}
-                  className="text-sm bg-white text-gray-900"
-                />
-              </div>
-
-              {/* Info Alert + Refund Policy */}
-              <div className="space-y-2">
-                <div className="bg-gray-50 border border-gray-300 rounded-lg p-3">
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-gray-700">
-                      {t('emergencyWalkDisclaimer', language)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 border border-gray-300 rounded-lg p-3">
-                  <p className="text-xs text-gray-700 font-semibold mb-1">Reembolso Garantido</p>
-                  <p className="text-xs text-gray-600">
-                    Cancelamento antes de aceite: <strong>100% reembolso</strong>
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(createPageUrl('Home'))}
-                  className="w-full md:w-auto h-10 text-sm text-gray-900 bg-white"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createEmergencyWalkMutation.isPending || uploading || !formData.owner_name || !formData.owner_phone || !formData.location || !formData.needed_time || !formData.offered_amount || (selectedDogs.length === 0 && !formData.dog_name)}
-                  className="flex-1 text-white h-12 text-sm font-black tracking-wide shadow-xl hover:shadow-2xl hover:shadow-orange-500/30 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-500 to-red-500 rounded-xl"
-                >
-                  {createEmergencyWalkMutation.isPending ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                      Iniciando Radar...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-5 h-5 mr-2 fill-current" />
-                      Acionar PawGo
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                        {createEmergencyWalkMutation.isPending ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                            A buscar passeadores...
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="w-5 h-5 mr-2 fill-current" />
+                            Pedir PawGo Agora
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
