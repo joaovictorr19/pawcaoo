@@ -273,11 +273,11 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
             {/* Tamanhos de Cães */}
             {walker.dog_sizes && walker.dog_sizes.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {walker.dog_sizes.slice(0, 3).map(size => (
-                  <Badge key={size} variant="outline" className="text-[9px] capitalize px-1.5 py-0.5 whitespace-nowrap">
-                    {size.replace('_', ' ')}
+                {walker.dog_sizes.slice(0, 3).map((size, idx) => size ? (
+                  <Badge key={size || idx} variant="outline" className="text-[9px] capitalize px-1.5 py-0.5 whitespace-nowrap">
+                    {String(size).replace('_', ' ')}
                   </Badge>
-                ))}
+                ) : null)}
                 {walker.dog_sizes.length > 3 && (
                   <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 whitespace-nowrap">+{walker.dog_sizes.length - 3}</Badge>
                 )}
