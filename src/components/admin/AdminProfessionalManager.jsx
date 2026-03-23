@@ -70,7 +70,10 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
         bio: "",
         is_active: true,
         verification_status: "verified", // Auto-verify manually created pros
-        location: ""
+        location: "",
+        is_online: false,
+        platform_fee_percentage: 15,
+        documents: { tax_id: '', id_url: '', address_proof_url: '' }
       });
     }
   }, [userToEdit, isOpen]);
