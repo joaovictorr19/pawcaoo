@@ -17,6 +17,7 @@ import { createPageUrl } from "@/utils";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
+import { AdminQuickVerify } from "./AdminQuickVerify";
 
 export default function AdminUserTable({ 
   users = [], 
