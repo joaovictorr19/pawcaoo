@@ -529,9 +529,10 @@ export default function BecomeProfessional() {
                           <div className="space-y-2">
                             <Label>WhatsApp *</Label>
                             <Input
+                              type="tel"
                               required
                               value={formData.whatsapp_number}
-                              onChange={(e) => setFormData({...formData, whatsapp_number: e.target.value.replace(/\D/g, '')})}
+                              onChange={(e) => setFormData({...formData, whatsapp_number: e.target.value})}
                               placeholder="351912345678"
                             />
                           </div>
