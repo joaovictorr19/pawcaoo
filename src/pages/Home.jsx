@@ -828,7 +828,7 @@ export default function Home() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
-                        className="mt-3 w-full bg-gradient-to-r from-orange-500 to-red-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-between group"
+                        className="mt-3 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-between group"
                       >
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -839,8 +839,37 @@ export default function Home() {
                             <p className="text-[10px] opacity-90">Clique para responder</p>
                           </div>
                         </div>
-                        <div className="bg-white text-red-600 font-bold text-sm px-3 py-1 rounded-full group-hover:scale-110 transition-transform">
+                        <div className="bg-white text-blue-600 font-bold text-sm px-3 py-1 rounded-full group-hover:scale-110 transition-transform">
                           {pendingBookingsCount}
+                        </div>
+                      </motion.button>
+                    )}
+
+                    {/* PawGo Emergency Walks Alert */}
+                    {user.preferences?.current_mode === 'professional' && filteredEmergencyWalks.length > 0 && (
+                      <motion.button
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        onClick={() => {
+                          setActiveTab('emergency');
+                          setTimeout(() => {
+                            document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+                          }, 100);
+                        }}
+                        className="mt-3 w-full bg-gradient-to-r from-orange-500 to-red-600 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center relative">
+                            <MapPin className="w-4 h-4 z-10" />
+                            <div className="absolute inset-0 border-2 border-white rounded-full animate-ping opacity-50"></div>
+                          </div>
+                          <div className="text-left">
+                            <p className="text-xs font-bold">Pedidos PawGo Ativos</p>
+                            <p className="text-[10px] opacity-90">Cães precisam de si agora mesmo!</p>
+                          </div>
+                        </div>
+                        <div className="bg-white text-red-600 font-bold text-sm px-3 py-1 rounded-full group-hover:scale-110 transition-transform">
+                          {filteredEmergencyWalks.length}
                         </div>
                       </motion.button>
                     )}
