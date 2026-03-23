@@ -8,9 +8,11 @@ import { Calendar, MapPin, Clock, Star, Image as ImageIcon, Map } from "lucide-r
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import WalkRouteMap from "../components/walk/WalkRouteMap";
 
 export default function WalkHistory() {
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [modalMode, setModalMode] = useState('photos'); // 'photos' | 'route'
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
