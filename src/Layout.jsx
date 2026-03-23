@@ -336,9 +336,9 @@ function LayoutContent({ children, currentPageName }) {
       className: "text-orange-600 font-bold bg-orange-50 hover:bg-orange-100" 
     },
     { 
-      title: language === 'pt' ? 'Painel Profissional' : (t('professionalDashboard', language) || 'Professional Dashboard'), 
+      title: language === 'pt' ? 'Meu Painel' : 'Dashboard', 
       url: (authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both') 
-        ? createPageUrl("ProfessionalHubV2") 
+        ? createPageUrl("Dashboard") 
         : createPageUrl("ProfessionalSetup"), 
       icon: BarChart3 
     }

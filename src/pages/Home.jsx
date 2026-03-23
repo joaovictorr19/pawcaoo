@@ -748,24 +748,31 @@ export default function Home() {
                           <button
                             onClick={async () => {
                               try {
-                                const newMode = user.preferences?.current_mode === 'professional' ? 'client' : 'professional';
-                                await base44.auth.updateMe({ preferences: { ...user.preferences, current_mode: newMode } });
+                                const isProfessional = user.preferences?.current_mode !== 'professional';
+                                const toastId = toast.loading(`Alternando para modo ${isProfessional ? 'Profissional' : 'Tutor'}...`);
+                                
+                                await base44.auth.updateMe({ 
+                                  preferences: { ...user.preferences, current_mode: isProfessional ? 'professional' : 'owner' },
+                                  pawgo_status: { ...user.pawgo_status, is_online: isProfessional }
+                                });
                                 
                                 if (user.account_type === 'walker' || user.account_type === 'both') {
                                     const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
                                     if (walkers.length > 0) {
-                                        await base44.entities.WalkerProfile.update(walkers[0].id, { is_online: newMode === 'professional' });
+                                        await base44.entities.WalkerProfile.update(walkers[0].id, { is_online: isProfessional });
                                     }
                                 }
                                 if (user.account_type === 'trainer' || user.account_type === 'both') {
                                     const trainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
                                     if (trainers.length > 0) {
-                                        await base44.entities.TrainerProfile.update(trainers[0].id, { is_online: newMode === 'professional' });
+                                        await base44.entities.TrainerProfile.update(trainers[0].id, { is_online: isProfessional });
                                     }
                                 }
 
-                                toast.success(newMode === 'professional' ? "Modo Profissional (Online) ativado" : "Modo Tutor ativado");
-                                queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+                                setTimeout(() => {
+                                  toast.success(isProfessional ? "Modo Profissional (Online) ativado" : "Modo Tutor ativado", { id: toastId });
+                                  queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+                                }, 1000);
                               } catch (e) { 
                                 toast.error("Erro ao alterar o modo");
                               }
@@ -827,7 +834,7 @@ export default function Home() {
                       <motion.button
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}
+                        onClick={() => navigate(createPageUrl('Dashboard'))}
                         className="mt-3 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-between group"
                       >
                         <div className="flex items-center gap-2">

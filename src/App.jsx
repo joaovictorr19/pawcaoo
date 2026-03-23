@@ -11,6 +11,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ProfessionalHubV2 from './pages/ProfessionalHubV2';
+import Dashboard from './pages/Dashboard';
 import ProfessionalSetup from './pages/ProfessionalSetup';
 import AdminProfessionalApprovals from './pages/AdminProfessionalApprovals';
 
@@ -56,6 +57,7 @@ const AuthenticatedApp = () => {
           <Route key={path} path={`/${path}`} element={<Page />} />
         ))}
         <Route path="/ProfessionalHubV2" element={<ProfessionalHubV2 />} />
+        <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/ProfessionalSetup" element={<ProfessionalSetup />} />
         <Route path="/AdminProfessionalApprovals" element={<AdminProfessionalApprovals />} />
         <Route path="*" element={<PageNotFound />} />
