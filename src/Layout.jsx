@@ -339,7 +339,7 @@ function LayoutContent({ children, currentPageName }) {
       title: language === 'pt' ? 'Painel Profissional' : (t('professionalDashboard', language) || 'Professional Dashboard'), 
       url: (authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both') 
         ? createPageUrl("ProfessionalHubV2") 
-        : createPageUrl("BecomeProfessional"), 
+        : createPageUrl("ProfessionalSetup"), 
       icon: BarChart3 
     }
   ];

@@ -1469,7 +1469,7 @@ export default function Home() {
               <div className="flex justify-center">
                 <Button
                   size="default"
-                  onClick={() => navigate(createPageUrl('BecomeProfessional'))}
+                  onClick={() => navigate(createPageUrl('ProfessionalSetup'))}
                   className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
                 >
                   <Users className="w-4 h-4 mr-2" />
