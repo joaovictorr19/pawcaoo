@@ -1077,12 +1077,7 @@ export default function UserProfile() {
               </label>
             )}
             
-            {/* Carimbo Oficial PawCão - Canto Superior Esquerdo */}
-            {(walkerProfile?.is_pawcao_employee || trainerProfile?.is_pawcao_employee || profileUser.is_pawcao_employee) && (
-              <div className="absolute top-4 left-4 z-20">
-                <PawCaoEmployeeStamp />
-              </div>
-            )}
+
 
 
 
