@@ -1141,18 +1141,7 @@ export default function Home() {
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate font-bold">PawGo</span>
                 </button>
-                <button
-                  onClick={() => setActiveTab('comunidade')}
-                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
-                    activeTab === 'comunidade'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Rss className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Comunidade' : 'Community'}</span>
-                  <span className="truncate sm:hidden">Feed</span>
-                </button>
+
               </div>
 
               <TabsContent value="professionals">
