@@ -162,13 +162,13 @@ export default function PushNotificationManager({ user }) {
       <AnimatePresence>
         {showBanner && (
           <motion.div
-            initial={{ opacity: 0, y: -30, scale: 0.95 }}
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -30, scale: 0.95 }}
-            className="fixed top-16 md:top-24 left-3 right-3 md:left-1/2 md:-translate-x-1/2 md:right-auto z-[99998] md:w-full md:max-w-sm"
+            exit={{ opacity: 0, y: 50, scale: 0.95 }}
+            className="fixed bottom-20 md:bottom-6 left-3 right-3 md:left-auto md:right-6 z-[99998] md:w-full md:max-w-sm"
           >
-            <Card className="border-0 shadow-2xl backdrop-blur-xl bg-white/98 rounded-2xl overflow-hidden">
-              <CardContent className="p-3 md:p-5">
+            <Card className="border border-gray-100 shadow-xl backdrop-blur-xl bg-white/95 rounded-2xl overflow-hidden">
+              <CardContent className="p-3 md:p-4">
                 {/* Botão fechar */}
                 <button
                   onClick={dismissBanner}
