@@ -1047,14 +1047,10 @@ export default function UserProfile() {
         </div>
       )}
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
-        <div className="flex gap-2 mb-6">
-          <Button variant="outline" onClick={() => navigate(createPageUrl('SocialFeed'))}>
+        <div className="flex gap-2 mb-6 w-full">
+          <Button variant="outline" onClick={() => navigate(createPageUrl('Home'))} className="flex-1 md:flex-none bg-white">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Comunidade
-          </Button>
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
+            Início
           </Button>
         </div>
 
