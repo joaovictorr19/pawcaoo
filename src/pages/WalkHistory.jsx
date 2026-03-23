@@ -214,7 +214,7 @@ export default function WalkHistory() {
                       <div className="flex gap-3 mt-6">
                         <Button
                           variant="outline"
-                          onClick={() => setSelectedBooking(booking)}
+                          onClick={() => { setSelectedBooking(booking); setModalMode('photos'); }}
                           className="flex-1"
                         >
                           <ImageIcon className="w-4 h-4 mr-2" />
@@ -222,6 +222,7 @@ export default function WalkHistory() {
                         </Button>
                         <Button
                           variant="outline"
+                          onClick={() => { setSelectedBooking(booking); setModalMode('route'); }}
                           className="flex-1"
                         >
                           <Map className="w-4 h-4 mr-2" />
