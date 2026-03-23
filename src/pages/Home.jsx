@@ -691,10 +691,10 @@ export default function Home() {
                         </div>
                         
                         {(() => {
-                          const allBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])];
+                          const allBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])].filter(Boolean);
                           // Remove duplicates based on badge_id
                           const uniqueBadges = allBadges.filter((badge, index, self) => 
-                            index === self.findIndex(b => b.badge_id === badge.badge_id)
+                            index === self.findIndex(b => (b.badge_id === badge.badge_id) || (b.id === badge.id))
                           );
                           return uniqueBadges.length > 0 && (
                             <div className="mb-3 pt-3">
