@@ -1,242 +1,144 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import UniversalMap from '@/components/maps/UniversalMap';
-import { MapClusterLayer, MapPopup, MapMarker } from '@/components/ui/map';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { UniversalMap } from '@/components/maps/UniversalMap';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Star, Calendar, DollarSign, MessageCircle, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { MapPin, User, Dog, Zap, MessageCircle, AlertCircle } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-export default function AdminLiveMap({ 
-  users = [], 
-  bookings = [],
-  onUserClick 
-}) {
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedWalk, setSelectedWalk] = useState(null);
+export default function AdminLiveMap({ className }) {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const [selectedProfile, setSelectedProfile] = useState(null);
 
-  // Fetch ACTIVE walks in progress (real-time)
-  const { data: activeWalks = [] } = useQuery({
-    queryKey: ['activeWalksLive'],
+  // 1. Fetch ALL active walkers (online)
+  const { data: onlineWalkers = [] } = useQuery({
+    queryKey: ['adminLiveWalkers'],
     queryFn: async () => {
-      const walks = await base44.entities.Booking.filter({ 
-        status: 'in_progress' 
-      }, '-updated_date', 100);
-      return walks.filter(w => w.walker_lat && w.walker_lng);
-    },
-    refetchInterval: 10000, // Real-time polling every 10s
-  });
-
-  const endWalkMutation = useMutation({
-    mutationFn: async (walkId) => {
-      await base44.entities.Booking.update(walkId, {
-        status: 'completed',
-        completed_date: new Date().toISOString(),
-        forced_finish_reason: 'Encerrado por Administrador'
+      // Fetch online walkers
+      const walkers = await base44.entities.WalkerProfile.filter({ 
+        is_online: true,
+        is_active: true
       });
+      return walkers;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['activeWalksLive']);
-      toast.success("Corrida encerrada com sucesso.");
-      setSelectedWalk(null);
-    },
-    onError: (e) => toast.error("Erro ao encerrar: " + e.message)
+    refetchInterval: 10000 // Refresh every 10s
   });
 
-  // Create GeoJSON for users
-  // Pino Verde: Passeador online.
-  // Pino Amarelo: Treinador
-  // Outros (clientes/offline): Azul (maybe we don't show all, but let's show all that have lat/lng)
-  const features = [];
-  
-  users.forEach(u => {
-    if (u.latitude && u.longitude) {
-      const isWalker = u.account_type === 'walker' || u.account_type === 'both';
-      const isTrainer = u.account_type === 'trainer' || u.account_type === 'both';
-      const isOnline = u.pawgo_status?.is_online;
-      
-      let typeLabel = 'Cliente';
-      let pinColor = '#3b82f6'; // Azul
-      
-      if (isWalker && isOnline) {
-        pinColor = '#22c55e'; // Verde
-        typeLabel = 'Passeador Online';
-      } else if (isTrainer) {
-        pinColor = '#eab308'; // Amarelo
-        typeLabel = 'Treinador';
-      } else if (isWalker) {
-        pinColor = '#9ca3af'; // Cinza (offline)
-        typeLabel = 'Passeador Offline';
-      }
-
-      features.push({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [u.longitude, u.latitude]
-        },
-        properties: {
-          id: u.id,
-          email: u.email,
-          full_name: u.full_name || 'Utilizador',
-          city: u.city || 'Sem cidade',
-          account_type: u.account_type || 'owner',
-          type_label: typeLabel,
-          pin_color: pinColor,
-          is_online: isOnline,
-          profile_photo_url: u.profile_photo_url,
-          gamification_xp: u.gamification_xp || 0
+  // 2. Subscribe to real-time updates
+  useEffect(() => {
+    const unsubscribe = base44.entities.WalkerProfile.subscribe((event) => {
+      // Invalidate on ANY change to refresh map
+      if (event.type === 'update' || event.type === 'create') {
+        queryClient.invalidateQueries({ queryKey: ['adminLiveWalkers'] });
+        
+        // Specifically listen for verification_status changes
+        if (event.data?.verification_status === 'verified' && event.data?.has_pawcao_seal) {
+          // Could trigger a toast or animation here
+          console.log('New verified walker!', event.data.walker_name);
         }
-      });
-    }
-  });
+      }
+    });
+    return () => unsubscribe();
+  }, [queryClient]);
 
-  const staticData = {
-    type: 'FeatureCollection',
-    features
+  // 3. Prepare markers
+  const markers = onlineWalkers.map(walker => ({
+    id: walker.id,
+    lat: walker.latitude || 38.7223, // Default Lisbon if missing
+    lng: walker.longitude || -9.1393,
+    title: walker.walker_name,
+    color: walker.verification_status === 'verified' ? '#22c55e' : '#f59e0b', // Green for verified, Amber for pending
+    icon: walker.verification_status === 'verified' ? 'shield-check' : 'user',
+    data: walker
+  }));
+
+  const handleMarkerClick = (marker) => {
+    setSelectedProfile(marker.data);
   };
 
   return (
-    <>
-      <UniversalMap 
-        center={[-8.6291, 41.1579]}
-        zoom={7}
-      >
-        <MapClusterLayer
-          data={staticData}
-          clusterRadius={50}
-          clusterMaxZoom={14}
-          clusterColors={['#22c55e', '#eab308', '#ef4444', '#3b82f6']}
-          pointColor="#3b82f6"
-          onPointClick={(feature, coordinates) => {
-            const props = feature.properties;
-            setSelectedUser({
-              ...props,
-              coordinates
-            });
-          }}
+    <div className={`grid grid-cols-1 lg:grid-cols-3 gap-4 h-[600px] ${className}`}>
+      {/* Map Section */}
+      <div className="lg:col-span-2 rounded-xl overflow-hidden border shadow-sm relative">
+        <UniversalMap
+          markers={markers}
+          onMarkerClick={handleMarkerClick}
+          center={[38.7223, -9.1393]} // Lisbon center
+          zoom={12}
+          className="w-full h-full"
         />
-
-        {/* Live Walks Markers (Blue Animated) */}
-        {activeWalks.map(walk => (
-          <MapMarker
-            key={walk.id}
-            longitude={walk.walker_lng}
-            latitude={walk.walker_lat}
-            onClick={() => setSelectedWalk(walk)}
-          >
-            <div className="relative cursor-pointer group">
-              <div className="absolute -inset-3 bg-blue-500 rounded-full opacity-40 animate-ping group-hover:opacity-60"></div>
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full border-4 border-white shadow-2xl flex items-center justify-center relative z-10 transition-transform group-hover:scale-110">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={walk.dogs?.[0]?.photo_url} />
-                  <AvatarFallback className="text-xs bg-transparent">🐕</AvatarFallback>
-                </Avatar>
-              </div>
+        
+        {/* Quick Stats Overlay */}
+        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow-md z-[1000]">
+          <div className="flex items-center gap-3 text-sm font-medium">
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              {onlineWalkers.length} Online
             </div>
-          </MapMarker>
-        ))}
-
-        {/* Popup for Live Walks */}
-        {selectedWalk && (
-          <MapPopup
-            longitude={selectedWalk.walker_lng}
-            latitude={selectedWalk.walker_lat}
-            onClose={() => setSelectedWalk(null)}
-            closeButton
-          >
-            <div className="space-y-3 min-w-[240px] max-w-[300px]">
-              <div className="flex items-center gap-2 border-b pb-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                <h3 className="font-bold text-sm text-blue-800">Corrida em Curso</h3>
-              </div>
-              <div className="text-xs space-y-1">
-                <p><strong>Passeador:</strong> {selectedWalk.walker_name}</p>
-                <p><strong>Cão:</strong> {selectedWalk.dog_name || 'N/A'}</p>
-                <p><strong>Tutor:</strong> {selectedWalk.owner_name}</p>
-              </div>
-              <div className="flex flex-col gap-2 mt-2 pt-2 border-t">
-                <Button 
-                  size="sm" 
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                  onClick={() => navigate(createPageUrl(`Chat?user=${selectedWalk.walker_email}`))}
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Assumir Chat (Admin)
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="destructive"
-                  className="w-full"
-                  onClick={() => {
-                    if (confirm("Encerrar corrida de emergência?")) {
-                      endWalkMutation.mutate(selectedWalk.id);
-                    }
-                  }}
-                  disabled={endWalkMutation.isPending}
-                >
-                  <AlertTriangle className="w-4 h-4 mr-2" />
-                  {endWalkMutation.isPending ? 'A Encerrar...' : 'Encerrar Corrida'}
-                </Button>
-              </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              {onlineWalkers.filter(w => w.verification_status === 'verified').length} Verificados
             </div>
-          </MapPopup>
-        )}
+          </div>
+        </div>
+      </div>
 
-        {/* Popup for selected static user */}
-        {selectedUser && (
-          <MapPopup
-            longitude={selectedUser.coordinates[0]}
-            latitude={selectedUser.coordinates[1]}
-            onClose={() => setSelectedUser(null)}
-            closeButton
-          >
-            <div className="space-y-2 min-w-[220px] max-w-[280px]">
-              <div className="flex items-center gap-2">
-                <Avatar className="w-12 h-12 flex-shrink-0">
-                  <AvatarImage src={selectedUser.profile_photo_url} />
-                  <AvatarFallback className="text-white text-xs bg-gray-600">
-                    {selectedUser.full_name?.[0]?.toUpperCase() || '?'}
-                  </AvatarFallback>
+      {/* Details Panel */}
+      <Card className="h-full overflow-hidden flex flex-col">
+        <CardHeader className="pb-2 border-b">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Zap className="w-5 h-5 text-amber-500" /> Live Feed
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+          {selectedProfile ? (
+            <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
+                  <AvatarImage src={selectedProfile.photo_url} />
+                  <AvatarFallback>{selectedProfile.walker_name?.[0]}</AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm truncate">{selectedUser.full_name}</p>
-                  <p className="text-xs text-gray-600 truncate">{selectedUser.email}</p>
+                <div>
+                  <h3 className="font-bold text-lg">{selectedProfile.walker_name}</h3>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={selectedProfile.verification_status === 'verified' ? "default" : "secondary"} className={selectedProfile.verification_status === 'verified' ? "bg-green-600" : ""}>
+                      {selectedProfile.verification_status === 'verified' ? 'Verificado' : 'Pendente'}
+                    </Badge>
+                    <span className="text-xs text-gray-500">ID: {selectedProfile.id.slice(0,6)}</span>
+                  </div>
                 </div>
               </div>
-              
-              <div className="flex gap-1.5 flex-wrap mt-1">
-                <Badge variant="outline" className="text-xs">
-                  {selectedUser.type_label}
-                </Badge>
-                {selectedUser.is_online && (
-                  <Badge className="bg-green-500 text-white text-[10px]">Online (PawGo)</Badge>
-                )}
-                <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-[10px]">
-                  {selectedUser.gamification_xp} XP
-                </Badge>
+
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="bg-slate-50 p-2 rounded">
+                  <span className="text-gray-500 block text-xs">Localização</span>
+                  {selectedProfile.location || 'N/A'}
+                </div>
+                <div className="bg-slate-50 p-2 rounded">
+                  <span className="text-gray-500 block text-xs">Rate</span>
+                  {selectedProfile.hourly_rate}€/h
+                </div>
               </div>
 
-              <Button
-                size="sm"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-xs mt-2"
-                onClick={() => {
-                  window.open(createPageUrl(`UserProfile?email=${selectedUser.email}`), '_blank');
-                  setSelectedUser(null);
-                }}
-              >
-                Ver Perfil
-              </Button>
+              <div className="space-y-2 pt-2">
+                <Button className="w-full gap-2" size="sm">
+                  <MessageCircle className="w-4 h-4" /> Iniciar Chat
+                </Button>
+                <Button variant="outline" className="w-full gap-2 text-red-600 hover:bg-red-50" size="sm">
+                  <AlertCircle className="w-4 h-4" /> Suspender
+                </Button>
+              </div>
             </div>
-          </MapPopup>
-        )}
-      </UniversalMap>
-    </>
+          ) : (
+            <div className="text-center text-gray-500 py-10">
+              <MapPin className="w-12 h-12 mx-auto mb-2 opacity-20" />
+              <p>Selecione um profissional no mapa para ver detalhes</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
