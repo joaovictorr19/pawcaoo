@@ -79,12 +79,12 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
     e.preventDefault();
     e.stopPropagation();
     window.scrollTo({ top: 0, behavior: 'instant' });
-    navigate(createPageUrl(`WalkerDetails?id=${walker.id}`));
+    navigate(createPageUrl(`UserProfile?id=${walker.id}`));
   };
 
   const handleCardClick = () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    navigate(createPageUrl(`WalkerDetails?id=${walker.id}`));
+    navigate(createPageUrl(`UserProfile?id=${walker.id}`));
   };
 
   return (
