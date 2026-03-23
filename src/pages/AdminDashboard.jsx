@@ -64,6 +64,8 @@ import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
 import AdminProfessionalManager from "../components/admin/AdminProfessionalManager";
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
+import UniversalMap from "@/components/maps/UniversalMap";
+import { MapMarker } from "@/components/ui/map";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -133,6 +135,16 @@ export default function AdminDashboard() {
   });
 
   const isAdmin = user?.role === 'admin';
+
+  const { data: emergencyUsers = [] } = useQuery({
+    queryKey: ['emergencyAlerts'],
+    queryFn: async () => {
+      const allUsersData = await base44.entities.User.list();
+      return allUsersData.filter(u => u.pawgo_status?.emergency_mode?.is_active === true);
+    },
+    refetchInterval: 5000,
+    enabled: isAdmin
+  });
 
   const { data: adminStats, isLoading: loadingStats } = useQuery({
     queryKey: ['adminDashboardStats'],
@@ -630,6 +642,72 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {emergencyUsers?.length > 0 && (
+        <div className="fixed inset-0 z-[9999] bg-red-600/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white text-center">
+          <AlertTriangle className="w-24 h-24 mb-6 animate-bounce text-white" />
+          <h1 className="text-5xl font-black mb-2">ALERTA DE SEGURANÇA!</h1>
+          <p className="text-xl mb-8">Um profissional solicitou ajuda imediata.</p>
+          
+          <div className="w-full max-w-4xl h-[50vh] rounded-3xl overflow-hidden shadow-2xl border-4 border-white text-black">
+            <UniversalMap 
+               center={
+                 emergencyUsers[0].pawgo_status?.emergency_mode?.last_emergency_location?.lng 
+                 ? [emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lng, emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lat]
+                 : [-8.6291, 41.1579]
+               }
+               zoom={15}
+            >
+              {emergencyUsers[0].pawgo_status?.emergency_mode?.last_emergency_location && (
+                <MapMarker 
+                  longitude={emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lng} 
+                  latitude={emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lat}
+                >
+                  <div className="relative flex h-10 w-10">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-10 w-10 bg-red-600 border-2 border-white items-center justify-center shadow-lg">
+                      <AlertTriangle className="w-5 h-5 text-white" />
+                    </span>
+                  </div>
+                </MapMarker>
+              )}
+            </UniversalMap>
+          </div>
+
+          <div className="mt-8 flex gap-4">
+            <Button className="bg-white text-red-600 font-bold px-10 h-14 rounded-full hover:bg-gray-100">
+              Ligar para {emergencyUsers[0].full_name || emergencyUsers[0].email}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="border-white text-white hover:bg-red-700 px-10 h-14 rounded-full bg-transparent"
+              onClick={async () => {
+                if(confirm("Confirmar que a emergência foi resolvida?")) {
+                  try {
+                    await base44.entities.User.update(emergencyUsers[0].id, {
+                      pawgo_status: {
+                        ...(emergencyUsers[0].pawgo_status || {}),
+                        emergency_mode: {
+                          is_active: false,
+                          started_at: null,
+                          last_emergency_location: null,
+                          alert_message: null
+                        }
+                      }
+                    });
+                    queryClient.invalidateQueries({ queryKey: ['emergencyAlerts'] });
+                    toast.success("Alerta encerrado!");
+                  } catch (e) {
+                    toast.error("Erro ao encerrar alerta.");
+                  }
+                }
+              }}
+            >
+              Resolver/Encerrar Alerta
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto p-4 md:p-6">
       <ErrorBoundary>
         <div className="mb-6">
