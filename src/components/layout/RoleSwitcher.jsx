@@ -8,11 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export default function RoleSwitcher({ authUser }) {
-  const queryClient = useQueryClient();
-
-  if (!authUser || !['walker', 'trainer', 'both'].includes(authUser.account_type)) {
-    return null;
-  }
+  // Role switcher movido para a Home conforme pedido do usuário.
+  // Mantemos o componente vazio ou com display none para não quebrar referências no Layout
+  return null;
+}
 
   const currentMode = authUser.preferences?.current_mode || 'client';
   const isProfessionalMode = currentMode === 'professional';
