@@ -1019,6 +1019,47 @@ export default function AdminDashboard() {
                 onEditBadges={handleOpenBadgesDialog}
                 onSyncProfiles={handleSyncUserProfiles}
                 isSyncing={isSyncingProfiles}
+                onUpdateUser={async (userId, updates) => {
+                  try {
+                    await base44.entities.User.update(userId, updates);
+                    // Update related profiles if necessary
+                    const userToUpdate = allUsers.find(u => u.id === userId);
+                    if (userToUpdate && updates.professional_profile) {
+                      const updatedProfProfile = { ...userToUpdate.professional_profile, ...updates.professional_profile };
+                      
+                      if (userToUpdate.account_type === 'walker' || userToUpdate.account_type === 'both') {
+                        const w = await base44.entities.WalkerProfile.filter({ created_by: userToUpdate.email });
+                        if (w.length) {
+                          const walkerUpdates = {};
+                          if (updates.professional_profile.verification_status) walkerUpdates.verification_status = updates.professional_profile.verification_status;
+                          if (updates.professional_profile.is_pawcao !== undefined) walkerUpdates.has_pawcao_seal = updates.professional_profile.is_pawcao;
+                          if (updates.professional_profile.is_trained !== undefined) walkerUpdates.is_verified_trainer = updates.professional_profile.is_trained;
+                          if (Object.keys(walkerUpdates).length > 0) {
+                            await base44.entities.WalkerProfile.update(w[0].id, walkerUpdates);
+                          }
+                        }
+                      }
+                      if (userToUpdate.account_type === 'trainer' || userToUpdate.account_type === 'both') {
+                        const t = await base44.entities.TrainerProfile.filter({ created_by: userToUpdate.email });
+                        if (t.length) {
+                          const trainerUpdates = {};
+                          if (updates.professional_profile.verification_status) trainerUpdates.verification_status = updates.professional_profile.verification_status;
+                          if (updates.professional_profile.is_pawcao !== undefined) trainerUpdates.is_pawcao_employee = updates.professional_profile.is_pawcao;
+                          if (updates.professional_profile.is_trained !== undefined) trainerUpdates.is_verified_trainer = updates.professional_profile.is_trained;
+                          if (Object.keys(trainerUpdates).length > 0) {
+                            await base44.entities.TrainerProfile.update(t[0].id, trainerUpdates);
+                          }
+                        }
+                      }
+                    }
+                    queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+                    queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                    queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+                  } catch (e) {
+                    toast.error("Erro ao atualizar");
+                    throw e;
+                  }
+                }}
                 onApproveUser={async (u) => {
                   try {
                     await base44.entities.User.update(u.id, {
