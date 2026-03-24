@@ -67,6 +67,7 @@ import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalend
 import UniversalMap from "@/components/maps/UniversalMap";
 import { MapMarker } from "@/components/ui/map";
 import AdminLiveMap from "../components/admin/AdminLiveMap";
+import AdminOperationsRadar from "../components/admin/AdminOperationsRadar";
 import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
 
 export default function AdminDashboard() {
