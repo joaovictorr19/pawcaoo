@@ -745,17 +745,19 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex flex-wrap justify-start w-full gap-1 md:gap-2 bg-white shadow-lg p-1 md:p-2 h-auto min-h-[3rem]" style={{ borderRadius: 0 }}>
-            <TabsTrigger value="overview" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>📊 Dashboard</TabsTrigger>
-            <TabsTrigger value="calendar" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>📅 Agenda</TabsTrigger>
-            <TabsTrigger value="professionals" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>👥 Profissionais</TabsTrigger>
-            <TabsTrigger value="users" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🔑 Utilizadores</TabsTrigger>
-            <TabsTrigger value="commerce" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🛍️ Comércio</TabsTrigger>
-            <TabsTrigger value="operations" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>⚡ Operações</TabsTrigger>
-            <TabsTrigger value="gamification" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9" style={{ borderRadius: 0 }}>🏆 Gamificação</TabsTrigger>
-            <TabsTrigger value="debug" className="text-xs md:text-sm px-2 md:px-3 h-7 md:h-9 bg-red-100 text-red-700" style={{ borderRadius: 0 }}>🐞 Debug</TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="overflow-x-auto pb-2 no-scrollbar">
+            <TabsList className="flex w-max gap-2 bg-transparent p-0 h-auto" style={{ borderRadius: 0 }}>
+              <TabsTrigger value="overview" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📊 Dashboard</TabsTrigger>
+              <TabsTrigger value="calendar" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
+              <TabsTrigger value="professionals" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">👥 Profissionais</TabsTrigger>
+              <TabsTrigger value="users" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
+              <TabsTrigger value="commerce" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🛍️ Comércio</TabsTrigger>
+              <TabsTrigger value="operations" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
+              <TabsTrigger value="gamification" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
+              <TabsTrigger value="debug" className="rounded-full bg-red-50 text-red-600 shadow-sm data-[state=active]:bg-red-600 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview">
             {activeTab === 'overview' && (
