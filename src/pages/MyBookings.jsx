@@ -632,7 +632,7 @@ export default function MyBookings() {
                       toast.error("Erro: ID inválido");
                       return;
                   }
-                  navigate(createPageUrl('ActiveWalkDashboard') + `?bookingId=${booking.id}`);
+                  navigate(createPageUrl(isProfessional ? 'ActiveWalkDashboard' : 'LiveWalkTracking') + `?bookingId=${booking.id}`);
                 }}
               >
                 <MapIcon className="w-3.5 h-3.5 mr-1.5" />
