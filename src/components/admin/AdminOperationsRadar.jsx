@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useAdminPush } from '@/hooks/useAdminPush';
 import { AdminCitySwitcher } from './AdminCitySwitcher';
+import { SafeWalkerMarker } from '@/components/maps/SafeWalkerMarker';
 
 // Função auxiliar simples para calcular a distância entre 2 pontos (em km, aproximado)
 function getDistance(lat1, lon1, lat2, lon2) {
@@ -138,39 +139,25 @@ export default function AdminOperationsRadar({ allUsers, activeWalks }) {
 
           {/* 1. RENDERIZAR PROFISSIONAIS ONLINE */}
           {onlinePro?.map(pro => (
-            <MapMarker 
+            <SafeWalkerMarker 
               key={pro.id} 
-              longitude={Number(pro.longitude) || -8.6291} 
-              latitude={Number(pro.latitude) || 41.1579}
+              walker={{...pro, longitude: Number(pro.longitude) || -8.6291, latitude: Number(pro.latitude) || 41.1579}}
+              onClick={(walker) => { setSelectedWalker(walker); setSelectedSos(null); }}
             >
-              <MarkerContent>
-                <div 
-                  className="relative p-1 bg-slate-900 rounded-full border-2 shadow-lg cursor-pointer transition-transform hover:scale-110"
-                  style={{ borderColor: pro.professional_profile?.is_pawcao ? '#f97316' : '#22c55e' }}
-                  onClick={(e) => { e.stopPropagation(); setSelectedWalker(pro); setSelectedSos(null); }}
-                >
-                  <img 
-                    src={pro.photo_url || pro.profile_photo_url || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=100"} 
-                    className="w-8 h-8 rounded-full object-cover" 
-                    alt={pro.full_name}
-                  />
-                  
-                  {/* SELOS RÁPIDOS NO MARCADOR */}
-                  <div className="absolute -top-2 -right-2 flex gap-0.5">
-                    {pro.professional_profile?.is_pawcao && (
-                      <div className="bg-orange-500 rounded-full p-0.5 border border-white">
-                        <Dog size={8} className="text-white" />
-                      </div>
-                    )}
-                    {pro.professional_profile?.verification_status === 'verified' && (
-                      <div className="bg-blue-500 rounded-full p-0.5 border border-white">
-                        <BadgeCheck size={8} className="text-white" />
-                      </div>
-                    )}
+              {/* SELOS RÁPIDOS NO MARCADOR */}
+              <div className="absolute -top-2 -right-2 flex gap-0.5 z-20">
+                {pro.professional_profile?.is_pawcao && (
+                  <div className="bg-orange-500 rounded-full p-0.5 border border-white">
+                    <Dog size={8} className="text-white" />
                   </div>
-                </div>
-              </MarkerContent>
-            </MapMarker>
+                )}
+                {pro.professional_profile?.verification_status === 'verified' && (
+                  <div className="bg-blue-500 rounded-full p-0.5 border border-white">
+                    <BadgeCheck size={8} className="text-white" />
+                  </div>
+                )}
+              </div>
+            </SafeWalkerMarker>
           ))}
 
           {/* 2. RENDERIZAR PEDIDOS DE EMERGÊNCIA (SOS) */}
