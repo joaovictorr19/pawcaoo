@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2 } from "lucide-react";
+import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2, Gift, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { base44 } from "@/api/base44Client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
 import { Switch } from "@/components/ui/switch";
