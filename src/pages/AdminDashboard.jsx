@@ -728,17 +728,14 @@ export default function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {dashboardStats.map((stat, idx) => (
-                <Card key={idx} className="glass-panel border-0 shadow-lg hover:shadow-xl transition-shadow" style={{ borderRadius: 0 }}>
-                  <CardContent className="p-4 md:p-6 text-center">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${stat.color} flex items-center justify-center mx-auto mb-3 shadow-lg`} style={{ borderRadius: 0 }}>
-                      <stat.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="text-3xl md:text-4xl font-black text-gray-900">{stat.value}</div>
-                    <div className="text-sm font-semibold text-gray-800 mt-1">{stat.label}</div>
-                    <div className="text-[10px] text-gray-500 mt-0.5">{stat.subLabel}</div>
-                  </CardContent>
+            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+              {dashboardStats.slice(0, 3).map((stat, idx) => (
+                <Card key={idx} className="min-w-[140px] flex-1 bg-white rounded-3xl border-none shadow-sm flex flex-col items-center justify-center p-4">
+                  <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-2 shadow-sm`}>
+                    <stat.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-2xl font-black text-slate-900 leading-none mb-1">{stat.value}</div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide text-center">{stat.label.split(' ')[0]}</div>
                 </Card>
               ))}
             </div>
