@@ -7,10 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase } from "lucide-react";
-import WalkerCard from "../components/marketplace/WalkerCard";
+import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
-import TrainerCard from "../components/trainers/TrainerCard";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
@@ -1255,26 +1254,10 @@ export default function Home() {
                       </Card>
                       ) : (
                         <>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
-                            {paginatedProfessionals.map((pro) => 
-                              pro.type === 'trainer_as_walker' ? (
-                                <TrainerCard 
-                                  key={pro.id} 
-                                  trainer={pro} 
-                                  distance={pro.distance}
-                                  showMatchScore={true}
-                                  matchScore={pro.matchScore}
-                                />
-                              ) : (
-                                <WalkerCard 
-                                  key={pro.id} 
-                                  walker={pro}
-                                  distance={pro.distance}
-                                  matchScore={pro.matchScore}
-                                  showMatchScore={true}
-                                />
-                              )
-                            )}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                            {paginatedProfessionals.map((pro) => (
+                              <ProfessionalCard key={pro.id} walker={pro} />
+                            ))}
                           </div>
 
                           {/* Pagination Controls */}
