@@ -756,14 +756,24 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto p-4 md:p-6">
       <ErrorBoundary>
         <div className="mb-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl" style={{ borderRadius: 0 }}>
-              <Shield className="w-7 h-7 text-white" />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl rounded-2xl">
+                <Shield className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-black text-gray-900">Admin Dashboard</h1>
+                <p className="text-sm md:text-base text-gray-600">Controle total da plataforma</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-black text-gray-900">Admin Dashboard</h1>
-              <p className="text-sm md:text-base text-gray-600">Controle total da plataforma</p>
-            </div>
+            <Button 
+              onClick={() => createDummyMutation.mutate()} 
+              disabled={createDummyMutation.isPending}
+              className="bg-slate-900 text-white hover:bg-slate-800 rounded-full h-12 px-6 shadow-lg whitespace-nowrap w-full md:w-auto"
+            >
+              {createDummyMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Plus className="w-5 h-5 mr-2" />}
+              Criar Professional Dummy
+            </Button>
           </div>
 
           {loadingStats ? (
