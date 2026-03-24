@@ -1,11 +1,88 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Ban, UserCog, MessageSquare, X } from "lucide-react";
+import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
-export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan }) {
+export function AdminBadgeManager({ user, onUpdate }) {
+  const [updating, setUpdating] = useState(null);
+
+  const handleToggle = async (field, currentValue) => {
+    setUpdating(field);
+    try {
+      // Atualiza o campo específico no professional_profile
+      await onUpdate(user.id, {
+        professional_profile: {
+          ...(user.professional_profile || {}),
+          [field]: currentValue === 'verified' ? 'pending' : (typeof currentValue === 'boolean' ? !currentValue : true)
+        }
+      });
+      toast.success(`Selo atualizado com sucesso!`);
+    } catch (error) {
+      toast.error("Erro ao atualizar selo.");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  return (
+    <div className="bg-slate-50 rounded-[2rem] p-6 space-y-4 border border-slate-100">
+      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+        Gestão de Selos Ativos
+      </h4>
+
+      {/* LINHA: SELO VERIFICADO (O Check Azul) */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            {updating === 'verification_status' ? <Loader2 size={18} className="text-blue-600 animate-spin" /> : <ShieldCheck size={18} className="text-blue-600" />}
+          </div>
+          <span className="text-sm font-bold text-slate-700">Identidade Verificada</span>
+        </div>
+        <Switch 
+          checked={user.professional_profile?.verification_status === 'verified'} 
+          onCheckedChange={() => handleToggle('verification_status', user.professional_profile?.verification_status)}
+          disabled={updating === 'verification_status'}
+        />
+      </div>
+
+      {/* LINHA: SELO TREINADO (A Cartola/Diploma) */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purple-100 rounded-lg">
+            {updating === 'is_trained' ? <Loader2 size={18} className="text-purple-600 animate-spin" /> : <GraduationCap size={18} className="text-purple-600" />}
+          </div>
+          <span className="text-sm font-bold text-slate-700">Treinador Certificado</span>
+        </div>
+        <Switch 
+          checked={user.professional_profile?.is_trained || false} 
+          onCheckedChange={() => handleToggle('is_trained', user.professional_profile?.is_trained || false)}
+          disabled={updating === 'is_trained'}
+        />
+      </div>
+
+      {/* LINHA: SELO PAWCÃO (O Premium/VIP) */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-orange-100 rounded-lg">
+            {updating === 'is_pawcao' ? <Loader2 size={18} className="text-orange-600 animate-spin" /> : <Dog size={18} className="text-orange-600" />}
+          </div>
+          <span className="text-sm font-bold text-slate-700">Selo Especial PawCão</span>
+        </div>
+        <Switch 
+          checked={user.professional_profile?.is_pawcao || false} 
+          onCheckedChange={() => handleToggle('is_pawcao', user.professional_profile?.is_pawcao || false)}
+          disabled={updating === 'is_pawcao'}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpdate }) {
   if (!user) return null;
 
   return (
