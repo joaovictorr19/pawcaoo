@@ -462,12 +462,14 @@ function LayoutContent({ children, currentPageName }) {
         }
       }
 
-      // 2. Ensure UserProfile Entity exists + Sync XP bidirectionally
+      // 2. Ensure UserProfile Entity exists + Sync XP bidirectionally + Global Data Sync
       try {
         const profiles = await base44.entities.UserProfile.filter({ user_email: authUser.email });
+        let userProfile = profiles[0];
+        
         if (!profiles || profiles.length === 0) {
           console.log("Creating missing UserProfile entity...");
-          await base44.entities.UserProfile.create({
+          userProfile = await base44.entities.UserProfile.create({
             user_email: authUser.email,
             user_id: authUser.id,
             username: authUser.username,
@@ -484,22 +486,106 @@ function LayoutContent({ children, currentPageName }) {
             is_verified: authUser.is_verified || false
           });
         } else {
-          // 3. SYNC: UserProfile -> Auth User (if different)
-          const profile = profiles[0];
-          const currentXPKey = `${profile.gamification_xp}_${profile.gamification_level}`;
+          // 3. SYNC: UserProfile -> Auth User (XP if different)
+          const currentXPKey = `${userProfile.gamification_xp}_${userProfile.gamification_level}`;
           
           if (profileSetupRef.current.syncedXP !== currentXPKey &&
-              (authUser.gamification_xp !== profile.gamification_xp || 
-               authUser.gamification_level !== profile.gamification_level)) {
-            console.log('🔄 Syncing XP from UserProfile to Auth:', profile.gamification_xp);
+              (authUser.gamification_xp !== userProfile.gamification_xp || 
+               authUser.gamification_level !== userProfile.gamification_level)) {
+            console.log('🔄 Syncing XP from UserProfile to Auth:', userProfile.gamification_xp);
             profileSetupRef.current.syncedXP = currentXPKey;
             await base44.auth.updateMe({
-              gamification_xp: profile.gamification_xp || 0,
-              gamification_level: profile.gamification_level || 1
+              gamification_xp: userProfile.gamification_xp || 0,
+              gamification_level: userProfile.gamification_level || 1
             });
             queryClient.invalidateQueries(['currentUser']);
           }
         }
+
+        // 4. UNIFIED SYNC MODEL: Ensure info is shared across all profiles (User, UserProfile, Walker, Trainer)
+        try {
+          const walkers = await base44.entities.WalkerProfile.filter({ created_by: authUser.email });
+          const trainers = await base44.entities.TrainerProfile.filter({ created_by: authUser.email });
+
+          const w = walkers[0];
+          const t = trainers[0];
+
+          // Determine best available info
+          const bestPhoto = userProfile?.profile_photo_url || authUser.profile_photo_url || w?.photo_url || t?.photo_url;
+          const bestCover = userProfile?.cover_photo_url || authUser.cover_photo_url || w?.cover_photo_url || t?.cover_photo_url;
+          const bestName = userProfile?.full_name && userProfile.full_name !== 'Utilizador' ? userProfile.full_name : 
+                           authUser.full_name && authUser.full_name !== 'Utilizador' ? authUser.full_name : 
+                           w?.walker_name || t?.trainer_name || 'Utilizador';
+          const bestBio = userProfile?.bio || authUser.bio || w?.bio || t?.bio;
+          const bestCity = userProfile?.city || authUser.city || w?.location || t?.location;
+
+          let didUpdates = false;
+
+          // Sync back to UserProfile
+          const profileUpdates = {};
+          if (bestPhoto && userProfile.profile_photo_url !== bestPhoto) profileUpdates.profile_photo_url = bestPhoto;
+          if (bestCover && userProfile.cover_photo_url !== bestCover) profileUpdates.cover_photo_url = bestCover;
+          if (bestName && userProfile.full_name !== bestName) profileUpdates.full_name = bestName;
+          if (bestBio && userProfile.bio !== bestBio) profileUpdates.bio = bestBio;
+          if (bestCity && userProfile.city !== bestCity) profileUpdates.city = bestCity;
+
+          if (Object.keys(profileUpdates).length > 0) {
+            await base44.entities.UserProfile.update(userProfile.id, profileUpdates);
+            didUpdates = true;
+          }
+
+          // Sync back to Auth User
+          const authUpdates = {};
+          if (bestPhoto && authUser.profile_photo_url !== bestPhoto) authUpdates.profile_photo_url = bestPhoto;
+          if (bestCover && authUser.cover_photo_url !== bestCover) authUpdates.cover_photo_url = bestCover;
+          if (bestName && authUser.full_name !== bestName) authUpdates.full_name = bestName;
+
+          if (Object.keys(authUpdates).length > 0) {
+            await base44.auth.updateMe(authUpdates);
+            didUpdates = true;
+          }
+
+          // Sync back to WalkerProfile
+          if (w) {
+            const walkerUpdates = {};
+            if (bestPhoto && w.photo_url !== bestPhoto) walkerUpdates.photo_url = bestPhoto;
+            if (bestCover && w.cover_photo_url !== bestCover) walkerUpdates.cover_photo_url = bestCover;
+            if (bestName && w.walker_name !== bestName) walkerUpdates.walker_name = bestName;
+            if (bestBio && !w.bio) walkerUpdates.bio = bestBio;
+            if (bestCity && !w.location) walkerUpdates.location = bestCity;
+
+            if (Object.keys(walkerUpdates).length > 0) {
+              await base44.entities.WalkerProfile.update(w.id, walkerUpdates);
+              didUpdates = true;
+            }
+          }
+
+          // Sync back to TrainerProfile
+          if (t) {
+            const trainerUpdates = {};
+            if (bestPhoto && t.photo_url !== bestPhoto) trainerUpdates.photo_url = bestPhoto;
+            if (bestCover && t.cover_photo_url !== bestCover) trainerUpdates.cover_photo_url = bestCover;
+            if (bestName && t.trainer_name !== bestName) trainerUpdates.trainer_name = bestName;
+            if (bestBio && !t.bio) trainerUpdates.bio = bestBio;
+            if (bestCity && !t.location) trainerUpdates.location = bestCity;
+
+            if (Object.keys(trainerUpdates).length > 0) {
+              await base44.entities.TrainerProfile.update(t.id, trainerUpdates);
+              didUpdates = true;
+            }
+          }
+
+          if (didUpdates) {
+            console.log('🔄 Unified data sync completed');
+            queryClient.invalidateQueries(['currentUser']);
+            queryClient.invalidateQueries(['profileUser']);
+            queryClient.invalidateQueries(['myProfessionalProfile']);
+          }
+
+        } catch (syncErr) {
+          console.error("Error syncing unified profile data:", syncErr);
+        }
+
       } catch (err) {
         console.error("Error ensuring UserProfile entity:", err);
       }
