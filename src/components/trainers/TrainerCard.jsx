@@ -133,6 +133,17 @@ const TrainerCard = React.memo(({ trainer, distance, showMatchScore, matchScore 
             </div>
           )}
           <div className="absolute top-2 md:top-4 right-2 md:right-4 flex flex-col gap-1 md:gap-2 items-end z-10">
+            {/* Match Score Badge */}
+            {showMatchScore && matchScore !== undefined && matchScore > 0 && (
+              <Badge className={`${
+                matchScore >= 90 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                matchScore >= 75 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                matchScore >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                'bg-gradient-to-r from-gray-500 to-gray-600'
+              } text-white border-0 shadow-lg text-[10px] md:text-xs px-2 py-0.5 font-bold flex items-center gap-1`}>
+                <Award className="w-3 h-3" /> {matchScore}% Match
+              </Badge>
+            )}
             {/* Special Badges Row */}
             <div className="flex gap-1">
               {trainer.is_verified_trainer && (
