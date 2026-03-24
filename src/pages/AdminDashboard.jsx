@@ -615,50 +615,7 @@ export default function AdminDashboard() {
     toast.success("Status atualizado!");
   };
 
-  const createDummyMutation = useMutation({
-    mutationFn: async () => {
-      const timestamp = Date.now();
-      const email = `dummy${timestamp}@pawcao.net`;
-      
-      const user = await base44.entities.User.create({
-        email: email,
-        full_name: "Dummy Tester " + Math.floor(Math.random()*100),
-        role: "user",
-        account_type: "both",
-        is_verified: true,
-        professional_profile: {
-          verification_status: "verified",
-          is_trained: true,
-          is_pawcao: true
-        },
-        pawgo_status: {
-          is_online: true
-        }
-      });
-      
-      await base44.entities.WalkerProfile.create({
-        user_id: user.id,
-        created_by: email,
-        walker_name: user.full_name,
-        location: "Lisboa",
-        latitude: 38.7223 + (Math.random() * 0.05 - 0.025),
-        longitude: -9.1393 + (Math.random() * 0.05 - 0.025),
-        hourly_rate: 15,
-        whatsapp_number: "912345678",
-        verification_status: "verified",
-        is_active: true,
-        is_online: true,
-        has_pawcao_seal: true,
-        is_verified_trainer: true
-      });
 
-      return user;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries();
-      toast.success("Profissional Dummy criado com todos os selos!");
-    }
-  });
 
   if (loadingUser) {
     return (
