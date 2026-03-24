@@ -204,7 +204,7 @@ export default function AdminOperationsRadar({ allUsers, activeWalks }) {
         </Map>
 
         {/* Overlay de Legenda Estilo Admin */}
-        <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end pointer-events-none">
+        <div className="absolute bottom-6 left-6 flex justify-between items-end pointer-events-none">
           <div className="bg-slate-900/90 backdrop-blur-md p-3 rounded-2xl border border-white/10 pointer-events-auto shadow-xl">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2 h-2 bg-green-500 rounded-full" />
@@ -220,6 +220,46 @@ export default function AdminOperationsRadar({ allUsers, activeWalks }) {
             </div>
           </div>
         </div>
+
+        {/* PAINEL DE INFORMAÇÃO RÁPIDA (Aparece ao selecionar SOS) */}
+        {selectedSos && nearestProToSos && (
+          <div className="absolute top-6 left-6 right-6 flex flex-col gap-2 z-50">
+            <div className="bg-white p-4 rounded-3xl shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between border-b-4 border-orange-500 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-orange-100 p-2 rounded-xl">
+                  <Navigation className="text-orange-600" size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Sugestão de Envio</p>
+                  <p className="text-sm font-black text-slate-900">
+                    {nearestProToSos.pro.full_name} está mais perto!
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    A apenas {nearestProToSos.distanceKm.toFixed(1)} km do local.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <button 
+                  onClick={() => {
+                    toast.success(`Notificação Push enviada para ${nearestProToSos.pro.full_name}!`);
+                  }}
+                  className="bg-orange-500 hover:bg-orange-600 text-white p-2 px-4 rounded-xl flex items-center justify-center flex-1 md:flex-none gap-2 font-bold text-xs transition-colors shadow-lg shadow-orange-500/30"
+                >
+                  <BellRing size={14} />
+                  <span>Push Admin</span>
+                </button>
+                <button 
+                  onClick={() => setSelectedSos(null)}
+                  className="bg-slate-100 p-2 rounded-xl text-slate-400 hover:bg-slate-200 transition-colors"
+                >
+                  X
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Aba de Operações no AdminMobileHub */}
