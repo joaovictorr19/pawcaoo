@@ -481,10 +481,11 @@ export default function Home() {
     // Ordenar
     return result.sort((a, b) => {
       if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1;
+      if (b.matchScore !== a.matchScore && a.matchScore > 0 && b.matchScore > 0) return b.matchScore - a.matchScore; // Score based sorting
       if (a.distance !== null && b.distance !== null) return a.distance - b.distance;
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkers, searchLocation, filterSize, filterTime, filterAnimalType, filterDogSitting, userLocation]);
+  }, [walkers, searchLocation, filterSize, filterTime, filterAnimalType, filterDogSitting, userLocation, myDogs, favorites, activeBookings]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
