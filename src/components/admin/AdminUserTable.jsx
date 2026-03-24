@@ -205,21 +205,36 @@ export default function AdminUserTable({
           </div>
         ) : (
           <>
-            {/* Mobile List View */}
-            <div className="md:hidden p-4 space-y-3">
-              {paginatedUsers.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p className="text-sm">{filteredUsers.length === 0 && users.length > 0 ? 'Nenhum utilizador encontrado' : 'A carregar...'}</p>
+            {/* Mobile List View (AdminMobileHub Style) */}
+            <div className="md:hidden p-4 space-y-6 bg-slate-50 min-h-[50vh] rounded-2xl">
+              {/* BENTO GRID DE ESTATÍSTICAS RÁPIDAS */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col justify-center">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Users</p>
+                  <p className="text-3xl font-black text-slate-900">{users.length}</p>
                 </div>
-              ) : (
-                paginatedUsers.map(user => (
-                  <AdminUserCard 
-                    key={user.id} 
-                    user={user} 
-                    onClick={handleOpenAction} 
-                  />
-                ))
-              )}
+                <div className="bg-orange-500 p-5 rounded-[2rem] shadow-lg shadow-orange-500/30 text-white flex flex-col justify-center">
+                  <p className="text-[10px] font-black opacity-90 uppercase tracking-widest mb-1">Pendentes</p>
+                  <p className="text-3xl font-black">{stats.pending}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Gestão de Contas</h3>
+                {paginatedUsers.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 bg-white rounded-[2rem] border border-slate-100">
+                    <p className="text-sm font-medium">{filteredUsers.length === 0 && users.length > 0 ? 'Nenhum utilizador encontrado' : 'A carregar...'}</p>
+                  </div>
+                ) : (
+                  paginatedUsers.map(user => (
+                    <AdminUserCard 
+                      key={user.id} 
+                      user={user} 
+                      onClick={handleOpenAction} 
+                    />
+                  ))
+                )}
+              </div>
             </div>
 
             {/* Desktop Table View */}
