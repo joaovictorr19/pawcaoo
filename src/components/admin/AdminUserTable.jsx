@@ -431,19 +431,15 @@ export default function AdminUserTable({
           // Update selected user state locally to reflect changes immediately
           setSelectedUser(prev => {
             if (!prev || prev.id !== userId) return prev;
-            // Simplified deep merge for professional_profile
-            const newProfProfile = prev.professional_profile ? { ...prev.professional_profile } : {};
-            if (data['professional_profile.verification_status'] !== undefined) {
-              newProfProfile.verification_status = data['professional_profile.verification_status'];
+            
+            let newProfProfile = prev.professional_profile ? { ...prev.professional_profile } : {};
+            if (data.professional_profile) {
+               newProfProfile = { ...newProfProfile, ...data.professional_profile };
             }
-            if (data['professional_profile.is_trained'] !== undefined) {
-              newProfProfile.is_trained = data['professional_profile.is_trained'];
-            }
-            if (data['professional_profile.is_pawcao'] !== undefined) {
-              newProfProfile.is_pawcao = data['professional_profile.is_pawcao'];
-            }
+            
             return {
               ...prev,
+              ...data,
               professional_profile: newProfProfile
             };
           });
