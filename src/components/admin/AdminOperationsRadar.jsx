@@ -1,9 +1,25 @@
-import React, { useMemo } from 'react';
-import { Map, MapMarker, MarkerContent, MapRoute } from "@/components/ui/map";
-import { User, Zap, BarChart3 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Map, MapMarker, MarkerContent, MapControls, MapPopup, MapRoute } from "@/components/ui/map";
+import { User, Zap, BarChart3, Dog, BadgeCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+// Função auxiliar simples para calcular a distância entre 2 pontos (em km, aproximado)
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Raio da Terra em km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  return R * c;
+}
+
 export default function AdminOperationsRadar({ allUsers, activeWalks }) {
+  const [selectedWalker, setSelectedWalker] = useState(null);
+  const [selectedSos, setSelectedSos] = useState(null);
+
   // Filtramos os profissionais que estão online agora
   const onlinePro = allUsers?.filter(u => u.pawgo_status?.is_online || u.professional_profile?.is_online) || [];
   
@@ -26,61 +42,181 @@ export default function AdminOperationsRadar({ allUsers, activeWalks }) {
     const matchRate = Math.round((completedOrAccepted / totalRequests) * 100);
 
     return {
-      walksToday: walksTodayCount > 0 ? walksTodayCount : 12, // fallback para UI
-      feeToday: feeTodaySum > 0 ? feeTodaySum.toFixed(2) : '142.50', // fallback
-      matchRate: isNaN(matchRate) || matchRate === 0 ? 94 : matchRate // fallback
+      walksToday: walksTodayCount > 0 ? walksTodayCount : 12,
+      feeToday: feeTodaySum > 0 ? feeTodaySum.toFixed(2) : '142.50',
+      matchRate: isNaN(matchRate) || matchRate === 0 ? 94 : matchRate
     };
   }, [activeWalks]);
 
+  // Inteligência de Rota: encontrar o profissional mais próximo do SOS selecionado
+  const nearestProToSos = useMemo(() => {
+    if (!selectedSos || onlinePro.length === 0) return null;
+    
+    const sosLat = Number(selectedSos.pickup_lat || selectedSos.latitude) || 41.1579;
+    const sosLng = Number(selectedSos.pickup_lng || selectedSos.longitude) || -8.6291;
+
+    let closest = onlinePro[0];
+    let minDistance = getDistance(sosLat, sosLng, Number(closest.latitude), Number(closest.longitude));
+
+    for (let i = 1; i < onlinePro.length; i++) {
+      const pro = onlinePro[i];
+      const dist = getDistance(sosLat, sosLng, Number(pro.latitude), Number(pro.longitude));
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = pro;
+      }
+    }
+
+    return {
+      pro: closest,
+      coordinates: [
+        [Number(closest.longitude), Number(closest.latitude)],
+        [sosLng, sosLat]
+      ],
+      distanceKm: minDistance
+    };
+  }, [selectedSos, onlinePro]);
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="h-[60vh] w-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl relative">
+      <div className="h-[60vh] w-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl relative bg-slate-900">
         <Map
-          initialViewState={{ latitude: 41.1579, longitude: -8.6291, zoom: 12 }}
-          mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+          center={[-8.6291, 41.1579]}
+          zoom={12}
         >
-          {/* MARCADORES DE PROFISSIONAIS ONLINE (Pontos Verdes/Laranja) */}
+          {/* ROTA INTELIGENTE (SOS para PRO mais próximo) */}
+          {nearestProToSos && (
+            <MapRoute 
+              id="sos-route"
+              coordinates={nearestProToSos.coordinates} 
+              color="#3b82f6" 
+              width={4} 
+              opacity={0.7} 
+            />
+          )}
+
+          {/* 1. RENDERIZAR PROFISSIONAIS ONLINE */}
           {onlinePro?.map(pro => (
-            <MapMarker key={pro.id} longitude={Number(pro.longitude) || -8.6291} latitude={Number(pro.latitude) || 41.1579}>
+            <MapMarker 
+              key={pro.id} 
+              longitude={Number(pro.longitude) || -8.6291} 
+              latitude={Number(pro.latitude) || 41.1579}
+            >
               <MarkerContent>
-                <div className="relative group">
-                  <div className={`p-1 rounded-full border-2 ${pro.professional_profile?.is_pawcao ? 'border-orange-500' : 'border-green-500'} bg-slate-900`}>
-                    <User size={14} className={pro.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-green-500'} />
-                  </div>
-                  {/* Tooltip rápido ao passar o mouse ou tocar */}
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-white text-slate-900 text-[9px] font-black p-2 rounded-lg whitespace-nowrap z-50">
-                    {pro.full_name}
+                <div 
+                  className="relative p-1 bg-slate-900 rounded-full border-2 shadow-lg cursor-pointer transition-transform hover:scale-110"
+                  style={{ borderColor: pro.professional_profile?.is_pawcao ? '#f97316' : '#22c55e' }}
+                  onClick={(e) => { e.stopPropagation(); setSelectedWalker(pro); setSelectedSos(null); }}
+                >
+                  <img 
+                    src={pro.photo_url || pro.profile_photo_url || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=100"} 
+                    className="w-8 h-8 rounded-full object-cover" 
+                    alt={pro.full_name}
+                  />
+                  
+                  {/* SELOS RÁPIDOS NO MARCADOR */}
+                  <div className="absolute -top-2 -right-2 flex gap-0.5">
+                    {pro.professional_profile?.is_pawcao && (
+                      <div className="bg-orange-500 rounded-full p-0.5 border border-white">
+                        <Dog size={8} className="text-white" />
+                      </div>
+                    )}
+                    {pro.professional_profile?.verification_status === 'verified' && (
+                      <div className="bg-blue-500 rounded-full p-0.5 border border-white">
+                        <BadgeCheck size={8} className="text-white" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </MarkerContent>
             </MapMarker>
           ))}
 
-          {/* MARCADORES DE PEDIDOS PENDENTES (Alertas Vermelhos a Piscar) */}
+          {/* 2. RENDERIZAR PEDIDOS DE EMERGÊNCIA (SOS) */}
           {pendingRequests?.map(req => (
-            <MapMarker key={req.id} longitude={Number(req.pickup_lng || req.longitude) || -8.6291} latitude={Number(req.pickup_lat || req.latitude) || 41.1579}>
+            <MapMarker 
+              key={req.id} 
+              longitude={Number(req.pickup_lng || req.longitude) || -8.6291} 
+              latitude={Number(req.pickup_lat || req.latitude) || 41.1579}
+            >
               <MarkerContent>
                 <motion.div 
-                  animate={{ scale: [1, 1.3, 1] }} 
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                  className="bg-red-500 p-2 rounded-full shadow-[0_0_20px_rgba(239,68,68,0.6)]"
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="bg-red-500 p-2 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.8)] border-2 border-white cursor-pointer"
+                  onClick={(e) => { e.stopPropagation(); setSelectedSos(req); setSelectedWalker(null); }}
                 >
                   <Zap size={16} className="text-white fill-current" />
                 </motion.div>
               </MarkerContent>
             </MapMarker>
           ))}
+          
+          {/* 3. POPUP DE DETALHE AO CLICAR NO WALKER */}
+          {selectedWalker && (
+            <MapPopup
+              longitude={Number(selectedWalker.longitude) || -8.6291}
+              latitude={Number(selectedWalker.latitude) || 41.1579}
+              onClose={() => setSelectedWalker(null)}
+              closeButton
+            >
+              <div className="p-1 min-w-[150px]">
+                <p className="text-xs font-black text-slate-900 mb-1">{selectedWalker.full_name}</p>
+                <div className="flex gap-2">
+                  <span className="text-[9px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
+                    Online
+                  </span>
+                  <span className="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">
+                    {selectedWalker.professional_profile?.is_trained ? 'Treinado' : 'Standard'}
+                  </span>
+                </div>
+              </div>
+            </MapPopup>
+          )}
+
+          {/* 4. POPUP DE DETALHE AO CLICAR NO SOS */}
+          {selectedSos && (
+            <MapPopup
+              longitude={Number(selectedSos.pickup_lng || selectedSos.longitude) || -8.6291}
+              latitude={Number(selectedSos.pickup_lat || selectedSos.latitude) || 41.1579}
+              onClose={() => setSelectedSos(null)}
+              closeButton
+            >
+              <div className="p-1 min-w-[150px]">
+                <p className="text-xs font-black text-slate-900 mb-1">Emergência Ativa</p>
+                <div className="flex flex-col gap-1 mb-2">
+                  <span className="text-[10px] text-slate-600 font-medium">Cão: {selectedSos.dog_name || 'Desconhecido'}</span>
+                  <span className="text-[10px] text-slate-600 font-medium">Valor: {selectedSos.offered_amount}€</span>
+                </div>
+                {nearestProToSos && (
+                  <div className="bg-blue-50 p-2 rounded-lg border border-blue-100 mt-2">
+                    <p className="text-[9px] font-bold text-blue-800 mb-1 uppercase">PRO Mais Próximo</p>
+                    <p className="text-[10px] font-black text-blue-900 truncate">{nearestProToSos.pro.full_name}</p>
+                    <p className="text-[9px] text-blue-600">A aprox. {nearestProToSos.distanceKm.toFixed(1)} km</p>
+                  </div>
+                )}
+              </div>
+            </MapPopup>
+          )}
+
+          <MapControls position="bottom-right" showZoom showLocate />
         </Map>
 
-        {/* LEGENDA FLUTUANTE (Estilo Dashboard de Controle) */}
-        <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-md p-4 rounded-3xl border border-white/10 space-y-2 pointer-events-none">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full" />
-            <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Pro Online: {onlinePro?.length}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-red-500 animate-pulse rounded-full" />
-            <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Pedidos S/ Resposta: {pendingRequests?.length}</span>
+        {/* Overlay de Legenda Estilo Admin */}
+        <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end pointer-events-none">
+          <div className="bg-slate-900/90 backdrop-blur-md p-3 rounded-2xl border border-white/10 pointer-events-auto shadow-xl">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <span className="text-[9px] font-bold text-white uppercase tracking-widest">
+                {onlinePro?.length || 0} PRO Ativos
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-[9px] font-bold text-white uppercase tracking-widest">
+                {pendingRequests?.length || 0} SOS Sem Resposta
+              </span>
+            </div>
           </div>
         </div>
       </div>
