@@ -1,0 +1,70 @@
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import { Dog } from "lucide-react";
+
+export function ProfessionalHeader({ user }) {
+  const [isCoverLoaded, setIsCoverLoaded] = useState(false);
+  const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
+
+  const coverUrl = user?.cover_photo_url || user?.professional_profile?.cover_url || "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&q=80&w=1000";
+  const avatarUrl = user?.photo_url || user?.profile_photo_url || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=200";
+
+  return (
+    <div className="relative w-full h-[280px] bg-slate-100 overflow-hidden rounded-b-3xl">
+      {/* IMAGEM DE CAPA - Unificada */}
+      <div className="absolute inset-0 bg-slate-200">
+         <img 
+            src={coverUrl} 
+            alt="Capa"
+            className={`w-full h-full object-cover transition-opacity duration-700 ${isCoverLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setIsCoverLoaded(true)}
+         />
+         {/* Skeleton enquanto não carrega para evitar o "piscar" branco */}
+         {!isCoverLoaded && <div className="absolute inset-0 animate-pulse bg-slate-300" />}
+         
+         {/* Overlay para contraste */}
+         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-transparent" />
+      </div>
+
+      {/* AVATAR SOBREPOSTO - Fixado no Header */}
+      <div className="absolute bottom-6 left-6 flex items-end gap-4 z-10 w-[calc(100%-3rem)]">
+        <div className="relative shrink-0">
+          <div className="w-24 h-24 rounded-[1.5rem] border-4 border-white shadow-2xl bg-slate-200 overflow-hidden">
+            <img 
+              src={avatarUrl} 
+              alt="Avatar"
+              className={`w-full h-full object-cover transition-opacity duration-500 ${isAvatarLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setIsAvatarLoaded(true)}
+            />
+            {!isAvatarLoaded && <div className="absolute inset-0 animate-pulse bg-slate-400" />}
+          </div>
+          
+          {/* O Selo Azul que já criámos - agora unificado aqui */}
+          {user?.verification_status === 'verified' && (
+            <div className="absolute -top-3 -right-3 z-20">
+              <VerifiedBadge className="w-8 h-8 drop-shadow-md" />
+            </div>
+          )}
+        </div>
+
+        <div className="text-white pb-1 min-w-0 flex-1">
+          <h1 className="text-2xl font-black tracking-tighter leading-tight truncate">
+            {user?.walker_name || user?.trainer_name || user?.full_name || 'Profissional'}
+          </h1>
+          <div className="flex items-center gap-2 mt-1">
+            {user?.has_pawcao_seal ? (
+              <span className="flex items-center gap-1 text-[10px] font-bold text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest backdrop-blur-sm border border-orange-500/30">
+                <Dog size={10} /> Partner PawCão
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                {user?.verification_status === 'verified' ? 'Profissional Verificado' : 'Profissional'}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
