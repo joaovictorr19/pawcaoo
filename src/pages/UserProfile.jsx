@@ -36,6 +36,7 @@ import ProfileAnimalsBar from "../components/profile/ProfileAnimalsBar";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import PinnedBadgesDisplay from "../components/profile/PinnedBadgesDisplay";
 import { EditableAvatar } from "@/components/ui/EditableAvatar";
+import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
 
 const BadgeItem = React.memo(({ badge, idx, getBadgeImage, locked = false }) => {
   return (
