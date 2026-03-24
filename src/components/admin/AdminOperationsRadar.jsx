@@ -21,6 +21,8 @@ function getDistance(lat1, lon1, lat2, lon2) {
 export default function AdminOperationsRadar({ allUsers, activeWalks }) {
   const [selectedWalker, setSelectedWalker] = useState(null);
   const [selectedSos, setSelectedSos] = useState(null);
+  const { sendDirectAlert } = useAdminPush();
+  const [isSending, setIsSending] = useState(false);
 
   // Filtramos os profissionais que estão online agora
   const onlinePro = allUsers?.filter(u => u.pawgo_status?.is_online || u.professional_profile?.is_online) || [];
