@@ -3,7 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import { Dog } from "lucide-react";
 
-export function ProfessionalHeader({ user }) {
+import { EditableAvatar } from "@/components/ui/EditableAvatar";
+import { Camera, Edit } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export function ProfessionalHeader({ user, isOwnProfile, onCoverUpload, onAvatarUpload, isPendingAvatar, onEditProfile }) {
   const [isCoverLoaded, setIsCoverLoaded] = useState(false);
   const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
 
@@ -13,7 +17,7 @@ export function ProfessionalHeader({ user }) {
   return (
     <div className="relative w-full h-[280px] bg-slate-100 overflow-hidden rounded-b-3xl">
       {/* IMAGEM DE CAPA - Unificada */}
-      <div className="absolute inset-0 bg-slate-200">
+      <div className="absolute inset-0 bg-slate-200 group">
          <img 
             src={coverUrl} 
             alt="Capa"
@@ -25,6 +29,34 @@ export function ProfessionalHeader({ user }) {
          
          {/* Overlay para contraste */}
          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-transparent" />
+         
+         {isOwnProfile && onCoverUpload && (
+            <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10 text-white">
+              <Camera className="w-8 h-8 mb-2" />
+              <span className="font-medium text-sm drop-shadow-md">Alterar Capa</span>
+              <input 
+                type="file" 
+                className="hidden" 
+                accept="image/*"
+                onChange={onCoverUpload} 
+              />
+            </label>
+         )}
+
+         {isOwnProfile && onEditProfile && (
+            <Button
+              size="icon"
+              variant="outline"
+              className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg z-50 pointer-events-auto w-10 h-10 rounded-full border-2 border-white/50"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditProfile();
+              }}
+              title="Editar Perfil"
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+         )}
       </div>
 
       {/* AVATAR SOBREPOSTO - Fixado no Header */}
