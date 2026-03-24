@@ -251,7 +251,17 @@ export default function AdminUserTable({
                     <TableRow key={user.id} className="hover:bg-purple-50/40 transition-colors border-b border-gray-100">
                       <TableCell className="font-mono text-[10px] text-gray-500">{user.id.substring(0, 8)}...</TableCell>
                       <TableCell className="font-medium text-xs text-gray-800 break-all" title={user.email}>{user.email}</TableCell>
-                      <TableCell className="text-xs text-gray-600 break-all" title={user.full_name}>{user.full_name || 'N/A'}</TableCell>
+                      <TableCell className="text-xs text-gray-600 break-all" title={user.full_name}>
+                        <div className="flex flex-col gap-1">
+                          <span>{user.full_name || 'N/A'}</span>
+                          <div className="flex gap-1">
+                            {/* Mini Badges Icons */}
+                            <ShieldAlert className={`w-3.5 h-3.5 ${user.professional_profile?.verification_status === 'verified' ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
+                            <Award className={`w-3.5 h-3.5 ${user.professional_profile?.is_trained ? 'text-purple-500' : 'text-gray-300'}`} title="Treinado" />
+                            <UserCircle className={`w-3.5 h-3.5 ${user.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-gray-300'}`} title="PawCão" />
+                          </div>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-xs px-2 h-6">
                           {user.gamification_xp || 0}
