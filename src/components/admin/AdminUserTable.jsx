@@ -33,7 +33,8 @@ export default function AdminUserTable({
   onEditBadges,
   onImpersonate,
   onApproveUser,
-  onRejectUser
+  onRejectUser,
+  onUpdateUser
 }) {
   const { language } = useLanguage();
   const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
