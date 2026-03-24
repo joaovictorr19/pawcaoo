@@ -20,6 +20,7 @@ import { t } from "@/components/translations";
 import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
 import { AdminQuickVerify } from "./AdminQuickVerify";
 import { AdminUserCard } from "./AdminUserCard";
+import { AdminUserDrawer } from "./AdminUserDrawer";
 
 export default function AdminUserTable({ 
   users = [], 
@@ -39,6 +40,14 @@ export default function AdminUserTable({
   const [quickFilter, setQuickFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const handleOpenAction = (user) => {
+    setSelectedUser(user);
+    setIsDrawerOpen(true);
+  };
 
   // Conta rápida para os badges
   const stats = useMemo(() => {
@@ -206,8 +215,7 @@ export default function AdminUserTable({
                   <AdminUserCard 
                     key={user.id} 
                     user={user} 
-                    onApprove={onApproveUser} 
-                    onBan={onRejectUser} 
+                    onClick={handleOpenAction} 
                   />
                 ))
               )}
@@ -400,6 +408,14 @@ export default function AdminUserTable({
           </>
         )}
       </div>
+
+      <AdminUserDrawer 
+        user={selectedUser} 
+        isOpen={isDrawerOpen} 
+        onClose={() => setIsDrawerOpen(false)}
+        onApprove={onApproveUser}
+        onBan={onRejectUser}
+      />
     </div>
   );
 }

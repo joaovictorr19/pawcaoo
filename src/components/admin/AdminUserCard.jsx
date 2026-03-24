@@ -1,15 +1,14 @@
-import { useState } from "react";
+import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ChevronRight, Ban, CheckCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 
-export function AdminUserCard({ user, onApprove, onBan }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
+export function AdminUserCard({ user, onClick }) {
   return (
-    <div className="bg-white rounded-3xl p-4 mb-3 border border-slate-100 shadow-sm transition-all active:scale-[0.98]">
-      <div className="flex items-center justify-between" onClick={() => setIsExpanded(!isExpanded)}>
+    <div 
+      onClick={() => onClick(user)}
+      className="bg-white rounded-3xl p-4 mb-3 border border-slate-100 shadow-sm transition-all active:scale-[0.98] cursor-pointer hover:shadow-md"
+    >
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Avatar className="w-12 h-12 rounded-2xl">
             <AvatarImage src={user.photo_url || user.profile_photo_url} />
@@ -26,41 +25,8 @@ export function AdminUserCard({ user, onApprove, onBan }) {
             </span>
           </div>
         </div>
-        <ChevronRight className={`w-5 h-5 text-slate-300 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+        <ChevronRight className="w-5 h-5 text-slate-300 transition-transform" />
       </div>
-
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }} 
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="pt-4 mt-4 border-t border-slate-50 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Email:</span>
-                <span className="font-medium text-slate-700 break-all text-right">{user.email}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">XP Gamificação:</span>
-                <span className="font-bold text-orange-500">{user.gamification_xp || 0} XP</span>
-              </div>
-              
-              <div className="flex gap-2 pt-2">
-                {user.professional_profile?.verification_status === 'pending' && (
-                  <Button onClick={() => onApprove(user)} className="flex-1 bg-green-600 hover:bg-green-700 h-10 rounded-xl text-xs font-bold text-white shadow-none">
-                    <CheckCircle className="w-4 h-4 mr-1" /> APROVAR PRO
-                  </Button>
-                )}
-                <Button onClick={() => onBan(user)} variant="destructive" className="flex-1 h-10 rounded-xl text-xs font-bold bg-red-100 text-red-600 hover:bg-red-200 border-none shadow-none">
-                  <Ban className="w-4 h-4 mr-1" /> BANIR
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
