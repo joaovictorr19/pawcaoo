@@ -1,6 +1,6 @@
 import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ShieldAlert, Award, UserCircle } from "lucide-react";
 
 export function AdminUserCard({ user, onClick }) {
   return (
@@ -16,13 +16,20 @@ export function AdminUserCard({ user, onClick }) {
           </Avatar>
           <div>
             <h4 className="font-bold text-slate-900 leading-tight">{user.full_name || 'Sem Nome'}</h4>
-            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-              user.account_type === 'walker' || user.account_type === 'trainer' || user.account_type === 'both' 
-                ? 'bg-orange-100 text-orange-600' 
-                : 'bg-blue-100 text-blue-600'
-            }`}>
-              {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
-            </span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                user.account_type === 'walker' || user.account_type === 'trainer' || user.account_type === 'both' 
+                  ? 'bg-orange-100 text-orange-600' 
+                  : 'bg-blue-100 text-blue-600'
+              }`}>
+                {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
+              </span>
+              <div className="flex gap-1">
+                <ShieldAlert className={`w-3.5 h-3.5 ${user.professional_profile?.verification_status === 'verified' ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
+                <Award className={`w-3.5 h-3.5 ${user.professional_profile?.is_trained ? 'text-purple-500' : 'text-gray-300'}`} title="Treinado" />
+                <UserCircle className={`w-3.5 h-3.5 ${user.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-gray-300'}`} title="PawCão" />
+              </div>
+            </div>
           </div>
         </div>
         <ChevronRight className="w-5 h-5 text-slate-300 transition-transform" />
