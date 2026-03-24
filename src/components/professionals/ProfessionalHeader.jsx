@@ -63,17 +63,16 @@ export function ProfessionalHeader({ user, isOwnProfile, onCoverUpload, onAvatar
       <div className="absolute bottom-6 left-6 flex items-end gap-4 z-10 w-[calc(100%-3rem)]">
         <div className="relative shrink-0">
           <div className="w-24 h-24 rounded-[1.5rem] border-4 border-white shadow-2xl bg-slate-200 overflow-hidden">
-            <img 
-              src={avatarUrl} 
-              alt="Avatar"
-              className={`w-full h-full object-cover transition-opacity duration-500 ${isAvatarLoaded ? 'opacity-100' : 'opacity-0'}`}
-              onLoad={() => setIsAvatarLoaded(true)}
+            <EditableAvatar 
+              url={avatarUrl} 
+              isPending={isPendingAvatar}
+              onUpload={onAvatarUpload}
+              disabled={!isOwnProfile}
             />
-            {!isAvatarLoaded && <div className="absolute inset-0 animate-pulse bg-slate-400" />}
           </div>
           
           {/* O Selo Azul que já criámos - agora unificado aqui */}
-          {user?.verification_status === 'verified' && (
+          {(user?.is_verified || user?.verification_status === 'verified') && (
             <div className="absolute -top-3 -right-3 z-20">
               <VerifiedBadge className="w-8 h-8 drop-shadow-md" />
             </div>
