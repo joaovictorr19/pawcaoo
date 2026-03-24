@@ -197,6 +197,34 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
               <AdminBadgeManager user={user} onUpdate={onUpdate} />
             </div>
 
+            {/* INJEÇÃO DE PASSEIO DIRETO */}
+            <div className="bg-orange-50 rounded-[2rem] p-5 mb-8 border border-orange-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-orange-100 rounded-xl">
+                    <Wallet size={16} className="text-orange-600" />
+                  </div>
+                  <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest">Carteira Cliente</h4>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-black text-orange-600">{user.wallet?.free_walks || 0}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">Grátis</span>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleGiftFreeWalk}
+                disabled={isGifting}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl h-12 shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+              >
+                {isGifting ? "A processar..." : (
+                  <>
+                    <Gift size={18} className="mr-2" /> Oferecer Passeio PawCão
+                  </>
+                )}
+              </Button>
+            </div>
+
             <div className="space-y-3">
               <button 
                 onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')}
