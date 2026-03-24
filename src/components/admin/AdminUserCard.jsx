@@ -1,39 +1,40 @@
 import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ChevronRight, ShieldAlert, Award, UserCircle } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function AdminUserCard({ user, onClick }) {
   return (
-    <div 
+    <motion.div 
+      whileTap={{ scale: 0.98 }}
       onClick={() => onClick(user)}
-      className="bg-white rounded-3xl p-4 mb-3 border border-slate-100 shadow-sm transition-all active:scale-[0.98] cursor-pointer hover:shadow-md"
+      className="bg-white p-4 rounded-[1.5rem] flex items-center justify-between border border-transparent active:border-orange-200 shadow-sm cursor-pointer mb-3"
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        <div className="relative">
           <Avatar className="w-12 h-12 rounded-2xl">
             <AvatarImage src={user.photo_url || user.profile_photo_url} />
             <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">{user.full_name?.[0] || 'U'}</AvatarFallback>
           </Avatar>
-          <div>
-            <h4 className="font-bold text-slate-900 leading-tight">{user.full_name || 'Sem Nome'}</h4>
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                user.account_type === 'walker' || user.account_type === 'trainer' || user.account_type === 'both' 
-                  ? 'bg-orange-100 text-orange-600' 
-                  : 'bg-blue-100 text-blue-600'
-              }`}>
-                {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
-              </span>
-              <div className="flex gap-1">
-                <ShieldAlert className={`w-3.5 h-3.5 ${user.professional_profile?.verification_status === 'verified' ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
-                <Award className={`w-3.5 h-3.5 ${user.professional_profile?.is_trained ? 'text-purple-500' : 'text-gray-300'}`} title="Treinado" />
-                <UserCircle className={`w-3.5 h-3.5 ${user.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-gray-300'}`} title="PawCão" />
-              </div>
-            </div>
+          {/* Indicador de Status (Online/Offline) */}
+          <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${user.pawgo_status?.is_online ? 'bg-green-500' : 'bg-slate-300'}`} />
+        </div>
+        
+        <div>
+          <h4 className="font-bold text-slate-900 text-sm leading-none mb-1">{user.full_name || 'Sem Nome'}</h4>
+          {/* OS MINI-SELOS */}
+          <div className="flex items-center gap-1.5 mt-1.5">
+            {user.professional_profile?.verification_status === 'verified' && <div className="w-2 h-2 bg-blue-500 rounded-full" title="Verificado" />}
+            {user.professional_profile?.is_trained && <div className="w-2 h-2 bg-purple-500 rounded-full" title="Treinador Certificado" />}
+            {user.professional_profile?.is_pawcao && <div className="w-2 h-2 bg-orange-500 rounded-full" title="Selo PawCão" />}
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider ml-1">
+              {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
+            </span>
           </div>
         </div>
-        <ChevronRight className="w-5 h-5 text-slate-300 transition-transform" />
       </div>
-    </div>
+      
+      <ChevronRight size={18} className="text-slate-200" />
+    </motion.div>
   );
 }
