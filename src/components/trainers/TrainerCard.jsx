@@ -14,7 +14,7 @@ import TrainerVerifiedBadge from "@/components/ui/TrainerVerifiedBadge";
 import GoldEmployeeBadge from "@/components/ui/GoldEmployeeBadge";
 import { AnimalIconsList } from "@/components/professionals/AnimalIcons";
 
-const TrainerCard = React.memo(({ trainer, distance }) => {
+const TrainerCard = React.memo(({ trainer, distance, showMatchScore, matchScore }) => {
   const navigate = useNavigate();
   const { colors } = useTheme();
 
