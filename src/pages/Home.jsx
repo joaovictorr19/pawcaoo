@@ -746,36 +746,9 @@ export default function Home() {
                           </span>
                           
                           <button
-                            onClick={async () => {
-                              try {
-                                const isProfessional = user.preferences?.current_mode !== 'professional';
-                                const toastId = toast.loading(`Alternando para modo ${isProfessional ? 'Profissional' : 'Tutor'}...`);
-                                
-                                await base44.auth.updateMe({ 
-                                  preferences: { ...user.preferences, current_mode: isProfessional ? 'professional' : 'owner' },
-                                  pawgo_status: { ...user.pawgo_status, is_online: isProfessional }
-                                });
-                                
-                                if (user.account_type === 'walker' || user.account_type === 'both') {
-                                    const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
-                                    if (walkers.length > 0) {
-                                        await base44.entities.WalkerProfile.update(walkers[0].id, { is_online: isProfessional });
-                                    }
-                                }
-                                if (user.account_type === 'trainer' || user.account_type === 'both') {
-                                    const trainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
-                                    if (trainers.length > 0) {
-                                        await base44.entities.TrainerProfile.update(trainers[0].id, { is_online: isProfessional });
-                                    }
-                                }
-
-                                setTimeout(() => {
-                                  toast.success(isProfessional ? "Modo Profissional (Online) ativado" : "Modo Tutor ativado", { id: toastId });
-                                  queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-                                }, 1000);
-                              } catch (e) { 
-                                toast.error("Erro ao alterar o modo");
-                              }
+                            onClick={() => {
+                              const isProfessional = user.preferences?.current_mode !== 'professional';
+                              navigate(createPageUrl("Dashboard"), { state: { triggerTransition: true, toProfessional: isProfessional } });
                             }}
                             className={`relative inline-flex h-[31px] w-[51px] flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
                               user.preferences?.current_mode === 'professional' ? 'bg-[#34C759]' : 'bg-white/40'

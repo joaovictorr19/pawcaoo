@@ -21,34 +21,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   };
 
   const handleCenterButtonClick = async () => {
-    if (isProf) {
-      // Se estiver como Profissional, o botão central ativa o seu radar de trabalho.
-      const newStatus = !isOnline;
-      
-      await base44.auth.updateMe({
-        pawgo_status: { ...user?.pawgo_status, is_online: newStatus }
-      });
-      
-      if (user?.account_type === 'walker' || user?.account_type === 'both') {
-        const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
-        if (walkers.length > 0) {
-          await base44.entities.WalkerProfile.update(walkers[0].id, { is_online: newStatus });
-        }
-      }
-      if (user?.account_type === 'trainer' || user?.account_type === 'both') {
-        const trainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
-        if (trainers.length > 0) {
-          await base44.entities.TrainerProfile.update(trainers[0].id, { is_online: newStatus });
-        }
-      }
-      
-      if ("vibrate" in navigator) navigator.vibrate([50, 30, 50]);
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      
+    if (location.pathname !== createPageUrl("Dashboard")) {
+        navigate(createPageUrl("Dashboard"), { state: { triggerTransition: true, toProfessional: !isProf } });
     } else {
-      // Se estiver como Dono, o botão central pede um passeio.
-      if ("vibrate" in navigator) navigator.vibrate(50);
-      navigate(createPageUrl("Dashboard"));
+        window.dispatchEvent(new CustomEvent('triggerModeSwitch', { detail: { toProfessional: !isProf } }));
     }
   };
 
