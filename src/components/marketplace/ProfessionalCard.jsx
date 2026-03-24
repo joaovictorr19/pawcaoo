@@ -26,10 +26,10 @@ export function ProfessionalCard({ walker }) {
         <img 
           key={`img-${walker.id}`} // KEY FIXA É VITAL
           src={profileData.photo}
-          className="w-full h-full object-cover opacity-0 transition-opacity duration-300"
-          onLoad={(e) => e.currentTarget.classList.replace('opacity-0', 'opacity-100')}
+          className="w-full h-full object-cover transition-opacity duration-500 opacity-0"
+          onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
           onError={(e) => {
-             e.currentTarget.classList.replace('opacity-0', 'opacity-100');
+             e.currentTarget.classList.remove('opacity-0');
              e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(walker.full_name || walker.walker_name || walker.trainer_name || 'P') + '&background=10b981&color=fff&size=200';
           }}
         />

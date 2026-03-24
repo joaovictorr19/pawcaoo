@@ -97,6 +97,12 @@ export default function BecomeProfessional() {
       const newProfessionalProfile = {
         is_verified: false,
         verification_status: "pending",
+        is_trained: isAlsoTrainer,
+        is_pawcao: false,
+        category: professionalType === 'trainer' ? 'Treinador' : professionalType === 'both' ? 'Passeador & Treinador' : 'Passeador',
+        bio: data.bio || "Profissional PawGo em verificação.",
+        avatar_url: data.photo_url || user.profile_photo_url || ("https://api.dicebear.com/7.x/avataaars/svg?seed=" + encodeURIComponent(data.name)),
+        cover_url: data.cover_photo_url || "",
         documents: {
           tax_id: data.country_of_operation === 'portugal' ? data.tax_id_portugal : (data.country_of_operation === 'spain' ? data.tax_id_spain : data.tax_id_france),
           id_url: data.id_document_url || "",
@@ -109,13 +115,21 @@ export default function BecomeProfessional() {
           active: true
         })),
         platform_fee_percentage: 15, // default
-        // Campos extras mapeados para a nova estrutura se necessário
       };
 
       // Atualizar no User usando updateMe
       await base44.auth.updateMe({ 
         account_type: professionalType,
         professional_profile: newProfessionalProfile,
+        wallet: user.wallet || {
+          free_walks: 0,
+          balance: 0,
+          currency: 'EUR'
+        },
+        pawgo_status: user.pawgo_status || {
+          is_online: false,
+          last_seen: new Date().toISOString()
+        },
         global_profile: {
           ...(user.global_profile || {}),
           full_name: data.name,

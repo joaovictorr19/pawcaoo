@@ -28,11 +28,25 @@ export default function ProfessionalSetup() {
       await base44.auth.updateMe({
         account_type: "both",
         professional_profile: {
-          bio: formData.bio,
+          bio: formData.bio || "Profissional PawGo em verificação.",
           services: formData.services.length > 0 ? formData.services : [{ name: "Passeio (1h)", price: Number(formData.base_price) || 15, type: "walk" }],
           verification_status: "pending",
+          is_trained: false,
+          is_pawcao: false,
+          category: 'Passeador',
+          avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random(),
+          cover_url: "",
           rating: 5.0,
           joined_at: new Date().toISOString()
+        },
+        wallet: {
+          free_walks: 0,
+          balance: 0,
+          currency: 'EUR'
+        },
+        pawgo_status: {
+          is_online: false,
+          last_seen: new Date().toISOString()
         },
         financial_info: {
           iban: formData.iban,
