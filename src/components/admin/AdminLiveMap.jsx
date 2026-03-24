@@ -86,11 +86,14 @@ export default function AdminLiveMap({ users = [], bookings = [], onUserClick })
         let pinColor = '#3b82f6'; // Default azul
         
         if (isWalker && isOnline) {
-          pinColor = '#3b82f6'; // Azul para Online, conforme pedido
+          pinColor = '#22c55e'; // Verde para Online
           typeLabel = 'Passeador Online';
+        } else if (isTrainer && isOnline) {
+          pinColor = '#22c55e'; // Verde para Online
+          typeLabel = 'Treinador Online';
         } else if (isTrainer) {
           pinColor = '#eab308'; // Amarelo
-          typeLabel = 'Treinador';
+          typeLabel = 'Treinador Offline';
         } else if (isWalker) {
           pinColor = '#9ca3af'; // Cinza
           typeLabel = 'Passeador Offline';
