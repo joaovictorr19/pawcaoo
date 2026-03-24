@@ -800,6 +800,7 @@ export default function AdminDashboard() {
           <div className="overflow-x-auto pb-2 no-scrollbar">
             <TabsList className="flex w-max gap-2 bg-transparent p-0 h-auto" style={{ borderRadius: 0 }}>
               <TabsTrigger value="overview" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📊 Dashboard</TabsTrigger>
+              <TabsTrigger value="godmode" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🌍 God Mode</TabsTrigger>
               <TabsTrigger value="calendar" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
               <TabsTrigger value="professionals" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">👥 Profissionais</TabsTrigger>
               <TabsTrigger value="users" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
