@@ -425,43 +425,13 @@ export default function Home() {
   };
 
   const calculateMatchScore = (walker) => {
-    let score = 0;
-    let totalPossibleScore = 0;
-
-    if (selectedServiceTypes.length > 0) {
-      totalPossibleScore += 40;
-      const matchedServices = selectedServiceTypes.filter(type =>
-        walker.services_offered?.some(s =>
-          s.service_name?.toLowerCase().includes(type.toLowerCase().replace('_', ' '))
-        )
-      );
-      if (selectedServiceTypes.length > 0) {
-        score += (matchedServices.length / selectedServiceTypes.length) * 40;
-      }
-    }
-
-    if (selectedSpecializations.length > 0) {
-      totalPossibleScore += 30;
-      const matchedSpecs = selectedSpecializations.filter(spec =>
-        walker.specializations?.includes(spec)
-      );
-      if (selectedSpecializations.length > 0) {
-        score += (matchedSpecs.length / selectedSpecializations.length) * 30;
-      }
-    }
-
-    totalPossibleScore += 15;
-    score += ((walker.rating || 0) / 5) * 15;
-
-    totalPossibleScore += 10;
-    score += Math.min(((walker.experience_years || 0) / 10), 1) * 10;
-
-    totalPossibleScore += 5;
-    if (walker.verification_status === 'verified') score += 5;
-
-    if (totalPossibleScore === 0) return 0;
-
-    return Math.round((score / totalPossibleScore) * 100);
+    return calculateCompatibilityScore(walker, {
+      userLocation: userLocation,
+      myDogs: myDogs,
+      favorites: favorites,
+      userEmail: user?.email,
+      pastBookings: activeBookings
+    });
   };
 
   const filteredProfessionals = React.useMemo(() => {
