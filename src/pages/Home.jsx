@@ -26,6 +26,7 @@ import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
+import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Map as MapIcon, List, ChevronLeft, ChevronRight, Star as StarIcon } from "lucide-react";
 import ExternalPostCard from "../components/social/ExternalPostCard";
