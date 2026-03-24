@@ -129,6 +129,13 @@ export default function Home() {
     initialData: []
   });
 
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['myFavorites', user?.email],
+    queryFn: () => base44.entities.Favorite.filter({ created_by: user?.email }),
+    enabled: !!user?.email,
+    initialData: []
+  });
+
   const { data: loyaltyPoints } = useQuery({
     queryKey: ['loyaltyPoints', user?.email],
     queryFn: async () => {
