@@ -656,7 +656,7 @@ export default function UserProfile() {
       pastBookings: myPastBookings,
       userEmail: currentUser.email
     });
-  }, [walkerProfile, trainerProfile, myDogs, myFavorites, myPastBookings, currentUser, isOwnProfile]);
+  }, [walkerProfile, trainerProfile, myDogs, myFavorites, myPastBookings, currentUser, isOwnProfile]); // Fixed initialization order
 
   const { data: followersCount = 0 } = useQuery({
     queryKey: ['followersCount', profileEmail],
