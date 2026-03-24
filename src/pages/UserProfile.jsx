@@ -614,6 +614,36 @@ export default function UserProfile() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: myDogs = [] } = useQuery({
+    queryKey: ['myDogs', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return [];
+      return await base44.entities.DogProfile.filter({ owner_email: currentUser.email });
+    },
+    enabled: !!currentUser?.email && !isOwnProfile,
+    initialData: [],
+  });
+
+  const { data: myFavorites = [] } = useQuery({
+    queryKey: ['myFavorites', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return [];
+      return await base44.entities.Favorite.filter({ created_by: currentUser.email });
+    },
+    enabled: !!currentUser?.email && !isOwnProfile,
+    initialData: [],
+  });
+
+  const { data: myPastBookings = [] } = useQuery({
+    queryKey: ['myPastBookings', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return [];
+      return await base44.entities.Booking.filter({ created_by: currentUser.email });
+    },
+    enabled: !!currentUser?.email && !isOwnProfile,
+    initialData: [],
+  });
+
   const { data: followersCount = 0 } = useQuery({
     queryKey: ['followersCount', profileEmail],
     queryFn: async () => {
