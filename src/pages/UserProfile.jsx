@@ -645,6 +645,19 @@ export default function UserProfile() {
     initialData: [],
   });
 
+  const matchScore = useMemo(() => {
+    if (isOwnProfile || !currentUser) return null;
+    const pro = walkerProfile || trainerProfile;
+    if (!pro) return null;
+
+    return calculateCompatibilityScore(pro, {
+      myDogs,
+      favorites: myFavorites,
+      pastBookings: myPastBookings,
+      userEmail: currentUser.email
+    });
+  }, [walkerProfile, trainerProfile, myDogs, myFavorites, myPastBookings, currentUser, isOwnProfile]);
+
   const { data: followersCount = 0 } = useQuery({
     queryKey: ['followersCount', profileEmail],
     queryFn: async () => {
