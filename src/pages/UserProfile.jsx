@@ -1175,6 +1175,25 @@ export default function UserProfile() {
                   {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified' || trainerProfile?.verification_status === 'verified') && (
                     <VerifiedBadge size="md" />
                   )}
+                  {matchScore !== null && matchScore > 0 && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge className={`${
+                            matchScore >= 90 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                            matchScore >= 75 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                            matchScore >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                            'bg-gradient-to-r from-gray-500 to-gray-600'
+                          } text-white border-0 shadow-sm px-2 py-0.5 font-bold cursor-help`}>
+                            ⭐ {matchScore}% Match
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Score de Compatibilidade baseado no seu perfil e pets</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                     {(profileUser.role === 'admin' || (isSelfView && currentUser?.role === 'admin')) && (
                       <AdminBadgeGlass />
                     )}
