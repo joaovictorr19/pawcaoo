@@ -522,16 +522,22 @@ function LayoutContent({ children, currentPageName }) {
           let didUpdates = false;
 
           // Sync back to UserProfile
-          const profileUpdates = {};
-          if (bestPhoto && userProfile.profile_photo_url !== bestPhoto) profileUpdates.profile_photo_url = bestPhoto;
-          if (bestCover && userProfile.cover_photo_url !== bestCover) profileUpdates.cover_photo_url = bestCover;
-          if (bestName && userProfile.full_name !== bestName) profileUpdates.full_name = bestName;
-          if (bestBio && userProfile.bio !== bestBio) profileUpdates.bio = bestBio;
-          if (bestCity && userProfile.city !== bestCity) profileUpdates.city = bestCity;
+          if (userProfile && userProfile.id) {
+            const profileUpdates = {};
+            if (bestPhoto && userProfile.profile_photo_url !== bestPhoto) profileUpdates.profile_photo_url = bestPhoto;
+            if (bestCover && userProfile.cover_photo_url !== bestCover) profileUpdates.cover_photo_url = bestCover;
+            if (bestName && userProfile.full_name !== bestName) profileUpdates.full_name = bestName;
+            if (bestBio && userProfile.bio !== bestBio) profileUpdates.bio = bestBio;
+            if (bestCity && userProfile.city !== bestCity) profileUpdates.city = bestCity;
 
-          if (Object.keys(profileUpdates).length > 0) {
-            await base44.entities.UserProfile.update(userProfile.id, profileUpdates);
-            didUpdates = true;
+            if (Object.keys(profileUpdates).length > 0) {
+              try {
+                await base44.entities.UserProfile.update(userProfile.id, profileUpdates);
+                didUpdates = true;
+              } catch (e) {
+                console.error("Failed to update UserProfile:", e);
+              }
+            }
           }
 
           // Sync back to Auth User
@@ -541,12 +547,16 @@ function LayoutContent({ children, currentPageName }) {
           if (bestName && authUser.full_name !== bestName) authUpdates.full_name = bestName;
 
           if (Object.keys(authUpdates).length > 0) {
-            await base44.auth.updateMe(authUpdates);
-            didUpdates = true;
+            try {
+              await base44.auth.updateMe(authUpdates);
+              didUpdates = true;
+            } catch (e) {
+              console.error("Failed to update AuthUser:", e);
+            }
           }
 
           // Sync back to WalkerProfile
-          if (w) {
+          if (w && w.id) {
             const walkerUpdates = {};
             if (bestPhoto && w.photo_url !== bestPhoto) walkerUpdates.photo_url = bestPhoto;
             if (bestCover && w.cover_photo_url !== bestCover) walkerUpdates.cover_photo_url = bestCover;
@@ -555,13 +565,17 @@ function LayoutContent({ children, currentPageName }) {
             if (bestCity && !w.location) walkerUpdates.location = bestCity;
 
             if (Object.keys(walkerUpdates).length > 0) {
-              await base44.entities.WalkerProfile.update(w.id, walkerUpdates);
-              didUpdates = true;
+              try {
+                await base44.entities.WalkerProfile.update(w.id, walkerUpdates);
+                didUpdates = true;
+              } catch (e) {
+                console.error("Failed to update WalkerProfile:", e);
+              }
             }
           }
 
           // Sync back to TrainerProfile
-          if (t) {
+          if (t && t.id) {
             const trainerUpdates = {};
             if (bestPhoto && t.photo_url !== bestPhoto) trainerUpdates.photo_url = bestPhoto;
             if (bestCover && t.cover_photo_url !== bestCover) trainerUpdates.cover_photo_url = bestCover;
@@ -570,8 +584,12 @@ function LayoutContent({ children, currentPageName }) {
             if (bestCity && !t.location) trainerUpdates.location = bestCity;
 
             if (Object.keys(trainerUpdates).length > 0) {
-              await base44.entities.TrainerProfile.update(t.id, trainerUpdates);
-              didUpdates = true;
+              try {
+                await base44.entities.TrainerProfile.update(t.id, trainerUpdates);
+                didUpdates = true;
+              } catch (e) {
+                console.error("Failed to update TrainerProfile:", e);
+              }
             }
           }
 
