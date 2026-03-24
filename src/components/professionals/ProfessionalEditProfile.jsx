@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Camera, Save, User, FileText, Image as ImageIcon } from "lucide-react";
+import { Camera, Save, User, FileText, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -14,11 +14,44 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
     full_name: user?.full_name || "",
     bio: user?.professional_profile?.bio || "",
     category: user?.professional_profile?.category || "Passeador",
+    gallery: user?.professional_profile?.gallery || [],
     avatarPreview: user?.photo_url || user?.professional_profile?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + (user?.full_name || "pawgo"),
     coverPreview: user?.professional_profile?.cover_url || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1000",
     avatarFile: null,
     coverFile: null
   });
+
+  const galleryInputRef = useRef(null);
+
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    if (formData.gallery.length + files.length > 4) {
+      toast.error("Só podes ter até 4 fotos na galeria.");
+      return;
+    }
+
+    const toastId = toast.loading("A carregar fotos...");
+    try {
+      const newUrls = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        newUrls.push(file_url);
+      }
+      setFormData(prev => ({ ...prev, gallery: [...prev.gallery, ...newUrls] }));
+      toast.success("Fotos adicionadas!", { id: toastId });
+    } catch (error) {
+      toast.error("Erro ao carregar fotos.", { id: toastId });
+    }
+  };
+
+  const removeGalleryPhoto = (indexToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, index) => index !== indexToRemove)
+    }));
+  };
 
   const handleImageSelect = (e, type) => {
     const file = e.target.files?.[0];
@@ -67,7 +100,8 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
           bio: formData.bio,
           category: formData.category,
           avatar_url: finalAvatarUrl,
-          cover_url: finalCoverUrl
+          cover_url: finalCoverUrl,
+          gallery: formData.gallery || []
         }
       };
 
@@ -175,6 +209,61 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
             placeholder="Conta aos tutores por que és a escolha certa para os seus cães..."
             className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-orange-500 transition-all resize-none outline-none text-slate-700"
           />
+        </Card>
+
+        {/* 4. GALERIA DE PORTEFÓLIO (NOVO MÓDULO) */}
+        <Card className="p-6 rounded-[2.5rem] border-slate-100 shadow-sm space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-slate-400">
+              <ImageIcon size={16} />
+              <span className="text-[10px] font-black uppercase tracking-widest">O teu Portefólio</span>
+            </div>
+            <span className="text-[9px] font-bold text-slate-300 uppercase">Máx 4 fotos</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* Slot de Fotos da Galeria */}
+            {[0, 1, 2, 3].map((index) => {
+              const photo = formData.gallery?.[index];
+              return (
+                <div 
+                  key={index}
+                  className="relative aspect-square rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 overflow-hidden group active:scale-95 transition-all"
+                >
+                  {photo ? (
+                    <>
+                      <img src={photo} className="w-full h-full object-cover" />
+                      <button 
+                        onClick={() => removeGalleryPhoto(index)}
+                        className="absolute top-2 right-2 bg-red-500/80 backdrop-blur text-white p-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </>
+                  ) : (
+                    <button 
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="w-full h-full flex flex-col items-center justify-center gap-1"
+                    >
+                      <Plus size={20} className="text-slate-300" />
+                      <span className="text-[8px] font-black text-slate-400 uppercase">Adicionar</span>
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <input 
+            type="file" 
+            ref={galleryInputRef} 
+            className="hidden" 
+            accept="image/*" 
+            multiple
+            onChange={handleGalleryUpload} 
+          />
+          <p className="text-[9px] text-slate-400 italic text-center">
+            Dica: Mostra fotos felizes com os teus "clientes" de quatro patas! 🐾
+          </p>
         </Card>
 
         {/* BOTÃO SALVAR FIXO/FLUTUANTE */}
