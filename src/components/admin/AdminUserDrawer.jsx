@@ -157,6 +157,10 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
               </Button>
             </div>
 
+            <div className="mb-8">
+              <AdminBadgeManager user={user} onUpdate={onUpdate} />
+            </div>
+
             <div className="space-y-3">
               <button 
                 onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')}
