@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import Map, { Marker, NavigationControl } from 'react-map-gl/maplibre';
-import 'maplibre-gl/dist/maplibre-gl.css';
+import { Map, MapMarker, MarkerContent, MapRoute } from "@/components/ui/map";
 import { User, Zap, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
