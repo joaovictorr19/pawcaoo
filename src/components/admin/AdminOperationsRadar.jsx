@@ -4,6 +4,7 @@ import { User, Zap, BarChart3, Dog, BadgeCheck, Navigation, BellRing } from 'luc
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useAdminPush } from '@/hooks/useAdminPush';
+import { AdminCitySwitcher } from './AdminCitySwitcher';
 
 // Função auxiliar simples para calcular a distância entre 2 pontos (em km, aproximado)
 function getDistance(lat1, lon1, lat2, lon2) {
@@ -21,36 +22,56 @@ function getDistance(lat1, lon1, lat2, lon2) {
 export default function AdminOperationsRadar({ allUsers, activeWalks }) {
   const [selectedWalker, setSelectedWalker] = useState(null);
   const [selectedSos, setSelectedSos] = useState(null);
+  const [activeCity, setActiveCity] = useState('all');
   const { sendDirectAlert } = useAdminPush();
   const [isSending, setIsSending] = useState(false);
 
-  // Filtramos os profissionais que estão online agora
-  const onlinePro = allUsers?.filter(u => u.pawgo_status?.is_online || u.professional_profile?.is_online) || [];
+  // Filtramos os profissionais que estão online agora e por cidade
+  const onlinePro = allUsers?.filter(u => {
+    const isOnline = u.pawgo_status?.is_online || u.professional_profile?.is_online;
+    if (!isOnline) return false;
+    if (activeCity === 'all') return true;
+    const userCity = u.city || u.location || '';
+    return userCity.toLowerCase().includes(activeCity);
+  }) || [];
   
-  // Filtramos pedidos de emergência que ainda ninguém aceitou
-  const pendingRequests = activeWalks?.filter(w => w.status === 'available' || w.status === 'pending') || [];
+  // Filtramos pedidos de emergência que ainda ninguém aceitou e por cidade
+  const pendingRequests = activeWalks?.filter(w => {
+    const isPending = w.status === 'available' || w.status === 'pending';
+    if (!isPending) return false;
+    if (activeCity === 'all') return true;
+    const loc = w.location || w.pickup_address || '';
+    return loc.toLowerCase().includes(activeCity);
+  }) || [];
 
   // Cálculos dinâmicos
   const stats = useMemo(() => {
     const todayStr = new Date().toISOString().split('T')[0];
-    const todayBookings = activeWalks?.filter(b => 
+    
+    const cityWalks = activeWalks?.filter(w => {
+      if (activeCity === 'all') return true;
+      const loc = w.location || w.pickup_address || '';
+      return loc.toLowerCase().includes(activeCity);
+    }) || [];
+
+    const todayBookings = cityWalks.filter(b => 
       (b.created_date && b.created_date.startsWith(todayStr)) || b.walk_date === todayStr
-    ) || [];
+    );
 
     const walksTodayCount = todayBookings.length;
     const feeTodaySum = todayBookings.reduce((sum, b) => sum + (Number(b.platform_fee) || 0), 0);
     
     // Taxa de aceitação simulada baseada em concluídos vs total
-    const totalRequests = activeWalks?.length || 1;
-    const completedOrAccepted = activeWalks?.filter(w => ['accepted', 'in_progress', 'completed', 'service_completed'].includes(w.status)).length || 0;
+    const totalRequests = cityWalks.length || 1;
+    const completedOrAccepted = cityWalks.filter(w => ['accepted', 'in_progress', 'completed', 'service_completed'].includes(w.status)).length || 0;
     const matchRate = Math.round((completedOrAccepted / totalRequests) * 100);
 
     return {
-      walksToday: walksTodayCount > 0 ? walksTodayCount : 12,
-      feeToday: feeTodaySum > 0 ? feeTodaySum.toFixed(2) : '142.50',
-      matchRate: isNaN(matchRate) || matchRate === 0 ? 94 : matchRate
+      walksToday: walksTodayCount > 0 ? walksTodayCount : (activeCity === 'all' ? 12 : 0),
+      feeToday: feeTodaySum > 0 ? feeTodaySum.toFixed(2) : (activeCity === 'all' ? '142.50' : '0.00'),
+      matchRate: isNaN(matchRate) || matchRate === 0 ? (activeCity === 'all' ? 94 : 0) : matchRate
     };
-  }, [activeWalks]);
+  }, [activeWalks, activeCity]);
 
   // Inteligência de Rota: encontrar o profissional mais próximo do SOS selecionado
   const nearestProToSos = useMemo(() => {
@@ -81,12 +102,28 @@ export default function AdminOperationsRadar({ allUsers, activeWalks }) {
     };
   }, [selectedSos, onlinePro]);
 
+  const cityCenters = {
+    porto: { lat: 41.1579, lng: -8.6291 },
+    lisboa: { lat: 38.7223, lng: -9.1393 },
+    all: { lat: 39.5, lng: -8.0 } // Centro de Portugal
+  };
+
   return (
     <div className="flex flex-col gap-6">
+      <AdminCitySwitcher 
+        activeCity={activeCity} 
+        onCityChange={(city) => {
+          setActiveCity(city);
+          setSelectedWalker(null);
+          setSelectedSos(null);
+        }} 
+      />
+
       <div className="h-[60vh] w-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl relative bg-slate-900">
         <Map
-          center={[-8.6291, 41.1579]}
-          zoom={12}
+          key={activeCity}
+          center={[cityCenters[activeCity].lng, cityCenters[activeCity].lat]}
+          zoom={activeCity === 'all' ? 6 : 13}
         >
           {/* ROTA INTELIGENTE (SOS para PRO mais próximo) */}
           {nearestProToSos && (
