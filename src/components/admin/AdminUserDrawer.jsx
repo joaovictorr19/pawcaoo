@@ -84,6 +84,41 @@ export function AdminBadgeManager({ user, onUpdate }) {
 }
 
 export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpdate }) {
+  const [isGifting, setIsGifting] = useState(false);
+
+  const handleGiftFreeWalk = async () => {
+    setIsGifting(true);
+    try {
+      const currentFreeWalks = user.wallet?.free_walks || 0;
+      
+      await onUpdate(user.id, {
+        wallet: {
+          ...(user.wallet || {}),
+          free_walks: currentFreeWalks + 1
+        }
+      });
+
+      // Dispara a Notificação Push
+      await base44.entities.Notification.create({
+        recipient_email: user.email,
+        title: "🎁 Surpresa PawGo!",
+        message: "A equipa PawGo acabou de adicionar 1 Passeio Grátis à tua carteira.",
+        type: "system",
+        priority: "high"
+      });
+
+      if ("vibrate" in navigator) navigator.vibrate([50, 100, 50]);
+      
+      toast.success("Passeio oferecido com sucesso! 🎉", {
+        description: `O cliente ${user.full_name} tem agora ${currentFreeWalks + 1} passeios grátis.`
+      });
+    } catch (error) {
+      toast.error("Erro ao creditar a carteira.");
+    } finally {
+      setIsGifting(false);
+    }
+  };
+
   if (!user) return null;
 
   return (
