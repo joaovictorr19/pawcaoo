@@ -146,14 +146,14 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
 
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {showMatchScore && matchScore !== undefined && (
+            {showMatchScore && matchScore !== undefined && matchScore > 0 && (
               <Badge className={`${
                 matchScore >= 90 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
                 matchScore >= 75 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
                 matchScore >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
                 'bg-gradient-to-r from-gray-500 to-gray-600'
-              } text-white border-0 shadow-lg text-[10px] px-2 py-0.5 font-bold`}>
-                {matchScore}%
+              } text-white border-0 shadow-lg text-[10px] px-2 py-0.5 font-bold flex items-center gap-1`}>
+                <Award className="w-3 h-3" /> {matchScore}% Match
               </Badge>
             )}
             {walker.total_walks > 50 && (
