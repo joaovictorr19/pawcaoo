@@ -10,8 +10,31 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+
+export function DocumentViewerModal({ isOpen, onClose, url }) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-[100vw] w-full h-[100dvh] max-h-[100dvh] p-0 bg-black/95 border-none flex flex-col m-0 rounded-none overflow-hidden">
+        <div className="absolute top-4 right-4 z-50 flex gap-2">
+          <Button variant="ghost" size="icon" onClick={onClose} className="bg-white/20 text-white hover:bg-white/40 rounded-full h-10 w-10">
+            <XCircle className="w-6 h-6" />
+          </Button>
+        </div>
+        <div className="overflow-auto w-full h-full flex items-center justify-center p-4">
+          <img 
+            src={url} 
+            alt="Documento" 
+            className="max-w-full max-h-full object-contain rounded-lg" 
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const VerificationCard = ({ item, type, onApprove, onReject, onViewDetails, language }) => {
+  const [docUrl, setDocUrl] = React.useState(null);
   const getIcon = () => {
     if (type === 'walker') return <Dog className="w-4 h-4 text-blue-500" />;
     if (type === 'trainer') return <Megaphone className="w-4 h-4 text-purple-500" />;
@@ -105,28 +128,33 @@ const VerificationCard = ({ item, type, onApprove, onReject, onViewDetails, lang
         {(hasIdDocument || hasAddressProof) && (
           <div className="flex gap-2 flex-wrap text-xs">
             {hasIdDocument && (
-              <a 
-                href={item.id_document_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+              <button 
+                onClick={() => setDocUrl(item.id_document_url)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-semibold active:scale-95"
               >
-                <Eye className="w-3 h-3" />
+                <Eye className="w-3.5 h-3.5" />
                 Ver CC/BI
-              </a>
+              </button>
             )}
             {hasAddressProof && (
-              <a 
-                href={item.proof_of_address_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+              <button 
+                onClick={() => setDocUrl(item.proof_of_address_url)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-semibold active:scale-95"
               >
-                <Eye className="w-3 h-3" />
+                <Eye className="w-3.5 h-3.5" />
                 Ver Morada
-              </a>
+              </button>
             )}
           </div>
+        )}
+
+        {/* Modal Visualizador de Documentos Full-Screen */}
+        {docUrl && (
+          <DocumentViewerModal 
+            isOpen={!!docUrl} 
+            onClose={() => setDocUrl(null)} 
+            url={docUrl} 
+          />
         )}
 
         {/* Bottom: Actions */}

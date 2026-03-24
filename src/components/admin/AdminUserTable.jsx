@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Eye, Edit, Trash2, RefreshCw, Loader2, ChevronLeft, ChevronRight, Award, UserCircle
+  Eye, Edit, Trash2, RefreshCw, Loader2, ChevronLeft, ChevronRight, Award, UserCircle, ShieldAlert, CheckCircle, Ban
 } from "lucide-react";
+import { motion, useMotionValue } from "framer-motion";
 import { createPageUrl } from "@/utils";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
@@ -28,12 +29,24 @@ export default function AdminUserTable({
   onSyncProfiles, 
   isSyncing,
   onEditBadges,
-  onImpersonate
+  onImpersonate,
+  onApproveUser,
+  onRejectUser
 }) {
   const { language } = useLanguage();
   const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
+  const [quickFilter, setQuickFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Conta rápida para os badges
+  const stats = useMemo(() => {
+    return {
+      pending: users.filter(u => u.professional_profile?.verification_status === 'pending').length,
+      active: users.filter(u => u.professional_profile?.verification_status === 'verified').length,
+      reports: 0 // Placeholder para denúncias
+    };
+  }, [users]);
 
   // Lógica de Filtragem (Extraída do Dashboard) - OTIMIZADA
   const filteredUsers = useMemo(() => {
@@ -56,6 +69,11 @@ export default function AdminUserTable({
           return false;
         }
       }
+
+      // Quick Filters (Pílulas do Topo)
+      if (quickFilter === 'pending' && u.professional_profile?.verification_status !== 'pending') return false;
+      if (quickFilter === 'active' && u.professional_profile?.verification_status !== 'verified') return false;
+      if (quickFilter === 'reports') return false; // Fixo zero para já
 
       // Filtros Avançados (apenas se existirem)
       if (filters) {
@@ -143,6 +161,22 @@ export default function AdminUserTable({
             </Button>
           </div>
           
+          {/* Quick Filters (Pílulas Mobile) */}
+          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+            <Button size="sm" variant={quickFilter === 'all' ? 'default' : 'outline'} className={`rounded-full shrink-0 ${quickFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-white'}`} onClick={() => setQuickFilter('all')}>
+              Todos ({users.length})
+            </Button>
+            <Button size="sm" variant={quickFilter === 'pending' ? 'default' : 'outline'} className={`rounded-full shrink-0 ${quickFilter === 'pending' ? 'bg-orange-500 text-white' : 'bg-orange-50 text-orange-700 border-none'}`} onClick={() => setQuickFilter('pending')}>
+              Pendentes ({stats.pending})
+            </Button>
+            <Button size="sm" variant={quickFilter === 'active' ? 'default' : 'outline'} className={`rounded-full shrink-0 ${quickFilter === 'active' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700 border-none'}`} onClick={() => setQuickFilter('active')}>
+              Ativos ({stats.active})
+            </Button>
+            <Button size="sm" variant={quickFilter === 'reports' ? 'default' : 'outline'} className={`rounded-full shrink-0 ${quickFilter === 'reports' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-700 border-none'}`} onClick={() => setQuickFilter('reports')}>
+              Denúncias ({stats.reports})
+            </Button>
+          </div>
+
           <div className="w-full">
             <UserSearchAdvanced 
               onSearch={handleSearch} 
@@ -167,68 +201,83 @@ export default function AdminUserTable({
                   <p className="text-sm">{filteredUsers.length === 0 && users.length > 0 ? 'Nenhum utilizador encontrado' : 'A carregar...'}</p>
                 </div>
               ) : (
-                paginatedUsers.map(user => (
-                <Card key={user.id} className="p-3 border border-gray-200 bg-white">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-sm">{user.full_name || 'Sem Nome'}</div>
-                        <div className="text-xs text-gray-500 break-all">{user.email}</div>
+                paginatedUsers.map(user => {
+                  return (
+                    <div key={user.id} className="relative rounded-2xl overflow-hidden mb-4 shadow-sm bg-gray-100">
+                      {/* Fundo do Swipe */}
+                      <div className="absolute inset-0 flex justify-between items-center px-6 font-bold text-white text-sm z-0">
+                        <div className="bg-green-500 w-1/2 h-full flex flex-col justify-center items-start pl-4">
+                           <CheckCircle className="w-6 h-6 mb-1" />
+                           <span className="text-xs">Aprovar Pro</span>
+                        </div>
+                        <div className="bg-red-500 w-1/2 h-full flex flex-col justify-center items-end pr-4 absolute right-0">
+                           <Ban className="w-6 h-6 mb-1" />
+                           <span className="text-xs">Banir</span>
+                        </div>
                       </div>
-                      <Badge className={`capitalize text-[10px] flex-shrink-0 h-5 text-white ${user.account_type === 'walker' || user.account_type === 'trainer' || user.account_type === 'both' ? 'bg-green-600' : 'bg-blue-600'}`}>
-                        {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
-                      </Badge>
-                    </div>
+                      
+                      {/* Cartão Arrastável */}
+                      <motion.div
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.4}
+                        onDragEnd={(e, info) => {
+                          if (info.offset.x > 100) {
+                            if (onApproveUser) onApproveUser(user);
+                          } else if (info.offset.x < -100) {
+                            if (onRejectUser) onRejectUser(user);
+                          }
+                        }}
+                        className="relative bg-white border border-gray-200 p-4 z-10 w-full"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold text-base text-gray-900 leading-tight">{user.full_name || 'Sem Nome'}</div>
+                              <div className="text-xs text-gray-500 break-all">{user.email}</div>
+                            </div>
+                            <Badge className={`capitalize text-[10px] flex-shrink-0 h-5 text-white ${user.account_type === 'walker' || user.account_type === 'trainer' || user.account_type === 'both' ? 'bg-green-600' : 'bg-blue-600'}`}>
+                              {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
+                            </Badge>
+                          </div>
 
-                    <div className="flex gap-1 flex-wrap items-center">
-                      <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-[10px] h-5">
-                        {user.gamification_xp || 0} XP
-                      </Badge>
-                      <Badge className={`${user.role === 'admin' ? 'bg-purple-500' : 'bg-gray-600'} text-[10px] text-white h-5`}>
-                        {user.role === 'admin' ? 'Admin' : 'User'}
-                      </Badge>
-                      
-                      {/* Removido o AdminQuickVerify daqui de cima para não duplicar */}
-                      
-                      {user.created_date && (
-                        <Badge variant="outline" className="text-[10px] h-5">
-                          {new Date(user.created_date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: '2-digit' })}
-                        </Badge>
-                      )}
+                          <div className="flex gap-2 flex-wrap items-center">
+                            <Badge className="bg-orange-100 text-orange-700 font-bold text-[10px] h-5 border-none">
+                              {user.gamification_xp || 0} XP
+                            </Badge>
+                            <Badge className={`${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'} text-[10px] border-none h-5`}>
+                              {user.role === 'admin' ? 'Admin' : 'User'}
+                            </Badge>
+                            {user.professional_profile?.verification_status === 'pending' && (
+                              <Badge className="bg-yellow-100 text-yellow-700 border-none text-[10px] h-5">Pendente</Badge>
+                            )}
+                            {user.professional_profile?.verification_status === 'verified' && (
+                              <Badge className="bg-green-100 text-green-700 border-none text-[10px] h-5">Verificado</Badge>
+                            )}
+                          </div>
+                          
+                          <div className="flex gap-2 pt-3 border-t border-gray-100">
+                            <Button size="sm" variant="ghost" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="flex-1 h-9 bg-gray-50 text-gray-700 text-xs rounded-xl" title="Ver Perfil">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <AdminQuickVerify 
+                              userProfile={user} 
+                              walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} 
+                            />
+                            <Button size="sm" variant="ghost" onClick={() => onEdit(user)} className="flex-1 h-9 bg-blue-50 text-blue-700 text-xs rounded-xl" title="Editar">
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            {onImpersonate && (
+                              <Button size="sm" variant="ghost" onClick={() => onImpersonate(user)} className="h-9 w-9 p-0 bg-slate-800 text-white rounded-xl shrink-0" title="Login as User">
+                                <UserCircle className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
                     </div>
-                    
-                    <div className="text-[10px] text-gray-400 font-mono break-all">
-                      ID: {user.id}
-                    </div>
-                    
-                    <div className="flex gap-1.5 pt-2 border-t border-gray-100">
-                      <Button size="sm" variant="outline" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} className="flex-1 h-8 text-xs" title="Ver Perfil">
-                        <Eye className="w-3 h-3 mr-1" /> Ver
-                      </Button>
-                      <AdminQuickVerify 
-                        userProfile={user} 
-                        walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} 
-                      />
-                      <Button size="sm" variant="outline" onClick={() => onEdit(user)} className="flex-1 h-8 text-xs" title="Editar">
-                        <Edit className="w-3 h-3 mr-1" /> Editar
-                      </Button>
-                      {onEditBadges && (
-                        <Button size="sm" variant="outline" onClick={() => onEditBadges(user)} className="h-8 px-2 text-purple-600 border-purple-200" title="Editar Emblemas">
-                          <Award className="w-3 h-3" />
-                        </Button>
-                      )}
-                      {onImpersonate && (
-                        <Button size="sm" variant="outline" onClick={() => onImpersonate(user)} className="h-8 px-2 text-blue-600 border-blue-200" title="Login as User">
-                          <UserCircle className="w-3 h-3" />
-                        </Button>
-                      )}
-                      <Button size="sm" variant="outline" onClick={() => onDelete(user)} className="text-red-600 border-red-200 h-8 px-2" title="Eliminar">
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))
+                  );
+                })
               )}
             </div>
 
