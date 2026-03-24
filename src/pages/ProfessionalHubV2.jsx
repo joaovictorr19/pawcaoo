@@ -30,8 +30,7 @@ export default function ProfessionalHubV2() {
   });
 
   // Fetch the related profile
-  // Ativa as notificações Push (vibração e alertas live)
-  useRealTimeRequests(user);
+  // O Hook useRealTimeRequests foi movido para dentro do ActiveRequestsList
 
   const { data: professionalProfile } = useQuery({
     queryKey: ['myProfessionalProfile', user?.email],
@@ -127,10 +126,10 @@ export default function ProfessionalHubV2() {
               
               <div>
                 <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                   Pedidos PawGo Urgentes
+                   <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
+                   Radar PawGo (Ao Vivo)
                 </h3>
-                <ActiveRequestsList />
+                <ActiveRequestsList userEmail={user?.email} />
               </div>
             </motion.div>
           )}
