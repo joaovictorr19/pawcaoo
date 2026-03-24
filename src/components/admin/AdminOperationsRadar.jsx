@@ -245,13 +245,16 @@ export default function AdminOperationsRadar({ allUsers, activeWalks }) {
               
               <div className="flex items-center gap-2 w-full md:w-auto">
                 <button 
-                  onClick={() => {
-                    toast.success(`Notificação Push enviada para ${nearestProToSos.pro.full_name}!`);
+                  onClick={async () => {
+                    setIsSending(true);
+                    await sendDirectAlert(nearestProToSos.pro.email || nearestProToSos.pro.created_by, selectedSos.id);
+                    setIsSending(false);
                   }}
-                  className="bg-orange-500 hover:bg-orange-600 text-white p-2 px-4 rounded-xl flex items-center justify-center flex-1 md:flex-none gap-2 font-bold text-xs transition-colors shadow-lg shadow-orange-500/30"
+                  disabled={isSending}
+                  className={`bg-orange-500 hover:bg-orange-600 text-white p-2 px-4 rounded-xl flex items-center justify-center flex-1 md:flex-none gap-2 font-bold text-xs transition-colors shadow-lg shadow-orange-500/30 ${isSending ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <BellRing size={14} />
-                  <span>Push Admin</span>
+                  <BellRing size={14} className={isSending ? "animate-pulse" : ""} />
+                  <span>{isSending ? 'A enviar...' : 'Push Admin'}</span>
                 </button>
                 <button 
                   onClick={() => setSelectedSos(null)}
