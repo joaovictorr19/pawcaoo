@@ -37,37 +37,39 @@ export default function AdminOperationsRadar({ allUsers, activeWalks }) {
       <div className="h-[60vh] w-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl relative">
         <Map
           initialViewState={{ latitude: 41.1579, longitude: -8.6291, zoom: 12 }}
-          mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" // Modo Escuro Carto
+          mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
         >
           {/* MARCADORES DE PROFISSIONAIS ONLINE (Pontos Verdes/Laranja) */}
           {onlinePro?.map(pro => (
-            <Marker key={pro.id} longitude={Number(pro.longitude) || -8.6291} latitude={Number(pro.latitude) || 41.1579}>
-              <div className="relative group">
-                <div className={`p-1 rounded-full border-2 ${pro.professional_profile?.is_pawcao ? 'border-orange-500' : 'border-green-500'} bg-slate-900`}>
-                  <User size={14} className={pro.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-green-500'} />
+            <MapMarker key={pro.id} longitude={Number(pro.longitude) || -8.6291} latitude={Number(pro.latitude) || 41.1579}>
+              <MarkerContent>
+                <div className="relative group">
+                  <div className={`p-1 rounded-full border-2 ${pro.professional_profile?.is_pawcao ? 'border-orange-500' : 'border-green-500'} bg-slate-900`}>
+                    <User size={14} className={pro.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-green-500'} />
+                  </div>
+                  {/* Tooltip rápido ao passar o mouse ou tocar */}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-white text-slate-900 text-[9px] font-black p-2 rounded-lg whitespace-nowrap z-50">
+                    {pro.full_name}
+                  </div>
                 </div>
-                {/* Tooltip rápido ao passar o mouse ou tocar */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-white text-slate-900 text-[9px] font-black p-2 rounded-lg whitespace-nowrap z-50">
-                  {pro.full_name}
-                </div>
-              </div>
-            </Marker>
+              </MarkerContent>
+            </MapMarker>
           ))}
 
           {/* MARCADORES DE PEDIDOS PENDENTES (Alertas Vermelhos a Piscar) */}
           {pendingRequests?.map(req => (
-            <Marker key={req.id} longitude={Number(req.pickup_lng || req.longitude) || -8.6291} latitude={Number(req.pickup_lat || req.latitude) || 41.1579}>
-              <motion.div 
-                animate={{ scale: [1, 1.3, 1] }} 
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="bg-red-500 p-2 rounded-full shadow-[0_0_20px_rgba(239,68,68,0.6)]"
-              >
-                <Zap size={16} className="text-white fill-current" />
-              </motion.div>
-            </Marker>
+            <MapMarker key={req.id} longitude={Number(req.pickup_lng || req.longitude) || -8.6291} latitude={Number(req.pickup_lat || req.latitude) || 41.1579}>
+              <MarkerContent>
+                <motion.div 
+                  animate={{ scale: [1, 1.3, 1] }} 
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="bg-red-500 p-2 rounded-full shadow-[0_0_20px_rgba(239,68,68,0.6)]"
+                >
+                  <Zap size={16} className="text-white fill-current" />
+                </motion.div>
+              </MarkerContent>
+            </MapMarker>
           ))}
-          
-          <NavigationControl position="bottom-right" />
         </Map>
 
         {/* LEGENDA FLUTUANTE (Estilo Dashboard de Controle) */}
