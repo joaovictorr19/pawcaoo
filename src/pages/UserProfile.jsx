@@ -497,19 +497,6 @@ export default function UserProfile() {
   // Variáveis unificadas para garantir a fusão visual entre UserProfile e Perfis Profissionais
   // Movidas para aqui após a inicialização do walkerProfile e trainerProfile
   const displayPhotoUrl = profileUser?.profile_photo_url || walkerProfile?.photo_url || trainerProfile?.photo_url;
-  
-  const matchScore = useMemo(() => {
-    if (isOwnProfile || !currentUser) return null;
-    const pro = walkerProfile || trainerProfile;
-    if (!pro) return null;
-
-    return calculateCompatibilityScore(pro, {
-      myDogs,
-      favorites: myFavorites,
-      pastBookings: myPastBookings,
-      userEmail: currentUser.email
-    });
-  }, [walkerProfile, trainerProfile, myDogs, myFavorites, myPastBookings, currentUser, isOwnProfile]);
   const displayCoverUrl = profileUser?.cover_photo_url || walkerProfile?.cover_photo_url || trainerProfile?.cover_photo_url;
   const displayName = profileUser?.full_name || walkerProfile?.walker_name || trainerProfile?.trainer_name || "Utilizador";
   const displayBio = profileUser?.bio || walkerProfile?.bio || trainerProfile?.bio || "";
