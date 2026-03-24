@@ -16,11 +16,13 @@ import { ActiveRequestsList } from "../components/professional-hub/ActiveRequest
 import { ToolsSection } from "../components/professional-hub/ToolsSection";
 import { VerificationBanner } from "../components/professional-hub/VerificationBanner";
 import { useRealTimeRequests } from "../hooks/useRealTimeRequests";
+import { ProfessionalEditProfile } from "@/components/professionals/ProfessionalEditProfile";
 
 export default function ProfessionalHubV2() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showEditProfile, setShowEditProfile] = useState(false);
 
   // 1. Fonte Única de Dados
   const { data: user, isLoading } = useQuery({
@@ -83,6 +85,30 @@ export default function ProfessionalHubV2() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-32 font-sans selection:bg-orange-500/30">
+      {/* Modal de Edição de Perfil */}
+      {showEditProfile && (
+        <div className="fixed inset-0 z-[9999] bg-white text-slate-900 overflow-y-auto">
+          <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 p-4 flex items-center justify-between">
+            <h2 className="font-black text-lg">Editar Perfil Público</h2>
+            <button 
+              onClick={() => setShowEditProfile(false)}
+              className="p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 active:scale-95 transition-all"
+            >
+              <span className="font-bold text-sm">X</span>
+            </button>
+          </div>
+          <div className="pt-6">
+            <ProfessionalEditProfile 
+              user={user} 
+              onUpdate={() => {
+                queryClient.invalidateQueries(['currentUser']);
+              }} 
+              onClose={() => setShowEditProfile(false)} 
+            />
+          </div>
+        </div>
+      )}
+
       {/* 1. Header Fixo com Status Online */}
       <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl p-4 md:p-6 flex justify-between items-center border-b border-white/5">
         <div>
@@ -124,6 +150,22 @@ export default function ProfessionalHubV2() {
             >
               <StatsSection user={user} professionalProfile={professionalProfile} />
               
+              <div className="flex gap-2 mb-6">
+                <Button 
+                  onClick={() => setShowEditProfile(true)}
+                  className="flex-1 bg-white text-slate-900 hover:bg-slate-100 font-bold rounded-2xl h-12"
+                >
+                  Editar Perfil
+                </Button>
+                <Button 
+                  onClick={() => navigate(createPageUrl(`UserProfile?id=${user?.id}`))}
+                  variant="outline"
+                  className="flex-1 border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white font-bold rounded-2xl h-12"
+                >
+                  Ver Perfil
+                </Button>
+              </div>
+
               <div>
                 <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                    <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
