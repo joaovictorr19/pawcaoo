@@ -98,6 +98,15 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
         }
       });
 
+      // Regista o log da oferta no AdminLog
+      await base44.entities.AdminLog.create({
+        action_type: 'GIFT_WALK',
+        target_user_id: user.id,
+        target_user_name: user.full_name,
+        target_user_photo: user.photo_url || user.profile_photo_url,
+        reason: 'Fidelização / Cortesia'
+      });
+
       // Dispara a Notificação Push
       await base44.entities.Notification.create({
         recipient_email: user.email,
