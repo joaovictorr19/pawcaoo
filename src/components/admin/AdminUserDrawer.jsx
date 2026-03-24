@@ -101,8 +101,8 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
       // Dispara a Notificação Push
       await base44.entities.Notification.create({
         recipient_email: user.email,
-        title: "🎁 Surpresa PawGo!",
-        message: "A equipa PawGo acabou de adicionar 1 Passeio Grátis à tua carteira.",
+        title: "Prendinha da PawGo! 🎁",
+        message: "Acabámos de creditar 1 Passeio Gratuito na tua carteira. Usa-o quando quiseres!",
         type: "system",
         priority: "high"
       });
