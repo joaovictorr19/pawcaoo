@@ -768,14 +768,11 @@ export default function AdminDashboard() {
                 <p className="text-sm md:text-base text-gray-600">Controle total da plataforma</p>
               </div>
             </div>
-            <Button 
-              onClick={() => createDummyMutation.mutate()} 
-              disabled={createDummyMutation.isPending}
-              className="bg-slate-900 text-white hover:bg-slate-800 rounded-full h-12 px-6 shadow-lg whitespace-nowrap w-full md:w-auto"
-            >
-              {createDummyMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Plus className="w-5 h-5 mr-2" />}
-              Criar Professional Dummy
-            </Button>
+            <QuickCreateDummy onCreated={() => {
+              queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+              queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+              queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+            }} />
           </div>
 
           {loadingStats ? (
