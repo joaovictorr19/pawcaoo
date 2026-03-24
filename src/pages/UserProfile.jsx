@@ -1109,82 +1109,23 @@ export default function UserProfile() {
         </div>
 
         <Card className="glass-panel border-0 shadow-xl mb-6 overflow-hidden rounded-2xl md:rounded-3xl">
-          <div className="relative w-full aspect-video overflow-hidden bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 group">
-            {displayCoverUrl && (
-              <img src={displayCoverUrl} alt="Cover" className="w-full h-full object-cover object-center" loading="lazy" decoding="async" />
-            )}
-            
-            {isOwnProfile && (
-              <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10 text-white">
-                <Camera className="w-8 h-8 mb-2" />
-                <span className="font-medium text-sm drop-shadow-md">Alterar Capa</span>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  accept="image/*"
-                  onChange={handleCoverUpload} 
-                />
-              </label>
-            )}
-            
+          <ProfessionalHeader 
+            user={{...profileUser, ...walkerProfile, ...trainerProfile}}
+            isOwnProfile={isOwnProfile}
+            onCoverUpload={handleCoverUpload}
+            onAvatarUpload={(url) => updateProfileMediaMutation.mutate({ type: 'avatar', url })}
+            isPendingAvatar={updateProfileMediaMutation.isPending && updateProfileMediaMutation.variables?.type === 'avatar'}
+            onEditProfile={() => navigate(createPageUrl('AccountSettings'))}
+          />
 
-
-
-
-            {isOwnProfile && (
-              <Button
-                size="icon"
-                variant="outline"
-                className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white shadow-lg z-50 pointer-events-auto w-10 h-10 rounded-full border-2 border-white/50"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(createPageUrl('AccountSettings'));
-                }}
-                title="Editar Perfil"
-              >
-                <Edit className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-
-          <CardContent className="pt-0 pb-6">
+          <CardContent className="pt-6 pb-6">
             <div className="flex flex-col md:flex-row w-full">
-              
-              {/* Avatar Column - Pulled up to overlap cover */}
-              <div className="flex flex-col items-center md:items-start -mt-20 md:-mt-24 px-4 md:pl-0 z-10">
-                <div className="relative">
-                        <EditableAvatar 
-                          url={displayPhotoUrl} 
-                          isPending={updateProfileMediaMutation.isPending && updateProfileMediaMutation.variables?.type === 'avatar'}
-                          onUpload={(url) => updateProfileMediaMutation.mutate({ type: 'avatar', url })}
-                          disabled={!isOwnProfile}
-                        />
-
-                        {/* Trainer Verified Badge - Top Right Corner */}
-                        {trainerProfile?.is_verified_trainer && (
-                          <div className="absolute -top-2 -right-2 transform hover:scale-110 transition-transform">
-                            <TrainerVerifiedBadge size="md" />
-                          </div>
-                        )}
-
-
-                      </div>
-              </div>
-
-              {/* Info Column - Starts below cover photo line to prevent overlap */}
-              <div className="flex-1 flex flex-col md:flex-row justify-between items-start pt-4 px-4 md:pl-6 md:pr-0 relative">
+              {/* Info Column */}
+              <div className="flex-1 flex flex-col md:flex-row justify-between items-start px-4 md:pl-6 md:pr-0 relative">
                 
                 {/* User Details (Left) */}
                 <div className="text-center w-full md:w-auto">
-                  <div className="flex items-center gap-2 justify-center">
-                   <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">
-                     {displayName}
-                   </h1>
-
-                  {/* Lógica de verificação e Badges */}
-                  {(profileUser.is_verified || profileUser.isVerified || (isSelfView && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified' || trainerProfile?.verification_status === 'verified') && (
-                    <VerifiedBadge size="md" />
-                  )}
+                  <div className="flex items-center gap-2 justify-center flex-wrap">
                   {matchScore !== null && matchScore > 0 && (
                     <TooltipProvider>
                       <Tooltip>
@@ -1206,6 +1147,9 @@ export default function UserProfile() {
                   )}
                     {(profileUser.role === 'admin' || (isSelfView && currentUser?.role === 'admin')) && (
                       <AdminBadgeGlass />
+                    )}
+                    {trainerProfile?.is_verified_trainer && (
+                      <TrainerVerifiedBadge size="md" />
                     )}
                     {(profileUser.is_adoption_advocate || (isSelfView && currentUser?.is_adoption_advocate) || earnedBadges.some(b => b.badge_id === 'adoption_advocate' || b.id === 'adoption_advocate')) && (
                       <TooltipProvider>
@@ -1229,8 +1173,6 @@ export default function UserProfile() {
                       </TooltipProvider>
                     )}
                   </div>
-
-
                   
                   {displayBio && (
                     <p className="text-gray-600 mt-2 max-w-lg mx-auto md:mx-0 leading-relaxed">{displayBio}</p>
@@ -1255,14 +1197,11 @@ export default function UserProfile() {
                         Editar Perfil
                       </Button>
                     )}
-                    {/* Botões removidos - chat apenas em contexto de reserva */}
                   </div>
                 </div>
 
                 {/* Right Column: Badge Showcase & Actions */}
                 <div className="flex flex-col items-center md:items-end gap-3 mt-4 md:mt-1 w-full md:w-auto">
-                  
-                  {/* Badge Showcase - New Component */}
                   <PinnedBadgesDisplay
                     pinnedBadgeIds={profileUser.pinned_badge_ids || []}
                     earnedBadges={earnedBadges}
@@ -1270,9 +1209,6 @@ export default function UserProfile() {
                     onSlotClick={handleSlotClick}
                     onReorder={handleReorder}
                   />
-
-                  {/* Desktop Actions */}
-                  {/* Botões removidos - chat apenas em contexto de reserva */}
                 </div>
 
               </div>
