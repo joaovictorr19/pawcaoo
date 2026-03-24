@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { User, CheckCircle, Play, CheckSquare, Trash, Bell, Shield, Zap } from "lucide-react";
+import { User, CheckCircle, Play, CheckSquare, Trash, Bell, Shield, Zap, ShieldAlert } from "lucide-react";
+import { runProRepair } from "@/utils/repairProData";
 
 export default function AdminDebug() {
   const queryClient = useQueryClient();
@@ -188,6 +189,29 @@ export default function AdminDebug() {
 
           </div>
         </CardContent>
+      </Card>
+
+      <Card className="p-6 bg-red-50 border-red-100 rounded-[2.5rem] mt-10">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="bg-red-500 p-2 rounded-xl text-white">
+            <ShieldAlert size={20} />
+          </div>
+          <div>
+            <h4 className="text-sm font-black text-red-900">Manutenção de Dados</h4>
+            <p className="text-[10px] font-bold text-red-400 uppercase">Reparar Objetos Null / Undefined</p>
+          </div>
+        </div>
+
+        <Button 
+          onClick={runProRepair}
+          className="w-full bg-red-600 hover:bg-red-700 text-white rounded-2xl h-12 font-black shadow-lg shadow-red-200"
+        >
+          Normalizar Todos os Profissionais
+        </Button>
+        
+        <p className="text-[9px] text-red-300 text-center mt-3 font-medium italic">
+          *Este processo garante que todos os profissionais têm a estrutura necessária para exibir fotos e selos.
+        </p>
       </Card>
     </div>
   );
