@@ -457,18 +457,22 @@ export default function UserProfile() {
 
   // Update badge count only (no complex sync)
   React.useEffect(() => {
-    if (!profileUser?.id || !isOwnProfile) return;
+    if (!profileUser?.id || profileUser.is_virtual_profile || !isOwnProfile) return;
     
     const updateCount = async () => {
-      if ((profileUser.badges_count || 0) !== earnedBadges.length) {
-        await base44.entities.UserProfile.update(profileUser.id, {
-          badges_count: earnedBadges.length
-        });
+      try {
+        if ((profileUser.badges_count || 0) !== earnedBadges.length) {
+          await base44.entities.UserProfile.update(profileUser.id, {
+            badges_count: earnedBadges.length
+          });
+        }
+      } catch (e) {
+        console.error("Failed to update badge count", e);
       }
     };
     
     updateCount();
-  }, [earnedBadges.length, profileUser?.id, isOwnProfile]);
+  }, [earnedBadges.length, profileUser?.id, profileUser?.is_virtual_profile, isOwnProfile]);
 
   const { data: walkerProfile } = useQuery({
     queryKey: ['walkerProfile', profileEmail],
@@ -589,7 +593,7 @@ export default function UserProfile() {
       const shouldBeVerified = authVerified || walkerVerified || trainerVerified;
       
       // If should be verified but profile says no
-      if (shouldBeVerified && !profileUser.is_verified) {
+      if (shouldBeVerified && !profileUser.is_verified && !profileUser.is_virtual_profile) {
         // console.log("Syncing verification status to true...");
         try {
           await base44.entities.UserProfile.update(profileUser.id, { is_verified: true });
@@ -694,7 +698,7 @@ export default function UserProfile() {
 
   const updatePinnedBadgesMutation = useMutation({
     mutationFn: async ({ slotIndex, badgeId }) => {
-      if (!profileUser?.id) return;
+      if (!profileUser?.id || profileUser.is_virtual_profile) throw new Error("Virtual profile");
       
       const currentPinned = Array(4).fill(null);
       (profileUser.pinned_badge_ids || []).slice(0, 4).forEach((id, idx) => {
@@ -724,7 +728,7 @@ export default function UserProfile() {
   });
 
   const handleReorder = async (newOrder) => {
-    if (!profileUser?.id) return;
+    if (!profileUser?.id || profileUser.is_virtual_profile) return;
     
     try {
       await base44.entities.UserProfile.update(profileUser.id, {
@@ -857,7 +861,7 @@ export default function UserProfile() {
       queryClient.invalidateQueries({ queryKey: ['isFollowing'] });
       
       // Update stats (Legacy/Backup)
-      if (profileUser.id) {
+      if (profileUser.id && !profileUser.is_virtual_profile) {
         try {
           await base44.entities.UserProfile.update(profileUser.id, {
             followers_count: (profileUser.followers_count || 0) + 1
@@ -902,7 +906,7 @@ export default function UserProfile() {
         await base44.entities.SocialFollow.delete(follows[0].id);
         console.log('✅ Follow removido');
         
-        if (profileUser.id) {
+        if (profileUser.id && !profileUser.is_virtual_profile) {
           try {
             await base44.entities.UserProfile.update(profileUser.id, {
               followers_count: Math.max(0, (profileUser.followers_count || 0) - 1)
@@ -945,7 +949,10 @@ export default function UserProfile() {
         if (isOwnProfile) await base44.auth.updateMe({ cover_photo_url: url });
       }
 
-      return await base44.entities.UserProfile.update(profileUser.id, updateData);
+      if (!profileUser.is_virtual_profile) {
+        return await base44.entities.UserProfile.update(profileUser.id, updateData);
+      }
+      return null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profileUser'] });
@@ -978,6 +985,7 @@ export default function UserProfile() {
 
   const banUserMutation = useMutation({
     mutationFn: async (id) => {
+      if (profileUser.is_virtual_profile) throw new Error("Cannot modify virtual profile");
       // Definindo role como banned para bloquear acesso
       return await base44.entities.UserProfile.update(id, { role: 'banned', is_active: false });
     },
@@ -989,6 +997,7 @@ export default function UserProfile() {
 
   const toggleVerificationMutation = useMutation({
     mutationFn: async (id) => {
+      if (profileUser.is_virtual_profile) throw new Error("Cannot modify virtual profile");
       return await base44.entities.UserProfile.update(id, { is_verified: !profileUser.is_verified });
     },
     onSuccess: () => {
