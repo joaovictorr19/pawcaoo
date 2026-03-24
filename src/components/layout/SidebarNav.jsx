@@ -110,7 +110,7 @@ export default function SidebarNav({ user, unreadCount, onLogout }) {
     { title: language === 'pt' ? 'Histórico' : 'History', url: createPageUrl("WalkHistory"), icon: History },
     { title: language === 'pt' ? 'Encomendas' : 'Orders', url: createPageUrl("MyOrders"), icon: Package },
     { title: language === 'pt' ? 'Notificações' : 'Notifications', url: createPageUrl("Notifications"), icon: Bell, badge: unreadCount > 0 ? (unreadCount > 9 ? '9+' : unreadCount) : null },
-    { title: language === 'pt' ? 'Hall da Fama' : 'Hall of Fame', url: createPageUrl("Gamification"), icon: Trophy, id: "nav-gamification" },
+    { title: language === 'pt' ? 'Legado' : 'Legacy', url: createPageUrl("Gamification"), icon: Trophy, id: "nav-gamification" },
   ];
 
   const proItems = [
