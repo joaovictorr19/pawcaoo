@@ -826,6 +826,14 @@ export default function AdminDashboard() {
             )}
           </TabsContent>
 
+          <TabsContent value="godmode">
+            {activeTab === 'godmode' && (
+              <div className="mt-6">
+                <AdminLiveMap users={allUsers} bookings={allBookings} />
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="calendar">
             {activeTab === 'calendar' && (
               <div className="mt-6">
