@@ -98,7 +98,7 @@ export default function PinnedBadgesDisplay({
     <div className="py-3">
       <div className="flex items-center justify-between mb-2 px-2">
         <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
-          Emblemas em Destaque
+          Emblemas
         </p>
         <p className="text-[10px] text-gray-400">
           Arraste para reorganizar
