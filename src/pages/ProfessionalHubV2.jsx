@@ -15,6 +15,7 @@ import { AgendaCalendar } from "../components/professional-hub/AgendaCalendar";
 import { ActiveRequestsList } from "../components/professional-hub/ActiveRequestsList";
 import { ToolsSection } from "../components/professional-hub/ToolsSection";
 import { VerificationBanner } from "../components/professional-hub/VerificationBanner";
+import { useRealTimeRequests } from "../hooks/useRealTimeRequests";
 
 export default function ProfessionalHubV2() {
   const queryClient = useQueryClient();
@@ -29,6 +30,9 @@ export default function ProfessionalHubV2() {
   });
 
   // Fetch the related profile
+  // Ativa as notificações Push (vibração e alertas live)
+  useRealTimeRequests(user);
+
   const { data: professionalProfile } = useQuery({
     queryKey: ['myProfessionalProfile', user?.email],
     queryFn: async () => {

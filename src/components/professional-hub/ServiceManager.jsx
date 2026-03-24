@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit2, Plus, Dog, Clock, Euro } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Plus, Dog, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -40,38 +40,27 @@ export function ServiceManager({ services = [] }) {
       ) : (
         <div className="grid gap-3">
           {services.map((service, idx) => (
-            <Card key={idx} className="bg-slate-900 border-white/5 rounded-[1.5rem] overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h4 className="font-bold text-white text-base leading-tight mb-1">
-                      {service.service_name || service.name}
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      {service.animal_type === 'cats' ? 'Gatos' : service.animal_type === 'reptiles' ? 'Répteis' : 'Cães'}
-                    </p>
-                  </div>
-                  <div className="bg-slate-800 p-2 rounded-xl">
-                    <span className="text-orange-500 font-black text-lg">€{service.price}</span>
-                  </div>
+            <div key={idx} className="bg-slate-900/50 border border-white/5 p-4 rounded-[2rem] flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-orange-500/20 p-3 rounded-2xl text-orange-500 shrink-0">
+                  <Zap size={20} />
                 </div>
-                
-                <div className="flex items-center gap-2 mt-4">
-                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-slate-300 text-[10px] py-1 px-2 rounded-lg">
-                    <Clock className="w-3 h-3 mr-1 inline" />
-                    {service.duration_options?.[0] || service.duration || 'Varia'}
-                  </Badge>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={() => navigate(createPageUrl('AccountSettings'))}
-                    className="ml-auto h-8 w-8 p-0 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
+                <div>
+                  <h4 className="font-bold text-sm text-white leading-tight mb-0.5">{service.service_name || service.name}</h4>
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    {service.duration_options?.[0] || service.duration || 'Varia'} • {service.animal_type === 'cats' ? 'Gatos' : service.animal_type === 'reptiles' ? 'Répteis' : 'Cães'}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className="text-lg font-black text-white">€{service.price}</span>
+                <Switch 
+                  className="scale-75 origin-right data-[state=checked]:bg-orange-500" 
+                  defaultChecked={true} 
+                  onCheckedChange={() => navigate(createPageUrl('AccountSettings'))}
+                /> 
+              </div>
+            </div>
           ))}
         </div>
       )}
