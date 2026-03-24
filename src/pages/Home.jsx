@@ -1262,7 +1262,8 @@ export default function Home() {
                                   key={pro.id} 
                                   trainer={pro} 
                                   distance={pro.distance}
-                                  showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                                  showMatchScore={true}
+                                  matchScore={pro.matchScore}
                                 />
                               ) : (
                                 <WalkerCard 
@@ -1270,7 +1271,7 @@ export default function Home() {
                                   walker={pro}
                                   distance={pro.distance}
                                   matchScore={pro.matchScore}
-                                  showMatchScore={selectedServiceTypes.length > 0 || selectedSpecializations.length > 0}
+                                  showMatchScore={true}
                                 />
                               )
                             )}
