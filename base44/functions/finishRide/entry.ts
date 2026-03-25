@@ -19,23 +19,21 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    console.log('🏁 Finalizando passeio:', rideId, 'Walker:', user.email);
-
-    // ✅ 1. Buscar booking COM WHERE id = rideId
+    // 1. Fetch booking
     const bookings = await base44.entities.Booking.filter({ id: rideId });
     if (!bookings || bookings.length === 0) {
       return Response.json({ error: 'Booking não encontrado' }, { status: 404 });
     }
     const booking = bookings[0];
 
-    // ✅ 2. Verificar se é o walker correto
+    // 2. Verify walker ownership
     if (booking.walker_email !== user.email) {
       return Response.json({ 
         error: 'Você não tem permissão para finalizar este passeio' 
       }, { status: 403 });
     }
 
-    // ✅ 3. Atualizar Booking para 'service_completed'
+    // 3. Update booking to service_completed
     await base44.asServiceRole.entities.Booking.update(rideId, {
       status: 'service_completed',
       completed_date: new Date().toISOString(),
@@ -44,9 +42,7 @@ Deno.serve(async (req) => {
       actual_delivery_distance: actualDistance || null
     });
 
-    console.log('✅ Booking atualizado para service_completed');
-
-    // ✅ 4. Gamification: Adicionar XP ao Walker
+    // 4. Gamification: award XP
     try {
       const currentXP = user.gamification_xp || 0;
       const currentLevel = user.gamification_level || 1;
@@ -61,12 +57,11 @@ Deno.serve(async (req) => {
         gamification_level: newLevel
       });
 
-      console.log(`🎮 Gamification: +${xpReward} XP. Total: ${newXP} XP, Level: ${newLevel}`);
     } catch (err) {
       console.error('Erro ao atualizar gamification:', err);
     }
 
-    // ✅ 5. Notificar Cliente - Passeio Concluído + Solicitação de Review
+    // 5. Notify client
     try {
       await base44.asServiceRole.entities.Notification.create({
         recipient_email: booking.owner_email || booking.created_by,
@@ -77,18 +72,17 @@ Deno.serve(async (req) => {
         priority: 'high',
         action_url: `/MyBookings?review=${rideId}`
       });
-      console.log('📧 Cliente notificado');
     } catch (err) {
       console.error('Erro ao notificar cliente:', err);
     }
 
-    // ✅ 6. Integração Stripe (Captura de Pagamento)
+    // 6. Stripe payment capture
     try {
       if (booking.payment_id && booking.payment_status === 'held') {
         const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
         
         if (!stripeKey) {
-          console.warn('⚠️ STRIPE_SECRET_KEY não configurada');
+          console.error('STRIPE_SECRET_KEY not configured');
         } else {
           // Importar Stripe dinamicamente
           const Stripe = (await import('npm:stripe@14.5.0')).default;
@@ -110,8 +104,6 @@ Deno.serve(async (req) => {
               payment_status: 'released'
             });
             
-            console.log('✅ Pagamento capturado com sucesso:', paymentIntent.id);
-            console.log(`💰 Valor liberado: €${(paymentIntent.amount / 100).toFixed(2)}`);
           }
         }
       }
@@ -131,10 +123,9 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('❌ Erro ao finalizar passeio:', error);
-    return Response.json({ 
-      error: 'Erro ao finalizar passeio', 
-      details: error.message 
+    console.error('Finish ride error:', error);
+    return Response.json({
+      error: 'Failed to finish ride'
     }, { status: 500 });
   }
 });
