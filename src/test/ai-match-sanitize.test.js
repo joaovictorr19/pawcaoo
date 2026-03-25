@@ -108,7 +108,8 @@ describe('sanitizeForPrompt', () => {
 
     it('strips special token patterns', () => {
       const result = sanitizeForPrompt('Test <|endoftext|> injection')
-      expect(result).toContain('[removed]')
+      // <|endoftext|> is caught by HTML tag stripper first (matches <...>)
+      expect(result).not.toContain('endoftext')
     })
   })
 
