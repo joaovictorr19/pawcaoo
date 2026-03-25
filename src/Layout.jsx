@@ -232,7 +232,7 @@ function LayoutContent({ children, currentPageName }) {
               userData.gamification_level = profiles[0].gamification_level || 1;
             }
           } catch (e) {
-            console.log('XP read skipped');
+            // XP read skipped — non-critical
           }
         }
 
@@ -471,7 +471,6 @@ function LayoutContent({ children, currentPageName }) {
         let userProfile = profiles[0];
         
         if (!profiles || profiles.length === 0) {
-          console.log("Creating missing UserProfile entity...");
           userProfile = await base44.entities.UserProfile.create({
             user_email: authUser.email,
             user_id: authUser.id,
@@ -495,7 +494,6 @@ function LayoutContent({ children, currentPageName }) {
           if (profileSetupRef.current.syncedXP !== currentXPKey &&
               (authUser.gamification_xp !== userProfile.gamification_xp || 
                authUser.gamification_level !== userProfile.gamification_level)) {
-            console.log('🔄 Syncing XP from UserProfile to Auth:', userProfile.gamification_xp);
             profileSetupRef.current.syncedXP = currentXPKey;
             await base44.auth.updateMe({
               gamification_xp: userProfile.gamification_xp || 0,
@@ -597,7 +595,6 @@ function LayoutContent({ children, currentPageName }) {
           }
 
           if (didUpdates) {
-            console.log('🔄 Unified data sync completed');
             queryClient.invalidateQueries(['currentUser']);
             queryClient.invalidateQueries(['profileUser']);
             queryClient.invalidateQueries(['myProfessionalProfile']);
@@ -690,7 +687,6 @@ function LayoutContent({ children, currentPageName }) {
         ? createPageUrl(`UserProfile?username=${authUser.username}`)
         : createPageUrl(`UserProfile?id=${authUser.id}`);
 
-      console.log('Navigating to profile:', profileUrl);
       navigate(profileUrl);
     }
   };
@@ -706,7 +702,7 @@ function LayoutContent({ children, currentPageName }) {
         if (!reason || typeof reason !== 'object' || !reason.stack) {
           // If reason is not an error with stack, we log it but don't let it bubble as a crash
           // This helps prevent "undefined is not an object (evaluating 'stack.match')" in some parsers
-          console.warn('Promise rejected with non-error reason:', reason);
+          // Non-error rejection — silently handled
         }
         
         event.preventDefault(); // Prevent default browser error UI
