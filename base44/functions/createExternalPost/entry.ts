@@ -21,11 +21,31 @@ Deno.serve(async (req) => {
         }
         
         const publisher = publishers[0];
-        
+
+        // Rate limiting: check publisher's configured limit (default 60/min)
+        const rateLimit = publisher.rate_limit_per_minute || 60;
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
+        const recentPosts = await base44.asServiceRole.entities.SocialPost.filter({
+            external_publisher_id: publisher.id,
+            created_date: { '$gte': oneMinuteAgo }
+        });
+
+        if (recentPosts.length >= rateLimit) {
+            return Response.json({
+                error: 'Rate limit exceeded',
+                retry_after_seconds: 60
+            }, { status: 429 });
+        }
+
         const { title, content, image_urls, video_urls, original_url, tags } = await req.json();
-        
+
         if (!title || !content) {
             return Response.json({ error: "Missing required fields: title, content" }, { status: 400 });
+        }
+
+        // Content length validation
+        if (title.length > 200 || content.length > 10000) {
+            return Response.json({ error: "Title max 200 chars, content max 10000 chars" }, { status: 400 });
         }
         
         // Criar o post na entidade SocialPost
@@ -48,19 +68,20 @@ Deno.serve(async (req) => {
             visibility: 'public'
         });
         
-        // Atualizar contador de posts do publisher
+        // Update publisher counters and log request
         await base44.asServiceRole.entities.ExternalPublisher.update(publisher.id, {
-            total_posts: (publisher.total_posts || 0) + 1
+            total_posts: (publisher.total_posts || 0) + 1,
+            last_post_at: new Date().toISOString()
         });
-        
-        return Response.json({ 
-            success: true, 
+
+        return Response.json({
+            success: true,
             post_id: newPost.id,
-            message: "Post criado com sucesso e aguardando moderação"
+            message: "Post created and pending moderation"
         }, { status: 201 });
-        
+
     } catch (error) {
         console.error("Error creating external post:", error);
-        return Response.json({ error: error.message }, { status: 500 });
+        return Response.json({ error: "Failed to create post" }, { status: 500 });
     }
 });
