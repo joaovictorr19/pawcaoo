@@ -489,6 +489,7 @@ export default function Home() {
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
 
+    return emergencyWalks;
     const filtered = emergencyWalks
       .map(walk => ({
         ...walk,
