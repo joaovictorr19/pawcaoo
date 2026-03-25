@@ -95,12 +95,74 @@ const COUNTRY_CONFIG = {
 };
 
 // Currency exchange rates (base: EUR) - should be updated via API in production
-const EXCHANGE_RATES = {
+// Fallback rates used when API is unavailable
+const FALLBACK_EXCHANGE_RATES = {
   EUR: 1,
   GBP: 0.86,
   USD: 1.10,
   BRL: 5.35
 };
+
+const RATES_CACHE_KEY = 'pawcao_exchange_rates';
+const RATES_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+function getCachedRates() {
+  try {
+    const cached = localStorage.getItem(RATES_CACHE_KEY);
+    if (!cached) return null;
+    const { rates, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp > RATES_CACHE_TTL) return null;
+    return rates;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedRates(rates) {
+  try {
+    localStorage.setItem(RATES_CACHE_KEY, JSON.stringify({ rates, timestamp: Date.now() }));
+  } catch { /* localStorage full or unavailable */ }
+}
+
+let ratesPromise = null;
+
+async function fetchExchangeRates() {
+  // Deduplicate concurrent calls
+  if (ratesPromise) return ratesPromise;
+
+  ratesPromise = (async () => {
+    const cached = getCachedRates();
+    if (cached) return cached;
+
+    try {
+      // ECB publishes daily EUR-based rates (free, no API key)
+      const res = await fetch('https://api.exchangerate.host/latest?base=EUR&symbols=GBP,USD,BRL', {
+        signal: AbortSignal.timeout(5000)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data.rates) {
+        const rates = { EUR: 1, ...data.rates };
+        setCachedRates(rates);
+        return rates;
+      }
+    } catch {
+      // API unavailable — fall through to fallback
+    }
+
+    return FALLBACK_EXCHANGE_RATES;
+  })();
+
+  const result = await ratesPromise;
+  ratesPromise = null;
+  return result;
+}
+
+// Synchronous accessor — returns cached or fallback (never blocks render)
+let EXCHANGE_RATES = getCachedRates() || FALLBACK_EXCHANGE_RATES;
+
+// Async refresh in background (updates EXCHANGE_RATES for next render)
+fetchExchangeRates().then(rates => { EXCHANGE_RATES = rates; });
 
 export const useLocalization = () => {
   const context = useContext(LocalizationContext);

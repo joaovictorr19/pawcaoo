@@ -20,6 +20,8 @@ export default function LayoutStyles() {
 
       body, #root {
         background: #f8fafc;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
       }
 
       .fixed {
