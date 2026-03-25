@@ -35,7 +35,7 @@ export function ProfessionalCard({ walker }) {
         />
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-1">
           <h3 className="font-black text-slate-900 text-sm truncate">{walker.full_name || walker.walker_name || walker.trainer_name}</h3>
           
@@ -46,7 +46,7 @@ export function ProfessionalCard({ walker }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {profileData.isPawcao && (
             <span className="bg-orange-500 text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shrink-0">
               Parceiro PawGo
@@ -55,6 +55,11 @@ export function ProfessionalCard({ walker }) {
           <span className="text-[10px] font-bold text-slate-400 uppercase italic truncate">
             {walker.city || walker.location || "Porto"}
           </span>
+          {profileData.galleryCount > 0 && (
+            <span className="bg-blue-50 text-blue-600 text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 shrink-0">
+              📷 +{profileData.galleryCount} fotos
+            </span>
+          )}
         </div>
       </div>
 

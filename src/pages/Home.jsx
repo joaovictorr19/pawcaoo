@@ -496,8 +496,12 @@ export default function Home() {
       }))
       .filter(walk => {
         const matchesLocation = !searchLocation || 
-          walk.location?.toLowerCase().includes(searchLocation.toLowerCase());
-        const matchesSize = filterSize === "all" || walk.dog_size === filterSize;
+          (walk.location && walk.location.toLowerCase().includes(searchLocation.toLowerCase()));
+          
+        // Verifica o tamanho na propriedade legacy ou dentro do array dogs
+        const matchesSize = filterSize === "all" || 
+          walk.dog_size === filterSize || 
+          (Array.isArray(walk.dogs) && walk.dogs.some(d => d.dog_size === filterSize));
 
         return matchesLocation && matchesSize;
       })
@@ -505,13 +509,11 @@ export default function Home() {
         if (userLocation && a.distance !== null && b.distance !== null) {
           return a.distance - b.distance;
         }
-        return new Date(b.created_date) - new Date(a.created_date);
+        const dateA = a.created_date ? new Date(a.created_date).getTime() : 0;
+        const dateB = b.created_date ? new Date(b.created_date).getTime() : 0;
+        return dateB - dateA;
       });
 
-    if(filtered) {
-      console.log("Filtered final", filtered);
-    }
-    
     return filtered;
   }, [emergencyWalks, searchLocation, filterSize, userLocation]);
 
