@@ -514,6 +514,7 @@ export default function Home() {
         return dateB - dateA;
       });
 
+    console.log("filtered", filtered)
     return filtered;
   }, [emergencyWalks, searchLocation, filterSize, userLocation]);
 
