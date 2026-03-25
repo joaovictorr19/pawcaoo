@@ -891,7 +891,7 @@ function LayoutContent({ children, currentPageName }) {
               >
                 <Bell className="w-3.5 h-3.5 text-gray-700" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white">
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white" aria-label={`${unreadCount} unread notifications`}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -974,10 +974,12 @@ function LayoutContent({ children, currentPageName }) {
               onClose={() => setIsSearchOpen(false)}
             />
 
-            <NotificationArea 
-              isOpen={isNotificationPanelOpen} 
-              onClose={() => setIsNotificationPanelOpen(false)} 
-            />
+            <div aria-live="polite" aria-label="Notifications">
+              <NotificationArea
+                isOpen={isNotificationPanelOpen}
+                onClose={() => setIsNotificationPanelOpen(false)}
+              />
+            </div>
 
             {/* Badge Notification */}
             {newBadge && (
