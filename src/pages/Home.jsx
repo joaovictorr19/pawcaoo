@@ -149,6 +149,8 @@ export default function Home() {
   });
 
   const [reviewBooking, setReviewBooking] = useState(null);
+  const [selectedPet, setSelectedPet] = useState(myDogs?.[0] || null);
+  const [isSearching, setIsSearching] = useState(false);
 
   const { data: activeBookings = [] } = useQuery({
     queryKey: ['activeBookings', user?.email],
