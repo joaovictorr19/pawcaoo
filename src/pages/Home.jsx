@@ -919,8 +919,8 @@ export default function Home() {
               {/* Título com Tipografia Moderna */}
               <div className="mb-16">
                 <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6">
-                  Passeios reais para <br/>
-                  <span className="text-orange-500">cães extraordinários.</span>
+                  Passeios memoráveis para<br/>
+                  <span className="text-orange-500">cães extraordinários</span>
                 </h1>
                 <p className="text-slate-600 font-bold uppercase tracking-[0.3em] text-xs">
                   A maior rede de dog walkers de Portugal
