@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Map, Calendar, User, Zap, LayoutDashboard, Globe, MessageCircle } from "lucide-react";
+import { Map, Calendar, User, Zap, LayoutDashboard, Globe, Bell } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -110,18 +110,18 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           </span>
         </div>
 
-        {/* ABA 3: MENSAGENS */}
+        {/* ABA 3: NOTIFICAÇÕES */}
         <button 
-          onClick={() => navigate(createPageUrl("Chat"))}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl relative ${isActive(createPageUrl("Chat")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
+          onClick={onNotificationsClick}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl relative text-slate-500 hover:bg-slate-50`}
         >
-          <MessageCircle size={20} />
+          <Bell size={20} />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
-          <span className="text-[9px] font-bold uppercase tracking-tight">Chat</span>
+          <span className="text-[9px] font-bold uppercase tracking-tight">Avisos</span>
         </button>
 
 
