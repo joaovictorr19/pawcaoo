@@ -97,18 +97,13 @@ export default function SidebarNav({ user, unreadCount, onLogout }) {
 
   const exploreItems = [
     { title: language === 'pt' ? 'Profissionais' : 'Professionals', url: createPageUrl("Home"), icon: Users, id: "nav-home" },
-    { title: language === 'pt' ? 'Loja & Parceiros' : 'Shop & Partners', url: createPageUrl("Shop"), icon: ShoppingBag },
     { title: 'PawGo', url: createPageUrl("Dashboard"), icon: Zap, emergency: true },
-    { title: language === 'pt' ? 'Adoção' : 'Adoption', url: createPageUrl("AdoptionListings"), icon: Heart },
-    { title: language === 'pt' ? 'Abrigos' : 'Shelters', url: createPageUrl("Shelters"), icon: Building2 },
   ];
 
   const myItems = [
     { title: language === 'pt' ? 'Reservas' : 'Bookings', url: createPageUrl("MyBookings"), icon: Calendar },
     { title: language === 'pt' ? 'Painel Cliente' : 'Client Panel', url: createPageUrl("ClientDashboard"), icon: BarChart3 },
-    { title: language === 'pt' ? 'Mensagens' : 'Messages', url: createPageUrl("Chat"), icon: MessageCircle },
     { title: language === 'pt' ? 'Histórico' : 'History', url: createPageUrl("WalkHistory"), icon: History },
-    { title: language === 'pt' ? 'Encomendas' : 'Orders', url: createPageUrl("MyOrders"), icon: Package },
     { title: language === 'pt' ? 'Notificações' : 'Notifications', url: createPageUrl("Notifications"), icon: Bell, badge: unreadCount > 0 ? (unreadCount > 9 ? '9+' : unreadCount) : null },
     { title: language === 'pt' ? 'Legado' : 'Legacy', url: createPageUrl("Gamification"), icon: Trophy, id: "nav-gamification" },
   ];

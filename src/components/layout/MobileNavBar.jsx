@@ -21,10 +21,29 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   };
 
   const handleCenterButtonClick = async () => {
-    if (location.pathname !== createPageUrl("Dashboard")) {
-        navigate(createPageUrl("Dashboard"), { state: { triggerTransition: true, toProfessional: !isProf } });
+    if (isProf) {
+      // 1. Atualiza apenas o estado na base de dados, sem redirecionar
+      const newStatus = !isOnline;
+      try {
+        await base44.auth.updateMe({
+          pawgo_status: {
+            ...user.pawgo_status,
+            is_online: newStatus,
+            last_active: new Date().toISOString()
+          }
+        });
+        queryClient.invalidateQueries(['currentUser']);
+        queryClient.invalidateQueries(['myProfessionalProfile']);
+        queryClient.invalidateQueries(['allWalkers']);
+      } catch (error) {
+        console.error("Erro ao atualizar status:", error);
+      }
     } else {
-        window.dispatchEvent(new CustomEvent('triggerModeSwitch', { detail: { toProfessional: !isProf } }));
+      if (location.pathname !== createPageUrl("Dashboard")) {
+          navigate(createPageUrl("Dashboard"), { state: { triggerTransition: true, toProfessional: !isProf } });
+      } else {
+          window.dispatchEvent(new CustomEvent('triggerModeSwitch', { detail: { toProfessional: !isProf } }));
+      }
     }
   };
 
@@ -78,17 +97,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           </div>
         </div>
 
-        {/* ABA 3: CHAT / MENSAGENS */}
-        <button 
-          onClick={() => navigate(createPageUrl("Chat"))}
-          className={`flex flex-col items-center gap-1 transition-all ${isActive(createPageUrl("Chat")) ? "text-orange-500 scale-110" : "text-slate-400"}`}
-        >
-          <div className="relative">
-            <MessageCircle size={24} className={isActive(createPageUrl("Chat")) ? "" : "opacity-60"} /> 
-            {unreadCount > 0 && <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />}
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-tighter">Mensagens</span>
-        </button>
+
 
         {/* ABA 4: PERFIL / DEFINIÇÕES */}
         <button 
