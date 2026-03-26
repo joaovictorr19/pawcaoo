@@ -1,71 +1,76 @@
 import { useEffect, useState } from "react";
-import { MapPin, Loader2, Phone, MessageCircle, X } from "lucide-react";
+import { MapPin, X, AlertCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 
 export default function PawGoWaitingScreen({ selectedPets, duration, onCancel }) {
-  const [notificationsSent, setNotificationsSent] = useState(false);
+  const [status, setStatus] = useState("loading"); // loading | searching | error
   const [onlineWalkers, setOnlineWalkers] = useState([]);
-  const [matchedWalker, setMatchedWalker] = useState(null);
-  const [notificationIndex, setNotificationIndex] = useState(0);
+  const [notificationsSent, setNotificationsSent] = useState(0);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  // 1. Fetch online walkers + send notifications 1 by 1
+  // 1. Carregar walkers online + enviar notificações
   useEffect(() => {
-    const sendNotifications = async () => {
+    const initSearch = async () => {
       try {
-        // Get all online walkers
-        const walkers = await base44.entities.WalkerProfile.filter({ is_online: true }, '-rating', 50);
-        const activeWalkers = walkers.filter(w => w?.id && w?.is_active);
+        console.log("🔍 Buscando walkers online...");
+        
+        // Buscar walkers online
+        const walkers = await base44.entities.WalkerProfile.filter(
+          { is_online: true },
+          '-rating',
+          50
+        );
+
+        const activeWalkers = (walkers || []).filter(w => w?.id && w?.is_active);
+        console.log(`✅ Encontrados ${activeWalkers.length} walkers online`);
+
+        if (activeWalkers.length === 0) {
+          setStatus("error");
+          setErrorMsg("Nenhum profissional disponível no momento. Tente novamente em alguns minutos.");
+          return;
+        }
+
         setOnlineWalkers(activeWalkers);
+        setStatus("searching");
 
-        if (activeWalkers.length === 0) return;
-
-        // Send notifications 1 by 1
+        // Enviar notificações 1 por 1
         for (let i = 0; i < activeWalkers.length; i++) {
           const walker = activeWalkers[i];
-          setNotificationIndex(i + 1);
+          console.log(`📤 Enviando notificação ${i + 1}/${activeWalkers.length} para ${walker.walker_name}`);
 
           try {
-            // Create notification for this walker
+            const petNames = selectedPets.map(p => p.name || p.dog_name).join(", ");
+            
             await base44.entities.Notification.create({
-              recipient_email: walker.user_id || walker.created_by,
-              title: "Nova Solicitação PawGo",
-              message: `Novo pedido para ${selectedPets.map(p => p.name).join(", ")} - ${duration} minutos`,
+              recipient_email: walker.user_id || walker.created_by || walker.email,
+              title: "📍 Novo Pedido PawGo",
+              message: `${petNames} • ${duration} min`,
               type: "booking",
               priority: "urgent",
               is_read: false
             });
 
-            // Small delay between notifications
-            await new Promise(r => setTimeout(r, 300));
+            setNotificationsSent(i + 1);
+            await new Promise(r => setTimeout(r, 500));
           } catch (err) {
-            console.error(`Erro ao notificar walker ${walker.walker_name}:`, err);
+            console.error(`❌ Erro notificando ${walker.walker_name}:`, err);
           }
         }
 
-        setNotificationsSent(true);
+        console.log("✅ Todas as notificações foram enviadas");
+
       } catch (error) {
-        console.error("Erro ao enviar notificações:", error);
-        setNotificationsSent(true);
+        console.error("❌ Erro ao iniciar busca:", error);
+        setStatus("error");
+        setErrorMsg("Erro ao buscar profissionais. Tente novamente.");
       }
     };
 
-    sendNotifications();
+    initSearch();
   }, [selectedPets, duration]);
 
-  // 2. Listen for walker acceptance (via real-time subscription)
-  useEffect(() => {
-    if (!notificationsSent) return;
-
-    const unsubscribe = base44.entities.WalkerProfile.subscribe((event) => {
-      if (event.type === 'update' && event.data?.is_online === true) {
-        // Simulate matcher accepting
-        setMatchedWalker(event.data);
-      }
-    });
-
-    return unsubscribe;
-  }, [notificationsSent]);
+  const petNames = selectedPets.map(p => p.name || p.dog_name).join(", ");
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-50 flex flex-col">
@@ -77,7 +82,7 @@ export default function PawGoWaitingScreen({ selectedPets, duration, onCancel })
         </div>
       </div>
 
-      {/* PAINEL DE PROCURA (FLUTUANTE NO FUNDO) */}
+      {/* PAINEL DE PROCURA */}
       <div className="absolute bottom-10 left-6 right-6 z-50">
         <div className="bg-white/95 backdrop-blur-2xl rounded-[3rem] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white animate-in slide-in-from-bottom-8 duration-700">
           
@@ -85,10 +90,10 @@ export default function PawGoWaitingScreen({ selectedPets, duration, onCancel })
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-black uppercase text-slate-900 text-sm mb-1">
-                Procurando Profissional
+                {status === "error" ? "Sem Profissionais" : "Procurando Profissional"}
               </h3>
               <p className="text-xs text-slate-500">
-                {selectedPets.map(p => p.name).join(", ")} • {duration} min • {duration === 30 ? '12€' : '20€'}
+                {petNames} • {duration} min • {duration === 30 ? '12€' : '20€'}
               </p>
             </div>
             <button 
@@ -99,40 +104,61 @@ export default function PawGoWaitingScreen({ selectedPets, duration, onCancel })
             </button>
           </div>
 
-          {/* SPINNER + TEXTO */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-[2rem] border border-slate-100">
-            <div className="flex items-center gap-3">
-              <div className="relative w-12 h-12">
-                <div className="absolute inset-0 border-2 border-slate-200 rounded-full"></div>
-                <div className="absolute inset-0 border-2 border-transparent border-t-orange-500 rounded-full animate-spin"></div>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900">
-                  {notificationsSent ? "À espera de resposta..." : "Enviando pedidos..."}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  {onlineWalkers.length > 0 
-                    ? `${notificationIndex} de ${onlineWalkers.length} profissionais contactados`
-                    : "Carregando profissionais..."}
-                </p>
+          {/* CONTEÚDO */}
+          {status === "error" ? (
+            // Error state
+            <div className="p-4 bg-red-50 rounded-[2rem] border border-red-200 mb-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-red-900 mb-2">{errorMsg}</p>
+                  <Button 
+                    onClick={onCancel}
+                    size="sm"
+                    className="bg-red-600 hover:bg-red-700 text-white h-8 text-xs"
+                  >
+                    Voltar
+                  </Button>
+                </div>
               </div>
             </div>
+          ) : (
+            // Loading/Searching state
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-[2rem] border border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="relative w-12 h-12">
+                  <div className="absolute inset-0 border-2 border-slate-200 rounded-full"></div>
+                  <div className="absolute inset-0 border-2 border-transparent border-t-orange-500 rounded-full animate-spin"></div>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-900">
+                    {status === "loading" ? "Carregando..." : "À espera de resposta..."}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {onlineWalkers.length > 0 
+                      ? `${notificationsSent} de ${onlineWalkers.length} profissionais contactados`
+                      : "Procurando profissionais..."}
+                  </p>
+                </div>
+              </div>
 
-            {/* BOTÃO CANCELAR */}
-            <Button 
-              onClick={onCancel}
-              variant="outline"
-              size="sm"
-              className="text-xs px-3 h-9"
-            >
-              Cancelar
-            </Button>
-          </div>
+              <Button 
+                onClick={onCancel}
+                variant="outline"
+                size="sm"
+                className="text-xs px-3 h-9"
+              >
+                Cancelar
+              </Button>
+            </div>
+          )}
 
           {/* DICA */}
-          <p className="text-[9px] text-slate-400 text-center mt-3 italic">
-            Receberá notificação quando um profissional aceitar o seu pedido
-          </p>
+          {status !== "error" && (
+            <p className="text-[9px] text-slate-400 text-center mt-3 italic">
+              Receberá notificação quando um profissional aceitar
+            </p>
+          )}
         </div>
       </div>
 
