@@ -14,7 +14,6 @@ import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { pt } from "date-fns/locale";
-import { useCreateNotification } from "../components/NotificationService";
 import BookingDetailsModal from "../components/booking/BookingDetailsModal";
 import {
   AlertDialog,
@@ -38,7 +37,6 @@ import { CreditCard } from "lucide-react";
 export default function MyBookings() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const createNotification = useCreateNotification();
   
   // Filters State
   const [filters, setFilters] = useState({

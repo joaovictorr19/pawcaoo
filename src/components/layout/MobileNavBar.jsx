@@ -21,6 +21,16 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     return false;
   };
 
+  const handleTabClick = (path, resetNav = false) => {
+    if (isActive(path) && resetNav) {
+      // Reset tab navigation to root
+      window.scrollTo(0, 0);
+      queryClient.invalidateQueries({ queryKey: ['tabScroll', path] });
+    } else {
+      navigate(path);
+    }
+  };
+
   const handleCenterButtonClick = async () => {
     if (isProf) {
       // Profissional: toggle online/offline
@@ -58,13 +68,8 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         {/* ABA 1: EXPLORAR / PAINEL PROFISSIONAL / CLIENTE */}
         <button 
           onClick={() => {
-            if (isProf) {
-              navigate(createPageUrl("ProfessionalHubV2"));
-            } else if (isTutor) {
-              navigate(createPageUrl("ClientDashboard"));
-            } else {
-              navigate(createPageUrl("Home"));
-            }
+            const targetPath = isProf ? createPageUrl("ProfessionalHubV2") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
+            handleTabClick(targetPath, true);
           }}
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${
             (isProf && isActive(createPageUrl("ProfessionalHubV2"))) ||
@@ -82,7 +87,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
         {/* ABA 2: AGENDA / RESERVAS */}
         <button 
-          onClick={() => navigate(createPageUrl("MyBookings"))}
+          onClick={() => handleTabClick(createPageUrl("MyBookings"), true)}
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${isActive(createPageUrl("MyBookings")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
           <Calendar size={20} />
@@ -114,7 +119,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         {/* ABA 3: NOTIFICAÇÕES */}
         <button 
           onClick={onNotificationsClick}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl relative text-slate-500 hover:bg-slate-50`}
+          className="flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl relative text-slate-500 hover:bg-slate-50 h-20 min-h-[2.75rem]"
         >
           <Bell size={20} />
           {unreadCount > 0 && (
@@ -129,7 +134,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
         {/* ABA 4: PERFIL */}
         <button 
-          onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user?.id}`))}
+          onClick={() => {
+            const profilePath = user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user?.id}`);
+            handleTabClick(profilePath, true);
+          }}
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
           <User size={20} />

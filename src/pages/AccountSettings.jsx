@@ -1001,7 +1001,7 @@ export default function AccountSettings() {
                         </p>
                         <Button
                           variant="outline"
-                          className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                          className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11"
                           onClick={handleLogout}
                         >
                           <LogOut className="w-4 h-4 mr-2" />
@@ -1014,12 +1014,7 @@ export default function AccountSettings() {
                         <p className="text-sm text-red-700 mb-4">
                           Esta ação é permanente e irrevogável. Todos os seus dados serão eliminados.
                         </p>
-                        <Button
-                          className="w-full bg-red-600 hover:bg-red-700 text-white"
-                          onClick={() => setShowDeleteDialog(true)}
-                        >
-                          🗑️ Eliminar Minha Conta
-                        </Button>
+
                       </div>
                     </div>
                     
@@ -1037,7 +1032,7 @@ export default function AccountSettings() {
                               placeholder='Digite "ELIMINAR" para confirmar'
                               value={deleteConfirmText}
                               onChange={(e) => setDeleteConfirmText(e.target.value)}
-                              className="border-red-200"
+                              className="border-red-200 h-11"
                             />
                             <div className="flex gap-2">
                               <Button
@@ -1046,25 +1041,23 @@ export default function AccountSettings() {
                                   setShowDeleteDialog(false);
                                   setDeleteConfirmText('');
                                 }}
-                                className="flex-1"
+                                className="flex-1 h-11"
+                                disabled={isDeleting}
                               >
                                 Cancelar
                               </Button>
                               <Button
-                                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                className="flex-1 bg-red-600 hover:bg-red-700 text-white h-11"
                                 disabled={deleteConfirmText !== 'ELIMINAR' || isDeleting}
                                 onClick={async () => {
                                   setIsDeleting(true);
                                   try {
-                                    toast.info('Eliminando conta...');
-                                    // Simulate account deletion process
-                                    setTimeout(() => {
-                                      toast.success('Conta eliminada com sucesso.');
-                                      base44.auth.logout();
-                                    }, 1500);
+                                    toast.info('A eliminar sua conta...');
+                                    await base44.functions.invoke('deleteUserAccount', { userId: user?.id });
+                                    toast.success('Conta eliminada com sucesso.');
+                                    setTimeout(() => base44.auth.logout(), 1500);
                                   } catch (error) {
-                                    toast.error('Erro ao eliminar conta.');
-                                  } finally {
+                                    toast.error('Erro ao eliminar conta: ' + error.message);
                                     setIsDeleting(false);
                                   }
                                 }}
