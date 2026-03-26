@@ -905,189 +905,70 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <div className="text-center max-w-6xl mx-auto relative">
-              {/* Floating Interactive Elements */}
-              <div className="relative mb-8">
-                {/* Walkers - Top Left & Top Right */}
-                {featuredWalkers.slice(0, 2).map((walker, idx) => (
-                  <motion.div
-                    key={`walker-${walker.id}`}
-                    initial={{ opacity: 0, scale: 0.5, y: -20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden md:block ${idx === 0 ? '-left-16 top-0' : '-right-16 top-0'} cursor-pointer group z-20`}
-                    onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
-                  >
-                    <motion.div
-                      animate={{ y: [0, -10, 0] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
-                      className="relative"
-                    >
-                      <div className="w-20 h-20 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
-                        <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover aspect-square" />
-                      </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        🚶 Walker
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ))}
-
-                {/* Happy Dogs - Middle Left & Right */}
-                {featuredDogs.slice(0, 2).map((dog, idx) => (
-                  <motion.div
-                    key={`dog-${dog.id}`}
-                    initial={{ opacity: 0, scale: 0.5, x: idx === 0 ? -20 : 20 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{ delay: 0.3 + idx * 0.15, duration: 0.5 }}
-                    className={`absolute hidden md:block ${idx === 0 ? '-left-24 top-32' : '-right-24 top-32'} cursor-pointer group z-20`}
-                    onClick={() => {
-                      if (!user) {
-                        base44.auth.redirectToLogin(window.location.href);
-                        return;
-                      }
-                      navigate(createPageUrl(`Dashboard?dogId=${dog.id}`));
-                    }}
-                  >
-                    <motion.div
-                      animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: idx * 0.7 }}
-                      className="relative"
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden border-4 border-green-400 shadow-2xl group-hover:border-green-600 transition-all group-hover:scale-110 aspect-square">
-                        <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover aspect-square" />
-                      </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg whitespace-nowrap">
-                        🐕 {dog.dog_name}
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ))}
-
-                {/* Center Title with Stats */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.9 }}
-                >
-                  <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6">
-                    <motion.div 
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
-                      onClick={() => navigate(createPageUrl('Home') + '?tab=professionals')}
-                    >
-                      <Users className="w-4 h-4" />
-                      <span className="text-sm font-bold">{stats.totalWalkers}</span>
-                      <span className="text-xs opacity-90">Walkers</span>
-                    </motion.div>
-
-                    <motion.div 
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-4 py-2 rounded-full shadow-lg cursor-pointer"
-                      onClick={() => navigate(createPageUrl('Trainers'))}
-                    >
-                      <GraduationCap className="w-4 h-4" />
-                      <span className="text-sm font-bold">{stats.totalTrainers}</span>
-                      <span className="text-xs opacity-90">Trainers</span>
-                    </motion.div>
-                    </div>
-
-
-                </motion.div>
+            /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS --- */
+            <div className="text-center max-w-6xl mx-auto relative mt-10 animate-in fade-in duration-700">
+              
+              {/* Título com Tipografia Moderna */}
+              <div className="mb-16">
+                <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6">
+                  Passeios reais para <br/>
+                  <span className="text-orange-500">cães extraordinários.</span>
+                </h1>
+                <p className="text-slate-600 font-bold uppercase tracking-[0.3em] text-xs">
+                  A maior rede de dog walkers de Portugal
+                </p>
               </div>
 
-
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg p-3 max-w-xl mx-auto"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 min-w-0">
-                    <LocationSearch
-                      onLocationChange={(loc) => {
-                          setUserLocation(loc);
-                          if(loc && loc.lat && loc.lng) {
-                            setTimeout(() => {
-                              document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                            }, 500);
-                          }
-                      }}
-                      currentLocation={userLocation}
-                      className="border-0 bg-gray-100 h-10 text-sm focus:ring-2 focus:ring-green-500 rounded-xl"
-                      placeholder="📍 Onde procura?"
-                    />
-                  </div>
-                  <Button 
-                    id="find-walker-btn"
-                    size="icon"
-                    onClick={() => {
-                      setActiveTab('walkers');
-                      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="h-10 w-10 shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl shadow-md hover:scale-105 transition-all"
-                  >
-                    <Search className="w-5 h-5" />
-                  </Button>
-                </div>
+              {/* CARDS DE ENTRADA DUPLOS (Tutor vs Profissional) */}
+              <div className="grid md:grid-cols-2 gap-8 px-4 max-w-4xl mx-auto">
                 
-                {/* Filtros compactos em linha */}
-                <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 scrollbar-hide">
-                  <Select value={filterSize} onValueChange={setFilterSize}>
-                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
-                      <SelectValue placeholder="Porte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Porte</SelectItem>
-                      <SelectItem value="small">Pequeno</SelectItem>
-                      <SelectItem value="medium">Médio</SelectItem>
-                      <SelectItem value="large">Grande</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={filterTime} onValueChange={setFilterTime}>
-                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
-                      <SelectValue placeholder="Horário" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Horário</SelectItem>
-                      <SelectItem value="morning">Manhã</SelectItem>
-                      <SelectItem value="afternoon">Tarde</SelectItem>
-                      <SelectItem value="evening">Noite</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={filterAnimalType} onValueChange={setFilterAnimalType}>
-                    <SelectTrigger className="h-8 w-auto min-w-[70px] text-xs bg-gray-100 border-0 rounded-lg px-2">
-                      <SelectValue placeholder="Animal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Animal</SelectItem>
-                      <SelectItem value="dogs">Cães</SelectItem>
-                      <SelectItem value="cats">Gatos</SelectItem>
-                      <SelectItem value="reptiles">Répteis</SelectItem>
-                      <SelectItem value="rodents">Roedores</SelectItem>
-                      <SelectItem value="birds">Aves</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {(filterSize !== "all" || filterTime !== "all" || filterAnimalType !== "all") && (
-                    <button
-                      onClick={() => {
-                        setFilterSize("all");
-                        setFilterTime("all");
-                        setFilterAnimalType("all");
-                      }}
-                      className="h-8 px-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0"
-                    >
-                      ✕
+                {/* CARD TUTOR (O Cliente) */}
+                <div className="group relative bg-white/80 backdrop-blur-xl p-10 rounded-[3rem] shadow-2xl border border-white transition-all hover:-translate-y-2">
+                  <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                    <Dog size={120} weight="fill" className="text-orange-500" />
+                  </div>
+                  <div className="relative z-10 text-left">
+                    <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-orange-200">
+                      <MapPin size={28} />
+                    </div>
+                    <h2 className="text-2xl font-black text-slate-900 mb-2">Encontrar Passeador</h2>
+                    <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
+                      Profissionais verificados prontos para dar ao seu cão o passeio que ele merece.
+                    </p>
+                    <button onClick={handleLogin} className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors">
+                      Começar Agora
                     </button>
-                  )}
+                  </div>
                 </div>
-              </motion.div>
 
+                {/* CARD PROFISSIONAL (O Parceiro) */}
+                <div className="group relative bg-slate-900 p-10 rounded-[3rem] shadow-2xl border border-slate-800 transition-all hover:-translate-y-2">
+                  <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                    <Briefcase size={120} weight="fill" className="text-white" />
+                  </div>
+                  <div className="relative z-10 text-left">
+                    <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-6">
+                      <Zap size={28} className="text-orange-400" />
+                    </div>
+                    <h2 className="text-2xl font-black text-white mb-2">Ser Profissional</h2>
+                    <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
+                      Transforme a sua paixão por animais numa fonte de rendimento flexível.
+                    </p>
+                    <button onClick={handleBecomePro} className="w-full bg-orange-500 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-orange-500/20">
+                      Fazer Registo Pro
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* BOTÕES DE LOGIN RÁPIDO NO TOPO (OPCIONAL) */}
+              <div className="mt-20 flex justify-center gap-4 opacity-50">
+                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Pague com:</span>
+                 <div className="flex gap-4">
+                   {/* Ícones de pagamento ou parceiros */}
+                 </div>
+              </div>
 
             </div>
           )}
