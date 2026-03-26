@@ -17,12 +17,14 @@ import { ToolsSection } from "../components/professional-hub/ToolsSection";
 import { VerificationBanner } from "../components/professional-hub/VerificationBanner";
 import { useRealTimeRequests } from "../hooks/useRealTimeRequests";
 import { ProfessionalEditProfile } from "@/components/professionals/ProfessionalEditProfile";
+import IncomingRequestModal from "@/components/professional/IncomingRequestModal";
 
 export default function ProfessionalHubV2() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [incomingRequest, setIncomingRequest] = useState(null);
 
   // 1. Fonte Única de Dados
   const { data: user, isLoading } = useQuery({
@@ -45,6 +47,28 @@ export default function ProfessionalHubV2() {
       return profiles[0] || null;
     },
     enabled: !!user?.email
+  });
+
+  // Polling: detectar pedidos pendentes direcionados a este profissional (estilo Uber)
+  const isOnlinePro = user?.pawgo_status?.is_online || false;
+  useQuery({
+    queryKey: ['incomingRequests', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const pending = await base44.entities.Booking.filter({
+        walker_email: user.email,
+        status: 'pending'
+      }, '-created_date', 1);
+      const latest = pending[0] || null;
+      // Only show if not already showing this request
+      if (latest && (!incomingRequest || incomingRequest.id !== latest.id)) {
+        setIncomingRequest(latest);
+      }
+      return pending;
+    },
+    enabled: !!user?.email && isOnlinePro,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: false,
   });
 
   // 2. Mutação de Status (Ficar Online no PawGo)
@@ -73,6 +97,28 @@ export default function ProfessionalHubV2() {
     }
   });
 
+  const handleAcceptRequest = async (req) => {
+    try {
+      await base44.entities.Booking.update(req.id, { status: 'confirmed' });
+      setIncomingRequest(null);
+      queryClient.invalidateQueries(['incomingRequests']);
+      toast.success("Passeio aceite! 🎉");
+      navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${req.id}`));
+    } catch {
+      toast.error("Erro ao aceitar. Tenta novamente.");
+    }
+  };
+
+  const handleDeclineRequest = async (req) => {
+    try {
+      await base44.entities.Booking.update(req.id, { status: 'rejected' });
+      setIncomingRequest(null);
+      queryClient.invalidateQueries(['incomingRequests']);
+    } catch {
+      setIncomingRequest(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -85,6 +131,11 @@ export default function ProfessionalHubV2() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-32 font-sans selection:bg-orange-500/30">
+      <IncomingRequestModal
+        request={incomingRequest}
+        onAccept={handleAcceptRequest}
+        onDecline={handleDeclineRequest}
+      />
       {/* Modal de Edição de Perfil */}
       {showEditProfile && (
         <div className="fixed inset-0 z-[9999] bg-white text-slate-900 overflow-y-auto">
