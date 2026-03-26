@@ -145,44 +145,81 @@ export default function BecomeProRegistry() {
       {/* STEP 2: Services */}
       {step === 2 && (
         <div className="animate-in slide-in-from-right duration-300 max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-10 leading-tight">
-            O que ofereces?
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-2 leading-tight">
+            Os teus Serviços
           </h2>
-          
-          <div className="space-y-3 md:space-y-4">
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-8">
+            Ativa o que queres oferecer e define o teu preço
+          </p>
+
+          <div className="space-y-4 md:space-y-5">
             {[
-              { id: 'walker', label: 'Dog Walker', icon: <Dog size={24} /> },
-              { id: 'sitting', label: 'Dog Sitting', icon: <Shield size={24} /> },
-              { id: 'exotic', label: 'Animais Exóticos', icon: <Zap size={24} /> }
-            ].map(service => (
-              <button
-                key={service.id}
-                onClick={() => handleServiceToggle(service.id)}
-                className={`w-full p-5 md:p-6 rounded-2xl md:rounded-3xl flex items-center justify-between border-2 transition-all active:scale-95 ${
-                  formData.services.includes(service.id)
-                    ? 'bg-orange-50 border-orange-500'
-                    : 'bg-slate-50 border-transparent hover:border-slate-200'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`${formData.services.includes(service.id) ? 'text-orange-500' : 'text-slate-400'}`}>
-                    {service.icon}
+              { 
+                id: 'walker', 
+                title: 'Dog Walking', 
+                desc: 'Exercício e necessidades 24/7. Deixe o cão mais feliz!',
+                promo: '4+ caminhadas = 10% desc.'
+              },
+              { 
+                id: 'dropin', 
+                title: 'Drop-In Visit', 
+                desc: 'Visitas para cães idosos ou com pouca energia. Atenção total.',
+                promo: '4+ visitas = 10% desc.'
+              },
+              { 
+                id: 'sitting', 
+                title: 'Dog Sitting', 
+                desc: 'Cuidado personalizado na casa do tutor para noitadas ou viagens.',
+                promo: '4+ sessões = 10% desc.'
+              },
+              { 
+                id: 'boarding', 
+                title: 'Boarding (Hospedagem)', 
+                desc: 'O cão dorme na tua casa com todo o mimo e fotos/vídeos.',
+                promo: 'Envio de atualizações constantes.'
+              }
+            ].map((service) => {
+              const isActive = formData.services.includes(service.id);
+              return (
+                <div 
+                  key={service.id} 
+                  className={`bg-slate-50 rounded-2xl md:rounded-[2rem] p-5 md:p-6 border-2 transition-all ${
+                    isActive ? 'border-orange-500 bg-orange-50/30' : 'border-transparent hover:border-orange-500/30'
+                  }`}
+                >
+                  <div className="flex justify-between items-start gap-4 mb-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-black text-slate-900 uppercase text-xs md:text-sm tracking-wider">
+                        {service.title}
+                      </h3>
+                      <p className="text-xs md:text-sm text-slate-600 leading-relaxed mt-2">
+                        {service.desc}
+                      </p>
+                      <span className="inline-block mt-2 text-xs font-bold text-orange-600 bg-orange-100 px-2.5 py-1 rounded-lg italic">
+                        {service.promo}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end gap-3 flex-shrink-0">
+                      <input 
+                        type="checkbox" 
+                        checked={isActive}
+                        onChange={() => handleServiceToggle(service.id)}
+                        className="w-5 h-5 md:w-6 md:h-6 accent-orange-500 cursor-pointer"
+                      />
+                      <div className="flex items-center bg-white px-3 py-2 rounded-xl shadow-sm border border-slate-200">
+                        <span className="text-xs font-black text-slate-400 mr-1">€</span>
+                        <input 
+                          type="number" 
+                          placeholder="0.00" 
+                          className="w-14 bg-transparent font-black text-slate-900 text-xs outline-none placeholder-slate-300"
+                          disabled={!isActive}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <span className="font-black text-slate-800 uppercase text-xs md:text-sm tracking-wider">
-                    {service.label}
-                  </span>
                 </div>
-                <div className={`w-5 h-5 md:w-6 md:h-6 rounded border-2 flex items-center justify-center transition-all ${
-                  formData.services.includes(service.id)
-                    ? 'bg-orange-500 border-orange-500'
-                    : 'border-slate-300'
-                }`}>
-                  {formData.services.includes(service.id) && (
-                    <CheckCircle size={20} className="text-white" />
-                  )}
-                </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
 
           <div className="flex gap-3 mt-8 md:gap-4">
@@ -195,67 +232,9 @@ export default function BecomeProRegistry() {
             </Button>
             <Button 
               onClick={nextStep} 
-              className="flex-1 h-12 md:h-14 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs md:text-sm hover:bg-slate-800"
+              className="flex-1 h-12 md:h-14 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs md:text-sm hover:bg-slate-800 active:scale-95 transition-transform"
             >
-              Próximo
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 3: Location & Documents */}
-      {step === 3 && (
-        <div className="animate-in slide-in-from-right duration-300 max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-10 leading-tight">
-            Onde estás?
-          </h2>
-
-          <div className="space-y-6 md:space-y-8">
-            <div className="bg-slate-50 p-5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-200">
-              <label className="block text-xs font-black text-slate-400 uppercase mb-3 tracking-wider">
-                Endereço Completo
-              </label>
-              <input 
-                type="text" 
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                placeholder="Rua, Número, Cidade..." 
-                className="w-full bg-transparent font-bold text-slate-800 placeholder-slate-400 outline-none text-sm md:text-base"
-              />
-            </div>
-            
-            <label htmlFor="doc-upload" className="block cursor-pointer">
-              <div className="p-6 md:p-8 border-2 border-dashed border-slate-200 rounded-2xl md:rounded-3xl text-center hover:border-slate-300 hover:bg-slate-50 transition-all">
-                <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-                <p className="text-xs font-black text-slate-400 uppercase mb-2 tracking-wider">
-                  Documento de Identificação (Opcional)
-                </p>
-                <p className="text-slate-500 text-xs">Clica para enviar ficheiro</p>
-                <input 
-                  id="doc-upload"
-                  type="file" 
-                  onChange={(e) => handleFileUpload(e, 'documents')}
-                  className="hidden"
-                />
-              </div>
-            </label>
-          </div>
-
-          <div className="flex gap-3 mt-8 md:gap-4">
-            <Button 
-              onClick={() => setStep(step - 1)} 
-              variant="outline"
-              className="flex-1 h-12 md:h-14 rounded-2xl font-black uppercase text-xs md:text-sm"
-            >
-              Voltar
-            </Button>
-            <Button 
-              onClick={handleSubmit}
-              disabled={isLoading}
-              className="flex-1 h-12 md:h-14 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs md:text-sm hover:bg-slate-800 disabled:opacity-50"
-            >
-              {isLoading ? 'Enviando...' : 'Finalizar Registo'}
+              Guardar e Continuar
             </Button>
           </div>
         </div>
