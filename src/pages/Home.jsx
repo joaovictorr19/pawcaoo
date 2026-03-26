@@ -1265,40 +1265,44 @@ export default function Home() {
               <TabsContent value="emergency">
                 {/* --- ABA PAWGO: LIMPA E EXCLUSIVA --- */}
                 {user ? (
-                  <div className="p-6 animate-in fade-in duration-500">
-                    <div className="bg-slate-900 rounded-[3rem] p-8 shadow-2xl border border-white/5 relative overflow-hidden">
+                  <div className="p-3 sm:p-6 animate-in fade-in duration-500">
+                    <div className="bg-slate-900 rounded-2xl sm:rounded-[3rem] p-4 sm:p-8 shadow-2xl border border-white/5 relative overflow-hidden">
                       
                       {/* 1. SELEÇÃO DO PATUDO */}
-                      <div className="relative z-10 mb-8">
-                        <h3 className="text-white font-black uppercase italic text-xs mb-4 tracking-[0.2em] opacity-50">1. Quem vai passear?</h3>
-                        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                      <div className="relative z-10 mb-6 sm:mb-8">
+                        <h3 className="text-white font-black uppercase italic text-[10px] sm:text-xs mb-3 sm:mb-4 tracking-[0.2em] opacity-50">1. Quem vai passear?</h3>
+                        <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-3 sm:pb-4 scrollbar-hide">
                           {userPets?.length > 0 ? userPets.map(pet => (
                             <button 
                               key={pet.id}
                               onClick={() => setSelectedPet(pet)}
-                              className={`flex-shrink-0 transition-all duration-300 ${selectedPet?.id === pet.id ? 'scale-110' : 'opacity-40 grayscale'}`}
+                              className={`flex-shrink-0 transition-all duration-300 ${selectedPet?.id === pet.id ? 'scale-105 sm:scale-110' : 'opacity-40 grayscale'}`}
                             >
-                              <div className={`w-16 h-16 rounded-[1.5rem] border-4 ${selectedPet?.id === pet.id ? 'border-orange-500' : 'border-white/10'}`}>
-                                <img src={pet.photo_url} className="w-full h-full object-cover rounded-xl" />
+                              <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-[1.5rem] border-3 sm:border-4 ${selectedPet?.id === pet.id ? 'border-orange-500' : 'border-white/10'}`}>
+                                {pet.photo_url ? (
+                                  <img src={pet.photo_url} alt={pet.name || pet.dog_name} className="w-full h-full object-cover rounded-lg sm:rounded-xl" />
+                                ) : (
+                                  <div className="w-full h-full bg-slate-600 rounded-lg sm:rounded-xl"></div>
+                                )}
                               </div>
-                              <p className="text-[10px] font-black text-white mt-2 uppercase text-center">{pet.name || pet.dog_name}</p>
+                              <p className="text-[8px] sm:text-[10px] font-black text-white mt-1 sm:mt-2 uppercase text-center leading-tight">{(pet.name || pet.dog_name).substring(0, 8)}</p>
                             </button>
                           )) : <p className="text-white/30 text-[10px] font-bold uppercase">Nenhum pet encontrado...</p>}
                         </div>
                       </div>
 
                       {/* 2. DURAÇÃO E PREÇO */}
-                      <div className="relative z-10 mb-8 grid grid-cols-2 gap-3">
+                      <div className="relative z-10 mb-6 sm:mb-8 grid grid-cols-2 gap-2 sm:gap-3">
                         {[30, 60].map(mins => (
                           <button 
                             key={mins}
                             onClick={() => setDuration(mins)}
-                            className={`h-20 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${(
+                            className={`h-16 sm:h-20 rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${(
                               duration === mins ? 'border-orange-500 bg-orange-500/10' : 'border-white/5 bg-white/5'
                             )}`}
                           >
-                            <span className="text-white font-black text-lg leading-none">{mins}min</span>
-                            <span className="text-orange-500 font-bold text-[10px] uppercase mt-1">
+                            <span className="text-white font-black text-base sm:text-lg leading-none">{mins}min</span>
+                            <span className="text-orange-500 font-bold text-[8px] sm:text-[10px] uppercase mt-0.5 sm:mt-1">
                               {mins === 30 ? '12€' : '20€'}
                             </span>
                           </button>
@@ -1310,12 +1314,12 @@ export default function Home() {
                         <button 
                           disabled={!selectedPet || isSearching}
                           onClick={handleLaunchPawGo}
-                          className="w-full h-16 bg-orange-500 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-20 disabled:grayscale transition-all"
+                          className="w-full h-14 sm:h-16 bg-orange-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-20 disabled:grayscale transition-all text-xs sm:text-sm"
                         >
                           {isSearching ? (
-                             <div className="flex items-center justify-center gap-2 italic"><Loader2 className="animate-spin" size={18}/> Chamando...</div>
+                             <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Loader2 className="animate-spin" size={14} sm:size={18}/> <span className="hidden sm:inline">Chamando...</span><span className="sm:hidden">...</span></div>
                           ) : (
-                             <div className="flex items-center justify-center gap-2 italic"><Zap size={18} fill="currentColor"/> Iniciar PawGo</div>
+                             <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Zap size={14} sm:size={18} fill="currentColor"/> <span className="hidden sm:inline">Iniciar PawGo</span><span className="sm:hidden">PawGo</span></div>
                           )}
                         </button>
                       </div>
@@ -1323,7 +1327,7 @@ export default function Home() {
                       {/* Efeito de Radar Visual */}
                       {isSearching && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <div className="w-64 h-64 bg-orange-500/20 rounded-full animate-ping" />
+                          <div className="w-40 sm:w-64 h-40 sm:h-64 bg-orange-500/20 rounded-full animate-ping" />
                         </div>
                       )}
                     </div>
