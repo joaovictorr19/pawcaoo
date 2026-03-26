@@ -1057,7 +1057,6 @@ export default function Home() {
 
               <TabsContent value="professionals">
                 <div>
-                  {user && <PawGoSearch />}
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
@@ -1247,6 +1246,7 @@ export default function Home() {
 
               <TabsContent value="emergency">
                 <div>
+                  {user && <PawGoSearch />}
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
