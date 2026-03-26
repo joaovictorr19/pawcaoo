@@ -24,6 +24,7 @@ import { t } from "@/components/translations";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import PawGoSearch from "@/components/home/PawGoSearch";
 import { motion, AnimatePresence } from "framer-motion";
 import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
 import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
@@ -993,6 +994,9 @@ export default function Home() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
+        {/* PawGo Search Radar */}
+        {user && <PawGoSearch />}
+
         {/* Tabs Section - Show for everyone */}
         <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
           <AnimatePresence>
