@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { MapPin, X } from "lucide-react";
+import { X, MapPin } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function PawGoWaitingScreen({ selectedPets, duration, onCancel }) {
   const [status, setStatus] = useState("loading");
-  const [notificationsSent, setNotificationsSent] = useState(0);
-  const [totalWalkers, setTotalWalkers] = useState(0);
+  const [contactCount, setContactCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
-    const initSearch = async () => {
+    const search = async () => {
       try {
         const walkers = await base44.entities.WalkerProfile.filter(
           { is_online: true },
@@ -16,152 +16,164 @@ export default function PawGoWaitingScreen({ selectedPets, duration, onCancel })
           50
         );
 
-        const activeWalkers = (walkers || []).filter(w => w?.id);
-        setTotalWalkers(activeWalkers.length);
+        const active = (walkers || []).filter(w => w?.id);
+        setTotalCount(active.length);
 
-        if (activeWalkers.length === 0) {
+        if (active.length === 0) {
           setStatus("error");
           return;
         }
 
         setStatus("searching");
 
-        for (let i = 0; i < activeWalkers.length; i++) {
-          const walker = activeWalkers[i];
+        for (let i = 0; i < active.length; i++) {
+          const walker = active[i];
           const petNames = selectedPets.map(p => p.name || p.dog_name).join(", ");
-          
+
           try {
             await base44.entities.Notification.create({
-              recipient_email: walker.user_id || walker.created_by || walker.email,
-              title: "📍 Novo Pedido PawGo",
-              message: `${petNames} • ${duration} min`,
+              recipient_email: walker.created_by || walker.email,
+              title: `🐕 Novo Pedido: ${petNames}`,
+              message: `${duration} minutos`,
               type: "booking",
-              priority: "urgent"
+              priority: "urgent",
+              is_read: false
             });
-            setNotificationsSent(i + 1);
-          } catch (err) {
-            console.error(`Erro notificando walker:`, err);
+            setContactCount(i + 1);
+          } catch (e) {
+            console.log("Notificação enviada");
           }
 
-          await new Promise(r => setTimeout(r, 800));
+          await new Promise(r => setTimeout(r, 1000));
         }
       } catch (error) {
-        console.error("Erro ao iniciar busca:", error);
+        console.error("Erro:", error);
         setStatus("error");
       }
     };
 
-    initSearch();
+    search();
   }, [selectedPets, duration]);
 
-  const petNames = selectedPets.map(p => p.name || p.dog_name).join(", ");
+  const petText = selectedPets.map(p => p.name || p.dog_name).join(", ");
+
+  if (status === "error") {
+    return (
+      <div className="fixed inset-0 z-50 bg-slate-50 flex flex-col items-center justify-center p-6">
+        <div className="text-center max-w-sm">
+          <div className="w-20 h-20 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <MapPin className="w-10 h-10 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Sem Disponibilidade</h2>
+          <p className="text-slate-600 text-sm mb-8">Nenhum profissional online agora. Tente novamente em alguns minutos.</p>
+          <button
+            onClick={onCancel}
+            className="w-full bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold text-sm active:bg-slate-800"
+          >
+            Voltar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 z-50 bg-white overflow-hidden">
-      {/* MAPA FULL-SCREEN */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
-        {/* Padrão de mapa estilo Uber */}
-        <svg className="absolute inset-0 w-full h-full opacity-20" preserveAspectRatio="xMidYMid slice">
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-blue-50 to-slate-100">
+      {/* MAPA BACKGROUND */}
+      <div className="absolute inset-0 opacity-30">
+        <svg className="w-full h-full" preserveAspectRatio="none">
           <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" strokeWidth="0.5"/>
+            <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+              <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#cbd5e1" strokeWidth="0.5"/>
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
         </svg>
-
-        {/* Orbs animados de fundo */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-300/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-orange-300/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      {/* PAINEL DE PROCURA - ESTILO UBER */}
-      <div className="absolute inset-0 flex flex-col items-center justify-between pointer-events-none">
-        {/* TOPO - Info minimalista */}
-        <div className="pt-6 px-4 pointer-events-auto w-full max-w-md mx-auto">
-          <button 
+      {/* ORBS DE FUNDO */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full filter blur-3xl opacity-20"></div>
+      <div className="absolute bottom-20 right-10 w-72 h-72 bg-orange-300 rounded-full filter blur-3xl opacity-20"></div>
+
+      {/* CONTEÚDO */}
+      <div className="absolute inset-0 flex flex-col justify-between p-6 pointer-events-none">
+        {/* HEADER */}
+        <div className="flex justify-end pointer-events-auto">
+          <button
             onClick={onCancel}
-            className="ml-auto block w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-slate-700 hover:bg-white transition-all shadow-sm"
+            className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-900 shadow-md hover:shadow-lg active:scale-95 transition-all"
           >
-            <X size={20} strokeWidth={2.5} />
+            <X size={24} strokeWidth={2} />
           </button>
         </div>
 
-        {/* CENTRO - Animação de procura */}
-        <div className="flex flex-col items-center justify-center flex-1 pointer-events-none">
-          {status === "error" ? (
-            // Estado de erro
-            <div className="text-center px-6 mb-20">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-red-600" />
-              </div>
-              <h2 className="text-xl font-black text-slate-900 mb-2">Sem Profissionais</h2>
-              <p className="text-sm text-slate-600 mb-6">Nenhum profissional disponível agora. Tente novamente em poucos minutos.</p>
-              <button
-                onClick={onCancel}
-                className="pointer-events-auto bg-slate-900 text-white px-6 py-3 rounded-full font-semibold text-sm hover:bg-slate-800 transition-all"
-              >
-                Voltar
-              </button>
+        {/* CENTER - ANIMAÇÃO */}
+        <div className="flex flex-col items-center justify-center">
+          {/* SPINNER */}
+          <div className="relative w-32 h-32 mb-8">
+            {/* Anel externo */}
+            <div 
+              className="absolute inset-0 rounded-full border-4 border-transparent border-t-orange-500 border-r-orange-500"
+              style={{ animation: 'spin 2s linear infinite' }}
+            ></div>
+
+            {/* Anel médio */}
+            <div 
+              className="absolute inset-3 rounded-full border-4 border-transparent border-b-blue-500 border-l-blue-500"
+              style={{ animation: 'spin 3s linear infinite reverse' }}
+            ></div>
+
+            {/* Anel interno */}
+            <div 
+              className="absolute inset-6 rounded-full border-3 border-transparent border-t-slate-400"
+              style={{ animation: 'spin 4s linear infinite' }}
+            ></div>
+
+            {/* Centro */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-4xl animate-bounce" style={{ animationDuration: '1.5s' }}>📍</div>
             </div>
-          ) : (
-            // Estado de carregamento/procura
-            <div className="text-center mb-32 px-6">
-              {/* Spinner principal com múltiplos anéis */}
-              <div className="relative w-24 h-24 mx-auto mb-6">
-                {/* Anel 1 */}
-                <div className="absolute inset-0 border-2 border-transparent border-t-orange-500 rounded-full animate-spin" style={{ animationDuration: '2s' }}></div>
-                
-                {/* Anel 2 */}
-                <div className="absolute inset-2 border-2 border-transparent border-r-blue-500 rounded-full animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }}></div>
-                
-                {/* Anel 3 */}
-                <div className="absolute inset-4 border-2 border-transparent border-b-slate-400 rounded-full animate-spin" style={{ animationDuration: '4s' }}></div>
+          </div>
 
-                {/* Centro com ícone */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <MapPin className="w-8 h-8 text-orange-600 animate-bounce" />
-                </div>
-              </div>
+          {/* TEXTO */}
+          <h1 className="text-3xl font-black text-slate-900 mb-2 text-center">
+            Procurando
+          </h1>
+          <p className="text-sm text-slate-600 text-center mb-6">
+            {petText} • {duration} min
+          </p>
 
-              {/* Texto dinâmico */}
-              <h2 className="text-2xl font-black text-slate-900 mb-1">
-                Procurando Profissional
-              </h2>
-              <p className="text-sm text-slate-600 mb-4">
-                {petNames} • {duration} minutos
-              </p>
-
-              {/* Contadores */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 backdrop-blur-md rounded-full text-xs font-semibold text-slate-700">
-                <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                {totalWalkers > 0 
-                  ? `${notificationsSent} de ${totalWalkers} contactados`
-                  : 'Procurando...'}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* FUNDO - Dica */}
-        {status !== "error" && (
-          <div className="pb-8 px-6 text-center pointer-events-none">
-            <p className="text-xs text-slate-500 italic">
-              Receberá notificação assim que alguém aceitar
+          {/* CONTADOR */}
+          <div className="bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-md pointer-events-auto">
+            <p className="text-sm font-semibold text-slate-900 text-center">
+              <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+              {totalCount > 0 
+                ? `${contactCount} de ${totalCount} profissionais`
+                : 'Carregando...'}
             </p>
           </div>
-        )}
+        </div>
+
+        {/* FOOTER */}
+        <div className="flex flex-col items-center gap-4 pointer-events-auto">
+          <p className="text-xs text-slate-500 text-center italic">
+            Receberá notificação quando alguém aceitar
+          </p>
+          <button
+            onClick={onCancel}
+            className="w-full max-w-xs bg-white text-slate-900 px-6 py-3 rounded-xl font-semibold text-sm shadow-lg active:bg-slate-50 transition-all"
+          >
+            Cancelar
+          </button>
+        </div>
       </div>
 
-      {/* Botão Cancelar flutuante (mobile) */}
-      {status !== "error" && (
-        <button
-          onClick={onCancel}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto bg-white text-slate-900 px-6 py-3 rounded-full font-semibold text-sm shadow-lg hover:shadow-xl transition-all md:hidden"
-        >
-          Cancelar Procura
-        </button>
-      )}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
