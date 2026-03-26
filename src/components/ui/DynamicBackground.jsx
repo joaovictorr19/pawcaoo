@@ -174,34 +174,44 @@ export default function DynamicBackground() {
           }}
         />
 
-        {/* 3. Nuvens com Movimento (Flutuantes) */}
-        {/* Nuvem 1 */}
-        <div className="absolute top-[15%] left-[10%] opacity-90" style={{ animation: 'float 6s ease-in-out infinite' }}>
-          <div className="relative">
-            <div className="absolute w-32 h-12 bg-white rounded-full blur-[1px]" style={{ top: 8, left: 0 }} />
-            <div className="absolute w-20 h-16 bg-white rounded-full blur-[1px]" style={{ top: 0, left: 20 }} />
-            <div className="absolute w-24 h-12 bg-white rounded-full blur-[1px]" style={{ top: 6, left: 36 }} />
+        {/* 3. Nuvens Premium com Movimento Orgânico */}
+        {/* Nuvem 1 - Pequena */}
+        <div className="absolute top-[15%] left-[10%] opacity-80" style={{ animation: 'float 6s ease-in-out infinite', transition: 'all 2s ease-in-out' }}>
+          <div className="relative" style={{ filter: 'blur(12px)' }}>
+            <div className="absolute w-24 h-24 bg-white rounded-full" style={{ top: 0, left: 0 }} />
+            <div className="absolute w-32 h-32 bg-white rounded-full" style={{ top: -20, left: 40 }} />
+            <div className="absolute w-28 h-28 bg-white rounded-full" style={{ top: 10, left: 90 }} />
           </div>
         </div>
 
-        {/* Nuvem 2 - Maior e mais lenta */}
-        <div className="absolute top-[25%] right-[15%] opacity-80" style={{ animation: 'float 8s ease-in-out infinite reverse' }}>
-          <div className="relative scale-125">
-            <div className="absolute w-40 h-14 bg-white rounded-full blur-[2px]" />
-            <div className="absolute w-24 h-18 bg-white rounded-full blur-[2px]" style={{ top: -10, left: 30 }} />
+        {/* Nuvem 2 - Grande e lenta */}
+        <div className="absolute top-[25%] right-[15%] opacity-70" style={{ animation: 'float 9s ease-in-out infinite reverse', transition: 'all 2s ease-in-out' }}>
+          <div className="relative" style={{ filter: 'blur(14px)' }}>
+            <div className="absolute w-36 h-36 bg-white rounded-full" style={{ top: 0, left: 0 }} />
+            <div className="absolute w-40 h-40 bg-white rounded-full" style={{ top: -25, left: 50 }} />
+            <div className="absolute w-32 h-32 bg-white rounded-full" style={{ top: 15, left: 120 }} />
+            <div className="absolute w-28 h-28 bg-white rounded-full" style={{ top: 5, left: 160 }} />
           </div>
         </div>
 
-        {/* Nuvem 3 */}
-        <div className="absolute top-[32%] left-[5%] opacity-60" style={{ animation: 'float 7s ease-in-out infinite' }}>
-          <div className="relative">
-            <div className="absolute w-36 h-10 bg-white/80 rounded-full blur-[2px]" style={{ top: 6, left: 0 }} />
-            <div className="absolute w-20 h-14 bg-white/80 rounded-full blur-[2px]" style={{ top: 0, left: 20 }} />
-            <div className="absolute w-24 h-10 bg-white/70 rounded-full blur-[2px]" style={{ top: 5, left: 40 }} />
+        {/* Nuvem 3 - Média */}
+        <div className="absolute top-[32%] left-[5%] opacity-75" style={{ animation: 'float 7.5s ease-in-out infinite', transition: 'all 2s ease-in-out' }}>
+          <div className="relative" style={{ filter: 'blur(13px)' }}>
+            <div className="absolute w-28 h-28 bg-white rounded-full" style={{ top: 0, left: 0 }} />
+            <div className="absolute w-36 h-36 bg-white rounded-full" style={{ top: -22, left: 45 }} />
+            <div className="absolute w-30 h-30 bg-white rounded-full" style={{ top: 8, left: 100 }} />
           </div>
         </div>
 
-        {/* 4. Neblina no Horizonte (Suaviza a base do site) */}
+        {/* 4. Nuvem Extra - Subtil fundo */}
+        <div className="absolute top-[8%] right-[35%] opacity-40" style={{ animation: 'float 10s ease-in-out infinite', transition: 'all 2s ease-in-out' }}>
+          <div className="relative" style={{ filter: 'blur(15px)' }}>
+            <div className="absolute w-32 h-32 bg-white rounded-full" style={{ top: 0, left: 0 }} />
+            <div className="absolute w-40 h-40 bg-white rounded-full" style={{ top: -20, left: 40 }} />
+          </div>
+        </div>
+
+        {/* 5. Neblina no Horizonte (Suaviza a base do site) */}
         <div
           className="absolute bottom-0 left-0 right-0 h-[40%]"
           style={{ background: 'linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0) 100%)' }}
