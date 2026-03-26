@@ -12,6 +12,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   const queryClient = useQueryClient();
 
   const isProf = user?.preferences?.current_mode === "professional";
+  const isTutor = user?.preferences?.current_mode === "tutor";
   const isOnline = user?.pawgo_status?.is_online;
 
   const isActive = (path) => {
@@ -50,62 +51,88 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   if (!user) return null;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] px-6 pb-8 pt-4 bg-white/80 backdrop-blur-2xl border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-t-3xl">
-      <div className="max-w-md mx-auto flex items-center justify-between">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] w-full px-3 py-3 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)]">
+      <div className="max-w-2xl mx-auto flex items-center justify-center gap-2 sm:gap-4">
         
-        {/* ABA 1: MAPA / DASHBOARD */}
+        {/* ABA 1: EXPLORAR / PAINEL PROFISSIONAL / CLIENTE */}
         <button 
-          onClick={() => navigate(createPageUrl("Home"))}
-          className={`flex flex-col items-center gap-1 transition-all ${isActive(createPageUrl("Home")) ? "text-orange-500 scale-110" : "text-slate-400"}`}
+          onClick={() => {
+            if (isProf) {
+              navigate(createPageUrl("ProfessionalHubV2"));
+            } else if (isTutor) {
+              navigate(createPageUrl("ClientDashboard"));
+            } else {
+              navigate(createPageUrl("Home"));
+            }
+          }}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${
+            (isProf && isActive(createPageUrl("ProfessionalHubV2"))) ||
+            (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
+            (!isProf && !isTutor && isActive(createPageUrl("Home")))
+              ? "text-orange-500 bg-orange-50" 
+              : "text-slate-500 hover:bg-slate-50"
+          }`}
         >
-          {isProf ? <LayoutDashboard size={24} /> : <Map size={24} />}
-          <span className="text-[10px] font-black uppercase tracking-tighter">
-            {isProf ? "Painel" : "Explorar"}
+          {isProf ? <LayoutDashboard size={20} /> : isTutor ? <LayoutDashboard size={20} /> : <Map size={20} />}
+          <span className="text-[9px] font-bold uppercase tracking-tight">
+            {isProf ? "Painel" : isTutor ? "Cliente" : "Explorar"}
           </span>
         </button>
 
         {/* ABA 2: AGENDA / RESERVAS */}
         <button 
           onClick={() => navigate(createPageUrl("MyBookings"))}
-          className={`flex flex-col items-center gap-1 transition-all ${isActive(createPageUrl("MyBookings")) ? "text-orange-500 scale-110" : "text-slate-400"}`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${isActive(createPageUrl("MyBookings")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
-          <Calendar size={24} />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Agenda</span>
+          <Calendar size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-tight">Agenda</span>
         </button>
 
-        {/* BOTÃO CENTRAL: O GATILHO DE MODO (O "UAU" DO APP) */}
-        <div className="relative -top-8 flex flex-col items-center">
+        {/* BOTÃO CENTRAL: RADAR / PAWGO */}
+        <div className="flex flex-col items-center">
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleCenterButtonClick}
-            className={`w-16 h-16 rounded-3xl shadow-2xl flex items-center justify-center transition-all border-4 border-white
+            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all border-3 border-white
               ${isProf 
-                ? (isOnline ? "bg-slate-900" : "bg-slate-500") 
+                ? (isOnline ? "bg-slate-900" : "bg-slate-400") 
                 : "bg-orange-500"}
             `}
           >
             {isProf ? (
-              <Globe className={`text-white w-8 h-8 ${isOnline ? "animate-spin-slow" : "opacity-50"}`} />
+              <Globe className={`text-white w-6 h-6 ${isOnline ? "animate-spin-slow" : "opacity-50"}`} />
             ) : (
-              <Zap className="text-white w-8 h-8 fill-current" />
+              <Zap className="text-white w-6 h-6 fill-current" />
             )}
           </motion.button>
-          <div className="absolute -bottom-6 whitespace-nowrap">
-             <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-full shadow-sm">
-                {isProf ? (isOnline ? "Radar On" : "Radar Off") : "Pedir PawGo"}
-             </span>
-          </div>
+          <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest mt-1">
+            {isProf ? (isOnline ? "Online" : "Offline") : "PawGo"}
+          </span>
         </div>
 
+        {/* ABA 3: MENSAGENS */}
+        <button 
+          onClick={() => navigate(createPageUrl("Chat"))}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl relative ${isActive(createPageUrl("Chat")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
+        >
+          <MessageCircle size={20} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+          <span className="text-[9px] font-bold uppercase tracking-tight">Chat</span>
+        </button>
 
 
-        {/* ABA 4: PERFIL / DEFINIÇÕES */}
+
+        {/* ABA 4: PERFIL */}
         <button 
           onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user?.id}`))}
-          className={`flex flex-col items-center gap-1 transition-all ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 scale-110" : "text-slate-400"}`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
-          <User size={24} />
-          <span className="text-[10px] font-black uppercase tracking-tighter">Perfil</span>
+          <User size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-tight">Perfil</span>
         </button>
 
       </div>
