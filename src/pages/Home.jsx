@@ -593,6 +593,14 @@ export default function Home() {
     );
   };
 
+  const handleLogin = () => {
+    base44.auth.redirectToLogin(window.location.href);
+  };
+
+  const handleBecomePro = () => {
+    base44.auth.redirectToLogin(createPageUrl('BecomeProfessional'));
+  };
+
   return (
     <div className="min-h-screen relative w-full overflow-hidden">
 
