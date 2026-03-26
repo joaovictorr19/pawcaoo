@@ -18,8 +18,31 @@ export default function Dashboard() {
   const { data: user, isLoading, refetch } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: 5 * 60 * 1000
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5000 // Refetch cada 5s para detectar online/offline
   });
+
+  // Real-time subscrição: detectar mudanças de is_online em WalkerProfile/TrainerProfile
+  useEffect(() => {
+    if (!user?.email) return;
+    
+    const unsubWalker = base44.entities.WalkerProfile.subscribe((event) => {
+      if (event.data?.created_by === user.email && event.data?.is_online !== undefined) {
+        queryClient.invalidateQueries({ queryKey: ['allWalkers'] });
+      }
+    });
+
+    const unsubTrainer = base44.entities.TrainerProfile.subscribe((event) => {
+      if (event.data?.created_by === user.email && event.data?.is_online !== undefined) {
+        queryClient.invalidateQueries({ queryKey: ['allTrainers'] });
+      }
+    });
+
+    return () => {
+      unsubWalker();
+      unsubTrainer();
+    };
+  }, [user?.email, queryClient]);
 
   const triggerTransition = async (toProfessional) => {
       setTargetMode(toProfessional ? "professional" : "owner");
@@ -53,6 +76,18 @@ export default function Dashboard() {
     window.addEventListener('triggerModeSwitch', handleEvent);
     return () => window.removeEventListener('triggerModeSwitch', handleEvent);
   }, [user]);
+
+  // Importar useState se não estiver
+  const [, setForceUpdate] = React.useState();
+  useEffect(() => {
+    // Refetch walkers a cada 5s para atualizar is_online status
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ['allWalkers'] });
+      queryClient.invalidateQueries({ queryKey: ['allTrainers'] });
+      setForceUpdate(Date.now());
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [queryClient]);
 
   if (isLoading) return <div className="p-8 text-center pt-24 text-slate-500 font-medium">A carregar...</div>;
 

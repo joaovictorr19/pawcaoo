@@ -94,6 +94,9 @@ export default function ProfessionalHubV2() {
       queryClient.setQueryData(['currentUser'], data);
       queryClient.invalidateQueries(['myProfessionalProfile']);
       queryClient.invalidateQueries(['allWalkers']);
+      queryClient.invalidateQueries(['allTrainers']);
+      // Invalidar Dashboard para refetch automático
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success(data.pawgo_status?.is_online ? "🚀 Online no PawGo!" : "😴 Offline");
     }
   });
