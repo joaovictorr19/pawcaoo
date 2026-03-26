@@ -466,19 +466,15 @@ export default function UserProfile() {
                 <CheckCircle size={16} className="text-white" />
               </div>
             )}
-          </div>
-          <h1 className="mt-4 text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">{displayName}</h1>
-          {displayCity && (
-            <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-1">
-              <MapPin size={12} /> {displayCity}
+            {(walkerProfile || trainerProfile) && (
+              <div className={`absolute -bottom-1 -right-1 px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1.5 transition-all ${walkerProfile?.is_online ? 'bg-green-500' : 'bg-slate-300'}`}>
+                <div className={`w-2 h-2 rounded-full bg-white ${walkerProfile?.is_online ? 'animate-ping' : ''}`} />
+                <span className="text-[8px] font-black text-white uppercase tracking-tighter">
+                  {walkerProfile?.is_online ? 'Disponível' : 'Offline'}
+                </span>
+              </div>
+            )}
             </div>
-          )}
-          {matchScore !== null && matchScore > 0 && !isOwnProfile && (
-            <Badge className={`mt-3 ${matchScore >= 90 ? 'bg-gradient-to-r from-green-500 to-emerald-500' : matchScore >= 75 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 'bg-gradient-to-r from-yellow-500 to-orange-500'} text-white border-0 shadow-sm px-3 py-1 font-bold text-xs`}>
-              ⭐ {matchScore}% Match
-            </Badge>
-          )}
-        </div>
 
         {/* TABS */}
         <Tabs defaultValue={serviceParam ? "pawgo" : "badges"}>
@@ -501,36 +497,8 @@ export default function UserProfile() {
                     promo={`€${service.price}/hora`}
                     icon={<Dog className="w-6 h-6 text-orange-500" />}
                     onClick={() => handleBookingClick(service)}
+                    isOnline={walkerProfile?.is_online}
                   />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Dog className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
-                <p className="text-slate-500 text-sm">Sem serviços disponíveis</p>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* CONQUISTAS */}
-          <TabsContent value="badges">
-            {earnedBadges.length > 0 ? (
-              <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
-                {earnedBadges.slice(0, 12).map((badge, idx) => (
-                  <motion.div
-                    key={badge._uniqueId || `b-${idx}`}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="text-center"
-                  >
-                    <div className="w-full aspect-square rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center text-2xl shadow-lg">
-                      {badge.image_url
-                        ? <img src={badge.image_url} alt="" className="w-full h-full object-contain p-2" />
-                        : getBadgeImage(badge.badge_id)}
-                    </div>
-                    <p className="text-[8px] font-bold mt-1 text-slate-600 line-clamp-2">{badge.name}</p>
-                  </motion.div>
                 ))}
               </div>
             ) : (
@@ -570,9 +538,13 @@ export default function UserProfile() {
           </Button>
           <Button
             onClick={() => navigate(createPageUrl('Dashboard'))}
-            className="flex-[2] h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-orange-500/20"
+            className={`flex-[2] h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg transition-all ${
+              walkerProfile?.is_online
+                ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
+                : 'bg-slate-300 hover:bg-slate-400 text-slate-700'
+            }`}
           >
-            Reservar Agora
+            {walkerProfile?.is_online ? 'Reservar Agora' : 'Agendar para Depois'}
           </Button>
         </div>
       )}

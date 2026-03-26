@@ -1,11 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
-export default function ServiceCard({ title, price, desc, promo, icon, onClick }) {
+export default function ServiceCard({ title, price, desc, promo, icon, onClick, isOnline }) {
   return (
     <div 
       onClick={onClick}
-      className="bg-white/70 backdrop-blur-md rounded-[2.5rem] p-6 border border-white/50 shadow-xl shadow-slate-200/40 active:scale-95 transition-all cursor-pointer hover:bg-white/80 mb-4"
+      className={`rounded-[2.5rem] p-6 border border-white/50 shadow-xl shadow-slate-200/40 active:scale-95 transition-all cursor-pointer mb-4 ${
+        isOnline
+          ? 'bg-white/70 backdrop-blur-md hover:bg-white/80'
+          : 'bg-slate-200/50 backdrop-blur-md opacity-80 hover:bg-slate-200/60'
+      }`}
     >
       <div className="flex justify-between items-start">
         <div className="bg-orange-50 p-4 rounded-2xl text-orange-500">
@@ -23,11 +27,18 @@ export default function ServiceCard({ title, price, desc, promo, icon, onClick }
       </div>
 
       <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-        <span className="text-[9px] font-bold text-orange-500 bg-orange-50 px-3 py-1 rounded-full italic">
-          {promo}
+        <span className={`text-[9px] font-bold px-3 py-1 rounded-full italic ${
+          isOnline
+            ? 'text-orange-500 bg-orange-50'
+            : 'text-slate-600 bg-slate-100'
+        }`}>
+          {isOnline ? '🚀 Passeio Imediato' : 'Sob Agendamento'}
         </span>
-        <div className="flex items-center gap-1 text-[10px] font-black text-slate-900 uppercase tracking-tighter">
-          Reservar <ArrowRight size={12} />
+        <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter">
+          <span className={isOnline ? 'text-slate-900' : 'text-slate-500'}>
+            {isOnline ? 'Reservar' : 'Agendar'}
+          </span>
+          <ArrowRight size={12} className={isOnline ? 'text-slate-900' : 'text-slate-500'} />
         </div>
       </div>
     </div>
