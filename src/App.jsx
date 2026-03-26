@@ -1,7 +1,7 @@
 import './App.css'
 import { Suspense, lazy } from 'react'
 import { Toaster } from "@/components/ui/toaster"
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 const MyWalletPro = lazy(() => import('./pages/MyWalletPro'))
 const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2'))
 const PawGoWaiting = lazy(() => import('./pages/PawGoWaiting'))
@@ -35,6 +35,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
+  const location = useLocation();
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -53,19 +54,26 @@ const AuthenticatedApp = () => {
   return (
     <LayoutWrapper currentPageName={mainPageKey}>
       <AnimatePresence mode="wait">
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<MainPage />} />
-          {Object.entries(Pages).map(([path, Page]) => (
-            <Route key={path} path={`/${path}`} element={<Page />} />
-          ))}
-          <Route path="/MyWalletPro" element={<Suspense fallback={<PageLoader />}><MyWalletPro /></Suspense>} />
-          <Route path="/ProfessionalHubV2" element={<Suspense fallback={<PageLoader />}><ProfessionalHubV2 /></Suspense>} />
-          <Route path="/PawGoWaiting" element={<Suspense fallback={<PageLoader />}><PawGoWaiting /></Suspense>} />
-          <Route path="/ProfessionalSetup" element={<Suspense fallback={<PageLoader />}><ProfessionalSetup /></Suspense>} />
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
-      </Suspense>
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<MainPage />} />
+            {Object.entries(Pages).map(([path, Page]) => (
+              <Route key={path} path={`/${path}`} element={<Page />} />
+            ))}
+            <Route path="/MyWalletPro" element={<Suspense fallback={<PageLoader />}><MyWalletPro /></Suspense>} />
+            <Route path="/ProfessionalHubV2" element={<Suspense fallback={<PageLoader />}><ProfessionalHubV2 /></Suspense>} />
+            <Route path="/PawGoWaiting" element={<Suspense fallback={<PageLoader />}><PawGoWaiting /></Suspense>} />
+            <Route path="/ProfessionalSetup" element={<Suspense fallback={<PageLoader />}><ProfessionalSetup /></Suspense>} />
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </Suspense>
+      </motion.div>
       </AnimatePresence>
     </LayoutWrapper>
   );

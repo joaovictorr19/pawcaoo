@@ -15,7 +15,6 @@ import ReviewCard from "../components/reviews/ReviewCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import BookingForm from "../components/booking/BookingForm";
 import { format } from 'date-fns';
-import { useCreateNotification } from "../components/NotificationService";
 import ProfessionalProfileHeader from "../components/professionals/ProfessionalProfileHeader";
 import ServiceList from "../components/professionals/ServiceList";
 import { AnimatePresence } from "framer-motion";
@@ -29,7 +28,6 @@ export default function TrainerDetails() {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [currentBooking, setCurrentBooking] = useState(null);
-  const createNotification = useCreateNotification();
 
   const urlParams = new URLSearchParams(window.location.search);
   const trainerId = urlParams.get('id');
@@ -146,26 +144,7 @@ export default function TrainerDetails() {
       // But let's stick to the existing pattern of notifying and creating specific entities if possible.
       // CheckoutModal actually calls createBooking internally. 
       
-      // Notification
-      await createNotification.mutateAsync({
-        recipient_email: trainer.created_by,
-        title: '🎉 Nova Sessão de Treino Confirmada!',
-        message: `${user.full_name} reservou e pagou um treino para ${currentBooking.dog_name} em ${format(new Date(currentBooking.walk_date), 'dd/MM/yyyy')}.`,
-        type: 'booking',
-        related_id: currentBooking.id,
-        action_url: `/MyBookings?id=${currentBooking.id}`,
-        priority: 'high'
-      });
-
-      await createNotification.mutateAsync({
-        recipient_email: user.email,
-        title: '✅ Treino Confirmado!',
-        message: `Sua sessão com ${trainer.trainer_name} foi confirmada.`,
-        type: 'booking',
-        related_id: currentBooking.id,
-        action_url: `/MyBookings?id=${currentBooking.id}`,
-        priority: 'normal'
-      });
+      // Notifications handled by CheckoutModal
 
       await base44.entities.TrainerProfile.update(trainer.id, {
         total_clients: (trainer.total_clients || 0) + 1

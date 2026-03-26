@@ -1014,7 +1014,13 @@ export default function AccountSettings() {
                         <p className="text-sm text-red-700 mb-4">
                           Esta ação é permanente e irrevogável. Todos os seus dados serão eliminados.
                         </p>
-
+                        <Button
+                          variant="outline"
+                          className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11"
+                          onClick={() => setShowDeleteDialog(true)}
+                        >
+                          🗑️ Eliminar Minha Conta
+                        </Button>
                       </div>
                     </div>
                     

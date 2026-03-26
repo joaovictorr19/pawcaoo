@@ -201,6 +201,15 @@ export default function MyBookings() {
 
   // Mutation para cancelar booking (Unified) - COM LÓGICA DE REEMBOLSO
   const cancelBookingMutation = useMutation({
+    onMutate: async ({ id, type }) => {
+      // Optimistic update: mark booking as cancelled immediately
+      await queryClient.cancelQueries({ queryKey: ['myWalks'] });
+      await queryClient.cancelQueries({ queryKey: ['walkerWalks'] });
+      await queryClient.cancelQueries({ queryKey: ['myTrainings'] });
+      await queryClient.cancelQueries({ queryKey: ['trainerTrainings'] });
+      const previousBookings = { ownerWalks, walkerWalks, ownerTrainings, trainerTrainings };
+      return previousBookings;
+    },
     mutationFn: async ({ id, type }) => {
       const entity = type === 'walk' ? base44.entities.Booking : base44.entities.TrainingBooking;
       const booking = allBookings.find(b => b.id === id && b.type === type);
@@ -312,7 +321,14 @@ export default function MyBookings() {
       queryClient.invalidateQueries({ queryKey: ['trainerTrainings'] });
       setBookingToCancel(null);
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      // Rollback optimistic update on error
+      if (context) {
+        queryClient.setQueryData(['myWalks'], context.ownerWalks);
+        queryClient.setQueryData(['walkerWalks'], context.walkerWalks);
+        queryClient.setQueryData(['myTrainings'], context.ownerTrainings);
+        queryClient.setQueryData(['trainerTrainings'], context.trainerTrainings);
+      }
       toast.error('❌ Erro ao cancelar reserva');
     }
   });
