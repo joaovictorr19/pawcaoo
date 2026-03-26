@@ -466,11 +466,7 @@ export default function UserProfile() {
                 {displayName[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            {profileUser?.is_verified && (
-              <div className="absolute -bottom-2 -right-2 bg-blue-500 p-1.5 rounded-full border-4 border-white">
-                <CheckCircle size={16} className="text-white" />
-              </div>
-            )}
+
             {(walkerProfile || trainerProfile) && (
               <div className={`absolute -bottom-1 -right-1 px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1.5 transition-all ${walkerProfile?.is_online ? 'bg-green-500' : 'bg-slate-300'}`}>
                 <div className={`w-2 h-2 rounded-full bg-white ${walkerProfile?.is_online ? 'animate-ping' : ''}`} />
