@@ -209,49 +209,39 @@ export default function BadgeInventory({
                 )}
 
                 <div className="p-4 flex flex-col items-center text-center h-full">
-                  {/* Image/Icon */}
-                  <div className="w-16 h-16 mb-3 relative">
+                  {/* Image/Icon - Lógica Robusta */}
+                  <div className="w-16 h-16 mb-3 relative flex items-center justify-center rounded-xl border border-gray-200 bg-white/50">
+                    {/* Prioridade: animation_url (se earned) > image_png_file > image_url > fallback */}
                     {badge.animation_url && badge.isEarned ? (
                       <img 
                         src={badge.animation_url} 
                         alt={badge.name} 
-                        className="w-full h-full object-contain drop-shadow-md" 
+                        className="w-14 h-14 object-contain drop-shadow-md" 
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          console.error(`❌ Erro ao carregar animação: ${badge.name}`);
+                          e.target.style.display = 'none';
+                        }}
                       />
-                    ) : badge.image_png_file ? (
+                    ) : (badge.image_png_file || badge.image_url) ? (
                       <img 
-                        src={badge.image_png_file} 
+                        src={badge.image_png_file || badge.image_url}
                         alt={badge.name} 
-                        className="w-full h-full object-contain drop-shadow-md" 
-                      />
-                    ) : badge.image_url ? (
-                      <img 
-                        src={badge.image_url} 
-                        alt={badge.name} 
-                        className="w-full h-full object-cover rounded-lg shadow-sm" 
+                        className="w-14 h-14 object-contain drop-shadow-md" 
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          console.error(`❌ Erro ao carregar emblema: ${badge.name}`);
+                          e.target.style.display = 'none';
+                        }}
                       />
                     ) : (
-                      <div className="text-5xl flex items-center justify-center w-full h-full">
+                      <div className="text-4xl flex items-center justify-center">
                         {badge.icon || "🏆"}
                       </div>
                     )}
                   </div>
-
-                  {/* Content */}
-                  <div className="w-full">
-                    <h4 className="font-bold text-sm truncate mb-1" title={badge.name}>
-                      {badge.name}
-                    </h4>
-                    
-                    <div className="flex justify-center gap-1 mb-2">
-                      <Badge variant="secondary" className={`text-[10px] h-5 text-white ${rarityColor}`}>
-                        {badge.rarity}
-                      </Badge>
-                      {badge.xp > 0 && (
-                        <Badge variant="outline" className="text-[10px] h-5 bg-white">
-                          {badge.xp} XP
-                        </Badge>
-                      )}
-                    </div>
 
                     <p className="text-xs text-gray-500 line-clamp-2 h-8 leading-tight">
                       {badge.description}
