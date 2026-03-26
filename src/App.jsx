@@ -2,6 +2,7 @@ import './App.css'
 import { Suspense, lazy } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 const MyWalletPro = lazy(() => import('./pages/MyWalletPro'))
+const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2'))
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
@@ -55,6 +56,7 @@ const AuthenticatedApp = () => {
             <Route key={path} path={`/${path}`} element={<Page />} />
           ))}
           <Route path="/MyWalletPro" element={<Suspense fallback={<PageLoader />}><MyWalletPro /></Suspense>} />
+          <Route path="/ProfessionalHubV2" element={<Suspense fallback={<PageLoader />}><ProfessionalHubV2 /></Suspense>} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </Suspense>
