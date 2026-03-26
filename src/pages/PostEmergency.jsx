@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import NotificationService from "../components/NotificationService";
+// Notifications handled by NotificationManager in layout
 
 const parseLocation = (val) => {
   if (!val) return 0;
@@ -284,7 +284,7 @@ export default function PostEmergency() {
                         <div className={`w-16 h-16 rounded-3xl border-4 overflow-hidden ${isSelected ? 'border-orange-500' : 'border-transparent'}`}>
                           <img src={dog.photo_url || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=200"} className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-[10px] font-black uppercase">{dog.dog_name}</span>
+                        <span className="text-[10px] font-black uppercase">{dog.name}</span>
                       </button>
                     );
                     })}}

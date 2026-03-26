@@ -15,13 +15,12 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { format } from "date-fns";
-import { useCreateNotification } from "../components/NotificationService";
+// NotificationService removed - use NotificationManager instead
 
 export default function AdminShelterVerification() {
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const createNotification = useCreateNotification();
   
   const [selectedShelter, setSelectedShelter] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -53,27 +52,23 @@ export default function AdminShelterVerification() {
         rejection_reason: reason || null,
       });
 
-      // Fetch the shelter to get the owner's email (created_by)
-      // In a real scenario, we might already have it in the list item if we fetched it, 
-      // but let's ensure we have the correct email. 
-      // The list item from 'pendingShelters' query should have 'created_by'.
-      const shelter = pendingShelters.find(s => s.id === id);
-      
-      if (shelter && shelter.created_by) {
-        // Send Notification
-        await createNotification.mutateAsync({
-          recipient_email: shelter.created_by,
-          title: status === 'approved' 
-            ? (language === 'pt' ? '✅ Perfil de Abrigo Verificado!' : '✅ Shelter Profile Verified!')
-            : (language === 'pt' ? '⚠️ Verificação do Abrigo Recusada' : '⚠️ Shelter Verification Rejected'),
-          message: status === 'approved'
-            ? (language === 'pt' ? `Parabéns! O perfil do abrigo "${shelter.shelter_name}" foi verificado. Agora você tem acesso total.` : `Congratulations! The shelter profile "${shelter.shelter_name}" has been verified. You now have full access.`)
-            : (language === 'pt' ? `Infelizmente a verificação para "${shelter.shelter_name}" foi recusada. Motivo: ${reason}` : `Unfortunately verification for "${shelter.shelter_name}" was rejected. Reason: ${reason}`),
-          type: 'verification',
-          priority: status === 'approved' ? 'high' : 'normal',
-          action_url: '/ShelterDashboard'
-        });
-      }
+      // Create notification record for the shelter owner
+       const shelter = pendingShelters.find(s => s.id === id);
+       if (shelter && shelter.created_by) {
+         await base44.entities.Notification.create({
+           recipient_email: shelter.created_by,
+           title: status === 'approved' 
+             ? (language === 'pt' ? '✅ Perfil de Abrigo Verificado!' : '✅ Shelter Profile Verified!')
+             : (language === 'pt' ? '⚠️ Verificação do Abrigo Recusada' : '⚠️ Shelter Verification Rejected'),
+           message: status === 'approved'
+             ? (language === 'pt' ? `Parabéns! O perfil do abrigo "${shelter.shelter_name}" foi verificado. Agora você tem acesso total.` : `Congratulations! The shelter profile "${shelter.shelter_name}" has been verified. You now have full access.`)
+             : (language === 'pt' ? `Infelizmente a verificação para "${shelter.shelter_name}" foi recusada. Motivo: ${reason}` : `Unfortunately verification for "${shelter.shelter_name}" was rejected. Reason: ${reason}`),
+           type: 'verification',
+           priority: status === 'approved' ? 'high' : 'normal',
+           action_url: '/ShelterDashboard',
+           is_read: false
+         });
+       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['pendingShelters']);

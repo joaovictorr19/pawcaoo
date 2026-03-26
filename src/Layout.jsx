@@ -57,6 +57,7 @@ import RoleSwitcher from "@/components/layout/RoleSwitcher";
 import LayoutStyles from "@/components/layout/LayoutStyles";
 import LayoutFooter from "@/components/layout/LayoutFooter";
 import LayoutSEO from "@/components/layout/LayoutSEO";
+import NotificationManager from "@/components/notifications/NotificationManager";
 
 import "./globals.css";
 
@@ -938,6 +939,9 @@ function LayoutContent({ children, currentPageName }) {
 
             {/* Notification Triggers (invisible) */}
             <NotificationTriggers user={authUser} />
+
+            {/* New Notification System (Alerts & Updates) */}
+            <NotificationManager />
 
           {/* Main Content Area with bottom padding for mobile nav */}
           <div className="flex-1 flex flex-col min-w-0 pb-32 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
