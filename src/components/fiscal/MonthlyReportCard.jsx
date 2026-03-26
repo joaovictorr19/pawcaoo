@@ -14,8 +14,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { pt } from "date-fns/locale";
-// jsPDF loaded dynamically when PDF generation is triggered (~250KB)
-const loadJsPDF = () => import("jspdf").then(m => m.default);
+import jsPDF from "jspdf";
 
 export default function MonthlyReportCard() {
   const queryClient = useQueryClient();
@@ -156,10 +155,9 @@ export default function MonthlyReportCard() {
     }
   });
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     if (!report) return;
 
-    const jsPDF = await loadJsPDF();
     const doc = new jsPDF();
     const [year, month] = selectedMonth.split('-');
     const monthName = format(new Date(parseInt(year), parseInt(month) - 1), 'MMMM yyyy', { locale: pt });

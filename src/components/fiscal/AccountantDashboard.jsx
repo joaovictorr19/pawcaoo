@@ -19,7 +19,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { pt } from "date-fns/locale";
-const loadJsPDF = () => import("jspdf").then(m => m.default);
+import jsPDF from "jspdf";
 
 export default function AccountantDashboard() {
   const queryClient = useQueryClient();
@@ -95,14 +95,13 @@ export default function AccountantDashboard() {
     return <Badge className={c.color}>{c.label}</Badge>;
   };
 
-  const downloadInvoicePDF = (invoice) => {
+  const downloadInvoicePDF = async (invoice) => {
     if (invoice.pdf_url) {
       window.open(invoice.pdf_url, '_blank');
       return;
     }
 
     // Generate simple PDF
-    const jsPDF = await loadJsPDF();
     const doc = new jsPDF();
     
     doc.setFontSize(20);
@@ -145,7 +144,6 @@ export default function AccountantDashboard() {
   };
 
   const downloadAllPDF = async () => {
-    const jsPDF = await loadJsPDF();
     const doc = new jsPDF();
     const [year, month] = selectedMonth.split('-');
     const monthName = format(new Date(parseInt(year), parseInt(month) - 1), 'MMMM yyyy', { locale: pt });
