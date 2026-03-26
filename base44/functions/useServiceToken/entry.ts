@@ -1,6 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import Stripe from 'npm:stripe@14.21.0';
 
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 const TOKEN_VALUE = 12; // €12 per token - value transferred to walker
+const TOKEN_VALUE_CENTS = 1200;
 
 Deno.serve(async (req) => {
   try {
@@ -19,7 +22,7 @@ Deno.serve(async (req) => {
 
     // Get user wallet
     const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
-    
+
     if (wallets.length === 0 || wallets[0].service_tokens < 1) {
       return Response.json({ error: 'No tokens available' }, { status: 400 });
     }
@@ -31,7 +34,54 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Tokens have expired' }, { status: 400 });
     }
 
-    // Deduct token from wallet
+    // Resolve walker's Stripe account before deducting tokens
+    const resolvedWalkerEmail = walker_email || (await getBookingWalkerEmail(base44, booking_id));
+
+    if (!resolvedWalkerEmail) {
+      return Response.json({ error: 'Could not determine walker for this booking' }, { status: 400 });
+    }
+
+    const walkerProfiles = await base44.asServiceRole.entities.WalkerProfile.filter({
+      created_by: resolvedWalkerEmail
+    });
+
+    const walkerProfile = walkerProfiles[0];
+    let stripeTransferId = null;
+    let payoutStatus = 'completed';
+
+    // Attempt Stripe transfer if walker has a connected account
+    if (walkerProfile?.stripe_account_id) {
+      try {
+        const transfer = await stripe.transfers.create({
+          amount: TOKEN_VALUE_CENTS,
+          currency: 'eur',
+          destination: walkerProfile.stripe_account_id,
+          transfer_group: `token_booking_${booking_id}`,
+          metadata: {
+            booking_id,
+            walker_email: resolvedWalkerEmail,
+            source: 'service_token',
+            platform: 'pawcao'
+          }
+        });
+        stripeTransferId = transfer.id;
+        console.log(`Stripe transfer completed: ${transfer.id} for booking ${booking_id}`);
+      } catch (stripeError) {
+        console.error('Stripe transfer failed:', stripeError);
+        // Do NOT deduct the token if the transfer fails
+        return Response.json({
+          success: false,
+          error: 'Payment transfer to walker failed. Token was not deducted.',
+          details: stripeError.message
+        }, { status: 500 });
+      }
+    } else {
+      // Walker has no Stripe account — create a pending payout record
+      payoutStatus = 'pending_stripe_setup';
+      console.log(`Walker ${resolvedWalkerEmail} has no Stripe account — creating pending payout`);
+    }
+
+    // Transfer succeeded (or pending) — now deduct the token
     await base44.entities.UserWallet.update(wallet.id, {
       service_tokens: wallet.service_tokens - 1,
       tokens_used_this_month: (wallet.tokens_used_this_month || 0) + 1,
@@ -44,33 +94,73 @@ Deno.serve(async (req) => {
       transaction_type: 'token_used',
       amount: TOKEN_VALUE,
       tokens_amount: 1,
-      description: `Token utilizado para serviço`,
+      description: 'Token utilizado para serviço',
       related_booking_id: booking_id,
       balance_after: wallet.service_tokens - 1
     });
 
-    // Release escrow to walker
+    // Record escrow release transaction
     await base44.entities.WalletTransaction.create({
       user_email: user.email,
       transaction_type: 'escrow_released',
       amount: TOKEN_VALUE,
       description: `€${TOKEN_VALUE} liberados para prestador de serviço`,
       related_booking_id: booking_id,
+      stripe_transfer_id: stripeTransferId,
       balance_after: (wallet.escrow_balance || 0) - TOKEN_VALUE
     });
 
-    // TODO: In production, trigger Stripe transfer to walker's connected account
-    // This would use stripe.transfers.create() with the walker's Stripe account ID
+    // Create payout record for reconciliation
+    await base44.asServiceRole.entities.WalkerPayout.create({
+      walker_email: resolvedWalkerEmail,
+      walker_name: walkerProfile?.walker_name || resolvedWalkerEmail,
+      client_email: user.email,
+      booking_id,
+      net_amount: TOKEN_VALUE,
+      payout_type: 'token_redemption',
+      status: payoutStatus,
+      stripe_transfer_id: stripeTransferId,
+      paid_at: stripeTransferId ? new Date().toISOString() : null,
+      notes: stripeTransferId
+        ? `Paid via Stripe Connect (${stripeTransferId})`
+        : 'Pending — walker needs to complete Stripe Connect setup'
+    });
 
-    return Response.json({ 
+    // Notify walker if pending Stripe setup
+    if (!stripeTransferId) {
+      await base44.asServiceRole.entities.Notification.create({
+        recipient_email: resolvedWalkerEmail,
+        title: '💰 Pagamento Pendente — Configure Stripe',
+        message: `Tem €${TOKEN_VALUE} pendentes. Complete a configuração do Stripe Connect para receber pagamentos.`,
+        type: 'payment',
+        related_id: booking_id,
+        priority: 'high',
+        action_url: '/StripeConnectSetup'
+      });
+    }
+
+    return Response.json({
       success: true,
       tokens_remaining: wallet.service_tokens - 1,
       amount_released: TOKEN_VALUE,
-      message: `Token usado com sucesso. €${TOKEN_VALUE} serão transferidos ao prestador.`
+      stripe_transfer_id: stripeTransferId,
+      payout_status: payoutStatus,
+      message: stripeTransferId
+        ? `Token usado com sucesso. €${TOKEN_VALUE} transferidos ao prestador.`
+        : `Token usado. €${TOKEN_VALUE} pendentes até prestador configurar Stripe.`
     });
 
   } catch (error) {
     console.error('Use token error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'Failed to process service token' }, { status: 500 });
   }
 });
+
+async function getBookingWalkerEmail(base44: any, bookingId: string): Promise<string | null> {
+  try {
+    const bookings = await base44.asServiceRole.entities.Booking.filter({ id: bookingId });
+    return bookings[0]?.walker_email || null;
+  } catch {
+    return null;
+  }
+}

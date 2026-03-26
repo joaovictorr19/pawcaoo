@@ -47,204 +47,112 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import AIMatches from './pages/AIMatches';
-import AboutUs from './pages/AboutUs';
-import AccountSettings from './pages/AccountSettings';
-import ActiveRide from './pages/ActiveRide';
-import ActiveWalkDashboard from './pages/ActiveWalkDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminDebug from './pages/AdminDebug';
-import AdminFinanceDashboard from './pages/AdminFinanceDashboard';
-import AdminProductManagement from './pages/AdminProductManagement';
-import AdminShelterVerification from './pages/AdminShelterVerification';
-import AdminShopHub from './pages/AdminShopHub';
-import AdoptionListingDetails from './pages/AdoptionListingDetails';
-import AdoptionListings from './pages/AdoptionListings';
-import AffiliateDashboard from './pages/AffiliateDashboard';
-import AnimalProfile from './pages/AnimalProfile';
-import ApiDocs from './pages/ApiDocs';
-import ApplyForAdoption from './pages/ApplyForAdoption';
-import ApproveAnnouncements from './pages/ApproveAnnouncements';
-import BecomeProfessional from './pages/BecomeProfessional';
-import BookService from './pages/BookService';
-import Chat from './pages/Chat';
-import CheckoutSuccess from './pages/CheckoutSuccess';
-import ClientDashboard from './pages/ClientDashboard';
-import Community from './pages/Community';
-import ConnectedAccountStorefront from './pages/ConnectedAccountStorefront';
-import Contact from './pages/Contact';
-import CookiesPolicy from './pages/CookiesPolicy';
-import CreateAdoptionListing from './pages/CreateAdoptionListing';
-import Dashboard from './pages/Dashboard';
-import DogConnectPremium from './pages/DogConnectPremium';
-import DogConnectRewards from './pages/DogConnectRewards';
-import DogSittingServices from './pages/DogSittingServices';
-import EditAnimalProfile from './pages/EditAnimalProfile';
-import EditTrainerProfile from './pages/EditTrainerProfile';
-import EditWalkerProfile from './pages/EditWalkerProfile';
-import EmergencyWalkDetails from './pages/EmergencyWalkDetails';
-import EmployeeDashboard from './pages/EmployeeDashboard';
-import FAQ from './pages/FAQ';
-import Favorites from './pages/Favorites';
-import FiscalSettings from './pages/FiscalSettings';
-import ForumTopicDetails from './pages/ForumTopicDetails';
-import Gamification from './pages/Gamification';
-import Home from './pages/Home';
-import Landing from './pages/Landing';
-import Leaderboard from './pages/Leaderboard';
-import LiveWalkTracking from './pages/LiveWalkTracking';
-import LoyaltyRewards from './pages/LoyaltyRewards';
-import ManageAdoptionListings from './pages/ManageAdoptionListings';
-import ManageAvailability from './pages/ManageAvailability';
-import ManageMyAdoptions from './pages/ManageMyAdoptions';
-import MembershipPlans from './pages/MembershipPlans';
-import MembershipSuccess from './pages/MembershipSuccess';
-import ModerationPanel from './pages/ModerationPanel';
-import MyAdoptionApplications from './pages/MyAdoptionApplications';
-import MyBookings from './pages/MyBookings';
-import MyOrders from './pages/MyOrders';
-import MyProfile from './pages/MyProfile';
-import MyRedemptions from './pages/MyRedemptions';
-import MyWallet from './pages/MyWallet';
-import MyWishlist from './pages/MyWishlist';
-import Notifications from './pages/Notifications';
-import OrderSuccess from './pages/OrderSuccess';
-import OwnerSubscriptions from './pages/OwnerSubscriptions';
-import PartnerContentSubmission from './pages/PartnerContentSubmission';
-import PartnerDashboard from './pages/PartnerDashboard';
-import PartnerDetails from './pages/PartnerDetails';
-import PartnerServices from './pages/PartnerServices';
-import Partners from './pages/Partners';
-import PaymentMethods from './pages/PaymentMethods';
-import PaymentSetup from './pages/PaymentSetup';
-import PostEmergency from './pages/PostEmergency';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import ProfessionalDashboard from './pages/ProfessionalDashboard';
-import RegisterCompany from './pages/RegisterCompany';
-import RequestWalk from './pages/RequestWalk';
-import ScheduledWalks from './pages/ScheduledWalks';
-import ShelterDashboard from './pages/ShelterDashboard';
-import ShelterProfile from './pages/ShelterProfile';
-import ShelterRegister from './pages/ShelterRegister';
-import Shelters from './pages/Shelters';
-import Shop from './pages/Shop';
-import Sitemap from './pages/Sitemap';
-import SocialEvents from './pages/SocialEvents';
-import SocialFeed from './pages/SocialFeed';
-import StaticExport from './pages/StaticExport';
-import StripeConnectSetup from './pages/StripeConnectSetup';
-import Subscriptions from './pages/Subscriptions';
-import TermsOfService from './pages/TermsOfService';
-import TestPayments from './pages/TestPayments';
-import TrainerDetails from './pages/TrainerDetails';
-import Trainers from './pages/Trainers';
-import UserProfile from './pages/UserProfile';
-import VeterinaryDashboard from './pages/VeterinaryDashboard';
-import WalkHistory from './pages/WalkHistory';
-import WalkerDetails from './pages/WalkerDetails';
-import WalkerTrack from './pages/WalkerTrack';
-import WalkerWallet from './pages/WalkerWallet';
+import { lazy } from 'react';
 import __Layout from './Layout.jsx';
 
+// All pages are lazy-loaded for route-level code splitting.
+// Each page becomes its own chunk, loaded only when the user navigates to it.
+// Expected impact: ~60-70% reduction in initial bundle size.
+const page = (importFn) => lazy(importFn);
 
 export const PAGES = {
-    "AIMatches": AIMatches,
-    "AboutUs": AboutUs,
-    "AccountSettings": AccountSettings,
-    "ActiveRide": ActiveRide,
-    "ActiveWalkDashboard": ActiveWalkDashboard,
-    "AdminDashboard": AdminDashboard,
-    "AdminDebug": AdminDebug,
-    "AdminFinanceDashboard": AdminFinanceDashboard,
-    "AdminProductManagement": AdminProductManagement,
-    "AdminShelterVerification": AdminShelterVerification,
-    "AdminShopHub": AdminShopHub,
-    "AdoptionListingDetails": AdoptionListingDetails,
-    "AdoptionListings": AdoptionListings,
-    "AffiliateDashboard": AffiliateDashboard,
-    "AnimalProfile": AnimalProfile,
-    "ApiDocs": ApiDocs,
-    "ApplyForAdoption": ApplyForAdoption,
-    "ApproveAnnouncements": ApproveAnnouncements,
-    "BecomeProfessional": BecomeProfessional,
-    "BookService": BookService,
-    "Chat": Chat,
-    "CheckoutSuccess": CheckoutSuccess,
-    "ClientDashboard": ClientDashboard,
-    "Community": Community,
-    "ConnectedAccountStorefront": ConnectedAccountStorefront,
-    "Contact": Contact,
-    "CookiesPolicy": CookiesPolicy,
-    "CreateAdoptionListing": CreateAdoptionListing,
-    "Dashboard": Dashboard,
-    "DogConnectPremium": DogConnectPremium,
-    "DogConnectRewards": DogConnectRewards,
-    "DogSittingServices": DogSittingServices,
-    "EditAnimalProfile": EditAnimalProfile,
-    "EditTrainerProfile": EditTrainerProfile,
-    "EditWalkerProfile": EditWalkerProfile,
-    "EmergencyWalkDetails": EmergencyWalkDetails,
-    "EmployeeDashboard": EmployeeDashboard,
-    "FAQ": FAQ,
-    "Favorites": Favorites,
-    "FiscalSettings": FiscalSettings,
-    "ForumTopicDetails": ForumTopicDetails,
-    "Gamification": Gamification,
-    "Home": Home,
-    "Landing": Landing,
-    "Leaderboard": Leaderboard,
-    "LiveWalkTracking": LiveWalkTracking,
-    "LoyaltyRewards": LoyaltyRewards,
-    "ManageAdoptionListings": ManageAdoptionListings,
-    "ManageAvailability": ManageAvailability,
-    "ManageMyAdoptions": ManageMyAdoptions,
-    "MembershipPlans": MembershipPlans,
-    "MembershipSuccess": MembershipSuccess,
-    "ModerationPanel": ModerationPanel,
-    "MyAdoptionApplications": MyAdoptionApplications,
-    "MyBookings": MyBookings,
-    "MyOrders": MyOrders,
-    "MyProfile": MyProfile,
-    "MyRedemptions": MyRedemptions,
-    "MyWallet": MyWallet,
-    "MyWishlist": MyWishlist,
-    "Notifications": Notifications,
-    "OrderSuccess": OrderSuccess,
-    "OwnerSubscriptions": OwnerSubscriptions,
-    "PartnerContentSubmission": PartnerContentSubmission,
-    "PartnerDashboard": PartnerDashboard,
-    "PartnerDetails": PartnerDetails,
-    "PartnerServices": PartnerServices,
-    "Partners": Partners,
-    "PaymentMethods": PaymentMethods,
-    "PaymentSetup": PaymentSetup,
-    "PostEmergency": PostEmergency,
-    "PrivacyPolicy": PrivacyPolicy,
-    "ProfessionalDashboard": ProfessionalDashboard,
-    "RegisterCompany": RegisterCompany,
-    "RequestWalk": RequestWalk,
-    "ScheduledWalks": ScheduledWalks,
-    "ShelterDashboard": ShelterDashboard,
-    "ShelterProfile": ShelterProfile,
-    "ShelterRegister": ShelterRegister,
-    "Shelters": Shelters,
-    "Shop": Shop,
-    "Sitemap": Sitemap,
-    "SocialEvents": SocialEvents,
-    "SocialFeed": SocialFeed,
-    "StaticExport": StaticExport,
-    "StripeConnectSetup": StripeConnectSetup,
-    "Subscriptions": Subscriptions,
-    "TermsOfService": TermsOfService,
-    "TestPayments": TestPayments,
-    "TrainerDetails": TrainerDetails,
-    "Trainers": Trainers,
-    "UserProfile": UserProfile,
-    "VeterinaryDashboard": VeterinaryDashboard,
-    "WalkHistory": WalkHistory,
-    "WalkerDetails": WalkerDetails,
-    "WalkerTrack": WalkerTrack,
-    "WalkerWallet": WalkerWallet,
+    "AIMatches": page(() => import('./pages/AIMatches')),
+    "AboutUs": page(() => import('./pages/AboutUs')),
+    "AccountSettings": page(() => import('./pages/AccountSettings')),
+    "ActiveRide": page(() => import('./pages/ActiveRide')),
+    "ActiveWalkDashboard": page(() => import('./pages/ActiveWalkDashboard')),
+    "AdminDashboard": page(() => import('./pages/AdminDashboard')),
+    "AdminDebug": page(() => import('./pages/AdminDebug')),
+    "AdminFinanceDashboard": page(() => import('./pages/AdminFinanceDashboard')),
+    "AdminProductManagement": page(() => import('./pages/AdminProductManagement')),
+    "AdminShelterVerification": page(() => import('./pages/AdminShelterVerification')),
+    "AdminShopHub": page(() => import('./pages/AdminShopHub')),
+    "AdoptionListingDetails": page(() => import('./pages/AdoptionListingDetails')),
+    "AdoptionListings": page(() => import('./pages/AdoptionListings')),
+    "AffiliateDashboard": page(() => import('./pages/AffiliateDashboard')),
+    "AnimalProfile": page(() => import('./pages/AnimalProfile')),
+    "ApiDocs": page(() => import('./pages/ApiDocs')),
+    "ApplyForAdoption": page(() => import('./pages/ApplyForAdoption')),
+    "ApproveAnnouncements": page(() => import('./pages/ApproveAnnouncements')),
+    "BecomeProfessional": page(() => import('./pages/BecomeProfessional')),
+    "BookService": page(() => import('./pages/BookService')),
+    "Chat": page(() => import('./pages/Chat')),
+    "CheckoutSuccess": page(() => import('./pages/CheckoutSuccess')),
+    "ClientDashboard": page(() => import('./pages/ClientDashboard')),
+    "Community": page(() => import('./pages/Community')),
+    "ConnectedAccountStorefront": page(() => import('./pages/ConnectedAccountStorefront')),
+    "Contact": page(() => import('./pages/Contact')),
+    "CookiesPolicy": page(() => import('./pages/CookiesPolicy')),
+    "CreateAdoptionListing": page(() => import('./pages/CreateAdoptionListing')),
+    "Dashboard": page(() => import('./pages/Dashboard')),
+    "DogConnectPremium": page(() => import('./pages/DogConnectPremium')),
+    "DogConnectRewards": page(() => import('./pages/DogConnectRewards')),
+    "DogSittingServices": page(() => import('./pages/DogSittingServices')),
+    "EditAnimalProfile": page(() => import('./pages/EditAnimalProfile')),
+    "EditTrainerProfile": page(() => import('./pages/EditTrainerProfile')),
+    "EditWalkerProfile": page(() => import('./pages/EditWalkerProfile')),
+    "EmergencyWalkDetails": page(() => import('./pages/EmergencyWalkDetails')),
+    "EmployeeDashboard": page(() => import('./pages/EmployeeDashboard')),
+    "FAQ": page(() => import('./pages/FAQ')),
+    "Favorites": page(() => import('./pages/Favorites')),
+    "FiscalSettings": page(() => import('./pages/FiscalSettings')),
+    "ForumTopicDetails": page(() => import('./pages/ForumTopicDetails')),
+    "Gamification": page(() => import('./pages/Gamification')),
+    "Home": page(() => import('./pages/Home')),
+    "Landing": page(() => import('./pages/Landing')),
+    "Leaderboard": page(() => import('./pages/Leaderboard')),
+    "LiveWalkTracking": page(() => import('./pages/LiveWalkTracking')),
+    "LoyaltyRewards": page(() => import('./pages/LoyaltyRewards')),
+    "ManageAdoptionListings": page(() => import('./pages/ManageAdoptionListings')),
+    "ManageAvailability": page(() => import('./pages/ManageAvailability')),
+    "ManageMyAdoptions": page(() => import('./pages/ManageMyAdoptions')),
+    "MembershipPlans": page(() => import('./pages/MembershipPlans')),
+    "MembershipSuccess": page(() => import('./pages/MembershipSuccess')),
+    "ModerationPanel": page(() => import('./pages/ModerationPanel')),
+    "MyAdoptionApplications": page(() => import('./pages/MyAdoptionApplications')),
+    "MyBookings": page(() => import('./pages/MyBookings')),
+    "MyOrders": page(() => import('./pages/MyOrders')),
+    "MyProfile": page(() => import('./pages/MyProfile')),
+    "MyRedemptions": page(() => import('./pages/MyRedemptions')),
+    "MyWallet": page(() => import('./pages/MyWallet')),
+    "MyWishlist": page(() => import('./pages/MyWishlist')),
+    "Notifications": page(() => import('./pages/Notifications')),
+    "OrderSuccess": page(() => import('./pages/OrderSuccess')),
+    "OwnerSubscriptions": page(() => import('./pages/OwnerSubscriptions')),
+    "PartnerContentSubmission": page(() => import('./pages/PartnerContentSubmission')),
+    "PartnerDashboard": page(() => import('./pages/PartnerDashboard')),
+    "PartnerDetails": page(() => import('./pages/PartnerDetails')),
+    "PartnerServices": page(() => import('./pages/PartnerServices')),
+    "Partners": page(() => import('./pages/Partners')),
+    "PaymentMethods": page(() => import('./pages/PaymentMethods')),
+    "PaymentSetup": page(() => import('./pages/PaymentSetup')),
+    "PostEmergency": page(() => import('./pages/PostEmergency')),
+    "PrivacyPolicy": page(() => import('./pages/PrivacyPolicy')),
+    "ProfessionalDashboard": page(() => import('./pages/ProfessionalDashboard')),
+    "RegisterCompany": page(() => import('./pages/RegisterCompany')),
+    "RequestWalk": page(() => import('./pages/RequestWalk')),
+    "ScheduledWalks": page(() => import('./pages/ScheduledWalks')),
+    "ShelterDashboard": page(() => import('./pages/ShelterDashboard')),
+    "ShelterProfile": page(() => import('./pages/ShelterProfile')),
+    "ShelterRegister": page(() => import('./pages/ShelterRegister')),
+    "Shelters": page(() => import('./pages/Shelters')),
+    "Shop": page(() => import('./pages/Shop')),
+    "Sitemap": page(() => import('./pages/Sitemap')),
+    "SocialEvents": page(() => import('./pages/SocialEvents')),
+    "SocialFeed": page(() => import('./pages/SocialFeed')),
+    "StaticExport": page(() => import('./pages/StaticExport')),
+    "StripeConnectSetup": page(() => import('./pages/StripeConnectSetup')),
+    "Subscriptions": page(() => import('./pages/Subscriptions')),
+    "TermsOfService": page(() => import('./pages/TermsOfService')),
+    "TestPayments": page(() => import('./pages/TestPayments')),
+    "TrainerDetails": page(() => import('./pages/TrainerDetails')),
+    "Trainers": page(() => import('./pages/Trainers')),
+    "UserProfile": page(() => import('./pages/UserProfile')),
+    "VeterinaryDashboard": page(() => import('./pages/VeterinaryDashboard')),
+    "WalkHistory": page(() => import('./pages/WalkHistory')),
+    "WalkerDetails": page(() => import('./pages/WalkerDetails')),
+    "WalkerTrack": page(() => import('./pages/WalkerTrack')),
+    "WalkerWallet": page(() => import('./pages/WalkerWallet')),
 }
 
 export const pagesConfig = {

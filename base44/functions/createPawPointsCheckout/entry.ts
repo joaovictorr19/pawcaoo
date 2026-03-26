@@ -13,20 +13,31 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { reward_id, final_points, euro_value, description, tier_discount } = body;
+    const { reward_id, final_points, description, tier_discount } = body;
 
-    if (!reward_id || !final_points || !euro_value) {
+    if (!reward_id || !final_points) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Validar que o valor em euros está alinhado: 400 pontos = €1
-    const expectedValue = (final_points / 400).toFixed(2);
-    if (Math.abs(parseFloat(expectedValue) - parseFloat(euro_value)) > 0.01) {
-      return Response.json({ 
-        error: 'Invalid value calculation',
-        details: `Expected €${expectedValue} for ${final_points} points`
-      }, { status: 400 });
+    // Validate points is a positive integer
+    const points = Math.floor(Number(final_points));
+    if (!Number.isFinite(points) || points <= 0 || points !== Number(final_points)) {
+      return Response.json({ error: 'Points must be a positive integer' }, { status: 400 });
     }
+
+    // Server-side calculation: 400 points = 100 cents (€1)
+    // Use integer arithmetic only — never trust client-submitted euro_value
+    const amountCents = Math.floor(points / 400) * 100;
+
+    if (amountCents < 100) {
+      return Response.json({ error: 'Minimum redemption is 400 points (€1.00)' }, { status: 400 });
+    }
+
+    if (amountCents > 5000) {
+      return Response.json({ error: 'Maximum single redemption is €50.00' }, { status: 400 });
+    }
+
+    const euro_value = amountCents / 100;
 
     // Verificar saldo de pontos do usuário
     const loyaltyPoints = await base44.entities.LoyaltyPoints.filter({
@@ -76,7 +87,7 @@ Deno.serve(async (req) => {
     // Criar preço one-time
     const price = await stripe.prices.create({
       product: product.id,
-      unit_amount: Math.round(euro_value * 100), // Converter para centavos
+      unit_amount: amountCents, // Server-calculated integer cents
       currency: 'eur',
       metadata: {
         reward_id,

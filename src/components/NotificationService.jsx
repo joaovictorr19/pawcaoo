@@ -222,7 +222,6 @@ export default function NotificationService() {
 // ✅ Função estática para notificar walkers sobre emergência
 NotificationService.emergencyWalkPosted = async ({ walk }) => {
   try {
-    console.log('🚨 Notifying walkers about emergency walk:', walk.id);
     
     // Buscar todos os walkers ativos e verificados
     const walkers = await base44.entities.WalkerProfile.filter({ 
@@ -240,7 +239,6 @@ NotificationService.emergencyWalkPosted = async ({ walk }) => {
       return walker.dog_sizes.includes(dogSize);
     });
     
-    console.log(`📢 Sending notification to ${suitableWalkers.length} suitable walkers`);
     
     // Criar notificação para cada walker
     const notificationPromises = suitableWalkers.map(walker => 
@@ -260,7 +258,6 @@ NotificationService.emergencyWalkPosted = async ({ walk }) => {
     
     await Promise.all(notificationPromises);
     
-    console.log('✅ Emergency notifications sent successfully');
     return { success: true, notified: suitableWalkers.length };
   } catch (error) {
     console.error('❌ Error notifying walkers about emergency:', error);

@@ -30,23 +30,42 @@ Deno.serve(async (req) => {
 
         const referrer = referrers[0];
 
-        // Não pode indicar-se a si próprio
+        // Cannot refer yourself
         if (referrer.email === newUserEmail) {
-            return Response.json({ 
-                error: 'Cannot refer yourself' 
+            return Response.json({
+                error: 'Cannot refer yourself'
             }, { status: 400 });
         }
 
-        // Verificar se já existe indicação
+        // Check referrer account standing
+        if (referrer.is_suspended || referrer.is_banned) {
+            return Response.json({
+                error: 'Referrer account is not in good standing'
+            }, { status: 403 });
+        }
+
+        // Check if referee was already referred by anyone
         const existing = await base44.asServiceRole.entities.Referral.filter({
             referee_email: newUserEmail
         });
 
         if (existing.length > 0) {
-            return Response.json({ 
-                error: 'User already referred',
-                existingReferral: existing[0]
+            return Response.json({
+                error: 'User already referred'
             }, { status: 400 });
+        }
+
+        // Rate limit: max 10 referrals per referrer per 24 hours
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const recentReferrals = await base44.asServiceRole.entities.Referral.filter({
+            referrer_email: referrer.email,
+            created_date: { '$gte': oneDayAgo }
+        });
+
+        if (recentReferrals.length >= 10) {
+            return Response.json({
+                error: 'Referral limit reached. Maximum 10 referrals per 24 hours.'
+            }, { status: 429 });
         }
 
         // Criar registo de indicação
@@ -82,8 +101,8 @@ Deno.serve(async (req) => {
 
     } catch (error) {
         console.error('Process referral error:', error);
-        return Response.json({ 
-            error: error.message 
+        return Response.json({
+            error: 'Failed to process referral'
         }, { status: 500 });
     }
 });

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import QRCode from "react-qr-code";
-import html2canvas from "html2canvas";
+const loadHtml2Canvas = () => import("html2canvas").then(m => m.default);
 import { Download, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getTierColor, calculateTier } from "@/components/gamification/tierSystem";
@@ -57,6 +57,7 @@ export default function DigitalWalletPass({
       // Aguardar renderização completa
       await new Promise(resolve => setTimeout(resolve, 100));
       
+      const html2canvas = await loadHtml2Canvas();
       const canvas = await html2canvas(cardRef.current, {
         scale: 2, // Escala para boa qualidade sem distorção
         backgroundColor: '#ffffff',
