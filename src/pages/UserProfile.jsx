@@ -528,22 +528,47 @@ export default function UserProfile() {
           </TabsContent>
 
           {/* SERVIÇOS */}
-          <TabsContent value="pawgo" className="space-y-4 pb-6">
+          <TabsContent value="pawgo" className="space-y-8 pb-6">
             {(walkerProfile || trainerProfile) ? (
-              <div className="space-y-4 animate-in fade-in">
-                {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).slice(0, 3).map((service, idx) => (
-                  <ServiceCard
-                    key={idx}
-                    title={service.service_name}
-                    price={service.price}
-                    desc={service.description || "Serviço profissional"}
-                    promo={`€${service.price}/hora`}
-                    icon={<Dog className="w-6 h-6 text-orange-500" />}
-                    onClick={() => handleBookingClick(service)}
-                    isOnline={walkerProfile?.is_online}
-                  />
-                ))}
-              </div>
+              <>
+                {/* LISTA DE SERVIÇOS */}
+                <div>
+                  <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900">Serviços Disponíveis</h3>
+                  <div className="space-y-3">
+                    {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
+                      <div key={idx} className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-50 flex justify-between items-center">
+                        <div>
+                          <h4 className="font-black text-xs uppercase text-slate-900">{service.service_name}</h4>
+                          <p className="text-[10px] text-slate-400 font-medium">{service.duration || 60} min</p>
+                        </div>
+                        <span className="text-orange-500 font-black italic text-lg">{service.price}€</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CALENDÁRIO */}
+                <div className="bg-slate-900 rounded-[3rem] p-6 shadow-2xl">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="bg-white/10 p-2 rounded-xl text-white">
+                      <Calendar size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-black uppercase italic text-xs">Agenda & Folgas</h4>
+                      <p className="text-[9px] text-white/40 font-bold uppercase">Reserva para o futuro</p>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-[2rem] p-4">
+                    <AvailabilityCalendar 
+                      availability={walkerProfile?.availability || trainerProfile?.availability}
+                      onDateSelect={(date) => {
+                        setSelectedDate(date);
+                        setShowBookingModal(true);
+                      }}
+                    />
+                  </div>
+                </div>
+              </>
             ) : (
               <div className="text-center py-12">
                 <Award className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
@@ -568,50 +593,6 @@ export default function UserProfile() {
             )}
           </TabsContent>
           </Tabs>
-
-          {/* --- SEÇÃO 2: AGENDA E SERVIÇOS --- */}
-          {(walkerProfile || trainerProfile) && (
-          <div className="mt-10 space-y-8 pb-32">
-
-            {/* LISTA DE SERVIÇOS */}
-            <div>
-              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900">Serviços Disponíveis</h3>
-              <div className="space-y-3">
-                {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
-                  <div key={idx} className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-50 flex justify-between items-center">
-                    <div>
-                      <h4 className="font-black text-xs uppercase text-slate-900">{service.service_name}</h4>
-                      <p className="text-[10px] text-slate-400 font-medium">{service.duration || 60} min</p>
-                    </div>
-                    <span className="text-orange-500 font-black italic text-lg">{service.price}€</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CALENDÁRIO */}
-            <div className="bg-slate-900 rounded-[3rem] p-6 shadow-2xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="bg-white/10 p-2 rounded-xl text-white">
-                  <Calendar size={18} />
-                </div>
-                <div>
-                  <h4 className="text-white font-black uppercase italic text-xs">Agenda & Folgas</h4>
-                  <p className="text-[9px] text-white/40 font-bold uppercase">Reserva para o futuro</p>
-                </div>
-              </div>
-              <div className="bg-white rounded-[2rem] p-4">
-                <AvailabilityCalendar 
-                  availability={walkerProfile?.availability || trainerProfile?.availability}
-                  onDateSelect={(date) => {
-                    setSelectedDate(date);
-                    setShowBookingModal(true);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-          )}
           </div>
 
       {/* PROFILE ACTIONS SECTION */}
