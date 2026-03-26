@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 
+// Chama o backend para concluir o passeio e creditar a Wallet
+const completeWalkOnBackend = async (walkId, { final_photo, report }) => {
+  const res = await base44.functions.invoke('completeWalkAndPay', {
+    walkId,
+    finalPhoto: final_photo,
+    report,
+  });
+  return res.data;
+};
+
 export function FinishWalkModal({ walkData, onComplete }) {
   const [photo, setPhoto] = useState(null);
   const [report, setReport] = useState("");
@@ -26,13 +36,12 @@ export function FinishWalkModal({ walkData, onComplete }) {
 
     setLoading(true);
     try {
-      await onComplete(walkData.id, {
+      const result = await completeWalkOnBackend(walkData.id, {
         final_photo: photo,
-        report: report,
-        status: "completed",
-        completed_at: new Date().toISOString(),
+        report,
       });
-      toast.success("Passeio concluído! Pagamento enviado para a tua Wallet. 💰");
+      toast.success(result?.message || "Passeio concluído! Pagamento enviado para a tua Wallet. 💰");
+      if (onComplete) onComplete(walkData.id, { final_photo: photo, report, status: 'completed' });
     } catch {
       toast.error("Erro ao finalizar passeio.");
     } finally {
