@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -474,7 +474,10 @@ export default function UserProfile() {
                 </span>
               </div>
             )}
-            </div>
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 mt-6 text-center">{displayName}</h1>
+          {displayCity && <p className="text-slate-500 flex items-center gap-1 mt-2"><MapPin size={14} /> {displayCity}</p>}
+        </div>
 
         {/* TABS */}
         <Tabs defaultValue={serviceParam ? "pawgo" : "badges"}>
@@ -483,6 +486,30 @@ export default function UserProfile() {
             <TabsTrigger value="pawgo" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Serviços</TabsTrigger>
             <TabsTrigger value="reviews" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Feedback</TabsTrigger>
           </TabsList>
+
+          {/* CONQUISTAS */}
+          <TabsContent value="badges" className="space-y-4">
+            {loadingBadges ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => <div key={i} className="h-16 bg-slate-200 rounded-2xl animate-pulse" />)}
+              </div>
+            ) : earnedBadges.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 animate-in fade-in">
+                {earnedBadges.slice(0, 4).map((badge) => (
+                  <div key={badge._uniqueId} className="bg-white/70 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-white/50 text-center cursor-pointer hover:bg-white/80 transition-all">
+                    <div className="text-4xl mb-2">{getBadgeImage(badge.badge_id)}</div>
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight">{badge.name || badge.badge_id}</h3>
+                    <p className="text-[9px] text-slate-500 mt-1">{badge.description}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Award className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
+                <p className="text-slate-500 text-sm">Sem conquistas ainda</p>
+              </div>
+            )}
+          </TabsContent>
 
           {/* SERVIÇOS */}
           <TabsContent value="pawgo" className="space-y-4">
@@ -504,7 +531,7 @@ export default function UserProfile() {
             ) : (
               <div className="text-center py-12">
                 <Award className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
-                <p className="text-slate-500 text-sm">Sem conquistas ainda</p>
+                <p className="text-slate-500 text-sm">Sem serviços disponíveis</p>
               </div>
             )}
           </TabsContent>
