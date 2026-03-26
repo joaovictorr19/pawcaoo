@@ -246,6 +246,11 @@
     background: transparent;
   }
 
+  /* PawGo Live Tracking - Marcador suave no mapa */
+  .map-marker-pro {
+    transition: all 1.5s linear;
+  }
+
   [role="tabpanel"] {
     background: transparent;
   }
