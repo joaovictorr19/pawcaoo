@@ -28,12 +28,6 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
         
         <div className="absolute top-4 right-4 flex flex-col gap-2">
-          {professional.verification_status === "verified" && (
-            <Badge className="bg-white/20 backdrop-blur-md text-white border-0 shadow-sm text-xs px-3 py-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
-              {t('verified', language)}
-            </Badge>
-          )}
           <Badge className="bg-white/90 text-gray-900 border-0 shadow-sm text-xs px-3 py-1.5">
             <Star className="w-3.5 h-3.5 mr-1.5 fill-yellow-400 text-yellow-400" />
             {averageRating.toFixed(1)} ({reviews.length})
@@ -64,10 +58,13 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
 
           </div>
           
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 justify-center">
             <h1 className="text-3xl font-bold text-gray-900 text-center">
               {name}
             </h1>
+            {professional.verification_status === "verified" && (
+              <ShieldCheck className="w-6 h-6 text-blue-600 flex-shrink-0" title="Verificado" />
+            )}
             {customBadges}
           </div>
           
