@@ -992,17 +992,365 @@ export default function Home() {
         />
       )}
 
-      <div className="max-w-7xl mx-auto px-3 md:px-6 py-3 md:py-4">
+      <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
         {/* Tabs Section - Show for everyone */}
-        <div id="results-section" className="grid lg:grid-cols-4 gap-4 md:gap-6 mb-4 md:mb-6">
-          {/* Other content */}
+        <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
+          <AnimatePresence>
+            {showAdvancedFilters && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="lg:col-span-1"
+              >
+                <Suspense fallback={<div className="p-4"><Skeleton className="h-96 w-full" /></div>}>
+                  {activeTab === 'walkers' ? (
+                    <AdvancedWalkerFilters
+                      filters={advancedFilters}
+                      onFiltersChange={setAdvancedFilters}
+                      onReset={resetAdvancedFilters}
+                      onClose={() => setShowAdvancedFilters(false)}
+                    />
+                  ) : activeTab === 'trainers' ? (
+                    <AdvancedTrainerFilters
+                      filters={trainerFilters}
+                      onFiltersChange={setTrainerFilters}
+                      onReset={resetTrainerFilters}
+                      onClose={() => setShowAdvancedFilters(false)}
+                    />
+                  ) : null}
+                </Suspense>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto bg-white/80 backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
+                <button
+                  onClick={() => setActiveTab('professionals')}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                    activeTab === 'professionals'
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Users className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
+                  <span className="truncate sm:hidden">Pro</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('emergency')}
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                    activeTab === 'emergency'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate font-bold">PawGo</span>
+                </button>
+
+              </div>
+
+              <TabsContent value="professionals">
+                <div>
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
+                        {filterDogSitting !== "all" ? (
+                          <>
+                            {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
+                            {filterDogSitting === "house_sitting" && t('walkersForHouseSitting', language)}
+                            {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
+                          </>
+                        ) : (
+                          language === 'pt' ? 'Profissionais Disponíveis' : 
+                          language === 'es' ? 'Profesionales Disponibles' : 
+                          'Available Professionals'
+                        )}
+                      </h2>
+                      <div className="flex items-center gap-2 flex-wrap mt-2">
+                        <p className="text-xs md:text-base text-white/90 drop-shadow-md flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                          {filteredProfessionals.length} {t('found', language)}
+                        </p>
+                        
+                        {selectedServiceTypes.length > 0 && (
+                          <Badge className="bg-green-100 text-green-800 text-xs">
+                            {selectedServiceTypes.length} {t('serviceCount', language)}
+                          </Badge>
+                        )}
+                        {selectedSpecializations.length > 0 && (
+                          <Badge className="bg-purple-100 text-purple-800 text-xs">
+                            {selectedSpecializations.length} {t('specializationCount', language)}
+                          </Badge>
+                        )}
+                        
+                        {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
+                          <Badge className="bg-green-100 text-green-800 text-xs">
+                            📊 {t('sortedByMatch', language)}
+                          </Badge>
+                        )}
+                        
+                        {filterDogSitting !== "all" && (
+                          <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                            {filterDogSitting === "boarding" && `🏠 ${t('dogBoarding', language)}`}
+                            {filterDogSitting === "house_sitting" && `🏡 ${t('houseSitting', language)}`}
+                            {filterDogSitting === "drop_in" && `🚪 ${t('dropInVisits', language)}`}
+                          </span>
+                        )}
+                        {showAdvancedFilters && advancedFilters.radius < 50 && userLocation && (
+                          <span className="text-purple-600 font-semibold ml-2">
+                            ({t('upToDistance', language)} {advancedFilters.radius}km)
+                          </span>
+                        )}
+                        {filteredProfessionals.some(w => w.distance !== null) && 
+                         !(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
+                          <span className="text-purple-600 font-semibold ml-2">
+                            ({t('sortedByDistance', language)})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {viewMode === "map" ? (
+                    <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
+                      <WalkerSearchMap
+                        walkers={filteredProfessionals}
+                        userLocation={userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null}
+                        onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
+                      />
+                    </div>
+                  ) : ( 
+                    <>
+                      {loadingWalkers ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                            <div key={`skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
+                              <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                              <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                              <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : filteredProfessionals.length === 0 ? (
+                      <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden bg-white/90">
+                        <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                          <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
+                          {language === 'pt' ? 'Nenhum profissional encontrado' : 
+                           language === 'es' ? 'No se encontró ningún profesional' : 
+                           'No professionals found'}
+                        </h3>
+                        <p className="text-sm md:text-base text-gray-600 mb-4">
+                          {language === 'pt' ? 'Tente ajustar os filtros de pesquisa.' : 'Try adjusting the search filters.'}
+                        </p>
+
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => {
+                              setSearchLocation("");
+                              setFilterSize("all");
+                              setFilterTime("all");
+                              setFilterAnimalType("all");
+                              setFilterDogSitting("all");
+                              setCurrentPage(1);
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          Limpar Filtros
+                        </Button>
+                      </Card>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                            {paginatedProfessionals.map((pro) => (
+                              <ProfessionalCard key={pro.id} walker={pro} />
+                            ))}
+                          </div>
+
+                          {/* Pagination Controls */}
+                          {filteredProfessionals.length > itemsPerPage && (
+                            <div className="flex justify-center items-center gap-2 mt-8">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="hover:bg-gray-50"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                                <span className="sr-only">{t('previousPage', language)}</span>
+                              </Button>
+                              
+                              <div className="flex items-center gap-1">
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                  let pageNum = i + 1;
+                                  if (totalPages > 5 && currentPage > 3) {
+                                    pageNum = currentPage - 3 + i;
+                                    if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                                  }
+                                  
+                                  return (
+                                    <Button
+                                      key={pageNum}
+                                      variant={currentPage === pageNum ? "default" : "ghost"}
+                                      size="sm"
+                                      onClick={() => setCurrentPage(pageNum)}
+                                      className={`w-8 h-8 p-0 font-medium ${
+                                        currentPage === pageNum 
+                                          ? 'text-white' 
+                                          : 'text-gray-600 hover:bg-gray-50'
+                                      }`}
+                                      style={currentPage === pageNum ? {
+                                        background: `linear-gradient(to right, ${colors?.primary || '#16a34a'}, ${colors?.primary || '#16a34a'}dd)`
+                                      } : {}}
+                                    >
+                                      {pageNum}
+                                    </Button>
+                                  );
+                                })}
+                              </div>
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="hover:bg-gray-50"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                                <span className="sr-only">{t('nextPage', language)}</span>
+                              </Button>
+                            </div>
+                          )}
+                          
+                          <div className="text-center text-xs text-gray-500 mt-4">
+                            {t('showingResults', language)} {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredProfessionals.length)} {t('of', language)} {filteredProfessionals.length} {language === 'pt' ? 'profissionais' : language === 'es' ? 'profesionales' : 'professionals'}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </TabsContent>
+
+
+
+              <TabsContent value="emergency">
+                <div>
+                  <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <div>
+                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+                        <MapPin className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
+                        Profissionais Online
+                      </h2>
+                      <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
+                        {walkers?.filter(w => w.is_online)?.length || 0} profissionais disponíveis agora
+                      </p>
+                    </div>
+                  </div>
+                  {loadingEmergency ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                      {[1, 2, 3].map(i => (
+                        <div key={`emergency-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
+                          <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                          <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                          <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                        </div>
+                      ))}
+                    </div>
+
+                  ) : filteredEmergencyWalks.length === 0 ? (
+                    <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100">
+                      <div className="relative w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-orange-100 to-red-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                        <MapPin className="w-8 h-8 md:w-10 md:h-10 text-orange-500 z-10" />
+                        <div className="absolute inset-0 border-2 border-orange-300 rounded-full animate-ping opacity-20"></div>
+                      </div>
+                      <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2">Nenhum PawGo Ativo</h3>
+                      <p className="text-sm md:text-base text-gray-600">A área está tranquila por agora.</p>
+                      
+                      {!['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                        <Button 
+                          onClick={() => navigate(createPageUrl("Dashboard"))}
+                          className="mt-6 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-xl hover:shadow-orange-500/30 hover:scale-105 transition-all active:scale-95 px-8 h-12"
+                        >
+                          <Zap className="w-5 h-5 mr-2 fill-current" />
+                          Precisa de um passeio agora? Use o PawGo
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-4 py-6">
+                      <p className="text-sm text-gray-600 text-center">
+                        {filteredEmergencyWalks.length} {filteredEmergencyWalks.length === 1 ? 'pedido ativo' : 'pedidos ativos'} na tua zona.
+                      </p>
+                      {!['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                        <Button
+                          onClick={() => navigate(createPageUrl('Dashboard'))}
+                          className="w-full max-w-sm h-16 bg-orange-500 rounded-[2rem] shadow-2xl shadow-orange-500/30 text-white font-black uppercase tracking-widest text-xs"
+                        >
+                          <Dog size={18} className="mr-2" /> Pedir Passeio Agora
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+            </Tabs>
+          </div>
         </div>
+
+        {/* Professional Call-to-Action Section */}
+        <div className="mt-16 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden"
+          >
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+            
+            <div className="relative z-10 text-center">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
+              </h2>
+              <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
+                {language === 'pt' 
+                  ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
+                  : 'Earn money doing what you love. Become a certified walker or trainer.'}
+              </p>
+              
+              <div className="flex justify-center">
+                <Button
+                  size="default"
+                  onClick={() => navigate(createPageUrl('ProfessionalSetup'))}
+                  className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  {language === 'pt' ? 'Tornar-me Profissional' : 'Become a Professional'}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+          </div>
 
           {/* Testimonials Section */}
           {!user && <TestimonialsSection />}
 
           {/* Trust Badges Section - Premium Minimal */}
-          <div className="mt-6 md:mt-8 mb-4 md:mb-6">
+          <div className="mt-12 mb-8">
           <div className="flex items-center justify-center gap-6 md:gap-12 max-w-2xl mx-auto px-4">
             <motion.div 
               whileHover={{ scale: 1.02 }}
