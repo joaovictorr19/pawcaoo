@@ -156,7 +156,7 @@ export default function PostEmergency() {
     }
     
     const locationVal = formData.location || user?.address || user?.city || "Minha Localização";
-    const dogNames = selectedDogs.map(d => d.dog_name).join(", ");
+    const dogNames = selectedDogs.map(d => d.name).join(", ");
 
     const walkData = {
       owner_name: user?.full_name || "Cliente",
@@ -168,7 +168,7 @@ export default function PostEmergency() {
       special_notes: dogNames,
       urgency_level: "urgent",
       dogs: selectedDogs.map(dog => ({
-          dog_name: dog.dog_name,
+          dog_name: dog.name,
           dog_photo_url: dog.photo_url,
           dog_size: dog.size,
           dog_breed: dog.breed
