@@ -1350,8 +1350,6 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                  <p3>filt em{filteredEmergencyWalks.length}</p3>
-                  <p3>emerg{emergencyWalks.length}</p3>
                   {loadingEmergency ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                       {[1, 2, 3].map(i => (
