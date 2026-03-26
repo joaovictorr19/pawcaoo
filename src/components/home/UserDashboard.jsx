@@ -11,101 +11,12 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Heart, Wallet, Trophy, Calendar, Dog, MapPin, Bell } from "lucide-react";
 
-export default function UserDashboard({ user }) {
+export default function UserDashboard({ user, allWalkers = [], emergencyWalks = [] }) {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(true);
-
-  const { data: myDogs = [] } = useQuery({
-    queryKey: ['myDogs', user?.email],
-    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
-    enabled: !!user?.email,
-    initialData: []
-  });
-
-  const { data: currentUserProfile } = useQuery({
-    queryKey: ['currentUserProfileXP', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-      return profiles[0] || null;
-    },
-    enabled: !!user?.email,
-    staleTime: 10 * 1000,
-    refetchOnWindowFocus: true,
-  });
-
-  const currentXP = currentUserProfile?.gamification_xp || 0;
-  const [displayedXP, setDisplayedXP] = useState(currentXP);
-  
-  useEffect(() => {
-    if (!currentXP) {
-      setDisplayedXP(0);
-      return;
-    }
-    const duration = 1500;
-    const steps = 60;
-    const increment = currentXP / steps;
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= currentXP) {
-        setDisplayedXP(currentXP);
-        clearInterval(timer);
-      } else {
-        setDisplayedXP(Math.floor(current));
-      }
-    }, duration / steps);
-
-    return () => clearInterval(timer);
-  }, [currentXP]);
-
-  const { data: pendingBookingsCount = 0 } = useQuery({
-    queryKey: ['pendingBookingsCount', user?.email],
-    queryFn: async () => {
-      if (!user?.email || !['walker', 'trainer', 'both'].includes(user?.account_type)) return 0;
-      try {
-        const res = await base44.entities.Booking.filter({
-          $or: [
-            { walker_email: user.email, status: 'pending' },
-            { trainer_email: user.email, status: 'pending' }
-          ]
-        });
-        return Array.isArray(res) ? res.length : 0;
-      } catch (error) {
-        return 0;
-      }
-    },
-    enabled: !!user?.email && ['walker', 'trainer', 'both'].includes(user?.account_type),
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: emergencyWalks = [] } = useQuery({
-    queryKey: ['emergencyWalks'],
-    queryFn: async () => {
-      try {
-        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 15);
-        if (!Array.isArray(res)) return [];
-        const uniqueMap = new Map();
-        res.forEach(walk => {
-          if (walk.id && !uniqueMap.has(walk.id)) {
-            uniqueMap.set(walk.id, walk);
-          }
-        });
-        return Array.from(uniqueMap.values());
-      } catch (error) {
-        return [];
-      }
-    },
-    enabled: user?.preferences?.current_mode === 'professional',
-    initialData: [],
-    staleTime: 3 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
 
   return (
     <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
