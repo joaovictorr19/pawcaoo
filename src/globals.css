@@ -33,7 +33,7 @@
   html, body {
     @apply text-foreground overflow-x-hidden max-w-[100vw] w-full;
     position: relative;
-    background: #f8fafc !important;
+    background: transparent !important;
     min-height: 100vh;
     min-height: -webkit-fill-available;
   }
