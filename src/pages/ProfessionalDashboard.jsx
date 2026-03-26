@@ -46,7 +46,7 @@ import ActiveServiceBanner from "../components/professional/ActiveServiceBanner"
 import BookingsList from "../components/professional/BookingsList";
 import OverviewCharts from "../components/professional/OverviewCharts";
 import RecentActivity from "../components/professional/RecentActivity";
-import OpenWalksList from "../components/professional/OpenWalksList";
+import { RadarStatusPanel } from "../components/professional-hub/RadarStatusPanel";
 import AdvancedAnalyticsDashboard from "@/components/professional/AdvancedAnalyticsDashboard";
 import IncomingRequestModal from "../components/professional/IncomingRequestModal";
 
@@ -712,7 +712,7 @@ export default function ProfessionalDashboard() {
           )}
 
           {activeTab === 'requests' && (
-            <OpenWalksList walkerProfile={walkerProfile || trainerProfile} />
+            <RadarStatusPanel userEmail={user?.email} isOnline={profile?.is_online} city={profile?.location || user?.city || 'Portugal'}
           )}
 
           {activeTab === 'bookings' && (
@@ -1056,7 +1056,7 @@ export default function ProfessionalDashboard() {
           <IncomingRequestModal 
             request={incomingRequest} 
             onAccept={handleAcceptIncomingRequest} 
-            onReject={handleRejectIncomingRequest} 
+            onDecline={handleRejectIncomingRequest} 
           />
         </ErrorBoundary>
       </div>
