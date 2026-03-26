@@ -160,31 +160,35 @@ export default function ProfessionalHubV2() {
         </div>
       )}
 
-      {/* 1. Header Fixo com Status Online */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl p-4 md:p-6 flex justify-between items-center border-b border-white/5">
-        <div>
-          <h2 className="text-xl md:text-2xl font-black tracking-tighter">Painel Pro</h2>
-          <VerificationBanner status={professionalProfile?.verification_status} />
-        </div>
-        <div className="flex items-center gap-4">
-           <button 
+      {/* 1. Header com saudação, status e stats rápidas */}
+      <header className="bg-slate-950 text-white p-6 rounded-b-[2.5rem] shadow-xl mb-6">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h1 className="text-xl font-black italic">Olá, {user?.full_name?.split(' ')[0] || 'Pro'}! 🐾</h1>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Painel Profissional</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
               onClick={() => toggleOnlineMutation.mutate(!isOnline)}
-              className="flex flex-col items-end cursor-pointer active:scale-95 transition-transform"
+              className={`px-4 py-2 rounded-2xl border cursor-pointer active:scale-95 transition-transform ${
+                isOnline ? 'border-green-500 text-green-400' : 'border-slate-700 text-slate-500'
+              }`}
             >
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Status</span>
-              <span className={`text-xs font-black flex items-center gap-1.5 px-2 py-1 rounded-md ${isOnline ? 'bg-green-500/10 text-green-500' : 'bg-slate-800 text-slate-400'}`}>
-                <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} /> 
+              <span className="text-[10px] font-black uppercase flex items-center gap-1.5">
+                <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`} />
                 {isOnline ? 'Online' : 'Offline'}
               </span>
-           </button>
-           <Button 
-             onClick={() => navigate(createPageUrl('Notifications'))}
-             variant="ghost"
-             className="rounded-[1rem] bg-slate-900 border border-white/5 w-12 h-12 p-0 text-slate-400 hover:text-white hover:bg-slate-800"
-           >
-              <Bell size={20} />
-           </Button>
+            </button>
+            <Button
+              onClick={() => navigate(createPageUrl('Notifications'))}
+              variant="ghost"
+              className="rounded-[1rem] bg-slate-900 border border-white/5 w-10 h-10 p-0 text-slate-400 hover:text-white hover:bg-slate-800"
+            >
+              <Bell size={18} />
+            </Button>
+          </div>
         </div>
+        <VerificationBanner status={professionalProfile?.verification_status} />
       </header>
 
       <main className="p-4 md:p-6 max-w-lg mx-auto">
@@ -200,15 +204,15 @@ export default function ProfessionalHubV2() {
               className="space-y-8"
             >
               <StatsSection user={user} professionalProfile={professionalProfile} />
-              
+
               <div className="flex gap-2 mb-6">
-                <Button 
+                <Button
                   onClick={() => setShowEditProfile(true)}
                   className="flex-1 bg-white text-slate-900 hover:bg-slate-100 font-bold rounded-2xl h-12"
                 >
                   Editar Perfil
                 </Button>
-                <Button 
+                <Button
                   onClick={() => navigate(createPageUrl(`UserProfile?id=${user?.id}`))}
                   variant="outline"
                   className="flex-1 border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white font-bold rounded-2xl h-12"
