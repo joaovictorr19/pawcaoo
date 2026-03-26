@@ -139,7 +139,11 @@ export default function LocationSearch({ onLocationChange, currentLocation }) {
 }
 
 // Haversine formula to calculate distance between two coordinates
+const parseCoord = (val) => val ? parseFloat(val.toString().replace(',', '.')) : 0;
+
 export function calculateDistance(lat1, lon1, lat2, lon2) {
+  lat1 = parseCoord(lat1); lon1 = parseCoord(lon1);
+  lat2 = parseCoord(lat2); lon2 = parseCoord(lon2);
   const R = 6371; // Radius of the Earth in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;

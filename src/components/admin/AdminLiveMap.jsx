@@ -11,6 +11,11 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
+const parseLocation = (val) => {
+  if (!val) return 0;
+  return parseFloat(val.toString().replace(',', '.'));
+};
+
 const getDistanceInMeters = (lat1, lon1, lat2, lon2) => {
   const R = 6371000;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -101,7 +106,7 @@ export default function AdminLiveMap({ users = [], bookings = [], onUserClick })
 
         f.push({
           type: 'Feature',
-          geometry: { type: 'Point', coordinates: [u.longitude, u.latitude] },
+          geometry: { type: 'Point', coordinates: [parseLocation(u.longitude), parseLocation(u.latitude)] },
           properties: {
             id: u.id,
             email: u.email,
@@ -182,15 +187,15 @@ export default function AdminLiveMap({ users = [], bookings = [], onUserClick })
         {activeWalks.map(walk => {
           let isOutofBounds = false;
           if (walk.pickup_lat && walk.pickup_lng && walk.walker_lat && walk.walker_lng) {
-             const dist = getDistanceInMeters(walk.pickup_lat, walk.pickup_lng, walk.walker_lat, walk.walker_lng);
+             const dist = getDistanceInMeters(parseLocation(walk.pickup_lat), parseLocation(walk.pickup_lng), parseLocation(walk.walker_lat), parseLocation(walk.walker_lng));
              if (dist > 5000) isOutofBounds = true;
           }
 
           return (
           <Marker
             key={walk.id}
-            longitude={walk.walker_lng}
-            latitude={walk.walker_lat}
+            longitude={parseLocation(walk.walker_lng)}
+            latitude={parseLocation(walk.walker_lat)}
             anchor="bottom"
             onClick={(e) => {
                 e.originalEvent.stopPropagation();
@@ -212,8 +217,8 @@ export default function AdminLiveMap({ users = [], bookings = [], onUserClick })
 
         {selectedWalk && (
           <Popup
-            longitude={selectedWalk.walker_lng}
-            latitude={selectedWalk.walker_lat}
+            longitude={parseLocation(selectedWalk.walker_lng)}
+            latitude={parseLocation(selectedWalk.walker_lat)}
             onClose={() => setSelectedWalk(null)}
             closeButton
             anchor="bottom"

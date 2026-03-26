@@ -12,9 +12,12 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import NotificationService from "../components/NotificationService";
 
+const parseLocation = (val) => {
+  if (!val) return 0;
+  return parseFloat(val.toString().replace(',', '.'));
+};
+
 export default function PostEmergency() {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [matchStatus, setMatchStatus] = useState("idle"); // idle, searching, matched
@@ -205,9 +208,9 @@ export default function PostEmergency() {
 
             {/* WALKERS AO REDOR */}
             {matchStatus === "idle" && availableWalkers.map(walker => {
-              if (!walker.longitude || !walker.latitude) return null;
-              return (
-                <MapMarker key={walker.id} longitude={walker.longitude} latitude={walker.latitude}>
+            if (!walker.longitude || !walker.latitude) return null;
+            return (
+              <MapMarker key={walker.id} longitude={parseLocation(walker.longitude)} latitude={parseLocation(walker.latitude)}>
                   <MarkerContent>
                     <motion.div 
                       whileHover={{ scale: 1.2 }}
