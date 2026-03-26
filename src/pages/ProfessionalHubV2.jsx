@@ -12,7 +12,7 @@ import { ProfessionalTabBar } from "../components/professional-hub/ProfessionalT
 import { StatsSection } from "../components/professional-hub/StatsSection";
 import { ServiceManager } from "../components/professional-hub/ServiceManager";
 import { AgendaCalendar } from "../components/professional-hub/AgendaCalendar";
-import { ActiveRequestsList } from "../components/professional-hub/ActiveRequestsList";
+import { RadarStatusPanel } from "../components/professional-hub/RadarStatusPanel";
 import { ToolsSection } from "../components/professional-hub/ToolsSection";
 import { VerificationBanner } from "../components/professional-hub/VerificationBanner";
 import { useRealTimeRequests } from "../hooks/useRealTimeRequests";
@@ -220,9 +220,9 @@ export default function ProfessionalHubV2() {
               <div>
                 <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                    <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
-                   Radar PawGo (Ao Vivo)
-                </h3>
-                <ActiveRequestsList userEmail={user?.email} />
+                   Radar PawGo
+                 </h3>
+                <RadarStatusPanel userEmail={user?.email} isOnline={isOnline} />
               </div>
             </motion.div>
           )}
