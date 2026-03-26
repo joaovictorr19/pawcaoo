@@ -18,6 +18,8 @@ const parseLocation = (val) => {
 };
 
 export default function PostEmergency() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isLoaded, setIsLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [matchStatus, setMatchStatus] = useState("idle"); // idle, searching, matched
@@ -53,6 +55,12 @@ export default function PostEmergency() {
     queryKey: ['availableWalkers'],
     queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 50)
   });
+
+  useEffect(() => {
+    if (!user?.email && typeof window !== 'undefined') {
+      navigate(createPageUrl('Home'));
+    }
+  }, [user?.email, navigate]);
 
   const [formData, setFormData] = useState({
     location: "",
