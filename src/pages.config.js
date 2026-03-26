@@ -97,13 +97,13 @@ export const PAGES = {
 
     "LiveWalkTracking": page(() => import('./pages/LiveWalkTracking')),
     "LoyaltyRewards": page(() => import('./pages/LoyaltyRewards')),
-    "ManageAdoptionListings": page(() => import('./pages/ManageAdoptionListings')),
+
     "ManageAvailability": page(() => import('./pages/ManageAvailability')),
-    "ManageMyAdoptions": page(() => import('./pages/ManageMyAdoptions')),
+
     "MembershipPlans": page(() => import('./pages/MembershipPlans')),
     "MembershipSuccess": page(() => import('./pages/MembershipSuccess')),
     "ModerationPanel": page(() => import('./pages/ModerationPanel')),
-    "MyAdoptionApplications": page(() => import('./pages/MyAdoptionApplications')),
+
     "MyBookings": page(() => import('./pages/MyBookings')),
 
     "MyProfile": page(() => import('./pages/MyProfile')),
@@ -130,10 +130,10 @@ export const PAGES = {
     "ShelterProfile": page(() => import('./pages/ShelterProfile')),
     "ShelterRegister": page(() => import('./pages/ShelterRegister')),
     "Shelters": page(() => import('./pages/Shelters')),
-    "Shop": page(() => import('./pages/Shop')),
+
     "Sitemap": page(() => import('./pages/Sitemap')),
-    "SocialEvents": page(() => import('./pages/SocialEvents')),
-    "SocialFeed": page(() => import('./pages/SocialFeed')),
+
+
     "StaticExport": page(() => import('./pages/StaticExport')),
     "StripeConnectSetup": page(() => import('./pages/StripeConnectSetup')),
     "Subscriptions": page(() => import('./pages/Subscriptions')),
