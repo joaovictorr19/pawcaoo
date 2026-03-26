@@ -489,7 +489,6 @@ export default function Home() {
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
 
-    return emergencyWalks;
     const filtered = emergencyWalks
       .map(walk => ({
         ...walk,
@@ -514,8 +513,7 @@ export default function Home() {
         const dateB = b.created_date ? new Date(b.created_date).getTime() : 0;
         return dateB - dateA;
       });
-
-    console.log("filtered", filtered)
+      
     return filtered;
   }, [emergencyWalks, searchLocation, filterSize, userLocation]);
 
