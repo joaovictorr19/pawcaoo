@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2 } from "lucide-react";
 import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 // EmergencyDogCard removido — substituído pelo fluxo PawGo com Ribbon + botão de ação
@@ -151,6 +151,8 @@ export default function Home() {
   const [reviewBooking, setReviewBooking] = useState(null);
   const [selectedPet, setSelectedPet] = useState(myDogs?.[0] || null);
   const [isSearching, setIsSearching] = useState(false);
+  const [duration, setDuration] = useState(30);
+  const userPets = myDogs;
 
   const { data: activeBookings = [] } = useQuery({
     queryKey: ['activeBookings', user?.email],
@@ -602,6 +604,21 @@ export default function Home() {
 
   const handleBecomePro = () => {
     base44.auth.redirectToLogin(createPageUrl('BecomeProfessional'));
+  };
+
+  const handleLaunchPawGo = async () => {
+    if (!selectedPet) return;
+    setIsSearching(true);
+    try {
+      // Simula a busca por profissionais online
+      await new Promise(r => setTimeout(r, 2000));
+      // Aqui integraria com lógica real de matching
+      navigate(createPageUrl('Dashboard'));
+    } catch (error) {
+      toast.error('Erro ao iniciar PawGo');
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -1247,66 +1264,82 @@ export default function Home() {
 
 
               <TabsContent value="emergency">
-                <div>
-                  {user && <PawGoSearch />}
-                  <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-                        <MapPin className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
-                        Profissionais Online
-                      </h2>
-                      <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
-                        <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
-                        {walkers?.filter(w => w.is_online)?.length || 0} profissionais disponíveis agora
-                      </p>
+                {/* --- ABA PAWGO: LIMPA E EXCLUSIVA --- */}
+                {user ? (
+                  <div className="p-6 animate-in fade-in duration-500">
+                    <div className="bg-slate-900 rounded-[3rem] p-8 shadow-2xl border border-white/5 relative overflow-hidden">
+                      
+                      {/* 1. SELEÇÃO DO PATUDO */}
+                      <div className="relative z-10 mb-8">
+                        <h3 className="text-white font-black uppercase italic text-xs mb-4 tracking-[0.2em] opacity-50">1. Quem vai passear?</h3>
+                        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                          {userPets?.length > 0 ? userPets.map(pet => (
+                            <button 
+                              key={pet.id}
+                              onClick={() => setSelectedPet(pet)}
+                              className={`flex-shrink-0 transition-all duration-300 ${selectedPet?.id === pet.id ? 'scale-110' : 'opacity-40 grayscale'}`}
+                            >
+                              <div className={`w-16 h-16 rounded-[1.5rem] border-4 ${selectedPet?.id === pet.id ? 'border-orange-500' : 'border-white/10'}`}>
+                                <img src={pet.photo_url} className="w-full h-full object-cover rounded-xl" />
+                              </div>
+                              <p className="text-[10px] font-black text-white mt-2 uppercase text-center">{pet.name || pet.dog_name}</p>
+                            </button>
+                          )) : <p className="text-white/30 text-[10px] font-bold uppercase">Nenhum pet encontrado...</p>}
+                        </div>
+                      </div>
+
+                      {/* 2. DURAÇÃO E PREÇO */}
+                      <div className="relative z-10 mb-8 grid grid-cols-2 gap-3">
+                        {[30, 60].map(mins => (
+                          <button 
+                            key={mins}
+                            onClick={() => setDuration(mins)}
+                            className={`h-20 rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${(
+                              duration === mins ? 'border-orange-500 bg-orange-500/10' : 'border-white/5 bg-white/5'
+                            )}`}
+                          >
+                            <span className="text-white font-black text-lg leading-none">{mins}min</span>
+                            <span className="text-orange-500 font-bold text-[10px] uppercase mt-1">
+                              {mins === 30 ? '12€' : '20€'}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* 3. LANÇAR O RADAR */}
+                      <div className="relative z-10">
+                        <button 
+                          disabled={!selectedPet || isSearching}
+                          onClick={handleLaunchPawGo}
+                          className="w-full h-16 bg-orange-500 text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-20 disabled:grayscale transition-all"
+                        >
+                          {isSearching ? (
+                             <div className="flex items-center justify-center gap-2 italic"><Loader2 className="animate-spin" size={18}/> Chamando...</div>
+                          ) : (
+                             <div className="flex items-center justify-center gap-2 italic"><Zap size={18} fill="currentColor"/> Iniciar PawGo</div>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Efeito de Radar Visual */}
+                      {isSearching && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-64 h-64 bg-orange-500/20 rounded-full animate-ping" />
+                        </div>
+                      )}
                     </div>
                   </div>
-                  {loadingEmergency ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                      {[1, 2, 3].map(i => (
-                        <div key={`emergency-skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
-                          <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
-                          <Skeleton className="h-5 w-3/4 bg-gray-200" />
-                          <Skeleton className="h-4 w-1/2 bg-gray-200" />
-                        </div>
-                      ))}
-                    </div>
-
-                  ) : filteredEmergencyWalks.length === 0 ? (
-                    <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100">
-                      <div className="relative w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-orange-100 to-red-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                        <MapPin className="w-8 h-8 md:w-10 md:h-10 text-orange-500 z-10" />
-                        <div className="absolute inset-0 border-2 border-orange-300 rounded-full animate-ping opacity-20"></div>
-                      </div>
-                      <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-2">Nenhum PawGo Ativo</h3>
-                      <p className="text-sm md:text-base text-gray-600">A área está tranquila por agora.</p>
-                      
-                      {!['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                        <Button 
-                          onClick={() => navigate(createPageUrl("Dashboard"))}
-                          className="mt-6 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-xl hover:shadow-orange-500/30 hover:scale-105 transition-all active:scale-95 px-8 h-12"
-                        >
-                          <Zap className="w-5 h-5 mr-2 fill-current" />
-                          Precisa de um passeio agora? Use o PawGo
-                        </Button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-4 py-6">
-                      <p className="text-sm text-gray-600 text-center">
-                        {filteredEmergencyWalks.length} {filteredEmergencyWalks.length === 1 ? 'pedido ativo' : 'pedidos ativos'} na tua zona.
-                      </p>
-                      {!['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                        <Button
-                          onClick={() => navigate(createPageUrl('Dashboard'))}
-                          className="w-full max-w-sm h-16 bg-orange-500 rounded-[2rem] shadow-2xl shadow-orange-500/30 text-white font-black uppercase tracking-widest text-xs"
-                        >
-                          <Dog size={18} className="mr-2" /> Pedir Passeio Agora
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100">
+                    <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">Faça Login para Usar PawGo</h3>
+                    <Button 
+                      onClick={handleLogin}
+                      className="bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-xl"
+                    >
+                      Entrar Agora
+                    </Button>
+                  </div>
+                )}
               </TabsContent>
 
             </Tabs>
