@@ -1350,7 +1350,8 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-
+                  <p3>filteredEmergencyWalks.length</p3>
+                  <p3>emergencyWalks.length</p3>
                   {loadingEmergency ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                       {[1, 2, 3].map(i => (
@@ -1361,6 +1362,7 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
+
                   ) : filteredEmergencyWalks.length === 0 ? (
                     <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100">
                       <div className="relative w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-orange-100 to-red-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
