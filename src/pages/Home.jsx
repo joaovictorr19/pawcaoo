@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -643,12 +643,12 @@ export default function Home() {
                             className="w-16 h-16 rounded-xl border-2 border-white/50 shadow-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm aspect-square"
                           >
                              {user.profile_photo_url ? (
-                               <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover aspect-square" />
-                             ) : (
-                               <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
-                                 {user.full_name?.charAt(0) || 'U'}
-                               </div>
-                             )}
+                              <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover aspect-square" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
+                                {user.full_name?.charAt(0) || 'U'}
+                              </div>
+                            )}
                           </motion.div>
                           <div>
                             <h2 className="text-2xl font-bold text-white mb-0.5">
@@ -994,9 +994,6 @@ export default function Home() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
-        {/* PawGo Search Radar */}
-        {user && <PawGoSearch />}
-
         {/* Tabs Section - Show for everyone */}
         <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
           <AnimatePresence>
@@ -1060,6 +1057,7 @@ export default function Home() {
 
               <TabsContent value="professionals">
                 <div>
+                  {user && <PawGoSearch />}
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
