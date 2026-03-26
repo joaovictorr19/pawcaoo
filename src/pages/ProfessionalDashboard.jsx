@@ -712,7 +712,7 @@ export default function ProfessionalDashboard() {
           )}
 
           {activeTab === 'requests' && (
-            <RadarStatusPanel userEmail={user?.email} isOnline={profile?.is_online} city={profile?.location || user?.city || 'Portugal'}
+            <RadarStatusPanel userEmail={user?.email} isOnline={profile?.is_online} city={profile?.location || user?.city || 'Portugal'} />
           )}
 
           {activeTab === 'bookings' && (

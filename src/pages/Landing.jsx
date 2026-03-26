@@ -40,7 +40,7 @@ export default function Landing() {
   // Show loading while checking auth
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-sky-300 via-sky-100 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <PawCaoLogo size="large" />
           <p className="text-gray-600 mt-4">A carregar...</p>
@@ -118,9 +118,9 @@ export default function Landing() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
+    <div className="min-h-screen bg-gradient-to-b from-sky-400 via-sky-200 to-blue-50 transition-colors">
       {/* Navbar - Enhanced */}
-      <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-green-100 dark:border-gray-700 sticky top-0 z-50 shadow-sm transition-colors">
+      <nav className="bg-white/70 backdrop-blur-lg border-b border-sky-200 sticky top-0 z-50 shadow-sm transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <motion.div
@@ -150,13 +150,13 @@ export default function Landing() {
               <Button
                 variant="outline"
                 onClick={() => base44.auth.redirectToLogin()}
-                className="border-green-600 text-green-600 hover:bg-green-50 dark:border-green-400 dark:text-green-400 dark:hover:bg-gray-700"
+                className="border-sky-600 text-sky-700 hover:bg-sky-50"
               >
                 Entrar
               </Button>
               <Button
                 onClick={() => base44.auth.redirectToLogin()}
-                className="bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700"
+                className="bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-600 hover:to-blue-700"
               >
                 Criar Conta Grátis
               </Button>
@@ -168,9 +168,9 @@ export default function Landing() {
       {/* Hero Section - Enhanced with animated logos */}
       <section className="relative overflow-hidden py-20 px-4">
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-green-400 dark:bg-green-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-20 dark:opacity-10 animate-blob"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-blue-400 dark:bg-blue-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-20 dark:opacity-10 animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-purple-400 dark:bg-purple-600 rounded-full mix-blend-multiply dark:mix-blend-soft-light filter blur-3xl opacity-20 dark:opacity-10 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-10 left-5 w-80 h-40 bg-white rounded-full filter blur-2xl opacity-60 animate-blob"></div>
+          <div className="absolute top-32 right-10 w-96 h-36 bg-white rounded-full filter blur-2xl opacity-50 animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-10 left-1/3 w-72 h-32 bg-white rounded-full filter blur-2xl opacity-40 animate-blob animation-delay-4000"></div>
         </div>
 
         <div className="max-w-7xl mx-auto relative">
@@ -190,13 +190,13 @@ export default function Landing() {
               <PawCaoLogo size="xlarge" animated={true} />
             </motion.div>
 
-            <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-gray-100 mb-6 leading-tight drop-shadow-lg">
+            <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 leading-tight drop-shadow-lg">
               O Melhor Cuidado Para o<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 dark:from-green-400 dark:via-blue-400 dark:to-purple-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600">
                 Seu Melhor Amigo
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-800 mb-8 max-w-3xl mx-auto">
               Conectamos donos de cães com profissionais verificados e apaixonados. 
               Passeios, treino, dog sitting e muito mais! 🐾
             </p>
@@ -205,7 +205,7 @@ export default function Landing() {
               <Button
                 size="lg"
                 onClick={() => base44.auth.redirectToLogin()}
-                className="bg-gradient-to-r from-green-600 to-blue-600 text-white h-14 text-lg px-8 hover:from-green-700 hover:to-blue-700 shadow-lg"
+                className="bg-gradient-to-r from-sky-500 to-blue-600 text-white h-14 text-lg px-8 hover:from-sky-600 hover:to-blue-700 shadow-lg"
               >
                 <Dog className="w-5 h-5 mr-2" />
                 Começar Agora
@@ -214,7 +214,7 @@ export default function Landing() {
                 size="lg"
                 variant="outline"
                 onClick={() => base44.auth.redirectToLogin()}
-                className="border-2 border-green-600 text-green-600 h-14 text-lg px-8 hover:bg-green-50 dark:border-green-400 dark:text-green-400 dark:hover:bg-gray-700"
+                className="border-2 border-sky-600 text-sky-700 h-14 text-lg px-8 hover:bg-sky-50 bg-white/60"
               >
                 <Crown className="w-5 h-5 mr-2" />
                 Tornar-me Profissional
@@ -232,7 +232,7 @@ export default function Landing() {
                 >
                   <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
                     <CardContent className="p-6 text-center">
-                      <div className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2 dark:from-green-400 dark:to-blue-400">
+                      <div className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-sky-600 to-blue-700 bg-clip-text text-transparent mb-2">
                         {stat.value}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
@@ -246,7 +246,7 @@ export default function Landing() {
       </section>
 
       {/* Services */}
-      <section id="services" className="py-20 px-4 bg-white/50 dark:bg-gray-800/50">
+      <section id="services" className="py-20 px-4 bg-white/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -255,10 +255,10 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Serviços PawCão
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
+            <p className="text-xl text-gray-700">
               Tudo o que o seu cão precisa, num só lugar
             </p>
           </motion.div>
@@ -272,10 +272,10 @@ export default function Landing() {
                 transition={{ duration: 0.4, delay: idx * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card className="border-0 shadow-xl hover:shadow-2xl transition-all h-full bg-gradient-to-br from-white to-green-50 dark:from-gray-800 dark:to-gray-700">
+                <Card className="border-0 shadow-xl hover:shadow-2xl transition-all h-full bg-gradient-to-br from-white to-sky-50">
                   <CardContent className="p-8 text-center">
                     <div className="text-6xl mb-4">{service.icon}</div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">
                       {service.title}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400">
@@ -299,10 +299,10 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Por Que Escolher PawCão?
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
+            <p className="text-xl text-gray-700">
               A plataforma mais confiável de Portugal para cuidados caninos
             </p>
           </motion.div>
@@ -316,12 +316,12 @@ export default function Landing() {
                 transition={{ duration: 0.4, delay: idx * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card className="border-0 shadow-xl hover:shadow-2xl transition-all h-full dark:bg-gray-800">
+                <Card className="border-0 shadow-xl hover:shadow-2xl transition-all h-full bg-white/80">
                   <CardContent className="p-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4">
                       <feature.icon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">
                       {feature.title}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
