@@ -1318,7 +1318,7 @@ export default function UserProfile() {
                           <Button 
                             size="sm" 
                             className="mt-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6"
-                            onClick={() => handleBookingClick(service)}
+                            onClick={(e) => { e.stopPropagation(); handleBookingClick(service); }}
                           >
                             Reservar
                           </Button>

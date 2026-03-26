@@ -299,7 +299,7 @@ export default function PostEmergency() {
                 </div>
 
                 <Button 
-                  onClick={handleRequest}
+                  onClick={(e) => { e.stopPropagation(); handleRequest(); }}
                   disabled={createEmergencyWalkMutation.isPending}
                   className="w-full h-16 bg-slate-900 hover:bg-black text-white rounded-[1.5rem] text-lg font-black flex justify-between px-8"
                 >
