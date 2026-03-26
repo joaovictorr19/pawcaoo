@@ -9,12 +9,13 @@ export default function PawGoSearch() {
   // Efeito para contar quantos profissionais estão online
   useEffect(() => {
     const checkOnline = async () => {
-      try {
-        const walkers = await base44.entities.WalkerProfile.filter({ is_online: true });
-        setOnlineCount(walkers?.length || 0);
-      } catch (err) {
-        console.error('Error fetching online walkers:', err);
-      }
+           try {
+             const walkers = await base44.entities.WalkerProfile.filter({ is_online: true });
+             console.log('🔍 PawGo Online Count:', walkers?.length || 0, 'Data:', walkers);
+             setOnlineCount(walkers?.length || 0);
+           } catch (err) {
+             console.error('Error fetching online walkers:', err);
+           }
     };
     checkOnline();
     const interval = setInterval(checkOnline, 30000); // Atualiza a cada 30s
