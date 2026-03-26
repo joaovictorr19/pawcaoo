@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin, ArrowLeft, Dog, CheckCircle, Shield, User,
-  MessageCircle, Award, Star
+  MessageCircle, Award, Star, Calendar, Zap
 } from "lucide-react";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { useLanguage } from "@/components/LanguageContext";
@@ -16,13 +16,15 @@ import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useCreateNotification } from "@/components/NotificationService";
 import { calculateTier } from "@/components/gamification/tierSystem";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
 import ServiceCard from "../components/profile/ServiceCard";
+import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
+import BookingForm from "../components/booking/BookingForm";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -255,10 +257,24 @@ export default function UserProfile() {
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
   const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   const handleBookingClick = (service) => {
     setSelectedService(service.service_name);
     toast.info(`Serviço "${service.service_name}" selecionado.`);
+  };
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+  };
+
+  const handleBookingInitiated = () => {
+    toast.success('Reserva iniciada!');
+    setSelectedDate(null);
+  };
+
+  const handleTabChange = () => {
+    setSelectedDate(null);
   };
 
   const { data: reviews = [], isLoading: loadingReviews } = useQuery({
@@ -480,7 +496,7 @@ export default function UserProfile() {
         </div>
 
         {/* TABS */}
-        <Tabs defaultValue={serviceParam ? "pawgo" : "badges"}>
+        <Tabs defaultValue={serviceParam ? "pawgo" : "badges"} onValueChange={handleTabChange}>
           <TabsList className="grid grid-cols-3 bg-white/50 backdrop-blur-md rounded-2xl p-1 shadow-sm w-full mb-6">
             <TabsTrigger value="badges" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Conquistas</TabsTrigger>
             <TabsTrigger value="pawgo" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Serviços</TabsTrigger>
@@ -512,7 +528,7 @@ export default function UserProfile() {
           </TabsContent>
 
           {/* SERVIÇOS */}
-          <TabsContent value="pawgo" className="space-y-4">
+          <TabsContent value="pawgo" className="space-y-4 pb-6">
             {(walkerProfile || trainerProfile) ? (
               <div className="space-y-4 animate-in fade-in">
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).slice(0, 3).map((service, idx) => (
@@ -527,6 +543,51 @@ export default function UserProfile() {
                     isOnline={walkerProfile?.is_online}
                   />
                 ))}
+
+                {/* SECÇÃO DE AGENDAMENTO */}
+                <div id="calendar-section" className="mt-10 pb-10 animate-in fade-in duration-500">
+                  <div className="flex items-center gap-3 mb-6 px-2">
+                    <div className="bg-slate-900 p-3 rounded-2xl text-white shadow-lg">
+                      <Calendar size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-tighter">Agenda do Profissional</h3>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Escolhe um dia para reservar</p>
+                    </div>
+                  </div>
+
+                  <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/60 overflow-hidden bg-white/80 backdrop-blur-md">
+                    <CardContent className="p-4">
+                      {walkerProfile || trainerProfile ? (
+                        <>
+                          <AvailabilityCalendar 
+                            availability={walkerProfile?.availability || trainerProfile?.availability || []}
+                            onDateSelect={handleDateSelect}
+                            selectedDate={selectedDate}
+                          />
+                          
+                          <AnimatePresence>
+                            {selectedDate && (
+                              <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="mt-6 pt-6 border-t border-slate-100"
+                              >
+                                <BookingForm 
+                                  selectedDate={selectedDate}
+                                  professional={walkerProfile || trainerProfile}
+                                  currentUser={currentUser}
+                                  onSuccess={handleBookingInitiated}
+                                />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             ) : (
               <div className="text-center py-12">
@@ -554,25 +615,33 @@ export default function UserProfile() {
         </Tabs>
       </div>
 
-      {/* STICKY FOOTER */}
+      {/* STICKY FOOTER - BOTTOM BAR INTELIGENTE */}
       {!isOwnProfile && (walkerProfile || trainerProfile) && (
-        <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t border-slate-100 z-50 flex gap-3">
-          <Button
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/90 backdrop-blur-2xl border-t border-slate-100 z-50 flex gap-3 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+          {/* Botão de Chat (Sempre visível) */}
+          <Button 
             onClick={() => handleMessageUser(profileEmail)}
-            className="flex-1 h-14 bg-slate-100 text-slate-900 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-200"
+            className="w-14 h-14 bg-slate-100 text-slate-900 rounded-2xl shadow-sm hover:bg-slate-200 transition-all flex-shrink-0"
           >
-            <MessageCircle className="mr-2" size={18} /> Chat
+            <MessageCircle size={20} />
           </Button>
-          <Button
-            onClick={() => navigate(createPageUrl('Dashboard'))}
-            className={`flex-[2] h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg transition-all ${
-              walkerProfile?.is_online
-                ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20'
-                : 'bg-slate-300 hover:bg-slate-400 text-slate-700'
-            }`}
-          >
-            {walkerProfile?.is_online ? 'Reservar Agora' : 'Agendar para Depois'}
-          </Button>
+
+          {/* SE ONLINE: Botão PawGo (Uber) | SE OFFLINE: Botão Agendar */}
+          {walkerProfile?.is_online ? (
+            <Button 
+              onClick={() => navigate(createPageUrl('Dashboard'))}
+              className="flex-1 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-orange-500/20 animate-pulse"
+            >
+              <Zap size={16} className="mr-2" /> PawGo Agora
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => document.getElementById('calendar-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="flex-1 h-14 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl"
+            >
+              <Calendar size={16} className="mr-2" /> Agendar Passeio
+            </Button>
+          )}
         </div>
       )}
 
