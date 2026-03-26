@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase } from "lucide-react";
 import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
-import EmergencyDogCard from "../components/emergency/EmergencyDogCard";
+// EmergencyDogCard removido — substituído pelo fluxo PawGo com Ribbon + botão de ação
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
@@ -1381,10 +1381,18 @@ export default function Home() {
                       )}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
-                      {filteredEmergencyWalks.map((walk) => (
-                        <EmergencyDogCard key={walk.id} walk={walk} distance={walk.distance} />
-                      ))}
+                    <div className="flex flex-col items-center gap-4 py-6">
+                      <p className="text-sm text-gray-600 text-center">
+                        {filteredEmergencyWalks.length} {filteredEmergencyWalks.length === 1 ? 'pedido ativo' : 'pedidos ativos'} na tua zona.
+                      </p>
+                      {!['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                        <Button
+                          onClick={() => navigate(createPageUrl('Dashboard'))}
+                          className="w-full max-w-sm h-16 bg-orange-500 rounded-[2rem] shadow-2xl shadow-orange-500/30 text-white font-black uppercase tracking-widest text-xs"
+                        >
+                          <Dog size={18} className="mr-2" /> Pedir Passeio Agora
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>

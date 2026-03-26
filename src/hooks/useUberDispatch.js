@@ -69,8 +69,65 @@ async function sendRequestToPro(pro, requestData) {
  *   const { dispatch, isDispatching } = useUberDispatch();
  *   await dispatch(walkersInRange, requestData, (bookingId) => navigate(`/tracking/${bookingId}`));
  */
+/**
+ * Tenta o ciclo de dispatch até maxAttempts vezes.
+ * Entre cada tentativa falhada espera 5s e reinicia com os walkers online nesse momento.
+ */
+export async function requestServiceWithRetry(getAllOnlineWalkers, requestData, onAccepted, maxAttempts = 2) {
+  let accepted = false;
+  let attempts = 0;
+
+  while (!accepted && attempts < maxAttempts) {
+    console.log(`Ciclo de procura ${attempts + 1}/${maxAttempts}`);
+
+    const onlineNow = (await getAllOnlineWalkers()).filter(
+      (w) => w.is_online || w.pawgo_status?.is_online
+    );
+
+    if (onlineNow.length === 0) {
+      attempts++;
+      if (attempts < maxAttempts) {
+        toast.info("Nenhum passeador online. A reiniciar procura...");
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+      continue;
+    }
+
+    // Despacha sequencialmente (reutiliza lógica interna)
+    for (const pro of onlineNow) {
+      const proName = pro.walker_name?.split(" ")[0] || "Passeador";
+      const bookingId = await sendRequestToPro(pro, requestData);
+      if (!bookingId) continue;
+
+      const toastId = toast.loading(`A aguardar resposta de ${proName}...`);
+      const ok = await waitForResponse(bookingId, 30000);
+      toast.dismiss(toastId);
+
+      if (ok) {
+        toast.success(`${proName} aceitou o passeio! 🎉`);
+        onAccepted?.(bookingId);
+        accepted = true;
+        return;
+      }
+
+      try { await base44.entities.Booking.update(bookingId, { status: "rejected" }); } catch {}
+      toast.error(`${proName} não disponível. A tentar o próximo...`, { duration: 2000 });
+    }
+
+    attempts++;
+    if (!accepted && attempts < maxAttempts) {
+      toast.info("Ninguém disponível no momento. A reiniciar procura...");
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+  }
+
+  if (!accepted) {
+    toast.error("Infelizmente todos os passeadores estão ocupados. Tenta de novo em instantes.");
+  }
+}
+
 export function useUberDispatch() {
-  const [isDispatching, setIsDispatching] = React.useState(false);
+  const [isDispatching, setIsDispatching] = useState(false);
 
   async function dispatch(walkersInRange, requestData, onAccepted) {
     if (!walkersInRange?.length) {
