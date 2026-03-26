@@ -122,7 +122,6 @@ export const PAGES = {
     "PaymentSetup": page(() => import('./pages/PaymentSetup')),
     "PostEmergency": page(() => import('./pages/PostEmergency')),
     "PrivacyPolicy": page(() => import('./pages/PrivacyPolicy')),
-    "ProfessionalDashboard": page(() => import('./pages/ProfessionalDashboard')),
     "RegisterCompany": page(() => import('./pages/RegisterCompany')),
     "RequestWalk": page(() => import('./pages/RequestWalk')),
     "ScheduledWalks": page(() => import('./pages/ScheduledWalks')),
