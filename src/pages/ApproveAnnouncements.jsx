@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import NotificationService from "../components/NotificationService";
+// Notifications sent via base44.entities.Notification.create()
 
 export default function ApproveAnnouncements() {
   const queryClient = useQueryClient();
@@ -92,19 +92,27 @@ export default function ApproveAnnouncements() {
 
       await base44.entities.CompanyAnnouncement.update(announcementId, updateData);
 
-      // Use NotificationService for sending notifications
-      if (status === 'approved') {
-        await NotificationService.announcementApproved({
-          announcement,
-          companyEmail: announcement.company_email || announcement.created_by
-        });
-      } else if (status === 'rejected') {
-        await NotificationService.announcementRejected({
-          announcement,
-          companyEmail: announcement.company_email || announcement.created_by,
-          reason: publicRejectionReason // Use the public rejection reason for the notification
-        });
-      }
+      // Create notification record
+       const recipientEmail = announcement.company_email || announcement.created_by;
+       if (status === 'approved') {
+         await base44.entities.Notification.create({
+           recipient_email: recipientEmail,
+           title: '✅ Anúncio Aprovado',
+           message: `Seu anúncio "${announcement.title}" foi aprovado com sucesso!`,
+           type: 'verification',
+           priority: 'high',
+           is_read: false
+         });
+       } else if (status === 'rejected') {
+         await base44.entities.Notification.create({
+           recipient_email: recipientEmail,
+           title: '❌ Anúncio Rejeitado',
+           message: `Seu anúncio "${announcement.title}" foi rejeitado. Motivo: ${publicRejectionReason}`,
+           type: 'verification',
+           priority: 'normal',
+           is_read: false
+         });
+       }
     },
     onSuccess: () => {
       // Invalidate specific queries to refetch the latest data for all tabs

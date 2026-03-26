@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 const MyWalletPro = lazy(() => import('./pages/MyWalletPro'))
 const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2'))
 const PawGoWaiting = lazy(() => import('./pages/PawGoWaiting'))
+const ProfessionalSetup = lazy(() => import('./pages/ProfessionalSetup'))
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
           <Route path="/MyWalletPro" element={<Suspense fallback={<PageLoader />}><MyWalletPro /></Suspense>} />
           <Route path="/ProfessionalHubV2" element={<Suspense fallback={<PageLoader />}><ProfessionalHubV2 /></Suspense>} />
           <Route path="/PawGoWaiting" element={<Suspense fallback={<PageLoader />}><PawGoWaiting /></Suspense>} />
+          <Route path="/ProfessionalSetup" element={<Suspense fallback={<PageLoader />}><ProfessionalSetup /></Suspense>} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </Suspense>

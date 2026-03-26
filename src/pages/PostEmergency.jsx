@@ -287,7 +287,8 @@ export default function PostEmergency() {
                         <span className="text-[10px] font-black uppercase">{dog.name}</span>
                       </button>
                     );
-                    })}}
+                    })}
+                  </div>
                   </div>
                 ) : (
                   <div className="mb-6 text-center text-sm text-slate-500">
