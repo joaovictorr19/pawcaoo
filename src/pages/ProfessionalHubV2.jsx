@@ -15,6 +15,7 @@ import { AgendaCalendar } from "../components/professional-hub/AgendaCalendar";
 import { RadarStatusPanel } from "../components/professional-hub/RadarStatusPanel";
 import { ToolsSection } from "../components/professional-hub/ToolsSection";
 import { VerificationBanner } from "../components/professional-hub/VerificationBanner";
+import { WalletSection } from "../components/professional-hub/WalletSection";
 import { useRealTimeRequests } from "../hooks/useRealTimeRequests";
 import { ProfessionalEditProfile } from "@/components/professionals/ProfessionalEditProfile";
 import IncomingRequestModal from "@/components/professional/IncomingRequestModal";
@@ -264,6 +265,18 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
             >
               <ToolsSection user={user} professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "wallet" && (
+            <motion.div 
+              key="wallet" 
+              initial={{ opacity: 0, x: 20 }} 
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <WalletSection user={user} />
             </motion.div>
           )}
         </AnimatePresence>

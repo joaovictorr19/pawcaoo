@@ -341,7 +341,7 @@ function LayoutContent({ children, currentPageName }) {
     { 
       title: language === 'pt' ? 'Meu Painel' : 'Dashboard', 
       url: (authUser?.account_type === 'walker' || authUser?.account_type === 'trainer' || authUser?.account_type === 'both') 
-        ? createPageUrl("Dashboard") 
+        ? createPageUrl("ProfessionalHubV2") 
         : createPageUrl("ProfessionalSetup"), 
       icon: BarChart3 
     }
