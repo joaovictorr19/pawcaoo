@@ -222,7 +222,7 @@ export default function ProfessionalHubV2() {
                    <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
                    Radar PawGo
                  </h3>
-                <RadarStatusPanel userEmail={user?.email} isOnline={isOnline} />
+                <RadarStatusPanel userEmail={user?.email} isOnline={isOnline} city={professionalProfile?.location || user?.city || "Portugal"} />
               </div>
             </motion.div>
           )}

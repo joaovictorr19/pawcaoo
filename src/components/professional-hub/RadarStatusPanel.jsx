@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { Clock, TrendingUp, Calendar, Dog, MapPin, Search } from "lucide-react";
 
-export function RadarStatusPanel({ userEmail, isOnline }) {
+export function RadarStatusPanel({ userEmail, isOnline, city = "Portugal" }) {
   const today = new Date().toISOString().split("T")[0];
 
   const { data: todayBookings = [] } = useQuery({
@@ -90,7 +90,7 @@ export function RadarStatusPanel({ userEmail, isOnline }) {
                 <span className="text-xs font-black text-white">Radar PawGo Ativo</span>
               </div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                À procura de passeios imediatos...
+                À procura de passeios imediatos em {city}...
               </p>
             </div>
           </>
@@ -99,7 +99,7 @@ export function RadarStatusPanel({ userEmail, isOnline }) {
             <MapPin className="w-10 h-10 text-slate-600" />
             <p className="text-sm font-black text-slate-400">Estás Offline</p>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
-              Ativa o teu status acima para<br />apareceres no mapa.
+              Ativa o teu status acima para<br />apareceres no mapa de {city}.
             </p>
           </div>
         )}
