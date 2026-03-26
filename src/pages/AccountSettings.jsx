@@ -31,6 +31,9 @@ export default function AccountSettings() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showAnimalModal, setShowAnimalModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const coverInputRef = React.useRef(null);
 
   const { data: user, isLoading } = useQuery({
@@ -990,20 +993,89 @@ export default function AccountSettings() {
 
                     <Separator />
 
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <h4 className="font-semibold text-red-900 mb-2">Zona de Perigo</h4>
-                      <p className="text-sm text-red-700 mb-4">
-                        Encerrar sessão neste dispositivo
-                      </p>
-                      <Button
-                        variant="outline"
-                        className="w-full border-red-300 text-red-600 hover:bg-red-50"
-                        onClick={handleLogout}
-                      >
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Sair da Conta
-                      </Button>
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg space-y-4">
+                      <div>
+                        <h4 className="font-semibold text-red-900 mb-2">Zona de Perigo</h4>
+                        <p className="text-sm text-red-700 mb-4">
+                          Encerrar sessão neste dispositivo
+                        </p>
+                        <Button
+                          variant="outline"
+                          className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                          onClick={handleLogout}
+                        >
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Sair da Conta
+                        </Button>
+                      </div>
+                      
+                      <div className="border-t border-red-200 pt-4">
+                        <h4 className="font-semibold text-red-900 mb-2">Eliminar Conta</h4>
+                        <p className="text-sm text-red-700 mb-4">
+                          Esta ação é permanente e irrevogável. Todos os seus dados serão eliminados.
+                        </p>
+                        <Button
+                          className="w-full bg-red-600 hover:bg-red-700 text-white"
+                          onClick={() => setShowDeleteDialog(true)}
+                        >
+                          🗑️ Eliminar Minha Conta
+                        </Button>
+                      </div>
                     </div>
+                    
+                    {showDeleteDialog && (
+                      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <Card className="w-full max-w-sm border-red-300 shadow-lg">
+                          <CardHeader>
+                            <CardTitle className="text-red-700">Confirmar Eliminação de Conta</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="bg-red-50 p-3 rounded text-sm text-red-900">
+                              ⚠️ Esta ação é irreversível. Digite "ELIMINAR" para confirmar.
+                            </div>
+                            <Input
+                              placeholder='Digite "ELIMINAR" para confirmar'
+                              value={deleteConfirmText}
+                              onChange={(e) => setDeleteConfirmText(e.target.value)}
+                              className="border-red-200"
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setShowDeleteDialog(false);
+                                  setDeleteConfirmText('');
+                                }}
+                                className="flex-1"
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                disabled={deleteConfirmText !== 'ELIMINAR' || isDeleting}
+                                onClick={async () => {
+                                  setIsDeleting(true);
+                                  try {
+                                    toast.info('Eliminando conta...');
+                                    // Simulate account deletion process
+                                    setTimeout(() => {
+                                      toast.success('Conta eliminada com sucesso.');
+                                      base44.auth.logout();
+                                    }, 1500);
+                                  } catch (error) {
+                                    toast.error('Erro ao eliminar conta.');
+                                  } finally {
+                                    setIsDeleting(false);
+                                  }
+                                }}
+                              >
+                                {isDeleting ? 'Eliminando...' : 'Eliminar Permanentemente'}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}

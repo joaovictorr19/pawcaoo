@@ -46,6 +46,7 @@ import NotificationArea from "@/components/notifications/NotificationArea";
 import PullToRefresh from "@/components/ui/PullToRefresh";
 import BadgeNotification from "@/components/gamification/BadgeNotification";
 import PushNotificationManager from "@/components/notifications/PushNotificationManager";
+import MobileHeader from "@/components/layout/MobileHeader";
 import { useRealtimeNotifications } from "@/components/notifications/useRealtimeNotifications";
 import NotificationTriggers from "@/components/notifications/NotificationTriggers";
 import DynamicBackground from "@/components/ui/DynamicBackground";
@@ -945,6 +946,9 @@ function LayoutContent({ children, currentPageName }) {
 
           {/* Main Content Area with bottom padding for mobile nav */}
           <div className="flex-1 flex flex-col min-w-0 pb-32 md:pb-0 relative z-10 bg-transparent w-full overflow-x-hidden">
+            {/* Mobile Header for Child Routes (Back Button + Title) */}
+            <MobileHeader />
+            
             {/* Breadcrumbs */}
             <Breadcrumbs />
 

@@ -42,6 +42,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   );
 
   const [step, setStep] = useState(1); // 1: Select Dog & Service, 2: Confirm Details, 3: Payment
+  const [optimisticSelectedDog, setOptimisticSelectedDog] = useState("");
+  const [optimisticPaymentProcessing, setOptimisticPaymentProcessing] = useState(false);
   const [formData, setFormData] = useState({
     dog_name: "",
     dog_size: "medium",
@@ -630,6 +632,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                           key={dog.id}
                           onClick={() => {
                             console.log('🐕 Cão selecionado:', dog.dog_name);
+                            setOptimisticSelectedDog(dog.id);
                             setSelectedDogId(dog.id);
                             setShowManualInput(false);
                           }}

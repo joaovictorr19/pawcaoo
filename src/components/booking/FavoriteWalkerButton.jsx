@@ -11,6 +11,7 @@ import { toast } from 'sonner';
  */
 export default function FavoriteWalkerButton({ walker, user, variant = 'icon' }) {
   const queryClient = useQueryClient();
+  const [optimisticFavorited, setOptimisticFavorited] = React.useState(false);
 
   // Buscar se este walker está nos favoritos do usuário
   const { data: favorites = [] } = useQuery({
@@ -26,11 +27,22 @@ export default function FavoriteWalkerButton({ walker, user, variant = 'icon' })
     staleTime: 5 * 60 * 1000,
   });
 
-  const isFavorited = favorites.length > 0;
+  React.useEffect(() => {
+    if (favorites.length > 0) {
+      setOptimisticFavorited(true);
+    } else {
+      setOptimisticFavorited(false);
+    }
+  }, [favorites]);
+
+  const isFavorited = optimisticFavorited || favorites.length > 0;
   const favoriteId = favorites[0]?.id;
 
   // Mutation para adicionar aos favoritos
   const addFavoriteMutation = useMutation({
+    onMutate: () => {
+      setOptimisticFavorited(true);
+    },
     mutationFn: async () => {
       return await base44.entities.Favorite.create({
         walker_id: walker.id,
@@ -52,6 +64,9 @@ export default function FavoriteWalkerButton({ walker, user, variant = 'icon' })
 
   // Mutation para remover dos favoritos
   const removeFavoriteMutation = useMutation({
+    onMutate: () => {
+      setOptimisticFavorited(false);
+    },
     mutationFn: async () => {
       if (!favoriteId) throw new Error('Favorite ID not found');
       return await base44.entities.Favorite.delete(favoriteId);

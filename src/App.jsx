@@ -1,6 +1,7 @@
 import './App.css'
 import { Suspense, lazy } from 'react'
 import { Toaster } from "@/components/ui/toaster"
+import { AnimatePresence } from 'framer-motion'
 const MyWalletPro = lazy(() => import('./pages/MyWalletPro'))
 const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2'))
 const PawGoWaiting = lazy(() => import('./pages/PawGoWaiting'))
@@ -51,6 +52,7 @@ const AuthenticatedApp = () => {
 
   return (
     <LayoutWrapper currentPageName={mainPageKey}>
+      <AnimatePresence mode="wait">
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<MainPage />} />
@@ -64,6 +66,7 @@ const AuthenticatedApp = () => {
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </Suspense>
+      </AnimatePresence>
     </LayoutWrapper>
   );
 };

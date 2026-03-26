@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import NotificationService from "../components/NotificationService";
 
 export default function EmergencyWalkDetails() {
   const navigate = useNavigate();

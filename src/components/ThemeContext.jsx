@@ -8,6 +8,22 @@ const ThemeContext = createContext();
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
+  const [prefersDark, setPrefersDark] = React.useState(false);
+
+  // Detect system dark mode preference
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setPrefersDark(mediaQuery.matches);
+
+    const handleChange = (e) => {
+      setPrefersDark(e.matches);
+      document.documentElement.classList.toggle('dark', e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -51,7 +67,7 @@ export const ThemeProvider = ({ children }) => {
   const colors = getThemeColors(tierInfo.name);
 
   return (
-    <ThemeContext.Provider value={{ colors, level, xp }}>
+    <ThemeContext.Provider value={{ colors, level, xp, prefersDark }}>
       {children}
     </ThemeContext.Provider>
   );
