@@ -496,7 +496,7 @@ export default function UserProfile() {
               </div>
             ) : earnedBadges.length > 0 ? (
               <div className="grid grid-cols-2 gap-3 animate-in fade-in">
-                {earnedBadges.slice(0, 4).map((badge) => (
+                {earnedBadges.map((badge) => (
                   <div key={badge._uniqueId} className="bg-white/70 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-white/50 text-center cursor-pointer hover:bg-white/80 transition-all">
                     <div className="text-4xl mb-2">{getBadgeImage(badge.badge_id)}</div>
                     <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight">{badge.name || badge.badge_id}</h3>
