@@ -731,9 +731,20 @@ export default function Home() {
                           </span>
                           
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               const isProfessional = user.preferences?.current_mode !== 'professional';
-                              navigate(createPageUrl("Dashboard"), { state: { triggerTransition: true, toProfessional: isProfessional } });
+                              // Just toggle online status without navigating
+                              try {
+                                await base44.auth.updateMe({
+                                  preferences: {
+                                    ...user.preferences,
+                                    current_mode: isProfessional ? 'professional' : 'owner'
+                                  }
+                                });
+                                queryClient.invalidateQueries(['currentUser']);
+                              } catch (error) {
+                                console.error('Erro ao ativar modo profissional:', error);
+                              }
                             }}
                             className={`relative inline-flex h-8 w-16 items-center flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${
                               user.preferences?.current_mode === 'professional' ? 'bg-[#34C759]' : 'bg-white/40'
@@ -1337,7 +1348,6 @@ export default function Home() {
 
               <TabsContent value="emergency">
                 <div>
-                  <OnlineWalkersRibbon walkers={walkers} />
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
