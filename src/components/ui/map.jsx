@@ -564,12 +564,13 @@ export function MapClusterLayer({
 
     return () => {
       try {
+        if (!map.style) return; // map already destroyed
         if (map.getLayer(`${layerId.current}-clusters`)) map.removeLayer(`${layerId.current}-clusters`);
         if (map.getLayer(`${layerId.current}-cluster-count`)) map.removeLayer(`${layerId.current}-cluster-count`);
         if (map.getLayer(`${layerId.current}-unclustered-point`)) map.removeLayer(`${layerId.current}-unclustered-point`);
         if (map.getSource(layerId.current)) map.removeSource(layerId.current);
       } catch (e) {
-        console.log('Cleanup error (safe to ignore):', e.message);
+        // safe to ignore — map was destroyed before cleanup ran
       }
     };
   }, [data, clusterRadius, clusterMaxZoom, clusterColors, pointColor, onPointClick]);
