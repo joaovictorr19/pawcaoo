@@ -44,8 +44,15 @@ export default function LiveWalkTracking() {
     refetchInterval: 2000, // Atualiza a cada 2 segundos para posição real-time
   });
 
-  const { data: checkpoints, isLoading } = useQuery({
+  const { data: checkpoints = [], isLoading } = useQuery({
     queryKey: ['liveCheckpoints', bookingId],
+    queryFn: () => base44.entities.WalkCheckpoint.filter(
+      { booking_id: bookingId },
+      '-created_date'
+    ),
+    enabled: !!bookingId,
+    refetchInterval: 3000,
+  });
 
   const checkIn = checkpoints.find(c => c.checkpoint_type === 'check_in');
   const checkOut = checkpoints.find(c => c.checkpoint_type === 'check_out');

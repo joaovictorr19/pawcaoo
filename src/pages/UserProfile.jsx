@@ -485,10 +485,10 @@ export default function UserProfile() {
 
         {/* TABS */}
         <Tabs defaultValue={serviceParam ? "pawgo" : "badges"} onValueChange={handleTabChange}>
-          <TabsList className="grid grid-cols-3 bg-white/50 backdrop-blur-md rounded-2xl p-1 shadow-sm w-full mb-6">
-            <TabsTrigger value="badges" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Conquistas</TabsTrigger>
-            <TabsTrigger value="pawgo" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Serviços</TabsTrigger>
-            <TabsTrigger value="reviews" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Feedback</TabsTrigger>
+          <TabsList className="grid grid-cols-3 gap-2 bg-white/50 backdrop-blur-md rounded-2xl p-1.5 shadow-sm w-full mb-6 h-12 flex-shrink-0">
+            <TabsTrigger value="badges" className="rounded-xl font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Conquistas</TabsTrigger>
+            <TabsTrigger value="pawgo" className="rounded-xl font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Serviços</TabsTrigger>
+            <TabsTrigger value="reviews" className="rounded-xl font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Feedback</TabsTrigger>
           </TabsList>
 
           {/* CONQUISTAS */}
