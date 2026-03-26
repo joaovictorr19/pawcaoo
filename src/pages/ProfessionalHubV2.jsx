@@ -11,12 +11,7 @@ import { createPageUrl } from "@/utils";
 import { ProfessionalTabBar } from "../components/professional-hub/ProfessionalTabBar";
 import { StatsSection } from "../components/professional-hub/StatsSection";
 import { ServiceManager } from "../components/professional-hub/ServiceManager";
-import { AgendaCalendar } from "../components/professional-hub/AgendaCalendar";
-import { RadarStatusPanel } from "../components/professional-hub/RadarStatusPanel";
-import { ToolsSection } from "../components/professional-hub/ToolsSection";
-import { VerificationBanner } from "../components/professional-hub/VerificationBanner";
-import { WalletSection } from "../components/professional-hub/WalletSection";
-import { useRealTimeRequests } from "../hooks/useRealTimeRequests";
+import { ServiceEditor } from "../components/professional-hub/ServiceEditor";
 import { ProfessionalEditProfile } from "@/components/professionals/ProfessionalEditProfile";
 import IncomingRequestModal from "@/components/professional/IncomingRequestModal";
 
@@ -243,19 +238,10 @@ export default function ProfessionalHubV2() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <ServiceManager services={user?.professional_profile?.services || professionalProfile?.services_offered} />
-            </motion.div>
-          )}
-
-          {activeTab === "calendar" && (
-            <motion.div 
-              key="cal" 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-            >
-              <AgendaCalendar user={user} walkerProfile={professionalProfile} trainerProfile={professionalProfile} />
+              <ServiceEditor 
+                professionalProfile={professionalProfile}
+                isWalker={!!professionalProfile?.walker_name}
+              />
             </motion.div>
           )}
 
