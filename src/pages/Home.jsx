@@ -149,7 +149,7 @@ export default function Home() {
   });
 
   const [reviewBooking, setReviewBooking] = useState(null);
-  const [selectedPet, setSelectedPet] = useState(myDogs?.[0] || null);
+  const [selectedPets, setSelectedPets] = useState([myDogs?.[0]].filter(Boolean) || []);
   const [isSearching, setIsSearching] = useState(false);
   const [duration, setDuration] = useState(30);
   const userPets = myDogs;
@@ -606,8 +606,16 @@ export default function Home() {
     base44.auth.redirectToLogin(createPageUrl('BecomeProfessional'));
   };
 
+  const togglePetSelection = (pet) => {
+    setSelectedPets(prev => 
+      prev.some(p => p.id === pet.id) 
+        ? prev.filter(p => p.id !== pet.id)
+        : [...prev, pet]
+    );
+  };
+
   const handleLaunchPawGo = async () => {
-    if (!selectedPet) return;
+    if (selectedPets.length === 0) return;
     setIsSearching(true);
     try {
       // Simula a busca por profissionais online
@@ -1272,22 +1280,28 @@ export default function Home() {
                       <div className="relative z-10 mb-6 sm:mb-8">
                         <h3 className="text-white font-black uppercase italic text-[10px] sm:text-xs mb-3 sm:mb-4 tracking-[0.2em] opacity-50">1. Quem vai passear?</h3>
                         <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-3 sm:pb-4 scrollbar-hide">
-                          {userPets?.length > 0 ? userPets.map(pet => (
+                          {userPets?.length > 0 ? userPets.map(pet => {
+                            const isSelected = selectedPets.some(p => p.id === pet.id);
+                            return (
                             <button 
                               key={pet.id}
-                              onClick={() => setSelectedPet(pet)}
-                              className={`flex-shrink-0 transition-all duration-300 ${selectedPet?.id === pet.id ? 'scale-105 sm:scale-110' : 'opacity-40 grayscale'}`}
+                              onClick={() => togglePetSelection(pet)}
+                              className={`flex-shrink-0 transition-all duration-300 relative ${isSelected ? 'scale-105 sm:scale-110' : 'opacity-40 grayscale'}`}
                             >
-                              <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-[1.5rem] border-3 sm:border-4 ${selectedPet?.id === pet.id ? 'border-orange-500' : 'border-white/10'}`}>
+                              <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-[1.5rem] border-3 sm:border-4 ${isSelected ? 'border-orange-500' : 'border-white/10'}`}>
                                 {pet.photo_url ? (
                                   <img src={pet.photo_url} alt={pet.name || pet.dog_name} className="w-full h-full object-cover rounded-lg sm:rounded-xl" />
                                 ) : (
                                   <div className="w-full h-full bg-slate-600 rounded-lg sm:rounded-xl"></div>
                                 )}
                               </div>
+                              {isSelected && (
+                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">✓</div>
+                              )}
                               <p className="text-[8px] sm:text-[10px] font-black text-white mt-1 sm:mt-2 uppercase text-center leading-tight">{(pet.name || pet.dog_name).substring(0, 8)}</p>
                             </button>
-                          )) : <p className="text-white/30 text-[10px] font-bold uppercase">Nenhum pet encontrado...</p>}
+                            );
+                          }) : <p className="text-white/30 text-[10px] font-bold uppercase">Nenhum pet encontrado...</p>}
                         </div>
                       </div>
 
@@ -1312,14 +1326,14 @@ export default function Home() {
                       {/* 3. LANÇAR O RADAR */}
                       <div className="relative z-10">
                         <button 
-                          disabled={!selectedPet || isSearching}
+                          disabled={selectedPets.length === 0 || isSearching}
                           onClick={handleLaunchPawGo}
                           className="w-full h-14 sm:h-16 bg-orange-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-20 disabled:grayscale transition-all text-xs sm:text-sm"
                         >
                           {isSearching ? (
                              <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Loader2 className="animate-spin" size={14} sm:size={18}/> <span className="hidden sm:inline">Chamando...</span><span className="sm:hidden">...</span></div>
                           ) : (
-                             <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Zap size={14} sm:size={18} fill="currentColor"/> <span className="hidden sm:inline">Iniciar PawGo</span><span className="sm:hidden">PawGo</span></div>
+                             <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Zap size={14} sm:size={18} fill="currentColor"/> <span className="hidden sm:inline">Iniciar PawGo</span><span className="sm:hidden">PawGo</span> {selectedPets.length > 1 && <span className="ml-1 text-xs">({selectedPets.length})</span>}</div>
                           )}
                         </button>
                       </div>
