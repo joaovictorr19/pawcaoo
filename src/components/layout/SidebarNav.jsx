@@ -111,7 +111,7 @@ export default function SidebarNav({ user, unreadCount, onLogout }) {
   const proItems = [
     { 
       title: language === 'pt' ? 'Painel Profissional' : 'Pro Dashboard', 
-      url: isProfessional ? createPageUrl("ProfessionalDashboard") : createPageUrl("BecomeProfessional"), 
+      url: isProfessional ? createPageUrl("ProfessionalHubV2") : createPageUrl("BecomeProfessional"), 
       icon: BarChart3 
     },
     { title: language === 'pt' ? 'Subscrição' : 'Membership', url: createPageUrl("OwnerSubscriptions"), icon: Crown },
