@@ -213,24 +213,10 @@
     100% { transform: translate(0px, 0px) rotate(360deg) scale(1); }
   }
 
-  .animate-blob-1 {
-    animation: blob-rotate 30s infinite ease-in-out;
-  }
-
-  .animate-blob-2 {
-    animation: blob-rotate 35s infinite ease-in-out reverse;
-  }
-
-  .animate-blob-3 {
-    animation: blob-rotate 40s infinite ease-in-out;
-  }
-
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-
-  .animation-delay-4000 {
-    animation-delay: 4s;
+  @keyframes float {
+    0% { transform: translateX(0px); }
+    50% { transform: translateX(20px); }
+    100% { transform: translateX(0px); }
   }
 
   @keyframes shimmer {
