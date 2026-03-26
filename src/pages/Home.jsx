@@ -33,6 +33,7 @@ import { Map as MapIcon, List, ChevronLeft, ChevronRight, Star as StarIcon } fro
 import ExternalPostCard from "../components/social/ExternalPostCard";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import PawGoWaitingScreen from "../components/home/PawGoWaitingScreen";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { calculateTier } from "@/components/gamification/tierSystem";
 import { useTheme } from "@/components/ThemeContext";
@@ -617,17 +618,13 @@ export default function Home() {
   const handleLaunchPawGo = async () => {
     if (selectedPets.length === 0) return;
     setIsSearching(true);
-    try {
-      // Simula a busca por profissionais online
-      await new Promise(r => setTimeout(r, 2000));
-      // Aqui integraria com lógica real de matching
-      navigate(createPageUrl('Dashboard'));
-    } catch (error) {
-      console.error('Erro ao iniciar PawGo:', error);
-      toast.error('Erro ao iniciar PawGo');
-    } finally {
-      setIsSearching(false);
-    }
+    // Guardar pets + duration na localStorage para usar depois
+    localStorage.setItem('pawgo_pending', JSON.stringify({
+      pets: selectedPets,
+      duration: duration,
+      timestamp: new Date().toISOString()
+    }));
+    navigate(createPageUrl('PawGoWaiting'));
   };
 
   return (
