@@ -23,8 +23,7 @@ import { calculateTier } from "@/components/gamification/tierSystem";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
 import ServiceCard from "../components/profile/ServiceCard";
-import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
-import BookingForm from "../components/booking/BookingForm";
+import ProfileActions from "../components/profile/ProfileActions";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -257,24 +256,14 @@ export default function UserProfile() {
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
   const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
 
   const handleBookingClick = (service) => {
     setSelectedService(service.service_name);
     toast.info(`Serviço "${service.service_name}" selecionado.`);
   };
 
-  const handleDateSelect = (date) => {
-    setSelectedDate(date);
-  };
-
-  const handleBookingInitiated = () => {
-    toast.success('Reserva iniciada!');
-    setSelectedDate(null);
-  };
-
   const handleTabChange = () => {
-    setSelectedDate(null);
+    setSelectedService(null);
   };
 
   const { data: reviews = [], isLoading: loadingReviews } = useQuery({
@@ -543,51 +532,6 @@ export default function UserProfile() {
                     isOnline={walkerProfile?.is_online}
                   />
                 ))}
-
-                {/* SECÇÃO DE AGENDAMENTO */}
-                <div id="calendar-section" className="mt-10 pb-10 animate-in fade-in duration-500">
-                  <div className="flex items-center gap-3 mb-6 px-2">
-                    <div className="bg-slate-900 p-3 rounded-2xl text-white shadow-lg">
-                      <Calendar size={20} />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-tighter">Agenda do Profissional</h3>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Escolhe um dia para reservar</p>
-                    </div>
-                  </div>
-
-                  <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/60 overflow-hidden bg-white/80 backdrop-blur-md">
-                    <CardContent className="p-4">
-                      {walkerProfile || trainerProfile ? (
-                        <>
-                          <AvailabilityCalendar 
-                            availability={walkerProfile?.availability || trainerProfile?.availability || []}
-                            onDateSelect={handleDateSelect}
-                            selectedDate={selectedDate}
-                          />
-                          
-                          <AnimatePresence>
-                            {selectedDate && (
-                              <motion.div 
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="mt-6 pt-6 border-t border-slate-100"
-                              >
-                                <BookingForm 
-                                  selectedDate={selectedDate}
-                                  professional={walkerProfile || trainerProfile}
-                                  currentUser={currentUser}
-                                  onSuccess={handleBookingInitiated}
-                                />
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </>
-                      ) : null}
-                    </CardContent>
-                  </Card>
-                </div>
               </div>
             ) : (
               <div className="text-center py-12">
@@ -615,33 +559,13 @@ export default function UserProfile() {
         </Tabs>
       </div>
 
-      {/* STICKY FOOTER - BOTTOM BAR INTELIGENTE */}
+      {/* PROFILE ACTIONS SECTION */}
       {!isOwnProfile && (walkerProfile || trainerProfile) && (
-        <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/90 backdrop-blur-2xl border-t border-slate-100 z-50 flex gap-3 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-          {/* Botão de Chat (Sempre visível) */}
-          <Button 
-            onClick={() => handleMessageUser(profileEmail)}
-            className="w-14 h-14 bg-slate-100 text-slate-900 rounded-2xl shadow-sm hover:bg-slate-200 transition-all flex-shrink-0"
-          >
-            <MessageCircle size={20} />
-          </Button>
-
-          {/* SE ONLINE: Botão PawGo (Uber) | SE OFFLINE: Botão Agendar */}
-          {walkerProfile?.is_online ? (
-            <Button 
-              onClick={() => navigate(createPageUrl('Dashboard'))}
-              className="flex-1 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-orange-500/20 animate-pulse"
-            >
-              <Zap size={16} className="mr-2" /> PawGo Agora
-            </Button>
-          ) : (
-            <Button 
-              onClick={() => document.getElementById('calendar-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="flex-1 h-14 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl"
-            >
-              <Calendar size={16} className="mr-2" /> Agendar Passeio
-            </Button>
-          )}
+        <div className="mx-6 mb-32">
+          <ProfileActions 
+            walker={walkerProfile || trainerProfile}
+            currentUser={currentUser}
+          />
         </div>
       )}
 
