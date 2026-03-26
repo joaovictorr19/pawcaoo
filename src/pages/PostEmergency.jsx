@@ -155,29 +155,29 @@ export default function PostEmergency() {
       return toast.error("Indique um valor válido.");
     }
     
-    const firstDog = selectedDogs[0];
     const locationVal = formData.location || user?.address || user?.city || "Minha Localização";
+    const dogNames = selectedDogs.map(d => d.dog_name).join(", ");
 
     const walkData = {
       owner_name: user?.full_name || "Cliente",
-      owner_phone: firstDog.owner_phone || user?.phone || user?.whatsapp_number || "999999999",
+      owner_phone: selectedDogs[0]?.owner_phone || user?.phone || user?.whatsapp_number || "999999999",
       location: locationVal,
       needed_time: formData.needed_time,
       duration_hours: 1,
       offered_amount: parseFloat(formData.offered_amount),
-      special_notes: `${firstDog.dog_name} - ${firstDog.breed || 'SRD'}`,
+      special_notes: dogNames,
       urgency_level: "urgent",
-      dogs: [{
-          dog_name: firstDog.dog_name,
-          dog_photo_url: firstDog.photo_url,
-          dog_size: firstDog.size,
-          dog_breed: firstDog.breed
-      }],
-      total_dogs: 1,
-      dog_name: firstDog.dog_name,
-      dog_photo_url: firstDog.photo_url,
-      dog_size: firstDog.size,
-      dog_breed: firstDog.breed
+      dogs: selectedDogs.map(dog => ({
+          dog_name: dog.dog_name,
+          dog_photo_url: dog.photo_url,
+          dog_size: dog.size,
+          dog_breed: dog.breed
+      })),
+      total_dogs: selectedDogs.length,
+      dog_name: dogNames,
+      dog_photo_url: selectedDogs[0]?.photo_url,
+      dog_size: selectedDogs[0]?.size,
+      dog_breed: selectedDogs[0]?.breed
     };
     
     createEmergencyWalkMutation.mutate(walkData);
@@ -267,18 +267,27 @@ export default function PostEmergency() {
                 {/* Seleção de Cães em Bolhas */}
                 {myDogs.length > 0 ? (
                   <div className="flex gap-3 overflow-x-auto pb-6 no-scrollbar">
-                    {myDogs.map(dog => (
+                    {myDogs.map(dog => {
+                      const isSelected = selectedDogs.some(d => d.id === dog.id);
+                      return (
                       <button 
                         key={dog.id}
-                        onClick={() => setSelectedDogs([dog])}
-                        className={`flex flex-col items-center gap-2 shrink-0 transition-all ${selectedDogs[0]?.id === dog.id ? 'scale-110' : 'opacity-50 grayscale'}`}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedDogs(selectedDogs.filter(d => d.id !== dog.id));
+                          } else {
+                            setSelectedDogs([...selectedDogs, dog]);
+                          }
+                        }}
+                        className={`flex flex-col items-center gap-2 shrink-0 transition-all ${isSelected ? 'scale-110' : 'opacity-50 grayscale'}`}
                       >
-                        <div className={`w-16 h-16 rounded-3xl border-4 overflow-hidden ${selectedDogs[0]?.id === dog.id ? 'border-orange-500' : 'border-transparent'}`}>
+                        <div className={`w-16 h-16 rounded-3xl border-4 overflow-hidden ${isSelected ? 'border-orange-500' : 'border-transparent'}`}>
                           <img src={dog.photo_url || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=200"} className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] font-black uppercase">{dog.dog_name}</span>
                       </button>
-                    ))}
+                    );
+                    })}}
                   </div>
                 ) : (
                   <div className="mb-6 text-center text-sm text-slate-500">
