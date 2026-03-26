@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { Clock, TrendingUp, Calendar, Wifi, WifiOff } from "lucide-react";
+import { Clock, TrendingUp, Calendar, Dog, MapPin, Search } from "lucide-react";
 
 export function RadarStatusPanel({ userEmail, isOnline }) {
   const today = new Date().toISOString().split("T")[0];
@@ -64,46 +64,42 @@ export function RadarStatusPanel({ userEmail, isOnline }) {
       </div>
 
       {/* Radar Animation */}
-      <div className="bg-slate-900 rounded-3xl border border-white/5 p-6 flex flex-col items-center justify-center min-h-[200px] relative overflow-hidden">
+      <div className="relative p-8 bg-white/5 rounded-[2.5rem] border border-white/8 overflow-hidden min-h-[220px] flex items-center justify-center">
         {isOnline ? (
           <>
-            {/* Radar rings */}
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full border border-orange-500/30"
-                initial={{ width: 40, height: 40, opacity: 0.8 }}
-                animate={{ width: 220, height: 220, opacity: 0 }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  delay: i * 0.8,
-                  ease: "easeOut",
-                }}
-              />
-            ))}
-            <div className="relative z-10 flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-orange-500/10 border-2 border-orange-500 flex items-center justify-center">
-                <Wifi className="w-6 h-6 text-orange-400" />
+            {/* Pulse rings */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {[1, 2, 3].map((circle) => (
+                <motion.div
+                  key={circle}
+                  className="absolute rounded-full bg-orange-500/10 border border-orange-500/20"
+                  style={{ width: 100, height: 100 }}
+                  animate={{ scale: [1, 3.5], opacity: [0.5, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, delay: circle * 0.8, ease: "easeInOut" }}
+                />
+              ))}
+            </div>
+
+            {/* Center icon + text */}
+            <div className="relative z-10 flex flex-col items-center text-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30 border-4 border-white/10">
+                <Dog className="w-9 h-9 text-white" />
               </div>
-              <p className="text-sm font-black text-white">Radar Ativo</p>
-              <p className="text-[11px] text-slate-400 text-center max-w-[180px] leading-relaxed">
-                À procura de serviços perto de ti... Aguarda o convite!
+              <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
+                <span className="text-xs font-black text-white">Radar PawGo Ativo</span>
+              </div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                À procura de passeios imediatos...
               </p>
-              <div className="flex items-center gap-1.5 mt-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Online</span>
-              </div>
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center gap-3 opacity-50">
-            <div className="w-14 h-14 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center">
-              <WifiOff className="w-6 h-6 text-slate-500" />
-            </div>
-            <p className="text-sm font-black text-slate-400">Radar Inativo</p>
-            <p className="text-[11px] text-slate-500 text-center max-w-[180px]">
-              Fica online para receber pedidos de passeio.
+          <div className="flex flex-col items-center gap-3 text-center">
+            <MapPin className="w-10 h-10 text-slate-600" />
+            <p className="text-sm font-black text-slate-400">Estás Offline</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
+              Ativa o teu status acima para<br />apareceres no mapa.
             </p>
           </div>
         )}
