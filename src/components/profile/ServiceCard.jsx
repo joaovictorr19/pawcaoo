@@ -1,35 +1,35 @@
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export default function ServiceCard({ title, price, desc, promo, icon, onClick }) {
   return (
-    <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-lg transition-all">
-      <div className="flex items-start justify-between gap-4 mb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center">
-            {icon}
-          </div>
-          <div>
-            <h3 className="font-black text-slate-900">{title}</h3>
-            {price && <p className="text-xs text-slate-500">€{price}/hora</p>}
-          </div>
+    <div 
+      onClick={onClick}
+      className="bg-white/70 backdrop-blur-md rounded-[2.5rem] p-6 border border-white/50 shadow-xl shadow-slate-200/40 active:scale-95 transition-all cursor-pointer hover:bg-white/80 mb-4"
+    >
+      <div className="flex justify-between items-start">
+        <div className="bg-orange-50 p-4 rounded-2xl text-orange-500">
+          {icon}
         </div>
-        {price && <p className="text-xl font-black text-slate-900">€{price}</p>}
+        <div className="text-right">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">A partir de</span>
+          <p className="text-2xl font-black text-slate-900 leading-none">{price}€</p>
+        </div>
       </div>
       
-      <p className="text-sm text-slate-600 mb-3 leading-relaxed">{desc}</p>
-      
-      {promo && (
-        <p className="text-[10px] font-bold text-orange-600 bg-orange-50 px-3 py-2 rounded-lg mb-3 inline-block">
+      <div className="mt-6">
+        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">{title}</h3>
+        <p className="text-[11px] text-slate-500 mt-1 leading-relaxed line-clamp-2">{desc}</p>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+        <span className="text-[9px] font-bold text-orange-500 bg-orange-50 px-3 py-1 rounded-full italic">
           {promo}
-        </p>
-      )}
-      
-      <Button 
-        onClick={onClick}
-        className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest h-11"
-      >
-        Ver Detalhes
-      </Button>
+        </span>
+        <div className="flex items-center gap-1 text-[10px] font-black text-slate-900 uppercase tracking-tighter">
+          Reservar <ArrowRight size={12} />
+        </div>
+      </div>
     </div>
   );
 }
