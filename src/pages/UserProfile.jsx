@@ -531,34 +531,34 @@ export default function UserProfile() {
           <TabsContent value="pawgo" className="space-y-8 pb-6">
             {(walkerProfile || trainerProfile) ? (
               <>
-                {/* LISTA DE SERVIÇOS */}
+                {/* GRID DE SERVIÇOS */}
                 <div>
-                  <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900">Serviços Disponíveis</h3>
-                  <div className="space-y-3">
+                  <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Serviços</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
-                      <div key={idx} className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-50 flex justify-between items-center">
-                        <div>
-                          <h4 className="font-black text-xs uppercase text-slate-900">{service.service_name}</h4>
-                          <p className="text-[10px] text-slate-400 font-medium">{service.duration || 60} min</p>
+                      <div key={idx} className="bg-gradient-to-br from-white to-slate-50 p-4 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                        <h4 className="font-black text-xs uppercase text-slate-900 mb-2 tracking-wide">{service.service_name}</h4>
+                        <div className="flex justify-between items-end">
+                          <p className="text-[10px] text-slate-500 font-medium">{service.duration || 60} min</p>
+                          <span className="text-orange-600 font-black text-base">{service.price}€</span>
                         </div>
-                        <span className="text-orange-500 font-black italic text-lg">{service.price}€</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* CALENDÁRIO */}
-                <div className="bg-slate-900 rounded-[3rem] p-6 shadow-2xl">
+                {/* CALENDÁRIO AGENDAMENTO */}
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 shadow-2xl border border-slate-700">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-white/10 p-2 rounded-xl text-white">
-                      <Calendar size={18} />
+                    <div className="bg-white/10 p-2.5 rounded-xl text-white">
+                      <Calendar size={20} />
                     </div>
                     <div>
-                      <h4 className="text-white font-black uppercase italic text-xs">Agenda & Folgas</h4>
-                      <p className="text-[9px] text-white/40 font-bold uppercase">Reserva para o futuro</p>
+                      <h4 className="text-white font-black uppercase text-xs tracking-wider">Agendar Passeio</h4>
+                      <p className="text-[9px] text-white/50 font-bold uppercase">Escolha a data e hora</p>
                     </div>
                   </div>
-                  <div className="bg-white rounded-[2rem] p-4">
+                  <div className="bg-white rounded-2xl p-4">
                     <AvailabilityCalendar 
                       availability={walkerProfile?.availability || trainerProfile?.availability}
                       onDateSelect={(date) => {
