@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { MapPin, MessageCircle, Phone, Clock, Dog, Zap } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function PawGoTracking({ match, onCancel, onMessage, onCall }) {
+export default function PawGoTracking({ match, onCancel, onMessage, onCall, selectedPet, duration }) {
   const [estimatedTime, setEstimatedTime] = useState(match?.distance_km ? Math.ceil((match.distance_km / 4) * 10) : 8);
   const [startTime] = useState(new Date());
 
@@ -57,72 +57,57 @@ export default function PawGoTracking({ match, onCancel, onMessage, onCall }) {
         </div>
       </div>
 
-      {/* PAINEL DE AÇÕES FLUTUANTE - Bottom Sheet Style */}
-      <div className="absolute bottom-6 left-6 right-6 z-10 space-y-4">
+      {/* --- PAINEL DE ACOMPANHAMENTO ATIVO (Pós-Seleção) --- */}
+      <div className="absolute bottom-6 left-6 right-6 z-20 space-y-4">
         
-        {/* Card do Profissional */}
-        <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-6 shadow-[0_15px_60px_rgba(0,0,0,0.15)] border border-white/50 animate-in slide-in-from-bottom-4 duration-500 delay-300">
-          <div className="flex justify-between items-start gap-4 mb-6">
-            {/* Info do Profissional */}
-            <div className="flex items-center gap-4 flex-1">
-              <Avatar className="w-20 h-20 border-4 border-white shadow-xl rounded-[2rem] flex-shrink-0">
-                <AvatarImage src={match.walker_photo} alt={match.walker_name} />
-                <AvatarFallback className="bg-orange-500 text-white font-black text-2xl">
-                  {walkerFirstName[0].toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <h3 className="text-lg font-black text-slate-900 uppercase italic tracking-tight truncate">
-                  {walkerFirstName}
-                </h3>
-                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">
-                  <Dog size={12} /> Passeando o {match.pet_name || 'cão'}
+        {/* Card do Match Real */}
+        <div className="bg-white/95 backdrop-blur-2xl rounded-[3rem] p-6 shadow-2xl border border-white">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              {/* Mostra o Cão que selecionaste anteriormente */}
+              <div className="relative">
+                <Avatar className="w-14 h-14 border-2 border-orange-500 p-0.5">
+                  <AvatarImage src={selectedPet?.photo_url} className="rounded-full object-cover" />
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 bg-slate-900 p-1 rounded-lg text-white">
+                  <Dog size={12} />
                 </div>
-                {match.walker_rating && (
-                  <div className="text-[10px] font-bold text-orange-500 uppercase tracking-tighter mt-1">
-                    ⭐ {match.walker_rating}/5
-                  </div>
-                )}
+              </div>
+              <div>
+                <h4 className="font-black uppercase text-[11px] text-slate-900 italic">Passeio de {selectedPet?.name}</h4>
+                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-tighter">
+                  {duration} Minutos • {duration === 30 ? '12€' : '20€'}
+                </p>
               </div>
             </div>
             
-            {/* Botões de Contacto */}
-            <div className="flex gap-2.5 flex-shrink-0">
-              <button 
-                onClick={onMessage}
-                className="w-14 h-14 bg-slate-100 text-slate-900 rounded-2xl flex items-center justify-center hover:bg-slate-200 active:scale-95 transition-all"
-                aria-label="Enviar mensagem"
-              >
-                <MessageCircle size={22} />
+            {/* Indicador de Status */}
+            <div className="bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20">
+              <span className="text-[9px] font-black text-green-600 uppercase animate-pulse">A Caminho</span>
+            </div>
+          </div>
+
+          {/* Info do Profissional que aceitou */}
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-[2rem] border border-slate-100">
+            <div className="flex items-center gap-3">
+              <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
+                <AvatarImage src={match?.walker_photo} />
+              </Avatar>
+              <div>
+                <p className="text-[10px] font-black uppercase text-slate-900">{match?.walker_name}</p>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Passeador Profissional</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={onMessage} className="p-3 bg-white border border-slate-200 rounded-xl text-slate-600 active:scale-90 transition-all">
+                <MessageCircle size={18} />
               </button>
-              <button 
-                onClick={onCall}
-                className="w-14 h-14 bg-green-500 text-white rounded-2xl flex items-center justify-center hover:bg-green-600 active:scale-95 transition-all"
-                aria-label="Ligar"
-              >
-                <Phone size={22} />
+              <button onClick={onCall} className="p-3 bg-green-500 text-white rounded-xl shadow-lg shadow-green-500/20 active:scale-90 transition-all">
+                <Phone size={18} />
               </button>
             </div>
           </div>
-          
-          {/* Status do Passeio */}
-          <div className="mt-5 pt-5 border-t border-slate-100 flex items-center gap-3">
-            <span className="text-[10px] bg-slate-100 px-3 py-1 rounded-full font-black uppercase text-slate-500 italic tracking-tighter">
-              PASSEIO ATIVO
-            </span>
-            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tight">
-              {walkerFirstName} começou às {formattedTime}.
-            </p>
-          </div>
         </div>
-
-        {/* Botão Cancelar */}
-        <button 
-          onClick={onCancel}
-          className="w-full text-center text-[10px] font-bold uppercase text-slate-400 hover:text-red-500 transition-colors active:scale-95 py-3"
-        >
-          Cancelar Pedido
-        </button>
       </div>
 
     </div>
