@@ -288,8 +288,7 @@ export default function PostEmergency() {
                       </button>
                     );
                     })}
-                  </div>
-                  </div>
+                    </div>
                 ) : (
                   <div className="mb-6 text-center text-sm text-slate-500">
                     Não tem cães registados.

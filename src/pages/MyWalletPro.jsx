@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Wallet, CreditCard, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft,
-  DollarSign, Clock, CheckCircle, AlertCircle, Download, Plus, Loader2
+  DollarSign, Clock, CheckCircle, AlertCircle, Download, Plus, Loader2, Calendar
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
