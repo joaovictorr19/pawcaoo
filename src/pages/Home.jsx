@@ -741,7 +741,15 @@ export default function Home() {
                                     current_mode: isProfessional ? 'professional' : 'owner'
                                   }
                                 });
+                                // Also update is_online status for PawGo visibility
+                                const walkerProfiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+                                if (walkerProfiles.length > 0) {
+                                  await base44.entities.WalkerProfile.update(walkerProfiles[0].id, {
+                                    is_online: isProfessional
+                                  });
+                                }
                                 queryClient.invalidateQueries(['currentUser']);
+                                queryClient.invalidateQueries(['walkers']);
                               } catch (error) {
                                 console.error('Erro ao ativar modo profissional:', error);
                               }
@@ -1352,11 +1360,11 @@ export default function Home() {
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
                         <MapPin className="w-6 h-6 md:w-7 md:h-7 text-orange-500" />
-                        Pedidos PawGo
+                        Profissionais Online
                       </h2>
                       <p className="text-xs md:text-base text-gray-600 mt-1 flex items-center gap-1">
                         <Clock className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
-                        {filteredEmergencyWalks.length} cães precisam de passeio imediato
+                        {walkers?.filter(w => w.is_online)?.length || 0} profissionais disponíveis agora
                       </p>
                     </div>
                   </div>
