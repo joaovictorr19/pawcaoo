@@ -14,6 +14,7 @@ const AdvancedWalkerFilters = React.lazy(() => import("../components/search/Adva
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
 import TestimonialsSection from "../components/home/TestimonialsSection";
+import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
 import { WalkerSearchMap } from "../components/pawcao/WalkerSearchMap";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
@@ -1147,6 +1148,7 @@ export default function Home() {
 
               <TabsContent value="professionals">
                 <div>
+                  <OnlineWalkersRibbon walkers={walkers} />
                   <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
                       <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
