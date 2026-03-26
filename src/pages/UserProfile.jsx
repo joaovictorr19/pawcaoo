@@ -10,6 +10,7 @@ import {
   MapPin, ArrowLeft, Dog, CheckCircle, Shield, User,
   MessageCircle, Award, Star, Calendar, Zap
 } from "lucide-react";
+import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { useLanguage } from "@/components/LanguageContext";
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
@@ -256,6 +257,8 @@ export default function UserProfile() {
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
   const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const handleBookingClick = (service) => {
     setSelectedService(service.service_name);
@@ -489,27 +492,39 @@ export default function UserProfile() {
           </TabsList>
 
           {/* CONQUISTAS */}
-          <TabsContent value="badges" className="space-y-4">
-            {loadingBadges ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => <div key={i} className="h-16 bg-slate-200 rounded-2xl animate-pulse" />)}
-              </div>
-            ) : earnedBadges.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 animate-in fade-in">
-                {earnedBadges.map((badge) => (
-                  <div key={badge._uniqueId} className="bg-white/70 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-white/50 text-center cursor-pointer hover:bg-white/80 transition-all">
-                    <div className="text-4xl mb-2">{getBadgeImage(badge.badge_id)}</div>
-                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight">{badge.name || badge.badge_id}</h3>
-                    <p className="text-[9px] text-slate-500 mt-1">{badge.description}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Award className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
-                <p className="text-slate-500 text-sm">Sem conquistas ainda</p>
-              </div>
-            )}
+          <TabsContent value="badges" className="space-y-6 pb-6">
+            {/* --- SEÇÃO 1: EMBLEMAS REAIS (Hospedados no Admin) --- */}
+            <div className="mt-4 px-0">
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas Reais</h3>
+              {loadingBadges ? (
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                  {[1, 2, 3].map(i => <div key={i} className="w-20 h-20 bg-slate-200 rounded-2xl flex-shrink-0 animate-pulse" />)}
+                </div>
+              ) : earnedBadges.length > 0 ? (
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                  {earnedBadges.map((badge) => (
+                    <div key={badge._uniqueId} className="flex flex-col items-center min-w-[80px]">
+                      <div className="w-16 h-16 rounded-2xl bg-white shadow-lg border-2 border-slate-50 flex items-center justify-center overflow-hidden">
+                        {(badge.image_png_file || badge.image_url) ? (
+                          <img 
+                            src={badge.image_png_file || badge.image_url} 
+                            alt={badge.name}
+                            className="w-12 h-12 object-contain"
+                          />
+                        ) : (
+                          <div className="text-2xl">{getBadgeImage(badge.badge_id)}</div>
+                        )}
+                      </div>
+                      <p className="text-[9px] font-black uppercase mt-2 text-slate-900 text-center leading-tight">
+                        {badge.name || badge.badge_id}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[10px] text-slate-300 font-bold italic">Sem emblemas atribuídos ainda.</p>
+              )}
+            </div>
           </TabsContent>
 
           {/* SERVIÇOS */}
@@ -552,8 +567,52 @@ export default function UserProfile() {
               </div>
             )}
           </TabsContent>
-        </Tabs>
-      </div>
+          </Tabs>
+
+          {/* --- SEÇÃO 2: AGENDA E SERVIÇOS --- */}
+          {(walkerProfile || trainerProfile) && (
+          <div className="mt-10 space-y-8 pb-32">
+
+            {/* LISTA DE SERVIÇOS */}
+            <div>
+              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900">Serviços Disponíveis</h3>
+              <div className="space-y-3">
+                {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
+                  <div key={idx} className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-50 flex justify-between items-center">
+                    <div>
+                      <h4 className="font-black text-xs uppercase text-slate-900">{service.service_name}</h4>
+                      <p className="text-[10px] text-slate-400 font-medium">{service.duration || 60} min</p>
+                    </div>
+                    <span className="text-orange-500 font-black italic text-lg">{service.price}€</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CALENDÁRIO */}
+            <div className="bg-slate-900 rounded-[3rem] p-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="bg-white/10 p-2 rounded-xl text-white">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <h4 className="text-white font-black uppercase italic text-xs">Agenda & Folgas</h4>
+                  <p className="text-[9px] text-white/40 font-bold uppercase">Reserva para o futuro</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-[2rem] p-4">
+                <AvailabilityCalendar 
+                  availability={walkerProfile?.availability || trainerProfile?.availability}
+                  onDateSelect={(date) => {
+                    setSelectedDate(date);
+                    setShowBookingModal(true);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+          )}
+          </div>
 
       {/* PROFILE ACTIONS SECTION */}
       {!isOwnProfile && (walkerProfile || trainerProfile) && (
