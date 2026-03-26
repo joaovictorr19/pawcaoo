@@ -32,6 +32,7 @@ import ReviewForm from "../components/reviews/ReviewForm";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AchievementModal from "../components/gamification/AchievementModal";
 import CheckoutModal from "../components/payments/CheckoutModal";
+import { useBookingNotifications } from "../components/notifications/BookingNotificationService";
 import { CreditCard } from "lucide-react";
 
 export default function MyBookings() {
