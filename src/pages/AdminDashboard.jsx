@@ -64,6 +64,7 @@ import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
 import AdminProfessionalManager from "../components/admin/AdminProfessionalManager";
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
+import { AdminApprovals } from "../components/admin/AdminApprovals";
 import UniversalMap from "@/components/maps/UniversalMap";
 import { MapMarker } from "@/components/ui/map";
 import AdminLiveMap from "../components/admin/AdminLiveMap";
@@ -374,6 +375,12 @@ export default function AdminDashboard() {
   const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified' || w.is_active === true);
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
   const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
+
+  // Profissionais pendentes via novo sistema unificado (professional_profile)
+  const pendingProfessionals = allUsers.filter(u =>
+    u.account_type === 'professional' &&
+    u.professional_profile?.verification_status === 'pending'
+  );
 
   const dashboardStats = useMemo(() => [
     {
@@ -761,6 +768,12 @@ export default function AdminDashboard() {
               <TabsTrigger value="godmode" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🌍 God Mode</TabsTrigger>
               <TabsTrigger value="calendar" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
               <TabsTrigger value="professionals" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">👥 Profissionais</TabsTrigger>
+              <TabsTrigger value="approvals" className="relative rounded-full bg-orange-50 text-orange-700 shadow-sm data-[state=active]:bg-orange-500 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
+                🛡️ Aprovações
+                {pendingProfessionals.length > 0 && (
+                  <span className="ml-1.5 bg-orange-500 data-[state=active]:bg-white data-[state=active]:text-orange-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{pendingProfessionals.length}</span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="users" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
               <TabsTrigger value="commerce" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🛍️ Comércio</TabsTrigger>
               <TabsTrigger value="operations" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
@@ -797,6 +810,15 @@ export default function AdminDashboard() {
               <div className="mt-6">
                 <AdminInteractiveCalendar />
               </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="approvals">
+            {activeTab === 'approvals' && (
+              <AdminApprovals
+                pendingUsers={pendingProfessionals}
+                onRefresh={() => queryClient.invalidateQueries({ queryKey: ['allUsers'] })}
+              />
             )}
           </TabsContent>
 
