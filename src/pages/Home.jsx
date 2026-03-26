@@ -615,6 +615,7 @@ export default function Home() {
       // Aqui integraria com lógica real de matching
       navigate(createPageUrl('Dashboard'));
     } catch (error) {
+      console.error('Erro ao iniciar PawGo:', error);
       toast.error('Erro ao iniciar PawGo');
     } finally {
       setIsSearching(false);
@@ -730,7 +731,7 @@ export default function Home() {
                                         {badge.image_url ? (
                                           <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
                                         ) : (
-                                          <span>{badge.icon || '🏅'}</span>
+                                          <div className="w-full h-full bg-slate-600"></div>
                                         )}
                                       </div>
                                       {/* Tooltip on hover */}
@@ -919,9 +920,7 @@ export default function Home() {
                             {dog.photo_url ? (
                               <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xl">
-                                {dog.animal_type === 'cat' ? '🐱' : dog.animal_type === 'bird' ? '🦜' : '🐕'}
-                              </div>
+                               <div className="w-full h-full flex items-center justify-center bg-slate-200"></div>
                             )}
                           </div>
                           <p className="font-bold text-[10px] text-gray-900 truncate w-full px-1">{dog.dog_name}</p>
