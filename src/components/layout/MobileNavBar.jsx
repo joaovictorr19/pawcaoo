@@ -23,7 +23,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
   const handleCenterButtonClick = async () => {
     if (isProf) {
-      // 1. Atualiza apenas o estado na base de dados, sem redirecionar
+      // Profissional: toggle online/offline
       const newStatus = !isOnline;
       try {
         await base44.auth.updateMe({
@@ -40,10 +40,11 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         console.error("Erro ao atualizar status:", error);
       }
     } else {
+      // Cliente/Tutor: voltar para modo usuário normal (não profissional)
       if (location.pathname !== createPageUrl("Dashboard")) {
-          navigate(createPageUrl("Dashboard"), { state: { triggerTransition: true, toProfessional: !isProf } });
+          navigate(createPageUrl("Dashboard"), { state: { triggerTransition: true, toProfessional: false } });
       } else {
-          window.dispatchEvent(new CustomEvent('triggerModeSwitch', { detail: { toProfessional: !isProf } }));
+          window.dispatchEvent(new CustomEvent('triggerModeSwitch', { detail: { toProfessional: false } }));
       }
     }
   };
