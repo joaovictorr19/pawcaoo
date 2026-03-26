@@ -25,6 +25,7 @@ import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
 import ServiceCard from "../components/profile/ServiceCard";
 import ProfileActions from "../components/profile/ProfileActions";
+import BookingStepperModal from "../components/booking/BookingStepperModal";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -632,6 +633,19 @@ export default function UserProfile() {
         isOpen={isAnimalModalOpen}
         onClose={() => setIsAnimalModalOpen(false)}
         userEmail={profileEmail}
+      />
+      <BookingStepperModal
+        isOpen={showBookingModal}
+        onClose={() => {
+          setShowBookingModal(false);
+          setSelectedDate(null);
+        }}
+        selectedDate={selectedDate}
+        walker={walkerProfile || trainerProfile}
+        currentUser={currentUser}
+        onBookingCreated={() => {
+          queryClient.invalidateQueries(['myPastBookings']);
+        }}
       />
     </div>
   );
