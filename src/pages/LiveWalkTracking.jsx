@@ -41,19 +41,11 @@ export default function LiveWalkTracking() {
       return bookings[0] || null;
     },
     enabled: !!bookingId,
-    refetchInterval: 5000,
+    refetchInterval: 2000, // Atualiza a cada 2 segundos para posição real-time
   });
 
   const { data: checkpoints, isLoading } = useQuery({
     queryKey: ['liveCheckpoints', bookingId],
-    queryFn: () => base44.entities.WalkCheckpoint.filter(
-      { booking_id: bookingId },
-      'created_date'
-    ),
-    enabled: !!bookingId,
-    refetchInterval: 10000, // Refetch every 10 seconds for live updates
-    initialData: [],
-  });
 
   const checkIn = checkpoints.find(c => c.checkpoint_type === 'check_in');
   const checkOut = checkpoints.find(c => c.checkpoint_type === 'check_out');
@@ -102,6 +94,22 @@ export default function LiveWalkTracking() {
     return R * c;
   };
 
+  // Calcular velocidade aproximada (m/s)
+  const calculateSpeed = () => {
+    if (!booking?.route_coordinates || booking.route_coordinates.length < 2) return 0;
+    const last = booking.route_coordinates[booking.route_coordinates.length - 1];
+    const secondLast = booking.route_coordinates[booking.route_coordinates.length - 2];
+    
+    const distance = getDistanceInMeters(secondLast.lat, secondLast.lng, last.lat, last.lng);
+    const timestamp1 = new Date(secondLast.timestamp || secondLast.created_date).getTime();
+    const timestamp2 = new Date(last.timestamp || last.created_date).getTime();
+    const timeDiff = (timestamp2 - timestamp1) / 1000; // em segundos
+    
+    if (timeDiff === 0) return 0;
+    const speedMs = distance / timeDiff;
+    return (speedMs * 3.6).toFixed(1); // converter m/s para km/h
+  };
+
   const distanceToHome = (booking?.pickup_lat && booking?.walker_lat) 
     ? getDistanceInMeters(booking.pickup_lat, booking.pickup_lng, booking.walker_lat, booking.walker_lng)
     : null;
@@ -109,6 +117,8 @@ export default function LiveWalkTracking() {
   const formattedDistance = distanceToHome 
     ? (distanceToHome > 1000 ? `${(distanceToHome / 1000).toFixed(1)}km` : `${Math.round(distanceToHome)}m`)
     : '';
+    
+  const currentSpeed = calculateSpeed();
 
   if (!bookingId) {
     return (
@@ -271,7 +281,7 @@ export default function LiveWalkTracking() {
           </Card>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid lg:grid-cols-4 gap-6 mb-6">
           {/* Live Stats */}
           <Card className="glass-panel border-0 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
@@ -280,23 +290,39 @@ export default function LiveWalkTracking() {
                 Walk Stats
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="p-6 space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Distance</span>
-                <span className="text-2xl font-bold text-blue-600">{totalDistance.toFixed(2)} km</span>
+                <span className="text-gray-600 text-sm">Distance</span>
+                <span className="text-xl font-bold text-blue-600">{totalDistance.toFixed(2)} km</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Duration</span>
-                <span className="text-xl font-semibold">
+                <span className="text-gray-600 text-sm">Duration</span>
+                <span className="text-lg font-semibold">
                   {checkIn && !checkOut && `${Math.floor((new Date() - new Date(checkIn.created_date)) / 60000)} min`}
                   {checkOut && `${booking?.duration_hours}h`}
                   {!checkIn && "Not started"}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Updates</span>
-                <span className="text-xl font-semibold">{checkpoints.length}</span>
+                <span className="text-gray-600 text-sm">Speed</span>
+                <span className="text-lg font-bold text-green-600">{currentSpeed} km/h</span>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Distance to Home */}
+          <Card className="glass-panel border-0 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-orange-50 to-red-50">
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-red-600" />
+                To Home
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 flex flex-col items-center justify-center">
+              <span className="text-3xl font-black text-red-600 mb-1">{formattedDistance || '—'}</span>
+              <p className="text-xs text-gray-600 text-center">
+                {distanceToHome && distanceToHome < 100 ? "🎉 Almost!" : distanceToHome ? "In progress" : "—"}
+              </p>
             </CardContent>
           </Card>
 
