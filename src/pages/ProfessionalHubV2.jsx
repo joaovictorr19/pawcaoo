@@ -14,6 +14,10 @@ import { ServiceManager } from "../components/professional-hub/ServiceManager";
 import { ServiceEditor } from "../components/professional-hub/ServiceEditor";
 import { ProfessionalEditProfile } from "@/components/professionals/ProfessionalEditProfile";
 import IncomingRequestModal from "@/components/professional/IncomingRequestModal";
+import { VerificationBanner } from "@/components/professional-hub/VerificationBanner";
+import { RadarStatusPanel } from "@/components/professional-hub/RadarStatusPanel";
+import { ToolsSection } from "@/components/professional-hub/ToolsSection";
+import { WalletSection } from "@/components/professional-hub/WalletSection";
 
 export default function ProfessionalHubV2() {
   const queryClient = useQueryClient();
