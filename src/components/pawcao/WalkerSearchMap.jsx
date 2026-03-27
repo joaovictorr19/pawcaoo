@@ -1,102 +1,60 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Map, MapControls, MapMarker, MapRoute, MarkerContent } from "@/components/ui/map";
+import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Navigation, PawPrint, User } from "lucide-react";
-import maplibregl from 'maplibre-gl';
+import { Navigation, PawPrint, User, MapPin } from "lucide-react";
 
-// Dados simulados (depois virão do seu Banco de Dados)
-const WALKER_POS = [-9.1393, 38.7223]; // Lisboa Centro
-const DOG_POS = [-9.1450, 38.7280];    // Um pouco mais a norte
-
-export function WalkerSearchMap() {
-  const [routeInfo, setRouteInfo] = useState({ distance: "1.2 km", duration: "12 min" });
-  const mapRef = useRef(null);
-
-  const handleMapLoad = (map) => {
-    mapRef.current = map;
-    
-    // Fit Bounds: Automatically zoom to fit both points
-    if (window.maplibregl || maplibregl) {
-        const bounds = new (window.maplibregl || maplibregl).LngLatBounds();
-        bounds.extend(WALKER_POS);
-        bounds.extend(DOG_POS);
-        
-        map.fitBounds(bounds, {
-            padding: { top: 50, bottom: 200, left: 50, right: 50 }, // Extra bottom padding for the card
-            maxZoom: 16,
-            duration: 1000
-        });
-    }
-  };
+// Simple visual map placeholder — no external map lib required
+export function WalkerSearchMap({ walkers, userLocation, onWalkerClick }) {
+  if (!walkers || walkers.length === 0) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-xl">
+        <div className="text-center text-gray-500">
+          <MapPin className="w-10 h-10 mx-auto mb-2 text-gray-400" />
+          <p className="text-sm font-medium">Nenhum profissional encontrado no mapa</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative w-full h-full">
-      {/* MAPA */}
-      <Map
-        center={WALKER_POS}
-        zoom={14}
-        className="w-full h-full"
-        onMapLoad={handleMapLoad}
-      >
-        {/* 1. ROTA (Linha Azul) */}
-        <MapRoute
-          coordinates={[WALKER_POS, DOG_POS]}
-          color="#2563EB"
-          width={4}
-          opacity={0.8}
-        />
+    <div className="relative w-full h-full bg-slate-100 rounded-xl overflow-hidden flex flex-col">
+      {/* Map placeholder header */}
+      <div className="bg-blue-600 text-white px-4 py-2 text-sm font-semibold flex items-center gap-2">
+        <MapPin className="w-4 h-4" />
+        Vista de Mapa — {walkers.length} profissional(ais) encontrado(s)
+      </div>
 
-        {/* 2. MARCADOR DO PASSEADOR (Você/Walker) */}
-        <MapMarker longitude={WALKER_POS[0]} latitude={WALKER_POS[1]}>
-          <MarkerContent>
-            <div className="bg-blue-600 p-2 rounded-full border-2 border-white shadow-lg transform -translate-x-1/2 -translate-y-1/2">
-              <User className="w-5 h-5 text-white" />
+      {/* Walker list as map alternative */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        {walkers.slice(0, 20).map((walker) => (
+          <div
+            key={walker.id}
+            onClick={() => onWalkerClick?.(walker)}
+            className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow border border-gray-100"
+          >
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {walker.photo_url ? (
+                <img src={walker.photo_url} alt={walker.walker_name} className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-5 h-5 text-blue-500" />
+              )}
             </div>
-          </MarkerContent>
-        </MapMarker>
-
-        {/* 3. MARCADOR DO CÃO (Destino) */}
-        <MapMarker longitude={DOG_POS[0]} latitude={DOG_POS[1]}>
-          <MarkerContent>
-            <div className="bg-amber-500 p-2 rounded-full border-2 border-white shadow-lg transform -translate-x-1/2 -translate-y-1/2 animate-bounce">
-              <PawPrint className="w-5 h-5 text-white" />
-            </div>
-          </MarkerContent>
-        </MapMarker>
-
-        <MapControls position="top-right" />
-      </Map>
-
-      {/* 4. CARD FLUTUANTE (Correção do Layout Mobile) 
-         'bottom-24' levanta o card para cima da TabBar do telemóvel
-         'z-50' garante que fica por cima do mapa 
-      */}
-      <div className="absolute bottom-24 left-4 right-4 z-50">
-        <Card className="p-4 bg-white/95 backdrop-blur shadow-2xl border-0 rounded-2xl">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h3 className="font-bold text-gray-900">Recolha de Thor</h3>
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                <Navigation size={14} /> 
-                {routeInfo.distance} • {routeInfo.duration} até ao local
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm text-gray-900 truncate">{walker.walker_name}</p>
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {walker.location || 'Localização não disponível'}
+                {walker.distance != null && ` • ${walker.distance.toFixed(1)}km`}
               </p>
             </div>
-            {/* Foto pequena do cão (opcional) */}
-            <div className="h-10 w-10 bg-gray-200 rounded-full overflow-hidden border-2 border-white shadow-sm">
-               <img src="https://github.com/shadcn.png" alt="Dog" className="w-full h-full object-cover" />
+            <div className="text-right flex-shrink-0">
+              <p className="text-sm font-bold text-green-600">€{walker.hourly_rate || '?'}/h</p>
+              {walker.rating > 0 && (
+                <p className="text-xs text-yellow-600">⭐ {walker.rating.toFixed(1)}</p>
+              )}
             </div>
           </div>
-          
-          <div className="flex gap-2">
-            <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-6 rounded-xl h-auto">
-              Iniciar Rota
-            </Button>
-            <Button variant="outline" className="py-6 rounded-xl border-2 h-auto">
-              Cancelar
-            </Button>
-          </div>
-        </Card>
+        ))}
       </div>
     </div>
   );
