@@ -8,9 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   MapPin, ArrowLeft, Dog, CheckCircle, Shield, User,
-  MessageCircle, Award, Star, Calendar, Zap
+  MessageCircle, Award, Star, Calendar as CalendarIcon, Zap
 } from "lucide-react";
-import AvailabilityCalendar from "../components/calendar/AvailabilityCalendar";
+import { Calendar } from "@/components/ui/calendar";
+
 import ReviewCard from "../components/reviews/ReviewCard";
 import { useLanguage } from "@/components/LanguageContext";
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
@@ -549,7 +550,7 @@ export default function UserProfile() {
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 shadow-2xl border border-slate-700">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="bg-white/10 p-2.5 rounded-xl text-white">
-                      <Calendar size={20} />
+                      <CalendarIcon size={20} />
                     </div>
                     <div>
                       <h4 className="text-white font-black uppercase text-xs tracking-wider">Agendar Passeio</h4>
@@ -557,12 +558,15 @@ export default function UserProfile() {
                     </div>
                   </div>
                   <div className="bg-white rounded-2xl p-4">
-                    <AvailabilityCalendar 
-                      availability={walkerProfile?.availability || trainerProfile?.availability}
-                      onDateSelect={(date) => {
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => {
                         setSelectedDate(date);
                         setShowBookingModal(true);
                       }}
+                      disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
+                      className="rounded-xl"
                     />
                   </div>
                 </div>
