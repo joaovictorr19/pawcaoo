@@ -1025,7 +1025,12 @@ export default function AccountSettings() {
                     </div>
                     
                     {showDeleteDialog && (
-                      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                      <div 
+                        className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+                        onClick={(e) => { if (e.target === e.currentTarget && !isDeleting) { setShowDeleteDialog(false); setDeleteConfirmText(''); } }}
+                        onKeyDown={(e) => { if (e.key === 'Escape' && !isDeleting) { setShowDeleteDialog(false); setDeleteConfirmText(''); } }}
+                        tabIndex={-1}
+                      >
                         <Card className="w-full max-w-sm border-red-300 shadow-lg">
                           <CardHeader>
                             <CardTitle className="text-red-700">Confirmar Eliminação de Conta</CardTitle>

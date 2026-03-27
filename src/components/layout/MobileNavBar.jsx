@@ -42,10 +42,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
   const handleTabClick = (path, resetNav = false) => {
     if (isActive(path) && resetNav) {
-      // Reset tab navigation to root
+      // Reset to root of this tab section
       window.scrollTo(0, 0);
-      queryClient.invalidateQueries({ queryKey: ['tabScroll', path] });
       setScrollPositions(prev => ({ ...prev, [path]: 0 }));
+      navigate(path, { replace: true });
     } else {
       navigate(path);
     }
