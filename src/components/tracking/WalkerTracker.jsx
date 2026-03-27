@@ -7,8 +7,22 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Navigation, StopCircle, AlertTriangle, Clock, Loader2, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import UniversalMap from "@/components/maps/UniversalMap";
-import maplibregl from 'maplibre-gl';
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+function LiveMapUpdater({ center }) {
+  const map = useMap();
+  useEffect(() => { if (center) map.setView(center, map.getZoom()); }, [center, map]);
+  return null;
+}
 
 // Haversine formula for distance in meters
 const getDistanceFromLatLonInM = (lat1, lon1, lat2, lon2) => {
@@ -51,6 +65,8 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
   const [distance, setDistance] = useState(0);
   const [duration, setDuration] = useState(0);
   const [lastPos, setLastPos] = useState(null);
+  const [currentPosition, setCurrentPosition] = useState(null);
+  const [routePath, setRoutePath] = useState([]);
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   
@@ -96,52 +112,8 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
   }, [booking]);
 
   const updateMap = (lat, lng) => {
-    if (!mapRef.current) return;
-
-    // Update Route Source
-    routeRef.current.geometry.coordinates.push([lng, lat]);
-    const source = mapRef.current.getSource('route');
-    if (source) {
-      source.setData(routeRef.current);
-    } else {
-      // If source doesn't exist yet (map just loaded), add it
-      try {
-        mapRef.current.addSource('route', {
-          type: 'geojson',
-          data: routeRef.current
-        });
-        mapRef.current.addLayer({
-          id: 'route',
-          type: 'line',
-          source: 'route',
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#22c55e',
-            'line-width': 5,
-            'line-opacity': 0.8
-          }
-        });
-      } catch (e) {
-        console.error("Map layer error", e);
-      }
-    }
-
-    // Update Marker
-    if (!markerRef.current) {
-      const el = document.createElement('div');
-      el.className = 'w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-lg animate-pulse';
-      markerRef.current = new maplibregl.Marker({ element: el })
-        .setLngLat([lng, lat])
-        .addTo(mapRef.current);
-    } else {
-      markerRef.current.setLngLat([lng, lat]);
-    }
-
-    // Pan map
-    mapRef.current.panTo([lng, lat], { duration: 1000 });
+    setCurrentPosition([lat, lng]);
+    setRoutePath(prev => [...prev, [lat, lng]]);
   };
 
   // 3. Estado de Loading (Mostra Spinner enquanto carrega)
@@ -347,31 +319,22 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Map Background */}
       <div className="flex-1 relative">
-        <UniversalMap
-          onMapLoad={(map) => {
-            mapRef.current = map;
-            // Initialize route if data exists
-            if (routeRef.current.geometry.coordinates.length > 0) {
-              map.on('load', () => {
-                try {
-                  map.addSource('route', { type: 'geojson', data: routeRef.current });
-                  map.addLayer({
-                    id: 'route',
-                    type: 'line',
-                    source: 'route',
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: { 'line-color': '#22c55e', 'line-width': 5, 'line-opacity': 0.8 }
-                  });
-                  // Fit bounds
-                  const bounds = new maplibregl.LngLatBounds();
-                  routeRef.current.geometry.coordinates.forEach(coord => bounds.extend(coord));
-                  map.fitBounds(bounds, { padding: 50 });
-                } catch (e) { console.error(e); }
-              });
-            }
-          }}
-          showControls={false}
-        />
+        <MapContainer
+          center={currentPosition || [booking?.walker_lat || 38.7223, booking?.walker_lng || -9.1393]}
+          zoom={15}
+          style={{ width: '100%', height: '100%' }}
+          className="z-0"
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {currentPosition && <LiveMapUpdater center={currentPosition} />}
+          {routePath.length > 1 && (
+            <Polyline positions={routePath} pathOptions={{ color: '#22c55e', weight: 5, opacity: 0.8 }} />
+          )}
+          {currentPosition && <Marker position={currentPosition} />}
+        </MapContainer>
         
         {/* Top Bar Overlay */}
         <div className="absolute top-4 left-4 right-4 bg-white/90 backdrop-blur-md p-3 rounded-xl shadow-lg border border-white/50 flex justify-between items-center z-10">

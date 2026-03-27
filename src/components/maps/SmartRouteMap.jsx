@@ -6,7 +6,7 @@ import {
   MarkerContent,
   MapRoute,
   MarkerLabel,
-} from "@/components/ui/map";
+} from "@/components/ui/map.jsx";
 import { Loader2, Clock, Route, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

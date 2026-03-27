@@ -1,17 +1,21 @@
-import React, { useRef, useEffect, useState } from 'react';
-import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import { MapControls } from '@/components/ui/map';
-import { Button } from '@/components/ui/button';
-import { Mountain, RotateCcw } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { MapControls } from '@/components/ui/map.jsx';
+import 'leaflet/dist/leaflet.css';
 
-/**
- * UniversalMap - Single map component for all app views
- * Uses MapLibre GL JS with Positron (clean/light) style
- * Default center: Porto, Portugal
- */
-export default function UniversalMap({ 
-  center = [-8.6291, 41.1579], // Porto default
+function MapCenterUpdater({ center, zoom }) {
+  const map = useMap();
+  React.useEffect(() => {
+    if (center && Array.isArray(center) && center.length === 2) {
+      // center is [lng, lat] — leaflet wants [lat, lng]
+      map.setView([center[1], center[0]], zoom || 13);
+    }
+  }, [center, zoom, map]);
+  return null;
+}
+
+export default function UniversalMap({
+  center = [-8.6291, 41.1579],
   zoom = 13,
   className = "w-full h-full",
   children,
@@ -21,187 +25,36 @@ export default function UniversalMap({
   show3DControls = false,
   onMapClick
 }) {
-  // CRITICAL: Defensive coordinate validation
   let safeCenter = center;
-  if (!center || !Array.isArray(center) || center.length !== 2 || 
-      typeof center[0] !== 'number' || typeof center[1] !== 'number' ||
+  if (!center || !Array.isArray(center) || center.length !== 2 ||
       isNaN(center[0]) || isNaN(center[1])) {
-    console.warn('⚠️ Map received invalid coordinates, using Porto default:', center);
-    safeCenter = [-8.6291, 41.1579]; // Porto fallback
+    safeCenter = [-8.6291, 41.1579];
   }
 
-  const mapContainer = useRef(null);
-  const map = useRef(null);
-  const [isReady, setIsReady] = useState(false);
-  const [pitch, setPitch] = useState(0);
-  const [bearing, setBearing] = useState(0);
-
-  useEffect(() => {
-    if (map.current) return;
-    if (!mapContainer.current) return;
-
-    // CRITICAL FIX: Delay map initialization to ensure container is fully rendered
-    const initTimeout = setTimeout(() => {
-      try {
-        if (!mapContainer.current) {
-          console.warn('⚠️ Map container disappeared, aborting initialization');
-          return;
-        }
-
-        map.current = new maplibregl.Map({
-          container: mapContainer.current,
-          style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-          center: safeCenter,
-          zoom: zoom || 13,
-          attributionControl: false,
-          preserveDrawingBuffer: true, // Better for screenshots/rendering
-          failIfMajorPerformanceCaveat: false // Don't fail on low-end devices
-        });
-
-        // Store map instance in DOM for child components
-        if (mapContainer.current) {
-          mapContainer.current._map = map.current;
-        }
-
-        // Add attribution control
-        map.current.addControl(new maplibregl.AttributionControl({
-          compact: true
-        }), 'bottom-right');
-
-        map.current.on('load', () => {
-          console.log('✅ UniversalMap loaded successfully at', center);
-          setIsReady(true);
-          if (onMapLoad) {
-            onMapLoad(map.current);
-          }
-        });
-
-        map.current.on('error', (e) => {
-          console.error('❌ Map error:', e);
-        });
-
-        // Track pitch and bearing changes
-        map.current.on('move', () => {
-          if (map.current) {
-            setPitch(Math.round(map.current.getPitch()));
-            setBearing(Math.round(map.current.getBearing()));
-          }
-        });
-
-        // Handle map clicks for manual correction
-        if (onMapClick) {
-          map.current.on('click', (e) => {
-            onMapClick({
-              lng: e.lngLat.lng,
-              lat: e.lngLat.lat
-            });
-          });
-        }
-      } catch (error) {
-        console.error('❌ Map initialization error:', error);
-        // Retry once after 1 second
-        setTimeout(() => {
-          if (!map.current && mapContainer.current) {
-            console.log('🔄 Retrying map initialization...');
-            window.location.reload();
-          }
-        }, 1000);
-      }
-    }, 100); // 100ms delay to ensure DOM is ready
-
-    return () => {
-      clearTimeout(initTimeout);
-      if (map.current) {
-        try {
-          map.current.remove();
-        } catch (e) {
-          console.error('Error removing map:', e);
-        }
-        map.current = null;
-      }
-    };
-  }, []);
-
-  // Update center when it changes
-  useEffect(() => {
-    if (map.current && isReady && safeCenter) {
-      map.current.flyTo({ center: safeCenter, zoom: zoom || 13, duration: 1000 });
-    }
-  }, [center, zoom, isReady]);
-
-  const handle3DView = () => {
-    if (map.current) {
-      map.current.easeTo({
-        pitch: 60,
-        bearing: -20,
-        duration: 1000
-      });
-    }
-  };
-
-  const handleReset = () => {
-    if (map.current) {
-      map.current.easeTo({
-        pitch: 0,
-        bearing: 0,
-        duration: 1000
-      });
-    }
-  };
+  // Leaflet expects [lat, lng], but we receive [lng, lat]
+  const leafletCenter = [safeCenter[1], safeCenter[0]];
 
   return (
-    <div className="relative w-full h-full">
-      <div ref={mapContainer} className={className} />
-      {isReady && (
-        <>
-          {showControls && <MapControls position={controlsPosition} showZoom showLocate />}
-          
-          {/* 3D Controls */}
-          {show3DControls && (
-            <div className="absolute top-3 left-3 z-10 flex gap-2">
-              <Button
-                size="sm"
-                className="bg-white/90 hover:bg-white text-gray-900 shadow-lg border border-gray-200"
-                onClick={handle3DView}
-              >
-                <Mountain className="w-4 h-4 mr-1.5" />
-                3D
-              </Button>
-              <Button
-                size="sm"
-                className="bg-white/90 hover:bg-white text-gray-900 shadow-lg border border-gray-200"
-                onClick={handleReset}
-              >
-                <RotateCcw className="w-4 h-4 mr-1.5" />
-                2D
-              </Button>
-            </div>
-          )}
-          
-          {children}
-        </>
-      )}
+    <div className={`relative ${className}`} style={{ minHeight: 300 }}>
+      <MapContainer
+        center={leafletCenter}
+        zoom={zoom}
+        style={{ width: '100%', height: '100%', minHeight: 300 }}
+        className="z-0 rounded-xl"
+        whenCreated={onMapLoad}
+        onClick={onMapClick ? (e) => onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng }) : undefined}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <MapCenterUpdater center={safeCenter} zoom={zoom} />
+        {showControls && <MapControls position={controlsPosition} showLocate />}
+        {children}
+      </MapContainer>
     </div>
   );
 }
 
-// Export helper to create markers
-export function createMapMarker({ lng, lat, element }) {
-  const mapContainer = document.querySelector('.maplibregl-map');
-  if (!mapContainer?._map) return null;
-  
-  return new maplibregl.Marker({ element })
-    .setLngLat([lng, lat])
-    .addTo(mapContainer._map);
-}
-
-// Export helper to create popup
-export function createMapPopup({ lng, lat, html, options = {} }) {
-  const mapContainer = document.querySelector('.maplibregl-map');
-  if (!mapContainer?._map) return null;
-  
-  return new maplibregl.Popup(options)
-    .setLngLat([lng, lat])
-    .setHTML(html)
-    .addTo(mapContainer._map);
-}
+export function createMapMarker() { return null; }
+export function createMapPopup() { return null; }

@@ -66,7 +66,7 @@ import AdminProfessionalManager from "../components/admin/AdminProfessionalManag
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
 import { AdminApprovals } from "../components/admin/AdminApprovals";
 import UniversalMap from "@/components/maps/UniversalMap";
-import { MapMarker } from "@/components/ui/map";
+import { MapMarker } from "@/components/ui/map.jsx";
 import AdminLiveMap from "../components/admin/AdminLiveMap";
 import AdminOperationsRadar from "../components/admin/AdminOperationsRadar";
 import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
