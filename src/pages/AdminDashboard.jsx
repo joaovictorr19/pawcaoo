@@ -66,7 +66,7 @@ import AdminProfessionalManager from "../components/admin/AdminProfessionalManag
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
 import { AdminApprovals } from "../components/admin/AdminApprovals";
 import UniversalMap from "@/components/maps/UniversalMap";
-import { MapMarker } from "@/components/ui/map.jsx";
+import { Marker } from 'react-leaflet';
 import AdminLiveMap from "../components/admin/AdminLiveMap";
 import AdminOperationsRadar from "../components/admin/AdminOperationsRadar";
 import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
@@ -670,17 +670,10 @@ export default function AdminDashboard() {
                zoom={15}
             >
               {emergencyUsers[0].pawgo_status?.emergency_mode?.last_emergency_location && (
-                <MapMarker 
-                  longitude={emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lng} 
-                  latitude={emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lat}
-                >
-                  <div className="relative flex h-10 w-10">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-10 w-10 bg-red-600 border-2 border-white items-center justify-center shadow-lg">
-                      <AlertTriangle className="w-5 h-5 text-white" />
-                    </span>
-                  </div>
-                </MapMarker>
+                <Marker position={[
+                  emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lat,
+                  emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lng
+                ]} />
               )}
             </UniversalMap>
           </div>

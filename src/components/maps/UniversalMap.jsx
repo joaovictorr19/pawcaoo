@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
-import { MapControls } from '@/components/ui/map.jsx';
 import 'leaflet/dist/leaflet.css';
 
 function MapCenterUpdater({ center, zoom }) {
@@ -49,7 +48,7 @@ export default function UniversalMap({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapCenterUpdater center={safeCenter} zoom={zoom} />
-        {showControls && <MapControls position={controlsPosition} showLocate />}
+
         {children}
       </MapContainer>
     </div>
