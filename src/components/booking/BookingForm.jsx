@@ -14,7 +14,6 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { useCreateNotification } from "../NotificationService";
 import { useTheme } from "@/components/ThemeContext";
 import { useLocalization } from "@/components/LocalizationContext";
 import { useLanguage } from "@/components/LanguageContext";
@@ -23,7 +22,6 @@ import { t } from "@/components/translations";
 export default function BookingForm({ walker, professional, onClose, initialDate, selectedServiceType }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const createNotification = useCreateNotification();
   const { colors } = useTheme();
   const { formatCurrency, formatDate, formatTime, country } = useLocalization();
   const { language } = useLanguage();
