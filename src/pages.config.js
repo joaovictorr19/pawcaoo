@@ -109,6 +109,7 @@ export const PAGES = {
 
     "MyProfile": page(() => import('./pages/MyProfile')),
     "MyRedemptions": page(() => import('./pages/MyRedemptions')),
+    "MyOrders": page(() => import('./pages/MyOrders')),
     "MyWallet": page(() => import('./pages/MyWallet')),
     "MyWishlist": page(() => import('./pages/MyWishlist')),
     "Notifications": page(() => import('./pages/Notifications')),
@@ -126,7 +127,6 @@ export const PAGES = {
     "RegisterCompany": page(() => import('./pages/RegisterCompany')),
     "RequestWalk": page(() => import('./pages/RequestWalk')),
     "ScheduledWalks": page(() => import('./pages/ScheduledWalks')),
-    "Shop": page(() => import('./pages/Shop')),
     "ShelterDashboard": page(() => import('./pages/ShelterDashboard')),
     "ShelterProfile": page(() => import('./pages/ShelterProfile')),
     "ShelterRegister": page(() => import('./pages/ShelterRegister')),
