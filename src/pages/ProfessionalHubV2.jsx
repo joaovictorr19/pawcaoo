@@ -67,8 +67,19 @@ export default function ProfessionalHubV2() {
     refetchOnWindowFocus: false,
   });
 
-  // 2. Mutação de Status (Ficar Online no PawGo)
+  // 2. Mutação de Status (Ficar Online no PawGo) - Com Optimistic Update
   const toggleOnlineMutation = useMutation({
+    onMutate: async (checked) => {
+      // Optimistic update: immediately update local state
+      queryClient.setQueryData(['currentUser'], (old) => ({
+        ...old,
+        pawgo_status: {
+          ...old?.pawgo_status,
+          is_online: checked,
+          last_active: new Date().toISOString()
+        }
+      }));
+    },
     mutationFn: async (checked) => {
       const updatedUser = await base44.auth.updateMe({
         pawgo_status: {
@@ -90,31 +101,49 @@ export default function ProfessionalHubV2() {
       queryClient.invalidateQueries(['myProfessionalProfile']);
       queryClient.invalidateQueries(['allWalkers']);
       queryClient.invalidateQueries(['allTrainers']);
-      // Invalidar Dashboard para refetch automático
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       toast.success(data.pawgo_status?.is_online ? "🚀 Online no PawGo!" : "😴 Offline");
+    },
+    onError: () => {
+      // Rollback optimistic update on error
+      queryClient.invalidateQueries(['currentUser']);
+      toast.error("Erro ao atualizar status");
     }
   });
 
   const handleAcceptRequest = async (req) => {
+    // Optimistic update: immediately show as confirmed
+    setIncomingRequest(null);
+    queryClient.setQueryData(['incomingRequests', user?.email], (old) => 
+      old?.filter(r => r.id !== req.id) || []
+    );
+    
     try {
       await base44.entities.Booking.update(req.id, { status: 'confirmed' });
-      setIncomingRequest(null);
       queryClient.invalidateQueries(['incomingRequests']);
       toast.success("Passeio aceite! 🎉");
       navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${req.id}`));
-    } catch {
+    } catch (error) {
+      // Rollback optimistic update
+      queryClient.invalidateQueries(['incomingRequests']);
       toast.error("Erro ao aceitar. Tenta novamente.");
     }
   };
 
   const handleDeclineRequest = async (req) => {
+    // Optimistic update: immediately remove from list
+    setIncomingRequest(null);
+    queryClient.setQueryData(['incomingRequests', user?.email], (old) => 
+      old?.filter(r => r.id !== req.id) || []
+    );
+    
     try {
       await base44.entities.Booking.update(req.id, { status: 'rejected' });
-      setIncomingRequest(null);
       queryClient.invalidateQueries(['incomingRequests']);
-    } catch {
-      setIncomingRequest(null);
+      toast.info("Passeio recusado");
+    } catch (error) {
+      // Rollback optimistic update
+      queryClient.invalidateQueries(['incomingRequests']);
+      toast.error("Erro ao recusar.");
     }
   };
 

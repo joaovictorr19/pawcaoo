@@ -10,6 +10,8 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [navStack, setNavStack] = React.useState({});
+  const [scrollPositions, setScrollPositions] = React.useState({});
 
   const isProf = user?.preferences?.current_mode === "professional";
   const isTutor = user?.preferences?.current_mode === "tutor";
@@ -21,11 +23,29 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     return false;
   };
 
+  // Save scroll position before navigating away
+  React.useEffect(() => {
+    return () => {
+      setScrollPositions(prev => ({
+        ...prev,
+        [location.pathname]: window.scrollY
+      }));
+    };
+  }, [location.pathname]);
+
+  // Restore scroll position when returning to a tab
+  React.useEffect(() => {
+    if (scrollPositions[location.pathname]) {
+      window.scrollTo(0, scrollPositions[location.pathname]);
+    }
+  }, [location.pathname, scrollPositions]);
+
   const handleTabClick = (path, resetNav = false) => {
     if (isActive(path) && resetNav) {
       // Reset tab navigation to root
       window.scrollTo(0, 0);
       queryClient.invalidateQueries({ queryKey: ['tabScroll', path] });
+      setScrollPositions(prev => ({ ...prev, [path]: 0 }));
     } else {
       navigate(path);
     }
@@ -33,8 +53,19 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
   const handleCenterButtonClick = async () => {
     if (isProf) {
-      // Profissional: toggle online/offline
+      // Profissional: toggle online/offline with optimistic update
       const newStatus = !isOnline;
+      
+      // Optimistic update: update local state immediately
+      queryClient.setQueryData(['currentUser'], (old) => ({
+        ...old,
+        pawgo_status: {
+          ...old?.pawgo_status,
+          is_online: newStatus,
+          last_active: new Date().toISOString()
+        }
+      }));
+      
       try {
         await base44.auth.updateMe({
           pawgo_status: {
@@ -48,6 +79,8 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         queryClient.invalidateQueries(['allWalkers']);
       } catch (error) {
         console.error("Erro ao atualizar status:", error);
+        // Rollback optimistic update on error
+        queryClient.invalidateQueries(['currentUser']);
       }
     } else {
       // Cliente/Tutor: voltar para modo usuário normal (não profissional)

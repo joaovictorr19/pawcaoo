@@ -19,7 +19,6 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { useCreateNotification } from "@/components/NotificationService";
 import { calculateTier } from "@/components/gamification/tierSystem";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
@@ -48,8 +47,6 @@ export default function UserProfile() {
   const profileNameParam = urlParams.get('name');
   const profileUsernameParam = urlParams.get('username');
   const serviceParam = urlParams.get('service');
-
-  const createNotification = useCreateNotification();
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],

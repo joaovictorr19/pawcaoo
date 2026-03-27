@@ -6,6 +6,7 @@ const MyWalletPro = lazy(() => import('./pages/MyWalletPro'))
 const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2'))
 const PawGoWaiting = lazy(() => import('./pages/PawGoWaiting'))
 const ProfessionalSetup = lazy(() => import('./pages/ProfessionalSetup'))
+const ProfessionalDashboard = lazy(() => import('./pages/ProfessionalDashboard'))
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
@@ -70,8 +71,9 @@ const AuthenticatedApp = () => {
             <Route path="/ProfessionalHubV2" element={<Suspense fallback={<PageLoader />}><ProfessionalHubV2 /></Suspense>} />
             <Route path="/PawGoWaiting" element={<Suspense fallback={<PageLoader />}><PawGoWaiting /></Suspense>} />
             <Route path="/ProfessionalSetup" element={<Suspense fallback={<PageLoader />}><ProfessionalSetup /></Suspense>} />
+            <Route path="/ProfessionalDashboard" element={<Suspense fallback={<PageLoader />}><ProfessionalDashboard /></Suspense>} />
             <Route path="*" element={<PageNotFound />} />
-          </Routes>
+            </Routes>
         </Suspense>
       </motion.div>
       </AnimatePresence>
