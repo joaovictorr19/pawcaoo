@@ -1036,9 +1036,18 @@ export default function AccountSettings() {
                             <CardTitle className="text-red-700">Confirmar Eliminação de Conta</CardTitle>
                           </CardHeader>
                           <CardContent className="space-y-4">
-                            <div className="bg-red-50 p-3 rounded text-sm text-red-900">
-                              ⚠️ Esta ação é irreversível. Digite "ELIMINAR" para confirmar.
-                            </div>
+                            <div className="bg-red-50 p-3 rounded text-sm text-red-900 space-y-2">
+                                <p className="font-semibold">⚠️ Esta ação é permanente e irreversível.</p>
+                                <p>Ao eliminar a sua conta irá perder:</p>
+                                <ul className="list-disc list-inside space-y-1 text-red-800">
+                                  <li>Todo o histórico de reservas e passeios</li>
+                                  <li>Todos os pontos de fidelidade e recompensas</li>
+                                  <li>O seu perfil profissional (se aplicável)</li>
+                                  <li>Avaliações e conquistas acumuladas</li>
+                                  <li>Acesso imediato à conta e dados pessoais</li>
+                                </ul>
+                                <p className="font-medium">Digite <strong>ELIMINAR</strong> para confirmar.</p>
+                              </div>
                             <Input
                               placeholder='Digite "ELIMINAR" para confirmar'
                               value={deleteConfirmText}

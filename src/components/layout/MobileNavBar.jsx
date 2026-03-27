@@ -2,6 +2,8 @@ import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Map, Calendar, User, Zap, LayoutDashboard, Globe, Bell } from "lucide-react";
+import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -13,6 +15,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
   const [scrollPositions, setScrollPositions] = React.useState({});
 
   const isProf = user?.preferences?.current_mode === "professional";
@@ -105,7 +108,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   if (!user) return null;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 w-full h-24 px-3 py-3 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] pointer-events-auto" style={{ pointerEvents: 'auto' }}>
+    <div
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 w-full px-3 pt-3 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] pointer-events-auto"
+      style={{ pointerEvents: 'auto', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
+    >
       <div className="max-w-2xl mx-auto flex items-center justify-center gap-2 sm:gap-4">
         
         {/* ABA 1: EXPLORAR / PAINEL PROFISSIONAL / CLIENTE */}
@@ -124,7 +130,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         >
           {isProf ? <LayoutDashboard size={20} /> : isTutor ? <LayoutDashboard size={20} /> : <Map size={20} />}
           <span className="text-[9px] font-bold uppercase tracking-tight">
-            {isProf ? "Painel" : isTutor ? "Cliente" : "Explorar"}
+            {isProf ? t('dashboard', language) : isTutor ? t('client', language) : t('explore', language)}
           </span>
         </button>
 
@@ -134,7 +140,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${isActive(createPageUrl("MyBookings")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
           <Calendar size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-tight">Agenda</span>
+          <span className="text-[9px] font-bold uppercase tracking-tight">{t('schedule', language) || 'Agenda'}</span>
         </button>
 
         {/* BOTÃO CENTRAL: RADAR / PAWGO */}
@@ -155,7 +161,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
             )}
           </motion.button>
           <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest mt-1">
-            {isProf ? (isOnline ? "Online" : "Offline") : "PawGo"}
+            {isProf ? (isOnline ? 'Online' : 'Offline') : 'PawGo'}
           </span>
         </div>
 
@@ -170,7 +176,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
-          <span className="text-[9px] font-bold uppercase tracking-tight">Avisos</span>
+          <span className="text-[9px] font-bold uppercase tracking-tight">{t('notifications', language) || 'Avisos'}</span>
         </button>
 
 
@@ -184,7 +190,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
           <User size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-tight">Perfil</span>
+          <span className="text-[9px] font-bold uppercase tracking-tight">{t('profile', language) || 'Perfil'}</span>
         </button>
 
       </div>
