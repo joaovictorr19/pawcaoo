@@ -6,11 +6,13 @@ import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
+// Per-tab last-visited path storage (persists across renders)
+const tabHistory = {};
+
 export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [navStack, setNavStack] = React.useState({});
   const [scrollPositions, setScrollPositions] = React.useState({});
 
   const isProf = user?.preferences?.current_mode === "professional";
@@ -40,14 +42,22 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     }
   }, [location.pathname, scrollPositions]);
 
-  const handleTabClick = (path, resetNav = false) => {
-    if (isActive(path) && resetNav) {
-      // Reset to root of this tab section
+  const handleTabClick = (rootPath) => {
+    if (isActive(rootPath)) {
+      // Already on this tab — reset to root
       window.scrollTo(0, 0);
-      setScrollPositions(prev => ({ ...prev, [path]: 0 }));
-      navigate(path, { replace: true });
+      setScrollPositions(prev => ({ ...prev, [rootPath]: 0 }));
+      tabHistory[rootPath] = rootPath;
+      navigate(rootPath, { replace: true });
     } else {
-      navigate(path);
+      // Save current location under the active tab root before switching
+      const activeRoot = Object.keys(tabHistory).find(root => isActive(root));
+      if (activeRoot) {
+        tabHistory[activeRoot] = location.pathname + location.search;
+      }
+      // Navigate to last visited path in the target tab (or its root)
+      const target = tabHistory[rootPath] || rootPath;
+      navigate(target);
     }
   };
 
@@ -102,7 +112,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         <button 
           onClick={() => {
             const targetPath = isProf ? createPageUrl("ProfessionalHubV2") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
-            handleTabClick(targetPath, true);
+            handleTabClick(targetPath);
           }}
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${
             (isProf && isActive(createPageUrl("ProfessionalHubV2"))) ||
@@ -120,7 +130,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
         {/* ABA 2: AGENDA / RESERVAS */}
         <button 
-          onClick={() => handleTabClick(createPageUrl("MyBookings"), true)}
+          onClick={() => handleTabClick(createPageUrl("MyBookings"))}
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${isActive(createPageUrl("MyBookings")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
           <Calendar size={20} />
@@ -168,8 +178,8 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         {/* ABA 4: PERFIL */}
         <button 
           onClick={() => {
-            const profilePath = user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user?.id}`);
-            handleTabClick(profilePath, true);
+            const profilePath = createPageUrl("UserProfile");
+            handleTabClick(profilePath);
           }}
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
