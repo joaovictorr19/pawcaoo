@@ -3,547 +3,224 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Check, CheckCheck, Trash2, AlertCircle, Sparkles, Archive, Filter, MoreVertical, DollarSign, Calendar, MessageCircle, Zap, Megaphone } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Zap, MapPin, Calendar, CreditCard, AlertTriangle, Megaphone } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, isToday, isYesterday } from "date-fns";
+import { pt } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useLanguage } from "@/components/LanguageContext";
-import { t } from "@/components/translations";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useTheme } from "@/components/ThemeContext";
+
+const TYPE_CONFIG = {
+  pawgo_request: { icon: Zap, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', label: 'PawGo' },
+  walk_update: { icon: MapPin, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Passeio' },
+  booking: { icon: Calendar, color: 'text-indigo-500', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Reserva' },
+  payment: { icon: CreditCard, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200', label: 'Pagamento' },
+  alert: { icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', label: 'Alerta' },
+  system: { icon: Megaphone, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-200', label: 'Sistema' },
+};
+
+const FILTERS = [
+  { key: "all", label: "Todas" },
+  { key: "unread", label: "Não lidas" },
+  { key: "pawgo_request", label: "🚀 PawGo" },
+  { key: "booking", label: "📅 Reservas" },
+  { key: "payment", label: "💰 Pagamentos" },
+  { key: "alert", label: "🚨 Alertas" },
+];
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  if (isToday(d)) return `Hoje, ${format(d, 'HH:mm')}`;
+  if (isYesterday(d)) return `Ontem, ${format(d, 'HH:mm')}`;
+  return format(d, "d MMM yyyy, HH:mm", { locale: pt });
+}
 
 export default function Notifications() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { language } = useLanguage();
-  const { colors } = useTheme();
-  const [activeTab, setActiveTab] = useState("all");
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [activeFilter, setActiveFilter] = useState("all");
 
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
+  const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => base44.auth.me() });
 
-  const { data: notifications, isLoading } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: async () => {
-      // Fetch personal notifications
-      const personalNotifications = await base44.entities.Notification.list('-created_date');
-      const myNotifications = personalNotifications.filter(n => n.recipient_email === user?.email);
-
-      // Fetch system notifications (broadcasts)
-      const systemNotifications = await base44.entities.SystemNotification.filter({ is_active: true });
-      
-      // Fetch read status for system notifications
-      const readStatuses = await base44.entities.SystemNotificationRead.filter({ user_email: user?.email });
-      const readIds = new Set(readStatuses.map(r => r.notification_id));
-
-      // Map system notifications to the common notification format
-      const formattedSystemNotifications = systemNotifications.map(sn => ({
-        id: sn.id,
-        title: sn.subject,
-        message: sn.content,
-        type: 'system',
-        created_date: sn.created_date || new Date().toISOString(),
-        is_read: readIds.has(sn.id),
-        is_system: true,
-        priority: sn.priority
-      }));
-
-      // Merge and sort by date descending
-      return [...myNotifications, ...formattedSystemNotifications].sort((a, b) => 
-        new Date(b.created_date) - new Date(a.created_date)
-      );
-    },
-    enabled: !!user,
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: ['notifications', user?.email],
+    queryFn: () => base44.entities.Notification.filter({ recipient_email: user?.email }, '-created_date', 100),
+    enabled: !!user?.email,
     initialData: [],
   });
 
-  const markAsReadMutation = useMutation({
-    mutationFn: async (notification) => {
-      if (notification.is_system) {
-        await base44.entities.SystemNotificationRead.create({
-          notification_id: notification.id,
-          user_email: user.email
-        });
-      } else {
-        await base44.entities.Notification.update(notification.id, { is_read: true });
-      }
-    },
+  const markRead = useMutation({
+    mutationFn: (id) => base44.entities.Notification.update(id, { is_read: true }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] });
+      queryClient.invalidateQueries(['notifications']);
+      queryClient.invalidateQueries(['unreadNotifications']);
     },
   });
 
-  const markAllAsReadMutation = useMutation({
+  const markAllRead = useMutation({
     mutationFn: async () => {
-      const unreadNotifications = notifications.filter(n => !n.is_read);
-      await Promise.all(
-        unreadNotifications.map(n => {
-          if (n.is_system) {
-            return base44.entities.SystemNotificationRead.create({
-              notification_id: n.id,
-              user_email: user.email
-            });
-          } else {
-            return base44.entities.Notification.update(n.id, { is_read: true });
-          }
-        })
-      );
+      const unread = notifications.filter(n => !n.is_read);
+      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] });
-      setSelectedIds([]);
-      toast.success("Todas as notificações marcadas como lidas");
+      queryClient.invalidateQueries(['notifications']);
+      queryClient.invalidateQueries(['unreadNotifications']);
+      toast.success("Todas marcadas como lidas");
     },
   });
 
-  const deleteNotificationMutation = useMutation({
+  const deleteNotif = useMutation({
     mutationFn: (id) => base44.entities.Notification.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] });
+      queryClient.invalidateQueries(['notifications']);
+      queryClient.invalidateQueries(['unreadNotifications']);
       toast.success("Notificação eliminada");
     },
   });
 
-  const deleteSelectedMutation = useMutation({
-    mutationFn: async (ids) => {
-      const notificationsToDelete = notifications.filter(n => ids.includes(n.id) && !n.is_system);
-      await Promise.all(
-        notificationsToDelete.map(n => base44.entities.Notification.delete(n.id))
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] });
-      setSelectedIds([]);
-      toast.success("Notificações selecionadas eliminadas");
-    },
-  });
-
-  const markSelectedAsReadMutation = useMutation({
-    mutationFn: async (ids) => {
-      const notificationsToMark = notifications.filter(n => ids.includes(n.id) && !n.is_read);
-      await Promise.all(
-        notificationsToMark.map(n => {
-          if (n.is_system) {
-            return base44.entities.SystemNotificationRead.create({
-              notification_id: n.id,
-              user_email: user.email
-            });
-          } else {
-            return base44.entities.Notification.update(n.id, { is_read: true });
-          }
-        })
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] });
-      setSelectedIds([]);
-      toast.success("Notificações selecionadas marcadas como lidas");
-    },
-  });
-
-  const handleNotificationClick = async (notification) => {
-    if (!notification.is_read) {
-      await markAsReadMutation.mutateAsync(notification);
-    }
-    if (notification.action_url) {
-      navigate(notification.action_url);
-    }
+  const handleClick = (n) => {
+    if (!n.is_read) markRead.mutate(n.id);
+    if (n.link) navigate(n.link);
   };
 
-  const toggleSelect = (id) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(nId => nId !== id) : [...prev, id]
-    );
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.length === filteredNotifications.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(filteredNotifications.map(n => n.id));
-    }
-  };
-
-  const filteredNotifications = activeTab === "all" 
-    ? notifications 
-    : activeTab === "unread"
-    ? notifications.filter(n => !n.is_read)
-    : notifications.filter(n => n.type === activeTab);
+  const filtered = activeFilter === "all" ? notifications
+    : activeFilter === "unread" ? notifications.filter(n => !n.is_read)
+    : notifications.filter(n => n.type === activeFilter);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case "emergency":
-        return <Zap className="w-5 h-5 text-red-500" />;
-      case "payment":
-        return <DollarSign className="w-5 h-5 text-green-500" />;
-      case "booking":
-        return <Calendar className="w-5 h-5 text-blue-500" />;
-      case "message":
-        return <MessageCircle className="w-5 h-5 text-purple-500" />;
-      case "system":
-        return <Megaphone className="w-5 h-5 text-indigo-600" />;
-      default:
-        return <Bell className="w-5 h-5 text-gray-500" />;
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "urgent":
-        return "border-l-4 border-red-500 bg-red-50";
-      case "high":
-        return "border-l-4 border-orange-500 bg-orange-50";
-      default:
-        return "";
-    }
-  };
-
   return (
-    <div className="min-h-screen p-4 md:p-6">
-      <div className="max-w-5xl mx-auto">
-        {/* Modern Header with Gradient */}
-        <div className="mb-6">
-          <div className="flex items-start justify-between mb-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-gradient-to-br from-slate-900 to-slate-700 rounded-2xl shadow-lg">
+              <Bell className="w-6 h-6 text-orange-400" />
+            </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 flex items-center gap-3">
-                <div 
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
-                  style={{ background: `linear-gradient(135deg, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)` }}
-                >
-                  <Bell className="w-6 h-6 text-white" />
-                </div>
-                Notificações
-              </h1>
-              <p className="text-gray-600">{t('stayUpdated', language)}</p>
+              <h1 className="text-2xl font-black text-gray-900">Notificações</h1>
+              <p className="text-sm text-gray-500">
+                {unreadCount > 0 ? `${unreadCount} não lida${unreadCount > 1 ? 's' : ''}` : 'Tudo em dia ✓'}
+              </p>
             </div>
           </div>
-
-          {/* Action Bar */}
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            {selectedIds.length > 0 ? (
-              <div className="flex items-center gap-2 flex-wrap w-full">
-                <Badge className="bg-blue-100 text-blue-800">
-                  {selectedIds.length} selecionadas
-                </Badge>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => markSelectedAsReadMutation.mutate(selectedIds)}
-                  disabled={markSelectedAsReadMutation.isPending}
-                  className="h-9"
-                >
-                  <CheckCheck className="w-4 h-4 mr-2" />
-                  Marcar como Lidas
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => deleteSelectedMutation.mutate(selectedIds)}
-                  disabled={deleteSelectedMutation.isPending}
-                  className="h-9 text-red-600 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Eliminar
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setSelectedIds([])}
-                  className="h-9"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            ) : (
-              <>
-                {unreadCount > 0 && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => markAllAsReadMutation.mutate()}
-                    disabled={markAllAsReadMutation.isPending}
-                    className="h-9"
-                  >
-                    <CheckCheck className="w-4 h-4 mr-2" />
-                    Marcar Todas como Lidas
-                  </Button>
-                )}
-                {filteredNotifications.length > 0 && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={toggleSelectAll}
-                    className="h-9"
-                  >
-                    <Filter className="w-4 h-4 mr-2" />
-                    {selectedIds.length === filteredNotifications.length ? 'Desmarcar' : 'Selecionar'} Todas
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
+          {unreadCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => markAllRead.mutate()}
+              disabled={markAllRead.isPending}
+              className="font-semibold"
+            >
+              <CheckCheck className="w-4 h-4 mr-2" /> Marcar Todas
+            </Button>
+          )}
         </div>
 
-        {/* Modern Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="glass-panel h-auto p-1.5 grid grid-cols-3 md:flex md:inline-flex gap-1">
-            <TabsTrigger 
-              value="all" 
-              className="data-[state=active]:text-white rounded-xl px-4 py-2.5 text-sm font-semibold transition-all"
-              style={{
-                background: activeTab === 'all' ? `linear-gradient(135deg, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)` : 'transparent'
-              }}
+        {/* Filtros */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+          {FILTERS.map(f => (
+            <button
+              key={f.key}
+              onClick={() => setActiveFilter(f.key)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all flex-shrink-0 ${
+                activeFilter === f.key
+                  ? "bg-slate-900 text-white shadow-md"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+              }`}
             >
-              <Bell className="w-4 h-4 mr-2" />
-              Todas
-              {notifications.length > 0 && (
-                <Badge className="ml-2 bg-white/20 text-white">{notifications.length}</Badge>
+              {f.label}
+              {f.key === 'unread' && unreadCount > 0 && (
+                <span className="ml-1.5 bg-orange-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
               )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="unread"
-              className="data-[state=active]:bg-red-500 data-[state=active]:text-white rounded-xl px-4 py-2.5 text-sm font-semibold"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Não Lidas
-              {unreadCount > 0 && (
-                <Badge className="ml-2 bg-white/20 text-white">{unreadCount}</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="system" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-xl px-4 py-2.5 text-sm font-semibold">
-              <Megaphone className="w-4 h-4 mr-2" />
-              Sistema
-            </TabsTrigger>
-            <TabsTrigger value="booking" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-xl px-4 py-2.5 text-sm font-semibold">
-              <Calendar className="w-4 h-4 mr-2" />
-              Reservas
-            </TabsTrigger>
-            <TabsTrigger value="payment" className="data-[state=active]:bg-green-500 data-[state=active]:text-white rounded-xl px-4 py-2.5 text-sm font-semibold">
-              <DollarSign className="w-4 h-4 mr-2" />
-              Pagamentos
-            </TabsTrigger>
-            <TabsTrigger value="emergency" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white rounded-xl px-4 py-2.5 text-sm font-semibold">
-              <Zap className="w-4 h-4 mr-2" />
-              Urgentes
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+            </button>
+          ))}
+        </div>
 
-        {/* Notifications List */}
-        <AnimatePresence mode="wait">
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className="h-28 rounded-2xl" />
-              ))}
-            </div>
-          ) : filteredNotifications.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-            >
-              <Card className="glass-panel border-0 shadow-2xl">
-                <CardContent className="p-12 text-center">
-                  <div 
-                    className="w-24 h-24 rounded-3xl mx-auto mb-6 flex items-center justify-center"
-                    style={{ background: `linear-gradient(135deg, ${colors?.primary || '#3b82f6'}20, ${colors?.primary || '#3b82f6'}10)` }}
-                  >
-                    <Bell className="w-12 h-12 text-gray-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('noNotifications', language)}</h3>
-                  <p className="text-gray-600">{t('allCaughtUp', language)}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ) : (
-            <div className="space-y-3">
-              {filteredNotifications.map((notification, index) => {
-                const isSelected = selectedIds.includes(notification.id);
-                
+        {/* Lista */}
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1,2,3,4].map(i => <div key={i} className="h-20 bg-white rounded-2xl animate-pulse border border-gray-100" />)}
+          </div>
+        ) : filtered.length === 0 ? (
+          <Card className="border-0 shadow-sm">
+            <CardContent className="py-16 text-center">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Bell className="w-10 h-10 text-gray-300" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-700 mb-1">Sem notificações</h3>
+              <p className="text-sm text-gray-500">Está tudo em dia!</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <AnimatePresence>
+            <div className="space-y-2">
+              {filtered.map((n, idx) => {
+                const cfg = TYPE_CONFIG[n.type] || TYPE_CONFIG.system;
+                const Icon = cfg.icon;
                 return (
                   <motion.div
-                    key={notification.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
+                    key={n.id}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2, delay: index * 0.02 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: idx * 0.02 }}
+                    onClick={() => handleClick(n)}
+                    className={`relative rounded-2xl border cursor-pointer transition-all active:scale-[0.98] hover:shadow-md overflow-hidden ${
+                      !n.is_read ? `${cfg.bg} ${cfg.border}` : 'bg-white border-gray-100'
+                    }`}
                   >
-                    <Card 
-                      className={`group relative overflow-hidden transition-all duration-300 cursor-pointer border-0 ${
-                        isSelected 
-                          ? 'ring-2 shadow-xl scale-[1.02]' 
-                          : notification.is_system
-                          ? 'glass-panel ring-1 ring-purple-200 hover:shadow-xl'
-                          : !notification.is_read 
-                          ? 'glass-panel ring-1 ring-blue-200 hover:shadow-xl' 
-                          : 'glass-panel hover:shadow-lg'
-                      }`}
-                      style={isSelected ? { 
-                        '--tw-ring-color': colors?.primary || '#3b82f6' 
-                      } : {}}
-                      onClick={() => {
-                        if (selectedIds.length > 0) {
-                          toggleSelect(notification.id);
-                        } else {
-                          handleNotificationClick(notification);
-                        }
-                      }}
-                    >
-                      {/* Priority/Status Bar */}
-                      {!notification.is_read && (
-                        <div 
-                          className="absolute left-0 top-0 bottom-0 w-1.5"
-                          style={{ background: `linear-gradient(to bottom, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)` }}
-                        />
-                      )}
-
-                      {notification.priority === 'urgent' && (
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-orange-500" />
-                      )}
-
-                      <CardContent className="p-4">
-                        <div className="flex gap-4">
-                          {/* Checkbox for Batch Selection */}
-                          <div 
-                            className="flex-shrink-0 mt-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleSelect(notification.id);
-                            }}
-                          >
-                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all ${
-                              isSelected 
-                                ? 'border-transparent shadow-md' 
-                                : 'border-gray-300 hover:border-gray-400'
-                            }`}
-                            style={isSelected ? {
-                              background: `linear-gradient(135deg, ${colors?.primary || '#3b82f6'}, ${colors?.primary || '#3b82f6'}dd)`
-                            } : {}}
-                            >
-                              {isSelected && <Check className="w-3 h-3 text-white" />}
-                            </div>
-                          </div>
-
-                          {/* Icon */}
-                          <div 
-                            className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm ${
-                              notification.is_system 
-                                ? 'bg-gradient-to-br from-indigo-100 to-purple-100' 
-                                : !notification.is_read 
-                                ? 'bg-gradient-to-br from-blue-100 to-indigo-100' 
-                                : 'bg-gray-100'
-                            }`}
-                          >
-                            {getNotificationIcon(notification.type)}
-                          </div>
-                          
-                          {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                              <h3 className={`font-bold text-base leading-tight ${
-                                !notification.is_read ? 'text-gray-900' : 'text-gray-700'
-                              }`}>
-                                {notification.title}
-                              </h3>
-                              <span className="text-xs text-gray-500 whitespace-nowrap">
-                                {format(new Date(notification.created_date), "HH:mm")}
-                              </span>
-                            </div>
-                            
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">
-                              {notification.message}
-                            </p>
-
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <Badge 
-                                  variant="secondary" 
-                                  className={`text-xs font-medium ${
-                                    notification.type === 'emergency' ? 'bg-red-100 text-red-700' :
-                                    notification.type === 'payment' ? 'bg-green-100 text-green-700' :
-                                    notification.type === 'booking' ? 'bg-blue-100 text-blue-700' :
-                                    notification.type === 'system' ? 'bg-indigo-100 text-indigo-700' :
-                                    'bg-gray-100 text-gray-700'
-                                  }`}
-                                >
-                                  {notification.type}
-                                </Badge>
-                                {notification.is_system && (
-                                  <Badge className="bg-purple-100 text-purple-700 text-xs">
-                                    📢 Broadcast
-                                  </Badge>
-                                )}
-                                <span className="text-xs text-gray-500">
-                                  {format(new Date(notification.created_date), "dd MMM")}
-                                </span>
-                              </div>
-
-                              {/* Quick Actions */}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <MoreVertical className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  {!notification.is_read && (
-                                    <DropdownMenuItem 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        markAsReadMutation.mutate(notification);
-                                      }}
-                                      className="cursor-pointer"
-                                    >
-                                      <Check className="w-4 h-4 mr-2" />
-                                      Marcar como Lida
-                                    </DropdownMenuItem>
-                                  )}
-                                  {!notification.is_system && (
-                                    <DropdownMenuItem 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        deleteNotificationMutation.mutate(notification.id);
-                                      }}
-                                      className="text-red-600 cursor-pointer"
-                                    >
-                                      <Trash2 className="w-4 h-4 mr-2" />
-                                      Eliminar
-                                    </DropdownMenuItem>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
+                    {!n.is_read && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500" />
+                    )}
+                    <div className="flex gap-3 p-4 pl-5">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${!n.is_read ? 'bg-white shadow-sm' : cfg.bg}`}>
+                        <Icon className={`w-5 h-5 ${cfg.color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                          <h3 className={`text-sm font-bold leading-tight ${!n.is_read ? 'text-gray-900' : 'text-gray-700'}`}>
+                            {n.title}
+                          </h3>
+                          <span className="text-[10px] text-gray-400 flex-shrink-0">{formatDate(n.created_date)}</span>
                         </div>
-                      </CardContent>
-                    </Card>
+                        <p className="text-xs text-gray-500 line-clamp-2 mb-2">{n.message}</p>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color} border ${cfg.border}`}>
+                          {cfg.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Ações rápidas */}
+                    <div className="absolute top-3 right-3 flex gap-1 opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {!n.is_read && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); markRead.mutate(n.id); }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-white shadow-sm border border-gray-200 hover:bg-green-50 hover:text-green-600 text-gray-400 transition-colors"
+                          title="Marcar como lida"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteNotif.mutate(n.id); }}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-white shadow-sm border border-gray-200 hover:bg-red-50 hover:text-red-500 text-gray-400 transition-colors"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </motion.div>
                 );
               })}
             </div>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>
+        )}
       </div>
     </div>
   );
