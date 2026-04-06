@@ -3,6 +3,9 @@ import { Dog } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function PawCaoLogo({ size = "default", showText = true, className = "", animated = false }) {
+  // Validate size prop
+  const validSize = ["small", "default", "large", "xlarge"].includes(size) ? size : "default";
+  
   const sizes = {
     small: {
       container: "w-7 h-7 md:w-8 md:h-8",
@@ -34,7 +37,7 @@ export default function PawCaoLogo({ size = "default", showText = true, classNam
     }
   };
 
-  const currentSize = sizes[size] || sizes.default;
+  const currentSize = sizes[validSize];
 
   const LogoIcon = animated ? motion.div : 'div';
   const iconProps = animated ? {
