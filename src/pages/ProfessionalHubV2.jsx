@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 import { ProfessionalTabBar } from "../components/professional-hub/ProfessionalTabBar";
+import { AgendaCalendar } from "../components/professional-hub/AgendaCalendar";
 import { StatsSection } from "../components/professional-hub/StatsSection";
 import { ServiceManager } from "../components/professional-hub/ServiceManager";
 import { ServiceEditor } from "../components/professional-hub/ServiceEditor";
@@ -287,6 +288,18 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
             >
               <ToolsSection user={user} professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "calendar" && (
+            <motion.div 
+              key="cal" 
+              initial={{ opacity: 0, x: 20 }} 
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <AgendaCalendar user={user} walkerProfile={professionalProfile} />
             </motion.div>
           )}
 

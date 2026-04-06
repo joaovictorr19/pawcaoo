@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -235,6 +235,21 @@ export default function UserProfile() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: daysOff = [] } = useQuery({
+    queryKey: ['walkerDaysOff', profileEmail],
+    queryFn: async () => {
+      if (!profileEmail) return [];
+      const avail = await base44.entities.CalendarAvailability.filter({ professional_email: profileEmail });
+      const today = new Date().toISOString().split('T')[0];
+      return avail
+        .filter(a => a.is_day_off && (a.date?.split('T')[0] || '') >= today)
+        .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+        .slice(0, 6);
+    },
+    enabled: !!profileEmail && !!(walkerProfile || trainerProfile),
+    staleTime: 5 * 60 * 1000,
+  });
+
   const displayPhotoUrl = profileUser?.profile_photo_url || walkerProfile?.photo_url || trainerProfile?.photo_url;
   const displayCoverUrl = profileUser?.cover_photo_url || walkerProfile?.cover_photo_url || trainerProfile?.cover_photo_url;
   const displayName = profileUser?.full_name || walkerProfile?.walker_name || trainerProfile?.trainer_name || "Utilizador";
@@ -453,6 +468,30 @@ export default function UserProfile() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* FOLGAS */}
+          {(walkerProfile || trainerProfile) && daysOff.length > 0 && (
+            <div>
+              <h3 className="text-sm font-black uppercase italic mb-3 text-slate-900 tracking-widest flex items-center gap-2">
+                <span className="text-red-500">🛌</span> Próximas Folgas
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {daysOff.map(a => {
+                  const d = a.date?.includes('T') ? a.date.split('T')[0] : a.date;
+                  const dateObj = new Date(d + 'T12:00:00');
+                  return (
+                    <div key={a.id} className="px-3 py-1.5 bg-red-50 border border-red-200 rounded-full flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+                      <span className="text-xs font-bold text-red-700">
+                        {dateObj.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      </span>
+                      {a.notes && <span className="text-xs text-red-500">· {a.notes}</span>}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
