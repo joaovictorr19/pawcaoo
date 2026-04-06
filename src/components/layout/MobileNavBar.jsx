@@ -105,11 +105,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     }
   };
 
-  // Hide global nav when page has its own tab bar
-  const pagesWithOwnNav = [createPageUrl('ProfessionalHubV2')];
-  const hasOwnNav = pagesWithOwnNav.some(p => location.pathname.startsWith(p));
-
-  if (!user || hasOwnNav) return null;
+  if (!user) return null;
 
   return (
     <div
