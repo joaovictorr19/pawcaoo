@@ -1,5 +1,5 @@
 import './App.css'
-import { Suspense, lazy } from 'react'
+import React, { Suspense, lazy } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { AnimatePresence, motion } from 'framer-motion'
 const MyWalletPro = lazy(() => import('./pages/MyWalletPro'))
