@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Loader2 } from "lucide-react";
+import { Bell, Loader2, Trash2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +27,8 @@ export default function ProfessionalHubV2() {
   const initialTab = urlParams.get('tab') === 'agenda' ? 'calendar' : 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -159,6 +161,25 @@ export default function ProfessionalHubV2() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      const result = await base44.functions.invoke('deleteUserAccount', {});
+      if (result.data?.success) {
+        toast.success('Conta eliminada com sucesso');
+        base44.auth.logout();
+      } else {
+        toast.error(result.data?.message || 'Erro ao eliminar conta');
+      }
+    } catch (error) {
+      toast.error('Erro ao eliminar conta');
+      console.error('Delete account error:', error);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -281,6 +302,25 @@ export default function ProfessionalHubV2() {
                 </Button>
               </div>
 
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => base44.auth.logout()}
+                  variant="outline"
+                  className="flex-1 border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white font-bold rounded-2xl h-12"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair
+                </Button>
+                <Button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  variant="outline"
+                  className="flex-1 border-red-800/50 text-red-400 hover:bg-red-900/30 hover:text-red-300 font-bold rounded-2xl h-12"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Deletar Conta
+                </Button>
+              </div>
+
               <div>
                 <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                    <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
@@ -345,6 +385,44 @@ export default function ProfessionalHubV2() {
       </main>
 
       <ProfessionalTabBar active={activeTab} onChange={setActiveTab} />
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-slate-900 rounded-2xl p-6 max-w-sm w-full border border-red-500/30">
+            <h3 className="text-xl font-bold text-red-500 mb-3">⚠️ Eliminar Conta</h3>
+            <p className="text-slate-300 text-sm mb-6">
+              Tem certeza que deseja eliminar sua conta? Esta ação é irreversível e todos os seus dados serão permanentemente apagados.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Deletando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Deletar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
