@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,9 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   const pendingPositionRef = useRef(null);
   const [pathMarkers, setPathMarkers] = useState([]);
   const [isCorrectionMode, setIsCorrectionMode] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [isEventMenuOpen, setIsEventMenuOpen] = useState(false);
+  const isOwner = !!(user && booking && (booking.owner_email === user.email || booking.created_by === user.email));
 
   // Fetch booking
   const { data: booking, error, isLoading: loadingBooking } = useQuery({
@@ -159,7 +163,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     refetchInterval: isChatOpen ? 2000 : false,
   });
 
-  const unreadCount = React.useMemo(() => {
+  const unreadCount = useMemo(() => {
     if (!messages || !user?.email) return 0;
     return messages.filter(m => m.sender_email !== user?.email && !m.read_by?.includes(user?.email)).length;
   }, [messages, user?.email]);
@@ -473,14 +477,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     );
   }
 
-  // Check if service just completed - show review
-  const isOwner = booking?.owner_email === user?.email || booking?.created_by === user?.email;
-  
-  React.useEffect(() => {
-    if (booking?.status === 'completed' && isOwner) {
-      setShowReview(true);
-    }
-  }, [booking?.status, isOwner]);
+
 
   if (booking.status === 'completed') {
     return (
@@ -563,7 +560,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     ? [booking.pickup_lng, booking.pickup_lat]
     : [-8.6291, 41.1579];
 
-  const otherParticipant = React.useMemo(() => {
+  const otherParticipant = useMemo(() => {
     if (!conversation || !user?.email) return null;
     const otherEmail = conversation.participants?.find((p) => p !== user.email);
     return {
@@ -571,6 +568,12 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
       name: conversation.participant_names?.[otherEmail] || otherEmail?.split("@")[0] || "Cliente",
     };
   }, [conversation?.id, user?.email]);
+
+  useEffect(() => {
+    if (booking?.status === 'completed' && isOwner) {
+      setShowReview(true);
+    }
+  }, [booking?.status, isOwner]);
 
   const ChatContent = () => {
     // Auto-scroll to bottom when new messages arrive

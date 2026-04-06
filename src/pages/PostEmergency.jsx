@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { Map, MapControls, MapMarker, MarkerContent, MapRoute } from "@/components/ui/map";
+import { Map, MapMarker, MarkerContent, MapRoute } from "@/components/ui/map";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
