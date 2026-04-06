@@ -33,15 +33,15 @@ export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, s
               <img
                 src={imageUrl}
                 alt={badge.name}
-                className={`${imgClass} object-contain drop-shadow-lg z-10`}
+                className={`${imgClass} object-contain drop-shadow-lg z-10 p-1`}
                 loading="lazy"
                 decoding="async"
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
             ) : badge.icon ? (
-              <span className="text-3xl z-10 drop-shadow-md">{badge.icon}</span>
+              <span className="text-4xl z-10 drop-shadow-md leading-none">{badge.icon}</span>
             ) : (
-              <Award className="text-slate-400 opacity-40 z-10" size={24} />
+              <Award className="text-slate-400 opacity-40 z-10" size={size === 'sm' ? 16 : size === 'lg' ? 32 : 24} />
             )}
 
             {/* Shine */}
@@ -63,17 +63,21 @@ export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, s
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="bg-gray-900 text-white border-gray-800 shadow-xl max-w-[200px]">
-          <p className="font-bold text-sm">{badge.name}</p>
-          {badge.description && <p className="text-xs text-gray-300 mt-0.5">{badge.description}</p>}
-          {badge.xp > 0 && (
-            <p className="flex items-center gap-1 text-xs text-amber-400 mt-1 font-bold">
-              <Zap size={11} /> +{badge.xp} XP
-            </p>
-          )}
-          {rarity !== 'common' && (
-            <p className="text-[10px] text-gray-400 mt-0.5 capitalize">{rarity}</p>
-          )}
+        <TooltipContent side="top" className="bg-gray-900 text-white border-gray-800 shadow-xl max-w-xs">
+          <div className="space-y-1.5">
+            <p className="font-bold text-sm leading-tight">{badge.name}</p>
+            {badge.description && (
+              <p className="text-xs text-gray-200 leading-relaxed break-words">{badge.description}</p>
+            )}
+            {badge.xp > 0 && (
+              <p className="flex items-center gap-1.5 text-xs text-amber-300 font-bold pt-1">
+                <Zap size={12} className="flex-shrink-0" /> +{badge.xp} XP
+              </p>
+            )}
+            {rarity !== 'common' && (
+              <p className="text-[10px] text-gray-400 capitalize pt-0.5">⭐ {rarity}</p>
+            )}
+          </div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
