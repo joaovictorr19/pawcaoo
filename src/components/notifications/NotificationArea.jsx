@@ -115,7 +115,8 @@ export default function NotificationArea({ isOpen, onClose }) {
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl flex flex-col border-l border-gray-100"
+        className="absolute right-0 bottom-0 w-full max-w-sm bg-white shadow-2xl flex flex-col border-l border-gray-100"
+        style={{ top: '56px' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
