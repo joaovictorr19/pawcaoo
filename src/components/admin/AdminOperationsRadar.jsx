@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Map, MapMarker, MarkerContent, MapControls, MapRoute } from "@/components/ui/map.jsx";
+import { Map, MapMarker, MarkerContent, MapRoute } from "@/components/ui/map.jsx";
 import { User, Zap, BarChart3, Dog, BadgeCheck, Navigation, BellRing } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -180,55 +180,30 @@ export default function AdminOperationsRadar({ allUsers, activeWalks }) {
             </MapMarker>
           ))}
           
-          {/* 3. POPUP DE DETALHE AO CLICAR NO WALKER */}
-          {selectedWalker && (
-            <MapPopup
-              longitude={Number(selectedWalker.longitude) || -8.6291}
-              latitude={Number(selectedWalker.latitude) || 41.1579}
-              onClose={() => setSelectedWalker(null)}
-              closeButton
-            >
-              <div className="p-1 min-w-[150px]">
-                <p className="text-xs font-black text-slate-900 mb-1">{selectedWalker.full_name}</p>
-                <div className="flex gap-2">
-                  <span className="text-[9px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
-                    Online
-                  </span>
-                  <span className="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">
-                    {selectedWalker.professional_profile?.is_trained ? 'Treinado' : 'Standard'}
-                  </span>
-                </div>
-              </div>
-            </MapPopup>
-          )}
 
-          {/* 4. POPUP DE DETALHE AO CLICAR NO SOS */}
-          {selectedSos && (
-            <MapPopup
-              longitude={Number(selectedSos.pickup_lng || selectedSos.longitude) || -8.6291}
-              latitude={Number(selectedSos.pickup_lat || selectedSos.latitude) || 41.1579}
-              onClose={() => setSelectedSos(null)}
-              closeButton
-            >
-              <div className="p-1 min-w-[150px]">
-                <p className="text-xs font-black text-slate-900 mb-1">Emergência Ativa</p>
-                <div className="flex flex-col gap-1 mb-2">
-                  <span className="text-[10px] text-slate-600 font-medium">Cão: {selectedSos.dog_name || 'Desconhecido'}</span>
-                  <span className="text-[10px] text-slate-600 font-medium">Valor: {selectedSos.offered_amount}€</span>
-                </div>
-                {nearestProToSos && (
-                  <div className="bg-blue-50 p-2 rounded-lg border border-blue-100 mt-2">
-                    <p className="text-[9px] font-bold text-blue-800 mb-1 uppercase">PRO Mais Próximo</p>
-                    <p className="text-[10px] font-black text-blue-900 truncate">{nearestProToSos.pro.full_name}</p>
-                    <p className="text-[9px] text-blue-600">A aprox. {nearestProToSos.distanceKm.toFixed(1)} km</p>
-                  </div>
-                )}
-              </div>
-            </MapPopup>
-          )}
 
-          <MapControls position="bottom-right" showZoom showLocate />
         </Map>
+
+        {/* Walker detail overlay */}
+        {selectedWalker && (
+          <div className="absolute top-4 right-4 z-50 bg-white rounded-2xl shadow-xl p-3 min-w-[160px] border border-slate-100">
+            <button onClick={() => setSelectedWalker(null)} className="absolute top-2 right-2 text-slate-400 text-xs font-bold">✕</button>
+            <p className="text-xs font-black text-slate-900 mb-1">{selectedWalker.full_name}</p>
+            <div className="flex gap-2">
+              <span className="text-[9px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">Online</span>
+              <span className="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">{selectedWalker.professional_profile?.is_trained ? 'Treinado' : 'Standard'}</span>
+            </div>
+          </div>
+        )}
+
+        {/* SOS detail overlay */}
+        {selectedSos && !nearestProToSos && (
+          <div className="absolute top-4 right-4 z-50 bg-white rounded-2xl shadow-xl p-3 min-w-[160px] border border-slate-100">
+            <button onClick={() => setSelectedSos(null)} className="absolute top-2 right-2 text-slate-400 text-xs font-bold">✕</button>
+            <p className="text-xs font-black text-slate-900 mb-1">Emergência Ativa</p>
+            <span className="text-[10px] text-slate-600">Cão: {selectedSos.dog_name || 'Desconhecido'}</span>
+          </div>
+        )}
 
         {/* Overlay de Legenda Estilo Admin */}
         <div className="absolute bottom-6 left-6 flex justify-between items-end pointer-events-none">

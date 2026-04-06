@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,8 +23,15 @@ import { WalletSection } from "@/components/professional-hub/WalletSection";
 export default function ProfessionalHubV2() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialTab = urlParams.get('tab') === 'agenda' ? 'calendar' : 'overview';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [showEditProfile, setShowEditProfile] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'agenda') setActiveTab('calendar');
+  }, []);
   const [incomingRequest, setIncomingRequest] = useState(null);
 
   // 1. Fonte Única de Dados

@@ -55,7 +55,7 @@ class ErrorBoundary extends React.Component {
               Recarregar Página
             </Button>
           </div>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
+          {typeof window !== 'undefined' && this.state.error && (
             <div className="mt-8 p-4 bg-gray-100 rounded-lg text-left w-full max-w-lg overflow-auto text-xs font-mono text-red-800 border border-red-200">
               <div className="mb-2 font-bold">Error:</div>
               {this.state.error?.message || this.state.error?.toString() || 'Unknown error'}
