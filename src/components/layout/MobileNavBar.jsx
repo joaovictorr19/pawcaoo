@@ -105,7 +105,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     }
   };
 
-  if (!user) return null;
+  // Hide global nav only on ProfessionalHubV2 (has its own ProfessionalTabBar)
+  const isOnProfHub = location.pathname === '/ProfessionalHubV2' || location.pathname === createPageUrl('ProfessionalHubV2');
+
+  if (!user || isOnProfHub) return null;
 
   return (
     <div
