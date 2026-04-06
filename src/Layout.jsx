@@ -845,7 +845,7 @@ function LayoutContent({ children, currentPageName }) {
       >
         <div className="flex items-center justify-between h-10">
           {/* Logo + Menu Trigger */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             {authUser && (
               <SidebarTrigger 
                 className="h-9 w-9 p-2 rounded-xl transition-all active:scale-95"
@@ -862,7 +862,7 @@ function LayoutContent({ children, currentPageName }) {
           </div>
 
           {/* Direita - Pesquisa, Login/Notificações */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 justify-end flex-1">
             <Button
               variant="ghost"
               size="icon"
