@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { BarChart3, Package, Calendar, Settings, QrCode, Wallet } from "lucide-react";
+import { BarChart3, Package, Calendar, Settings, QrCode, Wallet, Zap } from "lucide-react";
 
 export function ProfessionalTabBar({ active, onChange }) {
   const tabs = [
     { id: "overview", label: "Resumo", icon: BarChart3 },
+    { id: "active", label: "Ativos", icon: Zap },
     { id: "services", label: "Serviços", icon: Package },
     { id: "calendar", label: "Agenda", icon: Calendar },
     { id: "wallet", label: "Carteira", icon: Wallet },

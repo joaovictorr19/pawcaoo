@@ -20,11 +20,65 @@ import { RadarStatusPanel } from "@/components/professional-hub/RadarStatusPanel
 import { ToolsSection } from "@/components/professional-hub/ToolsSection";
 import { WalletSection } from "@/components/professional-hub/WalletSection";
 
+function ActiveRequestsList({ user }) {
+  const { data: activeBookings = [] } = useQuery({
+    queryKey: ['activeBookings', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return base44.entities.Booking.filter({
+        walker_email: user.email,
+        status: 'confirmed'
+      }, '-created_date', 50);
+    },
+    enabled: !!user?.email,
+    refetchInterval: 5000
+  });
+
+  const navigate = useNavigate();
+
+  if (activeBookings.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-slate-400 text-sm">Nenhum passeio ativo no momento</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-black text-orange-400 mb-6">Passeios Ativos</h2>
+      {activeBookings.map((booking) => (
+        <div
+          key={booking.id}
+          className="bg-slate-900 border border-orange-500/30 rounded-2xl p-4 cursor-pointer hover:border-orange-500/60 transition-colors"
+          onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
+        >
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-bold text-white">{booking.owner_name}</h3>
+            <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full">Confirmado</span>
+          </div>
+          <p className="text-sm text-slate-400 mb-3">🐕 {booking.dog_name} • {booking.duration_hours}h</p>
+          <p className="text-xs text-slate-500">{new Date(booking.walk_date).toLocaleDateString('pt-PT')} às {booking.walk_time}</p>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
+            }}
+            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold"
+          >
+            Iniciar Passeio
+          </Button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ProfessionalHubV2() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
-  const initialTab = urlParams.get('tab') === 'agenda' ? 'calendar' : 'overview';
+  const initialTab = urlParams.get('tab') === 'agenda' ? 'calendar' : urlParams.get('tab') === 'active' ? 'active' : 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -417,8 +471,20 @@ export default function ProfessionalHubV2() {
               <WalletSection user={user} />
             </motion.div>
           )}
-        </AnimatePresence>
-      </main>
+
+          {activeTab === "active" && (
+            <motion.div 
+              key="active" 
+              initial={{ opacity: 0, x: 20 }} 
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ActiveRequestsList user={user} />
+            </motion.div>
+          )}
+          </AnimatePresence>
+          </main>
 
       <ProfessionalTabBar active={activeTab} onChange={setActiveTab} />
 
