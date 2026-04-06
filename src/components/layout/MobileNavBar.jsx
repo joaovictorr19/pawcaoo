@@ -105,11 +105,15 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     }
   };
 
-  if (!user) return null;
+  // Hide global nav when page has its own tab bar
+  const pagesWithOwnNav = [createPageUrl('ProfessionalHubV2')];
+  const hasOwnNav = pagesWithOwnNav.some(p => location.pathname.startsWith(p));
+
+  if (!user || hasOwnNav) return null;
 
   return (
     <div
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 w-full px-3 pt-3 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] pointer-events-auto"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] w-full px-3 pt-3 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] pointer-events-auto"
       style={{ pointerEvents: 'auto', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
     >
       <div className="max-w-2xl mx-auto flex items-center justify-center gap-2 sm:gap-4">
