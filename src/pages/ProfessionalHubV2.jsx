@@ -27,8 +27,11 @@ function ActiveRequestsList({ user }) {
     queryFn: async () => {
       if (!user?.email) return [];
       return base44.entities.Booking.filter({
-        walker_email: user.email,
-        status: 'confirmed'
+        $or: [
+          { walker_email: user.email, status: 'pending' },
+          { walker_email: user.email, status: 'confirmed' },
+          { walker_email: user.email, status: 'in_progress' }
+        ]
       }, '-created_date', 50);
     },
     enabled: !!user?.email,
