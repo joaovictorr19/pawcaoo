@@ -247,7 +247,6 @@ export default function BadgeInventory({
                       {badge.description}
                     </p>
                   </div>
-                </div>
               </motion.div>
             );
           })}

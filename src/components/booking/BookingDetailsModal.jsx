@@ -38,13 +38,11 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
     };
   }, [open, onOpenChange]);
   
-  if (!booking) return null;
-
   const isTraining = type === 'training';
-  const isOwner = currentUser?.email === booking.created_by;
-  const isProfessional = currentUser?.email === (isTraining ? booking.trainer_email : booking.walker_email);
-  const canReview = booking.status === 'completed';
-  
+  const isOwner = currentUser?.email === booking?.created_by;
+  const isProfessional = currentUser?.email === (isTraining ? booking?.trainer_email : booking?.walker_email);
+  const canReview = booking?.status === 'completed';
+
   // Fetch Checkpoints for Map
   const { data: checkpoints } = useQuery({
     queryKey: ['checkpoints', booking?.id],

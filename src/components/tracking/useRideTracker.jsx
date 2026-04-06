@@ -35,11 +35,6 @@ function useRideTracker(rideId) {
   const distanceRef = useRef(0);
   const wakeLockRef = useRef(null);
 
-  if (!rideId) {
-    console.error('⚠️ useRideTracker: rideId é obrigatório!');
-    return { location: null, isTracking: false, error: 'No rideId provided', distance: 0 };
-  }
-
   useEffect(() => {
     return () => {
       if (intervalIdRef.current) {
@@ -50,6 +45,11 @@ function useRideTracker(rideId) {
       }
     };
   }, []);
+
+  if (!rideId) {
+    console.error('⚠️ useRideTracker: rideId é obrigatório!');
+    return { location: null, isTracking: false, error: 'No rideId provided', distance: 0 };
+  }
 
   const fetchAndUpdateLocation = async () => {
     navigator.geolocation.getCurrentPosition(

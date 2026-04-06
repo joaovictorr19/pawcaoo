@@ -956,13 +956,13 @@ function LayoutContent({ children, currentPageName }) {
               <div className="md:hidden">
                 <PullToRefresh>
                   <div className="relative mb-32" style={{ zIndex: 1 }}>
-                    {children}
+                    <ErrorBoundary>{children}</ErrorBoundary>
                   </div>
                 </PullToRefresh>
               </div>
               <div className="hidden md:block h-full">
                 <div className="relative mb-8" style={{ zIndex: 1 }}>
-                  {children}
+                  <ErrorBoundary>{children}</ErrorBoundary>
                 </div>
               </div>
             </div>
@@ -1012,9 +1012,7 @@ export default function Layout({ children, currentPageName }) {
         <LocalizationProvider>
           <ThemeProvider>
             <ToastProvider>
-              <ErrorBoundary>
                 <LayoutContent children={children} currentPageName={currentPageName} />
-              </ErrorBoundary>
             </ToastProvider>
           </ThemeProvider>
         </LocalizationProvider>

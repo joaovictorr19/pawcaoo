@@ -116,32 +116,6 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
     setRoutePath(prev => [...prev, [lat, lng]]);
   };
 
-  // 3. Estado de Loading (Mostra Spinner enquanto carrega)
-  if (isLoading) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50">
-        <Loader2 className="w-10 h-10 text-purple-600 animate-spin mb-4" />
-        <p className="text-gray-500">A carregar dados do passeio...</p>
-      </div>
-    );
-  }
-
-  // 4. Tratamento de Erro (Se o ID for inválido ou a reserva não existir)
-  if (!booking || error || !bookingId) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-red-50 p-6 text-center">
-        <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-xl font-bold text-red-700 mb-2">Reserva não encontrada</h2>
-        <p className="text-gray-600 mb-6">
-          Não foi possível identificar o passeio (ID: {bookingId || 'Não especificado'}).
-        </p>
-        <Button onClick={() => navigate(createPageUrl('ProfessionalDashboard'))} variant="outline">
-          Voltar aos Agendamentos
-        </Button>
-      </div>
-    );
-  }
-
   // Wake Lock Logic
   useEffect(() => {
     const requestWakeLock = async () => {
@@ -150,9 +124,7 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
           const lock = await navigator.wakeLock.request('screen');
           setWakeLock(lock);
           toast("⚠️ Ecrã mantido ligado para GPS. Não feche esta aba.");
-          
           lock.addEventListener('release', () => {
-            console.log('Wake Lock released');
             setWakeLock(null);
           });
         }
@@ -160,9 +132,7 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
         console.error(`${err.name}, ${err.message}`);
       }
     };
-
     requestWakeLock();
-
     return () => {
       if (wakeLock) wakeLock.release();
     };
@@ -179,6 +149,32 @@ export default function WalkerTracker({ bookingId: propBookingId }) {
     }
     return () => clearInterval(timerRef.current);
   }, [isTracking]);
+
+  // 3. Estado de Loading (Mostra Spinner enquanto carrega)
+  if (isLoading) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-50">
+        <Loader2 className="w-10 h-10 text-purple-600 animate-spin mb-4" />
+        <p className="text-gray-500">A carregar dados do passeio...</p>
+      </div>
+    );
+  }
+
+  // 4. Tratamento de Erro
+  if (!booking || error || !bookingId) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-red-50 p-6 text-center">
+        <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-xl font-bold text-red-700 mb-2">Reserva não encontrada</h2>
+        <p className="text-gray-600 mb-6">
+          Não foi possível identificar o passeio (ID: {bookingId || 'Não especificado'}).
+        </p>
+        <Button onClick={() => navigate(createPageUrl('ProfessionalDashboard'))} variant="outline">
+          Voltar aos Agendamentos
+        </Button>
+      </div>
+    );
+  }
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);

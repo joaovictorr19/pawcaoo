@@ -29,12 +29,6 @@ export default function AdminFinanceDashboard() {
     queryFn: () => base44.auth.me()
   });
 
-  // Redirect if not admin
-  if (user && user.role !== 'admin') {
-    navigate(createPageUrl('Home'));
-    return null;
-  }
-
   const { data: revenue = [], isLoading: loadingRevenue } = useQuery({
     queryKey: ['platformRevenue', periodFilter],
     queryFn: () => base44.entities.PlatformRevenue.list('-created_date', 500),
@@ -58,6 +52,12 @@ export default function AdminFinanceDashboard() {
     queryFn: () => base44.entities.WalkerPayout.list('-created_date', 100),
     enabled: user?.role === 'admin'
   });
+
+  // Redirect if not admin
+  if (user && user.role !== 'admin') {
+    navigate(createPageUrl('Home'));
+    return null;
+  }
 
   // Calculate metrics
   const currentMonth = new Date().toISOString().slice(0, 7);

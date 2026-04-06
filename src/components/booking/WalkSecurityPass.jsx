@@ -50,7 +50,6 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
           {description}
         </p>
         
-        {/* QR Code Card */}
         <div className="p-6 bg-white rounded-2xl shadow-2xl border-4 border-dashed border-slate-300 mb-4">
           <QRCode 
             value={qrData} 
@@ -60,7 +59,6 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
           />
         </div>
 
-        {/* Security Code Display */}
         <div className="bg-slate-900 rounded-xl p-4 w-full text-center shadow-lg mb-4">
           <p className="text-xs text-slate-400 mb-1">CÓDIGO DE SEGURANÇA</p>
           <p className="font-mono text-2xl md:text-3xl font-bold tracking-[0.3em] text-green-400">
@@ -68,7 +66,6 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
           </p>
         </div>
 
-        {/* Dog Info */}
         <div className="flex items-center gap-3 bg-orange-50 rounded-xl p-3 w-full border-2 border-orange-200">
           <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
             <span className="text-2xl">🐕</span>
@@ -87,3 +84,5 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
     </Dialog>
   );
 }
+
+export default WalkSecurityPass;
