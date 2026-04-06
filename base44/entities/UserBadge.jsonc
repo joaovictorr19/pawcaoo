@@ -1,0 +1,91 @@
+{
+  "name": "UserBadge",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do utilizador que ganhou o emblema"
+    },
+    "badge_definition_id": {
+      "type": "string",
+      "description": "ID do BadgeDefinition original"
+    },
+    "badge_id": {
+      "type": "string",
+      "description": "Slug do emblema (compatibilidade)"
+    },
+    "earned_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de conquista"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome do emblema (snapshot)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o (snapshot)"
+    },
+    "icon": {
+      "type": "string",
+      "description": "\u00cdcone (snapshot)"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "URL imagem (snapshot legacy)"
+    },
+    "image_png_file": {
+      "type": "string",
+      "description": "URL PNG personalizado (snapshot)"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "rare",
+        "epic",
+        "legendary"
+      ],
+      "default": "common"
+    },
+    "xp": {
+      "type": "number",
+      "default": 0,
+      "description": "XP concedido com o emblema"
+    },
+    "granted_by": {
+      "type": "string",
+      "description": "Email do Admin que concedeu"
+    }
+  },
+  "required": [
+    "user_email",
+    "badge_definition_id"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

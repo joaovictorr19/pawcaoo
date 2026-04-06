@@ -1,147 +1,272 @@
 import React, { useState } from 'react';
-import { Gift, Search, X } from "lucide-react";
+import { Gift, X, Zap, Search, Trash2, CheckCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+
+const RARITY_CONFIG = {
+  common:    { label: 'Comum',    color: 'border-gray-300 bg-gray-50' },
+  rare:      { label: 'Raro',     color: 'border-blue-300 bg-blue-50' },
+  epic:      { label: 'Épico',    color: 'border-purple-300 bg-purple-50' },
+  legendary: { label: 'Lendário', color: 'border-yellow-400 bg-yellow-50' },
+};
 
 export function GrantBadgeModal({ onClose, onSuccess }) {
-  const [selectedUser, setSelectedUser] = useState('');
+  const queryClient = useQueryClient();
+  const [tab, setTab] = useState('grant'); // 'grant' | 'revoke'
+  const [userEmail, setUserEmail] = useState('');
   const [selectedBadgeId, setSelectedBadgeId] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [badgeSearch, setBadgeSearch] = useState('');
 
   const { data: badgeDefinitions = [] } = useQuery({
     queryKey: ['badgeDefinitions'],
     queryFn: () => base44.entities.BadgeDefinition.list('-created_date', 100),
   });
 
-  const grantBadgeToUser = async (userEmail, badgeDefinition) => {
-    try {
+  const { data: userBadges = [], refetch: refetchUserBadges } = useQuery({
+    queryKey: ['userBadges', userEmail],
+    queryFn: () => base44.entities.UserBadge.filter({ user_email: userEmail }, '-earned_date'),
+    enabled: !!userEmail && tab === 'revoke',
+  });
+
+  const filteredBadges = badgeDefinitions.filter(b =>
+    !badgeSearch || b.name.toLowerCase().includes(badgeSearch.toLowerCase())
+  );
+
+  const selectedBadge = badgeDefinitions.find(b => b.id === selectedBadgeId);
+
+  const grantMutation = useMutation({
+    mutationFn: async () => {
+      if (!userEmail || !selectedBadge) throw new Error("Preenche todos os campos.");
+
+      // Check if already has this badge
+      const existing = await base44.entities.UserBadge.filter({
+        user_email: userEmail,
+        badge_definition_id: selectedBadge.id
+      });
+      if (existing.length > 0) throw new Error("Este utilizador já tem este emblema.");
+
+      // Create UserBadge
       await base44.entities.UserBadge.create({
         user_email: userEmail,
-        badge_id: badgeDefinition.id,
-        name: badgeDefinition.name,
-        description: badgeDefinition.description,
-        rarity: badgeDefinition.rarity,
-        image_png_file: badgeDefinition.image_png_file,
-        earned_date: new Date().toISOString()
+        badge_definition_id: selectedBadge.id,
+        badge_id: selectedBadge.id,
+        name: selectedBadge.name,
+        description: selectedBadge.description,
+        icon: selectedBadge.icon || '🏆',
+        image_png_file: selectedBadge.image_png_file || selectedBadge.image_url || null,
+        rarity: selectedBadge.rarity || 'common',
+        xp: selectedBadge.xp || 0,
+        earned_date: new Date().toISOString(),
+        granted_by: 'admin',
       });
-      toast.success(`Emblema "${badgeDefinition.name}" atribuído a ${userEmail}!`);
-      setSelectedUser('');
+
+      // Update UserProfile XP if badge has XP
+      if (selectedBadge.xp > 0) {
+        const profiles = await base44.entities.UserProfile.filter({ user_email: userEmail });
+        if (profiles.length > 0) {
+          const p = profiles[0];
+          const newXP = (p.gamification_xp || 0) + selectedBadge.xp;
+          const newLevel = 1 + Math.floor(newXP / 1000);
+          await base44.entities.UserProfile.update(p.id, {
+            gamification_xp: newXP,
+            gamification_level: newLevel,
+          });
+        }
+      }
+
+      // Send notification
+      await base44.entities.Notification.create({
+        recipient_email: userEmail,
+        title: `🏆 Novo Emblema: ${selectedBadge.name}`,
+        message: selectedBadge.description + (selectedBadge.xp > 0 ? ` (+${selectedBadge.xp} XP)` : ''),
+        type: 'system',
+        icon: selectedBadge.icon || '🏆',
+      });
+    },
+    onSuccess: () => {
+      toast.success(`Emblema "${selectedBadge?.name}" atribuído com sucesso!`);
       setSelectedBadgeId('');
+      setUserEmail('');
+      queryClient.invalidateQueries(['userBadges']);
       if (onSuccess) onSuccess();
-    } catch (err) {
-      toast.error(`Erro técnico ao dar emblema: ${err.message}`);
-    }
-  };
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
-  const handleGrant = async () => {
-    if (!selectedUser || !selectedBadgeId) {
-      toast.error("Escolhe um utilizador e um emblema.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const badge = badgeDefinitions.find(b => b.id === selectedBadgeId);
-      if (!badge) throw new Error("Emblema não encontrado");
-      
-      await grantBadgeToUser(selectedUser, badge);
-    } catch (err) {
-      toast.error(`Erro: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const revokeMutation = useMutation({
+    mutationFn: (badgeId) => base44.entities.UserBadge.delete(badgeId),
+    onSuccess: () => {
+      toast.success("Emblema revogado.");
+      refetchUserBadges();
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-black text-slate-900 uppercase italic flex items-center gap-2">
-            <Gift size={20} /> Atribuir Emblema
+      <div className="bg-white rounded-[2rem] shadow-2xl border border-slate-100 w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <h2 className="text-lg font-black text-slate-900 uppercase italic flex items-center gap-2">
+            <Gift size={20} className="text-orange-500" /> Gerir Emblemas de Utilizador
           </h2>
           {onClose && (
             <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-all">
-              <X size={20} className="text-slate-600" />
+              <X size={18} className="text-slate-600" />
             </button>
           )}
         </div>
 
-        <div className="space-y-4">
-          {/* Email do Utilizador */}
+        {/* Tabs */}
+        <div className="flex border-b border-slate-100">
+          {[['grant', 'Atribuir'], ['revoke', 'Revogar']].map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`flex-1 py-2.5 text-xs font-black uppercase tracking-widest transition-all ${
+                tab === key ? 'text-orange-600 border-b-2 border-orange-500' : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >{label}</button>
+          ))}
+        </div>
+
+        <div className="overflow-y-auto flex-1 p-5 space-y-4">
+          {/* Email */}
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-2">
-              Email do Utilizador
-            </label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Email do Utilizador</label>
             <input
               type="email"
               placeholder="utilizador@example.com"
-              className="w-full p-4 bg-slate-50 rounded-2xl font-medium text-xs outline-none focus:ring-2 ring-orange-500 disabled:opacity-50"
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              disabled={isLoading}
+              className="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 ring-orange-400"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
             />
           </div>
 
-          {/* Seleção de Emblema */}
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-600 mb-2">
-              Escolher Emblema
-            </label>
-            <select
-              className="w-full p-4 bg-slate-50 rounded-2xl font-black text-[10px] uppercase tracking-widest outline-none focus:ring-2 ring-orange-500 disabled:opacity-50"
-              value={selectedBadgeId}
-              onChange={(e) => setSelectedBadgeId(e.target.value)}
-              disabled={isLoading}
-            >
-              <option value="">-- Seleciona um Emblema --</option>
-              {badgeDefinitions.map((badge) => (
-                <option key={badge.id} value={badge.id}>
-                  {badge.name} ({badge.rarity})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Preview do Emblema */}
-          {selectedBadgeId && badgeDefinitions.find(b => b.id === selectedBadgeId) && (
-            <div className="bg-slate-50 p-4 rounded-2xl flex items-center gap-4">
-              <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center border border-slate-200">
-                {badgeDefinitions.find(b => b.id === selectedBadgeId)?.image_png_file ? (
-                  <img
-                    src={badgeDefinitions.find(b => b.id === selectedBadgeId).image_png_file}
-                    alt="Badge"
-                    className="w-12 h-12 object-contain"
+          {tab === 'grant' && (
+            <>
+              {/* Pesquisa de emblemas */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Escolher Emblema</label>
+                <div className="relative mb-2">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    placeholder="Pesquisar emblema..."
+                    className="w-full pl-8 p-2.5 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 ring-orange-400"
+                    value={badgeSearch}
+                    onChange={e => setBadgeSearch(e.target.value)}
                   />
+                </div>
+
+                {/* Badge grid selector */}
+                <div className="grid grid-cols-3 gap-2 max-h-52 overflow-y-auto p-1">
+                  {filteredBadges.map(badge => {
+                    const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.common;
+                    const isSelected = selectedBadgeId === badge.id;
+                    return (
+                      <button
+                        key={badge.id}
+                        onClick={() => setSelectedBadgeId(badge.id)}
+                        className={`relative p-2 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
+                          isSelected ? 'border-orange-500 bg-orange-50 scale-105 shadow-md' : `${rarity.color} hover:scale-102`
+                        }`}
+                      >
+                        {isSelected && (
+                          <CheckCircle size={14} className="absolute top-1 right-1 text-orange-500" />
+                        )}
+                        {badge.image_png_file || badge.image_url ? (
+                          <img src={badge.image_png_file || badge.image_url} alt={badge.name} className="w-10 h-10 object-contain" />
+                        ) : (
+                          <span className="text-3xl">{badge.icon || '🏆'}</span>
+                        )}
+                        <span className="text-[9px] font-black text-center leading-tight line-clamp-2">{badge.name}</span>
+                        {badge.xp > 0 && (
+                          <span className="flex items-center gap-0.5 text-[8px] font-bold text-amber-600">
+                            <Zap size={8} />{badge.xp} XP
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Preview do emblema selecionado */}
+              {selectedBadge && (
+                <div className="bg-slate-50 p-3 rounded-xl flex items-center gap-3 border border-slate-200">
+                  <div className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center flex-shrink-0 ${RARITY_CONFIG[selectedBadge.rarity]?.color}`}>
+                    {selectedBadge.image_png_file || selectedBadge.image_url ? (
+                      <img src={selectedBadge.image_png_file || selectedBadge.image_url} alt={selectedBadge.name} className="w-10 h-10 object-contain" />
+                    ) : (
+                      <span className="text-2xl">{selectedBadge.icon || '🏆'}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-sm text-slate-900">{selectedBadge.name}</p>
+                    <p className="text-xs text-slate-500 line-clamp-2">{selectedBadge.description}</p>
+                    {selectedBadge.xp > 0 && (
+                      <span className="flex items-center gap-1 text-xs font-bold text-amber-600 mt-1">
+                        <Zap size={12} /> +{selectedBadge.xp} XP concedidos
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <Button
+                onClick={() => grantMutation.mutate()}
+                disabled={grantMutation.isPending || !userEmail || !selectedBadgeId}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black uppercase text-[10px] tracking-widest h-12"
+              >
+                {grantMutation.isPending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span className="text-2xl">{badgeDefinitions.find(b => b.id === selectedBadgeId)?.icon || '🏆'}</span>
+                  <><Gift size={14} className="mr-1" /> Atribuir Emblema</>
                 )}
-              </div>
-              <div className="flex-1">
-                <h4 className="font-black text-xs text-slate-900">{badgeDefinitions.find(b => b.id === selectedBadgeId)?.name}</h4>
-                <p className="text-[9px] text-slate-500">{badgeDefinitions.find(b => b.id === selectedBadgeId)?.description}</p>
-              </div>
-            </div>
+              </Button>
+            </>
           )}
 
-          {/* Botão Atribuir */}
-          <button
-            onClick={handleGrant}
-            disabled={isLoading || !selectedUser || !selectedBadgeId}
-            className="w-full h-14 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Atribuindo...
-              </>
-            ) : (
-              <>
-                <Gift size={16} />
-                Atribuir Emblema
-              </>
-            )}
-          </button>
+          {tab === 'revoke' && (
+            <>
+              {userBadges.length === 0 && userEmail ? (
+                <p className="text-center text-slate-400 text-sm py-4">
+                  {userEmail ? 'Nenhum emblema encontrado para este utilizador.' : 'Introduz um email para ver os emblemas.'}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {userBadges.map(ub => (
+                    <div key={ub.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="w-10 h-10 rounded-lg border flex items-center justify-center flex-shrink-0 bg-white">
+                        {ub.image_png_file || ub.image_url ? (
+                          <img src={ub.image_png_file || ub.image_url} alt={ub.name} className="w-8 h-8 object-contain" />
+                        ) : (
+                          <span className="text-xl">{ub.icon || '🏆'}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-slate-900 truncate">{ub.name}</p>
+                        <p className="text-[10px] text-slate-400">{ub.rarity} • {ub.xp || 0} XP</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Revogar o emblema "${ub.name}" deste utilizador?`)) {
+                            revokeMutation.mutate(ub.id);
+                          }
+                        }}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Revogar"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import { MapPin, ArrowLeft, Shield, User, Award, Star } from "lucide-react";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { useLanguage } from "@/components/LanguageContext";
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
+import BadgeItem from "@/components/gamification/BadgeItem";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
@@ -184,7 +185,7 @@ export default function UserProfile() {
       const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
       const uniqueBadges = new Map();
       badgesFromTable.forEach((badge) => {
-        const uniqueKey = badge.badge_id;
+        const uniqueKey = badge.badge_definition_id || badge.badge_id || badge.id;
         if (uniqueKey && !uniqueBadges.has(uniqueKey)) {
           uniqueBadges.set(uniqueKey, { ...badge, _uniqueId: uniqueKey });
         }
@@ -427,23 +428,17 @@ export default function UserProfile() {
 
           {/* CONQUISTAS */}
           <div>
-            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas Reais</h3>
+            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas ({earnedBadges.length})</h3>
             {loadingBadges ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
                 {[1, 2, 3].map(i => <div key={i} className="w-20 h-20 bg-slate-200 rounded-2xl flex-shrink-0 animate-pulse" />)}
               </div>
             ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
                 {earnedBadges.map((badge) => (
-                  <div key={badge._uniqueId} className="flex flex-col items-center min-w-[80px]">
-                    <div className="w-16 h-16 rounded-2xl bg-white shadow-lg border-2 border-slate-50 flex items-center justify-center overflow-hidden">
-                      {(badge.image_png_file || badge.image_url) ? (
-                        <img src={badge.image_png_file || badge.image_url} alt={badge.name} className="w-12 h-12 object-contain" />
-                      ) : (
-                        <div className="text-2xl">{getBadgeImage(badge.badge_id)}</div>
-                      )}
-                    </div>
-                    <p className="text-[9px] font-black uppercase mt-2 text-slate-900 text-center leading-tight">
+                  <div key={badge._uniqueId} className="flex flex-col items-center min-w-[72px]">
+                    <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
+                    <p className="text-[9px] font-black uppercase mt-2 text-slate-700 text-center leading-tight max-w-[72px]">
                       {badge.name || badge.badge_id}
                     </p>
                   </div>
