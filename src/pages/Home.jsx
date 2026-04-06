@@ -628,7 +628,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen relative w-full overflow-hidden">
+    <div className="min-h-screen relative w-full">
 
       <div className="relative z-10 overflow-hidden">
 
