@@ -83,6 +83,7 @@ export default function ProfessionalHubV2() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showProfileUpdateRequired, setShowProfileUpdateRequired] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -112,6 +113,16 @@ export default function ProfessionalHubV2() {
     },
     enabled: !!user?.email
   });
+
+  // Check if profile needs update to new format (missing lat/lng or service_areas)
+  const profileNeedsUpdate = professionalProfile && (!professionalProfile?.latitude || !professionalProfile?.longitude || !professionalProfile?.service_areas?.length);
+  
+  useEffect(() => {
+    if (profileNeedsUpdate && !showEditProfile) {
+      setShowProfileUpdateRequired(true);
+      setShowEditProfile(true);
+    }
+  }, [profileNeedsUpdate, showEditProfile]);
 
   // Polling: detectar pedidos pendentes direcionados a este profissional (estilo Uber)
   const isOnlinePro = user?.pawgo_status?.is_online || false;
@@ -298,6 +309,7 @@ export default function ProfessionalHubV2() {
     );
   }
 
+
   const isOnline = user?.pawgo_status?.is_online || false;
 
   return (
@@ -307,14 +319,18 @@ export default function ProfessionalHubV2() {
         onAccept={handleAcceptRequest}
         onDecline={handleDeclineRequest}
       />
-      {/* Modal de Edição de Perfil */}
+      {/* Modal de Edição de Perfil - Obrigatório se precisa update */}
       {showEditProfile && (
         <div className="fixed inset-0 z-[9999] bg-white text-slate-900 overflow-y-auto">
           <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 p-4 flex items-center justify-between">
-            <h2 className="font-black text-lg">Editar Perfil Público</h2>
+            <div>
+              <h2 className="font-black text-lg">Editar Perfil Público</h2>
+              {showProfileUpdateRequired && <p className="text-xs text-red-600 font-bold mt-1">⚠️ Atualização obrigatória</p>}
+            </div>
             <button 
-              onClick={() => setShowEditProfile(false)}
-              className="p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 active:scale-95 transition-all"
+              onClick={() => !showProfileUpdateRequired && setShowEditProfile(false)}
+              disabled={showProfileUpdateRequired}
+              className={"p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 active:scale-95 transition-all" + (showProfileUpdateRequired ? " opacity-50 cursor-not-allowed" : "")}
             >
               <span className="font-bold text-sm">X</span>
             </button>
@@ -324,8 +340,14 @@ export default function ProfessionalHubV2() {
               user={user} 
               onUpdate={() => {
                 queryClient.invalidateQueries(['currentUser']);
+                queryClient.invalidateQueries(['myProfessionalProfile']);
+                setShowProfileUpdateRequired(false);
+                if (showProfileUpdateRequired) {
+                  setTimeout(() => setShowEditProfile(false), 500);
+                }
               }} 
-              onClose={() => setShowEditProfile(false)} 
+              onClose={() => !showProfileUpdateRequired && setShowEditProfile(false)}
+              forceUpdate={showProfileUpdateRequired}
             />
           </div>
         </div>
