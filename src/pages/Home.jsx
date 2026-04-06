@@ -720,7 +720,7 @@ export default function Home() {
                               <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
                                 Conquistas Recentes
                               </p>
-                              <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2 overflow-visible">
+                              <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
                                 {uniqueBadges
                                   .sort((a, b) => {
                                     const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
