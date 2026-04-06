@@ -177,6 +177,16 @@ export default function ProfessionalHubV2() {
     );
   }
 
+  // Redirect if no professional profile exists
+  if (!professionalProfile) {
+    navigate(createPageUrl('ProfessionalSetup'), { replace: true });
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+      </div>
+    );
+  }
+
   const isOnline = user?.pawgo_status?.is_online || false;
 
   return (
