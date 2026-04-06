@@ -616,15 +616,67 @@ export default function Home() {
   };
 
   const handleLaunchPawGo = async () => {
-    if (selectedPets.length === 0) return;
-    setIsSearching(true);
-    // Guardar pets + duration na localStorage para usar depois
-    localStorage.setItem('pawgo_pending', JSON.stringify({
-      pets: selectedPets,
-      duration: duration,
-      timestamp: new Date().toISOString()
-    }));
-    navigate(createPageUrl('PawGoWaiting'));
+    if (selectedPets.length === 0 || !user?.email) return;
+    
+    try {
+      setIsSearching(true);
+      
+      // Verificar se já tem um pedido PawGo ativo ("available" ou "accepted")
+      const activePawGo = await base44.entities.EmergencyWalk.filter({
+        created_by: user.email,
+        status: { '$in': ['available', 'accepted', 'in_progress'] }
+      });
+      
+      if (activePawGo && activePawGo.length > 0) {
+        toast.error('Já tem um pedido PawGo ativo. Aguarde a resposta ou cancele o anterior.');
+        setIsSearching(false);
+        return;
+      }
+      
+      // Criar novo EmergencyWalk
+      const emergencyWalk = await base44.entities.EmergencyWalk.create({
+        owner_name: user.full_name || 'Cliente',
+        owner_phone: user.phone || '',
+        location: user.city || 'Localização não definida',
+        dogs: selectedPets.map(pet => ({
+          dog_name: pet.dog_name || pet.name || 'Cão',
+          dog_photo_url: pet.photo_url || '',
+          dog_size: pet.size || 'medium',
+          dog_breed: pet.breed || 'Desconhecido'
+        })),
+        total_dogs: selectedPets.length,
+        dog_name: selectedPets[0]?.dog_name || selectedPets[0]?.name || 'Cão',
+        dog_size: selectedPets[0]?.size || 'medium',
+        dog_breed: selectedPets[0]?.breed || 'Desconhecido',
+        needed_time: duration === 30 ? '30 minutos' : 'até 1 hora',
+        duration_hours: duration / 60,
+        offered_amount: duration === 30 ? 12 : 20,
+        service_amount: (duration === 30 ? 12 : 20) * 0.85,
+        platform_fee: (duration === 30 ? 12 : 20) * 0.15,
+        status: 'available',
+        urgency_level: 'urgent',
+        special_notes: `Solicitação rápida - duração: ${duration} minutos`
+      });
+      
+      // Guardar na localStorage para tela de espera
+      localStorage.setItem('pawgo_pending', JSON.stringify({
+        emergencyWalkId: emergencyWalk.id,
+        pets: selectedPets,
+        duration: duration,
+        offeredAmount: duration === 30 ? 12 : 20,
+        timestamp: new Date().toISOString()
+      }));
+      
+      // Resetar seleção
+      setSelectedPets([]);
+      
+      // Navegar para tela de espera
+      navigate(createPageUrl('PawGoWaiting'));
+    } catch (error) {
+      console.error('Erro ao lançar PawGo:', error);
+      toast.error('Erro ao criar pedido. Tente novamente.');
+      setIsSearching(false);
+    }
   };
 
   return (
@@ -1322,19 +1374,13 @@ export default function Home() {
                           className="w-full h-14 sm:h-16 bg-orange-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-20 disabled:grayscale transition-all text-xs sm:text-sm"
                         >
                           {isSearching ? (
-                             <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Loader2 className="animate-spin" size={14} sm:size={18}/> <span className="hidden sm:inline">Chamando...</span><span className="sm:hidden">...</span></div>
+                             <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Loader2 className="animate-spin" size={14} sm:size={18}/> <span className="hidden sm:inline">Procurando...</span><span className="sm:hidden">...</span></div>
                           ) : (
                              <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Zap size={14} sm:size={18} fill="currentColor"/> <span className="hidden sm:inline">Iniciar PawGo</span><span className="sm:hidden">PawGo</span> {selectedPets.length > 1 && <span className="ml-1 text-xs">({selectedPets.length})</span>}</div>
                           )}
                         </button>
-                      </div>
-
-                      {/* Efeito de Radar Visual */}
-                      {isSearching && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <div className="w-40 sm:w-64 h-40 sm:h-64 bg-orange-500/20 rounded-full animate-ping" />
+                        {isSearching && <p className="text-center text-white/60 text-[10px] mt-2">Aguarde um profissional responder...</p>}
                         </div>
-                      )}
                     </div>
                   </div>
                 ) : (
