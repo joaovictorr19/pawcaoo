@@ -1,20 +1,8 @@
 import React from 'react';
-import ReactMapGL, { MapRef, Marker, Source, Layer } from 'react-map-gl/maplibre';
-import type { MarkerProps, SourceProps, LayerProps } from 'react-map-gl/maplibre';
+import ReactMapGL, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-interface MapProps {
-  children?: React.ReactNode;
-  initialViewState?: {
-    longitude: number;
-    latitude: number;
-    zoom: number;
-  };
-  mapStyle?: string;
-  className?: string;
-}
-
-const Map = React.forwardRef<MapRef, MapProps>(
+const Map = React.forwardRef(
   ({ children, initialViewState, mapStyle, className }, ref) => {
     return (
       <ReactMapGL
@@ -41,4 +29,3 @@ const Map = React.forwardRef<MapRef, MapProps>(
 Map.displayName = 'Map';
 
 export { Map, Marker, Source, Layer };
-export type { MarkerProps, SourceProps, LayerProps };

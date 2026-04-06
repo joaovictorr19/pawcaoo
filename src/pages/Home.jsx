@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2 } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
@@ -19,26 +19,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import { calculateTier } from "@/components/gamification/tierSystem";
+import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
 
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
-import PawGoSearch from "@/components/home/PawGoSearch";
 import { motion, AnimatePresence } from "framer-motion";
-import LocationSearch, { calculateDistance } from "../components/search/LocationSearch";
-import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Map as MapIcon, List, ChevronLeft, ChevronRight, Star as StarIcon } from "lucide-react";
-import ExternalPostCard from "../components/social/ExternalPostCard";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import PawGoWaitingScreen from "../components/home/PawGoWaitingScreen";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { calculateTier } from "@/components/gamification/tierSystem";
+import PawGoModal from "@/components/home/PawGoModal";
 import { useTheme } from "@/components/ThemeContext";
 import { CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Trophy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -148,9 +142,7 @@ export default function Home() {
   });
 
   const [reviewBooking, setReviewBooking] = useState(null);
-  const [selectedPets, setSelectedPets] = useState([myDogs?.[0]].filter(Boolean) || []);
-  const [isSearching, setIsSearching] = useState(false);
-  const [duration, setDuration] = useState(30);
+  const [isPawGoModalOpen, setIsPawGoModalOpen] = useState(false);
   const userPets = myDogs;
 
   const { data: activeBookings = [] } = useQuery({
@@ -573,71 +565,9 @@ export default function Home() {
     base44.auth.redirectToLogin(createPageUrl('BecomeProfessional'));
   };
 
-  const togglePetSelection = (pet) => {
-    setSelectedPets(prev => 
-      prev.some(p => p.id === pet.id) 
-        ? prev.filter(p => p.id !== pet.id)
-        : [...prev, pet]
-    );
-  };
 
-  const handleLaunchPawGo = async () => {
-    if (selectedPets.length === 0 || !user?.email) return;
-    
-    try {
-      setIsSearching(true);
-      
-      const activePawGo = await base44.entities.EmergencyWalk.filter({
-        created_by: user.email,
-        status: { '$in': ['available', 'accepted', 'in_progress'] }
-      });
-      
-      if (activePawGo && activePawGo.length > 0) {
-        toast.error('Já tem um pedido PawGo ativo. Aguarde a resposta ou cancele o anterior.');
-        setIsSearching(false);
-        return;
-      }
-      
-      const emergencyWalk = await base44.entities.EmergencyWalk.create({
-        owner_name: user.full_name || 'Cliente',
-        owner_phone: user.phone || '',
-        location: user.city || 'Localização não definida',
-        dogs: selectedPets.map(pet => ({
-          dog_name: pet.dog_name || pet.name || 'Cão',
-          dog_photo_url: pet.photo_url || '',
-          dog_size: pet.size || 'medium',
-          dog_breed: pet.breed || 'Desconhecido'
-        })),
-        total_dogs: selectedPets.length,
-        dog_name: selectedPets[0]?.dog_name || selectedPets[0]?.name || 'Cão',
-        dog_size: selectedPets[0]?.size || 'medium',
-        dog_breed: selectedPets[0]?.breed || 'Desconhecido',
-        needed_time: duration === 30 ? '30 minutos' : 'até 1 hora',
-        duration_hours: duration / 60,
-        offered_amount: duration === 30 ? 12 : 20,
-        service_amount: (duration === 30 ? 12 : 20) * 0.85,
-        platform_fee: (duration === 30 ? 12 : 20) * 0.15,
-        status: 'available',
-        urgency_level: 'urgent',
-        special_notes: `Solicitação rápida - duração: ${duration} minutos`
-      });
-      
-      localStorage.setItem('pawgo_pending', JSON.stringify({
-        emergencyWalkId: emergencyWalk.id,
-        pets: selectedPets,
-        duration: duration,
-        offeredAmount: duration === 30 ? 12 : 20,
-        timestamp: new Date().toISOString()
-      }));
-      
-      setSelectedPets([]);
-      navigate(createPageUrl('PawGoWaiting'));
-    } catch (error) {
-      console.error('Erro ao lançar PawGo:', error);
-      toast.error('Erro ao criar pedido. Tente novamente.');
-      setIsSearching(false);
-    }
-  };
+
+
 
   return (
     <div className="min-h-screen relative w-full">
@@ -956,6 +886,14 @@ export default function Home() {
         />
       )}
 
+      {/* PawGo Modal */}
+      <PawGoModal
+        isOpen={isPawGoModalOpen}
+        onClose={() => setIsPawGoModalOpen(false)}
+        user={user}
+        myDogs={myDogs}
+      />
+
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
         {/* Tabs Section */}
         <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
@@ -1194,89 +1132,26 @@ export default function Home() {
               </TabsContent>
 
               <TabsContent value="emergency">
-                {user ? (
-                  <div className="p-3 sm:p-6 animate-in fade-in duration-500">
-                    <div className="bg-slate-900 rounded-2xl sm:rounded-[3rem] p-4 sm:p-8 shadow-2xl border border-white/5 relative overflow-hidden">
-                      
-                      <div className="relative z-10 mb-6 sm:mb-8">
-                        <h3 className="text-white font-black uppercase italic text-[10px] sm:text-xs mb-3 sm:mb-4 tracking-[0.2em] opacity-50">1. Quem vai passear?</h3>
-                        <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-3 sm:pb-4 scrollbar-hide">
-                          {userPets?.length > 0 ? userPets.map(pet => {
-                            const isSelected = selectedPets.some(p => p.id === pet.id);
-                            return (
-                              <button 
-                                key={pet.id}
-                                onClick={() => togglePetSelection(pet)}
-                                className={`flex-shrink-0 transition-all duration-300 relative ${isSelected ? 'scale-105 sm:scale-110' : 'opacity-40 grayscale'}`}
-                              >
-                                <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-[1.5rem] border-3 sm:border-4 ${isSelected ? 'border-orange-500' : 'border-white/10'}`}>
-                                  {pet.photo_url ? (
-                                    <img src={pet.photo_url} alt={pet.name || pet.dog_name} className="w-full h-full object-cover rounded-lg sm:rounded-xl" />
-                                  ) : (
-                                    <div className="w-full h-full bg-slate-600 rounded-lg sm:rounded-xl"></div>
-                                  )}
-                                </div>
-                                {isSelected && (
-                                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">✓</div>
-                                )}
-                                <p className="text-[8px] sm:text-[10px] font-black text-white mt-1 sm:mt-2 uppercase text-center leading-tight">{(pet.name || pet.dog_name).substring(0, 8)}</p>
-                              </button>
-                            );
-                          }) : <p className="text-white/30 text-[10px] font-bold uppercase">Nenhum pet encontrado...</p>}
-                        </div>
-                      </div>
-
-                      <div className="relative z-10 mb-6 sm:mb-8 grid grid-cols-2 gap-2 sm:gap-3">
-                        {[30, 60].map(mins => (
-                          <button 
-                            key={mins}
-                            onClick={() => setDuration(mins)}
-                            className={`h-16 sm:h-20 rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${
-                              duration === mins ? 'border-orange-500 bg-orange-500/10' : 'border-white/5 bg-white/5'
-                            }`}
-                          >
-                            <span className="text-white font-black text-base sm:text-lg leading-none">{mins}min</span>
-                            <span className="text-orange-500 font-bold text-[8px] sm:text-[10px] uppercase mt-0.5 sm:mt-1">
-                              {mins === 30 ? '12€' : '20€'}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="relative z-10">
-                        <button 
-                          disabled={selectedPets.length === 0 || isSearching}
-                          onClick={handleLaunchPawGo}
-                          className="w-full h-14 sm:h-16 bg-orange-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-20 disabled:grayscale transition-all text-xs sm:text-sm"
-                        >
-                          {isSearching ? (
-                            <div className="flex items-center justify-center gap-2 italic">
-                              <Loader2 className="animate-spin w-4 h-4" />
-                              <span>Procurando...</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-center gap-2 italic">
-                              <Zap className="w-4 h-4" fill="currentColor" />
-                              <span>Iniciar PawGo</span>
-                              {selectedPets.length > 1 && <span className="ml-1 text-xs">({selectedPets.length})</span>}
-                            </div>
-                          )}
-                        </button>
-                        {isSearching && <p className="text-center text-white/60 text-[10px] mt-2">Aguarde um profissional responder...</p>}
-                      </div>
+                <div className="p-3 sm:p-6 animate-in fade-in duration-500">
+                  <button
+                    onClick={() => setIsPawGoModalOpen(true)}
+                    className="w-full h-16 bg-orange-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-orange-500/20 active:scale-95 transition-all text-sm flex items-center justify-center gap-2"
+                  >
+                    <Zap className="w-4 h-4" fill="currentColor" />
+                    Abrir PawGo
+                  </button>
+                  {!user && (
+                    <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100 mt-4">
+                      <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">Faça Login para Usar PawGo</h3>
+                      <Button 
+                        onClick={handleLogin}
+                        className="bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-xl"
+                      >
+                        Entrar Agora
+                      </Button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">Faça Login para Usar PawGo</h3>
-                    <Button 
-                      onClick={handleLogin}
-                      className="bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-xl"
-                    >
-                      Entrar Agora
-                    </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </TabsContent>
 
             </Tabs>
