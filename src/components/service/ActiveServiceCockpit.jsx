@@ -58,7 +58,6 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   const [isCorrectionMode, setIsCorrectionMode] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const [isEventMenuOpen, setIsEventMenuOpen] = useState(false);
-  const isOwner = !!(user && booking && (booking.owner_email === user.email || booking.created_by === user.email));
 
   // Fetch booking
   const { data: booking, error, isLoading: loadingBooking } = useQuery({
@@ -444,6 +443,23 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     }
   };
 
+  const isOwner = !!(user && booking && (booking.owner_email === user.email || booking.created_by === user.email));
+
+  const otherParticipant = useMemo(() => {
+    if (!conversation || !user?.email) return null;
+    const otherEmail = conversation.participants?.find((p) => p !== user.email);
+    return {
+      email: otherEmail,
+      name: conversation.participant_names?.[otherEmail] || otherEmail?.split("@")[0] || "Cliente",
+    };
+  }, [conversation?.id, user?.email]);
+
+  useEffect(() => {
+    if (booking?.status === 'completed' && isOwner) {
+      setShowReview(true);
+    }
+  }, [booking?.status, isOwner]);
+
   const formatTime = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -559,21 +575,6 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     : booking.pickup_lng && booking.pickup_lat
     ? [booking.pickup_lng, booking.pickup_lat]
     : [-8.6291, 41.1579];
-
-  const otherParticipant = useMemo(() => {
-    if (!conversation || !user?.email) return null;
-    const otherEmail = conversation.participants?.find((p) => p !== user.email);
-    return {
-      email: otherEmail,
-      name: conversation.participant_names?.[otherEmail] || otherEmail?.split("@")[0] || "Cliente",
-    };
-  }, [conversation?.id, user?.email]);
-
-  useEffect(() => {
-    if (booking?.status === 'completed' && isOwner) {
-      setShowReview(true);
-    }
-  }, [booking?.status, isOwner]);
 
   const ChatContent = () => {
     // Auto-scroll to bottom when new messages arrive

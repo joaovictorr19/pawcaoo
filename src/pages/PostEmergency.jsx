@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Map, MapMarker, MarkerContent, MapRoute } from "@/components/ui/map";
