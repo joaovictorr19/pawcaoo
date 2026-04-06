@@ -220,8 +220,9 @@ export default function UserProfile() {
       return walkers[0] || null;
     },
     enabled: !!profileEmail,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000,
   });
 
   const { data: trainerProfile } = useQuery({
@@ -232,8 +233,9 @@ export default function UserProfile() {
       return trainers[0] || null;
     },
     enabled: !!profileEmail,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000,
   });
 
   const { data: daysOff = [] } = useQuery({
@@ -411,10 +413,10 @@ export default function UserProfile() {
             </Avatar>
 
             {(walkerProfile || trainerProfile) && (
-              <div className={`absolute -bottom-1 -right-1 px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1.5 transition-all ${walkerProfile?.is_online ? 'bg-green-500' : 'bg-slate-300'}`}>
-                <div className={`w-2 h-2 rounded-full bg-white ${walkerProfile?.is_online ? 'animate-ping' : ''}`} />
+              <div className={`absolute -bottom-1 -right-1 px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1.5 transition-all ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-500' : 'bg-slate-300'}`}>
+                <div className={`w-2 h-2 rounded-full bg-white ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'animate-ping' : ''}`} />
                 <span className="text-[8px] font-black text-white uppercase tracking-tighter">
-                  {walkerProfile?.is_online ? 'Disponível' : 'Offline'}
+                  {(walkerProfile?.is_online || trainerProfile?.is_online) ? 'Disponível' : 'Offline'}
                 </span>
               </div>
             )}
