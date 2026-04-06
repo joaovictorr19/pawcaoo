@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Map, MapMarker, MarkerContent, MapControls, MapPopup, MapRoute } from "@/components/ui/map.jsx";
+import { Map, MapMarker, MarkerContent, MapControls, MapRoute } from "@/components/ui/map.jsx";
 import { User, Zap, BarChart3, Dog, BadgeCheck, Navigation, BellRing } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
