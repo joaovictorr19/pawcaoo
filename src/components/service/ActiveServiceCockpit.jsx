@@ -30,9 +30,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import UniversalMap from "@/components/maps/UniversalMap";
 import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
-import { Marker } from "@/components/ui/map";
+import { Marker, MapRoute, MapControls } from "@/components/ui/map";
 import { Popup } from 'react-map-gl/maplibre';
-import maplibregl from 'maplibre-gl';
 import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import { createPageUrl } from "@/utils";
@@ -658,6 +657,16 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
                   </Marker>
                   )}
 
+          {/* Route Polyline - Trajeto Completo */}
+          {booking.route_coordinates && booking.route_coordinates.length > 1 && (
+            <MapRoute 
+              coordinates={booking.route_coordinates.map(coord => [coord.lng, coord.lat])} 
+              color="#3b82f6" 
+              width={4} 
+              opacity={0.7}
+            />
+          )}
+
           {/* Event Markers - Interactive with Popups */}
           {pathMarkers.map((marker, idx) => {
             const eventLabels = {
@@ -673,7 +682,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               '😴': 'Descansou',
               '📷': 'Foto'
             };
-            
+
             const eventColors = {
               '💩': 'border-orange-400 bg-orange-50',
               '💧': 'border-blue-400 bg-blue-50',
@@ -687,36 +696,43 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               '😴': 'border-indigo-400 bg-indigo-50',
               '📷': 'border-purple-400 bg-purple-50'
             };
-            
+
             return (
               <Marker key={idx} longitude={marker.lng} latitude={marker.lat}>
-                  <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full border-2 shadow-xl flex items-center justify-center text-base md:text-xl cursor-pointer hover:scale-125 transition-transform ${eventColors[marker.emoji] || 'bg-white border-gray-300'}`}>
-                    {marker.emoji}
-                  </div>
-                </MarkerContent>
-                <Popup offset={[0, -10]} closeButton={false}>
-                  <div className="space-y-2 min-w-[180px] p-3">
+                <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full border-2 shadow-xl flex items-center justify-center text-base md:text-xl cursor-pointer hover:scale-125 transition-transform ${eventColors[marker.emoji] || 'bg-white border-gray-300'}`}>
+                  {marker.emoji}
+                </div>
+                <Popup offset={[0, -10]} closeButton={true}>
+                  <div className="space-y-3 min-w-[220px] p-3 bg-white">
                     <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
-                        <span className="text-2xl">{marker.emoji}</span>
+                      <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+                        <span className="text-3xl">{marker.emoji}</span>
                       </div>
                       <div className="flex-1">
                         <p className="font-bold text-gray-900 text-sm leading-tight">{eventLabels[marker.emoji]}</p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">
-                          {marker.timestamp ? format(new Date(marker.timestamp), 'HH:mm:ss', { locale: pt }) : ''}
+                        <p className="text-xs text-gray-500 mt-1">
+                          ⏰ {marker.timestamp ? format(new Date(marker.timestamp), 'HH:mm:ss', { locale: pt }) : 'N/A'}
                         </p>
                       </div>
                     </div>
-                    <div className="bg-gray-50 px-2 py-1 rounded text-[10px] text-gray-600">
+                    <div className="bg-gray-100 px-3 py-2 rounded-lg text-xs text-gray-700 font-mono border border-gray-200">
                       📍 {marker.lat.toFixed(5)}, {marker.lng.toFixed(5)}
                     </div>
+                    <div className="bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                      <p className="text-xs font-semibold text-blue-700">ℹ️ Evento registado</p>
+                      <p className="text-xs text-blue-600 mt-0.5">Durante o passeio ativo</p>
+                    </div>
                   </div>
+                </Popup>
               </Marker>
             );
           })}
+
+          {/* Map Controls */}
+          <MapControls />
           </UniversalMap>
-        </SafeMapWrapper>
-      </div>
+          </SafeMapWrapper>
+          </div>
 
       {/* Layer 1: Compact Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-10 pt-safe px-2 md:px-3 pb-2" style={{ paddingTop: 'max(8px, env(safe-area-inset-top))' }}>
