@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Camera, MapPin, Euro, Dog, Clock, ChevronRight, ChevronLeft, CheckCircle, Upload, Phone } from "lucide-react";
+import { Camera, MapPin, Euro, Dog, Clock, ChevronRight, ChevronLeft, CheckCircle, Upload, Phone, Zap } from "lucide-react";
 
 const STEPS = ["Perfil", "Tipo", "Serviços", "Preferências", "Conclusão"];
 
@@ -59,6 +59,9 @@ export default function ProfessionalSetup() {
     accepted_animals: ["dogs"],
     dog_sizes: ["small", "medium", "large"],
     availability: ["morning", "afternoon"],
+    // PawGo & Raio
+    pawgo_enabled: true,
+    work_radius_km: 5,
   });
 
   const { data: user } = useQuery({
@@ -111,9 +114,12 @@ export default function ProfessionalSetup() {
         availability: form.availability,
         is_active: true,
         is_online: false,
-        verification_status: "requires_documents",
-        rating: 0,
-        total_walks: 0,
+        verification_status: "pending",
+        instant_booking: form.pawgo_enabled,
+        service_areas: [{
+          area_name: form.location,
+          radius_km: form.work_radius_km,
+        }],
         user_id: user.id,
       };
 
@@ -417,6 +423,57 @@ export default function ProfessionalSetup() {
                 </div>
               </div>
 
+              {/* PawGo */}
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-orange-400" /> PawGo — Pedidos em Tempo Real
+                </p>
+                <button
+                  onClick={() => set("pawgo_enabled", !form.pawgo_enabled)}
+                  className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between ${
+                    form.pawgo_enabled ? 'border-orange-500 bg-orange-500/10' : 'border-slate-800 bg-slate-900'
+                  }`}
+                >
+                  <div>
+                    <p className="text-white font-bold text-sm">Ativar PawGo</p>
+                    <p className="text-slate-400 text-xs mt-0.5">Receber pedidos urgentes de passeio em tempo real</p>
+                  </div>
+                  <div className={`w-12 h-6 rounded-full transition-all ${
+                    form.pawgo_enabled ? 'bg-orange-500' : 'bg-slate-700'
+                  } flex items-center px-1`}>
+                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                      form.pawgo_enabled ? 'translate-x-6' : 'translate-x-0'
+                    }`} />
+                  </div>
+                </button>
+              </div>
+
+              {/* Raio de Trabalho */}
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> Raio de Trabalho
+                </p>
+                <div className="p-4 bg-slate-800 rounded-2xl">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-white text-sm">Distância máxima</p>
+                    <p className="text-orange-400 font-black text-lg">{form.work_radius_km} km</p>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    step="1"
+                    value={form.work_radius_km}
+                    onChange={e => set("work_radius_km", parseInt(e.target.value))}
+                    className="w-full accent-orange-500"
+                  />
+                  <div className="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>1 km</span>
+                    <span>50 km</span>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1">
                   <Clock className="w-3 h-3" /> Disponibilidade
@@ -485,8 +542,19 @@ export default function ProfessionalSetup() {
                 </div>
               </div>
 
+              <div className="flex gap-3">
+                <div className="flex-1 bg-slate-800 rounded-xl p-3">
+                  <p className="text-slate-500 text-xs uppercase tracking-widest">PawGo</p>
+                  <p className={`font-bold text-sm ${form.pawgo_enabled ? 'text-orange-400' : 'text-slate-400'}`}>{form.pawgo_enabled ? '⚡ Ativo' : '❌ Inativo'}</p>
+                </div>
+                <div className="flex-1 bg-slate-800 rounded-xl p-3">
+                  <p className="text-slate-500 text-xs uppercase tracking-widest">Raio</p>
+                  <p className="text-white font-bold text-sm">{form.work_radius_km} km</p>
+                </div>
+              </div>
+
               <div className="bg-slate-800/50 border border-orange-500/20 rounded-xl p-3 text-xs text-slate-400">
-                ⚠️ O teu perfil ficará visível após verificação pela equipa PawCão. Serás notificado em breve.
+                ⚠️ O teu perfil ficará em análise. A equipa PawCão verificará os teus dados e serás notificado quando aprovado.
               </div>
             </motion.div>
           )}
