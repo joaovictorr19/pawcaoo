@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import UniversalMap from "@/components/maps/UniversalMap";
 import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
-import { Marker as MapMarker } from "@/components/ui/map";
+import { Marker } from "@/components/ui/map";
 import { Popup } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
@@ -629,31 +629,18 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
           show3DControls={false}
           onMapClick={handleLocationCorrection}
         >
-          {/* GPS Trail */}
-          {booking.route_coordinates && booking.route_coordinates.length > 1 && (
-            <MapRoute
-              coordinates={booking.route_coordinates.map(c => [c.lng, c.lat])}
-              color="#000000"
-              width={4}
-              opacity={1}
-            />
-          )}
-
           {/* Pickup Location */}
           {booking.pickup_lat && booking.pickup_lng && (
-            <MapMarker longitude={booking.pickup_lng} latitude={booking.pickup_lat}>
-              <MarkerContent>
-                <div className="w-10 h-10 bg-green-600 rounded-full border-4 border-white shadow-xl flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-              </MarkerContent>
-            </MapMarker>
+            <Marker longitude={booking.pickup_lng} latitude={booking.pickup_lat}>
+              <div className="w-10 h-10 bg-green-600 rounded-full border-4 border-white shadow-xl flex items-center justify-center">
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+              </div>
+            </Marker>
           )}
 
           {/* Current Position - Blue Dot with Pulsing Ring */}
           {currentPosition && (
-            <MapMarker longitude={currentPosition.lng} latitude={currentPosition.lat}>
-              <MarkerContent>
+            <Marker longitude={currentPosition.lng} latitude={currentPosition.lat}>
                 <div className="relative flex items-center justify-center">
                   {/* Pulsing outer ring */}
                   <div className="absolute w-16 h-16 bg-blue-500 rounded-full opacity-20 animate-ping" />
@@ -667,10 +654,9 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
                   <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-md whitespace-nowrap">
                     ±{Math.round(currentPosition.accuracy)}m
                   </div>
-                </div>
-              </MarkerContent>
-            </MapMarker>
-          )}
+                  </div>
+                  </Marker>
+                  )}
 
           {/* Event Markers - Interactive with Popups */}
           {pathMarkers.map((marker, idx) => {
@@ -703,8 +689,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             };
             
             return (
-              <MapMarker key={idx} longitude={marker.lng} latitude={marker.lat}>
-                <MarkerContent>
+              <Marker key={idx} longitude={marker.lng} latitude={marker.lat}>
                   <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full border-2 shadow-xl flex items-center justify-center text-base md:text-xl cursor-pointer hover:scale-125 transition-transform ${eventColors[marker.emoji] || 'bg-white border-gray-300'}`}>
                     {marker.emoji}
                   </div>
@@ -726,8 +711,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
                       📍 {marker.lat.toFixed(5)}, {marker.lng.toFixed(5)}
                     </div>
                   </div>
-                </Popup>
-              </MapMarker>
+              </Marker>
             );
           })}
           </UniversalMap>

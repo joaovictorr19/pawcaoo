@@ -24,16 +24,20 @@ export default function PawGoSearchScreen({
     const fetchWalkers = async () => {
       try {
         setLoading(true);
-        const onlineWalkers = await base44.entities.WalkerProfile.filter({
-          is_online: true,
-          is_active: true,
-          verification_status: 'verified'
-        }, '-rating', 20);
+        // Buscar todos os passeadores ativos, depois filtrar por online
+        const allWalkers = await base44.entities.WalkerProfile.filter({
+          is_active: true
+        }, '-rating', 50);
         
-        setWalkers(onlineWalkers || []);
+        // Priorizar online, mas mostrar todos ativos se não houver online
+        const onlineWalkers = allWalkers.filter(w => w.is_online === true);
+        const walkersToShow = onlineWalkers.length > 0 ? onlineWalkers : allWalkers.slice(0, 20);
+        
+        setWalkers(walkersToShow || []);
       } catch (error) {
         console.error('Error fetching walkers:', error);
-        toast.error('Erro ao carregar passeadores');
+        toast.error('Erro ao carregar passeadores. Tente novamente.');
+        setWalkers([]);
       } finally {
         setLoading(false);
       }
@@ -90,9 +94,9 @@ export default function PawGoSearchScreen({
                 </div>
               </div>
             ) : walkers.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-white/40 text-center">Nenhum passeador disponível no momento</p>
-              </div>
+             <div className="flex items-center justify-center h-full">
+               <p className="text-white/40 text-center">Nenhum passeador disponível agora. Tente novamente em poucos minutos.</p>
+             </div>
             ) : (
               <div className="grid grid-cols-1 gap-3">
                 {walkers.map((walker, idx) => (
@@ -138,8 +142,8 @@ export default function PawGoSearchScreen({
 
                       {/* Status Indicator */}
                       <div className="flex-shrink-0 text-right">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                        <p className="text-[10px] text-green-400 mt-1 font-bold">Online</p>
+                        <div className={`w-3 h-3 rounded-full ${walker.is_online ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
+                        <p className={`text-[10px] mt-1 font-bold ${walker.is_online ? 'text-green-400' : 'text-gray-400'}`}>{walker.is_online ? 'Online' : 'Disponível'}</p>
                       </div>
                     </div>
                   </motion.button>

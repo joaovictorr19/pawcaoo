@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { MapMarker, MarkerContent } from "@/components/ui/map.jsx";
+import { Marker } from "@/components/ui/map.jsx";
 
 // O memo impede o marcador de re-renderizar se a imagem for a mesma e a posição não mudar significativamente
 export const SafeWalkerMarker = memo(({ walker, onClick, children }) => {
