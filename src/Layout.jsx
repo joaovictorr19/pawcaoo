@@ -47,7 +47,7 @@ import PullToRefresh from "@/components/ui/PullToRefresh";
 import BadgeNotification from "@/components/gamification/BadgeNotification";
 import PushNotificationManager from "@/components/notifications/PushNotificationManager";
 import MobileHeader from "@/components/layout/MobileHeader";
-import { useRealtimeNotifications } from "@/components/notifications/useRealtimeNotifications";
+
 import NotificationTriggers from "@/components/notifications/NotificationTriggers";
 import DynamicBackground from "@/components/ui/DynamicBackground";
 import { useModalCleanup } from "@/components/ui/ModalCleanup";
