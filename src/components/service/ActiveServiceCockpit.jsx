@@ -31,7 +31,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import UniversalMap from "@/components/maps/UniversalMap";
 import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
-import { MapRoute, MapMarker, MarkerContent, MarkerTooltip, MarkerPopup } from "@/components/maps/MapComponents";
+import { MapRoute, MapMarker, MarkerContent } from "@/components/ui/map";
+import { Popup } from 'react-map-gl/maplibre';
 import maplibregl from 'maplibre-gl';
 import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
@@ -709,10 +710,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
                     {marker.emoji}
                   </div>
                 </MarkerContent>
-                <MarkerTooltip>
-                  {eventLabels[marker.emoji] || 'Evento'}
-                </MarkerTooltip>
-                <MarkerPopup className="p-0">
+                <Popup offset={[0, -10]} closeButton={false}>
                   <div className="space-y-2 min-w-[180px] p-3">
                     <div className="flex items-center gap-2">
                       <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
@@ -729,7 +727,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
                       📍 {marker.lat.toFixed(5)}, {marker.lng.toFixed(5)}
                     </div>
                   </div>
-                </MarkerPopup>
+                </Popup>
               </MapMarker>
             );
           })}
