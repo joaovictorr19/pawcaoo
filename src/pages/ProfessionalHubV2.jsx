@@ -61,23 +61,59 @@ export default function ProfessionalHubV2() {
 
   // Polling: detectar pedidos pendentes direcionados a este profissional (estilo Uber)
   const isOnlinePro = user?.pawgo_status?.is_online || false;
+  const BOOKING_TIMEOUT_MINUTES = 10; // Pedidos expiram após 10 minutos
+
   useQuery({
     queryKey: ['incomingRequests', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const pending = await base44.entities.Booking.filter({
+      const allPending = await base44.entities.Booking.filter({
         walker_email: user.email,
         status: 'pending'
-      }, '-created_date', 1);
-      const latest = pending[0] || null;
-      // Only show if not already showing this request
+      }, '-created_date', 100);
+
+      const now = new Date();
+      const expiredBookings = [];
+      const validBookings = [];
+
+      // Separar pedidos válidos dos expirados
+      for (const booking of allPending) {
+        const createdTime = new Date(booking.created_date);
+        const ageMinutes = (now - createdTime) / (1000 * 60);
+        
+        if (ageMinutes > BOOKING_TIMEOUT_MINUTES) {
+          expiredBookings.push(booking);
+        } else {
+          validBookings.push(booking);
+        }
+      }
+
+      // Marcar pedidos expirados como rejeitados
+      for (const booking of expiredBookings) {
+        try {
+          await base44.entities.Booking.update(booking.id, { 
+            status: 'rejected',
+            forced_finish_reason: 'Auto-rejected due to timeout'
+          });
+        } catch (error) {
+          console.error('Error rejecting expired booking:', error);
+        }
+      }
+
+      const latest = validBookings[0] || null;
+      // Only show if not already showing this request and it's valid
       if (latest && (!incomingRequest || incomingRequest.id !== latest.id)) {
         setIncomingRequest(latest);
       }
-      return pending;
+      // Clear incoming request if it's expired
+      if (incomingRequest && expiredBookings.some(b => b.id === incomingRequest.id)) {
+        setIncomingRequest(null);
+      }
+
+      return validBookings;
     },
     enabled: !!user?.email && isOnlinePro,
-    refetchInterval: 3000,
+    refetchInterval: 5000,
     refetchOnWindowFocus: false,
   });
 
