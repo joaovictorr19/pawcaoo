@@ -994,13 +994,7 @@ export default function Home() {
 
               </div>
 
-              {/* BOTÕES DE LOGIN RÁPIDO NO TOPO (OPCIONAL) */}
-              <div className="mt-20 flex justify-center gap-4 opacity-50">
-                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Pague com:</span>
-                 <div className="flex gap-4">
-                   {/* Ícones de pagamento ou parceiros */}
-                 </div>
-              </div>
+
 
             </div>
           )}
