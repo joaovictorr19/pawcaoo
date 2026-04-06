@@ -34,7 +34,7 @@ export default function PawCaoLogo({ size = "default", showText = true, classNam
     }
   };
 
-  const currentSize = sizes[size];
+  const currentSize = sizes[size] || sizes.default;
 
   const LogoIcon = animated ? motion.div : 'div';
   const iconProps = animated ? {
