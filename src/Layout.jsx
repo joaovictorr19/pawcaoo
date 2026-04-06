@@ -820,7 +820,7 @@ function LayoutContent({ children, currentPageName }) {
 
       {/* Mobile Header - Minimalista com glassmorphism */}
       <header 
-        className="md:hidden fixed top-0 left-0 right-0 z-[99999] px-3 py-1.5"
+        className="md:hidden fixed top-0 left-0 right-0 z-[99999] px-3 py-2"
         style={{
           background: 'rgba(255, 255, 255, 0.88)',
           backdropFilter: 'blur(16px)',
@@ -829,10 +829,10 @@ function LayoutContent({ children, currentPageName }) {
           boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)',
         }}
       >
-        <div className="flex items-center justify-between h-10">
-          {/* Logo + Menu Trigger */}
-          <div className="flex items-center gap-2 flex-1">
-            {authUser && (
+        <div className="flex items-center justify-center h-12 gap-2 relative">
+          {/* Menu Trigger - Left Side */}
+          {authUser && (
+            <div className="absolute left-0">
               <SidebarTrigger 
                 className="h-9 w-9 p-2 rounded-xl transition-all active:scale-95"
                 style={{
@@ -841,14 +841,20 @@ function LayoutContent({ children, currentPageName }) {
                 }}
                 aria-label="Menu" 
               />
-            )}
-            <Link to={createPageUrl("Home")} className="hover:opacity-80 transition-opacity">
-              <PawCaoLogo size="small" showText={false} />
-            </Link>
-          </div>
+            </div>
+          )}
+
+          {/* Centered Logo */}
+          <Link 
+            to={createPageUrl("Home")} 
+            className="flex-shrink-0 hover:opacity-80 transition-opacity"
+            aria-label="Go to home"
+          >
+            <PawCaoLogo size="medium" showText={false} />
+          </Link>
 
           {/* Direita - Pesquisa, Login/Notificações */}
-          <div className="flex items-center gap-2 justify-end flex-1">
+          <div className="absolute right-0 flex items-center gap-1 justify-end">
             <Button
               variant="ghost"
               size="icon"
