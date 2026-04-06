@@ -28,7 +28,6 @@ const Map = React.forwardRef(
 
 Map.displayName = 'Map';
 
-// Utility components
 const MapRoute = ({ coordinates, ...props }) => {
   if (!coordinates?.length) return null;
   return (
@@ -48,4 +47,12 @@ const MapControls = ({ children }) => {
   return <div className="absolute top-4 right-4 space-y-2">{children}</div>;
 };
 
-export { Map, Marker, Source, Layer, MapRoute, MapControls };
+const MapMarker = ({ lat, lng, children, ...props }) => {
+  return <Marker longitude={lng} latitude={lat} {...props}>{children}</Marker>;
+};
+
+const MarkerContent = ({ children }) => {
+  return <div className="bg-white rounded-lg shadow-lg p-2">{children}</div>;
+};
+
+export { Map, Marker, Source, Layer, MapRoute, MapControls, MapMarker, MarkerContent };
