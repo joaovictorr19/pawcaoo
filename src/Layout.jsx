@@ -329,11 +329,7 @@ function LayoutContent({ children, currentPageName }) {
       icon: Users, 
       id: "nav-home" 
     },
-    { 
-      title: language === 'pt' ? 'Loja & Parceiros' : 'Shop & Partners',
-      url: createPageUrl("Shop"),
-      icon: ShoppingBag
-    },
+
     { 
       title: "PawGo", 
       url: createPageUrl("Dashboard"), 
@@ -355,7 +351,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: language === 'pt' ? 'Painel Cliente' : 'Client Dashboard', url: createPageUrl("ClientDashboard"), icon: BarChart3 },
 
     { title: t('walkHistory', language), url: createPageUrl("WalkHistory"), icon: History },
-    { title: language === 'pt' ? 'Minhas Encomendas' : 'My Orders', url: createPageUrl("MyOrders"), icon: ShoppingBag },
+
     { title: language === 'pt' ? 'Lista de Desejos' : 'Wishlist', url: createPageUrl("MyWishlist"), icon: Heart },
     { title: t('notifications', language), url: createPageUrl("Notifications"), icon: Bell, hasNotifications: true },
     { title: language === 'pt' ? 'Legado' : language === 'es' ? 'Legado' : 'Legacy', url: createPageUrl("Gamification"), icon: Trophy, id: "nav-gamification" },
@@ -787,17 +783,7 @@ function LayoutContent({ children, currentPageName }) {
                     <Home className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="hidden lg:inline">{language === 'pt' ? 'Início' : language === 'es' ? 'Inicio' : 'Home'}</span>
                   </button>
-                  <button
-                    onClick={() => navigate(createPageUrl("Shop"))}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                      location.pathname === createPageUrl("Shop")
-                        ? "bg-gray-200 text-gray-900"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    <ShoppingBag className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="hidden lg:inline">{language === 'pt' ? 'Loja' : 'Shop'}</span>
-                  </button>
+
                 </>
               )}
             </div>
