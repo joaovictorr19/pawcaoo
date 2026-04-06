@@ -30,8 +30,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import UniversalMap from "@/components/maps/UniversalMap";
 import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
-import { MapRoute, MapMarker, MarkerContent } from "@/components/ui/map";
-import { Popup } from 'react-map-gl/maplibre';
+import { Marker as MapMarker } from "@/components/ui/map";
+import { Popup } from 'react-map-gl/maplibre";
 import maplibregl from 'maplibre-gl';
 import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
