@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/card";
 import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2 } from "lucide-react";
 import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
-// EmergencyDogCard removido — substituído pelo fluxo PawGo com Ribbon + botão de ação
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
@@ -66,21 +65,21 @@ export default function Home() {
   
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState({
-  radius: 50,
-  languages: [],
-  specializations: [],
-  breeds: [], // Added breeds
-  certifications: [], 
-  serviceTypes: [],   
-  timeSlots: [],      
-  availableDate: null, 
-  minExperience: 0,
-  minRating: 0,
-  minPrice: 0,
-  maxPrice: 100,
-  backgroundCheck: false,
-  verifiedOnly: false, 
-  instantBooking: false 
+    radius: 50,
+    languages: [],
+    specializations: [],
+    breeds: [],
+    certifications: [], 
+    serviceTypes: [],   
+    timeSlots: [],      
+    availableDate: null, 
+    minExperience: 0,
+    minRating: 0,
+    minPrice: 0,
+    maxPrice: 100,
+    backgroundCheck: false,
+    verifiedOnly: false, 
+    instantBooking: false 
   });
 
   const [trainerFilters, setTrainerFilters] = useState({
@@ -94,7 +93,6 @@ export default function Home() {
     availableDate: null
   });
 
-  // Check URL for tab parameter
   const urlTabParam = new URLSearchParams(window.location.search).get('tab');
   const [activeTab, setActiveTab] = useState(urlTabParam || "professionals");
 
@@ -195,8 +193,6 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  // getLevelInfo removed - using calculateTier from tierSystem instead
-
   const priorityData = React.useMemo(() => {
       const live = activeBookings.find(b => b.status === 'in_progress');
       if (live) return { type: 'live', booking: live };
@@ -204,7 +200,6 @@ export default function Home() {
       const reviewPending = activeBookings.find(b => b.status === 'completed' && !b.review_id);
       if (reviewPending) return { type: 'review', booking: reviewPending };
 
-      // Find next confirmed (closest date)
       const upcoming = activeBookings
           .filter(b => b.status === 'confirmed')
           .sort((a, b) => new Date(a.walk_date + 'T' + a.walk_time) - new Date(b.walk_date + 'T' + b.walk_time))
@@ -215,7 +210,6 @@ export default function Home() {
       return null;
   }, [activeBookings]);
 
-  // Fetch UserProfile as single source of truth for XP (same as Gamification page)
   const { data: currentUserProfile } = useQuery({
     queryKey: ['currentUserProfileXP', user?.email],
     queryFn: async () => {
@@ -224,11 +218,10 @@ export default function Home() {
       return profiles[0] || null;
     },
     enabled: !!user?.email,
-    staleTime: 10 * 1000, // 10 seconds - sync with theme
+    staleTime: 10 * 1000,
     refetchOnWindowFocus: true,
   });
 
-  // XP animation effect - UserProfile is single source of truth
   const currentXP = currentUserProfile?.gamification_xp || 0;
   const [displayedXP, setDisplayedXP] = useState(currentXP);
   
@@ -237,7 +230,7 @@ export default function Home() {
       setDisplayedXP(0);
       return;
     }
-    const duration = 1500;
+    const dur = 1500;
     const steps = 60;
     const increment = currentXP / steps;
     let current = 0;
@@ -250,12 +243,11 @@ export default function Home() {
       } else {
         setDisplayedXP(Math.floor(current));
       }
-    }, duration / steps);
+    }, dur / steps);
 
     return () => clearInterval(timer);
   }, [currentXP]);
 
-  // Fetch earned badges (same logic as UserProfile)
   const { data: earnedBadgesData = [] } = useQuery({
     queryKey: ['userBadges', user?.email],
     queryFn: async () => {
@@ -294,8 +286,6 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  // Trainers integrados no WalkerProfile (is_verified_trainer = true)
-
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
     queryKey: ['emergencyWalks'],
     queryFn: async () => {
@@ -324,7 +314,6 @@ export default function Home() {
     refetchInterval: false,
   });
 
-  // Community Posts (SocialPost + ExternalPublisher)
   const { data: communityPosts = [], isLoading: loadingCommunity } = useQuery({
     queryKey: ['communityPosts'],
     queryFn: async () => {
@@ -335,7 +324,6 @@ export default function Home() {
         }, '-created_date', 20);
         return Array.isArray(posts) ? posts : [];
       } catch (error) {
-        console.error("Community posts fetch error:", error);
         return [];
       }
     },
@@ -345,7 +333,6 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  // Fetch publishers data for community posts
   const { data: publishersData = [] } = useQuery({
     queryKey: ['externalPublishers'],
     queryFn: async () => {
@@ -356,9 +343,6 @@ export default function Home() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Stats em tempo real
-  // Featured items for floating elements
-  // Only load featured items for non-logged-in users (hero section)
   const { data: featuredWalkers = [] } = useQuery({
     queryKey: ['featuredWalkers'],
     queryFn: async () => {
@@ -404,7 +388,6 @@ export default function Home() {
           adoptedDogs: 0
         };
       } catch (error) {
-        console.error("Stats fetch error:", error);
         return { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 };
       }
     },
@@ -418,37 +401,13 @@ export default function Home() {
     if (!userLocation?.lat || !userLocation?.lng || !walker.latitude || !walker.longitude) {
       return null;
     }
-    return calculateDistance(
-      userLocation.lat,
-      userLocation.lng,
-      walker.latitude,
-      walker.longitude
-    );
-  };
-
-  const getTrainerDistance = (trainer) => {
-    if (!userLocation || !userLocation.lat || !userLocation.lng) return null;
-    const trainerLat = trainer.latitude || 38.7223;
-    const trainerLng = trainer.longitude || -9.1393;
-
-    return calculateDistance(
-      userLocation.lat,
-      userLocation.lng,
-      trainerLat,
-      trainerLng
-    );
+    return calculateDistance(userLocation.lat, userLocation.lng, walker.latitude, walker.longitude);
   };
 
   const getEmergencyDistance = (walk) => {
     if (!userLocation || !userLocation.lat || !userLocation.lng) return null;
     if (!walk.latitude || !walk.longitude) return null;
-
-    return calculateDistance(
-      userLocation.lat,
-      userLocation.lng,
-      walk.latitude,
-      walk.longitude
-    );
+    return calculateDistance(userLocation.lat, userLocation.lng, walk.latitude, walk.longitude);
   };
 
   const calculateMatchScore = (walker) => {
@@ -462,17 +421,14 @@ export default function Home() {
   };
 
   const filteredProfessionals = React.useMemo(() => {
-    // SIMPLIFICADO: Mostrar TODOS os walkers válidos
     const validWalkers = walkers.filter(w => w?.id && w?.walker_name);
     
-    // Adicionar distância e score
     const processed = validWalkers.map(w => ({
       ...w,
       distance: getWalkerDistance(w),
       matchScore: calculateMatchScore(w)
     }));
 
-    // Aplicar filtros APENAS se usuário selecionou
     let result = processed;
 
     if (searchLocation?.trim()) {
@@ -505,10 +461,9 @@ export default function Home() {
       });
     }
 
-    // Ordenar
     return result.sort((a, b) => {
       if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1;
-      if (b.matchScore !== a.matchScore && a.matchScore > 0 && b.matchScore > 0) return b.matchScore - a.matchScore; // Score based sorting
+      if (b.matchScore !== a.matchScore && a.matchScore > 0 && b.matchScore > 0) return b.matchScore - a.matchScore;
       if (a.distance !== null && b.distance !== null) return a.distance - b.distance;
       return (b.rating || 0) - (a.rating || 0);
     });
@@ -517,20 +472,14 @@ export default function Home() {
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
 
-    const filtered = emergencyWalks
-      .map(walk => ({
-        ...walk,
-        distance: getEmergencyDistance(walk)
-      }))
+    return emergencyWalks
+      .map(walk => ({ ...walk, distance: getEmergencyDistance(walk) }))
       .filter(walk => {
         const matchesLocation = !searchLocation || 
           (walk.location && walk.location.toLowerCase().includes(searchLocation.toLowerCase()));
-          
-        // Verifica o tamanho na propriedade legacy ou dentro do array dogs
         const matchesSize = filterSize === "all" || 
           walk.dog_size === filterSize || 
           (Array.isArray(walk.dogs) && walk.dogs.some(d => d.dog_size === filterSize));
-
         return matchesLocation && matchesSize;
       })
       .sort((a, b) => {
@@ -541,11 +490,8 @@ export default function Home() {
         const dateB = b.created_date ? new Date(b.created_date).getTime() : 0;
         return dateB - dateA;
       });
-      
-    return filtered;
   }, [emergencyWalks, searchLocation, filterSize, userLocation]);
 
-  // Pagination Logic
   const totalPages = Math.ceil(filteredProfessionals.length / itemsPerPage);
   const paginatedProfessionals = filteredProfessionals.slice(
     (currentPage - 1) * itemsPerPage,
@@ -558,7 +504,6 @@ export default function Home() {
     }
   }, [dogSittingServiceFilter]);
 
-  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, filterAnimalType, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
@@ -642,7 +587,6 @@ export default function Home() {
     try {
       setIsSearching(true);
       
-      // Verificar se já tem um pedido PawGo ativo ("available" ou "accepted")
       const activePawGo = await base44.entities.EmergencyWalk.filter({
         created_by: user.email,
         status: { '$in': ['available', 'accepted', 'in_progress'] }
@@ -654,7 +598,6 @@ export default function Home() {
         return;
       }
       
-      // Criar novo EmergencyWalk
       const emergencyWalk = await base44.entities.EmergencyWalk.create({
         owner_name: user.full_name || 'Cliente',
         owner_phone: user.phone || '',
@@ -679,7 +622,6 @@ export default function Home() {
         special_notes: `Solicitação rápida - duração: ${duration} minutos`
       });
       
-      // Guardar na localStorage para tela de espera
       localStorage.setItem('pawgo_pending', JSON.stringify({
         emergencyWalkId: emergencyWalk.id,
         pets: selectedPets,
@@ -688,10 +630,7 @@ export default function Home() {
         timestamp: new Date().toISOString()
       }));
       
-      // Resetar seleção
       setSelectedPets([]);
-      
-      // Navegar para tela de espera
       navigate(createPageUrl('PawGoWaiting'));
     } catch (error) {
       console.error('Erro ao lançar PawGo:', error);
@@ -710,27 +649,19 @@ export default function Home() {
             <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
               {/* Embedded Owner Dashboard */}
               {(() => {
-                // Use UserProfile XP as source of truth (same as Gamification page)
                 const currentTier = calculateTier(currentXP);
                 const currentLevel = currentTier.level;
-                
-                // Tier-based progress (same as Gamification page)
                 const tierProgressPercentage = currentTier.progress || 0;
                 const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
                 
                 return (
                   <div className="space-y-3 mb-6 relative">
-                    {/* Ambient glow circle */}
                     <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-green-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
                     
                     <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
-                      {/* Shimmer effect overlay */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
-                      
-                      {/* Decorative bubbles */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                       <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2"></div>
-                      <div className="absolute top-1/2 left-1/3 w-20 h-20 bg-white opacity-5 rounded-full blur-xl"></div>
                       
                       <div className="relative z-10">
                         <div className="flex items-center gap-4 mb-4">
@@ -740,7 +671,7 @@ export default function Home() {
                             onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`))}
                             className="w-16 h-16 rounded-xl border-2 border-white/50 shadow-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm aspect-square"
                           >
-                             {user.profile_photo_url ? (
+                            {user.profile_photo_url ? (
                               <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover aspect-square" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
@@ -783,248 +714,52 @@ export default function Home() {
                         </div>
                         
                         {earnedBadgesData.length > 0 && (
-                            <div className="mb-3 pt-3">
-                              <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
-                                Conquistas Recentes
-                              </p>
-                              <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
-                                {earnedBadgesData
-                                  .slice(0, 5)
-                                  .map((badge, i) => (
-                                    <div key={`badge-${badge._uniqueId || badge.id || i}`} className="relative group flex-shrink-0">
-                                      <div 
-                                        className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110"
-                                      >
-                                        {badge.image_png_file || badge.image_url ? (
-                                          <img src={badge.image_png_file || badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                          <div className="w-full h-full bg-slate-600"></div>
-                                        )}
-                                      </div>
-                                      {/* Tooltip on hover */}
-                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-2 bg-gray-900 text-white rounded-lg shadow-xl border border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] min-w-[140px] max-w-[200px] pointer-events-none">
-                                        <p className="font-bold text-xs mb-1 leading-tight text-center">{badge.name}</p>
-                                        {badge.description && (
-                                          <p className="text-[10px] text-gray-300 leading-snug text-center">{badge.description}</p>
-                                        )}
-                                        {/* Arrow */}
-                                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-900"></div>
-                                      </div>
-                                    </div>
-                                    ))}
-                                    </div>
-                                    </div>
-                                    ))}
-                                    </div>
-                                    </div>
-                                    ))}
-                                    </div>
-                                    )}
-                                    </div>
-                                    );
-                                    })()}
-
-                                    {/* Animals Section - Modern & Transparent */}
-                                    {myDogs && myDogs.length > 0 && (
-                                    <div className="bg-white/30 backdrop-blur-lg border border-white/40 shadow-xl rounded-3xl p-4">
-                                    <div className="flex items-center justify-between mb-3">
-                                    <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
-                                    <Heart className="w-4 h-4 text-pink-500" />
-                                    Meus Animais ({myDogs.length})
-                                    </h3>
-                                    <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => navigate(createPageUrl('EditAnimalProfile'))}
-                                    className="text-xs h-7 px-3 hover:bg-white/50"
-                                    >
-                                    + Adicionar
-                                    </Button>
-                                    </div>
-                                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
-                                    {myDogs?.map((dog) => (
-                                    <motion.div
-                                    key={dog.id}
-                                    whileHover={{ scale: 1.05, y: -2 }}
-                                    className="cursor-pointer"
-                                    onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
-                                    >
-                                    <div className="bg-white/20 backdrop-blur-md rounded-xl p-2 text-center border border-white/30 hover:border-blue-300 hover:bg-white/40 transition-all shadow-md hover:shadow-lg aspect-square flex flex-col items-center justify-center">
-                                    <div className="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-white shadow-md overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
-                                    {dog.photo_url ? (
-                                    <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                          <div className="mb-3 pt-3">
+                            <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
+                              Conquistas Recentes
+                            </p>
+                            <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
+                              {earnedBadgesData.slice(0, 5).map((badge, i) => (
+                                <div key={`badge-${badge._uniqueId || badge.id || i}`} className="relative group flex-shrink-0">
+                                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110">
+                                    {badge.image_png_file || badge.image_url ? (
+                                      <img src={badge.image_png_file || badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
                                     ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-slate-200"></div>
+                                      <div className="w-full h-full bg-slate-600"></div>
                                     )}
-                                    </div>
-                                    <p className="font-bold text-[10px] text-gray-900 truncate w-full px-1">{dog.dog_name}</p>
-                                    </div>
-                                    </motion.div>
-                                    ))}
-                                    </div>
-                                    </div>
+                                  </div>
+                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-2 bg-gray-900 text-white rounded-lg shadow-xl border border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] min-w-[140px] max-w-[200px] pointer-events-none">
+                                    <p className="font-bold text-xs mb-1 leading-tight text-center">{badge.name}</p>
+                                    {badge.description && (
+                                      <p className="text-[10px] text-gray-300 leading-snug text-center">{badge.description}</p>
                                     )}
-                                    </div>
-                                    ) : (
-                                    /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS --- */
-                                    <div className="text-center max-w-6xl mx-auto relative mt-10 animate-in fade-in duration-700">
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-900"></div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-                                    {/* Título com Tipografia Moderna */}
-                                    <div className="mb-16">
-                                    <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6">
-                                    Passeios memoráveis para<br/>
-                                    <span className="text-orange-500">cães extraordinários</span>
-                                    </h1>
-                                    <p className="text-slate-600 font-bold uppercase tracking-[0.3em] text-xs">
-                                    A maior rede de dog walkers de Portugal
-                                    </p>
-                                    </div>
-
-                                    {/* CARDS DE ENTRADA DUPLOS (Tutor vs Profissional) */}
-                                    <div className="grid md:grid-cols-2 gap-8 px-4 max-w-4xl mx-auto">
-
-                                    {/* CARD TUTOR (O Cliente) */}
-                                    <div className="group relative bg-white/80 backdrop-blur-xl p-10 rounded-[3rem] shadow-2xl border border-white transition-all hover:-translate-y-2">
-                                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                                    <Dog size={120} weight="fill" className="text-orange-500" />
-                                    </div>
-                                    <div className="relative z-10 text-left">
-                                    <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-orange-200">
-                                    <MapPin size={28} />
-                                    </div>
-                                    <h2 className="text-2xl font-black text-slate-900 mb-2">Encontrar Passeador</h2>
-                                    <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
-                                    Profissionais verificados prontos para dar ao seu cão o passeio que ele merece.
-                                    </p>
-                                    <button onClick={handleLogin} className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors">
-                                    Começar Agora
-                                    </button>
-                                    </div>
-                                    </div>
-
-                                    {/* CARD PROFISSIONAL (O Parceiro) */}
-                                    <div className="group relative bg-slate-900 p-10 rounded-[3rem] shadow-2xl border border-slate-800 transition-all hover:-translate-y-2">
-                                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                                    <Briefcase size={120} weight="fill" className="text-white" />
-                                    </div>
-                                    <div className="relative z-10 text-left">
-                                    <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-6">
-                                    <Zap size={28} className="text-orange-400" />
-                                    </div>
-                                    <h2 className="text-2xl font-black text-white mb-2">Ser Profissional</h2>
-                                    <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
-                                    Transforme a sua paixão por animais numa fonte de rendimento flexível.
-                                    </p>
-                                    <button onClick={handleBecomePro} className="w-full bg-orange-500 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-orange-500/20">
-                                    Fazer Registo Pro
-                                    </button>
-                                    </div>
-                                    </div>
-
-                                    </div>
-                                    </div>
-                                    )}
-                                    </div>
-                                    </div>
-
-                                    {/* Modal de Avaliação */}
-                                    {reviewBooking && (
-                                    <ReviewModal 
-                                    booking={reviewBooking} 
-                                    isOpen={!!reviewBooking} 
-                                    onClose={() => setReviewBooking(null)} 
-                                    />
-                                    )}
-
-                                    <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
-                                    {/* Tabs Section - Show for everyone */}
-                                    <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
-                                    <AnimatePresence>
-                                    {showAdvancedFilters && (
-                                    <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="lg:col-span-1"
-                                    >
-                                    <Suspense fallback={<div className="p-4"><Skeleton className="h-96 w-full" /></div>}>
-                                    {activeTab === 'walkers' ? (
-                                    <AdvancedWalkerFilters
-                                    filters={advancedFilters}
-                                    onFiltersChange={setAdvancedFilters}
-                                    onReset={resetAdvancedFilters}
-                                    onClose={() => setShowAdvancedFilters(false)}
-                                    />
-                                    ) : activeTab === 'trainers' ? (
-                                    <AdvancedTrainerFilters
-                                    filters={trainerFilters}
-                                    onFiltersChange={setTrainerFilters}
-                                    onReset={resetTrainerFilters}
-                                    onClose={() => setShowAdvancedFilters(false)}
-                                    />
-                                    ) : null}
-                                    </Suspense>
-                                    </motion.div>
-                                    )}
-                                    </AnimatePresence>
-
-                                    <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
-                                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                                    <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto bg-white/80 backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
-                                    <button
-                                    onClick={() => setActiveTab('professionals')}
-                                    className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
-                                    activeTab === 'professionals'
-                                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                    >
-                                    <Users className="w-4 h-4 flex-shrink-0" />
-                                    <span className="truncate hidden sm:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
-                                    <span className="truncate sm:hidden">Pro</span>
-                                    </button>
-                                    <button
-                                    onClick={() => setActiveTab('emergency')}
-                                    className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
-                                    activeTab === 'emergency'
-                                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                    }`}
-                                    >
-                                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                                    <span className="truncate font-bold">PawGo</span>
-                                    </button>
-
-                                    </div>
-
-                                    <TabsContent value="professionals">
-                                    <div>
-                                    <div className="flex items-center justify-between mb-4 md:mb-6">
-                                    <div className="flex items-center justify-center mb-6">
+                    {/* Mode Toggle & Quick Actions */}
+                    <div className="flex items-center justify-center mb-3">
                       {['walker', 'trainer', 'both'].includes(user?.account_type) && (
                         <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/20 shadow-inner">
                           <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode !== 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
                             Tutor
                           </span>
-                          
                           <button
                             onClick={async () => {
                               const isProfessional = user.preferences?.current_mode !== 'professional';
-                              // Just toggle online status without navigating
                               try {
                                 await base44.auth.updateMe({
-                                  preferences: {
-                                    ...user.preferences,
-                                    current_mode: isProfessional ? 'professional' : 'owner'
-                                  }
+                                  preferences: { ...user.preferences, current_mode: isProfessional ? 'professional' : 'owner' }
                                 });
-                                // Also update is_online status for PawGo visibility
                                 const walkerProfiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
                                 if (walkerProfiles.length > 0) {
-                                  await base44.entities.WalkerProfile.update(walkerProfiles[0].id, {
-                                    is_online: isProfessional
-                                  });
+                                  await base44.entities.WalkerProfile.update(walkerProfiles[0].id, { is_online: isProfessional });
                                 }
                                 queryClient.invalidateQueries(['currentUser']);
                                 queryClient.invalidateQueries(['walkers']);
@@ -1036,13 +771,10 @@ export default function Home() {
                               user.preferences?.current_mode === 'professional' ? 'bg-[#34C759]' : 'bg-white/40'
                             }`}
                           >
-                            <span
-                              className={`pointer-events-none inline-block h-8 w-8 transform rounded-full bg-white shadow-[0_3px_8px_rgba(0,0,0,0.2)] ring-0 transition-transform duration-200 ease-in-out ${
-                                user.preferences?.current_mode === 'professional' ? 'translate-x-8' : 'translate-x-0'
-                              }`}
-                            />
+                            <span className={`pointer-events-none inline-block h-8 w-8 transform rounded-full bg-white shadow-[0_3px_8px_rgba(0,0,0,0.2)] ring-0 transition-transform duration-200 ease-in-out ${
+                              user.preferences?.current_mode === 'professional' ? 'translate-x-8' : 'translate-x-0'
+                            }`} />
                           </button>
-
                           <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode === 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
                             Profissional
                           </span>
@@ -1051,40 +783,24 @@ export default function Home() {
                     </div>
 
                     <div className="grid grid-cols-4 gap-2 w-full">
-                      <button
-                        onClick={() => navigate(createPageUrl('Favorites'))}
-                        className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation"
-                      >
+                      <button onClick={() => navigate(createPageUrl('Favorites'))} className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
                         <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
                         <span className="text-[9px] font-semibold text-slate-700">Favoritos</span>
                       </button>
-
-                      <button
-                      onClick={() => navigate(createPageUrl('MyWallet'))}
-                      className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation"
-                      >
-                      <Wallet className="w-4 h-4 text-green-600" strokeWidth={2} />
-                      <span className="text-[9px] font-semibold text-slate-700">Wallet</span>
+                      <button onClick={() => navigate(createPageUrl('MyWallet'))} className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
+                        <Wallet className="w-4 h-4 text-green-600" strokeWidth={2} />
+                        <span className="text-[9px] font-semibold text-slate-700">Wallet</span>
                       </button>
-
-                      <button
-                      onClick={() => navigate(createPageUrl('Gamification'))}
-                      className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation"
-                      >
-                      <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
-                      <span className="text-[9px] font-semibold text-slate-700">Legado</span>
+                      <button onClick={() => navigate(createPageUrl('Gamification'))} className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
+                        <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
+                        <span className="text-[9px] font-semibold text-slate-700">Legado</span>
                       </button>
-
-                      <button
-                      onClick={() => navigate(createPageUrl('MyBookings'))}
-                      className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation"
-                      >
-                      <Calendar className="w-4 h-4 text-blue-600" strokeWidth={2} />
-                      <span className="text-[9px] font-semibold text-slate-700">Histórico</span>
+                      <button onClick={() => navigate(createPageUrl('MyBookings'))} className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
+                        <Calendar className="w-4 h-4 text-blue-600" strokeWidth={2} />
+                        <span className="text-[9px] font-semibold text-slate-700">Histórico</span>
                       </button>
                     </div>
 
-                    {/* Professional Pending Bookings Alert */}
                     {['walker', 'trainer', 'both'].includes(user?.account_type) && pendingBookingsCount > 0 && (
                       <motion.button
                         initial={{ opacity: 0, y: 10 }}
@@ -1107,7 +823,6 @@ export default function Home() {
                       </motion.button>
                     )}
 
-                    {/* PawGo Emergency Walks Alert */}
                     {['walker', 'trainer', 'both'].includes(user?.account_type) && user.preferences?.current_mode === 'professional' && filteredEmergencyWalks.length > 0 && (
                       <motion.button
                         initial={{ opacity: 0, y: 10 }}
@@ -1135,11 +850,11 @@ export default function Home() {
                         </div>
                       </motion.button>
                     )}
-                    </div>
-                    );
+                  </div>
+                );
               })()}
 
-              {/* Animals Section - Modern & Transparent */}
+              {/* Animals Section */}
               {myDogs && myDogs.length > 0 && (
                 <div className="bg-white/30 backdrop-blur-lg border border-white/40 shadow-xl rounded-3xl p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -1169,7 +884,7 @@ export default function Home() {
                             {dog.photo_url ? (
                               <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
                             ) : (
-                               <div className="w-full h-full flex items-center justify-center bg-slate-200"></div>
+                              <div className="w-full h-full flex items-center justify-center bg-slate-200"></div>
                             )}
                           </div>
                           <p className="font-bold text-[10px] text-gray-900 truncate w-full px-1">{dog.dog_name}</p>
@@ -1184,7 +899,6 @@ export default function Home() {
             /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS --- */
             <div className="text-center max-w-6xl mx-auto relative mt-10 animate-in fade-in duration-700">
               
-              {/* Título com Tipografia Moderna */}
               <div className="mb-16">
                 <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6">
                   Passeios memoráveis para<br/>
@@ -1195,14 +909,9 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* CARDS DE ENTRADA DUPLOS (Tutor vs Profissional) */}
               <div className="grid md:grid-cols-2 gap-8 px-4 max-w-4xl mx-auto">
                 
-                {/* CARD TUTOR (O Cliente) */}
                 <div className="group relative bg-white/80 backdrop-blur-xl p-10 rounded-[3rem] shadow-2xl border border-white transition-all hover:-translate-y-2">
-                  <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                    <Dog size={120} weight="fill" className="text-orange-500" />
-                  </div>
                   <div className="relative z-10 text-left">
                     <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-orange-200">
                       <MapPin size={28} />
@@ -1217,11 +926,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* CARD PROFISSIONAL (O Parceiro) */}
                 <div className="group relative bg-slate-900 p-10 rounded-[3rem] shadow-2xl border border-slate-800 transition-all hover:-translate-y-2">
-                  <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                    <Briefcase size={120} weight="fill" className="text-white" />
-                  </div>
                   <div className="relative z-10 text-left">
                     <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-6">
                       <Zap size={28} className="text-orange-400" />
@@ -1237,9 +942,6 @@ export default function Home() {
                 </div>
 
               </div>
-
-
-
             </div>
           )}
         </div>
@@ -1255,7 +957,7 @@ export default function Home() {
       )}
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
-        {/* Tabs Section - Show for everyone */}
+        {/* Tabs Section */}
         <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
           <AnimatePresence>
             {showAdvancedFilters && (
@@ -1313,7 +1015,6 @@ export default function Home() {
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate font-bold">PawGo</span>
                 </button>
-
               </div>
 
               <TabsContent value="professionals">
@@ -1338,7 +1039,6 @@ export default function Home() {
                           <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-white" />
                           {filteredProfessionals.length} {t('found', language)}
                         </p>
-                        
                         {selectedServiceTypes.length > 0 && (
                           <Badge className="bg-green-100 text-green-800 text-xs">
                             {selectedServiceTypes.length} {t('serviceCount', language)}
@@ -1349,13 +1049,11 @@ export default function Home() {
                             {selectedSpecializations.length} {t('specializationCount', language)}
                           </Badge>
                         )}
-                        
                         {(selectedServiceTypes.length > 0 || selectedSpecializations.length > 0) && (
                           <Badge className="bg-green-100 text-green-800 text-xs">
                             📊 {t('sortedByMatch', language)}
                           </Badge>
                         )}
-                        
                         {filterDogSitting !== "all" && (
                           <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
                             {filterDogSitting === "boarding" && `🏠 ${t('dogBoarding', language)}`}
@@ -1376,7 +1074,6 @@ export default function Home() {
                         )}
                       </div>
                     </div>
-
                   </div>
 
                   {viewMode === "map" ? (
@@ -1400,35 +1097,34 @@ export default function Home() {
                           ))}
                         </div>
                       ) : filteredProfessionals.length === 0 ? (
-                      <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden bg-white/90">
-                        <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                          <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
-                        </div>
-                        <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
-                          {language === 'pt' ? 'Nenhum profissional encontrado' : 
-                           language === 'es' ? 'No se encontró ningún profesional' : 
-                           'No professionals found'}
-                        </h3>
-                        <p className="text-sm md:text-base text-gray-600 mb-4">
-                          {language === 'pt' ? 'Tente ajustar os filtros de pesquisa.' : 'Try adjusting the search filters.'}
-                        </p>
-
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => {
+                        <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden bg-white/90">
+                          <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                            <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
+                          </div>
+                          <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
+                            {language === 'pt' ? 'Nenhum profissional encontrado' : 
+                             language === 'es' ? 'No se encontró ningún profesional' : 
+                             'No professionals found'}
+                          </h3>
+                          <p className="text-sm md:text-base text-gray-600 mb-4">
+                            {language === 'pt' ? 'Tente ajustar os filtros de pesquisa.' : 'Try adjusting the search filters.'}
+                          </p>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => {
                               setSearchLocation("");
                               setFilterSize("all");
                               setFilterTime("all");
                               setFilterAnimalType("all");
                               setFilterDogSitting("all");
                               setCurrentPage(1);
-                          }}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Limpar Filtros
-                        </Button>
-                      </Card>
+                            }}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Limpar Filtros
+                          </Button>
+                        </Card>
                       ) : (
                         <>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
@@ -1437,7 +1133,6 @@ export default function Home() {
                             ))}
                           </div>
 
-                          {/* Pagination Controls */}
                           {filteredProfessionals.length > itemsPerPage && (
                             <div className="flex justify-center items-center gap-2 mt-8">
                               <Button
@@ -1458,18 +1153,13 @@ export default function Home() {
                                     pageNum = currentPage - 3 + i;
                                     if (pageNum > totalPages) pageNum = totalPages - (4 - i);
                                   }
-                                  
                                   return (
                                     <Button
                                       key={pageNum}
                                       variant={currentPage === pageNum ? "default" : "ghost"}
                                       size="sm"
                                       onClick={() => setCurrentPage(pageNum)}
-                                      className={`w-8 h-8 p-0 font-medium ${
-                                        currentPage === pageNum 
-                                          ? 'text-white' 
-                                          : 'text-gray-600 hover:bg-gray-50'
-                                      }`}
+                                      className={`w-8 h-8 p-0 font-medium ${currentPage === pageNum ? 'text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                                       style={currentPage === pageNum ? {
                                         background: `linear-gradient(to right, ${colors?.primary || '#16a34a'}, ${colors?.primary || '#16a34a'}dd)`
                                       } : {}}
@@ -1503,52 +1193,47 @@ export default function Home() {
                 </div>
               </TabsContent>
 
-
-
               <TabsContent value="emergency">
-                {/* --- ABA PAWGO: LIMPA E EXCLUSIVA --- */}
                 {user ? (
                   <div className="p-3 sm:p-6 animate-in fade-in duration-500">
                     <div className="bg-slate-900 rounded-2xl sm:rounded-[3rem] p-4 sm:p-8 shadow-2xl border border-white/5 relative overflow-hidden">
                       
-                      {/* 1. SELEÇÃO DO PATUDO */}
                       <div className="relative z-10 mb-6 sm:mb-8">
                         <h3 className="text-white font-black uppercase italic text-[10px] sm:text-xs mb-3 sm:mb-4 tracking-[0.2em] opacity-50">1. Quem vai passear?</h3>
                         <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-3 sm:pb-4 scrollbar-hide">
                           {userPets?.length > 0 ? userPets.map(pet => {
                             const isSelected = selectedPets.some(p => p.id === pet.id);
                             return (
-                            <button 
-                              key={pet.id}
-                              onClick={() => togglePetSelection(pet)}
-                              className={`flex-shrink-0 transition-all duration-300 relative ${isSelected ? 'scale-105 sm:scale-110' : 'opacity-40 grayscale'}`}
-                            >
-                              <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-[1.5rem] border-3 sm:border-4 ${isSelected ? 'border-orange-500' : 'border-white/10'}`}>
-                                {pet.photo_url ? (
-                                  <img src={pet.photo_url} alt={pet.name || pet.dog_name} className="w-full h-full object-cover rounded-lg sm:rounded-xl" />
-                                ) : (
-                                  <div className="w-full h-full bg-slate-600 rounded-lg sm:rounded-xl"></div>
+                              <button 
+                                key={pet.id}
+                                onClick={() => togglePetSelection(pet)}
+                                className={`flex-shrink-0 transition-all duration-300 relative ${isSelected ? 'scale-105 sm:scale-110' : 'opacity-40 grayscale'}`}
+                              >
+                                <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-[1.5rem] border-3 sm:border-4 ${isSelected ? 'border-orange-500' : 'border-white/10'}`}>
+                                  {pet.photo_url ? (
+                                    <img src={pet.photo_url} alt={pet.name || pet.dog_name} className="w-full h-full object-cover rounded-lg sm:rounded-xl" />
+                                  ) : (
+                                    <div className="w-full h-full bg-slate-600 rounded-lg sm:rounded-xl"></div>
+                                  )}
+                                </div>
+                                {isSelected && (
+                                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">✓</div>
                                 )}
-                              </div>
-                              {isSelected && (
-                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">✓</div>
-                              )}
-                              <p className="text-[8px] sm:text-[10px] font-black text-white mt-1 sm:mt-2 uppercase text-center leading-tight">{(pet.name || pet.dog_name).substring(0, 8)}</p>
-                            </button>
+                                <p className="text-[8px] sm:text-[10px] font-black text-white mt-1 sm:mt-2 uppercase text-center leading-tight">{(pet.name || pet.dog_name).substring(0, 8)}</p>
+                              </button>
                             );
                           }) : <p className="text-white/30 text-[10px] font-bold uppercase">Nenhum pet encontrado...</p>}
                         </div>
                       </div>
 
-                      {/* 2. DURAÇÃO E PREÇO */}
                       <div className="relative z-10 mb-6 sm:mb-8 grid grid-cols-2 gap-2 sm:gap-3">
                         {[30, 60].map(mins => (
                           <button 
                             key={mins}
                             onClick={() => setDuration(mins)}
-                            className={`h-16 sm:h-20 rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${(
+                            className={`h-16 sm:h-20 rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center border-2 transition-all ${
                               duration === mins ? 'border-orange-500 bg-orange-500/10' : 'border-white/5 bg-white/5'
-                            )}`}
+                            }`}
                           >
                             <span className="text-white font-black text-base sm:text-lg leading-none">{mins}min</span>
                             <span className="text-orange-500 font-bold text-[8px] sm:text-[10px] uppercase mt-0.5 sm:mt-1">
@@ -1558,7 +1243,6 @@ export default function Home() {
                         ))}
                       </div>
 
-                      {/* 3. LANÇAR O RADAR */}
                       <div className="relative z-10">
                         <button 
                           disabled={selectedPets.length === 0 || isSearching}
@@ -1566,13 +1250,20 @@ export default function Home() {
                           className="w-full h-14 sm:h-16 bg-orange-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-20 disabled:grayscale transition-all text-xs sm:text-sm"
                         >
                           {isSearching ? (
-                             <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Loader2 className="animate-spin" size={14} sm:size={18}/> <span className="hidden sm:inline">Procurando...</span><span className="sm:hidden">...</span></div>
+                            <div className="flex items-center justify-center gap-2 italic">
+                              <Loader2 className="animate-spin w-4 h-4" />
+                              <span>Procurando...</span>
+                            </div>
                           ) : (
-                             <div className="flex items-center justify-center gap-1 sm:gap-2 italic"><Zap size={14} sm:size={18} fill="currentColor"/> <span className="hidden sm:inline">Iniciar PawGo</span><span className="sm:hidden">PawGo</span> {selectedPets.length > 1 && <span className="ml-1 text-xs">({selectedPets.length})</span>}</div>
+                            <div className="flex items-center justify-center gap-2 italic">
+                              <Zap className="w-4 h-4" fill="currentColor" />
+                              <span>Iniciar PawGo</span>
+                              {selectedPets.length > 1 && <span className="ml-1 text-xs">({selectedPets.length})</span>}
+                            </div>
                           )}
                         </button>
                         {isSearching && <p className="text-center text-white/60 text-[10px] mt-2">Aguarde um profissional responder...</p>}
-                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -1601,7 +1292,6 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden"
           >
-            {/* Decorative elements */}
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
             
@@ -1627,35 +1317,29 @@ export default function Home() {
               </div>
             </div>
           </motion.div>
-          </div>
+        </div>
 
-          {/* Testimonials Section */}
-          {!user && <TestimonialsSection />}
+        {/* Testimonials Section */}
+        {!user && <TestimonialsSection />}
 
-          {/* Trust Badges Section - Premium Minimal */}
-          <div className="mt-12 mb-8">
+        {/* Trust Badges Section */}
+        <div className="mt-12 mb-8">
           <div className="flex items-center justify-center gap-6 md:gap-12 max-w-2xl mx-auto px-4">
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-2 cursor-default group"
-            >
+            <motion.div whileHover={{ scale: 1.02 }} className="flex items-center gap-2 cursor-default group">
               <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-emerald-600 rounded-full flex items-center justify-center shadow-md">
                 <Award className="w-4 h-4 text-white" />
               </div>
               <span className="text-xs font-semibold text-gray-900 drop-shadow-sm">{t('verifiedProfessionals', language)}</span>
             </motion.div>
 
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-2 cursor-default group"
-            >
+            <motion.div whileHover={{ scale: 1.02 }} className="flex items-center gap-2 cursor-default group">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
                 <ShieldCheck className="w-4 h-4 text-white" />
               </div>
               <span className="text-xs font-semibold text-gray-900 drop-shadow-sm">{t('securePayment', language)}</span>
             </motion.div>
           </div>
-          </div>
+        </div>
       </div>
     </div>
   );
