@@ -144,7 +144,7 @@ export const PAGES = {
     "TrainerDetails": page(() => import('./pages/TrainerDetails')),
     "Trainers": page(() => import('./pages/Trainers')),
     "UserProfile": page(() => import('./pages/UserProfile')),
-    "VeterinaryDashboard": page(() => import('./pages/VeterinaryDashboard')),
+
     "WalkHistory": page(() => import('./pages/WalkHistory')),
     "WalkerDetails": page(() => import('./pages/WalkerDetails')),
     "WalkerTrack": page(() => import('./pages/WalkerTrack')),

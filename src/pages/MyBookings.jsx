@@ -31,6 +31,7 @@ import ReviewForm from "../components/reviews/ReviewForm";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AchievementModal from "../components/gamification/AchievementModal";
 import CheckoutModal from "../components/payments/CheckoutModal";
+import WalkSecurityPass from "../components/booking/WalkSecurityPass";
 import { useBookingNotifications } from "../components/notifications/BookingNotificationService";
 import { CreditCard } from "lucide-react";
 
@@ -293,7 +294,7 @@ export default function MyBookings() {
       // Notificar profissional
       const notifyEmail = type === 'walk' ? (booking.walker_email || booking.created_by) : (booking.trainer_email || booking.created_by);
       
-      await createNotification.mutateAsync({
+      await base44.entities.Notification.create({
         recipient_email: notifyEmail,
         title: '❌ Reserva Cancelada',
         message: `A reserva de ${booking.dog_name} para ${format(new Date(booking.date), 'dd/MM/yyyy', { locale: pt })} foi cancelada. Reembolso: €${refundAmount.toFixed(2)} (${refundPercentage}%).`,
@@ -303,7 +304,7 @@ export default function MyBookings() {
       });
 
       // Notificar cliente sobre reembolso
-      await createNotification.mutateAsync({
+      await base44.entities.Notification.create({
         recipient_email: user.email,
         title: '💰 Reembolso Processado',
         message: `Cancelamento confirmado. Você receberá €${refundAmount.toFixed(2)} (${refundPercentage}% do valor pago) de volta.`,

@@ -134,7 +134,7 @@ export default function PostEmergency() {
         payment_id: payment.id
       });
 
-      await NotificationService.emergencyWalkPosted({ walk });
+      // Notification handled via backend
 
       return { walk, payment };
     },

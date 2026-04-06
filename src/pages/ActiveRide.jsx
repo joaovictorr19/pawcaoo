@@ -17,7 +17,8 @@ import {
   MapPin,
   CheckCircle,
   Phone,
-  Camera
+  Camera,
+  MessageCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import useRideTracker from '../components/tracking/useRideTracker';
@@ -90,6 +91,7 @@ export default function ActiveRide() {
   const queryClient = useQueryClient();
   const [duration, setDuration] = useState(0);
   const [showFinishModal, setShowFinishModal] = useState(false);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [distanceToDestination, setDistanceToDestination] = useState(null);
 
   // ✅ PROTEÇÃO 1: ID obrigatório na URL
@@ -193,6 +195,19 @@ export default function ActiveRide() {
     }
   };
 
+  // ✅ Calcular distância até o destino em tempo real
+  useEffect(() => {
+    if (location && booking?.pickup_lat && booking?.pickup_lng) {
+      const dist = calculateDistance(
+        location.lat,
+        location.lng,
+        booking.pickup_lat,
+        booking.pickup_lng
+      );
+      setDistanceToDestination(dist);
+    }
+  }, [location, booking?.pickup_lat, booking?.pickup_lng]);
+
   // ✅ PROTEÇÃO 3: Loading State
   if (isLoading) {
     return (
@@ -247,19 +262,6 @@ export default function ActiveRide() {
     : routePath.length > 0 
     ? [routePath[routePath.length - 1].lat, routePath[routePath.length - 1].lng]
     : [38.7223, -9.1393]; // Lisboa default
-
-  // ✅ Calcular distância até o destino em tempo real
-  useEffect(() => {
-    if (location && booking?.pickup_lat && booking?.pickup_lng) {
-      const dist = calculateDistance(
-        location.lat,
-        location.lng,
-        booking.pickup_lat,
-        booking.pickup_lng
-      );
-      setDistanceToDestination(dist);
-    }
-  }, [location, booking?.pickup_lat, booking?.pickup_lng]);
 
   // ✅ Coordenadas do destino (Casa do cliente)
   const destinationCoords = booking?.pickup_lat && booking?.pickup_lng
