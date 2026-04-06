@@ -255,7 +255,28 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [currentXP]);
 
-
+  // Fetch earned badges (same logic as UserProfile)
+  const { data: earnedBadgesData = [] } = useQuery({
+    queryKey: ['userBadges', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: user.email }, '-earned_date');
+      const uniqueBadges = new Map();
+      badgesFromTable.forEach((badge) => {
+        const uniqueKey = badge.badge_definition_id || badge.badge_id || badge.id;
+        if (uniqueKey && !uniqueBadges.has(uniqueKey)) {
+          uniqueBadges.set(uniqueKey, { ...badge, _uniqueId: uniqueKey });
+        }
+      });
+      return Array.from(uniqueBadges.values());
+    },
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false
+  });
 
   const { data: walkers = [], isLoading: loadingWalkers } = useQuery({
     queryKey: ['allWalkers'],
@@ -761,32 +782,21 @@ export default function Home() {
                           )}
                         </div>
                         
-                        {(() => {
-                          const allBadges = [...(user?.achievements_badges || []), ...(user?.public_badges || [])].filter(Boolean);
-                          // Remove duplicates based on badge_id
-                          const uniqueBadges = allBadges.filter((badge, index, self) => 
-                            badge && index === self.findIndex(b => b && ((b.badge_id === badge.badge_id) || (b.id === badge.id)))
-                          );
-                          return uniqueBadges.length > 0 && (
+                        {earnedBadgesData.length > 0 && (
                             <div className="mb-3 pt-3">
                               <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
                                 Conquistas Recentes
                               </p>
                               <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
-                                {uniqueBadges
-                                  .sort((a, b) => {
-                                    const dateA = a.earned_date ? new Date(a.earned_date).getTime() : 0;
-                                    const dateB = b.earned_date ? new Date(b.earned_date).getTime() : 0;
-                                    return dateB - dateA;
-                                  })
+                                {earnedBadgesData
                                   .slice(0, 5)
                                   .map((badge, i) => (
-                                    <div key={`badge-${i}-${badge.badge_id || badge.id || i}`} className="relative group flex-shrink-0">
+                                    <div key={`badge-${badge._uniqueId || badge.id || i}`} className="relative group flex-shrink-0">
                                       <div 
                                         className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110"
                                       >
-                                        {badge.image_url ? (
-                                          <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
+                                        {badge.image_png_file || badge.image_url ? (
+                                          <img src={badge.image_png_file || badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
                                         ) : (
                                           <div className="w-full h-full bg-slate-600"></div>
                                         )}
@@ -801,15 +811,197 @@ export default function Home() {
                                         <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-900"></div>
                                       </div>
                                     </div>
-                                  ))}
-                              </div>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-center mb-6">
+                                    ))}
+                                    </div>
+                                    </div>
+                                    ))}
+                                    </div>
+                                    </div>
+                                    ))}
+                                    </div>
+                                    )}
+                                    </div>
+                                    );
+                                    })()}
+
+                                    {/* Animals Section - Modern & Transparent */}
+                                    {myDogs && myDogs.length > 0 && (
+                                    <div className="bg-white/30 backdrop-blur-lg border border-white/40 shadow-xl rounded-3xl p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                    <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                                    <Heart className="w-4 h-4 text-pink-500" />
+                                    Meus Animais ({myDogs.length})
+                                    </h3>
+                                    <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => navigate(createPageUrl('EditAnimalProfile'))}
+                                    className="text-xs h-7 px-3 hover:bg-white/50"
+                                    >
+                                    + Adicionar
+                                    </Button>
+                                    </div>
+                                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+                                    {myDogs?.map((dog) => (
+                                    <motion.div
+                                    key={dog.id}
+                                    whileHover={{ scale: 1.05, y: -2 }}
+                                    className="cursor-pointer"
+                                    onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
+                                    >
+                                    <div className="bg-white/20 backdrop-blur-md rounded-xl p-2 text-center border border-white/30 hover:border-blue-300 hover:bg-white/40 transition-all shadow-md hover:shadow-lg aspect-square flex flex-col items-center justify-center">
+                                    <div className="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-white shadow-md overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
+                                    {dog.photo_url ? (
+                                    <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                                    ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-200"></div>
+                                    )}
+                                    </div>
+                                    <p className="font-bold text-[10px] text-gray-900 truncate w-full px-1">{dog.dog_name}</p>
+                                    </div>
+                                    </motion.div>
+                                    ))}
+                                    </div>
+                                    </div>
+                                    )}
+                                    </div>
+                                    ) : (
+                                    /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS --- */
+                                    <div className="text-center max-w-6xl mx-auto relative mt-10 animate-in fade-in duration-700">
+
+                                    {/* Título com Tipografia Moderna */}
+                                    <div className="mb-16">
+                                    <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6">
+                                    Passeios memoráveis para<br/>
+                                    <span className="text-orange-500">cães extraordinários</span>
+                                    </h1>
+                                    <p className="text-slate-600 font-bold uppercase tracking-[0.3em] text-xs">
+                                    A maior rede de dog walkers de Portugal
+                                    </p>
+                                    </div>
+
+                                    {/* CARDS DE ENTRADA DUPLOS (Tutor vs Profissional) */}
+                                    <div className="grid md:grid-cols-2 gap-8 px-4 max-w-4xl mx-auto">
+
+                                    {/* CARD TUTOR (O Cliente) */}
+                                    <div className="group relative bg-white/80 backdrop-blur-xl p-10 rounded-[3rem] shadow-2xl border border-white transition-all hover:-translate-y-2">
+                                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                                    <Dog size={120} weight="fill" className="text-orange-500" />
+                                    </div>
+                                    <div className="relative z-10 text-left">
+                                    <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-orange-200">
+                                    <MapPin size={28} />
+                                    </div>
+                                    <h2 className="text-2xl font-black text-slate-900 mb-2">Encontrar Passeador</h2>
+                                    <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
+                                    Profissionais verificados prontos para dar ao seu cão o passeio que ele merece.
+                                    </p>
+                                    <button onClick={handleLogin} className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors">
+                                    Começar Agora
+                                    </button>
+                                    </div>
+                                    </div>
+
+                                    {/* CARD PROFISSIONAL (O Parceiro) */}
+                                    <div className="group relative bg-slate-900 p-10 rounded-[3rem] shadow-2xl border border-slate-800 transition-all hover:-translate-y-2">
+                                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                                    <Briefcase size={120} weight="fill" className="text-white" />
+                                    </div>
+                                    <div className="relative z-10 text-left">
+                                    <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-6">
+                                    <Zap size={28} className="text-orange-400" />
+                                    </div>
+                                    <h2 className="text-2xl font-black text-white mb-2">Ser Profissional</h2>
+                                    <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
+                                    Transforme a sua paixão por animais numa fonte de rendimento flexível.
+                                    </p>
+                                    <button onClick={handleBecomePro} className="w-full bg-orange-500 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-orange-500/20">
+                                    Fazer Registo Pro
+                                    </button>
+                                    </div>
+                                    </div>
+
+                                    </div>
+                                    </div>
+                                    )}
+                                    </div>
+                                    </div>
+
+                                    {/* Modal de Avaliação */}
+                                    {reviewBooking && (
+                                    <ReviewModal 
+                                    booking={reviewBooking} 
+                                    isOpen={!!reviewBooking} 
+                                    onClose={() => setReviewBooking(null)} 
+                                    />
+                                    )}
+
+                                    <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
+                                    {/* Tabs Section - Show for everyone */}
+                                    <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
+                                    <AnimatePresence>
+                                    {showAdvancedFilters && (
+                                    <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="lg:col-span-1"
+                                    >
+                                    <Suspense fallback={<div className="p-4"><Skeleton className="h-96 w-full" /></div>}>
+                                    {activeTab === 'walkers' ? (
+                                    <AdvancedWalkerFilters
+                                    filters={advancedFilters}
+                                    onFiltersChange={setAdvancedFilters}
+                                    onReset={resetAdvancedFilters}
+                                    onClose={() => setShowAdvancedFilters(false)}
+                                    />
+                                    ) : activeTab === 'trainers' ? (
+                                    <AdvancedTrainerFilters
+                                    filters={trainerFilters}
+                                    onFiltersChange={setTrainerFilters}
+                                    onReset={resetTrainerFilters}
+                                    onClose={() => setShowAdvancedFilters(false)}
+                                    />
+                                    ) : null}
+                                    </Suspense>
+                                    </motion.div>
+                                    )}
+                                    </AnimatePresence>
+
+                                    <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
+                                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                    <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto bg-white/80 backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
+                                    <button
+                                    onClick={() => setActiveTab('professionals')}
+                                    className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                                    activeTab === 'professionals'
+                                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                    >
+                                    <Users className="w-4 h-4 flex-shrink-0" />
+                                    <span className="truncate hidden sm:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
+                                    <span className="truncate sm:hidden">Pro</span>
+                                    </button>
+                                    <button
+                                    onClick={() => setActiveTab('emergency')}
+                                    className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                                    activeTab === 'emergency'
+                                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                    >
+                                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                                    <span className="truncate font-bold">PawGo</span>
+                                    </button>
+
+                                    </div>
+
+                                    <TabsContent value="professionals">
+                                    <div>
+                                    <div className="flex items-center justify-between mb-4 md:mb-6">
+                                    <div className="flex items-center justify-center mb-6">
                       {['walker', 'trainer', 'both'].includes(user?.account_type) && (
                         <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/20 shadow-inner">
                           <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode !== 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
