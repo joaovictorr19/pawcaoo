@@ -864,7 +864,7 @@ export default function Home() {
                     )}
 
                     {/* PawGo Emergency Walks Alert */}
-                    {user.preferences?.current_mode === 'professional' && filteredEmergencyWalks.length > 0 && (
+                    {['walker', 'trainer', 'both'].includes(user?.account_type) && user.preferences?.current_mode === 'professional' && filteredEmergencyWalks.length > 0 && (
                       <motion.button
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -891,8 +891,8 @@ export default function Home() {
                         </div>
                       </motion.button>
                     )}
-                  </div>
-                );
+                    </div>
+                    );
               })()}
 
               {/* Animals Section - Modern & Transparent */}
