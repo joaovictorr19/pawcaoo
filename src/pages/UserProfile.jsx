@@ -1,31 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-import {
-  MapPin, ArrowLeft, Dog, CheckCircle, Shield, User,
-  MessageCircle, Award, Star, Calendar as CalendarIcon, Zap
-} from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-
+import { MapPin, ArrowLeft, Shield, User, Award, Star } from "lucide-react";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { useLanguage } from "@/components/LanguageContext";
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { calculateTier } from "@/components/gamification/tierSystem";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
-import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
-import ServiceCard from "../components/profile/ServiceCard";
 import ProfileActions from "../components/profile/ProfileActions";
-import BookingStepperModal from "../components/booking/BookingStepperModal";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -252,21 +240,9 @@ export default function UserProfile() {
   const displayName = profileUser?.full_name || walkerProfile?.walker_name || trainerProfile?.trainer_name || "Utilizador";
   const displayCity = profileUser?.city || walkerProfile?.location || trainerProfile?.location || "";
 
-  const [selectedService, setSelectedService] = useState(serviceParam);
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
   const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [showBookingModal, setShowBookingModal] = useState(false);
-
-  const handleBookingClick = (service) => {
-    setSelectedService(service.service_name);
-    toast.info(`Serviço "${service.service_name}" selecionado.`);
-  };
-
-  const handleTabChange = () => {
-    setSelectedService(null);
-  };
 
   const { data: reviews = [], isLoading: loadingReviews } = useQuery({
     queryKey: ['professionalReviews', profileEmail],
@@ -299,70 +275,19 @@ export default function UserProfile() {
     syncV();
   }, [profileUser, walkerProfile, trainerProfile, isOwnProfile, currentUser, queryClient]);
 
-  const { data: myDogs = [] } = useQuery({
-    queryKey: ['myDogs', currentUser?.email],
-    queryFn: async () => {
-      if (!currentUser?.email) return [];
-      return await base44.entities.DogProfile.filter({ owner_email: currentUser.email });
-    },
-    enabled: !!currentUser?.email && !isOwnProfile,
-    initialData: [],
-  });
 
-  const { data: myFavorites = [] } = useQuery({
-    queryKey: ['myFavorites', currentUser?.email],
-    queryFn: async () => {
-      if (!currentUser?.email) return [];
-      return await base44.entities.Favorite.filter({ created_by: currentUser.email });
-    },
-    enabled: !!currentUser?.email && !isOwnProfile,
-    initialData: [],
-  });
-
-  const { data: myPastBookings = [] } = useQuery({
-    queryKey: ['myPastBookings', currentUser?.email],
-    queryFn: async () => {
-      if (!currentUser?.email) return [];
-      return await base44.entities.Booking.filter({ created_by: currentUser.email });
-    },
-    enabled: !!currentUser?.email && !isOwnProfile,
-    initialData: [],
-  });
-
-  const matchScore = useMemo(() => {
-    if (isOwnProfile || !currentUser) return null;
-    const pro = walkerProfile || trainerProfile;
-    if (!pro) return null;
-    return calculateCompatibilityScore(pro, { myDogs, favorites: myFavorites, pastBookings: myPastBookings, userEmail: currentUser.email });
-  }, [walkerProfile, trainerProfile, myDogs, myFavorites, myPastBookings, currentUser, isOwnProfile]);
 
   const handleMessageUser = async (targetEmail) => {
-    if (!currentUser || !targetEmail) {
-      toast.error("Erro: Usuário não autenticado.");
-      return;
-    }
+    if (!currentUser || !targetEmail) { toast.error("Erro: Usuário não autenticado."); return; }
     try {
       const existingChats = await base44.entities.ChatConversation.filter({});
-      const myChat = existingChats.find(c =>
-        c.participants?.includes(currentUser.email) &&
-        c.participants?.includes(targetEmail) &&
-        !c.booking_id
-      );
-      if (myChat) {
-        navigate(createPageUrl('Chat') + `?id=${myChat.id}`);
-      } else {
-        const newChat = await base44.entities.ChatConversation.create({
-          participants: [currentUser.email, targetEmail],
-          tags: ['general'],
-          last_message: 'Nova conversa iniciada.',
-          last_message_date: new Date().toISOString(),
-          unread_counts: { [currentUser.email]: 0, [targetEmail]: 1 }
-        });
+      const myChat = existingChats.find(c => c.participants?.includes(currentUser.email) && c.participants?.includes(targetEmail) && !c.booking_id);
+      if (myChat) { navigate(createPageUrl('Chat') + `?id=${myChat.id}`); }
+      else {
+        const newChat = await base44.entities.ChatConversation.create({ participants: [currentUser.email, targetEmail], tags: ['general'], last_message: 'Nova conversa iniciada.', last_message_date: new Date().toISOString(), unread_counts: { [currentUser.email]: 0, [targetEmail]: 1 } });
         navigate(createPageUrl('Chat') + `?id=${newChat.id}`);
       }
-    } catch (error) {
-      toast.error(`Erro ao abrir chat: ${error?.message}`);
-    }
+    } catch (error) { toast.error(`Erro ao abrir chat: ${error?.message}`); }
   };
 
   const updatePinnedBadgesMutation = useMutation({
@@ -514,53 +439,23 @@ export default function UserProfile() {
             )}
           </div>
 
-          {/* SERVIÇOS + AGENDA */}
-          {(walkerProfile || trainerProfile) ? (
-            <>
-              {/* GRID DE SERVIÇOS */}
-              {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
-                <div>
-                  <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Serviços</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
-                      <div key={idx} className="bg-gradient-to-br from-white to-slate-50 p-4 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
-                        <h4 className="font-black text-xs uppercase text-slate-900 mb-2 tracking-wide">{service.service_name}</h4>
-                        <div className="flex justify-between items-end">
-                          <p className="text-[10px] text-slate-500 font-medium">{service.duration || 60} min</p>
-                          <span className="text-orange-600 font-black text-base">{service.price}€</span>
-                        </div>
-                      </div>
-                    ))}
+          {/* SERVIÇOS */}
+          {(walkerProfile || trainerProfile) && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
+            <div>
+              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Serviços</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
+                  <div key={idx} className="bg-gradient-to-br from-white to-slate-50 p-4 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                    <h4 className="font-black text-xs uppercase text-slate-900 mb-2 tracking-wide">{service.service_name}</h4>
+                    <div className="flex justify-between items-end">
+                      <p className="text-[10px] text-slate-500 font-medium">{service.duration || 60} min</p>
+                      <span className="text-orange-600 font-black text-base">{service.price}€</span>
+                    </div>
                   </div>
-                </div>
-              )}
-
-              {/* CALENDÁRIO AGENDAMENTO */}
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 shadow-2xl border border-slate-700">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="bg-white/10 p-2.5 rounded-xl text-white">
-                    <CalendarIcon size={20} />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-black uppercase text-xs tracking-wider">Agendar Passeio</h4>
-                    <p className="text-[9px] text-white/50 font-bold uppercase">Escolha a data e hora</p>
-                  </div>
-                </div>
-                <div className="bg-white rounded-2xl p-4">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      setSelectedDate(date);
-                      setShowBookingModal(true);
-                    }}
-                    disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
-                    className="rounded-xl"
-                  />
-                </div>
+                ))}
               </div>
-            </>
-          ) : null}
+            </div>
+          )}
 
           {/* FEEDBACK */}
           {(walkerProfile || trainerProfile) && (
@@ -621,19 +516,6 @@ export default function UserProfile() {
         isOpen={isAnimalModalOpen}
         onClose={() => setIsAnimalModalOpen(false)}
         userEmail={profileEmail}
-      />
-      <BookingStepperModal
-        isOpen={showBookingModal}
-        onClose={() => {
-          setShowBookingModal(false);
-          setSelectedDate(null);
-        }}
-        selectedDate={selectedDate}
-        walker={walkerProfile || trainerProfile}
-        currentUser={currentUser}
-        onBookingCreated={() => {
-          queryClient.invalidateQueries(['myPastBookings']);
-        }}
       />
     </div>
   );
