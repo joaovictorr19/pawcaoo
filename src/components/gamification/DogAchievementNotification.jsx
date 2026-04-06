@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 import { X, Trophy, Sparkles } from "lucide-react";
 import confetti from "canvas-confetti";
 

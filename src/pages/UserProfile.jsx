@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
   MapPin, ArrowLeft, Dog, CheckCircle, Shield, User,
   MessageCircle, Award, Star, Calendar as CalendarIcon, Zap
@@ -482,55 +482,43 @@ export default function UserProfile() {
           {displayCity && <p className="text-slate-500 flex items-center gap-1 mt-2"><MapPin size={14} /> {displayCity}</p>}
         </div>
 
-        {/* TABS */}
-        <Tabs defaultValue={serviceParam ? "pawgo" : "badges"} onValueChange={handleTabChange}>
-          <TabsList className="grid grid-cols-3 gap-2 bg-white/50 backdrop-blur-md rounded-2xl p-1.5 shadow-sm w-full mb-6 h-12 flex-shrink-0">
-            <TabsTrigger value="badges" className="rounded-xl font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Conquistas</TabsTrigger>
-            <TabsTrigger value="pawgo" className="rounded-xl font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Serviços</TabsTrigger>
-            <TabsTrigger value="reviews" className="rounded-xl font-black text-[10px] uppercase tracking-widest whitespace-nowrap">Feedback</TabsTrigger>
-          </TabsList>
+        {/* CONTEÚDO ÚNICO - SEM ABAS */}
+        <div className="space-y-8 pb-6">
 
           {/* CONQUISTAS */}
-          <TabsContent value="badges" className="space-y-6 pb-6">
-            {/* --- SEÇÃO 1: EMBLEMAS REAIS (Hospedados no Admin) --- */}
-            <div className="mt-4 px-0">
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas Reais</h3>
-              {loadingBadges ? (
-                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                  {[1, 2, 3].map(i => <div key={i} className="w-20 h-20 bg-slate-200 rounded-2xl flex-shrink-0 animate-pulse" />)}
-                </div>
-              ) : earnedBadges.length > 0 ? (
-                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                  {earnedBadges.map((badge) => (
-                    <div key={badge._uniqueId} className="flex flex-col items-center min-w-[80px]">
-                      <div className="w-16 h-16 rounded-2xl bg-white shadow-lg border-2 border-slate-50 flex items-center justify-center overflow-hidden">
-                        {(badge.image_png_file || badge.image_url) ? (
-                          <img 
-                            src={badge.image_png_file || badge.image_url} 
-                            alt={badge.name}
-                            className="w-12 h-12 object-contain"
-                          />
-                        ) : (
-                          <div className="text-2xl">{getBadgeImage(badge.badge_id)}</div>
-                        )}
-                      </div>
-                      <p className="text-[9px] font-black uppercase mt-2 text-slate-900 text-center leading-tight">
-                        {badge.name || badge.badge_id}
-                      </p>
+          <div>
+            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas Reais</h3>
+            {loadingBadges ? (
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                {[1, 2, 3].map(i => <div key={i} className="w-20 h-20 bg-slate-200 rounded-2xl flex-shrink-0 animate-pulse" />)}
+              </div>
+            ) : earnedBadges.length > 0 ? (
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                {earnedBadges.map((badge) => (
+                  <div key={badge._uniqueId} className="flex flex-col items-center min-w-[80px]">
+                    <div className="w-16 h-16 rounded-2xl bg-white shadow-lg border-2 border-slate-50 flex items-center justify-center overflow-hidden">
+                      {(badge.image_png_file || badge.image_url) ? (
+                        <img src={badge.image_png_file || badge.image_url} alt={badge.name} className="w-12 h-12 object-contain" />
+                      ) : (
+                        <div className="text-2xl">{getBadgeImage(badge.badge_id)}</div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-[10px] text-slate-300 font-bold italic">Sem emblemas atribuídos ainda.</p>
-              )}
-            </div>
-          </TabsContent>
+                    <p className="text-[9px] font-black uppercase mt-2 text-slate-900 text-center leading-tight">
+                      {badge.name || badge.badge_id}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px] text-slate-300 font-bold italic">Sem emblemas atribuídos ainda.</p>
+            )}
+          </div>
 
-          {/* SERVIÇOS */}
-          <TabsContent value="pawgo" className="space-y-8 pb-6">
-            {(walkerProfile || trainerProfile) ? (
-              <>
-                {/* GRID DE SERVIÇOS */}
+          {/* SERVIÇOS + AGENDA */}
+          {(walkerProfile || trainerProfile) ? (
+            <>
+              {/* GRID DE SERVIÇOS */}
+              {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
                 <div>
                   <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Serviços</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -545,57 +533,56 @@ export default function UserProfile() {
                     ))}
                   </div>
                 </div>
+              )}
 
-                {/* CALENDÁRIO AGENDAMENTO */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 shadow-2xl border border-slate-700">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-white/10 p-2.5 rounded-xl text-white">
-                      <CalendarIcon size={20} />
-                    </div>
-                    <div>
-                      <h4 className="text-white font-black uppercase text-xs tracking-wider">Agendar Passeio</h4>
-                      <p className="text-[9px] text-white/50 font-bold uppercase">Escolha a data e hora</p>
-                    </div>
+              {/* CALENDÁRIO AGENDAMENTO */}
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 shadow-2xl border border-slate-700">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="bg-white/10 p-2.5 rounded-xl text-white">
+                    <CalendarIcon size={20} />
                   </div>
-                  <div className="bg-white rounded-2xl p-4">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => {
-                        setSelectedDate(date);
-                        setShowBookingModal(true);
-                      }}
-                      disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
-                      className="rounded-xl"
-                    />
+                  <div>
+                    <h4 className="text-white font-black uppercase text-xs tracking-wider">Agendar Passeio</h4>
+                    <p className="text-[9px] text-white/50 font-bold uppercase">Escolha a data e hora</p>
                   </div>
                 </div>
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <Award className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
-                <p className="text-slate-500 text-sm">Sem serviços disponíveis</p>
+                <div className="bg-white rounded-2xl p-4">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      setShowBookingModal(true);
+                    }}
+                    disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
+                    className="rounded-xl"
+                  />
+                </div>
               </div>
-            )}
-          </TabsContent>
+            </>
+          ) : null}
 
-          {/* AVALIAÇÕES */}
-          <TabsContent value="reviews" className="space-y-4">
-            {loadingReviews ? (
-              <div className="space-y-3">
-                {[1, 2].map(i => <div key={i} className="h-20 bg-slate-200 rounded-2xl animate-pulse" />)}
-              </div>
-            ) : reviews.length > 0 ? (
-              reviews.slice(0, 3).map(r => <ReviewCard key={r.id} review={r} />)
-            ) : (
-              <div className="text-center py-12">
-                <Star className="w-12 h-12 mx-auto mb-3 opacity-30 text-slate-400" />
-                <p className="text-slate-500 text-sm">Sem avaliações</p>
-              </div>
-            )}
-          </TabsContent>
-          </Tabs>
-          </div>
+          {/* FEEDBACK */}
+          {(walkerProfile || trainerProfile) && (
+            <div>
+              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Feedback</h3>
+              {loadingReviews ? (
+                <div className="space-y-3">
+                  {[1, 2].map(i => <div key={i} className="h-20 bg-slate-200 rounded-2xl animate-pulse" />)}
+                </div>
+              ) : reviews.length > 0 ? (
+                reviews.slice(0, 3).map(r => <ReviewCard key={r.id} review={r} />)
+              ) : (
+                <div className="text-center py-8">
+                  <Star className="w-10 h-10 mx-auto mb-3 opacity-30 text-slate-400" />
+                  <p className="text-slate-500 text-sm">Sem avaliações</p>
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+        </div>
 
       {/* PROFILE ACTIONS SECTION */}
       {!isOwnProfile && (walkerProfile || trainerProfile) && (

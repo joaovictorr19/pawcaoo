@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, Ticket, Truck, MapPin, CreditCard, Package, X } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, Ticket, Truck, MapPin, CreditCard, Package, X, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";

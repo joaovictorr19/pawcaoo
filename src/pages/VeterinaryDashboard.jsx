@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 import {
   Stethoscope, Calendar, Pill, FileText, Plus, X,
-  AlertCircle, Clock, User, PawPrint, CheckCircle
+  AlertCircle, Clock, User, PawPrint, CheckCircle, Zap
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
