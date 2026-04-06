@@ -45,6 +45,8 @@ export default function ProfessionalSetup() {
     // Step 0 - Perfil
     walker_name: "",
     location: "",
+    latitude: null,
+    longitude: null,
     bio: "",
     photo_url: "",
     whatsapp_number: "",
@@ -60,7 +62,7 @@ export default function ProfessionalSetup() {
     dog_sizes: ["small", "medium", "large"],
     availability: ["morning", "afternoon"],
     // PawGo & Raio
-    pawgo_enabled: true,
+    instant_booking: true,
     work_radius_km: 5,
   });
 
@@ -97,31 +99,58 @@ export default function ProfessionalSetup() {
   };
 
   const handleFinish = async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      // Criar WalkerProfile
-      const profileData = {
-        walker_name: form.walker_name || user.full_name,
-        location: form.location,
-        bio: form.bio,
-        photo_url: form.photo_url || user.profile_photo_url || "",
-        hourly_rate: parseFloat(form.hourly_rate) || 15,
-        whatsapp_number: form.whatsapp_number || "",
-        services_offered: form.services_offered,
-        accepted_animals: form.accepted_animals,
-        dog_sizes: form.dog_sizes,
-        availability: form.availability,
-        is_active: true,
-        is_online: false,
-        verification_status: "pending",
-        instant_booking: form.pawgo_enabled,
-        service_areas: [{
-          area_name: form.location,
-          radius_km: form.work_radius_km,
-        }],
-        user_id: user.id,
-      };
+   if (!user) return;
+   setLoading(true);
+   try {
+     // Geolocalizar baseado no nome da localização
+     let lat = form.latitude;
+     let lng = form.longitude;
+
+     if (!lat || !lng) {
+       try {
+         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(form.location)}`);
+         const data = await response.json();
+         if (data.length > 0) {
+           lat = parseFloat(data[0].lat);
+           lng = parseFloat(data[0].lon);
+         } else {
+           // Fallback: Lisboa
+           lat = 38.7223;
+           lng = -9.1393;
+         }
+       } catch (e) {
+         lat = 38.7223;
+         lng = -9.1393;
+       }
+     }
+
+     // Criar WalkerProfile
+     const profileData = {
+       walker_name: form.walker_name || user.full_name,
+       location: form.location,
+       latitude: lat,
+       longitude: lng,
+       bio: form.bio,
+       photo_url: form.photo_url || user.profile_photo_url || "",
+       hourly_rate: parseFloat(form.hourly_rate) || 15,
+       whatsapp_number: form.whatsapp_number || "",
+       phone: form.whatsapp_number || "",
+       services_offered: form.services_offered,
+       accepted_animals: form.accepted_animals,
+       dog_sizes: form.dog_sizes,
+       availability: form.availability,
+       is_active: true,
+       is_online: false,
+       verification_status: "requires_documents",
+       instant_booking: form.instant_booking,
+       service_areas: [{
+         area_name: form.location,
+         radius_km: form.work_radius_km,
+         latitude: lat,
+         longitude: lng,
+       }],
+       user_id: user.id,
+     };
 
       // Verificar se já existe
       const existing = await base44.entities.WalkerProfile.filter({ created_by: user.email });
@@ -226,6 +255,11 @@ export default function ProfessionalSetup() {
                   placeholder="Lisboa, Porto, Braga..."
                   className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm"
                 />
+                {form.location && (
+                  <div className="mt-2 p-3 bg-slate-800/50 rounded-lg text-xs text-slate-400">
+                    💡 A coordenada será determinada automaticamente pela localização.
+                  </div>
+                )}
               </div>
 
               <div>
@@ -429,23 +463,23 @@ export default function ProfessionalSetup() {
                   <Zap className="w-3 h-3 text-orange-400" /> PawGo — Pedidos em Tempo Real
                 </p>
                 <button
-                  onClick={() => set("pawgo_enabled", !form.pawgo_enabled)}
-                  className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between ${
-                    form.pawgo_enabled ? 'border-orange-500 bg-orange-500/10' : 'border-slate-800 bg-slate-900'
-                  }`}
-                >
-                  <div>
-                    <p className="text-white font-bold text-sm">Ativar PawGo</p>
-                    <p className="text-slate-400 text-xs mt-0.5">Receber pedidos urgentes de passeio em tempo real</p>
-                  </div>
-                  <div className={`w-12 h-6 rounded-full transition-all ${
-                    form.pawgo_enabled ? 'bg-orange-500' : 'bg-slate-700'
-                  } flex items-center px-1`}>
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
-                      form.pawgo_enabled ? 'translate-x-6' : 'translate-x-0'
-                    }`} />
-                  </div>
-                </button>
+                    onClick={() => set("instant_booking", !form.instant_booking)}
+                    className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between ${
+                      form.instant_booking ? 'border-orange-500 bg-orange-500/10' : 'border-slate-800 bg-slate-900'
+                    }`}
+                  >
+                    <div>
+                      <p className="text-white font-bold text-sm">Ativar PawGo</p>
+                      <p className="text-slate-400 text-xs mt-0.5">Receber pedidos urgentes de passeio em tempo real</p>
+                    </div>
+                    <div className={`w-12 h-6 rounded-full transition-all ${
+                      form.instant_booking ? 'bg-orange-500' : 'bg-slate-700'
+                    } flex items-center px-1`}>
+                      <div className={`w-4 h-4 bg-white rounded-full transition-transform ${
+                        form.instant_booking ? 'translate-x-6' : 'translate-x-0'
+                      }`} />
+                    </div>
+                  </button>
               </div>
 
               {/* Raio de Trabalho */}
@@ -545,7 +579,7 @@ export default function ProfessionalSetup() {
               <div className="flex gap-3">
                 <div className="flex-1 bg-slate-800 rounded-xl p-3">
                   <p className="text-slate-500 text-xs uppercase tracking-widest">PawGo</p>
-                  <p className={`font-bold text-sm ${form.pawgo_enabled ? 'text-orange-400' : 'text-slate-400'}`}>{form.pawgo_enabled ? '⚡ Ativo' : '❌ Inativo'}</p>
+                  <p className={`font-bold text-sm ${form.instant_booking ? 'text-orange-400' : 'text-slate-400'}`}>{form.instant_booking ? '⚡ Ativo' : '❌ Inativo'}</p>
                 </div>
                 <div className="flex-1 bg-slate-800 rounded-xl p-3">
                   <p className="text-slate-500 text-xs uppercase tracking-widest">Raio</p>
