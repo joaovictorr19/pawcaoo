@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import PawGoSearchScreen from './PawGoSearchScreen';
 
 export default function PawGoModal({ isOpen, onClose, user, myDogs = [] }) {
   const navigate = useNavigate();
@@ -12,12 +13,13 @@ export default function PawGoModal({ isOpen, onClose, user, myDogs = [] }) {
   const [duration, setDuration] = useState(30);
   const [isSearching, setIsSearching] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [showSearchScreen, setShowSearchScreen] = useState(false);
 
   // Preços dinâmicos baseado em location/time
   const getPricing = () => {
     return {
-      30: { base: 12, walker: 10.2, platform: 1.8 },
-      60: { base: 20, walker: 17, platform: 3 }
+      30: { base: 13.5, walker: 12, platform: 1.5 },
+      60: { base: 21.5, walker: 20, platform: 1.5 }
     };
   };
 
@@ -53,8 +55,58 @@ export default function PawGoModal({ isOpen, onClose, user, myDogs = [] }) {
     );
   };
 
+  const handleWalkerSelected = async (walker) => {
+    // Criar booking com walker selecionado
+    try {
+      const pricing = getPricing()[duration];
+      
+      const booking = await base44.entities.Booking.create({
+        walker_id: walker.id,
+        walker_name: walker.walker_name,
+        walker_email: walker.created_by,
+        owner_name: user.full_name || 'Cliente',
+        owner_email: user.email,
+        owner_phone: user.phone || '',
+        dogs: selectedPets.map(pet => ({
+          dog_id: pet.id,
+          dog_name: pet.dog_name || pet.name || 'Cão',
+          dog_size: pet.size || 'medium',
+          dog_breed: pet.breed || 'Desconhecido',
+          photo_url: pet.photo_url || ''
+        })),
+        total_dogs: selectedPets.length,
+        dog_name: selectedPets[0]?.dog_name || selectedPets[0]?.name || 'Cão',
+        dog_size: selectedPets[0]?.size || 'medium',
+        dog_breed: selectedPets[0]?.breed || 'Desconhecido',
+        walk_date: new Date().toISOString().split('T')[0],
+        walk_time: new Date().toTimeString().slice(0, 5),
+        duration_hours: duration / 60,
+        service_amount: pricing.walker,
+        platform_fee: pricing.platform,
+        total_amount: pricing.base,
+        status: 'confirmed',
+        payment_status: 'held',
+        type: 'walk',
+        pickup_lat: userLocation?.lat,
+        pickup_lng: userLocation?.lng,
+        pickup_address: user.city || 'Localização atual'
+      });
+
+      toast.success('Passeio agendado com sucesso!');
+      onClose();
+      navigate(createPageUrl(`ActiveRide?bookingId=${booking.id}`));
+    } catch (error) {
+      console.error('Erro ao agendar:', error);
+      toast.error('Erro ao confirmar passeio');
+    } finally {
+      setShowSearchScreen(false);
+    }
+  };
+
   const handleLaunchPawGo = async () => {
     if (selectedPets.length === 0 || !user?.email) return;
+    
+    setShowSearchScreen(true);
     
     try {
       setIsSearching(true);
@@ -68,6 +120,7 @@ export default function PawGoModal({ isOpen, onClose, user, myDogs = [] }) {
       if (activePawGo && activePawGo.length > 0) {
         toast.error('Já tem um pedido PawGo ativo. Aguarde a resposta ou cancele o anterior.');
         setIsSearching(false);
+        setShowSearchScreen(false);
         return;
       }
       
@@ -112,12 +165,22 @@ export default function PawGoModal({ isOpen, onClose, user, myDogs = [] }) {
       console.error('Erro ao lançar PawGo:', error);
       toast.error('Erro ao criar pedido. Tente novamente.');
       setIsSearching(false);
-    }
-  };
+      }
+      };
 
-  if (!isOpen) return null;
+      if (!isOpen) return null;
 
   return (
+    <>
+      <PawGoSearchScreen
+        isOpen={showSearchScreen}
+        onClose={() => setShowSearchScreen(false)}
+        onWalkerSelected={handleWalkerSelected}
+        pets={selectedPets}
+        duration={duration}
+        userLocation={userLocation}
+      />
+
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-end md:items-center justify-center">
       <div className="bg-slate-900 rounded-t-3xl md:rounded-3xl w-full md:max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10 relative">
         {/* Header */}
@@ -150,17 +213,19 @@ export default function PawGoModal({ isOpen, onClose, user, myDogs = [] }) {
                     onClick={() => togglePetSelection(pet)}
                     className={`flex-shrink-0 transition-all duration-300 relative ${isSelected ? 'scale-105' : 'opacity-40'}`}
                   >
-                    <div className={`w-16 h-16 rounded-2xl border-3 ${isSelected ? 'border-orange-500' : 'border-white/10'} overflow-hidden`}>
-                      {pet.photo_url ? (
-                        <img src={pet.photo_url} alt={pet.name || pet.dog_name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-slate-600"></div>
+                    <div className="relative">
+                      <div className={`w-20 h-20 rounded-2xl border-3 ${isSelected ? 'border-orange-500' : 'border-white/10'} overflow-hidden flex-shrink-0`}>
+                        {pet.photo_url ? (
+                          <img src={pet.photo_url} alt={pet.name || pet.dog_name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-slate-600"></div>
+                        )}
+                      </div>
+                      {isSelected && (
+                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold border-2 border-slate-900">✓</div>
                       )}
                     </div>
-                    {isSelected && (
-                      <div className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center text-white text-xs font-bold">✓</div>
-                    )}
-                    <p className="text-[10px] font-black text-white mt-2 uppercase text-center leading-tight">{(pet.name || pet.dog_name).substring(0, 8)}</p>
+                    <p className="text-[9px] font-black text-white mt-2 uppercase text-center leading-tight w-20 truncate">{(pet.name || pet.dog_name)}</p>
                   </button>
                 );
               }) : <p className="text-white/30 text-[10px] font-bold uppercase">Nenhum pet encontrado...</p>}
@@ -225,9 +290,10 @@ export default function PawGoModal({ isOpen, onClose, user, myDogs = [] }) {
               </div>
             )}
           </button>
-          {isSearching && <p className="text-center text-white/60 text-xs">Aguarde um profissional responder...</p>}
+          {isSearching && <p className="text-center text-white/60 text-xs">Procurando passeadores próximos...</p>}
         </div>
       </div>
     </div>
+    </>
   );
 }
