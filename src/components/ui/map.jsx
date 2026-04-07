@@ -34,4 +34,23 @@ const MarkerContent = ({ children, className }) => (
   <div className={className}>{children}</div>
 );
 
-export { Map, Marker, Source, Layer, MapMarker, MarkerContent };
+const MapRoute = ({ coordinates, color = '#3b82f6', width = 4 }) => {
+  if (!coordinates || coordinates.length < 2) return null;
+  const geojson = {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'LineString',
+      coordinates: coordinates.map(c => [c.lng !== undefined ? c.lng : c[0], c.lat !== undefined ? c.lat : c[1]])
+    }
+  };
+  return (
+    <Source type="geojson" data={geojson}>
+      <Layer type="line" paint={{ 'line-color': color, 'line-width': width, 'line-cap': 'round', 'line-join': 'round' }} />
+    </Source>
+  );
+};
+
+const MapControls = ({ children }) => <>{children}</>;
+
+export { Map, Marker, Source, Layer, MapMarker, MarkerContent, MapRoute, MapControls };

@@ -63,7 +63,7 @@ export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, s
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="bg-gray-900 text-white border-gray-800 shadow-xl max-w-xs">
+        <TooltipContent side="top" className="bg-gray-900 text-white border-gray-700 shadow-2xl max-w-xs opacity-100" style={{opacity: 1}}>
           <div className="space-y-1.5">
             <p className="font-bold text-sm leading-tight">{badge.name}</p>
             {badge.description && (
