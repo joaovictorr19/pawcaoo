@@ -6,6 +6,7 @@ const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2'))
 
 const ProfessionalSetup = lazy(() => import('./pages/ProfessionalSetup'))
 const DebugWalkTest = lazy(() => import('./pages/DebugWalkTest'))
+const PawGoMaintenance = lazy(() => import('./pages/PawGoMaintenance'))
 
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -69,6 +70,7 @@ const AuthenticatedApp = () => {
               <Route key={path} path={`/${path}`} element={<Page />} />
             ))}
             <Route path="/ProfessionalHubV2" element={<Suspense fallback={<PageLoader />}><ProfessionalHubV2 /></Suspense>} />
+            <Route path="/Dashboard" element={<Suspense fallback={<PageLoader />}><PawGoMaintenance /></Suspense>} />
 
             <Route path="/ProfessionalSetup" element={<Suspense fallback={<PageLoader />}><ProfessionalSetup /></Suspense>} />
             <Route path="/DebugWalkTest" element={<Suspense fallback={<PageLoader />}><DebugWalkTest /></Suspense>} />

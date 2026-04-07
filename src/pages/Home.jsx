@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
@@ -26,7 +26,6 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
-import PawGoModal from "@/components/home/PawGoModal";
 import { useTheme } from "@/components/ThemeContext";
 import { CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -141,7 +140,6 @@ export default function Home() {
   });
 
   const [reviewBooking, setReviewBooking] = useState(null);
-  const [isPawGoModalOpen, setIsPawGoModalOpen] = useState(false);
   const userPets = myDogs;
 
   const { data: activeBookings = [] } = useQuery({
@@ -896,13 +894,7 @@ export default function Home() {
         />
       )}
 
-      {/* PawGo Modal */}
-      <PawGoModal
-        isOpen={isPawGoModalOpen}
-        onClose={() => setIsPawGoModalOpen(false)}
-        user={user}
-        myDogs={myDogs}
-      />
+
 
       <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
         {/* Tabs Section */}
@@ -1143,8 +1135,14 @@ export default function Home() {
 
               <TabsContent value="emergency">
                 <div className="p-3 sm:p-6 animate-in fade-in duration-500">
+                  <div className="bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100 p-6 text-center">
+                    <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+                    <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">PawGo em Manutenção</h3>
+                    <p className="text-sm text-gray-600 mb-4">Estamos a refazer o PawGo do zero para trazer-te uma experiência ainda melhor!</p>
+                  </div>
+                  {false && (
                   <button
-                    onClick={() => setIsPawGoModalOpen(true)}
+                    onClick={() => {}}
                     className="w-full h-16 bg-orange-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-orange-500/20 active:scale-95 transition-all text-sm flex items-center justify-center gap-2"
                   >
                     <Zap className="w-4 h-4" fill="currentColor" />
