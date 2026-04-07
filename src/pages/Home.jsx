@@ -1140,14 +1140,6 @@ export default function Home() {
                     <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">PawGo em Manutenção</h3>
                     <p className="text-sm text-gray-600 mb-4">Estamos a refazer o PawGo do zero para trazer-te uma experiência ainda melhor!</p>
                   </div>
-                  {false && (
-                  <button
-                    onClick={() => {}}
-                    className="w-full h-16 bg-orange-500 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-orange-500/20 active:scale-95 transition-all text-sm flex items-center justify-center gap-2"
-                  >
-                    <Zap className="w-4 h-4" fill="currentColor" />
-                    Abrir PawGo
-                  </button>
                   {!user && (
                     <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100 mt-4">
                       <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">Faça Login para Usar PawGo</h3>

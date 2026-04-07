@@ -2,7 +2,6 @@ import React from 'react';
 import KpiCards from './KpiCards';
 import WalkStatusDonutChart from './WalkStatusDonutChart';
 import RevenuePayoutsChart from './RevenuePayoutsChart';
-import AdminLiveMap from './AdminLiveMap';
 import { useLanguage } from "@/components/LanguageContext";
 
 export default function AdminOverviewDashboard({ 
@@ -26,15 +25,7 @@ export default function AdminOverviewDashboard({
         isLoading={isLoading} 
       />
 
-      {/* PawGo Live Map Section */}
-      <div className="w-full h-[500px] rounded-xl overflow-hidden shadow-xl border border-gray-200">
-        <AdminLiveMap 
-          walkers={walkers}
-          trainers={trainers}
-          users={users}
-          bookings={bookings}
-        />
-      </div>
+
 
       {/* 2. Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
