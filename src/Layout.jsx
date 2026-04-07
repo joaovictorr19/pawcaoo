@@ -278,25 +278,7 @@ function LayoutContent({ children, currentPageName }) {
 
 
 
-  const { data: ownerSubscription } = useQuery({
-    queryKey: ['ownerSubscription'],
-    queryFn: async () => {
-      if (!authUser?.email) return null;
-      try {
-        const subs = await base44.entities.OwnerSubscription.filter({
-          owner_email: authUser.email,
-          is_active: true
-        }, '-created_date', 1);
-        return Array.isArray(subs) ? subs[0] : null;
-      } catch (error) {
-        return null;
-      }
-    },
-    enabled: !!authUser?.email,
-    staleTime: 15 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  const ownerSubscription = null; // OwnerSubscription entity doesn't exist yet
 
   const unreadCount = notifications?.length || 0;
 
