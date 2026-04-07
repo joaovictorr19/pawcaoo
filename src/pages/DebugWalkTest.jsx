@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { MapPin, Zap, CheckCircle2, AlertCircle } from "lucide-react";
-import { MapContainer, TileLayer, Polyline, Marker, Popup } from "react-leaflet";
 
 export default function DebugWalkTest() {
   const [testResults, setTestResults] = useState({
@@ -317,41 +316,19 @@ export default function DebugWalkTest() {
           </div>
 
           {/* Map View */}
-          <div className="space-y-4">
-            <Card className="h-[600px] overflow-hidden">
-              <CardHeader>
-                <CardTitle>📍 Mapa de Tracking</CardTitle>
-              </CardHeader>
-              <CardContent className="h-full p-0">
-                {mapData?.points && mapData.points.length > 0 ? (
-                  <MapContainer
-                    center={[mapData.points[0].lat, mapData.points[0].lng]}
-                    zoom={15}
-                    style={{ height: "100%", width: "100%" }}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <Polyline
-                      positions={mapData.points.map((p) => [p.lat, p.lng])}
-                      color="#ff6b35"
-                      weight={4}
-                    />
-                    {mapData.points.map((point, idx) => (
-                      <Marker key={idx} position={[point.lat, point.lng]}>
-                        <Popup>
-                          Ponto {idx + 1} de {mapData.points.length}
-                        </Popup>
-                      </Marker>
-                    ))}
-                  </MapContainer>
-                ) : (
-                  <div className="h-full flex items-center justify-center bg-gray-100">
-                    <p className="text-gray-500 text-center">Execute o Passo 3 para visualizar o mapa de tracking</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+           <div className="space-y-4">
+             <Card className="h-[600px] overflow-hidden">
+               <CardHeader>
+                 <CardTitle>📍 Mapa de Tracking</CardTitle>
+               </CardHeader>
+               <CardContent className="h-full p-0">
+                 <div className="h-full flex items-center justify-center bg-gray-100">
+                   <p className="text-gray-500 text-center">Mapa desativado - React Leaflet foi desinstalado</p>
+                 </div>
+               </CardContent>
+               </Card>
 
-            {/* Errors */}
+               {/* Errors */}
             {testResults.errors.length > 0 && (
               <Card className="border-2 border-red-200">
                 <CardHeader>
