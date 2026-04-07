@@ -310,14 +310,7 @@ export default function UserProfile() {
     } catch (error) { toast.error(`Erro ao abrir chat: ${error?.message}`); }
   };
 
-    // CRITICAL: Check on mount if professional trying to edit own profile
-  React.useEffect(() => {
-    if (isOwnProfile && (walkerProfile || trainerProfile)) {
-      toast.info('Profissionais editam em Painel Profissional');
-      const timer = setTimeout(() => navigate(createPageUrl('ProfessionalHubV2')), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isOwnProfile, walkerProfile, trainerProfile, navigate]);
+
 
   const updatePinnedBadgesMutation = useMutation({
     mutationFn: async ({ slotIndex, badgeId }) => {
@@ -373,18 +366,7 @@ export default function UserProfile() {
     );
   }
 
-  // RESTRICTION: Professionals cannot edit in UserProfile - redirect to ProfessionalHubV2
-  if (isOwnProfile && (walkerProfile || trainerProfile)) {
-    React.useEffect(() => {
-      toast.info('Profissionais editam em Painel Profissional');
-      navigate(createPageUrl('ProfessionalHubV2'));
-    }, []);
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
-      </div>
-    );
-  }
+
 
   if (!profileUser) {
     return (
