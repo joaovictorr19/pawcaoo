@@ -283,13 +283,18 @@ export default function AdminUserTable({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={`capitalize text-white text-[10px] h-5 whitespace-nowrap ${
-                          user.account_type === 'walker' || user.account_type === 'trainer' || user.account_type === 'both' 
-                            ? 'bg-green-600' 
-                            : 'bg-blue-600'
-                        }`}>
-                          {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
-                        </Badge>
+                        {(() => {
+                          const hasWalker = walkers.some(w => w.created_by === user.email);
+                          const label = hasWalker
+                            ? (user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Profissional')
+                            : 'Cliente';
+                          const color = hasWalker ? 'bg-green-600' : 'bg-blue-600';
+                          return (
+                            <Badge className={`capitalize text-white text-[10px] h-5 whitespace-nowrap ${color}`}>
+                              {label}
+                            </Badge>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap items-center">
