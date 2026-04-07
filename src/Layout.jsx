@@ -278,8 +278,6 @@ function LayoutContent({ children, currentPageName }) {
 
 
 
-  const ownerSubscription = null; // OwnerSubscription entity doesn't exist yet
-
   const unreadCount = notifications?.length || 0;
 
   // Realtime notifications disabled to improve performance
@@ -609,28 +607,7 @@ function LayoutContent({ children, currentPageName }) {
     return acc;
   }, {});
 
-  const getPlanBadge = () => {
-    if (!ownerSubscription) return null;
-    const planColors = {
-      free: "bg-gray-500",
-      basic: "bg-blue-500",
-      premium: "bg-purple-500",
-      vip: "bg-yellow-500"
-    };
-    const planIcons = {
-      free: "⚡",
-      basic: "💼",
-      premium: "🥇",
-      vip: "👑"
-    };
-    return {
-      color: planColors[ownerSubscription.plan_type] || "bg-gray-500",
-      icon: planIcons[ownerSubscription.plan_type] || "⚡",
-      name: ownerSubscription.plan_type.toUpperCase()
-    };
-  };
 
-  const planBadge = getPlanBadge();
 
   const prefetchWalkers = usePrefetchOnHover(() => 
     prefetchQueries.walkers(queryClient, base44)
