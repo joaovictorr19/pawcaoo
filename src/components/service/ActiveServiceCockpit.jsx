@@ -565,11 +565,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     );
   }
 
-  const mapCenter = currentPosition 
-    ? [currentPosition.lng, currentPosition.lat]
-    : booking.pickup_lng && booking.pickup_lat
-    ? [booking.pickup_lng, booking.pickup_lat]
-    : [-8.6291, 41.1579];
+  // Note: Map functionality removed - no rendering of map component
 
   const ChatContent = () => {
     // Auto-scroll to bottom when new messages arrive
