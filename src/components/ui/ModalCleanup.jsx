@@ -9,13 +9,14 @@ import { useEffect } from 'react';
 export function useModalCleanup() {
   useEffect(() => {
     const cleanup = () => {
-      // Remove any stuck backdrop overlays
+      // Fix any stuck backdrop overlays — do NOT remove() them as React owns the DOM
       const backdrops = document.querySelectorAll('[class*="backdrop"], [class*="overlay"]');
       backdrops.forEach(backdrop => {
         const zIndex = window.getComputedStyle(backdrop).zIndex;
         if (parseInt(zIndex) > 30 && backdrop.style.pointerEvents !== 'none') {
           console.warn('🧹 Removing stuck backdrop:', backdrop);
-          backdrop.remove();
+          backdrop.style.pointerEvents = 'none';
+          backdrop.style.opacity = '0';
         }
       });
 

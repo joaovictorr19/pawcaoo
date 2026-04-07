@@ -31,5 +31,7 @@ Map.displayName = 'Map';
 // Stub components for compatibility
 const MapRoute = () => null;
 const MapControls = () => null;
+const MapMarker = () => null;
+const MarkerContent = () => null;
 
-export { Map, Marker, Source, Layer, MapRoute, MapControls };
+export { Map, Marker, Source, Layer, MapRoute, MapControls, MapMarker, MarkerContent };
