@@ -262,7 +262,7 @@ export default function UserProfile() {
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
   const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
-  const [bookingModal, setBookingModal] = useState({ isOpen: false, selectedDate: null });
+  const [bookingModal, setBookingModal] = useState({ isOpen: false, selectedDate: null, selectedService: null });
 
   const { data: reviews = [], isLoading: loadingReviews } = useQuery({
     queryKey: ['professionalReviews', profileEmail],
@@ -471,18 +471,24 @@ export default function UserProfile() {
             )}
           </div>
 
-          {/* SERVIÇOS */}
+          {/* SERVIÇOS OFERECIDOS */}
           {(walkerProfile || trainerProfile) && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
             <div>
-              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Serviços</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Serviços Oferecidos</h3>
+              <div className="space-y-3">
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
-                  <div key={idx} className="bg-gradient-to-br from-white to-slate-50 p-4 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all">
-                    <h4 className="font-black text-xs uppercase text-slate-900 mb-2 tracking-wide">{service.service_name}</h4>
-                    <div className="flex justify-between items-end">
-                      <p className="text-[10px] text-slate-500 font-medium">{service.duration || 60} min</p>
+                  <div key={idx} className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-2xl shadow-sm border border-blue-100 hover:shadow-md transition-all cursor-pointer" onClick={() => !isOwnProfile && setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}>
+                    <h4 className="font-black text-sm text-slate-900 mb-2">{service.service_name}</h4>
+                    {service.description && <p className="text-xs text-slate-600 mb-2">{service.description}</p>}
+                    <div className="flex justify-between items-center text-xs">
+                      <div className="flex gap-3">
+                        {service.duration_options?.length > 0 && (
+                          <span className="text-slate-500">⏱️ {service.duration_options[0]}</span>
+                        )}
+                      </div>
                       <span className="text-orange-600 font-black text-base">{service.price}€</span>
                     </div>
+                    {!isOwnProfile && <p className="text-[10px] text-blue-600 font-bold mt-3">👉 Clica para agendar</p>}
                   </div>
                 ))}
               </div>
@@ -602,9 +608,10 @@ export default function UserProfile() {
       />
       <ProfessionalBookingModal
         isOpen={bookingModal.isOpen}
-        onClose={() => setBookingModal({ isOpen: false, selectedDate: null })}
+        onClose={() => setBookingModal({ isOpen: false, selectedDate: null, selectedService: null })}
         walkerProfile={walkerProfile || trainerProfile}
         selectedDate={bookingModal.selectedDate}
+        selectedService={bookingModal.selectedService}
         currentUser={currentUser}
       />
     </div>

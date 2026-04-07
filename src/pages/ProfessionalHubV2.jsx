@@ -21,6 +21,7 @@ import { ToolsSection } from "@/components/professional-hub/ToolsSection";
 import { WalletSection } from "@/components/professional-hub/WalletSection";
 import { FinancesSection } from "@/components/professional-hub/FinancesSection";
 import { DayOffManager } from "@/components/professional-hub/DayOffManager";
+import ServiceOfferingsEditor from "@/components/professional-hub/ServiceOfferingsEditor";
 
 function ActiveRequestsList({ user }) {
   const { data: activeBookings = [] } = useQuery({
@@ -455,11 +456,9 @@ export default function ProfessionalHubV2() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
+              className="space-y-8"
             >
-              <ServiceEditor 
-                professionalProfile={professionalProfile}
-                isWalker={!!professionalProfile?.walker_name}
-              />
+              <ServiceOfferingsEditor professionalProfile={professionalProfile} />
             </motion.div>
           )}
 
