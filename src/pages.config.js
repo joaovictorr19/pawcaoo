@@ -56,7 +56,6 @@ import __Layout from './Layout.jsx';
 const page = (importFn) => lazy(importFn);
 
 export const PAGES = {
-    "AIMatches": page(() => import('./pages/AIMatches')),
     "AboutUs": page(() => import('./pages/AboutUs')),
     "AccountSettings": page(() => import('./pages/AccountSettings')),
 
