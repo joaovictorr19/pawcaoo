@@ -4,11 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { User, Play, CheckSquare, Trash, Zap, ShieldAlert, RefreshCw, AlertTriangle } from "lucide-react";
+import { User, Play, CheckSquare, Trash, Zap, ShieldAlert, RefreshCw, AlertTriangle, Loader2 } from "lucide-react";
 
 export default function AdminDebug() {
-  const [loading, setLoading] = useState(false);
+  const [loadingBtn, setLoadingBtn] = useState(null); // tracks which button is loading
   const [repairLog, setRepairLog] = useState([]);
+  const [lastResult, setLastResult] = useState(null);
+
+  const isLoading = (btn) => loadingBtn === btn;
+  const anyLoading = loadingBtn !== null;
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -21,8 +25,9 @@ export default function AdminDebug() {
   // --- CREATE ACTIONS ---
 
   const createPendingBooking = async () => {
-    if (!currentUserEmail) return toast.error("Utilizador não carregado");
-    setLoading(true);
+    if (!currentUserEmail) return toast.error("Utilizador não carregado — aguarda 1 segundo e tenta de novo");
+    setLoadingBtn('pending');
+    setLastResult(null);
     try {
       const booking = await base44.entities.Booking.create({
         owner_email: "cliente-teste@debug.com",
@@ -43,14 +48,19 @@ export default function AdminDebug() {
         type: "walk",
         special_notes: "__DEBUG_TEST__"
       });
-      toast.success(`✅ Pedido Pendente criado: ${booking.id}`);
-    } catch (e) { toast.error("Erro: " + e.message); }
-    finally { setLoading(false); }
+      setLastResult({ type: 'success', msg: `✅ Pedido Pendente criado! ID: ${booking.id}` });
+      toast.success(`✅ Pedido Pendente criado!`);
+    } catch (e) {
+      setLastResult({ type: 'error', msg: `❌ Erro: ${e.message}` });
+      toast.error("Erro: " + e.message);
+    }
+    finally { setLoadingBtn(null); }
   };
 
   const createActiveWalk = async () => {
-    if (!currentUserEmail) return toast.error("Utilizador não carregado");
-    setLoading(true);
+    if (!currentUserEmail) return toast.error("Utilizador não carregado — aguarda 1 segundo e tenta de novo");
+    setLoadingBtn('active');
+    setLastResult(null);
     try {
       const booking = await base44.entities.Booking.create({
         owner_email: "cliente-teste@debug.com",
@@ -73,14 +83,19 @@ export default function AdminDebug() {
         walker_name: "Passeador Teste",
         special_notes: "__DEBUG_TEST__"
       });
-      toast.success(`✅ Passeio Ativo criado: ${booking.id}`);
-    } catch (e) { toast.error("Erro: " + e.message); }
-    finally { setLoading(false); }
+      setLastResult({ type: 'success', msg: `✅ Passeio Ativo criado! ID: ${booking.id}` });
+      toast.success('✅ Passeio Ativo criado!');
+    } catch (e) {
+      setLastResult({ type: 'error', msg: `❌ Erro: ${e.message}` });
+      toast.error("Erro: " + e.message);
+    }
+    finally { setLoadingBtn(null); }
   };
 
   const createCompletedWalk = async () => {
-    if (!currentUserEmail) return toast.error("Utilizador não carregado");
-    setLoading(true);
+    if (!currentUserEmail) return toast.error("Utilizador não carregado — aguarda 1 segundo e tenta de novo");
+    setLoadingBtn('completed');
+    setLastResult(null);
     try {
       await base44.entities.Booking.create({
         owner_email: "client-test@debug.com",
@@ -101,14 +116,19 @@ export default function AdminDebug() {
         completed_date: new Date().toISOString(),
         special_notes: "__DEBUG_TEST__"
       });
-      toast.success("✅ Passeio Concluído criado — teste a Carteira");
-    } catch (e) { toast.error("Erro: " + e.message); }
-    finally { setLoading(false); }
+      setLastResult({ type: 'success', msg: '✅ Passeio Concluído criado! Abre a Carteira para confirmar.' });
+      toast.success("✅ Passeio Concluído criado!");
+    } catch (e) {
+      setLastResult({ type: 'error', msg: `❌ Erro: ${e.message}` });
+      toast.error("Erro: " + e.message);
+    }
+    finally { setLoadingBtn(null); }
   };
 
   const createEmergency = async () => {
-    if (!currentUserEmail) return toast.error("Utilizador não carregado");
-    setLoading(true);
+    if (!currentUserEmail) return toast.error("Utilizador não carregado — aguarda 1 segundo e tenta de novo");
+    setLoadingBtn('emergency');
+    setLastResult(null);
     try {
       const walk = await base44.entities.EmergencyWalk.create({
         owner_name: "Cliente SOS Teste",
@@ -124,16 +144,21 @@ export default function AdminDebug() {
         dog_name: "SOS Dog",
         dog_size: "medium"
       });
-      toast.success(`✅ Emergência criada: ${walk.id}`);
-    } catch (e) { toast.error("Erro: " + e.message); }
-    finally { setLoading(false); }
+      setLastResult({ type: 'success', msg: `✅ Emergência criada! ID: ${walk.id}` });
+      toast.success('✅ Emergência criada!');
+    } catch (e) {
+      setLastResult({ type: 'error', msg: `❌ Erro: ${e.message}` });
+      toast.error("Erro: " + e.message);
+    }
+    finally { setLoadingBtn(null); }
   };
 
   // --- DELETE ACTIONS ---
 
   const clearTestData = async () => {
     if (!confirm("Apagar TODOS os dados de teste? (bookings e emergências com __DEBUG_TEST__)")) return;
-    setLoading(true);
+    setLoadingBtn('clear');
+    setLastResult(null);
     let deletedCount = 0;
     try {
       // Delete bookings where owner is current user OR walker is current user
@@ -158,16 +183,20 @@ export default function AdminDebug() {
         deletedCount++;
       }
 
+      setLastResult({ type: 'success', msg: `✅ ${deletedCount} registos apagados com sucesso.` });
       toast.success(`✅ ${deletedCount} registos de teste apagados`);
-    } catch (e) { toast.error("Erro ao apagar: " + e.message); }
-    finally { setLoading(false); }
+    } catch (e) {
+      setLastResult({ type: 'error', msg: `❌ Erro ao apagar: ${e.message}` });
+      toast.error("Erro ao apagar: " + e.message);
+    }
+    finally { setLoadingBtn(null); }
   };
 
   // --- REPAIR PROFILES ---
 
   const repairProProfiles = async () => {
     if (!confirm("Normalizar todos os perfis de WalkerProfile e TrainerProfile?")) return;
-    setLoading(true);
+    setLoadingBtn('repair');
     setRepairLog([]);
     const log = [];
 
@@ -232,7 +261,7 @@ export default function AdminDebug() {
       log.push(`❌ Erro: ${error.message}`);
       setRepairLog(log);
     } finally {
-      setLoading(false);
+      setLoadingBtn(null);
     }
   };
 
@@ -244,6 +273,17 @@ export default function AdminDebug() {
         <p className="text-sm text-gray-500">Utilizador: <strong>{currentUserEmail || "carregando..."}</strong></p>
       </div>
 
+      {/* Last Result Banner */}
+      {lastResult && (
+        <div className={`p-3 rounded-xl text-sm font-medium border ${
+          lastResult.type === 'success'
+            ? 'bg-green-50 border-green-200 text-green-800'
+            : 'bg-red-50 border-red-200 text-red-800'
+        }`}>
+          {lastResult.msg}
+        </div>
+      )}
+
       {/* Create Data */}
       <Card className="border-blue-200 bg-blue-50">
         <CardHeader>
@@ -251,21 +291,21 @@ export default function AdminDebug() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Button onClick={createPendingBooking} disabled={loading} className="w-full justify-start bg-white text-gray-800 border hover:bg-gray-50">
-              <User className="w-4 h-4 mr-2 text-blue-500" />
-              Criar Pedido Pendente
+            <Button onClick={createPendingBooking} disabled={anyLoading} className="w-full justify-start bg-white text-gray-800 border hover:bg-gray-50">
+              {isLoading('pending') ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <User className="w-4 h-4 mr-2 text-blue-500" />}
+              {isLoading('pending') ? 'A criar...' : 'Criar Pedido Pendente'}
             </Button>
-            <Button onClick={createActiveWalk} disabled={loading} className="w-full justify-start bg-white text-gray-800 border hover:bg-gray-50">
-              <Play className="w-4 h-4 mr-2 text-green-500" />
-              Criar Passeio Ativo (Cockpit)
+            <Button onClick={createActiveWalk} disabled={anyLoading} className="w-full justify-start bg-white text-gray-800 border hover:bg-gray-50">
+              {isLoading('active') ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2 text-green-500" />}
+              {isLoading('active') ? 'A criar...' : 'Criar Passeio Ativo (Cockpit)'}
             </Button>
-            <Button onClick={createCompletedWalk} disabled={loading} className="w-full justify-start bg-white text-gray-800 border hover:bg-gray-50">
-              <CheckSquare className="w-4 h-4 mr-2 text-purple-500" />
-              Criar Passeio Concluído (Carteira)
+            <Button onClick={createCompletedWalk} disabled={anyLoading} className="w-full justify-start bg-white text-gray-800 border hover:bg-gray-50">
+              {isLoading('completed') ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckSquare className="w-4 h-4 mr-2 text-purple-500" />}
+              {isLoading('completed') ? 'A criar...' : 'Criar Passeio Concluído (Carteira)'}
             </Button>
-            <Button onClick={createEmergency} disabled={loading} className="w-full justify-start bg-white text-gray-800 border hover:bg-gray-50">
-              <Zap className="w-4 h-4 mr-2 text-orange-500" />
-              Criar Emergência PawGo
+            <Button onClick={createEmergency} disabled={anyLoading} className="w-full justify-start bg-white text-gray-800 border hover:bg-gray-50">
+              {isLoading('emergency') ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2 text-orange-500" />}
+              {isLoading('emergency') ? 'A criar...' : 'Criar Emergência PawGo'}
             </Button>
           </div>
         </CardContent>
@@ -283,9 +323,9 @@ export default function AdminDebug() {
           <p className="text-sm text-red-600 mb-3">
             Apaga todos os bookings e emergências associados ao teu e-mail (<strong>{currentUserEmail}</strong>).
           </p>
-          <Button onClick={clearTestData} disabled={loading} variant="destructive" className="w-full">
-            <Trash className="w-4 h-4 mr-2" />
-            {loading ? "A apagar..." : "Apagar Todos os Meus Dados de Teste"}
+          <Button onClick={clearTestData} disabled={anyLoading} variant="destructive" className="w-full">
+            {isLoading('clear') ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash className="w-4 h-4 mr-2" />}
+            {isLoading('clear') ? 'A apagar...' : 'Apagar Todos os Meus Dados de Teste'}
           </Button>
         </CardContent>
       </Card>
@@ -302,9 +342,9 @@ export default function AdminDebug() {
           <p className="text-sm text-orange-700 mb-3">
             Normaliza arrays null/undefined em WalkerProfile e TrainerProfile para evitar erros de rendering.
           </p>
-          <Button onClick={repairProProfiles} disabled={loading} className="w-full bg-orange-600 hover:bg-orange-700 text-white">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            {loading ? "A reparar..." : "Normalizar Todos os Perfis"}
+          <Button onClick={repairProProfiles} disabled={anyLoading} className="w-full bg-orange-600 hover:bg-orange-700 text-white">
+            {isLoading('repair') ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+            {isLoading('repair') ? 'A reparar perfis...' : 'Normalizar Todos os Perfis'}
           </Button>
 
           {repairLog.length > 0 && (
