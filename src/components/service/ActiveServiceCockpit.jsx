@@ -34,9 +34,6 @@ import ChatInput from "@/components/chat/ChatInput";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { WalkScanner } from "@/components/booking/WalkScanner";
-import UniversalMap from "@/components/maps/UniversalMap";
-import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
-import { Marker, Source, Layer, Popup } from "@/components/ui/map-stubs";
 
 export default function ActiveServiceCockpit({ bookingId, user }) {
   const navigate = useNavigate();
@@ -617,137 +614,8 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
 
   return (
     <div className="h-[100dvh] md:h-screen relative overflow-hidden bg-gray-900">
-      {/* Layer 0: Background Map - Full Screen */}
-      <div className="absolute inset-0 z-0">
-        <SafeMapWrapper>
-          <UniversalMap 
-          center={mapCenter} 
-          zoom={16} 
-          showControls={true} 
-          controlsPosition="top-right"
-          show3DControls={false}
-          onMapClick={handleLocationCorrection}
-        >
-          {/* Pickup Location */}
-          {booking.pickup_lat && booking.pickup_lng && (
-            <Marker longitude={booking.pickup_lng} latitude={booking.pickup_lat}>
-              <div className="w-10 h-10 bg-green-600 rounded-full border-4 border-white shadow-xl flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
-              </div>
-            </Marker>
-          )}
-
-          {/* Current Position - Blue Dot with Pulsing Ring */}
-          {currentPosition && (
-            <Marker longitude={currentPosition.lng} latitude={currentPosition.lat}>
-                <div className="relative flex items-center justify-center">
-                  {/* Pulsing outer ring */}
-                  <div className="absolute w-16 h-16 bg-blue-500 rounded-full opacity-20 animate-ping" />
-                  {/* Accuracy ring */}
-                  <div className="absolute w-12 h-12 bg-blue-400 rounded-full opacity-30" />
-                  {/* Main blue dot */}
-                  <div className="relative w-8 h-8 bg-blue-600 rounded-full border-4 border-white shadow-2xl flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                  </div>
-                  {/* Accuracy label */}
-                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-md whitespace-nowrap">
-                    ±{Math.round(currentPosition.accuracy)}m
-                  </div>
-                  </div>
-                  </Marker>
-                  )}
-
-          {/* Route Polyline - Trajeto Completo */}
-          {booking.route_coordinates && booking.route_coordinates.length > 1 && (
-            <Source
-              id="route"
-              type="geojson"
-              data={{
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'LineString',
-                  coordinates: booking.route_coordinates.map(coord => [coord.lng, coord.lat])
-                }
-              }}
-            >
-              <Layer
-                id="route-line"
-                type="line"
-                paint={{
-                  'line-color': '#3b82f6',
-                  'line-width': 4,
-                  'line-opacity': 0.7
-                }}
-              />
-            </Source>
-          )}
-
-          {/* Event Markers - Interactive with Popups */}
-          {pathMarkers.map((marker, idx) => {
-            const eventLabels = {
-              '💩': 'Fez cocô',
-              '💧': 'Fez xixi',
-              '🐕': 'Socializou',
-              '💦': 'Bebeu água',
-              '🍖': 'Petisco',
-              '🏃': 'Correu/Brincou',
-              '😰': 'Cansado',
-              '😠': 'Irritado',
-              '🤢': 'Mal-estar',
-              '😴': 'Descansou',
-              '📷': 'Foto'
-            };
-
-            const eventColors = {
-              '💩': 'border-orange-400 bg-orange-50',
-              '💧': 'border-blue-400 bg-blue-50',
-              '🐕': 'border-pink-400 bg-pink-50',
-              '💦': 'border-cyan-400 bg-cyan-50',
-              '🍖': 'border-amber-400 bg-amber-50',
-              '🏃': 'border-green-400 bg-green-50',
-              '😰': 'border-yellow-400 bg-yellow-50',
-              '😠': 'border-red-400 bg-red-50',
-              '🤢': 'border-rose-400 bg-rose-50',
-              '😴': 'border-indigo-400 bg-indigo-50',
-              '📷': 'border-purple-400 bg-purple-50'
-            };
-
-            return (
-              <Marker key={idx} longitude={marker.lng} latitude={marker.lat}>
-                <div className={`w-7 h-7 md:w-9 md:h-9 rounded-full border-2 shadow-xl flex items-center justify-center text-base md:text-xl cursor-pointer hover:scale-125 transition-transform ${eventColors[marker.emoji] || 'bg-white border-gray-300'}`}>
-                  {marker.emoji}
-                </div>
-                <Popup offset={[0, -10]} closeButton={true}>
-                  <div className="space-y-3 min-w-[220px] p-3 bg-white">
-                    <div className="flex items-center gap-2">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
-                        <span className="text-3xl">{marker.emoji}</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-gray-900 text-sm leading-tight">{eventLabels[marker.emoji]}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          ⏰ {marker.timestamp ? format(new Date(marker.timestamp), 'HH:mm:ss', { locale: pt }) : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="bg-gray-100 px-3 py-2 rounded-lg text-xs text-gray-700 font-mono border border-gray-200">
-                      📍 {marker.lat.toFixed(5)}, {marker.lng.toFixed(5)}
-                    </div>
-                    <div className="bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
-                      <p className="text-xs font-semibold text-blue-700">ℹ️ Evento registado</p>
-                      <p className="text-xs text-blue-600 mt-0.5">Durante o passeio ativo</p>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          })}
-
-
-          </UniversalMap>
-          </SafeMapWrapper>
-          </div>
+      {/* Layer 0: Background - Gray placeholder */}
+      <div className="absolute inset-0 z-0 bg-gray-800"></div>
 
       {/* Layer 1: Compact Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-10 pt-safe px-2 md:px-3 pb-2" style={{ paddingTop: 'max(8px, env(safe-area-inset-top))' }}>
