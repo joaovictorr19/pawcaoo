@@ -28,10 +28,10 @@ const Map = React.forwardRef(
 
 Map.displayName = 'Map';
 
-// Stub components for compatibility
-const MapRoute = () => null;
-const MapControls = () => null;
-const MapMarker = () => null;
-const MarkerContent = () => null;
+const MapMarker = Marker;
 
-export { Map, Marker, Source, Layer, MapRoute, MapControls, MapMarker, MarkerContent };
+const MarkerContent = ({ children, className }) => (
+  <div className={className}>{children}</div>
+);
+
+export { Map, Marker, Source, Layer, MapMarker, MarkerContent };
