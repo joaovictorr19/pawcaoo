@@ -50,14 +50,14 @@ export default function AdminUserTable({
     setIsDrawerOpen(true);
   };
 
-  // Conta rápida para os badges
+  // Conta rápida para os badges — baseada em WalkerProfile real
   const stats = useMemo(() => {
     return {
-      pending: users.filter(u => u.professional_profile?.verification_status === 'pending').length,
-      active: users.filter(u => u.professional_profile?.verification_status === 'verified').length,
-      reports: 0 // Placeholder para denúncias
+      pending: walkers.filter(w => w.verification_status === 'pending' || w.verification_status === 'requires_documents').length,
+      active: walkers.filter(w => w.verification_status === 'verified' && w.is_active).length,
+      reports: 0
     };
-  }, [users]);
+  }, [walkers]);
 
   // Lógica de Filtragem (Extraída do Dashboard) - OTIMIZADA
   const filteredUsers = useMemo(() => {
