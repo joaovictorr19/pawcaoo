@@ -28,31 +28,8 @@ const Map = React.forwardRef(
 
 Map.displayName = 'Map';
 
-const MapRoute = ({ coordinates, ...props }) => {
-  if (!coordinates?.length) return null;
-  return (
-    <Source {...props} type="geojson" data={{
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: coordinates.map(c => [c.lng, c.lat])
-      }
-    }}>
-      <Layer type="line" paint={{ 'line-color': '#3b82f6', 'line-width': 2 }} />
-    </Source>
-  );
-};
+// Stub components for compatibility
+const MapRoute = () => null;
+const MapControls = () => null;
 
-const MapControls = ({ children }) => {
-  return <div className="absolute top-4 right-4 space-y-2">{children}</div>;
-};
-
-const MapMarker = ({ lat, lng, children, ...props }) => {
-  return <Marker longitude={lng} latitude={lat} {...props}>{children}</Marker>;
-};
-
-const MarkerContent = ({ children }) => {
-  return <div className="bg-white rounded-lg shadow-lg p-2">{children}</div>;
-};
-
-export { Map, Marker, Source, Layer, MapRoute, MapControls, MapMarker, MarkerContent };
+export { Map, Marker, Source, Layer, MapRoute, MapControls };
