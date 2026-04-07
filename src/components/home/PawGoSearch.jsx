@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Zap, MapPin, Loader2 } from "lucide-react";
+import { Zap, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function PawGoSearch() {
-  const [isSearching, setIsSearching] = useState(false);
   const [onlineCount, setOnlineCount] = useState(0);
+  const navigate = useNavigate();
 
   // Efeito para contar quantos profissionais estão online
   useEffect(() => {
@@ -25,13 +27,7 @@ export default function PawGoSearch() {
   return (
     <div className="px-6 py-8">
       <div className="bg-slate-900 rounded-[3rem] p-8 relative overflow-hidden shadow-2xl shadow-orange-500/20">
-        {/* Efeito de Radar ao fundo */}
-        {isSearching && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-40 h-40 bg-orange-500/20 rounded-full animate-ping" />
-            <div className="absolute w-60 h-60 bg-orange-500/10 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
-          </div>
-        )}
+        {/* Efeito de Radar ao fundo - removido */}
 
         <div className="relative z-10 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full mb-6">
@@ -52,22 +48,10 @@ export default function PawGoSearch() {
           </p>
 
           <button 
-            onClick={() => setIsSearching(!isSearching)}
-            className={`w-full h-16 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${
-              isSearching 
-              ? 'bg-white text-slate-900' 
-              : 'bg-orange-500 text-white shadow-[0_10px_20px_rgba(249,115,22,0.3)]'
-            }`}
+            onClick={() => navigate(createPageUrl('PostEmergency'))}
+            className="w-full h-16 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all bg-orange-500 text-white shadow-[0_10px_20px_rgba(249,115,22,0.3)] active:scale-95"
           >
-            {isSearching ? (
-              <>
-                <Loader2 className="animate-spin" size={20} /> Procurando...
-              </>
-            ) : (
-              <>
-                <Zap size={20} fill="currentColor" /> Chamar PawGo
-              </>
-            )}
+            <Zap size={20} fill="currentColor" /> Chamar PawGo
           </button>
         </div>
       </div>
