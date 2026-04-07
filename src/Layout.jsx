@@ -481,7 +481,8 @@ function LayoutContent({ children, currentPageName }) {
             gamification_level: authUser.gamification_level || 1,
             followers_count: 0,
             following_count: 0,
-            is_verified: authUser.is_verified || false
+            is_verified: authUser.is_verified || false,
+            owned_dogs: []
           });
         } else {
           // 3. SYNC: UserProfile -> Auth User (XP if different)

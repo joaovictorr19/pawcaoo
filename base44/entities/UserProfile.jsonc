@@ -1,0 +1,186 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do utilizador (chave de liga\u00e7\u00e3o)"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID do utilizador"
+    },
+    "username": {
+      "type": "string",
+      "description": "Nome de utilizador \u00fanico e customizado (@username)"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Nome completo"
+    },
+    "profile_photo_url": {
+      "type": "string",
+      "description": "URL da foto de perfil"
+    },
+    "cover_photo_url": {
+      "type": "string",
+      "description": "URL da foto de capa"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Biografia curta"
+    },
+    "city": {
+      "type": "string",
+      "description": "Cidade"
+    },
+    "role": {
+      "type": "string",
+      "description": "Role do utilizador (user, admin, walker)"
+    },
+    "social_role": {
+      "type": "string",
+      "description": "Role social (user, moderator, admin)",
+      "default": "user"
+    },
+    "gamification_xp": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de XP acumulado"
+    },
+    "gamification_level": {
+      "type": "number",
+      "default": 1,
+      "description": "N\u00edvel atual"
+    },
+    "daily_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Sequ\u00eancia de dias consecutivos de atividade"
+    },
+    "last_activity_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da \u00faltima atividade para c\u00e1lculo de streak"
+    },
+    "followers_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de seguidores"
+    },
+    "following_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Total seguindo"
+    },
+    "badges_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de emblemas"
+    },
+    "pinned_badge_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs dos emblemas fixados no perfil"
+    },
+    "highlighted_emblem_id": {
+      "type": "string",
+      "description": "ID do emblema principal destacado (prioridade no slot 0)"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Selo de verifica\u00e7\u00e3o azul (apenas admins podem ativar)"
+    },
+    "is_adoption_advocate": {
+      "type": "boolean",
+      "default": false,
+      "description": "Defensor de Ado\u00e7\u00e3o"
+    },
+    "profile_stats": {
+      "type": "object",
+      "description": "Estat\u00edsticas agregadas (posts, likes, etc)"
+    },
+    "push_subscription": {
+      "type": "object",
+      "description": "Subscription do Web Push API para notifica\u00e7\u00f5es (iOS/Android/Desktop)"
+    },
+    "owned_dogs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dog_id": {
+            "type": "string",
+            "description": "ID \u00fanico do c\u00e3o"
+          },
+          "dog_name": {
+            "type": "string",
+            "description": "Nome do c\u00e3o"
+          },
+          "dog_breed": {
+            "type": "string",
+            "description": "Ra\u00e7a do c\u00e3o"
+          },
+          "dog_size": {
+            "type": "string",
+            "enum": [
+              "small",
+              "medium",
+              "large",
+              "extra_large"
+            ],
+            "description": "Tamanho do c\u00e3o"
+          },
+          "dog_age": {
+            "type": "number",
+            "description": "Idade do c\u00e3o em anos"
+          },
+          "photo_url": {
+            "type": "string",
+            "description": "Foto do c\u00e3o"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Informa\u00e7\u00f5es adicionais sobre o c\u00e3o"
+          },
+          "special_needs": {
+            "type": "string",
+            "description": "Necessidades especiais (m\u00e9dicas, comportamentais)"
+          }
+        }
+      },
+      "default": [],
+      "description": "Lista de c\u00e3es registados pelo propriet\u00e1rio para PawGo"
+    }
+  },
+  "required": [
+    "user_email",
+    "full_name"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_email": "{{user.email}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
