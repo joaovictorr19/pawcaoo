@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import UniversalMap from "@/components/maps/UniversalMap";
 import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
-import { Marker, MapRoute, MapControls } from "@/components/ui/map";
+import { Marker, Source, Layer } from "@/components/ui/map";
 import { Popup } from 'react-map-gl/maplibre';
 import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
@@ -659,12 +659,28 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
 
           {/* Route Polyline - Trajeto Completo */}
           {booking.route_coordinates && booking.route_coordinates.length > 1 && (
-            <MapRoute 
-              coordinates={booking.route_coordinates.map(coord => [coord.lng, coord.lat])} 
-              color="#3b82f6" 
-              width={4} 
-              opacity={0.7}
-            />
+            <Source
+              id="route"
+              type="geojson"
+              data={{
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'LineString',
+                  coordinates: booking.route_coordinates.map(coord => [coord.lng, coord.lat])
+                }
+              }}
+            >
+              <Layer
+                id="route-line"
+                type="line"
+                paint={{
+                  'line-color': '#3b82f6',
+                  'line-width': 4,
+                  'line-opacity': 0.7
+                }}
+              />
+            </Source>
           )}
 
           {/* Event Markers - Interactive with Popups */}
@@ -728,8 +744,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             );
           })}
 
-          {/* Map Controls */}
-          <MapControls />
+
           </UniversalMap>
           </SafeMapWrapper>
           </div>
