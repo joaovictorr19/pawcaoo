@@ -15,6 +15,7 @@ import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import ProfileActions from "../components/profile/ProfileActions";
+import ProfessionalBookingModal from "../components/professional/ProfessionalBookingModal";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -261,6 +262,7 @@ export default function UserProfile() {
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
   const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
+  const [bookingModal, setBookingModal] = useState({ isOpen: false, selectedDate: null });
 
   const { data: reviews = [], isLoading: loadingReviews } = useQuery({
     queryKey: ['professionalReviews', profileEmail],
@@ -474,8 +476,35 @@ export default function UserProfile() {
             </div>
           )}
 
-          {/* FOLGAS */}
-          {(walkerProfile || trainerProfile) && daysOff.length > 0 && (
+          {/* DIAS DISPONÍVEIS PARA AGENDAMENTO */}
+          {(walkerProfile || trainerProfile) && !isOwnProfile && daysOff.length > 0 && (
+            <div>
+              <h3 className="text-sm font-black uppercase italic mb-3 text-slate-900 tracking-widest flex items-center gap-2">
+                <span className="text-green-500">📅</span> Dias Disponíveis
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {daysOff.map(a => {
+                  const d = a.date?.includes('T') ? a.date.split('T')[0] : a.date;
+                  const dateObj = new Date(d + 'T12:00:00');
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => setBookingModal({ isOpen: true, selectedDate: d })}
+                      className="px-4 py-2 bg-green-50 border-2 border-green-300 hover:bg-green-100 hover:border-green-500 rounded-2xl flex items-center gap-2 transition-all active:scale-95"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                      <span className="text-xs font-bold text-green-700">
+                        {dateObj.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* FOLGAS (SÓ PARA O PRÓPRIO PROFISSIONAL) */}
+          {(walkerProfile || trainerProfile) && isOwnProfile && daysOff.length > 0 && (
             <div>
               <h3 className="text-sm font-black uppercase italic mb-3 text-slate-900 tracking-widest flex items-center gap-2">
                 <span className="text-red-500">🛌</span> Próximas Folgas
@@ -557,6 +586,13 @@ export default function UserProfile() {
         isOpen={isAnimalModalOpen}
         onClose={() => setIsAnimalModalOpen(false)}
         userEmail={profileEmail}
+      />
+      <ProfessionalBookingModal
+        isOpen={bookingModal.isOpen}
+        onClose={() => setBookingModal({ isOpen: false, selectedDate: null })}
+        walkerProfile={walkerProfile || trainerProfile}
+        selectedDate={bookingModal.selectedDate}
+        currentUser={currentUser}
       />
     </div>
   );
