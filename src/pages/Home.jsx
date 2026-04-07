@@ -14,7 +14,6 @@ const AdvancedTrainerFilters = React.lazy(() => import("../components/search/Adv
 
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
-import { WalkerSearchMap } from "../components/pawcao/WalkerSearchMap";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
@@ -1016,17 +1015,8 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {viewMode === "map" ? (
-                    <div className="mb-6 h-[600px] w-full rounded-xl overflow-hidden shadow-lg border border-gray-200">
-                      <WalkerSearchMap
-                        walkers={filteredProfessionals}
-                        userLocation={userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : null}
-                        onWalkerClick={(walker) => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
-                      />
-                    </div>
-                  ) : ( 
-                    <>
-                      {loadingWalkers ? (
+                  <>
+                    {loadingWalkers ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                           {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                             <div key={`skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
