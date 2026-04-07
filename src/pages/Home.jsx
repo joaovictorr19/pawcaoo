@@ -665,7 +665,7 @@ export default function Home() {
                                     {badge.image_png_file || badge.image_url ? (
                                       <img src={badge.image_png_file || badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
                                     ) : (
-                                      <div className="w-full h-full bg-slate-600"></div>
+                                      <span className="text-xl">{badge.icon || '🏅'}</span>
                                     )}
                                   </div>
                                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-2 bg-gray-900 text-white rounded-lg shadow-xl border border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] min-w-[140px] max-w-[200px] pointer-events-none">
