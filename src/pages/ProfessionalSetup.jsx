@@ -125,7 +125,7 @@ export default function ProfessionalSetup() {
      }
 
      // Criar WalkerProfile
-     const profileData = {
+      const profileData = {
        walker_name: form.walker_name || user.full_name,
        location: form.location,
        latitude: lat,
@@ -139,9 +139,10 @@ export default function ProfessionalSetup() {
        accepted_animals: form.accepted_animals,
        dog_sizes: form.dog_sizes,
        availability: form.availability,
-       is_active: true,
+       is_active: false,
        is_online: false,
-       verification_status: "requires_documents",
+       is_verified: false,
+       verification_status: "pending",
        instant_booking: form.instant_booking,
        service_areas: [{
          area_name: form.location,
@@ -150,7 +151,8 @@ export default function ProfessionalSetup() {
          longitude: lng,
        }],
        user_id: user.id,
-     };
+       is_verified_trainer: form.professional_type === 'trainer' || form.professional_type === 'both',
+      };
 
       // Verificar se já existe
       const existing = await base44.entities.WalkerProfile.filter({ created_by: user.email });
@@ -159,6 +161,30 @@ export default function ProfessionalSetup() {
         profile = await base44.entities.WalkerProfile.update(existing[0].id, profileData);
       } else {
         profile = await base44.entities.WalkerProfile.create(profileData);
+      }
+
+      // Se for trainer ou both, criar/atualizar TrainerProfile também
+      if (form.professional_type === 'trainer' || form.professional_type === 'both') {
+        const existingTrainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+        const trainerData = {
+          trainer_name: form.walker_name || user.full_name,
+          location: form.location,
+          hourly_rate: parseFloat(form.hourly_rate) || 15,
+          bio: form.bio,
+          photo_url: form.photo_url || user.profile_photo_url || "",
+          phone: form.whatsapp_number || "",
+          availability: form.availability,
+          accepted_animals: form.accepted_animals,
+          is_active: false,
+          is_verified: false,
+          verification_status: "pending",
+          user_id: user.id,
+        };
+        if (existingTrainers.length > 0) {
+          await base44.entities.TrainerProfile.update(existingTrainers[0].id, trainerData);
+        } else {
+          await base44.entities.TrainerProfile.create(trainerData);
+        }
       }
 
       // Atualizar User Auth
@@ -179,9 +205,24 @@ export default function ProfessionalSetup() {
         });
       }
 
+      // Notificação ao admin
+      try {
+        const admins = await base44.entities.User.filter({ role: 'admin' });
+        for (const admin of admins) {
+          await base44.entities.Notification.create({
+            recipient_email: admin.email,
+            title: '🆕 Novo Profissional Pendente',
+            message: `${form.walker_name || user.full_name} (${form.professional_type}) submeteu candidatura e aguarda aprovação.`,
+            type: 'system',
+            icon: '🐾',
+            link: '/AdminProfessionalApprovals',
+          });
+        }
+      } catch (_) {}
+
       queryClient.invalidateQueries(['currentUser']);
       queryClient.invalidateQueries(['myProfessionalProfile']);
-      toast.success("Perfil criado com sucesso! 🎉");
+      toast.success("Perfil submetido para aprovação! Aguarda verificação da equipa PawCão. 🎉");
       navigate(createPageUrl("ProfessionalHubV2"));
     } catch (e) {
       console.error(e);
