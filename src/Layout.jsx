@@ -827,10 +827,10 @@ function LayoutContent({ children, currentPageName }) {
           boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)',
         }}
       >
-        <div className="flex items-center justify-center h-12 gap-2 relative">
+        <div className="flex items-center justify-between h-12 gap-2">
           {/* Menu Trigger - Left Side */}
-          {authUser && (
-            <div className="absolute left-0">
+          {authUser ? (
+            <div className="flex-shrink-0">
               <SidebarTrigger 
                 className="h-9 w-9 p-2 rounded-xl transition-all active:scale-95"
                 style={{
@@ -840,6 +840,8 @@ function LayoutContent({ children, currentPageName }) {
                 aria-label="Menu" 
               />
             </div>
+          ) : (
+            <div className="flex-shrink-0 w-9" />
           )}
 
           {/* Centered Logo */}
@@ -852,7 +854,7 @@ function LayoutContent({ children, currentPageName }) {
           </Link>
 
           {/* Direita - Pesquisa, Login/Notificações */}
-          <div className="absolute right-0 flex items-center gap-1 justify-end">
+          <div className="flex items-center gap-1 justify-end flex-shrink-0">
             <Button
               variant="ghost"
               size="icon"
