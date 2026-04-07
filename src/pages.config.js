@@ -59,8 +59,8 @@ export const PAGES = {
     "AIMatches": page(() => import('./pages/AIMatches')),
     "AboutUs": page(() => import('./pages/AboutUs')),
     "AccountSettings": page(() => import('./pages/AccountSettings')),
-    "ActiveRide": page(() => import('./pages/ActiveRide')),
-    "ActiveWalkDashboard": page(() => import('./pages/ActiveWalkDashboard')),
+
+
     "AdminDashboard": page(() => import('./pages/AdminDashboard')),
     "AdminDebug": page(() => import('./pages/AdminDebug')),
     "AdminFinanceDashboard": page(() => import('./pages/AdminFinanceDashboard')),
@@ -96,7 +96,7 @@ export const PAGES = {
     "Home": page(() => import('./pages/Home')),
     "Landing": page(() => import('./pages/Landing')),
 
-    "LiveWalkTracking": page(() => import('./pages/LiveWalkTracking')),
+
     "LoyaltyRewards": page(() => import('./pages/LoyaltyRewards')),
 
     "ManageAvailability": page(() => import('./pages/ManageAvailability')),
@@ -122,7 +122,7 @@ export const PAGES = {
     "Partners": page(() => import('./pages/Partners')),
     "PaymentMethods": page(() => import('./pages/PaymentMethods')),
     "PaymentSetup": page(() => import('./pages/PaymentSetup')),
-    "PostEmergency": page(() => import('./pages/PostEmergency')),
+
     "PrivacyPolicy": page(() => import('./pages/PrivacyPolicy')),
     "RegisterCompany": page(() => import('./pages/RegisterCompany')),
     "RequestWalk": page(() => import('./pages/RequestWalk')),
@@ -147,7 +147,7 @@ export const PAGES = {
 
     "WalkHistory": page(() => import('./pages/WalkHistory')),
     "WalkerDetails": page(() => import('./pages/WalkerDetails')),
-    "WalkerTrack": page(() => import('./pages/WalkerTrack')),
+
     "WalkerWallet": page(() => import('./pages/WalkerWallet')),
 }
 
