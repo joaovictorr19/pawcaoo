@@ -1,6 +1,5 @@
 import React from 'react';
-import { Award, Zap } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Award } from 'lucide-react';
 
 const RARITY_GLOW = {
   legendary: 'ring-2 ring-yellow-400/60 shadow-yellow-200',
@@ -24,62 +23,40 @@ export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, s
   const imageUrl = badge.image_png_file || badge.image_url;
 
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className={`relative ${sizeClass} rounded-2xl flex items-center justify-center shadow-md overflow-hidden group cursor-default ${RARITY_GLOW[rarity]} ${RARITY_BG[rarity]}`}>
+    <div className={`relative ${sizeClass} rounded-2xl flex items-center justify-center shadow-md overflow-hidden group cursor-default ${RARITY_GLOW[rarity]} ${RARITY_BG[rarity]}`}>
 
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt={badge.name}
-                className={`${imgClass} object-contain drop-shadow-lg z-10 p-1`}
-                loading="lazy"
-                decoding="async"
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            ) : badge.icon ? (
-              <span className="text-4xl z-10 drop-shadow-md leading-none">{badge.icon}</span>
-            ) : (
-              <Award className="text-slate-400 opacity-40 z-10" size={size === 'sm' ? 16 : size === 'lg' ? 32 : 24} />
-            )}
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={badge.name}
+          className={`${imgClass} object-contain drop-shadow-lg z-10 p-1`}
+          loading="lazy"
+          decoding="async"
+          onError={(e) => { e.target.style.display = 'none'; }}
+        />
+      ) : badge.icon ? (
+        <span className="text-4xl z-10 drop-shadow-md leading-none">{badge.icon}</span>
+      ) : (
+        <Award className="text-slate-400 opacity-40 z-10" size={size === 'sm' ? 16 : size === 'lg' ? 32 : 24} />
+      )}
 
-            {/* Shine */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
+      {/* Shine */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
 
-            {/* Pin button */}
-            {isOwner && isEarned && onPin && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onPin(); }}
-                className={`absolute -top-1 -right-1 p-1 rounded-full transition-all z-20 ${
-                  isPinned
-                    ? 'bg-yellow-400 text-white scale-110 shadow-md'
-                    : 'bg-gray-300 text-gray-500 opacity-0 group-hover:opacity-100'
-                }`}
-                title={isPinned ? "Desafixar" : "Fixar"}
-              >
-                <span className="text-[10px] font-black">📌</span>
-              </button>
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="bg-gray-900 text-white border-gray-700 shadow-2xl max-w-xs opacity-100" style={{opacity: 1}}>
-          <div className="space-y-1.5">
-            <p className="font-bold text-sm leading-tight">{badge.name}</p>
-            {badge.description && (
-              <p className="text-xs text-gray-200 leading-relaxed break-words">{badge.description}</p>
-            )}
-            {badge.xp > 0 && (
-              <p className="flex items-center gap-1.5 text-xs text-amber-300 font-bold pt-1">
-                <Zap size={12} className="flex-shrink-0" /> +{badge.xp} XP
-              </p>
-            )}
-            {rarity !== 'common' && (
-              <p className="text-[10px] text-gray-400 capitalize pt-0.5">⭐ {rarity}</p>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+      {/* Pin button */}
+      {isOwner && isEarned && onPin && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onPin(); }}
+          className={`absolute -top-1 -right-1 p-1 rounded-full transition-all z-20 ${
+            isPinned
+              ? 'bg-yellow-400 text-white scale-110 shadow-md'
+              : 'bg-gray-300 text-gray-500 opacity-0 group-hover:opacity-100'
+          }`}
+          title={isPinned ? "Desafixar" : "Fixar"}
+        >
+          <span className="text-[10px] font-black">📌</span>
+        </button>
+      )}
+    </div>
   );
 }
