@@ -8,7 +8,6 @@ import { Calendar, MapPin, Clock, Star, Image as ImageIcon, Map } from "lucide-r
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import WalkRouteMap from "../components/walk/WalkRouteMap";
 
 export default function WalkHistory() {
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -220,14 +219,7 @@ export default function WalkHistory() {
                           <ImageIcon className="w-4 h-4 mr-2" />
                           View Photos
                         </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => { setSelectedBooking(booking); setModalMode('route'); }}
-                          className="flex-1"
-                        >
-                          <Map className="w-4 h-4 mr-2" />
-                          View Route
-                        </Button>
+
                       </div>
                     </CardContent>
                   </Card>
@@ -279,9 +271,7 @@ export default function WalkHistory() {
                       </div>
                     ))}
                   </>
-                ) : (
-                  <WalkRouteMap booking={selectedBooking} checkpoints={checkpoints} />
-                )}
+                ) : null}
                 <Button onClick={() => setSelectedBooking(null)} className="w-full">
                   Fechar
                 </Button>
