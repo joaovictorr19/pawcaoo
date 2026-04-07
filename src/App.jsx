@@ -3,10 +3,10 @@ import React, { Suspense, lazy } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { AnimatePresence, motion } from 'framer-motion'
 const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2'))
-const PawGoWaiting = lazy(() => import('./pages/PawGoWaiting'))
+
 const ProfessionalSetup = lazy(() => import('./pages/ProfessionalSetup'))
 const DebugWalkTest = lazy(() => import('./pages/DebugWalkTest'))
-const DebugPawGo = lazy(() => import('./pages/DebugPawGo'))
+
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
@@ -69,10 +69,10 @@ const AuthenticatedApp = () => {
               <Route key={path} path={`/${path}`} element={<Page />} />
             ))}
             <Route path="/ProfessionalHubV2" element={<Suspense fallback={<PageLoader />}><ProfessionalHubV2 /></Suspense>} />
-            <Route path="/PawGoWaiting" element={<Suspense fallback={<PageLoader />}><PawGoWaiting /></Suspense>} />
+
             <Route path="/ProfessionalSetup" element={<Suspense fallback={<PageLoader />}><ProfessionalSetup /></Suspense>} />
             <Route path="/DebugWalkTest" element={<Suspense fallback={<PageLoader />}><DebugWalkTest /></Suspense>} />
-            <Route path="/DebugPawGo" element={<Suspense fallback={<PageLoader />}><DebugPawGo /></Suspense>} />
+
             <Route path="*" element={<PageNotFound />} />
             </Routes>
         </Suspense>

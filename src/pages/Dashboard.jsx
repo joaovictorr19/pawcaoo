@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import ProfessionalHubV2 from './ProfessionalHubV2';
-import PostEmergency from './PostEmergency';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ModeTransitionOverlay } from '@/components/ui/ModeTransitionOverlay';
 
@@ -99,27 +98,7 @@ export default function Dashboard() {
         {isTransitioning && <ModeTransitionOverlay targetMode={targetMode} />}
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
-        {currentMode === 'professional' ? (
-          <motion.div 
-            key="professional"
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-          >
-            <ProfessionalHubV2 /> 
-          </motion.div>
-        ) : (
-          <motion.div 
-            key="client"
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-          >
-            <PostEmergency /> 
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+      <ProfessionalHubV2 />
+      </div>
+      );
+      }

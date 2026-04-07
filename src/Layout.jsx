@@ -41,7 +41,7 @@ import MobileNavBar from "@/components/layout/MobileNavBar";
 import SidebarNav from "@/components/layout/SidebarNav";
 import { lazy, Suspense } from "react";
 
-import PawGoFab from "@/components/ui/PawGoFab";
+
 import NotificationArea from "@/components/notifications/NotificationArea";
 import PullToRefresh from "@/components/ui/PullToRefresh";
 import BadgeNotification from "@/components/gamification/BadgeNotification";
@@ -1007,7 +1007,7 @@ export default function Layout({ children, currentPageName }) {
           </ThemeProvider>
         </LocalizationProvider>
       </LanguageProvider>
-      <PawGoFab />
+
     </HelmetProvider>
   );
 }
