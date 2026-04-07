@@ -25,8 +25,8 @@ export default function AdminDebug() {
     setLoading(true);
     try {
       const booking = await base44.entities.Booking.create({
-        owner_email: currentUserEmail,
-        owner_name: "Admin Tester",
+        owner_email: "cliente-teste@debug.com",
+        owner_name: "Cliente Fictício",
         dog_name: "Rex Teste",
         dog_size: "medium",
         walk_date: new Date().toISOString().split('T')[0],
@@ -53,8 +53,8 @@ export default function AdminDebug() {
     setLoading(true);
     try {
       const booking = await base44.entities.Booking.create({
-        owner_email: currentUserEmail,
-        owner_name: "Admin Tester",
+        owner_email: "cliente-teste@debug.com",
+        owner_name: "Cliente Fictício",
         dog_name: "Max Ativo",
         dog_size: "large",
         walk_date: new Date().toISOString().split('T')[0],
@@ -70,7 +70,7 @@ export default function AdminDebug() {
         pickup_lng: -9.1530,
         type: "walk",
         walker_email: currentUserEmail,
-        walker_name: "Admin Walker",
+        walker_name: "Passeador Teste",
         special_notes: "__DEBUG_TEST__"
       });
       toast.success(`✅ Passeio Ativo criado: ${booking.id}`);
@@ -111,9 +111,9 @@ export default function AdminDebug() {
     setLoading(true);
     try {
       const walk = await base44.entities.EmergencyWalk.create({
-        owner_name: "Admin SOS",
+        owner_name: "Cliente SOS Teste",
         owner_phone: "999999999",
-        owner_email: currentUserEmail,
+        owner_email: "sos-teste@debug.com",
         location: "Rossio, Lisboa",
         needed_time: "AGORA",
         duration_hours: 1,
