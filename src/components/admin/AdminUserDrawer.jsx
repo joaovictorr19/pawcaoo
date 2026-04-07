@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2, Gift, Wallet } from "lucide-react";
+import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2, Gift, Wallet, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -83,7 +83,7 @@ export function AdminBadgeManager({ user, onUpdate }) {
   );
 }
 
-export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpdate }) {
+export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpdate, onDelete }) {
   const [isGifting, setIsGifting] = useState(false);
 
   const handleGiftFreeWalk = async () => {
@@ -248,6 +248,20 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
               >
                 <Ban size={18} /> Banir Utilizador
               </button>
+
+              {onDelete && (
+                <button 
+                  onClick={() => {
+                    if (confirm(`Tem a certeza que quer eliminar a conta de ${user.full_name || user.email}? Esta ação é irreversível.`)) {
+                      onDelete(user);
+                      onClose();
+                    }
+                  }}
+                  className="w-full h-14 bg-red-600 hover:bg-red-700 transition-colors rounded-2xl flex items-center px-6 gap-4 text-white font-bold text-sm"
+                >
+                  <Trash2 size={18} /> Eliminar Conta
+                </button>
+              )}
             </div>
 
             <div className="mt-8 pb-4 text-center">

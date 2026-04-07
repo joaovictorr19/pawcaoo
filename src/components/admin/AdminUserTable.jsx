@@ -446,6 +446,7 @@ export default function AdminUserTable({
         onClose={() => setIsDrawerOpen(false)}
         onApprove={onApproveUser}
         onBan={onRejectUser}
+        onDelete={onDelete}
         onUpdate={async (userId, data) => {
           await onUpdateUser(userId, data);
           // Update selected user state locally to reflect changes immediately
