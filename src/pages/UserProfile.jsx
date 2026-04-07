@@ -5,14 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, ArrowLeft, Shield, User, Award, Star } from "lucide-react";
+import { MapPin, ArrowLeft, Shield, User, Award, Star, Edit } from "lucide-react";
 import ReviewCard from "../components/reviews/ReviewCard";
+import { toast } from "sonner";
 import { useLanguage } from "@/components/LanguageContext";
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
 import BadgeItem from "@/components/gamification/BadgeItem";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { toast } from "sonner";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import ProfileActions from "../components/profile/ProfileActions";
 import ProfessionalBookingModal from "../components/professional/ProfessionalBookingModal";
@@ -310,6 +310,15 @@ export default function UserProfile() {
     } catch (error) { toast.error(`Erro ao abrir chat: ${error?.message}`); }
   };
 
+    // CRITICAL: Check on mount if professional trying to edit own profile
+  React.useEffect(() => {
+    if (isOwnProfile && (walkerProfile || trainerProfile)) {
+      toast.info('Profissionais editam em Painel Profissional');
+      const timer = setTimeout(() => navigate(createPageUrl('ProfessionalHubV2')), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOwnProfile, walkerProfile, trainerProfile, navigate]);
+
   const updatePinnedBadgesMutation = useMutation({
     mutationFn: async ({ slotIndex, badgeId }) => {
       if (!profileUser?.id || profileUser.is_virtual_profile) throw new Error("Virtual profile");
@@ -364,6 +373,19 @@ export default function UserProfile() {
     );
   }
 
+  // RESTRICTION: Professionals cannot edit in UserProfile - redirect to ProfessionalHubV2
+  if (isOwnProfile && (walkerProfile || trainerProfile)) {
+    React.useEffect(() => {
+      toast.info('Profissionais editam em Painel Profissional');
+      navigate(createPageUrl('ProfessionalHubV2'));
+    }, []);
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
+      </div>
+    );
+  }
+
   if (!profileUser) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -388,7 +410,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
+    <div className="min-h-screen bg-slate-50 pb-32 pt-2">
       {/* CAPA */}
       <div className="relative h-64 md:h-80 w-full overflow-hidden">
         <img
@@ -425,6 +447,15 @@ export default function UserProfile() {
           </div>
           <h1 className="text-3xl font-black text-slate-900 mt-6 text-center">{displayName}</h1>
           {displayCity && <p className="text-slate-500 flex items-center gap-1 mt-2"><MapPin size={14} /> {displayCity}</p>}
+          {/* EDIT BUTTON - Only for customers (non-professionals) */}
+          {isOwnProfile && !walkerProfile && !trainerProfile && (
+            <Button
+              onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
+              className="mt-4 bg-blue-600 hover:bg-blue-700"
+            >
+              Editar Perfil
+            </Button>
+          )}
         </div>
 
         {/* CONTEÚDO ÚNICO - SEM ABAS */}
