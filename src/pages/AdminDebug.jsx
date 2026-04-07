@@ -197,8 +197,9 @@ export default function AdminDebug() {
   const repairProProfiles = async () => {
     if (!confirm("Normalizar todos os perfis de WalkerProfile e TrainerProfile?")) return;
     setLoadingBtn('repair');
-    setRepairLog([]);
+
     const log = [];
+    setRepairLog([]);
 
     try {
       // Fix WalkerProfile: ensure arrays aren't null
@@ -265,7 +266,75 @@ export default function AdminDebug() {
     }
   };
 
+  const fixDuplicates = async () => {
+    if (!confirm("Detectar e remover perfis duplicados? Mantém o mais recente para cada email.")) return;
+    setLoadingBtn('dedup');
+    setLastResult(null);
+    const log = [];
+
+    try {
+      // --- WalkerProfile deduplication ---
+      const walkers = await base44.entities.WalkerProfile.list('-created_date', 500);
+      // Group by created_by (email)
+      const walkerMap = {};
+      for (const w of walkers) {
+        const key = w.created_by || w.walker_name || w.id;
+        if (!walkerMap[key]) walkerMap[key] = [];
+        walkerMap[key].push(w);
+      }
+      let walkerDeleted = 0;
+      for (const [email, profiles] of Object.entries(walkerMap)) {
+        if (profiles.length > 1) {
+          // Sort by updated_date desc, keep first (most recent)
+          profiles.sort((a, b) => new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date));
+          const toDelete = profiles.slice(1);
+          for (const p of toDelete) {
+            await base44.entities.WalkerProfile.delete(p.id);
+            walkerDeleted++;
+          }
+          log.push(`🐾 Walker [${email}]: ${profiles.length} encontrados → ${toDelete.length} duplicados removidos (mantido: ${profiles[0].id})`);
+        }
+      }
+      if (walkerDeleted === 0) log.push('✅ WalkerProfile: sem duplicados encontrados');
+
+      // --- TrainerProfile deduplication ---
+      const trainers = await base44.entities.TrainerProfile.list('-created_date', 500);
+      const trainerMap = {};
+      for (const t of trainers) {
+        const key = t.created_by || t.trainer_name || t.id;
+        if (!trainerMap[key]) trainerMap[key] = [];
+        trainerMap[key].push(t);
+      }
+      let trainerDeleted = 0;
+      for (const [email, profiles] of Object.entries(trainerMap)) {
+        if (profiles.length > 1) {
+          profiles.sort((a, b) => new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date));
+          const toDelete = profiles.slice(1);
+          for (const p of toDelete) {
+            await base44.entities.TrainerProfile.delete(p.id);
+            trainerDeleted++;
+          }
+          log.push(`🎓 Trainer [${email}]: ${profiles.length} encontrados → ${toDelete.length} duplicados removidos (mantido: ${profiles[0].id})`);
+        }
+      }
+      if (trainerDeleted === 0) log.push('✅ TrainerProfile: sem duplicados encontrados');
+
+      const total = walkerDeleted + trainerDeleted;
+      setRepairLog(log);
+      setLastResult({ type: 'success', msg: `✅ ${total} perfis duplicados removidos.` });
+      toast.success(`✅ ${total} duplicados removidos!`);
+    } catch (error) {
+      const msg = `❌ Erro: ${error.message}`;
+      setRepairLog([msg]);
+      setLastResult({ type: 'error', msg });
+      toast.error("Erro: " + error.message);
+    } finally {
+      setLoadingBtn(null);
+    }
+  };
+
   return (
+
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="mb-2">
@@ -342,10 +411,16 @@ export default function AdminDebug() {
           <p className="text-sm text-orange-700 mb-3">
             Normaliza arrays null/undefined em WalkerProfile e TrainerProfile para evitar erros de rendering.
           </p>
-          <Button onClick={repairProProfiles} disabled={anyLoading} className="w-full bg-orange-600 hover:bg-orange-700 text-white">
-            {isLoading('repair') ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-            {isLoading('repair') ? 'A reparar perfis...' : 'Normalizar Todos os Perfis'}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={repairProProfiles} disabled={anyLoading} className="flex-1 bg-orange-600 hover:bg-orange-700 text-white">
+              {isLoading('repair') ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+              {isLoading('repair') ? 'A reparar perfis...' : 'Normalizar Todos os Perfis'}
+            </Button>
+            <Button onClick={fixDuplicates} disabled={anyLoading} className="flex-1 bg-red-700 hover:bg-red-800 text-white">
+              {isLoading('dedup') ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash className="w-4 h-4 mr-2" />}
+              {isLoading('dedup') ? 'A remover duplicados...' : 'Remover Perfis Duplicados'}
+            </Button>
+          </div>
 
           {repairLog.length > 0 && (
             <div className="mt-4 space-y-1">
