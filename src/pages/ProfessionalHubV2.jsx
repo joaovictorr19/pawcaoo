@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Loader2, Trash2, LogOut } from "lucide-react";
+import { Bell, Loader2, Trash2, LogOut, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,7 @@ import { WalletSection } from "@/components/professional-hub/WalletSection";
 import { FinancesSection } from "@/components/professional-hub/FinancesSection";
 import { DayOffManager } from "@/components/professional-hub/DayOffManager";
 import ServiceOfferingsEditor from "@/components/professional-hub/ServiceOfferingsEditor";
+import ReviewsManagementSection from "@/components/professional-hub/ReviewsManagementSection";
 
 function ActiveRequestsList({ user }) {
   const { data: activeBookings = [] } = useQuery({
@@ -488,6 +489,18 @@ export default function ProfessionalHubV2() {
             </motion.div>
           )}
 
+          {activeTab === "reviews" && (
+            <motion.div 
+              key="reviews" 
+              initial={{ opacity: 0, x: 20 }} 
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ReviewsManagementSection professionalProfile={professionalProfile} user={user} />
+            </motion.div>
+          )}
+
           {activeTab === "wallet" && (
             <motion.div 
               key="wallet" 
@@ -523,7 +536,19 @@ export default function ProfessionalHubV2() {
               <ActiveRequestsList user={user} />
             </motion.div>
           )}
-          </AnimatePresence>
+
+          {activeTab === "reviews" && (
+            <motion.div 
+              key="reviews" 
+              initial={{ opacity: 0, x: 20 }} 
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ReviewsManagementSection professionalProfile={professionalProfile} user={user} />
+            </motion.div>
+          )}
+        </AnimatePresence>
           </main>
 
       <ProfessionalTabBar active={activeTab} onChange={setActiveTab} />
