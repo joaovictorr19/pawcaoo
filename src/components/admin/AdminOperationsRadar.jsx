@@ -1,11 +1,19 @@
 import React, { useMemo, useState } from 'react';
-import { Map, MapMarker, MarkerContent, MapRoute } from "@/components/ui/map.jsx";
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 import { User, Zap, BarChart3, Dog, BadgeCheck, Navigation, BellRing } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useAdminPush } from '@/hooks/useAdminPush';
 import { AdminCitySwitcher } from './AdminCitySwitcher';
-import { SafeWalkerMarker } from '@/components/maps/SafeWalkerMarker';
 
 // Função auxiliar simples para calcular a distância entre 2 pontos (em km, aproximado)
 function getDistance(lat1, lon1, lat2, lon2) {
@@ -121,68 +129,67 @@ export default function AdminOperationsRadar({ allUsers, activeWalks }) {
       />
 
       <div className="h-[60vh] w-full rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl relative bg-slate-900">
-        <Map
+        <MapContainer
           key={activeCity}
-          center={[cityCenters[activeCity].lng, cityCenters[activeCity].lat]}
+          center={[cityCenters[activeCity].lat, cityCenters[activeCity].lng]}
           zoom={activeCity === 'all' ? 6 : 13}
+          style={{ width: '100%', height: '100%' }}
+          className="z-0"
         >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+
           {/* ROTA INTELIGENTE (SOS para PRO mais próximo) */}
           {nearestProToSos && (
-            <MapRoute 
-              id="sos-route"
-              coordinates={nearestProToSos.coordinates} 
-              color="#3b82f6" 
-              width={4} 
-              opacity={0.7} 
+            <Polyline
+              positions={nearestProToSos.coordinates.map(([lng, lat]) => [lat, lng])}
+              pathOptions={{ color: '#3b82f6', weight: 4, opacity: 0.7 }}
             />
           )}
 
           {/* 1. RENDERIZAR PROFISSIONAIS ONLINE */}
-          {onlinePro?.map(pro => (
-            <SafeWalkerMarker 
-              key={pro.id} 
-              walker={{...pro, longitude: Number(pro.longitude) || -8.6291, latitude: Number(pro.latitude) || 41.1579}}
-              onClick={(walker) => { setSelectedWalker(walker); setSelectedSos(null); }}
-            >
-              {/* SELOS RÁPIDOS NO MARCADOR */}
-              <div className="absolute -top-2 -right-2 flex gap-0.5 z-20">
-                {pro.professional_profile?.is_pawcao && (
-                  <div className="bg-orange-500 rounded-full p-0.5 border border-white">
-                    <Dog size={8} className="text-white" />
+          {onlinePro?.map(pro => {
+            const lat = Number(pro.latitude) || 41.1579;
+            const lng = Number(pro.longitude) || -8.6291;
+            return (
+              <Marker
+                key={pro.id}
+                position={[lat, lng]}
+                eventHandlers={{ click: () => { setSelectedWalker(pro); setSelectedSos(null); } }}
+              >
+                <Popup>
+                  <div className="p-1 text-xs">
+                    <p className="font-bold">{pro.full_name}</p>
+                    <span className="text-green-600 font-bold">Online</span>
                   </div>
-                )}
-                {pro.professional_profile?.verification_status === 'verified' && (
-                  <div className="bg-blue-500 rounded-full p-0.5 border border-white">
-                    <BadgeCheck size={8} className="text-white" />
-                  </div>
-                )}
-              </div>
-            </SafeWalkerMarker>
-          ))}
+                </Popup>
+              </Marker>
+            );
+          })}
 
           {/* 2. RENDERIZAR PEDIDOS DE EMERGÊNCIA (SOS) */}
-          {pendingRequests?.map(req => (
-            <MapMarker 
-              key={req.id} 
-              longitude={Number(req.pickup_lng || req.longitude) || -8.6291} 
-              latitude={Number(req.pickup_lat || req.latitude) || 41.1579}
-            >
-              <MarkerContent>
-                <motion.div 
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.8, 1, 0.8] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                  className="bg-red-500 p-2 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.8)] border-2 border-white cursor-pointer"
-                  onClick={(e) => { e.stopPropagation(); setSelectedSos(req); setSelectedWalker(null); }}
-                >
-                  <Zap size={16} className="text-white fill-current" />
-                </motion.div>
-              </MarkerContent>
-            </MapMarker>
-          ))}
-          
+          {pendingRequests?.map(req => {
+            const lat = Number(req.pickup_lat || req.latitude) || 41.1579;
+            const lng = Number(req.pickup_lng || req.longitude) || -8.6291;
+            return (
+              <Marker
+                key={req.id}
+                position={[lat, lng]}
+                eventHandlers={{ click: () => { setSelectedSos(req); setSelectedWalker(null); } }}
+              >
+                <Popup>
+                  <div className="p-1 text-xs">
+                    <p className="font-bold text-red-600">🚨 SOS</p>
+                    <p>Cão: {req.dog_name || 'N/A'}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
 
-
-        </Map>
+        </MapContainer>
 
         {/* Walker detail overlay */}
         {selectedWalker && (

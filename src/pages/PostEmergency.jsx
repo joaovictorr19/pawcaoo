@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { Map, MapMarker, MarkerContent, MapRoute } from "@/components/ui/map";
+import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,43 +199,39 @@ export default function PostEmergency() {
       {/* MAPA FULLSCREEN */}
       <div className="absolute inset-0 z-0">
         {userLocation && (
-          <Map 
-            initialViewState={{ longitude: userLocation.lng, latitude: userLocation.lat, zoom: 15 }}
-            onMapLoad={() => setIsLoaded(true)}
+          <MapContainer
+            center={[userLocation.lat, userLocation.lng]}
+            zoom={15}
+            style={{ width: '100%', height: '100%' }}
+            className="z-0"
+            whenCreated={() => setIsLoaded(true)}
           >
-            {routeCoords.length > 0 && <MapRoute coordinates={routeCoords} color="#f97316" width={5} />}
-            
-            {/* PIN DO UTILIZADOR (ESTILO PULSE) */}
-            <MapMarker longitude={userLocation.lng} latitude={userLocation.lat}>
-              <MarkerContent>
-                <div className="relative flex items-center justify-center">
-                  <div className="absolute w-12 h-12 bg-orange-500/30 rounded-full animate-ping" />
-                  <div className="w-8 h-8 bg-orange-600 rounded-full border-4 border-white shadow-2xl z-10" />
-                </div>
-              </MarkerContent>
-            </MapMarker>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            {routeCoords.length > 0 && (
+              <Polyline
+                positions={routeCoords.map(([lng, lat]) => [lat, lng])}
+                pathOptions={{ color: '#f97316', weight: 5 }}
+              />
+            )}
+
+            {/* PIN DO UTILIZADOR */}
+            <Marker position={[userLocation.lat, userLocation.lng]} />
 
             {/* WALKERS AO REDOR */}
             {matchStatus === "idle" && availableWalkers.map(walker => {
-            if (!walker.longitude || !walker.latitude) return null;
-            return (
-              <MapMarker key={walker.id} longitude={parseLocation(walker.longitude)} latitude={parseLocation(walker.latitude)}>
-                  <MarkerContent>
-                    <motion.div 
-                      whileHover={{ scale: 1.2 }}
-                      className="bg-white p-1 rounded-2xl shadow-xl flex items-center gap-2 pr-3 border border-slate-100"
-                    >
-                      <Avatar className="w-8 h-8 rounded-xl">
-                        <AvatarImage src={walker.photo_url} />
-                        <AvatarFallback>P</AvatarFallback>
-                      </Avatar>
-                      <span className="text-[10px] font-black text-slate-800 tracking-tighter">PRO</span>
-                    </motion.div>
-                  </MarkerContent>
-                </MapMarker>
+              if (!walker.longitude || !walker.latitude) return null;
+              return (
+                <Marker
+                  key={walker.id}
+                  position={[parseLocation(walker.latitude), parseLocation(walker.longitude)]}
+                />
               );
             })}
-          </Map>
+          </MapContainer>
         )}
       </div>
 
