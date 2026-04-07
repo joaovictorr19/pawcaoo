@@ -28,15 +28,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import UniversalMap from "@/components/maps/UniversalMap";
-import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
-import { Marker, Source, Layer } from "@/components/ui/map";
-import { Popup } from 'react-map-gl/maplibre';
+
 import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { WalkScanner } from "@/components/booking/WalkScanner";
+import UniversalMap from "@/components/maps/UniversalMap";
+import SafeMapWrapper from "@/components/maps/SafeMapWrapper";
+import { Marker, Source, Layer, Popup } from "@/components/ui/map-stubs";
 
 export default function ActiveServiceCockpit({ bookingId, user }) {
   const navigate = useNavigate();
