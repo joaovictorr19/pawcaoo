@@ -436,13 +436,18 @@ export default function UserProfile() {
                 {[1, 2, 3].map(i => <div key={i} className="w-20 h-20 bg-slate-200 rounded-2xl flex-shrink-0 animate-pulse" />)}
               </div>
             ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 pb-2">
                 {earnedBadges.map((badge) => (
-                  <div key={badge._uniqueId} className="flex flex-col items-center min-w-[72px]">
+                  <div key={badge._uniqueId} className="flex flex-col items-center gap-2 bg-slate-50 rounded-2xl p-3 border border-slate-100">
                     <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
-                    <p className="text-[9px] font-black uppercase mt-2 text-slate-700 text-center leading-tight max-w-[72px]">
+                    <p className="text-[10px] font-bold text-slate-700 text-center leading-tight">
                       {badge.name || badge.badge_id}
                     </p>
+                    {badge.description && (
+                      <p className="text-[9px] text-slate-500 text-center leading-tight line-clamp-2">
+                        {badge.description}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
