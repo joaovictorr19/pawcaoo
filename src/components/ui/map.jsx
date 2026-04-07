@@ -1,10 +1,9 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import ReactMapGL, { Marker, Source, Layer, NavigationControl, GeolocateControl, FullscreenControl } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const DEFAULT_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 
-// Map — accepts center=[lng,lat] + zoom, or initialViewState
 export const Map = React.forwardRef(({ children, center, zoom, initialViewState, mapStyle, className, style }, ref) => {
   const viewState = initialViewState || (center ? {
     longitude: center[0],
@@ -26,7 +25,6 @@ export const Map = React.forwardRef(({ children, center, zoom, initialViewState,
 });
 Map.displayName = 'Map';
 
-// MapControls
 export function MapControls({ position = 'top-right', showZoom, showCompass, showLocate, showFullscreen }) {
   return (
     <>
@@ -37,7 +35,6 @@ export function MapControls({ position = 'top-right', showZoom, showCompass, sho
   );
 }
 
-// MapMarker — wraps react-map-gl Marker, renders MarkerContent and MarkerTooltip as children
 export function MapMarker({ longitude, latitude, children }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -68,12 +65,10 @@ export function MapMarker({ longitude, latitude, children }) {
   );
 }
 
-// MarkerContent — just renders its children
 export function MarkerContent({ children }) {
   return <>{children}</>;
 }
 
-// MarkerTooltip — renders a small tooltip bubble
 export function MarkerTooltip({ children }) {
   return (
     <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap">
@@ -82,15 +77,14 @@ export function MarkerTooltip({ children }) {
   );
 }
 
-// MapRoute — renders a GeoJSON line on the map
 export function MapRoute({ coordinates, color = '#3b82f6', width = 4, opacity = 1, id }) {
-  const routeId = id || 'route-' + Math.random().toString(36).slice(2, 8);
+  const routeId = id || 'route';
 
   const geojson = {
     type: 'Feature',
     geometry: {
       type: 'LineString',
-      coordinates: coordinates,
+      coordinates,
     },
   };
 
