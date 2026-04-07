@@ -99,6 +99,6 @@ export default function Dashboard() {
       </AnimatePresence>
 
       <ProfessionalHubV2 />
-      </div>
-      );
-      }
+    </div>
+  );
+}

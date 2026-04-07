@@ -65,10 +65,7 @@ import ExternalPublishersManager from "../components/admin/ExternalPublishersMan
 import AdminProfessionalManager from "../components/admin/AdminProfessionalManager";
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
 import { AdminApprovals } from "../components/admin/AdminApprovals";
-import UniversalMap from "@/components/maps/UniversalMap";
-import { Marker } from 'react-leaflet';
-import AdminLiveMap from "../components/admin/AdminLiveMap";
-import AdminOperationsRadar from "../components/admin/AdminOperationsRadar";
+
 import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
 
 export default function AdminDashboard() {
@@ -660,23 +657,7 @@ export default function AdminDashboard() {
           <h1 className="text-5xl font-black mb-2">ALERTA DE SEGURANÇA!</h1>
           <p className="text-xl mb-8">Um profissional solicitou ajuda imediata.</p>
           
-          <div className="w-full max-w-4xl h-[50vh] rounded-3xl overflow-hidden shadow-2xl border-4 border-white text-black">
-            <UniversalMap 
-               center={
-                 emergencyUsers[0].pawgo_status?.emergency_mode?.last_emergency_location?.lng 
-                 ? [emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lng, emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lat]
-                 : [-8.6291, 41.1579]
-               }
-               zoom={15}
-            >
-              {emergencyUsers[0].pawgo_status?.emergency_mode?.last_emergency_location && (
-                <Marker position={[
-                  emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lat,
-                  emergencyUsers[0].pawgo_status.emergency_mode.last_emergency_location.lng
-                ]} />
-              )}
-            </UniversalMap>
-          </div>
+
 
           <div className="mt-8 flex gap-4">
             <Button className="bg-white text-red-600 font-bold px-10 h-14 rounded-full hover:bg-gray-100">
@@ -790,13 +771,7 @@ export default function AdminDashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="godmode">
-            {activeTab === 'godmode' && (
-              <div className="mt-6">
-                <AdminOperationsRadar allUsers={allUsers} activeWalks={allBookings} />
-              </div>
-            )}
-          </TabsContent>
+
 
           <TabsContent value="calendar">
             {activeTab === 'calendar' && (
