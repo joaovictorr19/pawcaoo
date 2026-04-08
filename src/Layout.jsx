@@ -198,6 +198,8 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [location.pathname, navigate]);
 
+  const lastAuthUserRef = React.useRef(null);
+
   const { data: authUser, isLoading: isLoadingUser, error: userError } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -250,6 +252,10 @@ function LayoutContent({ children, currentPageName }) {
     retry: 2,
     retryDelay: 500,
   });
+
+  // Keep last known user to prevent navbar flickering during refetches
+  if (authUser) lastAuthUserRef.current = authUser;
+  const stableUser = authUser || lastAuthUserRef.current;
 
   const { data: notifications } = useQuery({
     queryKey: ['unreadNotifications'],
@@ -865,7 +871,7 @@ function LayoutContent({ children, currentPageName }) {
         <div className="hidden md:block" style={{ height: '26px' }} />
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
-        {authUser && (
+        {stableUser && (
                       <Sidebar 
                         className="border transition-colors duration-300 md:ml-4 md:mr-4 md:mb-4 md:mt-8 shadow-lg overflow-hidden shrink-0"
                         style={{ 
@@ -879,7 +885,7 @@ function LayoutContent({ children, currentPageName }) {
                         }}>
           <SidebarContent className="p-0">
             <SidebarNav 
-              user={authUser} 
+              user={stableUser} 
               unreadCount={unreadCount} 
               onLogout={handleLogout} 
             />
@@ -920,8 +926,8 @@ function LayoutContent({ children, currentPageName }) {
             </div>
 
             {/* Mobile Navigation Bar */}
-            {authUser && (
-              <MobileNavBar user={authUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
+            {stableUser && (
+              <MobileNavBar user={stableUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
             )}
 
             {/* Global Search Modal */}
