@@ -35,7 +35,7 @@ function RejectModal({ open, onClose, onConfirm }) {
 function ProfileCard({ profile, onApprove, onReject, approving, rejecting }) {
   const [viewDoc, setViewDoc] = useState(null);
   const name = profile.walker_name || profile.trainer_name || "Sem nome";
-  const type = profile.trainer_name && !profile.walker_name ? "trainer" : "walker";
+  const type = profile._type || (profile.trainer_name && !profile.walker_name ? "trainer" : "walker");
   const isTrainer = type === "trainer";
 
   return (
@@ -154,11 +154,16 @@ export default function AdminProfessionalApprovals() {
   const approveMutation = useMutation({
     mutationFn: async ({ profile, type }) => {
       const entity = type === 'trainer' ? base44.entities.TrainerProfile : base44.entities.WalkerProfile;
-      await entity.update(profile.id, {
+      const updates = {
         verification_status: 'verified',
         is_active: true,
         is_verified: true,
-      });
+      };
+      // Para treinadores, activar badge de treinador verificado
+      if (type === 'trainer') {
+        updates.is_verified_trainer = true;
+      }
+      await entity.update(profile.id, updates);
       // Notificar profissional
       await base44.entities.Notification.create({
         recipient_email: profile.created_by,
