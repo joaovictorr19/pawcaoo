@@ -267,8 +267,8 @@ export default function ProfessionalSetup() {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-slate-950 overflow-y-auto flex flex-col items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-950 px-4 pb-10 pt-6">
+      <div className="w-full max-w-md mx-auto">
         {/* Back button */}
         <button
           onClick={() => navigate(-1)}
