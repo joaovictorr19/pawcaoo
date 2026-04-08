@@ -443,6 +443,35 @@ export default function UserProfile() {
         {/* CONTEÚDO ÚNICO - SEM ABAS */}
         <div className="space-y-8 pb-6">
 
+          {/* BIO */}
+          {(walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio) && (
+            <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">Sobre mim</h3>
+              <p className="text-slate-700 text-sm leading-relaxed">
+                {walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio}
+              </p>
+            </div>
+          )}
+
+          {/* PORTEFÓLIO */}
+          {(walkerProfile?.portfolio?.length > 0) && (
+            <div>
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Portefólio</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {walkerProfile.portfolio.filter(p => p.media_url).map((item, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100">
+                    <img src={item.media_url} alt={item.title || 'foto'} className="w-full h-full object-cover" />
+                    {item.title && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                        <p className="text-white text-[10px] font-bold truncate">{item.title}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* CONQUISTAS */}
           <div>
             <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas ({earnedBadges.length})</h3>
