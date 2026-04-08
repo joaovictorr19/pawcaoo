@@ -683,39 +683,34 @@ export default function Home() {
                     {/* Mode Toggle & Quick Actions */}
                     <div className="flex items-center justify-center mb-3">
                       {['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                        <div className="flex items-center gap-3 bg-black/20 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/20 shadow-inner">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode !== 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
-                            Tutor
-                          </span>
-                          <button
-                            onClick={async () => {
-                              const isProfessional = user.preferences?.current_mode !== 'professional';
-                              try {
-                                await base44.auth.updateMe({
-                                  preferences: { ...user.preferences, current_mode: isProfessional ? 'professional' : 'owner' }
-                                });
-                                const walkerProfiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
-                                if (walkerProfiles.length > 0) {
-                                  await base44.entities.WalkerProfile.update(walkerProfiles[0].id, { is_online: isProfessional });
-                                }
-                                queryClient.invalidateQueries(['currentUser']);
-                                queryClient.invalidateQueries(['walkers']);
-                              } catch (error) {
-                                console.error('Erro ao ativar modo profissional:', error);
+                        <button
+                          onClick={async () => {
+                            const isProfessional = user.preferences?.current_mode !== 'professional';
+                            try {
+                              await base44.auth.updateMe({
+                                preferences: { ...user.preferences, current_mode: isProfessional ? 'professional' : 'owner' }
+                              });
+                              const walkerProfiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+                              if (walkerProfiles.length > 0) {
+                                await base44.entities.WalkerProfile.update(walkerProfiles[0].id, { is_online: isProfessional });
                               }
-                            }}
-                            className={`relative inline-flex h-8 w-16 items-center flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none shadow-sm ${
-                              user.preferences?.current_mode === 'professional' ? 'bg-[#34C759]' : 'bg-white/40'
-                            }`}
-                          >
-                            <span className={`pointer-events-none inline-block h-8 w-8 transform rounded-full bg-white shadow-[0_3px_8px_rgba(0,0,0,0.2)] ring-0 transition-transform duration-200 ease-in-out ${
-                              user.preferences?.current_mode === 'professional' ? 'translate-x-8' : 'translate-x-0'
-                            }`} />
-                          </button>
-                          <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${user.preferences?.current_mode === 'professional' ? 'text-white drop-shadow-md' : 'text-white/50'}`}>
-                            Profissional
-                          </span>
-                        </div>
+                              queryClient.invalidateQueries(['currentUser']);
+                              queryClient.invalidateQueries(['walkers']);
+                            } catch (error) {
+                              console.error('Erro ao ativar modo profissional:', error);
+                            }
+                          }}
+                          className={`flex items-center gap-2 px-5 py-2.5 rounded-full border transition-all active:scale-95 font-black text-xs uppercase tracking-wider ${
+                            user.preferences?.current_mode === 'professional'
+                              ? 'bg-green-500 border-green-400 text-white shadow-lg shadow-green-500/30'
+                              : 'bg-black/20 backdrop-blur-md border-white/20 text-white/80 hover:text-white'
+                          }`}
+                        >
+                          <div className={`w-2 h-2 rounded-full ${
+                            user.preferences?.current_mode === 'professional' ? 'bg-white animate-pulse' : 'bg-white/40'
+                          }`} />
+                          {user.preferences?.current_mode === 'professional' ? 'PawGo Ativo' : 'Off'}
+                        </button>
                       )}
                     </div>
 
