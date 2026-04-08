@@ -539,14 +539,16 @@ export default function MyBookings() {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
-      confirmed: { label: 'Confirmado', color: 'bg-green-100 text-green-800' },
-      in_progress: { label: 'Em Andamento', color: 'bg-blue-100 text-blue-800' },
-      completed: { label: 'Concluído', color: 'bg-gray-100 text-gray-800' },
-      cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800' }
+      pending: { label: 'Pendente', color: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' },
+      confirmed: { label: 'Confirmado', color: 'bg-green-500/20 text-green-300 border border-green-500/30' },
+      in_progress: { label: 'Em Andamento', color: 'bg-orange-500/20 text-orange-300 border border-orange-500/30' },
+      service_completed: { label: 'Serviço Feito', color: 'bg-blue-500/20 text-blue-300 border border-blue-500/30' },
+      completed: { label: 'Concluído', color: 'bg-slate-600/40 text-slate-300 border border-slate-600/40' },
+      cancelled: { label: 'Cancelado', color: 'bg-red-500/20 text-red-300 border border-red-500/30' },
+      rejected: { label: 'Rejeitado', color: 'bg-red-500/20 text-red-400 border border-red-500/30' }
     };
     const config = statusConfig[status] || statusConfig.pending;
-    return <Badge className={`text-xs font-medium ${config.color}`}>{config.label}</Badge>;
+    return <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg ${config.color}`}>{config.label}</span>;
   };
 
   // Helper de Extração de ID Robusto (Data Mapping Fallback)
@@ -563,21 +565,20 @@ export default function MyBookings() {
   };
 
   const BookingCard = ({ booking }) => {
-    const isProfessional = booking.type === 'walk' 
-      ? booking.walker_email === user?.email 
+    const isProfessional = booking.type === 'walk'
+      ? booking.walker_email === user?.email
       : booking.trainer_email === user?.email;
 
     const professionalName = booking.type === 'walk' ? booking.walker_name : booking.trainer_name;
     const hasReview = myGivenReviews.some(r => r.booking_id === booking.id || r.training_booking_id === booking.id);
 
-    // Fetch professional contact if confirmed (Client View Only)
     const { data: professionalContact } = useQuery({
       queryKey: ['profContact', booking.walker_id || booking.trainer_id],
       queryFn: async () => {
         if (isProfessional || (booking.status !== 'confirmed' && booking.status !== 'in_progress')) return null;
         if (booking.type === 'walk' && booking.walker_id) {
-           const w = await base44.entities.WalkerProfile.get(booking.walker_id);
-           return w?.whatsapp_number;
+          const w = await base44.entities.WalkerProfile.get(booking.walker_id);
+          return w?.whatsapp_number;
         }
         return null;
       },
@@ -587,186 +588,148 @@ export default function MyBookings() {
     });
 
     return (
-      <Card className="glass-panel border-0 shadow-lg hover:shadow-xl transition-all overflow-hidden flex flex-col">
+      <div className="bg-slate-900 rounded-3xl border border-white/5 overflow-hidden">
         <div className="p-4 flex flex-col gap-3">
-          {/* Header Compacto */}
+          {/* Header */}
           <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-bold text-gray-900 line-clamp-1">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-black text-white truncate">
                 {isProfessional ? booking.owner_name : professionalName}
               </h3>
-              <p className="text-xs text-gray-500 flex items-center gap-1">
-                {booking.type === 'walk' ? '🐕 Passeio' : '🎓 Treino'} com {booking.dog_name}
+              <p className="text-xs text-slate-500 font-bold mt-0.5">
+                {booking.type === 'walk' ? '🐕 Passeio' : '🎓 Treino'} · {booking.dog_name}
               </p>
             </div>
             {getStatusBadge(booking.status)}
           </div>
 
-          {/* Info Grid */}
-          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-gray-400" />
-              {booking.date ? format(new Date(booking.date), 'dd/MM', { locale: pt }) : 'N/A'}
+          {/* Info */}
+          <div className="flex gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+              <Calendar className="w-3.5 h-3.5 text-orange-400" />
+              {booking.date ? format(new Date(booking.date), 'dd/MM/yy', { locale: pt }) : 'N/A'}
             </div>
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-gray-400" />
-              {booking.time}
-            </div>
+            {booking.time && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+                <Clock className="w-3.5 h-3.5 text-orange-400" />
+                {booking.time}
+              </div>
+            )}
+            {booking.total_amount && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold ml-auto">
+                <DollarSign className="w-3.5 h-3.5 text-green-400" />
+                €{booking.total_amount.toFixed(2)}
+              </div>
+            )}
           </div>
 
-          {/* QR Code Security Pass - Client View */}
+          {/* QR Code Security Pass */}
           {!isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress') && booking.type === 'walk' && (
-            <div className="mb-3">
-              <WalkSecurityPass booking={booking} />
-            </div>
+            <WalkSecurityPass booking={booking} />
           )}
 
-          {/* Actions Row */}
-          <div className="flex items-center gap-2 mt-1">
-          {/* Cancelar Booking */}
-          {(booking.status === 'pending' || booking.status === 'confirmed') && !isProfessional && (
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
-              onClick={() => handleCancelClick(booking)}
-              title="Cancelar Reserva"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
-          )}
+          {/* Actions */}
+          <div className="flex items-center gap-2 pt-1">
+            {(booking.status === 'pending' || booking.status === 'confirmed') && !isProfessional && (
+              <button
+                onClick={() => handleCancelClick(booking)}
+                className="w-9 h-9 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 flex items-center justify-center transition-all active:scale-95"
+                title="Cancelar"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
 
-          {/* Service Cockpit - Available for confirmed/in_progress bookings */}
-          {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="flex-1 h-8 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-              onClick={() => {
-                  if (!booking.id) {
-                      toast.error("Erro: ID inválido");
-                      return;
-                  }
+            {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
+              <button
+                onClick={() => {
+                  if (!booking.id) { toast.error('Erro: ID inválido'); return; }
                   navigate(createPageUrl(isProfessional ? 'ActiveWalkDashboard' : 'LiveWalkTracking') + `?bookingId=${booking.id}`);
                 }}
+                className="flex-1 h-9 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
               >
-                <MapIcon className="w-3.5 h-3.5 mr-1.5" />
+                <MapIcon className="w-3.5 h-3.5" />
                 Abrir
-              </Button>
-          )}
-
-            {/* Ações Condicionais */}
-            {booking.status === 'pending' && !isProfessional && (
-              <Button 
-                size="sm" 
-                className="flex-1 h-8 text-xs bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => {
-                  setCheckoutBooking({...booking, user});
-                  setShowCheckoutModal(true);
-                }}
-              >
-                <CreditCard className="w-3.5 h-3.5 mr-1.5" />
-                Pagar
-              </Button>
+              </button>
             )}
 
-            {/* In progress handled by main "Abrir" button above */}
+            {booking.status === 'pending' && !isProfessional && (
+              <button
+                onClick={() => { setCheckoutBooking({...booking, user}); setShowCheckoutModal(true); }}
+                className="flex-1 h-9 rounded-2xl bg-green-500 hover:bg-green-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
+              >
+                <CreditCard className="w-3.5 h-3.5" />
+                Pagar
+              </button>
+            )}
 
             {booking.status === 'completed' && !isProfessional && !hasReview && (
-              <Button 
-                size="sm" 
-                className="flex-1 h-8 text-xs bg-yellow-500 hover:bg-yellow-600 text-white"
+              <button
                 onClick={() => handleReviewClick(booking, 'professional')}
+                className="flex-1 h-9 rounded-2xl bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
               >
-                <Star className="w-3.5 h-3.5 mr-1.5" />
+                <Star className="w-3.5 h-3.5" />
                 Avaliar
-              </Button>
+              </button>
             )}
 
-            {/* Contact for Confirmed/InProgress Bookings */}
             {professionalContact && (
-              <Button 
-                size="sm" 
-                variant="ghost"
-                className="h-8 w-8 p-0 text-green-600 hover:bg-green-50"
+              <button
                 onClick={() => window.open(`https://wa.me/${professionalContact.replace(/[^0-9]/g, '')}`, '_blank')}
+                className="w-9 h-9 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 flex items-center justify-center transition-all active:scale-95"
                 title="WhatsApp"
               >
                 <MessageCircle className="w-4 h-4" />
-              </Button>
+              </button>
             )}
 
-            {/* Botão Detalhes (Sempre visível se não houver ação prioritária ocupando tudo) */}
             {booking.status !== 'in_progress' && !(booking.status === 'completed' && !hasReview) && (
-               <Button 
-                size="sm" 
-                variant="ghost" 
-                className="h-8 w-8 p-0"
-                onClick={() => {
-                  setSelectedBooking(booking);
-                  setIsDetailsModalOpen(true);
-                }}
+              <button
+                onClick={() => { setSelectedBooking(booking); setIsDetailsModalOpen(true); }}
+                className="w-9 h-9 rounded-2xl bg-slate-800 border border-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-all active:scale-95"
               >
                 <ChevronRight className="w-4 h-4" />
-              </Button>
+              </button>
             )}
 
-            {/* Add to Calendar (Confirmed Only) */}
             {booking.status === 'confirmed' && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-purple-600 hover:bg-purple-50">
+                  <button className="w-9 h-9 rounded-2xl bg-slate-800 border border-white/5 text-slate-400 hover:text-purple-400 flex items-center justify-center transition-all active:scale-95">
                     <CalendarPlus className="w-4 h-4" />
-                  </Button>
+                  </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-48 p-2" align="end">
+                <PopoverContent className="w-48 p-2 bg-slate-900 border-white/10" align="end">
                   <div className="grid gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="justify-start text-xs font-normal h-8"
-                      onClick={() => {
-                        const event = bookingToEvent(booking);
-                        if (event) window.open(getGoogleCalendarUrl(event), '_blank');
-                      }}
+                    <button
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs text-slate-300 hover:bg-slate-800 font-bold transition-all"
+                      onClick={() => { const e = bookingToEvent(booking); if (e) window.open(getGoogleCalendarUrl(e), '_blank'); }}
                     >
                       Google Calendar
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="justify-start text-xs font-normal h-8"
-                      onClick={() => {
-                        const event = bookingToEvent(booking);
-                        if (event) {
-                          const ics = generateICS(event);
-                          downloadICS(`booking_${booking.id}.ics`, ics);
-                        }
-                      }}
+                    </button>
+                    <button
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs text-slate-300 hover:bg-slate-800 font-bold transition-all"
+                      onClick={() => { const e = bookingToEvent(booking); if (e) { const ics = generateICS(e); downloadICS(`booking_${booking.id}.ics`, ics); } }}
                     >
                       Apple/Outlook (.ics)
-                    </Button>
+                    </button>
                   </div>
                 </PopoverContent>
               </Popover>
             )}
           </div>
         </div>
-      </Card>
+      </div>
     );
   };
 
   if (loadingUser || loadingOwnerWalks || loadingWalkerWalks || loadingOwnerTrainings || loadingTrainerTrainings) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6">
-        <div className="max-w-7xl mx-auto space-y-4">
-          <div className="flex gap-4 mb-8">
-             <Skeleton className="h-10 w-32" />
-             <Skeleton className="h-10 w-32" />
-             <Skeleton className="h-10 w-32" />
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-             {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-64 w-full rounded-xl" />)}
+      <div className="min-h-screen bg-slate-950 p-6">
+        <div className="max-w-lg mx-auto space-y-4">
+          <Skeleton className="h-8 w-48 bg-slate-800" />
+          <div className="grid grid-cols-2 gap-4">
+            {[1,2,3,4].map(i => <Skeleton key={i} className="h-36 w-full rounded-2xl bg-slate-800" />)}
           </div>
         </div>
       </div>
@@ -774,141 +737,97 @@ export default function MyBookings() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Minhas Reservas</h1>
-            <p className="text-gray-600">Gerencie seus passeios e treinos em um só lugar</p>
+    <div className="min-h-screen bg-slate-950 text-white pb-32 font-sans">
+      {/* Header */}
+      <header className="bg-slate-950 text-white p-6 rounded-b-[2.5rem] shadow-xl mb-6">
+        <div className="max-w-lg mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-xl font-black italic">Minhas Reservas 📅</h1>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Passeios & Treinos</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate(createPageUrl('Home'))}
+                className="px-3 py-2 rounded-2xl border border-slate-700 text-slate-300 hover:border-white hover:text-white transition-all active:scale-95 text-xs font-bold"
+              >
+                + Passeio
+              </button>
+              <button
+                onClick={() => navigate(createPageUrl('Trainers'))}
+                className="px-3 py-2 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white transition-all active:scale-95 text-xs font-bold"
+              >
+                + Treino
+              </button>
+            </div>
           </div>
-          
-          {/* Quick Actions */}
-          <div className="flex gap-2">
-             <Button onClick={() => navigate(createPageUrl('Home'))} className="bg-green-600 hover:bg-green-700">
-               + Novo Passeio
-             </Button>
-             <Button onClick={() => navigate(createPageUrl('Trainers'))} className="bg-indigo-600 hover:bg-indigo-700">
-               + Novo Treino
-             </Button>
+
+          {/* Stats rápidas */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Total', value: allBookings.length, color: 'text-white' },
+              { label: 'Ativos', value: allBookings.filter(b => b.status === 'confirmed' || b.status === 'in_progress').length, color: 'text-orange-400' },
+              { label: 'Concluídos', value: allBookings.filter(b => b.status === 'completed').length, color: 'text-green-400' },
+            ].map(s => (
+              <div key={s.label} className="bg-slate-900 rounded-2xl p-3 border border-white/5 text-center">
+                <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{s.label}</div>
+              </div>
+            ))}
           </div>
         </div>
+      </header>
 
-        {/* Quick Filters (Mobile Friendly) */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-          {['all', 'confirmed', 'in_progress', 'completed', 'cancelled'].map((status) => (
-            <Button
-              key={status}
-              variant={filters.status === status ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => { setFilters({...filters, status: status}); setCurrentPage(1); }}
-              className={`rounded-full text-xs whitespace-nowrap ${
-                filters.status === status 
-                  ? 'bg-gray-900 text-white' 
-                  : 'bg-white text-gray-600 border-gray-200'
+      <main className="p-4 max-w-lg mx-auto space-y-4">
+        {/* Quick Filters */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {[
+            { value: 'all', label: 'Todos' },
+            { value: 'confirmed', label: 'Confirmados' },
+            { value: 'in_progress', label: 'Ativos' },
+            { value: 'completed', label: 'Concluídos' },
+            { value: 'cancelled', label: 'Cancelados' },
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => { setFilters({...filters, status: value}); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-2xl text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 ${
+                filters.status === value
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-slate-900 border border-white/5 text-slate-400 hover:text-white'
               }`}
             >
-              {status === 'all' ? 'Todos' : 
-               status === 'confirmed' ? 'Confirmados' :
-               status === 'in_progress' ? 'Ativos' :
-               status === 'completed' ? 'Concluídos' : 'Cancelados'}
-            </Button>
+              {label}
+            </button>
           ))}
         </div>
 
-        {/* Filters Bar (Collapsible or Simplified) */}
-        <Card className="mb-8 border-none shadow-sm bg-white/80 backdrop-blur hidden md:block">
-          <CardContent className="p-4">
-             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Tipo de Serviço</label>
-                  <Select 
-                    value={filters.type} 
-                    onValueChange={(v) => { setFilters({...filters, type: v}); setCurrentPage(1); }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Todos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="walk">🐕 Passeios</SelectItem>
-                      <SelectItem value="training">🎓 Treinos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+        {/* Type Filter */}
+        <div className="flex gap-2">
+          {[{v:'all',l:'🐾 Todos'},{v:'walk',l:'🐕 Passeios'},{v:'training',l:'🎓 Treinos'}].map(({v,l}) => (
+            <button
+              key={v}
+              onClick={() => { setFilters({...filters, type: v}); setCurrentPage(1); }}
+              className={`flex-1 py-2 rounded-2xl text-xs font-bold transition-all active:scale-95 ${
+                filters.type === v
+                  ? 'bg-white text-slate-900'
+                  : 'bg-slate-900 border border-white/5 text-slate-400'
+              }`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Data (Início)</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        {filters.dateStart ? format(filters.dateStart, 'dd/MM/yyyy') : <span>Selecione data</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <CalendarComponent
-                        mode="single"
-                        selected={filters.dateStart}
-                        onSelect={(date) => { setFilters({...filters, dateStart: date}); setCurrentPage(1); }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Data (Fim)</label>
-                  <Popover>
-                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        {filters.dateEnd ? format(filters.dateEnd, 'dd/MM/yyyy') : <span>Selecione data</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <CalendarComponent
-                        mode="single"
-                        selected={filters.dateEnd}
-                        onSelect={(date) => { setFilters({...filters, dateEnd: date}); setCurrentPage(1); }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-             </div>
-
-             {/* Active Filters Badges / Clear */}
-             {(filters.status !== 'all' || filters.type !== 'all' || filters.dateStart || filters.dateEnd) && (
-               <div className="mt-4 flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Filtros ativos:</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-red-500 h-6 text-xs hover:bg-red-50"
-                    onClick={() => setFilters({ status: 'all', type: 'all', dateStart: null, dateEnd: null })}
-                  >
-                    Limpar Filtros
-                  </Button>
-               </div>
-             )}
-          </CardContent>
-        </Card>
-
-        {/* Bookings Grid */}
+        {/* Bookings List */}
         {paginatedBookings.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
-             <div className="mx-auto bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                <Filter className="w-8 h-8 text-gray-400" />
-             </div>
-             <h3 className="text-xl font-semibold text-gray-900">Nenhuma reserva encontrada</h3>
-             <p className="text-gray-500 max-w-md mx-auto mt-2">
-               Tente ajustar os filtros ou crie uma nova reserva para começar.
-             </p>
+          <div className="text-center py-16 bg-slate-900 rounded-3xl border border-white/5">
+            <div className="text-5xl mb-4">📭</div>
+            <h3 className="text-lg font-black text-white">Nenhuma reserva</h3>
+            <p className="text-slate-400 text-sm mt-1 max-w-xs mx-auto">Tente ajustar os filtros ou crie uma nova reserva.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-3">
             {paginatedBookings.map((booking) => (
               <BookingCard key={`${booking.type}-${booking.id}`} booking={booking} />
             ))}
@@ -917,29 +836,27 @@ export default function MyBookings() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-8">
-             <Button
-               variant="outline"
-               size="icon"
-               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-               disabled={currentPage === 1}
-             >
-               <ChevronLeft className="w-4 h-4" />
-             </Button>
-             <span className="text-sm font-medium">
-               Página {currentPage} de {totalPages}
-             </span>
-             <Button
-               variant="outline"
-               size="icon"
-               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-               disabled={currentPage === totalPages}
-             >
-               <ChevronRight className="w-4 h-4" />
-             </Button>
+          <div className="flex items-center justify-center gap-3 py-4">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="w-10 h-10 rounded-2xl bg-slate-900 border border-white/5 text-slate-400 hover:text-white disabled:opacity-30 flex items-center justify-center transition-all active:scale-95"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-sm font-bold text-slate-400">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="w-10 h-10 rounded-2xl bg-slate-900 border border-white/5 text-slate-400 hover:text-white disabled:opacity-30 flex items-center justify-center transition-all active:scale-95"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         )}
-      </div>
+      </main>
 
       {/* Details Modal */}
       <BookingDetailsModal 
