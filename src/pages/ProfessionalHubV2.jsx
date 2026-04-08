@@ -319,7 +319,7 @@ export default function ProfessionalHubV2() {
   const isOnline = user?.pawgo_status?.is_online || false;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500/30" style={{ marginTop: '-64px', paddingBottom: '100px' }}>
+    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500/30" style={{ marginTop: '-64px', paddingBottom: 'calc(130px + env(safe-area-inset-bottom, 0px))' }}>
       <IncomingRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}
@@ -463,6 +463,30 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
             >
               <ActiveRequestsList user={user} />
+            </motion.div>
+          )}
+
+          {activeTab === "reviews" && (
+            <motion.div
+              key="reviews"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ReviewsManagementSection user={user} professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "finances" && (
+            <motion.div
+              key="finances"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <FinancesSection user={user} professionalProfile={professionalProfile} />
             </motion.div>
           )}
         </AnimatePresence>
