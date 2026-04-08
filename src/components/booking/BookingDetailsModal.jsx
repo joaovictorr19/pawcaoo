@@ -67,6 +67,8 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
+  if (!booking) return null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
