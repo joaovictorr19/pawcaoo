@@ -114,6 +114,7 @@ export default function SidebarNav({ user, unreadCount, onLogout }) {
       url: isProfessional ? createPageUrl("ProfessionalHubV2") : createPageUrl("BecomeProfessional"), 
       icon: BarChart3 
     },
+    { title: language === 'pt' ? 'Calendário' : 'Calendar', url: createPageUrl("ProfessionalCalendar"), icon: Calendar },
     { title: language === 'pt' ? 'Subscrição' : 'Membership', url: createPageUrl("OwnerSubscriptions"), icon: Crown },
   ];
 

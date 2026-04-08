@@ -19,6 +19,10 @@ const PawGoMaintenance = lazy(() => import('./pages/PawGoMaintenance').catch(e =
   console.error('Error loading PawGoMaintenance:', e);
   return { default: () => <div>Erro ao carregar página</div> };
 }));
+const ProfessionalCalendar = lazy(() => import('./pages/ProfessionalCalendar').catch(e => {
+  console.error('Error loading ProfessionalCalendar:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
 
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -115,6 +119,7 @@ const AuthenticatedApp = () => {
             <Route path="/Dashboard" element={<Suspense fallback={<PageLoader />}><PawGoMaintenance /></Suspense>} />
 
             <Route path="/ProfessionalSetup" element={<Suspense fallback={<PageLoader />}><ProfessionalSetup /></Suspense>} />
+            <Route path="/ProfessionalCalendar" element={<Suspense fallback={<PageLoader />}><ProfessionalCalendar /></Suspense>} />
             <Route path="/DebugWalkTest" element={<Suspense fallback={<PageLoader />}><DebugWalkTest /></Suspense>} />
 
             <Route path="*" element={<PageNotFound />} />
