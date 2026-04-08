@@ -35,7 +35,7 @@ import {
   Users, Shield, CheckCircle, X, Clock, Ban, Package,
   Calendar, DollarSign, Star, AlertCircle, BarChart3, Store,
   Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
-  FileText, Trash2, Plus, Edit,
+  FileText, Trash2, Plus, Edit, Gift,
   RefreshCw, Loader2, Zap, TrendingUp, Eye, AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
@@ -65,7 +65,8 @@ import ExternalPublishersManager from "../components/admin/ExternalPublishersMan
 import AdminProfessionalManager from "../components/admin/AdminProfessionalManager";
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
 import { AdminApprovals } from "../components/admin/AdminApprovals";
-
+import { BadgeManager } from "../components/admin/BadgeManager";
+import { GrantBadgeModal } from "../components/admin/GrantBadgeModal";
 import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
 
 export default function AdminDashboard() {
@@ -122,6 +123,7 @@ export default function AdminDashboard() {
   const [showAllBadges, setShowAllBadges] = useState(false);
   const [badgeSearchTerm, setBadgeSearchTerm] = useState("");
   const [showProfessionalManager, setShowProfessionalManager] = useState(false);
+  const [showGrantBadgeModal, setShowGrantBadgeModal] = useState(false);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -1195,89 +1197,26 @@ export default function AdminDashboard() {
 
           <TabsContent value="gamification">
             {activeTab === 'gamification' && (
-            <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
-              <CardHeader>
-                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                  <div>
-                    <CardTitle className="text-2xl flex items-center gap-2">
-                      <Award className="w-6 h-6 text-purple-600" />
-                      Gestão de Emblemas
-                    </CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">Conceda emblemas especiais e gerencie XP</p>
-                  </div>
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                    <Award className="w-5 h-5 text-purple-600" /> Gestão de Emblemas
+                  </h2>
                   <Button
-                    onClick={() => setShowCreateCustomBadgeModal(true)}
-                    className="bg-purple-600 hover:bg-purple-700"
-                    style={{ borderRadius: 0 }}
+                    onClick={() => setShowGrantBadgeModal(true)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white gap-2"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Criar Emblema
+                    <Gift className="w-4 h-4" /> Atribuir Emblema
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {badgeDefinitions.slice(0, showAllBadges ? undefined : 6).map((badgeDef) => (
-                    <Card key={badgeDef.id} className="border border-purple-200" style={{ borderRadius: 0 }}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-14 h-14 bg-purple-50 flex items-center justify-center flex-shrink-0" style={{ borderRadius: 0 }}>
-                            {badgeDef.image_url || badgeDef.image_png_file ? (
-                              <img src={badgeDef.image_png_file || badgeDef.image_url} alt={badgeDef.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <span className="text-3xl">{badgeDef.icon}</span>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-sm truncate">{badgeDef.name}</h4>
-                            <p className="text-xs text-gray-600 line-clamp-2">{badgeDef.description}</p>
-                            <Badge className="bg-yellow-100 text-yellow-700 text-[10px] mt-1" style={{ borderRadius: 0 }}>
-                              +{badgeDef.xp || 100} XP
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 mt-3">
-                          <Button
-                            size="sm"
-                            className="flex-1 bg-purple-600 text-xs"
-                            onClick={() => {
-                              setSelectedBadgeForAll({
-                                badge_id: badgeDef.id,
-                                name: badgeDef.name,
-                                description: badgeDef.description,
-                                icon: badgeDef.icon,
-                                image_url: badgeDef.image_url,
-                                image_png_file: badgeDef.image_png_file,
-                                rarity: badgeDef.rarity,
-                                category: badgeDef.category,
-                                xp: badgeDef.xp || 100
-                              });
-                              setUsersToGrantBadge([]);
-                              setShowGrantAllUsersModal(true);
-                            }}
-                            style={{ borderRadius: 0 }}
-                          >
-                            Conceder
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {badgeDefinitions.length > 6 && (
-                  <div className="flex justify-center mt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowAllBadges(!showAllBadges)}
-                      style={{ borderRadius: 0 }}
-                    >
-                      {showAllBadges ? 'Mostrar Menos' : `Ver Todos (${badgeDefinitions.length})`}
-                    </Button>
-                  </div>
+                <BadgeManager />
+                {showGrantBadgeModal && (
+                  <GrantBadgeModal
+                    onClose={() => setShowGrantBadgeModal(false)}
+                    onSuccess={() => setShowGrantBadgeModal(false)}
+                  />
                 )}
-              </CardContent>
-            </Card>
+              </div>
             )}
           </TabsContent>
 
