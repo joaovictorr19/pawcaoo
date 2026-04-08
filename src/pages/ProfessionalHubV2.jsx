@@ -125,11 +125,10 @@ export default function ProfessionalHubV2() {
   const profileNeedsUpdate = professionalProfile && (!professionalProfile?.latitude || !professionalProfile?.longitude || !professionalProfile?.service_areas?.length);
   
   useEffect(() => {
-    if (profileNeedsUpdate && !showEditProfile) {
-      setShowProfileUpdateRequired(true);
-      setShowEditProfile(true);
+    if (profileNeedsUpdate) {
+      navigate(createPageUrl('ProfessionalSetup'), { replace: false });
     }
-  }, [profileNeedsUpdate, showEditProfile]);
+  }, [profileNeedsUpdate]);
 
   // Polling: detectar pedidos pendentes direcionados a este profissional (estilo Uber)
   const isOnlinePro = user?.pawgo_status?.is_online || false;
@@ -326,40 +325,6 @@ export default function ProfessionalHubV2() {
         onAccept={handleAcceptRequest}
         onDecline={handleDeclineRequest}
       />
-      {/* Modal de Edição de Perfil - Obrigatório se precisa update */}
-      {showEditProfile && (
-        <div className="fixed inset-0 z-[9999] bg-white text-slate-900 overflow-y-auto">
-          <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 p-4 flex items-center justify-between">
-            <div>
-              <h2 className="font-black text-lg">Editar Perfil Público</h2>
-              {showProfileUpdateRequired && <p className="text-xs text-red-600 font-bold mt-1">⚠️ Atualização obrigatória</p>}
-            </div>
-            <button 
-              onClick={() => !showProfileUpdateRequired && setShowEditProfile(false)}
-              disabled={showProfileUpdateRequired}
-              className={"p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 active:scale-95 transition-all" + (showProfileUpdateRequired ? " opacity-50 cursor-not-allowed" : "")}
-            >
-              <span className="font-bold text-sm">X</span>
-            </button>
-          </div>
-          <div className="pt-6">
-            <ProfessionalEditProfile 
-              user={user} 
-              onUpdate={() => {
-                queryClient.invalidateQueries(['currentUser']);
-                queryClient.invalidateQueries(['myProfessionalProfile']);
-                setShowProfileUpdateRequired(false);
-                if (showProfileUpdateRequired) {
-                  setTimeout(() => setShowEditProfile(false), 500);
-                }
-              }} 
-              onClose={() => !showProfileUpdateRequired && setShowEditProfile(false)}
-              forceUpdate={showProfileUpdateRequired}
-            />
-          </div>
-        </div>
-      )}
-
       {/* 1. Header com saudação, status e stats rápidas */}
       <header className="bg-slate-950 text-white p-6 rounded-b-[2.5rem] shadow-xl mb-6">
         <div className="flex justify-between items-start mb-6">
@@ -407,7 +372,7 @@ export default function ProfessionalHubV2() {
 
               <div className="flex gap-2 mb-6">
                 <Button
-                  onClick={() => setShowEditProfile(true)}
+                  onClick={() => navigate(createPageUrl('ProfessionalSetup'))}
                   className="flex-1 bg-white text-slate-900 hover:bg-slate-100 font-bold rounded-2xl h-12"
                 >
                   Editar Perfil

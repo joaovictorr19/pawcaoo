@@ -40,9 +40,9 @@ export default function ProfessionalSetup() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [formInitialized, setFormInitialized] = useState(false);
 
   const [form, setForm] = useState({
-    // Step 0 - Perfil
     walker_name: "",
     location: "",
     latitude: null,
@@ -50,18 +50,14 @@ export default function ProfessionalSetup() {
     bio: "",
     photo_url: "",
     whatsapp_number: "",
-    // Step 1 - Tipo
-    professional_type: "walker", // walker | trainer | both
-    // Step 2 - Serviços
+    professional_type: "walker",
     hourly_rate: "15",
     services_offered: [
       { service_name: "Passeio 1h", price: 15, description: "Passeio individual de 1 hora" },
     ],
-    // Step 3 - Preferências
     accepted_animals: ["dogs"],
     dog_sizes: ["small", "medium", "large"],
     availability: ["morning", "afternoon"],
-    // PawGo & Raio
     instant_booking: true,
     work_radius_km: 5,
   });
@@ -69,6 +65,42 @@ export default function ProfessionalSetup() {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+  });
+
+  // Pré-preencher form com dados existentes
+  useQuery({
+    queryKey: ['existingProfessionalProfile', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      let profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      return profiles[0] || null;
+    },
+    enabled: !!user?.email && !formInitialized,
+    onSuccess: (profile) => {
+      if (profile && !formInitialized) {
+        setFormInitialized(true);
+        setForm(prev => ({
+          ...prev,
+          walker_name: profile.walker_name || user?.full_name || "",
+          location: profile.location || "",
+          latitude: profile.latitude || null,
+          longitude: profile.longitude || null,
+          bio: profile.bio || "",
+          photo_url: profile.photo_url || "",
+          whatsapp_number: profile.whatsapp_number || "",
+          hourly_rate: String(profile.hourly_rate || "15"),
+          services_offered: profile.services_offered?.length ? profile.services_offered : prev.services_offered,
+          accepted_animals: profile.accepted_animals?.length ? profile.accepted_animals : prev.accepted_animals,
+          dog_sizes: profile.dog_sizes?.length ? profile.dog_sizes : prev.dog_sizes,
+          availability: profile.availability?.length ? profile.availability : prev.availability,
+          instant_booking: profile.instant_booking ?? true,
+          professional_type: profile.is_verified_trainer ? 'both' : 'walker',
+        }));
+      } else {
+        setFormInitialized(true);
+        if (user?.full_name) setForm(prev => ({ ...prev, walker_name: user.full_name }));
+      }
+    }
   });
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
@@ -91,6 +123,8 @@ export default function ProfessionalSetup() {
     }
     setUploading(false);
   };
+
+  const isEditing = formInitialized;
 
   const canProceed = () => {
     if (step === 0) return form.walker_name.trim() && form.location.trim();
@@ -223,7 +257,7 @@ export default function ProfessionalSetup() {
       queryClient.invalidateQueries(['currentUser']);
       queryClient.invalidateQueries(['myProfessionalProfile']);
       toast.success("Perfil submetido para aprovação! Aguarda verificação da equipa PawCão. 🎉");
-      navigate(createPageUrl("ProfessionalHubV2"));
+      navigate(createPageUrl("ProfessionalHubV2"), { replace: true });
     } catch (e) {
       console.error(e);
       toast.error("Erro ao criar perfil: " + e.message);
@@ -233,8 +267,16 @@ export default function ProfessionalSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-4 py-10">
+    <div className="fixed inset-0 z-[200] bg-slate-950 overflow-y-auto flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
+        {/* Back button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-6 flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" /> Voltar
+        </button>
+
         {/* Progress */}
         <div className="mb-8">
           <div className="flex gap-1.5 mb-3">
@@ -660,7 +702,7 @@ export default function ProfessionalSetup() {
               disabled={loading}
               className="flex-1 h-13 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-bold shadow-lg shadow-orange-900/50"
             >
-              {loading ? "A criar perfil..." : "Criar Perfil 🚀"}
+              {loading ? "A guardar..." : isEditing ? "Guardar Alterações ✅" : "Criar Perfil 🚀"}
             </Button>
           )}
         </div>
