@@ -319,14 +319,14 @@ export default function ProfessionalHubV2() {
   const isOnline = user?.pawgo_status?.is_online || false;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-32 font-sans selection:bg-orange-500/30">
+    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500/30" style={{ marginTop: '-64px', paddingBottom: '100px' }}>
       <IncomingRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}
         onDecline={handleDeclineRequest}
       />
       {/* 1. Header com saudação, status e stats rápidas */}
-      <header className="bg-slate-950 text-white p-6 rounded-b-[2.5rem] shadow-xl mb-6">
+      <header className="bg-slate-950 text-white px-4 pt-20 pb-6 rounded-b-[2.5rem] shadow-xl mb-6">
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-xl font-black italic">Olá, {user?.full_name?.split(' ')[0] || 'Pro'}! 🐾</h1>
@@ -356,7 +356,7 @@ export default function ProfessionalHubV2() {
         <VerificationBanner status={professionalProfile?.verification_status} />
       </header>
 
-      <main className="p-4 md:p-6 max-w-lg mx-auto">
+      <main className="px-4 md:px-6 pb-6 max-w-2xl mx-auto w-full">
         {/* Renderização Condicional por Abas */}
         <AnimatePresence mode="wait">
           {activeTab === "overview" && (
@@ -454,43 +454,7 @@ export default function ProfessionalHubV2() {
             </motion.div>
           )}
 
-          {activeTab === "reviews" && (
-            <motion.div 
-              key="reviews" 
-              initial={{ opacity: 0, x: 20 }} 
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ReviewsManagementSection professionalProfile={professionalProfile} user={user} />
-            </motion.div>
-          )}
-
           {activeTab === "wallet" && (
-            <motion.div 
-              key="wallet" 
-              initial={{ opacity: 0, x: 20 }} 
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <WalletSection user={user} />
-            </motion.div>
-          )}
-
-          {activeTab === "finances" && (
-            <motion.div 
-              key="finances" 
-              initial={{ opacity: 0, x: 20 }} 
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <FinancesSection user={user} professionalProfile={professionalProfile} />
-            </motion.div>
-          )}
-
-          {activeTab === "active" && (
             <motion.div 
               key="active" 
               initial={{ opacity: 0, x: 20 }} 
@@ -501,20 +465,8 @@ export default function ProfessionalHubV2() {
               <ActiveRequestsList user={user} />
             </motion.div>
           )}
-
-          {activeTab === "reviews" && (
-            <motion.div 
-              key="reviews" 
-              initial={{ opacity: 0, x: 20 }} 
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ReviewsManagementSection professionalProfile={professionalProfile} user={user} />
-            </motion.div>
-          )}
         </AnimatePresence>
-          </main>
+      </main>
 
       <ProfessionalTabBar active={activeTab} onChange={setActiveTab} />
 
