@@ -744,8 +744,8 @@ export default function AdminDashboard() {
               <TabsTrigger value="professionals" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">👥 Profissionais</TabsTrigger>
               <TabsTrigger value="approvals" className="relative rounded-full bg-orange-50 text-orange-700 shadow-sm data-[state=active]:bg-orange-500 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
                 🛡️ Aprovações
-                {pendingProfessionals.length > 0 && (
-                  <span className="ml-1.5 bg-orange-500 data-[state=active]:bg-white data-[state=active]:text-orange-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{pendingProfessionals.length}</span>
+                {(walkerApplications.length + trainerApplications.length) > 0 && (
+                  <span className="ml-1.5 bg-orange-500 data-[state=active]:bg-white data-[state=active]:text-orange-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{walkerApplications.length + trainerApplications.length}</span>
                 )}
               </TabsTrigger>
               <TabsTrigger value="users" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
@@ -771,7 +771,19 @@ export default function AdminDashboard() {
             )}
           </TabsContent>
 
-
+          <TabsContent value="godmode">
+            {activeTab === 'godmode' && (
+              <div className="mt-6">
+                <AdminAnalytics
+                  bookings={allBookings}
+                  users={allUsers}
+                  walkers={allWalkers}
+                  trainers={allTrainers}
+                  payments={allPayments}
+                />
+              </div>
+            )}
+          </TabsContent>
 
           <TabsContent value="calendar">
             {activeTab === 'calendar' && (
