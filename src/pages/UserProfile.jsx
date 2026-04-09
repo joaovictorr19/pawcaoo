@@ -32,7 +32,6 @@ export default function UserProfile() {
   }
 
   const profileIdParam = urlParams.get('id');
-  const profileNameParam = urlParams.get('name');
   const profileUsernameParam = urlParams.get('username');
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
@@ -41,11 +40,10 @@ export default function UserProfile() {
   });
 
   const targetId = profileIdParam;
-  const targetName = profileNameParam;
   const targetUsername = profileUsernameParam;
-  const targetEmail = !targetId && !targetName && !targetUsername ? profileEmailParam : null;
+  const targetEmail = !targetId && !targetUsername ? profileEmailParam : null;
 
-  const isSelfView = (!targetId && !targetEmail && !targetName && !targetUsername) ||
+  const isSelfView = (!targetId && !targetEmail && !targetUsername) ||
     (currentUser && targetId === currentUser.id) ||
     (currentUser && targetEmail === currentUser.email) ||
     (currentUser && targetUsername === currentUser.username);
@@ -57,7 +55,7 @@ export default function UserProfile() {
   }, [isSelfView, currentUser, authLoading]);
 
   const { data: profileUser, isLoading: loadingUser } = useQuery({
-    queryKey: ['profileUser', targetId, targetEmail, targetName, targetUsername, isSelfView, currentUser?.id],
+    queryKey: ['profileUser', targetId, targetEmail, targetUsername, isSelfView, currentUser?.id],
     queryFn: async () => {
       let userProfile = null;
 
@@ -68,7 +66,7 @@ export default function UserProfile() {
         } catch (e) {}
       }
 
-      if (isSelfView && currentUser?.email) {
+      if (isSelfView && currentUser?.email && !userProfile) {
         try {
           const r = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
           if (r?.length > 0) userProfile = r[0];
@@ -101,20 +99,6 @@ export default function UserProfile() {
               const su = await base44.entities.User.filter({ id: targetId });
               if (su?.length > 0) userProfile = { ...su[0], user_email: su[0].email, user_id: su[0].id, full_name: su[0].full_name || su[0].email.split('@')[0], is_virtual_profile: true };
             } catch (e) {}
-          }
-        } catch (e) {}
-      }
-
-      if (!userProfile && targetName) {
-        try {
-          const r = await base44.entities.UserProfile.filter({ full_name: targetName });
-          if (r?.length > 0) userProfile = r[0];
-          if (!userProfile) {
-            const rw = await base44.entities.WalkerProfile.filter({ walker_name: targetName });
-            if (rw?.length > 0) {
-              const w = rw[0];
-              userProfile = { id: w.id, user_email: w.created_by, full_name: w.walker_name, profile_photo_url: w.photo_url, bio: w.bio, city: w.location, role: 'walker', is_verified: w.verification_status === 'verified', is_virtual_profile: true };
-            }
           }
         } catch (e) {}
       }
