@@ -264,20 +264,19 @@ export default function ProfessionalSetup() {
         });
       }
 
-      // Notificação ao admin
-      try {
-        const admins = await base44.entities.User.filter({ role: 'admin' });
-        for (const admin of admins) {
-          await base44.entities.Notification.create({
-            recipient_email: admin.email,
-            title: '🆕 Novo Profissional Pendente',
-            message: `${form.walker_name || user.full_name} (${form.professional_type}) submeteu candidatura e aguarda aprovação.`,
-            type: 'system',
-            icon: '🐾',
-            link: '/AdminProfessionalApprovals',
+      // Notificação ao admin (apenas se novo perfil, não em edições)
+      if (!isEditing) {
+        try {
+          // Cria notificação para admins via função backend
+          await base44.functions.invoke('notifyAdminNewProfile', {
+            professional_name: form.walker_name || user.full_name,
+            professional_type: form.professional_type,
+            professional_email: user.email,
           });
+        } catch (err) {
+          console.warn('Erro ao notificar admin:', err);
         }
-      } catch (_) {}
+      }
 
       queryClient.invalidateQueries(['currentUser']);
       queryClient.invalidateQueries(['myProfessionalProfile']);
