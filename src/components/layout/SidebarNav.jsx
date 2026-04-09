@@ -1,11 +1,11 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { 
+import {
   Users, ShoppingBag, Zap, Heart, Building2, BarChart3,
-  Calendar, MessageCircle, History, Bell, Trophy, Crown,
+  Calendar, History, Bell, Trophy, Crown,
   ShieldCheck, CreditCard, User, Store, Megaphone, Shield,
-  Download, LogOut, ChevronDown, Package
+  Download, LogOut, ChevronDown
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/components/LanguageContext";
