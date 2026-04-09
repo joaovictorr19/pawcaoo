@@ -39,17 +39,11 @@
 
   body {
     @apply text-foreground;
-    position: relative;
     background: transparent;
     min-height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: none;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-perspective: 1000;
-    perspective: 1000;
   }
 
   input, textarea, select, [role="dialog"], [role="combobox"], [data-radix-popper-content-wrapper], [data-radix-dialog-content] {
@@ -250,15 +244,11 @@
   /* Ensure root div doesn't trap scroll on Android */
   #root {
     min-height: 100vh;
-    width: 100vw;
+    width: 100%;
     overflow-x: hidden;
     overflow-y: visible;
     display: flex;
     flex-direction: column;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
   }
 
   /* PawGo Live Tracking - Marcador suave no mapa */
