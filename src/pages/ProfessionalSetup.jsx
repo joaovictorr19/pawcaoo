@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+// Motion animations removidas para melhorar scroll no Android
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,7 +42,14 @@ export default function ProfessionalSetup() {
   const [uploading, setUploading] = useState(false);
   const [formInitialized, setFormInitialized] = useState(false);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('professional_setup_form');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Erro ao restaurar form', e);
+    }
+    return {
     walker_name: "",
     location: "",
     latitude: null,
@@ -60,6 +67,7 @@ export default function ProfessionalSetup() {
     availability: ["morning", "afternoon"],
     instant_booking: true,
     work_radius_km: 5,
+    };
   });
 
   const { data: user } = useQuery({
@@ -110,7 +118,15 @@ export default function ProfessionalSetup() {
     }
   }, [existingProfile, user, formInitialized]);
 
-  const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+  const set = (key, val) => {
+    setForm(prev => {
+      const updated = { ...prev, [key]: val };
+      try {
+        sessionStorage.setItem('professional_setup_form', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
 
   const toggleArr = (key, val) => {
     const arr = form[key] || [];
@@ -296,10 +312,9 @@ export default function ProfessionalSetup() {
           </p>
         </div>
 
-        <AnimatePresence mode="wait">
-          {/* STEP 0 - Perfil */}
-          {step === 0 && (
-            <motion.div key="s0" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} className="space-y-5">
+        {/* STEP 0 - Perfil */}
+        {step === 0 && (
+          <div className="space-y-5">
               <div>
                 <h2 className="text-3xl font-black text-white tracking-tighter">O teu perfil público</h2>
                 <p className="text-slate-400 text-sm mt-1">Como os donos de animais te vão conhecer.</p>
@@ -374,12 +389,12 @@ export default function ProfessionalSetup() {
                   className="w-full px-4 py-3 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm resize-none"
                 />
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* STEP 1 - Tipo */}
           {step === 1 && (
-            <motion.div key="s1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} className="space-y-5">
+            <div className="space-y-5">
               <div>
                 <h2 className="text-3xl font-black text-white tracking-tighter">O teu papel</h2>
                 <p className="text-slate-400 text-sm mt-1">Que tipo de serviços pretendes oferecer?</p>
@@ -407,12 +422,12 @@ export default function ProfessionalSetup() {
                   </button>
                 ))}
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* STEP 2 - Serviços */}
           {step === 2 && (
-            <motion.div key="s2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} className="space-y-5">
+            <div className="space-y-5">
               <div>
                 <h2 className="text-3xl font-black text-white tracking-tighter">Serviços & Preços</h2>
                 <p className="text-slate-400 text-sm mt-1">Define o que ofereces e quanto cobras.</p>
@@ -494,12 +509,12 @@ export default function ProfessionalSetup() {
                   ))}
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* STEP 3 - Preferências */}
           {step === 3 && (
-            <motion.div key="s3" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} className="space-y-6">
+            <div className="space-y-6">
               <div>
                 <h2 className="text-3xl font-black text-white tracking-tighter">Preferências</h2>
                 <p className="text-slate-400 text-sm mt-1">Define quem podes ajudar e quando.</p>
@@ -622,12 +637,12 @@ export default function ProfessionalSetup() {
                   ))}
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* STEP 4 - Confirmação */}
           {step === 4 && (
-            <motion.div key="s4" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} className="space-y-5">
+            <div className="space-y-5">
               <div className="text-center">
                 <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="w-10 h-10 text-orange-500" />
@@ -680,9 +695,8 @@ export default function ProfessionalSetup() {
               <div className="bg-slate-800/50 border border-orange-500/20 rounded-xl p-3 text-xs text-slate-400">
                 ⚠️ O teu perfil ficará em análise. A equipa PawCão verificará os teus dados e serás notificado quando aprovado.
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         {/* Navigation Buttons */}
         <div className="flex gap-3 mt-8">
