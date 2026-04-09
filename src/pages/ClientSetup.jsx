@@ -227,8 +227,36 @@ export default function ClientSetup() {
         await base44.entities.UserProfile.create(profileData);
       }
 
+      // Sincronizar animais com DogProfile (ficha completa)
+      for (const animal of form.owned_dogs) {
+        if (!animal.dog_name?.trim()) continue;
+        const existingProfiles = await base44.entities.DogProfile.filter({ owner_email: user.email });
+        const existing = existingProfiles.find(p => p.dog_id === animal.dog_id || p.dog_name === animal.dog_name);
+        const dogData = {
+          owner_email: user.email,
+          dog_id: animal.dog_id,
+          dog_name: animal.dog_name,
+          animal_type: animal.animal_type || 'dog',
+          breed: animal.dog_breed,
+          age: parseFloat(animal.dog_age) || 0,
+          size: animal.dog_size,
+          photo_url: animal.photo_url,
+          bio: animal.bio,
+          special_needs: animal.special_needs,
+          pickup_address: fullAddress,
+          pickup_city: form.city,
+          owner_phone: form.phone,
+        };
+        if (existing) {
+          await base44.entities.DogProfile.update(existing.id, dogData);
+        } else {
+          await base44.entities.DogProfile.create(dogData);
+        }
+      }
+
       queryClient.invalidateQueries(["currentUser"]);
       queryClient.invalidateQueries(["clientSetupProfile"]);
+      queryClient.invalidateQueries(["dogProfiles"]);
       toast.success("Perfil criado com sucesso! Bem-vindo à PawCão 🐾");
       navigate(createPageUrl("Home"), { replace: true });
     } catch (e) {
