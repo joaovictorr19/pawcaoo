@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -87,8 +87,6 @@ export default function Home() {
   const urlTabParam = new URLSearchParams(window.location.search).get('tab');
   const [activeTab, setActiveTab] = useState(urlTabParam || "professionals");
 
-  const [userLocation, setUserLocation] = useState(null);
-  const [viewMode, setViewMode] = useState("list");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -385,33 +383,10 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  const getWalkerDistance = (walker) => {
-    if (!userLocation?.lat || !userLocation?.lng || !walker.latitude || !walker.longitude) {
-      return null;
-    }
-    return calculateDistance(userLocation.lat, userLocation.lng, walker.latitude, walker.longitude);
-  };
 
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  const getEmergencyDistance = (walk) => {
-    if (!userLocation || !userLocation.lat || !userLocation.lng) return null;
-    if (!walk.latitude || !walk.longitude) return null;
-    return calculateDistance(userLocation.lat, userLocation.lng, walk.latitude, walk.longitude);
-  };
 
   const calculateMatchScore = (walker) => {
     return calculateCompatibilityScore(walker, {
-      userLocation: userLocation,
       myDogs: myDogs,
       favorites: favorites,
       userEmail: user?.email,
@@ -424,7 +399,6 @@ export default function Home() {
     
     const processed = validWalkers.map(w => ({
       ...w,
-      distance: getWalkerDistance(w),
       matchScore: calculateMatchScore(w)
     }));
 
@@ -463,16 +437,14 @@ export default function Home() {
     return result.sort((a, b) => {
       if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1;
       if (b.matchScore !== a.matchScore && a.matchScore > 0 && b.matchScore > 0) return b.matchScore - a.matchScore;
-      if (a.distance !== null && b.distance !== null) return a.distance - b.distance;
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkers, searchLocation, filterSize, filterTime, filterAnimalType, filterDogSitting, userLocation, myDogs, favorites, activeBookings]);
+  }, [walkers, searchLocation, filterSize, filterTime, filterAnimalType, filterDogSitting, myDogs, favorites, activeBookings]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
 
     return emergencyWalks
-      .map(walk => ({ ...walk, distance: getEmergencyDistance(walk) }))
       .filter(walk => {
         const matchesLocation = !searchLocation || 
           (walk.location && walk.location.toLowerCase().includes(searchLocation.toLowerCase()));
@@ -482,14 +454,11 @@ export default function Home() {
         return matchesLocation && matchesSize;
       })
       .sort((a, b) => {
-        if (userLocation && a.distance !== null && b.distance !== null) {
-          return a.distance - b.distance;
-        }
         const dateA = a.created_date ? new Date(a.created_date).getTime() : 0;
         const dateB = b.created_date ? new Date(b.created_date).getTime() : 0;
         return dateB - dateA;
       });
-  }, [emergencyWalks, searchLocation, filterSize, userLocation]);
+  }, [emergencyWalks, searchLocation, filterSize]);
 
   const totalPages = Math.ceil(filteredProfessionals.length / itemsPerPage);
   const paginatedProfessionals = filteredProfessionals.slice(
