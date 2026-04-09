@@ -1,40 +1,44 @@
 import React from 'react';
+import ReactMapGL, { MapRef, Marker, Source, Layer } from 'react-map-gl/maplibre';
+import type { MarkerProps, SourceProps, LayerProps } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
-export interface MapProps {
+interface MapProps {
   children?: React.ReactNode;
+  initialViewState?: {
+    longitude: number;
+    latitude: number;
+    zoom: number;
+  };
+  mapStyle?: string;
   className?: string;
-  style?: React.CSSProperties;
 }
 
-export const Map = React.forwardRef<HTMLDivElement, MapProps>(
-  ({ children, className, style }, ref) => {
+const Map = React.forwardRef<MapRef, MapProps>(
+  ({ children, initialViewState, mapStyle, className }, ref) => {
     return (
-      <div
-        ref={ref as any}
+      <ReactMapGL
+        ref={ref}
+        initialViewState={
+          initialViewState || {
+            longitude: -9.1393,
+            latitude: 38.7223,
+            zoom: 13,
+          }
+        }
+        mapStyle={
+          mapStyle || 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+        }
+        style={{ width: '100%', height: '100%' }}
         className={className}
-        style={{ width: '100%', height: '100%', ...style }}
-        aria-label="Map placeholder"
       >
         {children}
-      </div>
+      </ReactMapGL>
     );
   }
 );
 
 Map.displayName = 'Map';
 
-export const Marker: React.FC<{ children?: React.ReactNode } & React.HTMLAttributes<HTMLDivElement>> = ({ children, ...props }) => (
-  <div {...props}>{children}</div>
-);
-
-export const Source: React.FC<{ children?: React.ReactNode } & React.HTMLAttributes<HTMLDivElement>> = ({ children, ...props }) => (
-  <div {...props}>{children}</div>
-);
-
-export const Layer: React.FC<{ children?: React.ReactNode } & React.HTMLAttributes<HTMLDivElement>> = ({ children, ...props }) => (
-  <div {...props}>{children}</div>
-);
-
-export type MarkerProps = React.ComponentProps<typeof Marker>;
-export type SourceProps = React.ComponentProps<typeof Source>;
-export type LayerProps = React.ComponentProps<typeof Layer>;
+export { Map, Marker, Source, Layer };
+export type { MarkerProps, SourceProps, LayerProps };
