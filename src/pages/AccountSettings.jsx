@@ -341,21 +341,21 @@ export default function AccountSettings() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">A carregar...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">A carregar...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-safe">
+    <div className="min-h-screen bg-background pb-safe">
       <div className="max-w-6xl mx-auto p-4 md:p-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
               Configurações
             </h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Gerencie suas informações pessoais e privacidade
             </p>
           </div>
@@ -440,7 +440,7 @@ export default function AccountSettings() {
           </div>
 
           <div className="grid lg:grid-cols-4 gap-6">
-            <Card className="hidden lg:block lg:col-span-1 h-fit border-gray-200 shadow-sm">
+            <Card className="hidden lg:block lg:col-span-1 h-fit border-border shadow-sm">
               <CardContent className="p-4">
                 <nav className="space-y-1">
                   <Button
@@ -514,10 +514,10 @@ export default function AccountSettings() {
 
             <div className="lg:col-span-3">
               {activeSection === "profile" && (
-                <Card className="border-gray-200 shadow-sm">
+                <Card className="border-border shadow-sm">
                   <CardHeader>
                     <CardTitle>Perfil Público</CardTitle>
-                    <p className="text-sm text-gray-600">Informações visíveis para todos</p>
+                    <p className="text-sm text-muted-foreground">Informações visíveis para todos</p>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div>
@@ -532,11 +532,11 @@ export default function AccountSettings() {
                     <div>
                       <Label className="mb-3 block">Foto de Capa</Label>
                       <div className="flex items-center gap-4">
-                        <div className="w-40 h-20 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
+                        <div className="w-40 h-20 bg-muted rounded-lg overflow-hidden border-2 border-dashed border-border flex items-center justify-center">
                           {user?.cover_photo_url ? (
                             <img src={user.cover_photo_url} className="w-full h-full object-cover" alt="Cover" />
                           ) : (
-                            <span className="text-xs text-gray-400">Nenhuma foto</span>
+                            <span className="text-xs text-muted-foreground">Nenhuma foto</span>
                           )}
                         </div>
                         <div>
@@ -570,7 +570,7 @@ export default function AccountSettings() {
                         onChange={(e) => setProfileData({...profileData, full_name: e.target.value})}
                         placeholder="Ex: João da Silva (Pode conter espaços)"
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Seu nome de exibição no perfil.
                       </p>
                     </div>
@@ -578,7 +578,7 @@ export default function AccountSettings() {
                     <div>
                       <Label>Nome de Usuário (@)</Label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
                         <Input
                           value={profileData.username}
                           onChange={(e) => {
@@ -589,8 +589,8 @@ export default function AccountSettings() {
                           className="pl-7"
                         />
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Identificador único (sem espaços). É assim que outros usuários encontrarão você. 
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Identificador único (sem espaços). É assim que outros usuários encontrarão você.
                         <span className="text-orange-600 block mt-1 font-medium">
                           Nota: O nome de usuário (@) só pode ser alterado uma vez a cada 30 dias.
                         </span>
@@ -606,8 +606,6 @@ export default function AccountSettings() {
                         rows={4}
                       />
                     </div>
-
-
 
                     <div>
                       <Label>Website</Label>
@@ -636,18 +634,18 @@ export default function AccountSettings() {
               )}
 
               {activeSection === "private" && (
-                <Card className="border-gray-200 shadow-sm">
+                <Card className="border-border shadow-sm">
                   <CardHeader>
                     <CardTitle>Dados Privados</CardTitle>
-                    <p className="text-sm text-gray-600">Informações confidenciais</p>
+                    <p className="text-sm text-muted-foreground">Informações confidenciais</p>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <Label>Email</Label>
-                      <Input value={user?.email} disabled className="bg-gray-100" />
+                      <Input value={user?.email} disabled className="bg-muted" />
                     </div>
 
-                    <div className="border p-4 rounded-md bg-gray-50 space-y-3">
+                    <div className="border border-border p-4 rounded-md bg-muted space-y-3">
                       <h4 className="font-medium text-sm">Emergency Contact</h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
@@ -742,7 +740,7 @@ export default function AccountSettings() {
               )}
 
               {activeSection === "preferences" && (
-                <Card className="border-gray-200 shadow-sm">
+                <Card className="border-border shadow-sm">
                   <CardHeader>
                     <CardTitle>Preferências</CardTitle>
                   </CardHeader>
@@ -750,10 +748,10 @@ export default function AccountSettings() {
                     <div className="space-y-4">
                       <Label>Notificações</Label>
                       
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
                           <p className="font-medium text-sm">Notificações Push</p>
-                          <p className="text-xs text-gray-600">Receba notificações no app</p>
+                          <p className="text-xs text-muted-foreground">Receba notificações no app</p>
                         </div>
                         <Switch
                           checked={preferences.notifications_enabled}
@@ -761,10 +759,10 @@ export default function AccountSettings() {
                         />
                       </div>
 
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
                           <p className="font-medium text-sm">Email</p>
-                          <p className="text-xs text-gray-600">Receba atualizações por email</p>
+                          <p className="text-xs text-muted-foreground">Receba atualizações por email</p>
                         </div>
                         <Switch
                           checked={preferences.email_notifications}
@@ -775,12 +773,12 @@ export default function AccountSettings() {
                       <Separator />
                       
                       <div className="space-y-3">
-                        <h4 className="text-sm font-semibold text-gray-700">Tipos de Notificação</h4>
+                        <h4 className="text-sm font-semibold text-foreground">Tipos de Notificação</h4>
                         
-                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-card border rounded-lg">
                           <div>
                             <p className="font-medium text-sm">Reservas & Agendamentos</p>
-                            <p className="text-xs text-gray-500">Atualizações sobre seus passeios e treinos</p>
+                            <p className="text-xs text-muted-foreground">Atualizações sobre seus passeios e treinos</p>
                           </div>
                           <Switch
                             checked={preferences.push_booking_updates}
@@ -789,10 +787,10 @@ export default function AccountSettings() {
                           />
                         </div>
 
-                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-card border rounded-lg">
                           <div>
                             <p className="font-medium text-sm">Mensagens</p>
-                            <p className="text-xs text-gray-500">Novas mensagens de chat</p>
+                            <p className="text-xs text-muted-foreground">Novas mensagens de chat</p>
                           </div>
                           <Switch
                             checked={preferences.push_messages}
@@ -801,10 +799,10 @@ export default function AccountSettings() {
                           />
                         </div>
 
-                        <div className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-card border rounded-lg">
                           <div>
                             <p className="font-medium text-sm">Marketing & Novidades</p>
-                            <p className="text-xs text-gray-500">Promoções e atualizações do app</p>
+                            <p className="text-xs text-muted-foreground">Promoções e atualizações do app</p>
                           </div>
                           <Switch
                             checked={preferences.push_marketing}
@@ -824,22 +822,22 @@ export default function AccountSettings() {
               )}
 
               {activeSection === "security" && (
-                <Card className="border-gray-200 shadow-sm">
+                <Card className="border-border shadow-sm">
                   <CardHeader>
                     <CardTitle>Segurança e Login</CardTitle>
-                    <p className="text-sm text-gray-600">Gerencie suas credenciais de acesso</p>
+                    <p className="text-sm text-muted-foreground">Gerencie suas credenciais de acesso</p>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     
                     {/* Alterar Email */}
                     <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                    <h3 className="font-medium text-foreground flex items-center gap-2">
                       <Mail className="w-4 h-4" /> Alterar Email
                     </h3>
-                    <div className="grid gap-4 p-4 border rounded-lg bg-gray-50">
+                    <div className="grid gap-4 p-4 border rounded-lg bg-muted">
                       <div className="grid gap-2">
                         <Label htmlFor="current-email">Email Atual</Label>
-                        <Input id="current-email" value={user?.email} disabled className="bg-gray-200" />
+                        <Input id="current-email" value={user?.email} disabled className="bg-background" />
                       </div>
 
                       <div className="grid gap-2">
@@ -892,10 +890,10 @@ export default function AccountSettings() {
 
                     {/* Alterar Senha */}
                     <div className="space-y-4">
-                    <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                    <h3 className="font-medium text-foreground flex items-center gap-2">
                       <Lock className="w-4 h-4" /> Alterar Senha
                     </h3>
-                    <div className="grid gap-4 p-4 border rounded-lg bg-gray-50">
+                    <div className="grid gap-4 p-4 border rounded-lg bg-muted">
                       <div className="grid gap-2">
                         <Label htmlFor="current-password-change">Senha Atual</Label>
                         <Input 
@@ -967,6 +965,42 @@ export default function AccountSettings() {
 
                     <Separator />
 
+                    {/* Danger Zone */}
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg space-y-4">
+                      <div>
+                        <h4 className="font-semibold text-red-900 mb-3">Zona de Perigo</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm text-red-700 mb-2">
+                              Eliminar permanentemente a sua conta
+                            </p>
+                            <Button
+                              variant="outline"
+                              className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11"
+                              onClick={() => setShowDeleteDialog(true)}
+                            >
+                              <AlertCircle className="w-4 h-4 mr-2" />
+                              Eliminar Conta
+                            </Button>
+                          </div>
+                          <Separator className="bg-red-200" />
+                          <div>
+                            <p className="text-sm text-red-700 mb-2">
+                              Encerrar sessão neste dispositivo
+                            </p>
+                            <Button
+                              variant="outline"
+                              className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11"
+                              onClick={handleLogout}
+                            >
+                              <LogOut className="w-4 h-4 mr-2" />
+                              Sair da Conta
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                       <AlertDialogContent className="border-red-300">
                         <AlertDialogTitle className="text-red-700">Confirmar Eliminação de Conta</AlertDialogTitle>
@@ -1013,127 +1047,22 @@ export default function AccountSettings() {
                         </div>
                       </AlertDialogContent>
                     </AlertDialog>
+                  </CardContent>
+                </Card>
+              )}
 
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-red-900 mb-3">Zona de Perigo</h4>
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-sm text-red-700 mb-2">
-                              Eliminar permanentemente a sua conta
-                            </p>
-                            <Button
-                              variant="outline"
-                              className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11 touch-action-manipulation"
-                              onClick={() => setShowDeleteDialog(true)}
-                            >
-                              <AlertCircle className="w-4 h-4 mr-2" />
-                              Eliminar Conta
-                            </Button>
-                          </div>
-                          <Separator className="bg-red-200" />
-                          <div>
-                            <p className="text-sm text-red-700 mb-2">
-                              Encerrar sessão neste dispositivo
-                            </p>
-                            <Button
-                              variant="outline"
-                              className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11 touch-action-manipulation"
-                              onClick={handleLogout}
-                            >
-                              <LogOut className="w-4 h-4 mr-2" />
-                              Sair da Conta
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    </CardContent>
-                    </Card>
-                    )}
-
-                    {activeSection === "subscription" && (
-                    <SubscriptionManager subscriptionType="owner" />
-                    )}
-
-                    {activeSection === "dogs" && (
-                    <Card className="border-gray-200 shadow-sm">
-                    <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Dog className="w-6 h-6 text-pink-600" />
-                      Meus Animais
-                    </CardTitle>
-                    <p className="text-sm text-gray-600">Gerencie os perfis dos seus animais</p>
-                    </CardHeader>
-                    <CardContent>
-                    <Button
-                      onClick={() => setShowAnimalModal(true)}
-                      className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white h-14 text-lg"
-                    >
-                      <Dog className="w-5 h-5 mr-2" />
-                      Gerir Meus Animais
-                    </Button>
-                    </CardContent>
-                    </Card>
-                    )}
-
-                    {activeSection === "professional" && ['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                    <Card className="border-gray-200 shadow-sm">
-                    <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-green-700">
-                      <Briefcase className="w-6 h-6" />
-                      Gestão Profissional (Atalho)
-                    </CardTitle>
-                    <p className="text-sm text-gray-600">Configurações rápidas da sua carreira PawCão.</p>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <Label>Taxa Horária Principal (€)</Label>
-                      <div className="flex gap-2 mt-2">
-                        <Input 
-                          type="number" 
-                          placeholder="Ex: 15" 
-                          defaultValue={walkerProfile?.hourly_rate || trainerProfile?.hourly_rate} 
-                          id="quick-hourly-rate"
-                        />
-                        <Button 
-                          onClick={async () => {
-                            const val = document.getElementById('quick-hourly-rate').value;
-                            if(val) {
-                              try {
-                                if (walkerProfile) await base44.entities.WalkerProfile.update(walkerProfile.id, { hourly_rate: parseFloat(val) });
-                                if (trainerProfile) await base44.entities.TrainerProfile.update(trainerProfile.id, { hourly_rate: parseFloat(val) });
-                                toast.success("Taxa atualizada com sucesso!");
-                              } catch(e) {
-                                toast.error("Erro ao atualizar taxa");
-                              }
-                            }
-                          }}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Atualizar
-                        </Button>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => navigate(createPageUrl("ProfessionalDashboard"))}
-                    >
-                      Abrir Painel Profissional Completo
-                    </Button>
-                    </CardContent>
-                    </Card>
-                    )}
+              {activeSection === "subscription" && (
+                <SubscriptionManager subscriptionType="owner" />
+              )}
 
               {activeSection === "dogs" && (
-                <Card className="border-gray-200 shadow-sm">
+                <Card className="border-border shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Dog className="w-6 h-6 text-pink-600" />
                       Meus Animais
                     </CardTitle>
-                    <p className="text-sm text-gray-600">Gerencie os perfis dos seus animais</p>
+                    <p className="text-sm text-muted-foreground">Gerencie os perfis dos seus animais</p>
                   </CardHeader>
                   <CardContent>
                     <Button
@@ -1148,13 +1077,13 @@ export default function AccountSettings() {
               )}
 
               {activeSection === "professional" && ['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                <Card className="border-gray-200 shadow-sm">
+                <Card className="border-border shadow-sm">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-green-700">
                       <Briefcase className="w-6 h-6" />
                       Gestão Profissional (Atalho)
                     </CardTitle>
-                    <p className="text-sm text-gray-600">Configurações rápidas da sua carreira PawCão.</p>
+                    <p className="text-sm text-muted-foreground">Configurações rápidas da sua carreira PawCão.</p>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
