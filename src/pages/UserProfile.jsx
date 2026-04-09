@@ -429,6 +429,18 @@ export default function UserProfile() {
           </div>
           <h1 className="text-3xl font-black text-slate-900 mt-6 text-center">{displayName}</h1>
           {displayCity && <p className="text-slate-500 flex items-center gap-1 mt-2"><MapPin size={14} /> {displayCity}</p>}
+
+          {/* PEDIR AGORA - Só aparece quando o profissional está online */}
+          {!isOwnProfile && (walkerProfile || trainerProfile) && (walkerProfile?.is_online || trainerProfile?.is_online) && (
+            <button
+              onClick={() => setBookingModal({ isOpen: true, selectedDate: null, selectedService: null })}
+              className="mt-5 px-8 py-4 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-black rounded-2xl text-base transition-all shadow-xl shadow-green-200 flex items-center gap-2"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-white inline-block animate-pulse" />
+              Pedir Agora
+            </button>
+          )}
+
           {/* EDIT BUTTON - Only for customers (non-professionals) */}
           {isOwnProfile && !walkerProfile && !trainerProfile && (
             <Button
@@ -514,7 +526,13 @@ export default function UserProfile() {
               )}
               <div className="space-y-3">
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
-                  <div key={idx} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+                  <button
+                    key={idx}
+                    onClick={() => !isOwnProfile && setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
+                    className={`w-full bg-white border-2 rounded-2xl overflow-hidden transition-all text-left ${
+                      !isOwnProfile ? 'border-slate-200 hover:border-blue-400 hover:shadow-md active:scale-[0.98] cursor-pointer' : 'border-slate-200 cursor-default'
+                    }`}
+                  >
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
@@ -530,15 +548,12 @@ export default function UserProfile() {
                         </div>
                       </div>
                       {!isOwnProfile && (
-                        <button
-                          onClick={() => setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
-                          className="w-full mt-3 py-2.5 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white font-bold rounded-xl text-xs transition-all"
-                        >
-                          Reservar este serviço →
-                        </button>
+                        <div className="mt-3 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs text-center">
+                          Agendar este serviço →
+                        </div>
                       )}
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
