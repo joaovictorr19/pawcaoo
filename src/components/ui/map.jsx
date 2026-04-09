@@ -17,7 +17,7 @@ type MapProps = {
 const Map = React.forwardRef<HTMLDivElement, MapProps>(
   ({ children, initialViewState, mapStyle, className }, ref) => {
     const info = initialViewState
-      ? `lng: ${initialViewState.longitude.toFixed(3)} | lat: ${initialViewState.latitude.toFixed(3)} | zoom: ${initialViewState.zoom}`
+      ? `lng: ${initialViewState.longitude?.toFixed?.(3) ?? ''} | lat: ${initialViewState.latitude?.toFixed?.(3) ?? ''} | zoom: ${initialViewState.zoom ?? ''}`
       : 'default view';
 
     return (
