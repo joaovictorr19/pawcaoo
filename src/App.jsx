@@ -11,6 +11,10 @@ const ProfessionalSetup = lazy(() => import('./pages/ProfessionalSetup').catch(e
   console.error('Error loading ProfessionalSetup:', e);
   return { default: () => <div>Erro ao carregar página</div> };
 }));
+const ClientSetup = lazy(() => import('./pages/ClientSetup').catch(e => {
+  console.error('Error loading ClientSetup:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
 const DebugWalkTest = lazy(() => import('./pages/DebugWalkTest').catch(e => {
   console.error('Error loading DebugWalkTest:', e);
   return { default: () => <div>Erro ao carregar página</div> };
@@ -121,6 +125,7 @@ const AuthenticatedApp = () => {
             <Route path="/ProfessionalSetup" element={<Suspense fallback={<PageLoader />}><ProfessionalSetup /></Suspense>} />
             <Route path="/ProfessionalCalendar" element={<Suspense fallback={<PageLoader />}><ProfessionalCalendar /></Suspense>} />
             <Route path="/DebugWalkTest" element={<Suspense fallback={<PageLoader />}><DebugWalkTest /></Suspense>} />
+            <Route path="/ClientSetup" element={<Suspense fallback={<PageLoader />}><ClientSetup /></Suspense>} />
 
             <Route path="*" element={<PageNotFound />} />
             </Routes>
