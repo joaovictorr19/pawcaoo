@@ -528,7 +528,7 @@ export default function UserProfile() {
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
                   <button
                     key={idx}
-                    onClick={() => !isOwnProfile && setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
+                    onClick={() => setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
                     className={`w-full bg-white border-2 rounded-2xl overflow-hidden transition-all text-left ${
                       !isOwnProfile ? 'border-slate-200 hover:border-blue-400 hover:shadow-md active:scale-[0.98] cursor-pointer' : 'border-slate-200 cursor-default'
                     }`}
