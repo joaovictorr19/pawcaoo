@@ -7,6 +7,14 @@
 export default function LayoutStyles() {
   return (
     <style>{`
+      html, body {
+        height: 100%;
+      }
+
+      body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
       :root {
         --primary: 142 76% 36%;
         --primary-foreground: 0 0% 100%;

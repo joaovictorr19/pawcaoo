@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// deno-lint-ignore no-undef
 if (typeof Deno !== 'undefined') {
   // deno-lint-ignore no-undef
   Deno.serve(async (req) => {
