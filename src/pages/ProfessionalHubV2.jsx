@@ -23,6 +23,7 @@ import { FinancesSection } from "@/components/professional-hub/FinancesSection";
 import { DayOffManager } from "@/components/professional-hub/DayOffManager";
 import ServiceOfferingsEditor from "@/components/professional-hub/ServiceOfferingsEditor";
 import ReviewsManagementSection from "@/components/professional-hub/ReviewsManagementSection";
+import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 
 function ActiveRequestsList({ user }) {
   const { data: activeBookings = [] } = useQuery({
@@ -475,6 +476,18 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
             >
               <ReviewsManagementSection user={user} professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "portfolio" && (
+            <motion.div
+              key="portfolio"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PortfolioSection professionalProfile={professionalProfile} />
             </motion.div>
           )}
 

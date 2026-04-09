@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import WalkReport from "@/components/client/WalkReport";
+import MyDogsManager from "@/components/profile/MyDogsManager";
 import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
 import { 
   History, 
@@ -202,9 +203,9 @@ export default function ClientDashboard() {
           </Card>
         </div>
 
-        {/* Tabs: History & Reports */}
+        {/* Tabs: History, Reports & Dogs */}
         <Tabs defaultValue="history" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="history" className="gap-2">
               <History className="w-4 h-4" />
               Histórico
@@ -212,6 +213,9 @@ export default function ClientDashboard() {
             <TabsTrigger value="map" className="gap-2">
               <MapPin className="w-4 h-4" />
               Trajetos
+            </TabsTrigger>
+            <TabsTrigger value="dogs" className="gap-2">
+              🐾 Animais
             </TabsTrigger>
           </TabsList>
 
@@ -266,6 +270,10 @@ export default function ClientDashboard() {
             </div>
           </TabsContent>
 
+          <TabsContent value="dogs">
+            <MyDogsManager userEmail={user?.email} />
+          </TabsContent>
+
           <TabsContent value="map">
             <Card className="overflow-hidden shadow-xl border-0">
               <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
@@ -273,12 +281,10 @@ export default function ClientDashboard() {
                   <MapPin className="w-6 h-6" />
                   Mapa de Aventuras do {selectedBooking?.dog_name || 'seu Pet'}
                 </CardTitle>
-                <p className="text-sm text-white/80">
-                  Todos os trajetos GPS e eventos registados nos passeios
-                </p>
+                <p className="text-sm text-white/80">Todos os trajetos GPS e eventos registados nos passeios</p>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="h-[600px]">
+                <div className="h-[500px]">
                   <MapContainer
                     center={selectedBooking?.route_coordinates?.[0]
                       ? [selectedBooking.route_coordinates[0].lat, selectedBooking.route_coordinates[0].lng]
@@ -313,32 +319,16 @@ export default function ClientDashboard() {
                     ))}
                   </MapContainer>
                 </div>
-                
-                {/* Walk selector if multiple walks exist */}
                 {bookings.filter(b => b.status === 'completed').length > 1 && (
                   <div className="p-4 border-t bg-gray-50">
                     <p className="text-sm font-medium text-gray-700 mb-3">Selecionar Passeio:</p>
                     <div className="flex gap-2 overflow-x-auto pb-2">
-                      <Button
-                        variant={!selectedBooking ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedBooking(null)}
-                      >
-                        Todos
-                      </Button>
-                      {bookings
-                        .filter(b => b.status === 'completed' && b.route_coordinates?.length > 0)
-                        .map((booking) => (
-                          <Button
-                            key={booking.id}
-                            variant={selectedBooking?.id === booking.id ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setSelectedBooking(booking)}
-                            className="whitespace-nowrap"
-                          >
-                            {booking.dog_name} - {format(new Date(booking.walk_date), "dd/MM", { locale: pt })}
-                          </Button>
-                        ))}
+                      <Button variant={!selectedBooking ? 'default' : 'outline'} size="sm" onClick={() => setSelectedBooking(null)}>Todos</Button>
+                      {bookings.filter(b => b.status === 'completed' && b.route_coordinates?.length > 0).map((booking) => (
+                        <Button key={booking.id} variant={selectedBooking?.id === booking.id ? 'default' : 'outline'} size="sm" onClick={() => setSelectedBooking(booking)} className="whitespace-nowrap">
+                          {booking.dog_name} - {format(new Date(booking.walk_date), 'dd/MM', { locale: pt })}
+                        </Button>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -350,19 +340,16 @@ export default function ClientDashboard() {
 
       {/* Report Modal */}
       {selectedBooking && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
           onClick={() => setSelectedBooking(null)}
         >
-          <div 
+          <div
             className="max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <WalkReport booking={selectedBooking} checkpoints={checkpoints} />
-            <Button 
-              onClick={() => setSelectedBooking(null)}
-              className="w-full mt-4 bg-gray-900 hover:bg-gray-800"
-            >
+            <Button onClick={() => setSelectedBooking(null)} className="w-full mt-4 bg-gray-900 hover:bg-gray-800">
               Fechar Relatório
             </Button>
           </div>
