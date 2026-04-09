@@ -19,7 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Settings, User, Mail, Phone, MapPin, LogOut, Upload, Save,
-  Lock, Bell, Globe, Shield, ChevronRight, CreditCard, Dog, Briefcase
+  Lock, Bell, Globe, Shield, ChevronRight, CreditCard, Dog, Briefcase, AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -1016,18 +1016,36 @@ export default function AccountSettings() {
 
                     <div className="p-4 bg-red-50 border border-red-200 rounded-lg space-y-4">
                       <div>
-                        <h4 className="font-semibold text-red-900 mb-2">Zona de Perigo</h4>
-                        <p className="text-sm text-red-700 mb-4">
-                          Encerrar sessão neste dispositivo
-                        </p>
-                        <Button
-                          variant="outline"
-                          className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11"
-                          onClick={handleLogout}
-                        >
-                          <LogOut className="w-4 h-4 mr-2" />
-                          Sair da Conta
-                        </Button>
+                        <h4 className="font-semibold text-red-900 mb-3">Zona de Perigo</h4>
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-sm text-red-700 mb-2">
+                              Eliminar permanentemente a sua conta
+                            </p>
+                            <Button
+                              variant="outline"
+                              className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11 touch-action-manipulation"
+                              onClick={() => setShowDeleteDialog(true)}
+                            >
+                              <AlertCircle className="w-4 h-4 mr-2" />
+                              Eliminar Conta
+                            </Button>
+                          </div>
+                          <Separator className="bg-red-200" />
+                          <div>
+                            <p className="text-sm text-red-700 mb-2">
+                              Encerrar sessão neste dispositivo
+                            </p>
+                            <Button
+                              variant="outline"
+                              className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11 touch-action-manipulation"
+                              onClick={handleLogout}
+                            >
+                              <LogOut className="w-4 h-4 mr-2" />
+                              Sair da Conta
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     </CardContent>
