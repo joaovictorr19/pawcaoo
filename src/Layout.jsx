@@ -530,9 +530,9 @@ function LayoutContent({ children, currentPageName }) {
       <NotificationTriggers user={authUser} />
       <NotificationManager />
 
-      <div className="flex flex-col w-full relative z-10" style={{ marginTop: '64px', overflowX: 'hidden', minHeight: 'calc(100vh - 64px)' }}>
+      <div className="flex flex-col w-full relative z-10 min-h-screen" style={{ marginTop: '64px', overflowX: 'hidden' }}>
         <div className="hidden md:block" style={{ height: '26px' }} />
-        <div className="flex flex-1 w-full flex-col">
+        <div className="flex flex-1 w-full flex-col min-h-screen">
           {stableUser && (
             <MobileNavBar user={stableUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
           )}
@@ -556,7 +556,7 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <main className="flex-1 w-full">
+          <main className="flex-1 w-full min-h-screen">
             {children}
           </main>
 
