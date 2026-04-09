@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -68,40 +68,47 @@ export default function ProfessionalSetup() {
   });
 
   // Pré-preencher form com dados existentes
-  useQuery({
+  const { data: existingProfile } = useQuery({
     queryKey: ['existingProfessionalProfile', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
-      let profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
       return profiles[0] || null;
     },
-    enabled: !!user?.email && !formInitialized,
-    onSuccess: (profile) => {
-      if (profile && !formInitialized) {
-        setFormInitialized(true);
-        setForm(prev => ({
-          ...prev,
-          walker_name: profile.walker_name || user?.full_name || "",
-          location: profile.location || "",
-          latitude: profile.latitude || null,
-          longitude: profile.longitude || null,
-          bio: profile.bio || "",
-          photo_url: profile.photo_url || "",
-          whatsapp_number: profile.whatsapp_number || "",
-          hourly_rate: String(profile.hourly_rate || "15"),
-          services_offered: profile.services_offered?.length ? profile.services_offered : prev.services_offered,
-          accepted_animals: profile.accepted_animals?.length ? profile.accepted_animals : prev.accepted_animals,
-          dog_sizes: profile.dog_sizes?.length ? profile.dog_sizes : prev.dog_sizes,
-          availability: profile.availability?.length ? profile.availability : prev.availability,
-          instant_booking: profile.instant_booking ?? true,
-          professional_type: profile.is_verified_trainer ? 'both' : 'walker',
-        }));
-      } else {
-        setFormInitialized(true);
-        if (user?.full_name) setForm(prev => ({ ...prev, walker_name: user.full_name }));
-      }
-    }
+    enabled: !!user?.email,
+    staleTime: 0,
   });
+
+  useEffect(() => {
+    if (formInitialized) return;
+    if (!user) return;
+    // existingProfile may be null (no profile) or an object
+    if (existingProfile === undefined) return; // still loading
+
+    setFormInitialized(true);
+    if (existingProfile) {
+      setForm(prev => ({
+        ...prev,
+        walker_name: existingProfile.walker_name || user.full_name || "",
+        location: existingProfile.location || "",
+        latitude: existingProfile.latitude || null,
+        longitude: existingProfile.longitude || null,
+        bio: existingProfile.bio || "",
+        photo_url: existingProfile.photo_url || "",
+        whatsapp_number: existingProfile.whatsapp_number || "",
+        hourly_rate: String(existingProfile.hourly_rate || "15"),
+        services_offered: existingProfile.services_offered?.length ? existingProfile.services_offered : prev.services_offered,
+        accepted_animals: existingProfile.accepted_animals?.length ? existingProfile.accepted_animals : prev.accepted_animals,
+        dog_sizes: existingProfile.dog_sizes?.length ? existingProfile.dog_sizes : prev.dog_sizes,
+        availability: existingProfile.availability?.length ? existingProfile.availability : prev.availability,
+        instant_booking: existingProfile.instant_booking ?? true,
+        work_radius_km: existingProfile.service_areas?.[0]?.radius_km || 5,
+        professional_type: existingProfile.is_verified_trainer ? 'both' : 'walker',
+      }));
+    } else if (user.full_name) {
+      setForm(prev => ({ ...prev, walker_name: user.full_name }));
+    }
+  }, [existingProfile, user, formInitialized]);
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
