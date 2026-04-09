@@ -195,7 +195,7 @@ export default function PortfolioSection({ professionalProfile }) {
             <button onClick={() => setShowAdd(true)} className="mt-3 text-orange-400 text-sm font-bold hover:text-orange-300">+ Adiciona o primeiro</button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-5xl">
             {portfolio.map((item, i) => (
               <PortfolioCard key={i} item={item} onDelete={(it) => deleteMutation.mutate(it)} />
             ))}
