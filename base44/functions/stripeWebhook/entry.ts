@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
         // Verify webhook signature
         let event;
         try {
-            event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+            event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
         } catch (err) {
             console.error('Webhook signature verification failed:', err.message);
             return Response.json({ error: 'Invalid signature' }, { status: 400 });
@@ -517,11 +517,38 @@ async function handleCheckoutCompleted(base44, session) {
             });
         }
     } else if (bookingId) {
-        // Handle booking payment
-        await base44.asServiceRole.entities.Booking.update(bookingId, {
-            payment_status: 'held',
-            status: 'confirmed'
-        });
+        // Handle booking payment - keep as pending so walker can accept
+        const bookings = await base44.asServiceRole.entities.Booking.filter({ id: bookingId });
+        if (bookings.length > 0) {
+            const booking = bookings[0];
+            await base44.asServiceRole.entities.Booking.update(bookingId, {
+                payment_status: 'held',
+                status: 'pending'
+            });
+            // Notify walker about new paid booking
+            if (booking.walker_email) {
+                await base44.asServiceRole.entities.Notification.create({
+                    recipient_email: booking.walker_email,
+                    title: '💰 Nova Reserva Paga!',
+                    message: `${booking.owner_name || 'Um cliente'} pagou uma reserva para ${booking.dog_name || 'o seu animal'} em ${booking.walk_date || session.metadata?.walk_date || ''}. Aceite agora!`,
+                    type: 'booking',
+                    related_id: bookingId,
+                    icon: '🐾'
+                });
+            }
+            // Notify owner of successful payment
+            const ownerEmail = booking.owner_email || booking.created_by;
+            if (ownerEmail) {
+                await base44.asServiceRole.entities.Notification.create({
+                    recipient_email: ownerEmail,
+                    title: '✅ Pagamento Confirmado',
+                    message: `O seu pagamento foi recebido. Aguarde a aceitação do profissional.`,
+                    type: 'payment',
+                    related_id: bookingId,
+                    icon: '✅'
+                });
+            }
+        }
     }
 }
 
