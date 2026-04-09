@@ -122,7 +122,6 @@ const AuthenticatedApp = () => {
             <Route path="/ProfessionalHubV2" element={<Suspense fallback={<PageLoader />}><ProfessionalHubV2 /></Suspense>} />
             <Route path="/Dashboard" element={<Suspense fallback={<PageLoader />}><PawGoMaintenance /></Suspense>} />
 
-            <Route path="/ProfessionalSetup" element={<Suspense fallback={<PageLoader />}><ProfessionalSetup /></Suspense>} />
             <Route path="/ProfessionalCalendar" element={<Suspense fallback={<PageLoader />}><ProfessionalCalendar /></Suspense>} />
             <Route path="/DebugWalkTest" element={<Suspense fallback={<PageLoader />}><DebugWalkTest /></Suspense>} />
             <Route path="/ClientSetup" element={<Suspense fallback={<PageLoader />}><ClientSetup /></Suspense>} />
