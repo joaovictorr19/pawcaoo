@@ -866,11 +866,11 @@ function LayoutContent({ children, currentPageName }) {
       </header>
       {/* ========== FIM HEADER ========== */}
 
-      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '64px', overflowX: 'hidden' }}>
+      <div className="flex flex-col w-full relative z-10" style={{ marginTop: '64px', overflowX: 'hidden', overflowY: 'visible', minHeight: 'calc(100vh - 64px)' }}>
         {/* Espaçamento extra para desktop onde o header é flutuante */}
         <div className="hidden md:block" style={{ height: '26px' }} />
         {/* Container para sidebar e conteúdo */}
-        <div className="flex flex-1 w-full">
+        <div className="flex flex-1 w-full" style={{ overflowY: 'visible' }}>
         {stableUser && (
                       <Sidebar 
                         className="border transition-colors duration-300 md:ml-4 md:mr-4 md:mb-4 md:mt-8 shadow-lg overflow-hidden shrink-0"
