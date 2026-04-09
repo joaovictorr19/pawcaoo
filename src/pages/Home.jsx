@@ -952,39 +952,61 @@ export default function Home() {
               </div>
 
               <TabsContent value="professionals">
-               <div className="bg-black/10 backdrop-blur-lg rounded-2xl p-6 md:p-8 shadow-lg">
-                 <div className="flex items-center justify-between mb-4 md:mb-6">
-                   <div>
-                     <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg mb-2">
-                       {filterDogSitting !== "all" ? (
-                         <>
-                           {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
-                           {filterDogSitting === "house_sitting" && t('walkersForHouseSitting', language)}
-                           {filterDogSitting === "drop_in" && t('walkersForDropIn', language)}
-                         </>
-                       ) : (
-                         language === 'pt' ? 'Profissionais Disponíveis' : 
-                         language === 'es' ? 'Profesionales Disponibles' : 
-                         'Available Professionals'
-                       )}
-                     </h2>
-                     </div>
-                     </div>
-                     </div>
-
-                     <>
-                     {loadingWalkers ? (
+                <div className="bg-black/10 backdrop-blur-lg rounded-2xl p-6 md:p-8 shadow-lg">
+                  <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg mb-6">
+                    {language === 'pt' ? 'Profissionais Disponíveis' : 
+                     language === 'es' ? 'Profesionales Disponibles' : 
+                     'Available Professionals'}
+                  </h2>
+                  {loadingWalkers ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                        <div key={`skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
+                          <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
+                          <Skeleton className="h-5 w-3/4 bg-gray-200" />
+                          <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : filteredProfessionals.length === 0 ? (
+                    <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden bg-white/90">
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                        <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
+                        {language === 'pt' ? 'Nenhum profissional encontrado' : 'No professionals found'}
+                      </h3>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => {
+                          setSearchLocation("");
+                          setCurrentPage(1);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {language === 'pt' ? 'Limpar Filtros' : 'Clear Filters'}
+                      </Button>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                      {paginatedProfessionals.map((pro) => (
+                        <ProfessionalCard key={pro.id} walker={pro} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
 
               <TabsContent value="emergency">
                 <div className="p-3 sm:p-6 animate-in fade-in duration-500">
                   <div className="bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100 p-6 text-center">
                     <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
                     <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">PawGo em Manutenção</h3>
-                    <p className="text-sm text-gray-600 mb-4">Estamos a refazer o PawGo do zero para trazer-te uma experiência ainda melhor!</p>
+                    <p className="text-sm text-gray-600 mb-4">Estamos a refazer o PawGo do zero!</p>
                   </div>
                   {!user && (
                     <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100 mt-4">
-                      <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">Faça Login para Usar PawGo</h3>
                       <Button 
                         onClick={handleLogin}
                         className="bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-full shadow-xl"
