@@ -41,6 +41,7 @@ export default function Home() {
   const { colors } = useTheme();
   const navigate = useNavigate();
   
+  const isMobile = window.innerWidth < 768;
   const urlParams = new URLSearchParams(window.location.search);
   const dogSittingServiceFilter = urlParams.get('dogSittingService');
   
@@ -262,14 +263,15 @@ export default function Home() {
     queryKey: ['allWalkers'],
     queryFn: async () => {
       try {
-        const result = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100);
+        const limit = isMobile ? 30 : 100;
+        const result = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', limit);
         return Array.isArray(result) ? result : [];
       } catch (error) {
         console.error("Erro walkers:", error);
         return [];
       }
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -278,16 +280,15 @@ export default function Home() {
     queryKey: ['emergencyWalks'],
     queryFn: async () => {
       try {
-        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 10);
+        const limit = isMobile ? 10 : 20;
+        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', limit);
         if (!Array.isArray(res)) return [];
-
         const uniqueMap = new Map();
         res.forEach(walk => {
           if (walk.id && !uniqueMap.has(walk.id)) {
             uniqueMap.set(walk.id, walk);
           }
         });
-
         return Array.from(uniqueMap.values());
       } catch (error) {
         console.error("Emergency walks fetch error:", error);
@@ -296,7 +297,7 @@ export default function Home() {
     },
     enabled: activeTab === 'emergency' || user?.preferences?.current_mode === 'professional',
     initialData: [],
-    staleTime: 5 * 60 * 1000,
+    staleTime: 3 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
@@ -655,7 +656,7 @@ export default function Home() {
                             <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
                               Conquistas Recentes
                             </p>
-                            <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
+                            <div className="flex flex-row gap-3 overflow-x-auto overscroll-contain pb-2 pt-1 px-2">
                               {earnedBadgesData.slice(0, 5).map((badge, i) => (
                                 <div key={`badge-${badge._uniqueId || badge.id || i}`} className="relative group flex-shrink-0">
                                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110">
@@ -1052,7 +1053,7 @@ export default function Home() {
                         </Card>
                       ) : (
                         <>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8 overscroll-contain">
                             {paginatedProfessionals.map((pro) => (
                               <ProfessionalCard key={pro.id} walker={pro} />
                             ))}
