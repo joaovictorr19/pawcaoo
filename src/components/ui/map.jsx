@@ -1,22 +1,27 @@
 import React from 'react';
-import ReactMapGL from 'react-map-gl';
-import { Marker, Source, Layer } from 'react-map-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 
-const Map = React.forwardRef(function Map({ children, initialViewState, mapStyle, className }, ref) {
+export function Map({ children, initialViewState, className, style }) {
+  const center = initialViewState
+    ? [initialViewState.latitude, initialViewState.longitude]
+    : [38.7223, -9.1393];
+  const zoom = initialViewState?.zoom || 13;
+
   return (
-    <ReactMapGL
-      ref={ref}
-      initialViewState={initialViewState || { longitude: -9.1393, latitude: 38.7223, zoom: 13 }}
-      mapStyle={mapStyle || 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'}
-      style={{ width: '100%', height: '100%' }}
+    <MapContainer
+      center={center}
+      zoom={zoom}
       className={className}
+      style={{ width: '100%', height: '100%', ...style }}
     >
+      <TileLayer
+        attribution='&copy; OpenStreetMap contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
       {children}
-    </ReactMapGL>
+    </MapContainer>
   );
-});
+}
 
-Map.displayName = 'Map';
-
-export { Map, Marker, Source, Layer };
+export { Marker, Popup, useMap };
+export default Map;
