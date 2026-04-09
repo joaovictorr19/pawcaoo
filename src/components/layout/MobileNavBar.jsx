@@ -9,10 +9,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 // Per-tab last-visited path storage with localStorage persistence
-const getTabHistory = () => {
+const getTabHistorySafe = () => {
+  if (typeof window === "undefined") return {};
   try {
-    const saved = localStorage.getItem('mobileTabHistory');
-    return saved ? JSON.parse(saved) : {};
+    return JSON.parse(localStorage.getItem("mobileTabHistory") || "{}");
   } catch {
     return {};
   }
@@ -26,7 +26,7 @@ const saveTabHistory = (history) => {
   }
 };
 
-let tabHistory = getTabHistory();
+let tabHistory = getTabHistorySafe();
 
 export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
