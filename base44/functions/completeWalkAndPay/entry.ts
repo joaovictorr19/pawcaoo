@@ -13,8 +13,8 @@ Deno.serve(async (req) => {
   const booking = bookings[0];
   if (!booking) return Response.json({ error: 'Passeio não encontrado' }, { status: 404 });
 
-  // Verifica que quem chama é o walker do passeio
-  if (booking.walker_email !== user.email) {
+  // Verifica que quem chama é o walker do passeio ou admin
+  if (booking.walker_email !== user.email && user.role !== 'admin') {
     return Response.json({ error: 'Não autorizado para este passeio' }, { status: 403 });
   }
 
