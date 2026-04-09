@@ -1,11 +1,9 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, ArrowLeft, Shield, User, Award, Star, Edit } from "lucide-react";
+import { MapPin, ArrowLeft, Shield, User, Star } from "lucide-react";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/LanguageContext";
@@ -19,7 +17,6 @@ import ProfessionalBookingModal from "../components/professional/ProfessionalBoo
 
 export default function UserProfile() {
   const navigate = useNavigate();
-  const { language } = useLanguage();
   const queryClient = useQueryClient();
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -37,7 +34,6 @@ export default function UserProfile() {
   const profileIdParam = urlParams.get('id');
   const profileNameParam = urlParams.get('name');
   const profileUsernameParam = urlParams.get('username');
-  const serviceParam = urlParams.get('service');
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -54,7 +50,7 @@ export default function UserProfile() {
     (currentUser && targetEmail === currentUser.email) ||
     (currentUser && targetUsername === currentUser.username);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isSelfView && !currentUser && !authLoading) {
       base44.auth.redirectToLogin();
     }
@@ -201,18 +197,6 @@ export default function UserProfile() {
     refetchInterval: false
   });
 
-  React.useEffect(() => {
-    if (!profileUser?.id || profileUser.is_virtual_profile || !isOwnProfile) return;
-    const updateCount = async () => {
-      try {
-        if ((profileUser.badges_count || 0) !== earnedBadges.length) {
-          await base44.entities.UserProfile.update(profileUser.id, { badges_count: earnedBadges.length });
-        }
-      } catch (e) {}
-    };
-    updateCount();
-  }, [earnedBadges.length, profileUser?.id, profileUser?.is_virtual_profile, isOwnProfile]);
-
   const { data: walkerProfile } = useQuery({
     queryKey: ['walkerProfile', profileEmail],
     queryFn: async () => {
@@ -282,39 +266,6 @@ export default function UserProfile() {
     refetchInterval: false,
   });
 
-  React.useEffect(() => {
-    if (!profileUser?.id || profileUser.is_virtual_profile) return;
-    const canUpdate = isOwnProfile || currentUser?.role === 'admin';
-    if (!canUpdate) return;
-    const syncV = async () => {
-      const shouldBeVerified = (isOwnProfile && currentUser?.is_verified) || walkerProfile?.verification_status === 'verified' || trainerProfile?.verification_status === 'verified';
-      if (shouldBeVerified && !profileUser.is_verified) {
-        try {
-          await base44.entities.UserProfile.update(profileUser.id, { is_verified: true });
-          queryClient.invalidateQueries(['profileUser']);
-        } catch (e) {}
-      }
-    };
-    syncV();
-  }, [profileUser, walkerProfile, trainerProfile, isOwnProfile, currentUser, queryClient]);
-
-
-
-  const handleMessageUser = async (targetEmail) => {
-    if (!currentUser || !targetEmail) { toast.error("Erro: Usuário não autenticado."); return; }
-    try {
-      const existingChats = await base44.entities.ChatConversation.filter({});
-      const myChat = existingChats.find(c => c.participants?.includes(currentUser.email) && c.participants?.includes(targetEmail) && !c.booking_id);
-      if (myChat) { navigate(createPageUrl('Chat') + `?id=${myChat.id}`); }
-      else {
-        const newChat = await base44.entities.ChatConversation.create({ participants: [currentUser.email, targetEmail], tags: ['general'], last_message: 'Nova conversa iniciada.', last_message_date: new Date().toISOString(), unread_counts: { [currentUser.email]: 0, [targetEmail]: 1 } });
-        navigate(createPageUrl('Chat') + `?id=${newChat.id}`);
-      }
-    } catch (error) { toast.error(`Erro ao abrir chat: ${error?.message}`); }
-  };
-
-
-
   const updatePinnedBadgesMutation = useMutation({
     mutationFn: async ({ slotIndex, badgeId }) => {
       if (!profileUser?.id || profileUser.is_virtual_profile) throw new Error("Virtual profile");
@@ -356,11 +307,6 @@ export default function UserProfile() {
     }
   });
 
-  const getBadgeImage = (badgeId) => {
-    const m = { welcome: '🎉', first_post: '✍️', social_butterfly: '🦋', community_helper: '🤝', verified: '✓', adoption_advocate: '💖', event_organizer: '🎪', top_contributor: '⭐' };
-    return m[badgeId] || '🏆';
-  };
-
   if (loadingUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -368,8 +314,6 @@ export default function UserProfile() {
       </div>
     );
   }
-
-
 
   if (!profileUser) {
     return (
@@ -396,7 +340,6 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32 pt-2">
-      {/* CAPA */}
       <div className="relative h-64 md:h-80 w-full overflow-hidden">
         <img
           src={displayCoverUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=400&fit=crop"}
@@ -410,9 +353,7 @@ export default function UserProfile() {
         </button>
       </div>
 
-      {/* CONTEÚDO */}
       <div className="relative -mt-20 px-6">
-        {/* AVATAR + NOME */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
             <Avatar className="w-32 h-32 border-4 border-white shadow-2xl rounded-[2.5rem]">
@@ -433,33 +374,9 @@ export default function UserProfile() {
           </div>
           <h1 className="text-3xl font-black text-slate-900 mt-6 text-center">{displayName}</h1>
           {displayCity && <p className="text-slate-500 flex items-center gap-1 mt-2"><MapPin size={14} /> {displayCity}</p>}
-
-          {/* PEDIR AGORA - Só aparece quando o profissional está online */}
-          {!isOwnProfile && (walkerProfile || trainerProfile) && (walkerProfile?.is_online || trainerProfile?.is_online) && (
-            <button
-              onClick={() => setBookingModal({ isOpen: true, selectedDate: null, selectedService: null })}
-              className="mt-5 px-8 py-4 bg-green-500 hover:bg-green-600 active:scale-95 text-white font-black rounded-2xl text-base transition-all shadow-xl shadow-green-200 flex items-center gap-2"
-            >
-              <span className="w-2.5 h-2.5 rounded-full bg-white inline-block animate-pulse" />
-              Pedir Agora
-            </button>
-          )}
-
-          {/* EDIT BUTTON - Only for customers (non-professionals) */}
-          {isOwnProfile && !walkerProfile && !trainerProfile && (
-            <Button
-              onClick={() => navigate(createPageUrl('EditWalkerProfile'))}
-              className="mt-4 bg-blue-600 hover:bg-blue-700"
-            >
-              Editar Perfil
-            </Button>
-          )}
         </div>
 
-        {/* CONTEÚDO ÚNICO - SEM ABAS */}
         <div className="space-y-8 pb-6">
-
-          {/* BIO */}
           {(walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio) && (
             <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">Sobre mim</h3>
@@ -469,7 +386,6 @@ export default function UserProfile() {
             </div>
           )}
 
-          {/* PORTEFÓLIO */}
           {(walkerProfile?.portfolio?.length > 0) && (
             <div>
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Portefólio</h3>
@@ -488,26 +404,20 @@ export default function UserProfile() {
             </div>
           )}
 
-          {/* CONQUISTAS */}
           <div>
             <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas ({earnedBadges.length})</h3>
             {loadingBadges ? (
-              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+              <div className="flex gap-3 overflow-x-auto pb-4">
                 {[1, 2, 3].map(i => <div key={i} className="w-20 h-20 bg-slate-200 rounded-2xl flex-shrink-0 animate-pulse" />)}
               </div>
             ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+              <div className="flex gap-3 overflow-x-auto pb-4">
                 {earnedBadges.map((badge) => (
                   <div key={badge._uniqueId} className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20 bg-slate-50 rounded-2xl p-2 border border-slate-100">
                     <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
                     <p className="text-[10px] font-bold text-slate-700 text-center leading-tight w-full">
                       {badge.name || badge.badge_id}
                     </p>
-                    {badge.description && (
-                      <p className="text-[9px] text-slate-400 text-center leading-tight line-clamp-2 w-full">
-                        {badge.description}
-                      </p>
-                    )}
                   </div>
                 ))}
               </div>
@@ -516,39 +426,26 @@ export default function UserProfile() {
             )}
           </div>
 
-          {/* SERVIÇOS OFERECIDOS */}
           {(walkerProfile || trainerProfile) && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
             <div>
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Serviços Oferecidos</h3>
-              {!isOwnProfile && (
-                <button
-                  onClick={() => setBookingModal({ isOpen: true, selectedDate: null, selectedService: null })}
-                  className="w-full mb-4 py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-black rounded-2xl text-sm transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
-                >
-                  📅 Fazer Reserva
-                </button>
-              )}
               <div className="space-y-3">
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
                   <button
                     key={idx}
                     onClick={() => setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
                     className={`w-full bg-white border-2 rounded-2xl overflow-hidden transition-all text-left ${
-                      !isOwnProfile ? 'border-slate-200 hover:border-blue-400 hover:shadow-md active:scale-[0.98] cursor-pointer' : 'border-slate-200 cursor-default'
+                      !isOwnProfile ? 'border-slate-200 hover:border-blue-400 hover:shadow-md active:scale-[0.98] cursor-pointer' : 'border-slate-200'
                     }`}
                   >
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <h4 className="font-black text-sm text-slate-900">{service.service_name}</h4>
-                          {service.description && <p className="text-xs text-slate-500 mt-1 leading-relaxed">{service.description}</p>}
-                          {service.duration_options?.length > 0 && (
-                            <p className="text-xs text-slate-400 mt-1.5">⏱️ {service.duration_options.join(' · ')}</p>
-                          )}
+                          {service.description && <p className="text-xs text-slate-500 mt-1">{service.description}</p>}
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className="text-lg font-black text-blue-600">{service.price}€</p>
-                          <p className="text-[9px] text-slate-400">/hora</p>
                         </div>
                       </div>
                     </div>
@@ -558,58 +455,6 @@ export default function UserProfile() {
             </div>
           )}
 
-          {/* DIAS DISPONÍVEIS PARA AGENDAMENTO */}
-          {(walkerProfile || trainerProfile) && !isOwnProfile && daysOff.length > 0 && (
-            <div>
-              <h3 className="text-sm font-black uppercase italic mb-3 text-slate-900 tracking-widest flex items-center gap-2">
-                <span className="text-green-500">📅</span> Dias Disponíveis
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {daysOff.map(a => {
-                  const d = a.date?.includes('T') ? a.date.split('T')[0] : a.date;
-                  const dateObj = new Date(d + 'T12:00:00');
-                  return (
-                    <button
-                      key={a.id}
-                      onClick={() => setBookingModal({ isOpen: true, selectedDate: d })}
-                      className="px-4 py-2 bg-green-50 border-2 border-green-300 hover:bg-green-100 hover:border-green-500 rounded-2xl flex items-center gap-2 transition-all active:scale-95"
-                    >
-                      <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-                      <span className="text-xs font-bold text-green-700">
-                        {dateObj.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' })}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* FOLGAS (SÓ PARA O PRÓPRIO PROFISSIONAL) */}
-          {(walkerProfile || trainerProfile) && isOwnProfile && daysOff.length > 0 && (
-            <div>
-              <h3 className="text-sm font-black uppercase italic mb-3 text-slate-900 tracking-widest flex items-center gap-2">
-                <span className="text-red-500">🛌</span> Próximas Folgas
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {daysOff.map(a => {
-                  const d = a.date?.includes('T') ? a.date.split('T')[0] : a.date;
-                  const dateObj = new Date(d + 'T12:00:00');
-                  return (
-                    <div key={a.id} className="px-3 py-1.5 bg-red-50 border border-red-200 rounded-full flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-                      <span className="text-xs font-bold text-red-700">
-                        {dateObj.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' })}
-                      </span>
-                      {a.notes && <span className="text-xs text-red-500">· {a.notes}</span>}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* FEEDBACK */}
           {(walkerProfile || trainerProfile) && (
             <div>
               <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Feedback</h3>
@@ -627,11 +472,9 @@ export default function UserProfile() {
               )}
             </div>
           )}
-
         </div>
       </div>
 
-      {/* PROFILE ACTIONS SECTION */}
       {!isOwnProfile && (walkerProfile || trainerProfile) && (
         <div className="mx-6 mb-32">
           <ProfileActions 
@@ -641,7 +484,6 @@ export default function UserProfile() {
         </div>
       )}
 
-      {/* ADMIN */}
       {currentUser?.role === 'admin' && (
         <div className="bg-red-600 text-white p-2 text-xs font-bold flex justify-center gap-4 z-40 relative shadow-md">
           <span className="flex items-center gap-2"><Shield className="w-4 h-4" /> ADMIN</span>
@@ -652,7 +494,6 @@ export default function UserProfile() {
         </div>
       )}
 
-      {/* MODALS */}
       <BadgeSelectionModal
         isOpen={isBadgeModalOpen}
         onClose={() => setIsBadgeModalOpen(false)}
