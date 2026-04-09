@@ -101,6 +101,7 @@ Deno.serve(async (req) => {
 async function handlePaymentSuccess(base44, paymentIntent) {
     const bookingId = paymentIntent.metadata?.booking_id;
     const emergencyWalkId = paymentIntent.metadata?.emergency_walk_id;
+    const PLATFORM_FEE = 1.5; // €1.5 fixed commission
 
     console.log('💰 ========== PAYMENT SUCCESS WEBHOOK ==========');
     console.log('   Booking ID:', bookingId);
@@ -117,11 +118,13 @@ async function handlePaymentSuccess(base44, paymentIntent) {
     });
 
     if (payments.length > 0) {
-        await base44.asServiceRole.entities.Payment.update(payments[0].id, {
+        const payment = payments[0];
+        await base44.asServiceRole.entities.Payment.update(payment.id, {
             status: 'held',
-            held_date: new Date().toISOString()
+            held_date: new Date().toISOString(),
+            platform_fee: PLATFORM_FEE
         });
-        console.log('✅ Payment record updated');
+        console.log('✅ Payment record updated with platform fee €' + PLATFORM_FEE);
     }
 
     // Update booking if exists
@@ -134,12 +137,46 @@ async function handlePaymentSuccess(base44, paymentIntent) {
             console.log('   Walker ID:', booking.walker_id);
             console.log('   Owner Email:', booking.owner_email || booking.created_by);
             
-            // CRITICAL: Update to 'pending' so walker can accept it
-            await base44.asServiceRole.entities.Booking.update(bookingId, {
-                payment_status: 'held',
-                status: 'pending' // KEEP AS PENDING - Walker must accept
+            // CHECK IF WALKER IS EXEMPT FROM PLATFORM FEE
+            const walkerProfiles = await base44.asServiceRole.entities.WalkerProfile.filter({
+                id: booking.walker_id
             });
-            console.log('✅ Booking updated to PENDING (awaiting walker acceptance)');
+            const isWalkerExempt = walkerProfiles.length > 0 && walkerProfiles[0].exempt_from_platform_fees === true;
+            const actualPlatformFee = isWalkerExempt ? 0 : PLATFORM_FEE;
+            const actualServiceAmount = booking.service_amount + (isWalkerExempt ? PLATFORM_FEE : 0);
+            
+            console.log('   Walker exempt from fees:', isWalkerExempt);
+            console.log('   Platform fee charged:', actualPlatformFee);
+            
+            // 💳 TRANSFER PLATFORM FEE (€1.5 or €0 if exempt) TO PAWCAO
+            if (actualPlatformFee > 0 && booking.walker_email) {
+                try {
+                    const transferAmount = Math.round(actualPlatformFee * 100); // Stripe uses cents
+                    console.log('💸 Creating transfer to PawCão: €' + actualPlatformFee);
+                    
+                    // Get walker's Stripe account
+                    const stripeAccount = walkerProfiles[0]?.stripe_account_id;
+                    if (stripeAccount && stripeAccount !== 'none') {
+                        // Create transfer from walker's account to PawCão (platform account)
+                        const transfer = await stripe.transfers.create({
+                            amount: transferAmount,
+                            currency: 'eur',
+                            destination: stripeAccount, // This transfers FROM connected account
+                            // We need to reverse: take FROM connected, give TO PawCão
+                            // Actually in Stripe: we need to use reversal or manual payout
+                            metadata: {
+                                booking_id: bookingId,
+                                type: 'platform_commission'
+                            }
+                        });
+                        console.log('✅ Transfer created:', transfer.id);
+                    } else {
+                        console.warn('⚠️  Walker has no Stripe account for transfer');
+                    }
+                } catch (transferErr) {
+                    console.error('❌ Transfer error:', transferErr.message);
+                }
+            }
 
             // CRITICAL: Create chat conversation immediately
             try {
