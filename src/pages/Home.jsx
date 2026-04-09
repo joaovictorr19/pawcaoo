@@ -954,8 +954,9 @@ export default function Home() {
               <TabsContent value="professionals">
                 <div>
                   <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <div>
-                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-black/20 backdrop-blur-md rounded-xl pointer-events-none" style={{ marginLeft: '-1rem', marginRight: '-1rem', marginTop: '-0.5rem', marginBottom: '-0.5rem' }}></div>
+                      <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg relative z-10">
                         {filterDogSitting !== "all" ? (
                           <>
                             {filterDogSitting === "boarding" && t('walkersWithBoarding', language)}
@@ -968,7 +969,7 @@ export default function Home() {
                           'Available Professionals'
                         )}
                       </h2>
-                      <div className="flex items-center gap-2 flex-wrap mt-2">
+                      <div className="flex items-center gap-2 flex-wrap mt-2 relative z-10">
                         <p className="text-xs md:text-base text-white/90 drop-shadow-md flex items-center gap-1">
                           <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-white" />
                           {filteredProfessionals.length} {t('found', language)}
