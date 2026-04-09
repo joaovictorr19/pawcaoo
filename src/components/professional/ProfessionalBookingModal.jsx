@@ -63,7 +63,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
     setIsCreating(true);
     try {
-      await base44.entities.Booking.create({
+      const booking = await base44.entities.Booking.create({
         owner_name: currentUser.full_name || currentUser.email,
         owner_email: currentUser.email,
         dog_name: 'Cão',
@@ -78,15 +78,27 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
         duration_hours: durationNum,
         pickup_method: pickupMethod,
         status: 'pending',
+        payment_status: 'pending',
         type: walkerProfile.trainer_name ? 'training' : 'walk',
         special_notes: selectedService ? `Serviço: ${selectedService.service_name}` : '',
       });
-      toast.success('Reserva criada com sucesso! 🎉');
-      onClose();
-      setTimeout(() => { window.location.href = '/MyBookings'; }, 800);
+
+      // Redirect to Stripe Checkout
+      const response = await base44.functions.invoke('createStripeCheckout', {
+        bookingId: booking.id,
+        successUrl: `${window.location.origin}/CheckoutSuccess?booking_id=${booking.id}`,
+        cancelUrl: `${window.location.origin}/MyBookings?cancelled=true`,
+      });
+
+      const checkoutUrl = response?.data?.url;
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        toast.error('Erro ao gerar link de pagamento. Tente novamente.');
+        setIsCreating(false);
+      }
     } catch (error) {
       toast.error(`Erro: ${error.message}`);
-    } finally {
       setIsCreating(false);
     }
   };
@@ -280,11 +292,11 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 disabled={isCreating}
                 className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-green-200"
               >
-                {isCreating ? '⏳ A processar...' : '✅ Confirmar Reserva'}
+                {isCreating ? '⏳ A redirecionar para pagamento...' : '💳 Confirmar e Pagar'}
               </Button>
 
               <p className="text-center text-xs text-slate-400">
-                A reserva fica pendente até o profissional aceitar.
+                Será redirecionado para o Stripe para pagamento seguro.
               </p>
             </div>
           )}
