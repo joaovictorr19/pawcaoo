@@ -147,14 +147,24 @@
   /* Mobile optimization */
   @media (max-width: 768px) {
     img {
-      will-change: transform;
+      will-change: auto;
       content-visibility: auto;
+      image-rendering: crisp-edges;
     }
 
-    /* Touch optimizations */
-    button, a, [role="button"] {
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
+    /* GPU优化: 减少重绘 */
+    * {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    /* 禁用复杂动画 */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
 
     /* Safe area support for iOS notch */
