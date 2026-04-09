@@ -968,114 +968,12 @@ export default function Home() {
                          'Available Professionals'
                        )}
                      </h2>
-                     <div className="flex items-center gap-2 flex-wrap">
+                     </div>
+                     </div>
+                     </div>
 
-                  <>
-                    {loadingWalkers ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                            <div key={`skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
-                              <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
-                              <Skeleton className="h-5 w-3/4 bg-gray-200" />
-                              <Skeleton className="h-4 w-1/2 bg-gray-200" />
-                            </div>
-                          ))}
-                        </div>
-                      ) : filteredProfessionals.length === 0 ? (
-                        <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden bg-white/90">
-                          <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
-                            <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
-                          </div>
-                          <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
-                            {language === 'pt' ? 'Nenhum profissional encontrado' : 
-                             language === 'es' ? 'No se encontró ningún profesional' : 
-                             'No professionals found'}
-                          </h3>
-                          <p className="text-sm md:text-base text-gray-600 mb-4">
-                            {language === 'pt' ? 'Tente ajustar os filtros de pesquisa.' : 'Try adjusting the search filters.'}
-                          </p>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => {
-                              setSearchLocation("");
-                              setFilterSize("all");
-                              setFilterTime("all");
-                              setFilterAnimalType("all");
-                              setFilterDogSitting("all");
-                              setCurrentPage(1);
-                            }}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            Limpar Filtros
-                          </Button>
-                        </Card>
-                      ) : (
-                        <>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-                            {paginatedProfessionals.map((pro) => (
-                              <ProfessionalCard key={pro.id} walker={pro} />
-                            ))}
-                          </div>
-
-                          {filteredProfessionals.length > itemsPerPage && (
-                            <div className="flex justify-center items-center gap-2 mt-8">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="hover:bg-gray-50"
-                              >
-                                <ChevronLeft className="w-4 h-4" />
-                                <span className="sr-only">{t('previousPage', language)}</span>
-                              </Button>
-                              
-                              <div className="flex items-center gap-1">
-                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                  let pageNum = i + 1;
-                                  if (totalPages > 5 && currentPage > 3) {
-                                    pageNum = currentPage - 3 + i;
-                                    if (pageNum > totalPages) pageNum = totalPages - (4 - i);
-                                  }
-                                  return (
-                                    <Button
-                                      key={pageNum}
-                                      variant={currentPage === pageNum ? "default" : "ghost"}
-                                      size="sm"
-                                      onClick={() => setCurrentPage(pageNum)}
-                                      className={`w-8 h-8 p-0 font-medium ${currentPage === pageNum ? 'text-white' : 'text-gray-600 hover:bg-gray-50'}`}
-                                      style={currentPage === pageNum ? {
-                                        background: `linear-gradient(to right, ${colors?.primary || '#16a34a'}, ${colors?.primary || '#16a34a'}dd)`
-                                      } : {}}
-                                    >
-                                      {pageNum}
-                                    </Button>
-                                  );
-                                })}
-                              </div>
-
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="hover:bg-gray-50"
-                              >
-                                <ChevronRight className="w-4 h-4" />
-                                <span className="sr-only">{t('nextPage', language)}</span>
-                              </Button>
-                            </div>
-                          )}
-                          
-                          <div className="text-center text-xs text-gray-500 mt-4">
-                            {t('showingResults', language)} {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredProfessionals.length)} {t('of', language)} {filteredProfessionals.length} {language === 'pt' ? 'profissionais' : language === 'es' ? 'profesionales' : 'professionals'}
-                          </div>
-                        </>
-                      )}
-                    </>
-                </div>
-              </TabsContent>
+                     <>
+                     {loadingWalkers ? (
 
               <TabsContent value="emergency">
                 <div className="p-3 sm:p-6 animate-in fade-in duration-500">
