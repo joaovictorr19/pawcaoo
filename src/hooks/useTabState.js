@@ -1,48 +1,37 @@
-import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useCallback } from 'react';
 
 /**
- * Custom hook to preserve scroll position and component state when switching between tabs/routes
- * Usage: useTabState('myBookings') - automatically saves/restores scroll and state
+ * Hook to preserve tab/page state (scroll position, pagination, etc.) when navigating away and back
+ * Stores state in sessionStorage so it persists during tab navigation but clears on page refresh
  */
-export const useTabState = (tabKey) => {
-  const location = useLocation();
-  const stateRef = useRef(new Map());
-  const scrollRef = useRef(new Map());
-
-  // Save scroll position before leaving
-  useEffect(() => {
-    return () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      scrollRef.current.set(tabKey, scrollTop);
-    };
-  }, [tabKey]);
-
-  // Restore scroll position when entering
-  useEffect(() => {
-    const savedScroll = scrollRef.current.get(tabKey);
-    if (savedScroll !== undefined) {
-      setTimeout(() => {
-        window.scrollTo(0, savedScroll);
-      }, 0);
-    } else {
-      window.scrollTo(0, 0);
+export function useTabState(tabKey, initialState = {}) {
+  const [state, setState] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(`tabState_${tabKey}`);
+      return stored ? JSON.parse(stored) : initialState;
+    } catch {
+      return initialState;
     }
-  }, [location, tabKey]);
+  });
 
-  // Return state management functions
-  return {
-    saveState: (key, value) => {
-      const tabState = stateRef.current.get(tabKey) || {};
-      tabState[key] = value;
-      stateRef.current.set(tabKey, tabState);
-    },
-    getState: (key) => {
-      return stateRef.current.get(tabKey)?.[key];
-    },
-    clearState: () => {
-      stateRef.current.delete(tabKey);
-      scrollRef.current.delete(tabKey);
+  const saveState = useCallback((newState) => {
+    try {
+      const merged = { ...state, ...newState };
+      sessionStorage.setItem(`tabState_${tabKey}`, JSON.stringify(merged));
+      setState(merged);
+    } catch (e) {
+      console.error('Failed to save tab state:', e);
     }
-  };
-};
+  }, [tabKey, state]);
+
+  const clearState = useCallback(() => {
+    try {
+      sessionStorage.removeItem(`tabState_${tabKey}`);
+      setState(initialState);
+    } catch (e) {
+      console.error('Failed to clear tab state:', e);
+    }
+  }, [tabKey, initialState]);
+
+  return { state, saveState, clearState };
+}

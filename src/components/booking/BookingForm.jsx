@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import MobileSelect from "@/components/ui/MobileSelect";
 import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, DollarSign, Clock, AlertCircle, MessageCircle, MapPin } from "lucide-react";
 import { format } from "date-fns";
@@ -729,23 +730,20 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                   </div>
                   <div>
                     <Label className="text-sm">Tamanho *</Label>
-                    <Select
+                    <MobileSelect
                       value={formData.dog_size}
                       onValueChange={(value) => setFormData({...formData, dog_size: value})}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="small">Pequeno</SelectItem>
-                        <SelectItem value="medium">Médio</SelectItem>
-                        <SelectItem value="large">Grande</SelectItem>
-                        <SelectItem value="extra_large">XL</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      options={[
+                        { value: 'small', label: 'Pequeno' },
+                        { value: 'medium', label: 'Médio' },
+                        { value: 'large', label: 'Grande' },
+                        { value: 'extra_large', label: 'XL' }
+                      ]}
+                      placeholder="Selecionar tamanho"
+                    />
                   </div>
-                </>
-              )}
+                  </>
+                  )}
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -786,34 +784,27 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
                 <div>
                   <Label className="text-sm font-semibold">Horário *</Label>
-                  <Select
+                  <MobileSelect
                     value={formData.walk_time}
                     onValueChange={(value) => {
                       console.log('⏰ Horário selecionado:', value);
                       setFormData({...formData, walk_time: value});
                     }}
-                  >
-                    <SelectTrigger className={`h-9 ${!formData.walk_time ? 'border-red-300 text-red-600' : ''}`}>
-                      <SelectValue placeholder="Escolher hora" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {availableSlots.length > 0 ? (
-                        availableSlots.map((slot, idx) => (
-                          <SelectItem key={idx} value={`${slot.start_time} - ${slot.end_time}`}>
-                            {slot.start_time}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        generateTimeSlots().map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                    options={(
+                      availableSlots.length > 0
+                        ? availableSlots.map((slot) => ({
+                            value: `${slot.start_time} - ${slot.end_time}`,
+                            label: slot.start_time
+                          }))
+                        : generateTimeSlots().map((time) => ({
+                            value: time,
+                            label: time
+                          }))
+                    )}
+                    placeholder="Escolher hora"
+                  />
                 </div>
-              </div>
+                </div>
 
               {/* Service Selection */}
               {availableServices.length > 0 && (

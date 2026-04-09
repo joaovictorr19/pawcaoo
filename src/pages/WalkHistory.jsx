@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useTabState } from "@/hooks/useTabState";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +11,29 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 
 export default function WalkHistory() {
+  // Use useTabState for scroll position preservation
+  const { state: tabState, saveState } = useTabState('walkHistory', {
+    scrollTop: 0
+  });
+
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [modalMode, setModalMode] = useState('photos'); // 'photos' | 'route'
+
+  // Preserve scroll position when navigating
+  useEffect(() => {
+    return () => {
+      saveState({
+        scrollTop: window.scrollY
+      });
+    };
+  }, [saveState]);
+
+  // Restore scroll position on mount
+  useEffect(() => {
+    if (tabState.scrollTop > 0) {
+      setTimeout(() => window.scrollTo(0, tabState.scrollTop), 100);
+    }
+  }, [tabState.scrollTop]);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],

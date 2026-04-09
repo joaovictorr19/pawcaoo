@@ -1,71 +1,84 @@
-import React from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = React.useState(false);
+export default function MobileSelect({
+  value,
+  onValueChange,
+  options = [],
+  placeholder = 'Select...',
+  disabled = false,
+}) {
+  const [open, setOpen] = React.useState(false);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-  React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  return isMobile;
-};
-
-export function MobileSelect({ value, onValueChange, children, placeholder, ...props }) {
-  const isMobile = useIsMobile();
-  const [isOpen, setIsOpen] = useState(false);
+  const selectedLabel = options.find((opt) => opt.value === value)?.label || placeholder;
 
   if (!isMobile) {
     return (
-      <Select value={value} onValueChange={onValueChange} {...props}>
-        <SelectTrigger>
+      <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+        <SelectTrigger className="h-9">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {children}
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     );
   }
 
-  // Mobile: render as drawer with buttons
-  const selectedChild = React.Children.toArray(children).find(
-    child => child.props.value === value
-  );
-  const selectedLabel = selectedChild?.props.children || placeholder;
-
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerTrigger asChild>
-        <Button variant="outline" className="w-full justify-between">
-          {selectedLabel}
-          <span className="text-gray-400">↓</span>
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <div className="p-4 space-y-2">
-          {React.Children.map(children, (child) => (
-            <Button
-              variant={value === child.props.value ? "default" : "outline"}
-              className="w-full justify-start"
-              onClick={() => {
-                onValueChange(child.props.value);
-                setIsOpen(false);
-              }}
-            >
-              {child.props.children}
-            </Button>
-          ))}
-        </div>
-      </DrawerContent>
-    </Drawer>
+    <>
+      <Button
+        variant="outline"
+        className="w-full h-9 justify-start text-left font-normal"
+        onClick={() => setOpen(true)}
+        disabled={disabled}
+      >
+        {selectedLabel}
+      </Button>
+
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{placeholder}</DrawerTitle>
+          </DrawerHeader>
+          <div className="grid grid-cols-1 gap-2 p-4">
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  onValueChange(opt.value);
+                  setOpen(false);
+                }}
+                className={`px-4 py-3 rounded-lg text-left transition-all ${
+                  value === opt.value
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 }
-
-export { SelectItem, SelectValue };

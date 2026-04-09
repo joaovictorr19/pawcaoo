@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useTabState } from "@/hooks/useTabState";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,8 +47,29 @@ export default function MyBookings() {
     dateEnd: null
   });
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
+  // Pagination State with useTabState for scroll preservation
+  const { state: tabState, saveState } = useTabState('myBookings', {
+    currentPage: 1,
+    scrollTop: 0
+  });
+  const [currentPage, setCurrentPage] = useState(tabState.currentPage);
+
+  // Preserve scroll position when navigating
+  useEffect(() => {
+    return () => {
+      saveState({
+        currentPage,
+        scrollTop: window.scrollY
+      });
+    };
+  }, [currentPage, saveState]);
+
+  // Restore scroll position on mount
+  useEffect(() => {
+    if (tabState.scrollTop > 0) {
+      setTimeout(() => window.scrollTo(0, tabState.scrollTop), 100);
+    }
+  }, [tabState.scrollTop]);
   const itemsPerPage = 6;
 
   // Modal State
