@@ -473,7 +473,7 @@ export default function UserProfile() {
           {(walkerProfile?.portfolio?.length > 0) && (
             <div>
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Portefólio</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl">
                 {walkerProfile.portfolio.filter(p => p.media_url).slice(0, 4).map((item, idx) => (
                   <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100">
                     <img src={item.media_url} alt={item.title || 'foto'} className="w-full h-full object-cover" loading="lazy" />
