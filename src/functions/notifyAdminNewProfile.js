@@ -1,8 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 // deno-lint-ignore no-undef
-if (typeof Deno !== 'undefined') {
-  Deno.serve(async (req) => {
+Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -13,10 +12,8 @@ if (typeof Deno !== 'undefined') {
 
     const { professional_name, professional_type, professional_email } = await req.json();
 
-    // Buscar todos os admins diretamente (usando service role para bypass RLS de User)
     const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
 
-    // Criar notificação para cada admin
     for (const admin of admins) {
       try {
         await base44.entities.Notification.create({
