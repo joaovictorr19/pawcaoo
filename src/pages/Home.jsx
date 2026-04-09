@@ -41,7 +41,6 @@ export default function Home() {
   const { colors } = useTheme();
   const navigate = useNavigate();
   
-  const isMobile = window.innerWidth < 768;
   const urlParams = new URLSearchParams(window.location.search);
   const dogSittingServiceFilter = urlParams.get('dogSittingService');
   
@@ -203,12 +202,12 @@ export default function Home() {
     queryKey: ['currentUserProfileXP', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
-      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email }, '-created_date', 1);
+      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
       return profiles[0] || null;
     },
     enabled: !!user?.email,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 10 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   const currentXP = currentUserProfile?.gamification_xp || 0;
@@ -241,7 +240,7 @@ export default function Home() {
     queryKey: ['userBadges', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: user.email }, '-earned_date', 5);
+      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: user.email }, '-earned_date');
       const uniqueBadges = new Map();
       badgesFromTable.forEach((badge) => {
         const uniqueKey = badge.badge_definition_id || badge.badge_id || badge.id;
@@ -252,8 +251,8 @@ export default function Home() {
       return Array.from(uniqueBadges.values());
     },
     enabled: !!user?.email,
-    staleTime: 10 * 60 * 1000,
-    cacheTime: 20 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false
@@ -263,15 +262,14 @@ export default function Home() {
     queryKey: ['allWalkers'],
     queryFn: async () => {
       try {
-        const limit = isMobile ? 30 : 100;
-        const result = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', limit);
+        const result = await base44.entities.WalkerProfile.list('-created_date', 500);
         return Array.isArray(result) ? result : [];
       } catch (error) {
         console.error("Erro walkers:", error);
         return [];
       }
     },
-    staleTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -280,15 +278,16 @@ export default function Home() {
     queryKey: ['emergencyWalks'],
     queryFn: async () => {
       try {
-        const limit = isMobile ? 10 : 20;
-        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', limit);
+        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 15);
         if (!Array.isArray(res)) return [];
+
         const uniqueMap = new Map();
         res.forEach(walk => {
           if (walk.id && !uniqueMap.has(walk.id)) {
             uniqueMap.set(walk.id, walk);
           }
         });
+
         return Array.from(uniqueMap.values());
       } catch (error) {
         console.error("Emergency walks fetch error:", error);
@@ -298,7 +297,7 @@ export default function Home() {
     enabled: activeTab === 'emergency' || user?.preferences?.current_mode === 'professional',
     initialData: [],
     staleTime: 3 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
@@ -310,7 +309,7 @@ export default function Home() {
         const posts = await base44.entities.SocialPost.filter({ 
           moderation_status: 'approved',
           is_public: true
-        }, '-created_date', 10);
+        }, '-created_date', 20);
         return Array.isArray(posts) ? posts : [];
       } catch (error) {
         return [];
@@ -318,7 +317,7 @@ export default function Home() {
     },
     enabled: activeTab === 'comunidade',
     initialData: [],
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -343,7 +342,7 @@ export default function Home() {
     },
     enabled: !user,
     initialData: [],
-    staleTime: 20 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -366,8 +365,8 @@ export default function Home() {
     queryFn: async () => {
       try {
         const [activeWalkers, activeTrainers] = await Promise.all([
-          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 1),
-          base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 1),
+          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200),
+          base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 200),
         ]);
 
         return {
@@ -381,8 +380,8 @@ export default function Home() {
       }
     },
     initialData: { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 15 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -656,7 +655,7 @@ export default function Home() {
                             <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
                               Conquistas Recentes
                             </p>
-                            <div className="flex flex-row gap-3 overflow-x-auto overscroll-contain pb-2 pt-1 px-2">
+                            <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
                               {earnedBadgesData.slice(0, 5).map((badge, i) => (
                                 <div key={`badge-${badge._uniqueId || badge.id || i}`} className="relative group flex-shrink-0">
                                   <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110">
@@ -1053,7 +1052,7 @@ export default function Home() {
                         </Card>
                       ) : (
                         <>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8 overscroll-contain">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
                             {paginatedProfessionals.map((pro) => (
                               <ProfessionalCard key={pro.id} walker={pro} />
                             ))}

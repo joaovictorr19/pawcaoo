@@ -53,7 +53,6 @@ import DynamicBackground from "@/components/ui/DynamicBackground";
 import { useModalCleanup } from "@/components/ui/ModalCleanup";
 import SEOManager from "@/components/SEOManager";
 import MobileOptimizations from "@/components/ui/MobileOptimizations";
-import { useMobileOptimization, useImageCache } from "@/hooks/useMobileOptimization";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 import RoleSwitcher from "@/components/layout/RoleSwitcher";
 import LayoutStyles from "@/components/layout/LayoutStyles";
@@ -136,18 +135,11 @@ const usePrefetchOnHover = (prefetchFn) => {
 };
 
 function LayoutContent({ children, currentPageName }) {
-  const { isMobile, reduceMotion } = useMobileOptimization();
-  useImageCache();
   const location = useLocation();
   const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
+  const { colors } = useTheme();
   const queryClient = useQueryClient();
-  
-  // Reduzir staleTime em mobile para economizar memória
-  const effectiveQueryConfig = isMobile ? {
-    ...queryConfig,
-    notifications: { ...queryConfig.notifications, cacheTime: 3 * 60 * 1000 }
-  } : queryConfig;
   const [myActivityExpanded, setMyActivityExpanded] = React.useState(true);
   const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = React.useState(false);

@@ -183,7 +183,7 @@ export default function UserProfile() {
     queryKey: ['userBadges', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
-      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date', 4);
+      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: profileEmail }, '-earned_date');
       const uniqueBadges = new Map();
       badgesFromTable.forEach((badge) => {
         const uniqueKey = badge.badge_definition_id || badge.badge_id || badge.id;
@@ -194,8 +194,8 @@ export default function UserProfile() {
       return Array.from(uniqueBadges.values());
     },
     enabled: !!profileEmail,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false
@@ -217,11 +217,11 @@ export default function UserProfile() {
     queryKey: ['walkerProfile', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return null;
-      const walkers = await base44.entities.WalkerProfile.filter({ created_by: profileEmail }, '-created_date', 1);
+      const walkers = await base44.entities.WalkerProfile.filter({ created_by: profileEmail });
       return walkers[0] || null;
     },
     enabled: !!profileEmail,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
@@ -230,11 +230,11 @@ export default function UserProfile() {
     queryKey: ['trainerProfile', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return null;
-      const trainers = await base44.entities.TrainerProfile.filter({ created_by: profileEmail }, '-created_date', 1);
+      const trainers = await base44.entities.TrainerProfile.filter({ created_by: profileEmail });
       return trainers[0] || null;
     },
     enabled: !!profileEmail,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
@@ -243,16 +243,15 @@ export default function UserProfile() {
     queryKey: ['walkerDaysOff', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return [];
+      const avail = await base44.entities.CalendarAvailability.filter({ professional_email: profileEmail });
       const today = new Date().toISOString().split('T')[0];
-      const avail = await base44.entities.CalendarAvailability.filter(
-        { professional_email: profileEmail, is_day_off: true },
-        'date',
-        6
-      );
-      return avail.filter(a => (a.date?.split('T')[0] || '') >= today);
+      return avail
+        .filter(a => a.is_day_off && (a.date?.split('T')[0] || '') >= today)
+        .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+        .slice(0, 6);
     },
     enabled: !!profileEmail && !!(walkerProfile || trainerProfile),
-    staleTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const displayPhotoUrl = profileUser?.profile_photo_url || walkerProfile?.photo_url || trainerProfile?.photo_url;
@@ -273,12 +272,12 @@ export default function UserProfile() {
       const tId = trainerProfile?.id;
       if (!wId && !tId) return [];
       let allReviews = [];
-      if (wId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ walker_id: wId }, '-created_date', 3)];
-      if (tId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ trainer_id: tId }, '-created_date', 3)];
+      if (wId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ walker_id: wId }, '-created_date', 10)];
+      if (tId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ trainer_id: tId }, '-created_date', 10)];
       return allReviews;
     },
     enabled: !!profileEmail && (!!walkerProfile || !!trainerProfile),
-    staleTime: 15 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
