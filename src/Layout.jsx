@@ -880,44 +880,7 @@ function LayoutContent({ children, currentPageName }) {
         <div className="hidden md:block" style={{ height: '26px' }} />
         {/* Container para sidebar e conteúdo */}
         <div className="flex flex-1 w-full">
-        {stableUser && (
-                      <Sidebar 
-                        className="border transition-colors duration-300 md:ml-4 md:mr-4 md:mb-4 md:mt-8 shadow-lg shrink-0 flex flex-col"
-                        style={{ 
-                          maxHeight: 'calc(100vh - 130px)',
-                          overflowY: 'auto',
-                          WebkitOverflowScrolling: 'touch',
-                          background: 'rgba(255, 255, 255, 0.96)',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                          borderColor: 'rgba(0, 0, 0, 0.08)',
-                          borderRadius: 0,
-                          '--sidebar-background': 'rgba(255, 255, 255, 0.96)',
-                        }}>
-          <SidebarContent className="p-0">
-            <SidebarNav 
-              user={stableUser} 
-              unreadCount={unreadCount} 
-              onLogout={handleLogout} 
-            />
-            </SidebarContent>
-            </Sidebar>
-            )}
-
-          {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1 flex flex-col min-w-0 pb-32 md:pb-0 relative z-10 bg-transparent w-full" style={{ overflowX: 'hidden' }}>
-            {/* Mobile Header for Child Routes (Back Button + Title) */}
-            <MobileHeader />
-            
-            {/* Breadcrumbs */}
-            <Breadcrumbs />
-
-            <div className="flex-1 relative pb-32 md:pb-8 px-0 overflow-y-auto">
-              <ErrorBoundary>{children}</ErrorBoundary>
-            </div>
-
-            {/* Mobile Navigation Bar */}
-            {stableUser && (
+          {stableUser && (
               <MobileNavBar user={stableUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
             )}
 
