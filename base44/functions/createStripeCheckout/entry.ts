@@ -24,32 +24,23 @@ Deno.serve(async (req) => {
     console.log('🟢 User authenticated:', user.email);
 
     const payload = await req.json();
-    console.log('📥 Received payload:', payload);
+    console.log('📥 Received payload:', JSON.stringify(payload));
 
-    const { bookingId, successUrl, cancelUrl, voucherCode, discountAmount } = payload;
+    const { bookingId, successUrl, cancelUrl, voucherCode, discountAmount, bookingData } = payload;
 
-    // Get booking details
-    console.log('🔍 Buscando booking:', bookingId);
-    const bookings = await base44.entities.Booking.filter({ id: bookingId });
-    const booking = bookings[0];
+    // Use bookingData passed from frontend (avoids SDK filter-by-id limitation)
+    const booking = bookingData || null;
 
-    if (!booking) {
-      console.error('❌ Booking não encontrada:', bookingId);
-      return Response.json({ error: 'Booking not found' }, { status: 404 });
+    if (!booking || !bookingId) {
+      return Response.json({ error: 'Missing bookingId or bookingData' }, { status: 400 });
     }
 
-    console.log('✅ Booking encontrada:', booking);
-
     // Calculate final amount
-    const finalAmount = discountAmount > 0 
-      ? Math.max(0, booking.total_amount - discountAmount)
-      : booking.total_amount;
+    const finalAmount = discountAmount > 0
+      ? Math.max(0, (booking.total_amount || 0) - discountAmount)
+      : (booking.total_amount || 0);
 
-    console.log('💰 Amount calculation:', {
-      original: booking.total_amount,
-      discount: discountAmount,
-      final: finalAmount
-    });
+    console.log('💰 Amount:', { original: booking.total_amount, discount: discountAmount, final: finalAmount });
 
     // Create Stripe Checkout Session
     console.log('🔵 Criando sessão Stripe...');
@@ -102,10 +93,14 @@ Deno.serve(async (req) => {
     console.log('✅ Payment record criado:', paymentRecord.id);
 
     // Update booking with payment info
-    await base44.asServiceRole.entities.Booking.update(bookingId, {
-      payment_id: paymentRecord.id,
-      payment_status: 'pending'
-    });
+    try {
+      await base44.asServiceRole.entities.Booking.update(bookingId, {
+        payment_id: paymentRecord.id,
+        payment_status: 'pending'
+      });
+    } catch (updateErr) {
+      console.warn('Could not update booking payment_id:', updateErr.message);
+    }
 
     console.log('🎉 Checkout completo! Retornando URL:', session.url);
 

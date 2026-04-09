@@ -86,6 +86,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
       // Redirect to Stripe Checkout
       const response = await base44.functions.invoke('createStripeCheckout', {
         bookingId: booking.id,
+        bookingData: booking,
         successUrl: `${window.location.origin}/CheckoutSuccess?booking_id=${booking.id}`,
         cancelUrl: `${window.location.origin}/MyBookings?cancelled=true`,
       });
