@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bell, Check, CheckCheck, Trash2, Zap, MapPin, Calendar, CreditCard, AlertTriangle, Megaphone } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Zap, MapPin, Calendar, CreditCard, AlertTriangle, Megaphone, Settings } from "lucide-react";
+import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 import { toast } from "sonner";
 import { format, isToday, isYesterday } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -39,6 +40,7 @@ export default function Notifications() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeFilter, setActiveFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("list");
 
   const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => base44.auth.me() });
 
@@ -93,7 +95,7 @@ export default function Notifications() {
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-gradient-to-br from-slate-900 to-slate-700 rounded-2xl shadow-lg">
               <Bell className="w-6 h-6 text-orange-400" />
@@ -105,7 +107,7 @@ export default function Notifications() {
               </p>
             </div>
           </div>
-          {unreadCount > 0 && (
+          {activeTab === 'list' && unreadCount > 0 && (
             <Button
               variant="outline"
               size="sm"
@@ -117,6 +119,31 @@ export default function Notifications() {
             </Button>
           )}
         </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setActiveTab('list')}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+              activeTab === 'list' ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <Bell className="w-4 h-4" /> Lista
+          </button>
+          <button
+            onClick={() => setActiveTab('prefs')}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+              activeTab === 'prefs' ? 'bg-slate-900 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <Settings className="w-4 h-4" /> Preferências
+          </button>
+        </div>
+
+        {activeTab === 'prefs' ? (
+          <NotificationPreferences />
+        ) : (
+          <div>
 
         {/* Filtros */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
@@ -193,16 +220,13 @@ export default function Notifications() {
                         </span>
                       </div>
                     </div>
-
-                    {/* Ações rápidas */}
-                    <div className="absolute top-3 right-3 flex gap-1 opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity"
+                    <div className="absolute top-3 right-3 flex gap-1 opacity-0 hover:opacity-100 transition-opacity"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {!n.is_read && (
                         <button
                           onClick={(e) => { e.stopPropagation(); markRead.mutate(n.id); }}
                           className="w-7 h-7 flex items-center justify-center rounded-lg bg-white shadow-sm border border-gray-200 hover:bg-green-50 hover:text-green-600 text-gray-400 transition-colors"
-                          title="Marcar como lida"
                         >
                           <Check className="w-3.5 h-3.5" />
                         </button>
@@ -210,7 +234,6 @@ export default function Notifications() {
                       <button
                         onClick={(e) => { e.stopPropagation(); deleteNotif.mutate(n.id); }}
                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-white shadow-sm border border-gray-200 hover:bg-red-50 hover:text-red-500 text-gray-400 transition-colors"
-                        title="Eliminar"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -220,6 +243,8 @@ export default function Notifications() {
               })}
             </div>
           </AnimatePresence>
+        )}
+          </div>
         )}
       </div>
     </div>

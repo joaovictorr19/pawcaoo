@@ -1,0 +1,169 @@
+{
+  "name": "NotificationPreference",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do utilizador"
+    },
+    "preferences": {
+      "type": "object",
+      "description": "Mapa de prefer\u00eancias: { tipo: { in_app, email, push } }",
+      "properties": {
+        "booking": {
+          "type": "object",
+          "properties": {
+            "in_app": {
+              "type": "boolean",
+              "default": true
+            },
+            "email": {
+              "type": "boolean",
+              "default": true
+            },
+            "push": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "payment": {
+          "type": "object",
+          "properties": {
+            "in_app": {
+              "type": "boolean",
+              "default": true
+            },
+            "email": {
+              "type": "boolean",
+              "default": true
+            },
+            "push": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "pawgo_request": {
+          "type": "object",
+          "properties": {
+            "in_app": {
+              "type": "boolean",
+              "default": true
+            },
+            "email": {
+              "type": "boolean",
+              "default": true
+            },
+            "push": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "walk_update": {
+          "type": "object",
+          "properties": {
+            "in_app": {
+              "type": "boolean",
+              "default": true
+            },
+            "email": {
+              "type": "boolean",
+              "default": false
+            },
+            "push": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "alert": {
+          "type": "object",
+          "properties": {
+            "in_app": {
+              "type": "boolean",
+              "default": true
+            },
+            "email": {
+              "type": "boolean",
+              "default": true
+            },
+            "push": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "system": {
+          "type": "object",
+          "properties": {
+            "in_app": {
+              "type": "boolean",
+              "default": true
+            },
+            "email": {
+              "type": "boolean",
+              "default": false
+            },
+            "push": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "review": {
+          "type": "object",
+          "properties": {
+            "in_app": {
+              "type": "boolean",
+              "default": true
+            },
+            "email": {
+              "type": "boolean",
+              "default": true
+            },
+            "push": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
+        "promo": {
+          "type": "object",
+          "properties": {
+            "in_app": {
+              "type": "boolean",
+              "default": true
+            },
+            "email": {
+              "type": "boolean",
+              "default": false
+            },
+            "push": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "user_email": "{{user.email}}"
+    },
+    "read": {
+      "user_email": "{{user.email}}"
+    },
+    "update": {
+      "user_email": "{{user.email}}"
+    },
+    "delete": {
+      "user_email": "{{user.email}}"
+    }
+  }
+}
