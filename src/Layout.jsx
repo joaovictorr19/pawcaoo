@@ -61,74 +61,8 @@ import NotificationManager from "@/components/notifications/NotificationManager"
 
 import "./globals.css";
 
-const queryConfig = {
-  user: {
-    staleTime: 10 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  },
-  notifications: {
-    staleTime: 30 * 1000,
-    cacheTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchInterval: 60 * 1000,
-  },
-  static: {
-    staleTime: 15 * 60 * 1000,
-    cacheTime: 60 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  },
-};
 
-const prefetchQueries = {
-  walkers: (queryClient, base44) => {
-    queryClient.prefetchQuery({
-      queryKey: ['walkers'],
-      queryFn: () => base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100),
-      staleTime: 2 * 60 * 1000,
-    });
-  },
-  trainers: (queryClient, base44) => {
-    queryClient.prefetchQuery({
-      queryKey: ['trainers'],
-      queryFn: () => base44.entities.TrainerProfile.filter({ is_active: true }, '-rating'),
-      staleTime: 2 * 60 * 1000,
-    });
-  },
-  partners: (queryClient, base44) => {
-    queryClient.prefetchQuery({
-      queryKey: ['partners'],
-      queryFn: () => base44.entities.Partnership.filter({ is_active: true }),
-      staleTime: 3 * 60 * 1000,
-    });
-  },
-  bookings: (queryClient, base44, userEmail) => {
-    if (!userEmail) return;
-    queryClient.prefetchQuery({
-      queryKey: ['userBookings', userEmail],
-      queryFn: () => base44.entities.Booking.filter({ created_by: userEmail }, '-created_date'),
-      staleTime: 1 * 60 * 1000,
-    });
-  },
-};
 
-const usePrefetchOnHover = (prefetchFn) => {
-  const timeoutRef = React.useRef(null);
-
-  const handleMouseEnter = React.useCallback(() => {
-    timeoutRef.current = setTimeout(() => {
-      prefetchFn();
-    }, 100);
-  }, [prefetchFn]);
-
-  const handleMouseLeave = React.useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-  }, []);
-
-  return { handleMouseEnter, handleMouseLeave };
-};
 
 function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
@@ -136,8 +70,6 @@ function LayoutContent({ children, currentPageName }) {
   const { language, setLanguage } = useLanguage();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
-  const [myActivityExpanded, setMyActivityExpanded] = React.useState(true);
-  const [professionalServicesExpanded, setProfessionalServicesExpanded] = React.useState(false);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = React.useState(false);
   const [newBadge, setNewBadge] = React.useState(null);
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
@@ -154,25 +86,6 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, []);
 
-  const menuTranslations = {
-    shelterArea: { pt: 'Área de Abrigos', es: 'Área de Refugios', en: 'Shelter Area' },
-    myDashboard: { pt: 'Meu Dashboard', es: 'Mi Panel', en: 'My Dashboard' },
-    badges: { pt: 'Emblemas', es: 'Emblemas', en: 'Badges' },
-    becomeProfessional: { pt: 'Tornar-me Profissional', es: 'Ser Profesional', en: 'Become Professional' },
-    verifyWalkers: { pt: 'Verificar Passeadores', es: 'Verificar Paseadores', en: 'Verify Walkers' },
-    approveAds: { pt: 'Aprovar Anúncios', es: 'Aprobar Anuncios', en: 'Approve Ads' },
-    paymentSetup: { pt: 'Config. Pagamentos', es: 'Config. Pagos', en: 'Payment Setup' },
-    verifyShelters: { pt: 'Verificar Abrigos', es: 'Verificar Refugios', en: 'Verify Shelters' },
-    moderation: { pt: 'Moderação', es: 'Moderación', en: 'Moderation' },
-    myCompany: { pt: 'Minha Empresa', es: 'Mi Empresa', en: 'My Company' },
-    vetDashboard: { pt: 'Painel Veterinário', es: 'Panel Veterinario', en: 'Vet Dashboard' },
-    administration: { pt: 'Administração', es: 'Administración', en: 'Administration' },
-    company: { pt: 'Empresa', es: 'Empresa', en: 'Company' },
-    logout: { pt: 'Sair', es: 'Salir', en: 'Logout' },
-    login: { pt: 'Entrar', es: 'Entrar', en: 'Login' }
-  };
-
-  const getMenuText = (key) => menuTranslations[key]?.[language] || menuTranslations[key]?.en;
 
   const isRouteActive = (path) => {
     if (!path) return false;
@@ -316,24 +229,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: t('ownerMembership', language), url: createPageUrl("OwnerSubscriptions"), icon: Crown }
   ];
 
-  const adminMenu = authUser?.role === 'admin' ? [
-    { title: t('adminDashboard', language), url: createPageUrl("AdminDashboard"), icon: ShieldCheck },
-    { title: "Aprovações Profissionais", url: createPageUrl("AdminProfessionalApprovals"), icon: ShieldCheck },
-    { title: "Teste Pagamentos", url: createPageUrl("TestPayments"), icon: CreditCard },
-    { title: getMenuText('verifyWalkers'), url: createPageUrl("AdminDashboard?tab=applications"), icon: User },
-    { title: "Shop Hub", url: createPageUrl("AdminShopHub"), icon: Store },
-    { title: language === 'pt' ? 'Gestão de Loja' : 'Shop Management', url: createPageUrl("AdminProductManagement"), icon: ShoppingBag },
-    { title: getMenuText('approveAds'), url: createPageUrl("ApproveAnnouncements"), icon: Megaphone },
-    { title: getMenuText('paymentSetup'), url: createPageUrl("PaymentSetup"), icon: Shield },
-    { title: getMenuText('verifyShelters'), url: createPageUrl("AdminShelterVerification"), icon: Building2 },
-    { title: "Static Export", url: createPageUrl("StaticExport"), icon: Download },
-    { title: getMenuText('moderation'), url: createPageUrl("ModerationPanel"), icon: Shield }
-  ] : [];
 
-  const companyMenu = authUser?.account_type === 'company' ? [
-    { title: getMenuText('myCompany'), url: createPageUrl("PartnerDashboard"), icon: Store },
-    ...(authUser?.company_type === 'veterinary' ? [{ title: getMenuText('vetDashboard'), url: createPageUrl("VeterinaryDashboard"), icon: Award }] : [])
-  ] : [];
 
   const welcomeBadgeAwardedRef = React.useRef(false);
   
@@ -458,40 +354,9 @@ function LayoutContent({ children, currentPageName }) {
     return acc;
   }, {});
 
-  const prefetchWalkers = usePrefetchOnHover(() => 
-    prefetchQueries.walkers(queryClient, base44)
-  );
-  
-  const prefetchTrainers = usePrefetchOnHover(() => 
-    prefetchQueries.trainers(queryClient, base44)
-  );
-  
-  const prefetchBookings = usePrefetchOnHover(() => 
-    prefetchQueries.bookings(queryClient, base44, authUser?.email)
-  );
 
-  const getPrefetchHandlers = (item) => {
-    if (item.url === createPageUrl("Home")) return prefetchWalkers;
-    if (item.url === createPageUrl("Trainers")) return prefetchTrainers;
-    if (item.url === createPageUrl("MyBookings")) return prefetchBookings;
-    return {};
-  };
 
-  const handleNavigation = (url) => (e) => {
-    e.preventDefault();
-    navigate(url);
-  };
 
-  const handleNavigationToProfile = (e) => {
-    e.preventDefault();
-    if (authUser) {
-      const profileUrl = authUser.username 
-        ? createPageUrl(`UserProfile?username=${authUser.username}`)
-        : createPageUrl(`UserProfile?id=${authUser.id}`);
-
-      navigate(profileUrl);
-    }
-  };
 
   React.useEffect(() => {
     const handleUnhandledRejection = (event) => {
