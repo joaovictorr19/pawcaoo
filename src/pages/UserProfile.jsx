@@ -221,9 +221,9 @@ export default function UserProfile() {
       return walkers[0] || null;
     },
     enabled: !!profileEmail,
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
   const { data: trainerProfile } = useQuery({
@@ -234,9 +234,9 @@ export default function UserProfile() {
       return trainers[0] || null;
     },
     enabled: !!profileEmail,
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: true,
-    refetchInterval: 30000,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
   const { data: daysOff = [] } = useQuery({
@@ -272,11 +272,14 @@ export default function UserProfile() {
       const tId = trainerProfile?.id;
       if (!wId && !tId) return [];
       let allReviews = [];
-      if (wId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ walker_id: wId }, '-created_date')];
-      if (tId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ trainer_id: tId }, '-created_date')];
+      if (wId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ walker_id: wId }, '-created_date', 10)];
+      if (tId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ trainer_id: tId }, '-created_date', 10)];
       return allReviews;
     },
     enabled: !!profileEmail && (!!walkerProfile || !!trainerProfile),
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 
   React.useEffect(() => {
@@ -399,6 +402,7 @@ export default function UserProfile() {
           src={displayCoverUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=400&fit=crop"}
           className="w-full h-full object-cover"
           alt="Capa"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-transparent to-black/20" />
         <button onClick={() => navigate(-1)} className="absolute top-6 left-6 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all">
@@ -470,9 +474,9 @@ export default function UserProfile() {
             <div>
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Portefólio</h3>
               <div className="grid grid-cols-2 gap-3">
-                {walkerProfile.portfolio.filter(p => p.media_url).map((item, idx) => (
+                {walkerProfile.portfolio.filter(p => p.media_url).slice(0, 4).map((item, idx) => (
                   <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100">
-                    <img src={item.media_url} alt={item.title || 'foto'} className="w-full h-full object-cover" />
+                    <img src={item.media_url} alt={item.title || 'foto'} className="w-full h-full object-cover" loading="lazy" />
                     {item.title && (
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                         <p className="text-white text-[10px] font-bold truncate">{item.title}</p>
