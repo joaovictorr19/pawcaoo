@@ -23,7 +23,6 @@ import { format } from "date-fns";
 import { ptBR, pt } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MapContainer, TileLayer, Polyline, Marker, Popup } from "react-leaflet";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -205,14 +204,10 @@ export default function ClientDashboard() {
 
         {/* Tabs: History, Reports & Dogs */}
         <Tabs defaultValue="history" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="history" className="gap-2">
               <History className="w-4 h-4" />
               Histórico
-            </TabsTrigger>
-            <TabsTrigger value="map" className="gap-2">
-              <MapPin className="w-4 h-4" />
-              Trajetos
             </TabsTrigger>
             <TabsTrigger value="dogs" className="gap-2">
               🐾 Animais
@@ -274,67 +269,6 @@ export default function ClientDashboard() {
             <MyDogsManager userEmail={user?.email} />
           </TabsContent>
 
-          <TabsContent value="map">
-            <Card className="overflow-hidden shadow-xl border-0">
-              <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="w-6 h-6" />
-                  Mapa de Aventuras do {selectedBooking?.dog_name || 'seu Pet'}
-                </CardTitle>
-                <p className="text-sm text-white/80">Todos os trajetos GPS e eventos registados nos passeios</p>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="h-[500px]">
-                  <MapContainer
-                    center={selectedBooking?.route_coordinates?.[0]
-                      ? [selectedBooking.route_coordinates[0].lat, selectedBooking.route_coordinates[0].lng]
-                      : [41.1579, -8.6291]}
-                    zoom={selectedBooking ? 14 : 12}
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    {(selectedBooking
-                      ? [selectedBooking]
-                      : bookings.filter(b => b.route_coordinates && b.route_coordinates.length > 1)
-                    ).map((booking, idx) => (
-                      <React.Fragment key={booking.id}>
-                        {booking.route_coordinates?.length > 1 && (
-                          <Polyline
-                            positions={booking.route_coordinates.map(c => [c.lat, c.lng])}
-                            color={selectedBooking ? '#16a34a' : `hsl(${idx * 40}, 70%, 50%)`}
-                            weight={selectedBooking ? 5 : 3}
-                          />
-                        )}
-                        {booking.route_coordinates?.length > 0 && (
-                          <Marker position={[booking.route_coordinates[0].lat, booking.route_coordinates[0].lng]}>
-                            <Popup>🟢 Início do passeio</Popup>
-                          </Marker>
-                        )}
-                        {booking.route_coordinates?.length > 1 && (
-                          <Marker position={[booking.route_coordinates[booking.route_coordinates.length-1].lat, booking.route_coordinates[booking.route_coordinates.length-1].lng]}>
-                            <Popup>🔴 Fim — {booking.distance_km?.toFixed(2)} km</Popup>
-                          </Marker>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </MapContainer>
-                </div>
-                {bookings.filter(b => b.status === 'completed').length > 1 && (
-                  <div className="p-4 border-t bg-gray-50">
-                    <p className="text-sm font-medium text-gray-700 mb-3">Selecionar Passeio:</p>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                      <Button variant={!selectedBooking ? 'default' : 'outline'} size="sm" onClick={() => setSelectedBooking(null)}>Todos</Button>
-                      {bookings.filter(b => b.status === 'completed' && b.route_coordinates?.length > 0).map((booking) => (
-                        <Button key={booking.id} variant={selectedBooking?.id === booking.id ? 'default' : 'outline'} size="sm" onClick={() => setSelectedBooking(booking)} className="whitespace-nowrap">
-                          {booking.dog_name} - {format(new Date(booking.walk_date), 'dd/MM', { locale: pt })}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
 
