@@ -524,9 +524,11 @@ export default function AccountSettings() {
                     <div>
                       <Label className="mb-3 block">Foto de Capa</Label>
                       <div className="flex items-center gap-4">
-                        <div className="w-40 h-20 bg-gray-100 rounded-lg overflow-hidden">
-                          {user?.cover_photo_url && (
+                        <div className="w-40 h-20 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
+                          {user?.cover_photo_url ? (
                             <img src={user.cover_photo_url} className="w-full h-full object-cover" alt="Cover" />
+                          ) : (
+                            <span className="text-xs text-gray-400">Nenhuma foto</span>
                           )}
                         </div>
                         <div>
@@ -597,43 +599,7 @@ export default function AccountSettings() {
                       />
                     </div>
 
-                    <div>
-                      <Label>About Me (Professional)</Label>
-                      <Textarea
-                        value={profileData.about_me}
-                        onChange={(e) => setProfileData({...profileData, about_me: e.target.value})}
-                        placeholder="Detailed introduction about your professional services and philosophy..."
-                        rows={6}
-                      />
-                    </div>
 
-                    <div>
-                      <Label>Skills (comma separated)</Label>
-                      <Input
-                        value={profileData.skills}
-                        onChange={(e) => setProfileData({...profileData, skills: e.target.value})}
-                        placeholder="Dog Walking, Training, First Aid, Grooming..."
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Pet Preferences</Label>
-                      <Input
-                        value={profileData.pet_preferences}
-                        onChange={(e) => setProfileData({...profileData, pet_preferences: e.target.value})}
-                        placeholder="E.g., Large dogs, energetic breeds..."
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Past Experiences</Label>
-                      <Textarea
-                        value={profileData.past_experiences}
-                        onChange={(e) => setProfileData({...profileData, past_experiences: e.target.value})}
-                        placeholder="Share your past experiences with pets..."
-                        rows={3}
-                      />
-                    </div>
 
                     <div>
                       <Label>Website</Label>
