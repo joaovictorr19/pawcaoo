@@ -8,6 +8,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
+import ServiceQRCodes from "@/components/booking/ServiceQRCodes";
 
 /**
  * Checkout Success Page
@@ -87,7 +88,8 @@ export default function CheckoutSuccess() {
           customer_email: booking.owner_email,
           payment_status: 'paid',
           dog_name: booking.dog_name,
-          walk_date: booking.walk_date
+          walk_date: booking.walk_date,
+          bookingData: booking
         });
       }
       queryClient.invalidateQueries(['myWalks']);
@@ -211,42 +213,22 @@ export default function CheckoutSuccess() {
               </div>
             </div>
 
+            {/* QR Codes */}
+            {sessionDetails?.bookingData && (
+              <div className="mb-8">
+                <ServiceQRCodes booking={sessionDetails.bookingData} />
+              </div>
+            )}
+
             {/* Next Steps */}
             <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
-              <h3 className="font-semibold text-gray-900 mb-2">What's Next?</h3>
-              <ul className="text-sm text-gray-700 space-y-2">
-                <li>✓ Confirmation email sent to {sessionDetails.customer_email}</li>
-                <li>✓ Professional has been notified of your purchase</li>
-                <li>✓ You'll receive service details shortly</li>
-                <li>✓ Receipt available in your account dashboard</li>
-              </ul>
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <Button
-                onClick={() => navigate(createPageUrl('MyBookings'))}
-                className="flex-1 bg-gradient-to-r from-green-600 to-green-500"
-              >
-                <Package className="w-4 h-4 mr-2" />
-                View My Bookings
-              </Button>
-              <Button
-                onClick={() => navigate(createPageUrl('Home'))}
-                variant="outline"
-                className="flex-1"
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Back to Home
-              </Button>
-            </div>
-
-            {/* Implementation Note */}
-            <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-xs text-yellow-800">
-                <strong>Demo Mode:</strong> In production, this page would show real payment details
-                and trigger order fulfillment workflows via webhooks.
-              </p>
+              <h3 className="font-semibold text-gray-900 mb-2">📱 Como funciona o serviço?</h3>
+              <ol className="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+                <li>O profissional chega e escaneia o <strong>QR de Início</strong></li>
+                <li>O serviço decorre normalmente</li>
+                <li>No fim, mostre o <strong>QR de Fim</strong> ao profissional</li>
+                <li>Após scan, o pagamento é automaticamente liberado</li>
+              </ol>
             </div>
           </CardContent>
         </Card>

@@ -40,23 +40,40 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
 
   const handleSuccessfulScan = async (data) => {
     try {
-      // Update booking status
       if (type === 'START') {
         await base44.entities.Booking.update(booking.id, {
           status: 'in_progress',
           walk_start_time: new Date().toISOString()
         });
-        toast.success('✅ Passeio iniciado com sucesso!', {
-          description: 'GPS ativado automaticamente'
+        toast.success('✅ Serviço iniciado!', {
+          description: 'Serviço em curso — leia o QR de Fim ao terminar'
         });
       } else {
-        await base44.entities.Booking.update(booking.id, {
-          status: 'completed',
-          completed_date: new Date().toISOString()
+        // FIM: marcar concluído e liberar pagamento ao profissional
+        await base44.functions.invoke('completeWalkAndPay', {
+          walkId: booking.id,
+          report: 'Concluído via QR Code'
         });
-        toast.success('✅ Entrega confirmada!', {
-          description: 'Avalie o serviço'
+
+        // Atualizar payment como released
+        const payments = await base44.entities.Payment.filter({ booking_id: booking.id });
+        if (payments.length > 0) {
+          await base44.entities.Payment.update(payments[0].id, {
+            status: 'released',
+            released_date: new Date().toISOString()
+          });
+        }
+
+        // Notificar dono
+        await base44.entities.Notification.create({
+          recipient_email: booking.owner_email || booking.created_by,
+          title: '✅ Serviço Concluído!',
+          message: `O serviço com ${booking.walker_name} foi concluído. Pagamento processado.`,
+          type: 'booking',
+          related_id: booking.id
         });
+
+        toast.success('✅ Serviço concluído! Pagamento liberado ao profissional 💰');
       }
 
       setScanning(false);
