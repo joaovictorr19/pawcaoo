@@ -503,21 +503,41 @@ export default function UserProfile() {
           {/* SERVIÇOS OFERECIDOS */}
           {(walkerProfile || trainerProfile) && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
             <div>
-              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Serviços Oferecidos</h3>
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Serviços Oferecidos</h3>
+              {!isOwnProfile && (
+                <button
+                  onClick={() => setBookingModal({ isOpen: true, selectedDate: null, selectedService: null })}
+                  className="w-full mb-4 py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-black rounded-2xl text-sm transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+                >
+                  📅 Fazer Reserva
+                </button>
+              )}
               <div className="space-y-3">
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
-                  <div key={idx} className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-2xl shadow-sm border border-blue-100 hover:shadow-md transition-all cursor-pointer" onClick={() => !isOwnProfile && setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}>
-                    <h4 className="font-black text-sm text-slate-900 mb-2">{service.service_name}</h4>
-                    {service.description && <p className="text-xs text-slate-600 mb-2">{service.description}</p>}
-                    <div className="flex justify-between items-center text-xs">
-                      <div className="flex gap-3">
-                        {service.duration_options?.length > 0 && (
-                          <span className="text-slate-500">⏱️ {service.duration_options[0]}</span>
-                        )}
+                  <div key={idx} className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <h4 className="font-black text-sm text-slate-900">{service.service_name}</h4>
+                          {service.description && <p className="text-xs text-slate-500 mt-1 leading-relaxed">{service.description}</p>}
+                          {service.duration_options?.length > 0 && (
+                            <p className="text-xs text-slate-400 mt-1.5">⏱️ {service.duration_options.join(' · ')}</p>
+                          )}
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-lg font-black text-blue-600">{service.price}€</p>
+                          <p className="text-[9px] text-slate-400">/hora</p>
+                        </div>
                       </div>
-                      <span className="text-orange-600 font-black text-base">{service.price}€</span>
+                      {!isOwnProfile && (
+                        <button
+                          onClick={() => setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
+                          className="w-full mt-3 py-2.5 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white font-bold rounded-xl text-xs transition-all"
+                        >
+                          Reservar este serviço →
+                        </button>
+                      )}
                     </div>
-                    {!isOwnProfile && <p className="text-[10px] text-blue-600 font-bold mt-3">👉 Clica para agendar</p>}
                   </div>
                 ))}
               </div>

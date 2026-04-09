@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { Clock, MapPin, CalendarDays } from 'lucide-react';
+import { Clock, MapPin, CalendarDays, X, ChevronLeft } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
@@ -17,13 +15,8 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
   React.useEffect(() => {
     if (isOpen) {
-      if (initialDate) {
-        setSelectedDate(initialDate);
-        setStep(1);
-      } else {
-        setSelectedDate('');
-        setStep(0);
-      }
+      setSelectedDate(initialDate || '');
+      setStep(initialDate ? 1 : 0);
       setSelectedTime('10:00');
       setDuration('1');
       setPickupMethod('walker_pickup');
@@ -33,21 +26,26 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
   if (!walkerProfile) return null;
 
   const durationNum = parseFloat(duration) || 1;
-  const hourlyRate = walkerProfile.hourly_rate || 0;
+  const hourlyRate = selectedService?.price || walkerProfile.hourly_rate || 0;
   const serviceAmount = Math.round(hourlyRate * durationNum * 100) / 100;
   const platformFee = Math.round(serviceAmount * 0.15 * 100) / 100;
   const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
 
   const pickupOptions = [
-    { id: 'walker_pickup', label: 'O profissional vai buscar', icon: '🚶', desc: 'Passo a buscar à tua porta' },
-    { id: 'owner_dropoff', label: 'Deixo na casa do profissional', icon: '🏠', desc: 'Levo e deixo na casa' },
-    { id: 'meeting_point', label: 'Ponto de encontro', icon: '📍', desc: 'Encontramos num local combinado' }
+    { id: 'walker_pickup', label: 'Profissional vai buscar', icon: '🚶', desc: 'O profissional vem à tua porta' },
+    { id: 'owner_dropoff', label: 'Deixo na casa', icon: '🏠', desc: 'Levo o animal à casa do profissional' },
+    { id: 'meeting_point', label: 'Ponto de encontro', icon: '📍', desc: 'Encontramo-nos num local combinado' }
   ];
 
-  const timeSlots = Array.from({ length: 13 }, (_, i) => {
-    const hour = 9 + i;
-    return `${String(hour).padStart(2, '0')}:00`;
-  });
+  const timeSlots = Array.from({ length: 13 }, (_, i) => `${String(9 + i).padStart(2, '0')}:00`);
+
+  const durations = [
+    { value: '0.5', label: '30 min' },
+    { value: '1', label: '1h' },
+    { value: '1.5', label: '1h30' },
+    { value: '2', label: '2h' },
+    { value: '3', label: '3h' },
+  ];
 
   const availableDates = Array.from({ length: 30 }, (_, i) => {
     const d = new Date();
@@ -57,17 +55,15 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
   const handleCreateBooking = async () => {
     if (!currentUser?.email) {
-      toast.error('Por favor, faça login para criar uma reserva');
+      toast.error('Faça login para criar uma reserva');
+      base44.auth.redirectToLogin(window.location.href);
       return;
     }
-    if (!selectedDate) {
-      toast.error('Por favor, escolha uma data');
-      return;
-    }
+    if (!selectedDate) { toast.error('Escolha uma data'); return; }
 
     setIsCreating(true);
     try {
-      const bookingData = {
+      await base44.entities.Booking.create({
         owner_name: currentUser.full_name || currentUser.email,
         owner_email: currentUser.email,
         dog_name: 'Cão',
@@ -82,63 +78,75 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
         duration_hours: durationNum,
         pickup_method: pickupMethod,
         status: 'pending',
-        type: 'walk'
-      };
-
-      const booking = await base44.entities.Booking.create(bookingData);
-      toast.success('Reserva criada! A redirecionar para pagamento...');
-      setTimeout(() => {
-        window.location.href = `/MyBookings`;
-      }, 1000);
+        type: walkerProfile.trainer_name ? 'training' : 'walk',
+        special_notes: selectedService ? `Serviço: ${selectedService.service_name}` : '',
+      });
+      toast.success('Reserva criada com sucesso! 🎉');
       onClose();
+      setTimeout(() => { window.location.href = '/MyBookings'; }, 800);
     } catch (error) {
-      toast.error(`Erro ao criar reserva: ${error.message}`);
+      toast.error(`Erro: ${error.message}`);
     } finally {
       setIsCreating(false);
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[92vh] overflow-y-auto rounded-3xl p-0 gap-0">
-        <DialogHeader className="p-6 pb-4 border-b sticky top-0 bg-white z-10">
-          <DialogTitle className="text-lg font-bold">
-            {selectedService ? selectedService.service_name : 'Marcar Passeio'}
-          </DialogTitle>
-          {selectedDate && (
-            <p className="text-xs text-gray-500 mt-1">
-              📅 {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
-          )}
-          {/* Step indicator */}
-          <div className="flex gap-1 mt-3">
-            {[0, 1, 2, 3].map(s => (
-              <div key={s} className={`h-1 flex-1 rounded-full transition-all ${step >= s ? 'bg-blue-500' : 'bg-gray-200'}`} />
-            ))}
-          </div>
-        </DialogHeader>
+  const stepTitles = ['Escolha o dia', 'Hora & Duração', 'Forma de recolha', 'Confirmar'];
 
-        <div className="p-6 space-y-4">
-          {/* STEP 0: Escolher data */}
+  return (
+    <Drawer open={isOpen} onOpenChange={onClose}>
+      <DrawerContent className="max-h-[92vh] rounded-t-3xl focus:outline-none">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            {step > 0 && (
+              <button onClick={() => setStep(s => s - 1)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <ChevronLeft className="w-4 h-4 text-slate-600" />
+              </button>
+            )}
+            <div>
+              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+                {selectedService?.service_name || (walkerProfile.walker_name || walkerProfile.trainer_name)}
+              </p>
+              <h2 className="text-base font-black text-slate-900">{stepTitles[step]}</h2>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+            <X className="w-4 h-4 text-slate-600" />
+          </button>
+        </div>
+
+        {/* Progress */}
+        <div className="flex gap-1 px-5 pt-3">
+          {[0, 1, 2, 3].map(s => (
+            <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-300 ${step >= s ? 'bg-blue-500' : 'bg-slate-200'}`} />
+          ))}
+        </div>
+
+        <div className="overflow-y-auto flex-1 px-5 pt-4 pb-8">
+
+          {/* STEP 0 — Data */}
           {step === 0 && (
-            <div className="space-y-4">
-              <label className="text-xs font-bold text-gray-700 uppercase block">
-                <CalendarDays className="w-4 h-4 inline mr-1" /> Escolha um dia
-              </label>
-              <div className="grid grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
+            <div className="space-y-3">
+              <div className="grid grid-cols-4 gap-2">
                 {availableDates.map(d => {
                   const dateObj = new Date(d + 'T12:00:00');
+                  const isSelected = selectedDate === d;
                   return (
                     <button
                       key={d}
                       onClick={() => { setSelectedDate(d); setStep(1); }}
-                      className={`p-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
-                        selectedDate === d ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'
+                      className={`py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
+                        isSelected ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-200 bg-white hover:border-blue-300'
                       }`}
                     >
-                      <p className="text-[10px] text-gray-500 uppercase">{dateObj.toLocaleDateString('pt-PT', { weekday: 'short' })}</p>
-                      <p className="text-lg font-black text-gray-900">{dateObj.getDate()}</p>
-                      <p className="text-[10px] text-gray-500">{dateObj.toLocaleDateString('pt-PT', { month: 'short' })}</p>
+                      <p className={`text-[9px] uppercase font-bold ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
+                        {dateObj.toLocaleDateString('pt-PT', { weekday: 'short' })}
+                      </p>
+                      <p className={`text-xl font-black ${isSelected ? 'text-white' : 'text-slate-900'}`}>{dateObj.getDate()}</p>
+                      <p className={`text-[9px] ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
+                        {dateObj.toLocaleDateString('pt-PT', { month: 'short' })}
+                      </p>
                     </button>
                   );
                 })}
@@ -146,128 +154,142 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
             </div>
           )}
 
-          {/* STEP 1: Hora e duração */}
+          {/* STEP 1 — Hora & Duração */}
           {step === 1 && (
             <div className="space-y-5">
               <div>
-                <label className="text-xs font-bold text-gray-700 uppercase mb-2 block">
-                  <Clock className="w-4 h-4 inline mr-1" /> Hora
+                <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" /> Hora
                 </label>
-                <Select value={selectedTime} onValueChange={setSelectedTime}>
-                  <SelectTrigger className="rounded-xl h-12">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeSlots.map(time => (
-                      <SelectItem key={time} value={time}>{time}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="grid grid-cols-4 gap-2">
+                  {timeSlots.map(time => (
+                    <button
+                      key={time}
+                      onClick={() => setSelectedTime(time)}
+                      className={`py-2.5 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 ${
+                        selectedTime === time ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-gray-700 uppercase mb-2 block">
-                  Duração
-                </label>
-                <Select value={duration} onValueChange={setDuration}>
-                  <SelectTrigger className="rounded-xl h-12">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0.5">30 minutos</SelectItem>
-                    <SelectItem value="1">1 hora</SelectItem>
-                    <SelectItem value="1.5">1h30</SelectItem>
-                    <SelectItem value="2">2 horas</SelectItem>
-                    <SelectItem value="3">3 horas</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Duração</label>
+                <div className="flex gap-2 flex-wrap">
+                  {durations.map(d => (
+                    <button
+                      key={d.value}
+                      onClick={() => setDuration(d.value)}
+                      className={`px-4 py-2.5 rounded-xl border-2 text-sm font-bold transition-all active:scale-95 ${
+                        duration === d.value ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
-                <Button variant="outline" onClick={() => setStep(0)} className="flex-1 rounded-xl h-12">← Voltar</Button>
-                <Button onClick={() => setStep(2)} className="flex-1 rounded-xl h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold">Continuar →</Button>
-              </div>
+              <Button onClick={() => setStep(2)} className="w-full h-13 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base">
+                Continuar →
+              </Button>
             </div>
           )}
 
-          {/* STEP 2: Método de recolha */}
+          {/* STEP 2 — Recolha */}
           {step === 2 && (
             <div className="space-y-3">
-              <label className="text-xs font-bold text-gray-700 uppercase block">
-                <MapPin className="w-4 h-4 inline mr-1" /> Como é a recolha?
-              </label>
-
               {pickupOptions.map(option => (
                 <button
                   key={option.id}
                   onClick={() => setPickupMethod(option.id)}
                   className={`w-full p-4 rounded-2xl border-2 transition-all text-left active:scale-[0.98] ${
-                    pickupMethod === option.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                    pickupMethod === option.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200'
                   }`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-center gap-3">
                     <span className="text-2xl">{option.icon}</span>
                     <div className="flex-1">
-                      <p className="font-bold text-sm text-gray-900">{option.label}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{option.desc}</p>
+                      <p className="font-bold text-sm text-slate-900">{option.label}</p>
+                      <p className="text-xs text-slate-500">{option.desc}</p>
                     </div>
-                    <div className={`w-5 h-5 rounded-full border-2 mt-1 flex-shrink-0 ${
-                      pickupMethod === option.id ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
-                    }`} />
+                    <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+                      pickupMethod === option.id ? 'border-blue-500 bg-blue-500' : 'border-slate-300'
+                    }`}>
+                      {pickupMethod === option.id && <div className="w-2 h-2 rounded-full bg-white" />}
+                    </div>
                   </div>
                 </button>
               ))}
 
-              <div className="flex gap-3 pt-2">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1 rounded-xl h-12">← Voltar</Button>
-                <Button onClick={() => setStep(3)} className="flex-1 rounded-xl h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold">Continuar →</Button>
-              </div>
+              <Button onClick={() => setStep(3)} className="w-full h-13 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base mt-2">
+                Ver Resumo →
+              </Button>
             </div>
           )}
 
-          {/* STEP 3: Resumo e confirmação */}
+          {/* STEP 3 — Resumo */}
           {step === 3 && (
             <div className="space-y-4">
-              <Card className="rounded-2xl border-gray-200">
-                <CardContent className="p-4 space-y-3">
+              <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Profissional</span>
+                  <span className="font-bold text-slate-900">{walkerProfile.walker_name || walkerProfile.trainer_name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Data</span>
+                  <span className="font-bold text-slate-900">
+                    {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Hora</span>
+                  <span className="font-bold text-slate-900">{selectedTime}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Duração</span>
+                  <span className="font-bold text-slate-900">{durationNum}h</span>
+                </div>
+                {selectedService && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Profissional:</span>
-                    <span className="font-bold">{walkerProfile.walker_name || walkerProfile.trainer_name}</span>
+                    <span className="text-slate-500">Serviço</span>
+                    <span className="font-bold text-slate-900">{selectedService.service_name}</span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-slate-200 space-y-1.5">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Serviço</span>
+                    <span className="font-bold">{serviceAmount}€</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Data:</span>
-                    <span className="font-bold">{new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })} às {selectedTime}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{durationNum}h × {hourlyRate}€:</span>
-                    <span className="font-bold text-blue-600">{serviceAmount}€</span>
-                  </div>
-                  <div className="border-t pt-3 flex justify-between text-sm">
-                    <span className="text-gray-600">Taxa plataforma (15%):</span>
+                    <span className="text-slate-500">Taxa plataforma (15%)</span>
                     <span className="font-bold text-orange-600">{platformFee}€</span>
                   </div>
-                  <div className="bg-blue-50 rounded-xl p-3 flex justify-between items-center">
-                    <span className="text-sm font-bold text-blue-900">Total:</span>
-                    <span className="text-2xl font-black text-blue-600">{totalAmount}€</span>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="bg-blue-600 rounded-xl px-4 py-3 flex justify-between items-center">
+                  <span className="text-sm font-bold text-blue-100">Total</span>
+                  <span className="text-2xl font-black text-white">{totalAmount}€</span>
+                </div>
+              </div>
 
               <Button
                 onClick={handleCreateBooking}
                 disabled={isCreating}
-                className="w-full rounded-xl h-14 bg-green-600 hover:bg-green-700 text-white font-bold text-base"
+                className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-green-200"
               >
                 {isCreating ? '⏳ A processar...' : '✅ Confirmar Reserva'}
               </Button>
 
-              <Button variant="outline" onClick={() => setStep(2)} className="w-full rounded-xl h-12">
-                ← Voltar
-              </Button>
+              <p className="text-center text-xs text-slate-400">
+                A reserva fica pendente até o profissional aceitar.
+              </p>
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
