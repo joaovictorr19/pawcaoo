@@ -415,10 +415,10 @@ export default function UserProfile() {
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Serviços Oferecidos</h3>
               <div className="space-y-3">
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
-                  <button
+                  <div
                     key={idx}
-                    onClick={() => setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
-                    className={`w-full bg-white border-2 rounded-2xl overflow-hidden transition-all text-left ${
+                    onClick={() => !isOwnProfile && setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
+                    className={`w-full bg-white border-2 rounded-2xl overflow-hidden transition-all ${
                       !isOwnProfile ? 'border-slate-200 hover:border-blue-400 hover:shadow-md active:scale-[0.98] cursor-pointer' : 'border-slate-200'
                     }`}
                   >
@@ -433,7 +433,7 @@ export default function UserProfile() {
                         </div>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
