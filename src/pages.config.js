@@ -92,7 +92,6 @@ export const PAGES = {
     "FiscalSettings": page(() => import('./pages/FiscalSettings')),
     "ForumTopicDetails": page(() => import('./pages/ForumTopicDetails')),
     "Gamification": page(() => import('./pages/Gamification')),
-    "Home": page(() => import('./pages/Home')),
     "Landing": page(() => import('./pages/Landing')),
 
 
