@@ -866,7 +866,7 @@ function LayoutContent({ children, currentPageName }) {
       </header>
       {/* ========== FIM HEADER ========== */}
 
-      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '64px' }}>
+      <div className="flex flex-col w-full max-w-[100vw] min-h-screen relative z-10" style={{ marginTop: '64px', overflowX: 'hidden' }}>
         {/* Espaçamento extra para desktop onde o header é flutuante */}
         <div className="hidden md:block" style={{ height: '26px' }} />
         {/* Container para sidebar e conteúdo */}
@@ -903,7 +903,7 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationManager />
 
           {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1 flex flex-col min-w-0 pb-32 md:pb-0 relative z-10 bg-transparent w-full" style={{ maxWidth: '100vw' }}>
+          <div className="flex-1 flex flex-col min-w-0 pb-32 md:pb-0 relative z-10 bg-transparent w-full" style={{ maxWidth: '100vw', overflowX: 'hidden' }}>
             {/* Mobile Header for Child Routes (Back Button + Title) */}
             <MobileHeader />
             

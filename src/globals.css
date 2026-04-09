@@ -32,17 +32,21 @@
   
   html {
     @apply text-foreground;
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
+    height: 100%;
     background: transparent;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   body {
     @apply text-foreground;
     position: relative;
     background: transparent;
-    min-height: 100vh;
+    min-height: 100%;
     min-height: -webkit-fill-available;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   input, textarea, select, [role="dialog"], [role="combobox"], [data-radix-popper-content-wrapper], [data-radix-dialog-content] {
@@ -238,6 +242,12 @@
 
   main, section, article, .content-area {
     background: transparent;
+  }
+
+  /* Ensure root div doesn't trap scroll on Android */
+  #root {
+    min-height: 100%;
+    overflow-x: hidden;
   }
 
   /* PawGo Live Tracking - Marcador suave no mapa */
