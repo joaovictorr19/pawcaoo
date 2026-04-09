@@ -412,7 +412,7 @@ export default function UserProfile() {
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
             <Avatar className="w-32 h-32 border-4 border-white shadow-2xl rounded-[2.5rem]">
-              <AvatarImage src={displayPhotoUrl} />
+              <AvatarImage src={displayPhotoUrl} className="object-cover w-full h-full" style={{ objectFit: 'cover' }} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl font-black">
                 {displayName[0]?.toUpperCase()}
               </AvatarFallback>
