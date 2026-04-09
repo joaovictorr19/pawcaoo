@@ -8,6 +8,11 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    // SECURITY: Only admins can award loyalty points
+    if (user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
 
     const { amount_euro, booking_id, activity_type } = await req.json();
 

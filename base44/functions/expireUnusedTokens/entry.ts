@@ -6,13 +6,13 @@ const TOKEN_VALUE = 12; // €12 per token
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
     
-    // Verify admin or system call (you can add auth check here)
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // SECURITY: Only admins can expire tokens
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
-
+    
     const today = new Date().toISOString().split('T')[0];
     
     // Find all wallets with expired tokens

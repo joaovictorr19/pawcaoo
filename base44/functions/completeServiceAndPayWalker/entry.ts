@@ -16,6 +16,12 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    
+    // SECURITY: Only admins can complete and pay walks
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
     
     const { 
       booking_id,

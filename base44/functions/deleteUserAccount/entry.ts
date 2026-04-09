@@ -9,13 +9,32 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { userId } = await req.json();
+    const { userId, confirmDeletion } = await req.json();
 
-    // Verify user is deleting their own account
+    // Verify user is deleting their own account or is admin
     if (user.id !== userId && user.role !== 'admin') {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
-
+    
+    // Double confirmation: require explicit confirmation flag
+    if (!confirmDeletion) {
+      return Response.json({ 
+        error: 'Confirmation required',
+        message: 'Esta ação é irreversível. Confirme que deseja eliminar a conta.' 
+      }, { status: 400 });
+    }
+    
+    // When admin deletes another user's account, require explicit admin-level confirmation
+    if (user.id !== userId && user.role === 'admin') {
+      const { adminConfirmDelete } = await req.json();
+      if (!adminConfirmDelete) {
+        return Response.json({ 
+          error: 'Admin confirmation required',
+          message: 'Admin must explicitly confirm deletion of another user account.' 
+        }, { status: 400 });
+      }
+    }
+    
     // Delete all related data (cascading cleanup)
     try {
       // Delete walker profile

@@ -15,12 +15,13 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = await base44.auth.me();
+    
+    // SECURITY: Only admins can retry blocked payouts
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
-
+    
     // Fetch all blocked/failed payouts
     const blockedPayouts = await base44.asServiceRole.entities.WalkerPayout.filter({
       status: 'failed'
