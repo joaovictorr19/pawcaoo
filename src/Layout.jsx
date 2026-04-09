@@ -797,31 +797,27 @@ function LayoutContent({ children, currentPageName }) {
           boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)',
         }}
       >
-        <div className="flex items-center justify-between h-12 gap-2">
-          {/* Menu Trigger - Left Side */}
-          {authUser ? (
-            <div className="flex-shrink-0">
+        <div className="flex items-center h-12 gap-2">
+          {/* Esquerda: Menu Trigger + Logo */}
+          <div className="flex items-center gap-2 flex-1">
+            {authUser && (
               <SidebarTrigger 
-                className="h-9 w-9 p-2 rounded-xl transition-all active:scale-95"
+                className="h-9 w-9 p-2 rounded-xl transition-all active:scale-95 flex-shrink-0"
                 style={{
                   background: 'rgba(255, 255, 255, 0.6)',
                   border: '1px solid rgba(0, 0, 0, 0.05)'
                 }}
                 aria-label="Menu" 
               />
-            </div>
-          ) : (
-            <div className="flex-shrink-0 w-9" />
-          )}
-
-          {/* Centered Logo */}
-          <Link 
-            to={createPageUrl("Home")} 
-            className="flex-shrink-0 hover:opacity-80 transition-opacity"
-            aria-label="Go to home"
-          >
-            <PawCaoLogo size="medium" showText={false} />
-          </Link>
+            )}
+            <Link 
+              to={createPageUrl("Home")} 
+              className="flex-shrink-0 hover:opacity-80 transition-opacity"
+              aria-label="Go to home"
+            >
+              <PawCaoLogo size="medium" showText={true} />
+            </Link>
+          </div>
 
           {/* Direita - Pesquisa, Login/Notificações */}
           <div className="flex items-center gap-1 justify-end flex-shrink-0">
