@@ -156,3 +156,11 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background-color: hsl(var(--background));
+}
