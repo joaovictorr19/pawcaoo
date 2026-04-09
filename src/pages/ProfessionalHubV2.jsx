@@ -36,10 +36,11 @@ function ActiveRequestsList({ user }) {
           { walker_email: user.email, status: 'confirmed' },
           { walker_email: user.email, status: 'in_progress' }
         ]
-      }, '-created_date', 50);
+      }, '-created_date', 5);
     },
     enabled: !!user?.email,
-    refetchInterval: 5000
+    refetchInterval: 15000,
+    staleTime: 5 * 60 * 1000,
   });
 
   const navigate = useNavigate();
@@ -142,13 +143,12 @@ export default function ProfessionalHubV2() {
       const allPending = await base44.entities.Booking.filter({
         walker_email: user.email,
         status: 'pending'
-      }, '-created_date', 100);
+      }, '-created_date', 5);
 
       const now = new Date();
       const expiredBookings = [];
       const validBookings = [];
 
-      // Separar pedidos válidos dos expirados
       for (const booking of allPending) {
         const createdTime = new Date(booking.created_date);
         const ageMinutes = (now - createdTime) / (1000 * 60);
@@ -160,7 +160,6 @@ export default function ProfessionalHubV2() {
         }
       }
 
-      // Marcar pedidos expirados como rejeitados
       for (const booking of expiredBookings) {
         try {
           await base44.entities.Booking.update(booking.id, { 
@@ -173,11 +172,9 @@ export default function ProfessionalHubV2() {
       }
 
       const latest = validBookings[0] || null;
-      // Only show if not already showing this request and it's valid
       if (latest && (!incomingRequest || incomingRequest.id !== latest.id)) {
         setIncomingRequest(latest);
       }
-      // Clear incoming request if it's expired
       if (incomingRequest && expiredBookings.some(b => b.id === incomingRequest.id)) {
         setIncomingRequest(null);
       }
@@ -185,7 +182,7 @@ export default function ProfessionalHubV2() {
       return validBookings;
     },
     enabled: !!user?.email && isOnlinePro,
-    refetchInterval: 5000,
+    refetchInterval: 10000,
     refetchOnWindowFocus: false,
   });
 

@@ -202,12 +202,12 @@ export default function Home() {
     queryKey: ['currentUserProfileXP', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
-      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email }, '-created_date', 1);
       return profiles[0] || null;
     },
     enabled: !!user?.email,
-    staleTime: 10 * 1000,
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const currentXP = currentUserProfile?.gamification_xp || 0;
@@ -240,7 +240,7 @@ export default function Home() {
     queryKey: ['userBadges', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: user.email }, '-earned_date');
+      const badgesFromTable = await base44.entities.UserBadge.filter({ user_email: user.email }, '-earned_date', 5);
       const uniqueBadges = new Map();
       badgesFromTable.forEach((badge) => {
         const uniqueKey = badge.badge_definition_id || badge.badge_id || badge.id;
@@ -251,8 +251,8 @@ export default function Home() {
       return Array.from(uniqueBadges.values());
     },
     enabled: !!user?.email,
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 20 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false
@@ -262,7 +262,7 @@ export default function Home() {
     queryKey: ['allWalkers'],
     queryFn: async () => {
       try {
-        const result = await base44.entities.WalkerProfile.list('-created_date', 500);
+        const result = await base44.entities.WalkerProfile.filter({ is_active: true }, '-rating', 100);
         return Array.isArray(result) ? result : [];
       } catch (error) {
         console.error("Erro walkers:", error);
@@ -278,7 +278,7 @@ export default function Home() {
     queryKey: ['emergencyWalks'],
     queryFn: async () => {
       try {
-        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 15);
+        const res = await base44.entities.EmergencyWalk.filter({ status: 'available' }, '-created_date', 10);
         if (!Array.isArray(res)) return [];
 
         const uniqueMap = new Map();
@@ -296,8 +296,8 @@ export default function Home() {
     },
     enabled: activeTab === 'emergency' || user?.preferences?.current_mode === 'professional',
     initialData: [],
-    staleTime: 3 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
@@ -309,7 +309,7 @@ export default function Home() {
         const posts = await base44.entities.SocialPost.filter({ 
           moderation_status: 'approved',
           is_public: true
-        }, '-created_date', 20);
+        }, '-created_date', 10);
         return Array.isArray(posts) ? posts : [];
       } catch (error) {
         return [];
@@ -317,7 +317,7 @@ export default function Home() {
     },
     enabled: activeTab === 'comunidade',
     initialData: [],
-    staleTime: 2 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -342,7 +342,7 @@ export default function Home() {
     },
     enabled: !user,
     initialData: [],
-    staleTime: 10 * 60 * 1000,
+    staleTime: 20 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -365,8 +365,8 @@ export default function Home() {
     queryFn: async () => {
       try {
         const [activeWalkers, activeTrainers] = await Promise.all([
-          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200),
-          base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 200),
+          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 1),
+          base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 1),
         ]);
 
         return {
@@ -380,8 +380,8 @@ export default function Home() {
       }
     },
     initialData: { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
