@@ -84,6 +84,8 @@ export default function SidebarNav({ user, unreadCount, onLogout }) {
   const { language, setLanguage } = useLanguage();
   const availableLanguages = getAvailableLanguages();
 
+  const safeUser = user || {};
+
   const isRouteActive = (path) => {
     if (!path) return false;
     if (path === createPageUrl("Home") && location.pathname === path) return true;
@@ -91,7 +93,7 @@ export default function SidebarNav({ user, unreadCount, onLogout }) {
     return location.pathname === path;
   };
 
-  const isProfessional = ['walker', 'trainer', 'both'].includes(user?.account_type);
+  const isProfessional = ['walker', 'trainer', 'both'].includes(safeUser.account_type);
 
   // === NAVIGATION SECTIONS (no duplicates) ===
 
@@ -118,11 +120,11 @@ export default function SidebarNav({ user, unreadCount, onLogout }) {
     { title: language === 'pt' ? 'Subscrição' : 'Membership', url: createPageUrl("OwnerSubscriptions"), icon: Crown },
   ];
 
-  const companyItems = user?.account_type === 'company' ? [
+  const companyItems = safeUser.account_type === 'company' ? [
     { title: language === 'pt' ? 'Minha Empresa' : 'My Company', url: createPageUrl("PartnerDashboard"), icon: Store },
   ] : [];
 
-  const adminItems = user?.role === 'admin' ? [
+  const adminItems = safeUser.role === 'admin' ? [
     { title: 'Dashboard', url: createPageUrl("AdminDashboard"), icon: ShieldCheck, danger: true },
     { title: language === 'pt' ? 'Pagamentos' : 'Payments', url: createPageUrl("TestPayments"), icon: CreditCard, danger: true },
     { title: language === 'pt' ? 'Verificações' : 'Verifications', url: createPageUrl("AdminDashboard?tab=applications"), icon: User, danger: true },
