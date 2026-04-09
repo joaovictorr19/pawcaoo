@@ -8,8 +8,25 @@ import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
-// Per-tab last-visited path storage (persists across renders)
-const tabHistory = {};
+// Per-tab last-visited path storage with localStorage persistence
+const getTabHistory = () => {
+  try {
+    const saved = localStorage.getItem('mobileTabHistory');
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveTabHistory = (history) => {
+  try {
+    localStorage.setItem('mobileTabHistory', JSON.stringify(history));
+  } catch (e) {
+    console.error('Failed to save tab history:', e);
+  }
+};
+
+let tabHistory = getTabHistory();
 
 export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
@@ -51,6 +68,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       window.scrollTo(0, 0);
       setScrollPositions(prev => ({ ...prev, [rootPath]: 0 }));
       tabHistory[rootPath] = rootPath;
+      saveTabHistory(tabHistory);
       navigate(rootPath, { replace: true });
     } else {
       // Save current location under the active tab root before switching
@@ -60,6 +78,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       }
       // Navigate to last visited path in the target tab (or its root)
       const target = tabHistory[rootPath] || rootPath;
+      saveTabHistory(tabHistory);
       navigate(target);
     }
   };

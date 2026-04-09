@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -340,7 +348,7 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-safe">
       <div className="max-w-6xl mx-auto p-4 md:p-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -959,6 +967,53 @@ export default function AccountSettings() {
 
                     <Separator />
 
+                    <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                      <AlertDialogContent className="border-red-300">
+                        <AlertDialogTitle className="text-red-700">Confirmar Eliminação de Conta</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          <div className="space-y-3 text-red-900">
+                            <p className="font-semibold">⚠️ Esta ação é permanente e irreversível.</p>
+                            <p>Ao eliminar a sua conta irá perder:</p>
+                            <ul className="list-disc list-inside space-y-1 text-red-800 text-sm">
+                              <li>Todo o histórico de reservas e passeios</li>
+                              <li>Todos os pontos de fidelidade e recompensas</li>
+                              <li>O seu perfil profissional (se aplicável)</li>
+                              <li>Avaliações e conquistas acumuladas</li>
+                              <li>Acesso imediato à conta e dados pessoais</li>
+                            </ul>
+                            <p className="font-medium pt-2">Digite <strong>ELIMINAR</strong> para confirmar.</p>
+                            <Input
+                              placeholder='Digite "ELIMINAR" para confirmar'
+                              value={deleteConfirmText}
+                              onChange={(e) => setDeleteConfirmText(e.target.value)}
+                              className="border-red-200 h-11 mt-2"
+                            />
+                          </div>
+                        </AlertDialogDescription>
+                        <div className="flex gap-2 pt-4">
+                          <AlertDialogCancel className="flex-1 h-11">Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={async () => {
+                              setIsDeleting(true);
+                              try {
+                                toast.info('A eliminar sua conta...');
+                                await base44.functions.invoke('deleteUserAccount', { userId: user?.id });
+                                toast.success('Conta eliminada com sucesso.');
+                                setTimeout(() => base44.auth.logout(), 1500);
+                              } catch (error) {
+                                toast.error('Erro ao eliminar conta: ' + error.message);
+                                setIsDeleting(false);
+                              }
+                            }}
+                            disabled={deleteConfirmText !== 'ELIMINAR' || isDeleting}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white h-11"
+                          >
+                            {isDeleting ? 'Eliminando...' : 'Eliminar Permanentemente'}
+                          </AlertDialogAction>
+                        </div>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
                     <div className="p-4 bg-red-50 border border-red-200 rounded-lg space-y-4">
                       <div>
                         <h4 className="font-semibold text-red-900 mb-2">Zona de Perigo</h4>
@@ -974,94 +1029,84 @@ export default function AccountSettings() {
                           Sair da Conta
                         </Button>
                       </div>
-                      
-                      <div className="border-t border-red-200 pt-4">
-                        <h4 className="font-semibold text-red-900 mb-2">Eliminar Conta</h4>
-                        <p className="text-sm text-red-700 mb-4">
-                          Esta ação é permanente e irrevogável. Todos os seus dados serão eliminados.
-                        </p>
-                        <Button
-                          variant="outline"
-                          className="w-full border-red-300 text-red-600 hover:bg-red-50 h-11"
-                          onClick={() => setShowDeleteDialog(true)}
+                    </div>
+                    </CardContent>
+                    </Card>
+                    )}
+
+                    {activeSection === "subscription" && (
+                    <SubscriptionManager subscriptionType="owner" />
+                    )}
+
+                    {activeSection === "dogs" && (
+                    <Card className="border-gray-200 shadow-sm">
+                    <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Dog className="w-6 h-6 text-pink-600" />
+                      Meus Animais
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">Gerencie os perfis dos seus animais</p>
+                    </CardHeader>
+                    <CardContent>
+                    <Button
+                      onClick={() => setShowAnimalModal(true)}
+                      className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white h-14 text-lg"
+                    >
+                      <Dog className="w-5 h-5 mr-2" />
+                      Gerir Meus Animais
+                    </Button>
+                    </CardContent>
+                    </Card>
+                    )}
+
+                    {activeSection === "professional" && ['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                    <Card className="border-gray-200 shadow-sm">
+                    <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-green-700">
+                      <Briefcase className="w-6 h-6" />
+                      Gestão Profissional (Atalho)
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">Configurações rápidas da sua carreira PawCão.</p>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <Label>Taxa Horária Principal (€)</Label>
+                      <div className="flex gap-2 mt-2">
+                        <Input 
+                          type="number" 
+                          placeholder="Ex: 15" 
+                          defaultValue={walkerProfile?.hourly_rate || trainerProfile?.hourly_rate} 
+                          id="quick-hourly-rate"
+                        />
+                        <Button 
+                          onClick={async () => {
+                            const val = document.getElementById('quick-hourly-rate').value;
+                            if(val) {
+                              try {
+                                if (walkerProfile) await base44.entities.WalkerProfile.update(walkerProfile.id, { hourly_rate: parseFloat(val) });
+                                if (trainerProfile) await base44.entities.TrainerProfile.update(trainerProfile.id, { hourly_rate: parseFloat(val) });
+                                toast.success("Taxa atualizada com sucesso!");
+                              } catch(e) {
+                                toast.error("Erro ao atualizar taxa");
+                              }
+                            }
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white"
                         >
-                          🗑️ Eliminar Minha Conta
+                          Atualizar
                         </Button>
                       </div>
                     </div>
-                    
-                    {showDeleteDialog && (
-                      <div 
-                        className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-                        onClick={(e) => { if (e.target === e.currentTarget && !isDeleting) { setShowDeleteDialog(false); setDeleteConfirmText(''); } }}
-                        onKeyDown={(e) => { if (e.key === 'Escape' && !isDeleting) { setShowDeleteDialog(false); setDeleteConfirmText(''); } }}
-                        tabIndex={-1}
-                      >
-                        <Card className="w-full max-w-sm border-red-300 shadow-lg">
-                          <CardHeader>
-                            <CardTitle className="text-red-700">Confirmar Eliminação de Conta</CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="bg-red-50 p-3 rounded text-sm text-red-900 space-y-2">
-                                <p className="font-semibold">⚠️ Esta ação é permanente e irreversível.</p>
-                                <p>Ao eliminar a sua conta irá perder:</p>
-                                <ul className="list-disc list-inside space-y-1 text-red-800">
-                                  <li>Todo o histórico de reservas e passeios</li>
-                                  <li>Todos os pontos de fidelidade e recompensas</li>
-                                  <li>O seu perfil profissional (se aplicável)</li>
-                                  <li>Avaliações e conquistas acumuladas</li>
-                                  <li>Acesso imediato à conta e dados pessoais</li>
-                                </ul>
-                                <p className="font-medium">Digite <strong>ELIMINAR</strong> para confirmar.</p>
-                              </div>
-                            <Input
-                              placeholder='Digite "ELIMINAR" para confirmar'
-                              value={deleteConfirmText}
-                              onChange={(e) => setDeleteConfirmText(e.target.value)}
-                              className="border-red-200 h-11"
-                            />
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => {
-                                  setShowDeleteDialog(false);
-                                  setDeleteConfirmText('');
-                                }}
-                                className="flex-1 h-11"
-                                disabled={isDeleting}
-                              >
-                                Cancelar
-                              </Button>
-                              <Button
-                                className="flex-1 bg-red-600 hover:bg-red-700 text-white h-11"
-                                disabled={deleteConfirmText !== 'ELIMINAR' || isDeleting}
-                                onClick={async () => {
-                                  setIsDeleting(true);
-                                  try {
-                                    toast.info('A eliminar sua conta...');
-                                    await base44.functions.invoke('deleteUserAccount', { userId: user?.id });
-                                    toast.success('Conta eliminada com sucesso.');
-                                    setTimeout(() => base44.auth.logout(), 1500);
-                                  } catch (error) {
-                                    toast.error('Erro ao eliminar conta: ' + error.message);
-                                    setIsDeleting(false);
-                                  }
-                                }}
-                              >
-                                {isDeleting ? 'Eliminando...' : 'Eliminar Permanentemente'}
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => navigate(createPageUrl("ProfessionalDashboard"))}
+                    >
+                      Abrir Painel Profissional Completo
+                    </Button>
+                    </CardContent>
+                    </Card>
                     )}
-                  </CardContent>
-                </Card>
-              )}
-
-              {activeSection === "subscription" && (
-                <SubscriptionManager subscriptionType="owner" />
-              )}
 
               {activeSection === "dogs" && (
                 <Card className="border-gray-200 shadow-sm">

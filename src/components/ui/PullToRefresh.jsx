@@ -7,6 +7,7 @@ export default function PullToRefresh({ children, onRefresh }) {
   const [loading, setLoading] = useState(false);
   const containerRef = useRef(null);
   const startYRef = useRef(0);
+  const startXRef = useRef(0);
   const currentDistanceRef = useRef(0);
   const isPullingRef = useRef(false);
   
@@ -48,6 +49,7 @@ export default function PullToRefresh({ children, onRefresh }) {
       
       if (scrollTop <= 0 && !loading) {
         startYRef.current = e.touches[0].clientY;
+        startXRef.current = e.touches[0].clientX;
         isPullingRef.current = true;
         setPulling(true);
       }
@@ -65,7 +67,19 @@ export default function PullToRefresh({ children, onRefresh }) {
       }
       
       const currentY = e.touches[0].clientY;
-      const diff = currentY - startYRef.current;
+      const currentX = e.touches[0].clientX;
+      const diffY = currentY - startYRef.current;
+      const diffX = Math.abs(currentX - startXRef.current);
+      
+      // Ignore pull if horizontal movement is significant (prevents slider/map conflicts)
+      if (diffX > Math.abs(diffY)) {
+        isPullingRef.current = false;
+        setPulling(false);
+        setDistance(0);
+        return;
+      }
+      
+      const diff = diffY;
 
       if (diff > 0) {
         // Prevent default scroll when pulling down
