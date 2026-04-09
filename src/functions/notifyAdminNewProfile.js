@@ -1,9 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
-// Deno globals for linting
-
 // deno-lint-ignore no-undef
-// deno-lint-ignore-file no-undef
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
