@@ -1,68 +1,50 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 
-export default function LazyImage({ 
-  src, 
-  alt, 
-  className, 
-  placeholderSrc = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect fill='%23f3f4f6' width='400' height='300'/%3E%3C/svg%3E",
-  onLoad,
-  ...props 
-}) {
-  const [imageSrc, setImageSrc] = useState(placeholderSrc);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const imgRef = useRef(null);
+export default function LazyImage({ src, alt, className = '', containerClassName = '', onLoad }) {
+  const [loaded, setLoaded] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
+  const ref = useRef(null);
 
   useEffect(() => {
-    let observer;
-    
-    if (imgRef.current && 'IntersectionObserver' in window) {
-      observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              const img = new Image();
-              img.src = src;
-              img.onload = () => {
-                setImageSrc(src);
-                setIsLoaded(true);
-                if (onLoad) onLoad();
-              };
-              img.onerror = () => {
-                setImageSrc(placeholderSrc);
-              };
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        {
-          rootMargin: '50px',
-          threshold: 0.01
-        }
-      );
-      
-      observer.observe(imgRef.current);
-    } else {
-      // Fallback for browsers without IntersectionObserver
-      setImageSrc(src);
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setImageSrc(src);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: '50px' }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
     }
 
     return () => {
-      if (observer && imgRef.current) {
-        observer.unobserve(imgRef.current);
+      if (ref.current) {
+        observer.unobserve(ref.current);
       }
     };
-  }, [src, placeholderSrc, onLoad]);
+  }, [src]);
 
   return (
-    <img
-      ref={imgRef}
-      src={imageSrc}
-      alt={alt}
-      className={`transition-opacity duration-300 ${
-        isLoaded ? 'opacity-100' : 'opacity-50'
-      } ${className}`}
-      loading="lazy"
-      {...props}
-    />
+    <div ref={ref} className={containerClassName}>
+      {imageSrc ? (
+        <img
+          src={imageSrc}
+          alt={alt}
+          className={className}
+          onLoad={() => {
+            setLoaded(true);
+            onLoad?.();
+          }}
+          loading="lazy"
+        />
+      ) : (
+        <div className={`${className} bg-gray-200 animate-pulse`} />
+      )}
+    </div>
   );
 }
