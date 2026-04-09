@@ -1,5 +1,5 @@
 import React from 'react';
-import { Map } from '@/components/ui/map';
+import { Map } from '@/components/ui/map'; // now using lightweight placeholder // now using lightweight placeholder
 
 export function WalkerSearchMap({ walkers = [], userLocation, onWalkerClick }) {
   return (
