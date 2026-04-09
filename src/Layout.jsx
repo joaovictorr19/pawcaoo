@@ -835,23 +835,23 @@ function LayoutContent({ children, currentPageName }) {
               <Search className="w-3.5 h-3.5 text-gray-700" />
             </Button>
             {authUser ? (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 relative rounded-lg active:scale-95 transition-transform"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.6)',
-                  border: '1px solid rgba(0, 0, 0, 0.05)'
-                }}
-                onClick={() => setIsNotificationPanelOpen(true)}
-              >
-                <Bell className="w-3.5 h-3.5 text-gray-700" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white" aria-label={`${unreadCount} unread notifications`}>
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </Button>
+            <Button 
+             variant="ghost" 
+             size="icon" 
+             className="h-8 w-8 relative rounded-lg active:scale-95 transition-transform"
+             style={{
+               background: 'rgba(255, 255, 255, 0.6)',
+               border: '1px solid rgba(0, 0, 0, 0.05)'
+             }}
+             onClick={() => setIsNotificationPanelOpen(true)}
+            >
+             <Bell className="w-3.5 h-3.5 text-gray-700" />
+             {unreadCount > 0 && (
+               <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-md" aria-label={`${unreadCount} unread notifications`}>
+                 {unreadCount > 9 ? '9+' : unreadCount}
+               </span>
+             )}
+            </Button>
             ) : (
               <Button 
                 onClick={() => base44.auth.redirectToLogin(window.location.href)}
@@ -860,37 +860,6 @@ function LayoutContent({ children, currentPageName }) {
               >
                 {getMenuText('login')}
               </Button>
-            )}
-          </div>
-        </div>
-      </header>
-      {/* ========== FIM HEADER ========== */}
-
-      <div className="flex flex-col w-full relative z-10" style={{ marginTop: '64px', overflowX: 'hidden', minHeight: 'calc(100vh - 64px)' }}>
-        {/* Espaçamento extra para desktop onde o header é flutuante */}
-        <div className="hidden md:block" style={{ height: '26px' }} />
-        {/* Container para sidebar e conteúdo */}
-        <div className="flex flex-1 w-full">
-        {stableUser && (
-                      <Sidebar 
-                        className="border transition-colors duration-300 md:ml-4 md:mr-4 md:mb-4 md:mt-8 shadow-lg overflow-hidden shrink-0"
-                        style={{ 
-                          height: 'calc(100vh - 130px)',
-                          background: 'rgba(255, 255, 255, 0.96)',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                          borderColor: 'rgba(0, 0, 0, 0.08)',
-                          borderRadius: 0,
-                          '--sidebar-background': 'rgba(255, 255, 255, 0.96)',
-                        }}>
-          <SidebarContent className="p-0">
-            <SidebarNav 
-              user={stableUser} 
-              unreadCount={unreadCount} 
-              onLogout={handleLogout} 
-            />
-            </SidebarContent>
-            </Sidebar>
             )}
 
             {/* Push Notification Manager */}
