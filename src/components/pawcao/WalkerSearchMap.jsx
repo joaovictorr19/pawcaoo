@@ -1,16 +1,15 @@
 import React from 'react';
-import { Map, Marker, Popup } from '@/components/ui/map';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export function WalkerSearchMap({ walkers = [], userLocation, onWalkerClick }) {
+  const center = userLocation
+    ? [userLocation.lat, userLocation.lng]
+    : [38.7223, -9.1393];
+
   return (
-    <Map
-      initialViewState={{
-        longitude: userLocation?.lng || -9.1393,
-        latitude: userLocation?.lat || 38.7223,
-        zoom: 12,
-      }}
-      className="w-full h-full"
-    >
+    <MapContainer center={center} zoom={12} style={{ width: '100%', height: '100%' }}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {walkers.map((walker) =>
         walker.latitude && walker.longitude ? (
           <Marker key={walker.id} position={[walker.latitude, walker.longitude]}>
@@ -18,7 +17,7 @@ export function WalkerSearchMap({ walkers = [], userLocation, onWalkerClick }) {
           </Marker>
         ) : null
       )}
-    </Map>
+    </MapContainer>
   );
 }
 
