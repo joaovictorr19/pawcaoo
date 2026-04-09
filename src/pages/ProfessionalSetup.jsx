@@ -41,6 +41,7 @@ export default function ProfessionalSetup() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formInitialized, setFormInitialized] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const [form, setForm] = useState(() => {
     try {
@@ -94,6 +95,7 @@ export default function ProfessionalSetup() {
     if (existingProfile === undefined) return; // still loading
 
     setFormInitialized(true);
+    setIsLoadingData(false);
     if (existingProfile) {
       setForm(prev => ({
         ...prev,
@@ -288,6 +290,17 @@ export default function ProfessionalSetup() {
       setLoading(false);
     }
   };
+
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-slate-700 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-400 text-sm">A carregar perfil...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 px-4 pb-10 pt-6">

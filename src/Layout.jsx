@@ -866,11 +866,11 @@ function LayoutContent({ children, currentPageName }) {
       </header>
       {/* ========== FIM HEADER ========== */}
 
-      <div className="flex flex-col w-full relative z-10" style={{ marginTop: '64px', overflowX: 'hidden', overflowY: 'visible', minHeight: 'calc(100vh - 64px)' }}>
+      <div className="flex flex-col w-full relative z-10" style={{ marginTop: '64px', overflowX: 'hidden', minHeight: 'calc(100vh - 64px)' }}>
         {/* Espaçamento extra para desktop onde o header é flutuante */}
         <div className="hidden md:block" style={{ height: '26px' }} />
         {/* Container para sidebar e conteúdo */}
-        <div className="flex flex-1 w-full" style={{ overflowY: 'visible' }}>
+        <div className="flex flex-1 w-full">
         {stableUser && (
                       <Sidebar 
                         className="border transition-colors duration-300 md:ml-4 md:mr-4 md:mb-4 md:mt-8 shadow-lg overflow-hidden shrink-0"
@@ -903,26 +903,15 @@ function LayoutContent({ children, currentPageName }) {
             <NotificationManager />
 
           {/* Main Content Area with bottom padding for mobile nav */}
-          <div className="flex-1 flex flex-col min-w-0 pb-32 md:pb-0 relative z-10 bg-transparent w-full" style={{ maxWidth: '100vw', overflowX: 'hidden' }}>
+          <div className="flex-1 flex flex-col min-w-0 pb-32 md:pb-0 relative z-10 bg-transparent w-full" style={{ overflowX: 'hidden' }}>
             {/* Mobile Header for Child Routes (Back Button + Title) */}
             <MobileHeader />
             
             {/* Breadcrumbs */}
             <Breadcrumbs />
 
-            <div className="flex-1 relative pb-32 md:pb-8 px-0">
-              <div className="md:hidden">
-                <PullToRefresh>
-                  <div className="relative mb-32" style={{ zIndex: 1 }}>
-                    <ErrorBoundary>{children}</ErrorBoundary>
-                  </div>
-                </PullToRefresh>
-              </div>
-              <div className="hidden md:block h-full">
-                <div className="relative mb-8" style={{ zIndex: 1 }}>
-                  <ErrorBoundary>{children}</ErrorBoundary>
-                </div>
-              </div>
+            <div className="flex-1 relative pb-32 md:pb-8 px-0 overflow-y-auto">
+              <ErrorBoundary>{children}</ErrorBoundary>
             </div>
 
             {/* Mobile Navigation Bar */}
