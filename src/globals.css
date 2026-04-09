@@ -42,6 +42,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    @apply overflow-y-auto;
   }
 
   input, textarea, select, [role="dialog"], [role="combobox"], [data-radix-popper-content-wrapper], [data-radix-dialog-content] {
@@ -237,6 +238,8 @@
 
   main, section, article, .content-area {
     background: transparent;
+    @apply overflow-y-auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Ensure root div doesn't trap scroll on Android */
@@ -246,6 +249,8 @@
     overflow-y: visible;
     display: flex;
     flex-direction: column;
+    @apply overflow-y-auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* PawGo Live Tracking - Marcador suave no mapa */
