@@ -709,6 +709,10 @@ function LayoutContent({ children, currentPageName }) {
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 w-full h-9">
+          {/* Logo - sempre visível no desktop */}
+          <Link to={createPageUrl("Home")} className="flex-shrink-0 hover:opacity-80 transition-opacity">
+            <PawCaoLogo size="small" showText={!authUser} />
+          </Link>
           {/* Menu de Navegação Desktop */}
           <nav className="flex items-center justify-center flex-1 px-2">
             <div className="flex items-center gap-1 lg:gap-2">
