@@ -1,0 +1,72 @@
+{
+  "name": "IbanWithdrawalRequest",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do profissional que solicita o levantamento"
+    },
+    "iban": {
+      "type": "string",
+      "description": "IBAN do benefici\u00e1rio (ex: PT50...)"
+    },
+    "amount": {
+      "type": "number",
+      "minimum": 0.5,
+      "description": "Montante em euros"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "paid"
+      ],
+      "default": "pending"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas internas (admin)"
+    }
+  },
+  "required": [
+    "user_email",
+    "iban",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "user_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
