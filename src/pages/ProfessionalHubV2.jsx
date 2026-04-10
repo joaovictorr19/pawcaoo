@@ -228,7 +228,6 @@ export default function ProfessionalHubV2() {
       queryClient.invalidateQueries(['myProfessionalProfile']);
       queryClient.invalidateQueries(['allWalkers']);
       queryClient.invalidateQueries(['allTrainers']);
-      try { window.dispatchEvent(new CustomEvent('pawgoStatusChanged', { detail: { is_online: !!data.pawgo_status?.is_online } })); } catch {}
       toast.success(data.pawgo_status?.is_online ? "🚀 Online no PawGo!" : "😴 Offline");
     },
     onError: () => {
