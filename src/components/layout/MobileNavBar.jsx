@@ -204,19 +204,23 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
             onClick={handleCenterButtonClick}
             aria-pressed={isOnline}
             title={isOnline ? 'Ficar offline' : 'Ficar online'}
-            className="relative w-24 h-10 rounded-full shadow-lg flex items-center justify-center transition-all border border-slate-200"
+            className={`relative ${isProf ? 'w-20 h-9' : 'w-14 h-14 bg-orange-500'} rounded-full shadow-lg flex items-center justify-center transition-all border border-slate-200`}
           >
-            <>
-              <div className={`absolute inset-0 ${isOnline ? 'bg-green-500' : 'bg-slate-400'} rounded-full`} />
-              <div className={`absolute top-1 left-1 w-8 h-8 rounded-full bg-white transition-transform ${isOnline ? 'translate-x-14' : ''}`} />
-              <div className="absolute inset-0 flex items-center justify-between px-2 text-[9px] font-extrabold uppercase">
-                <span className={`${isOnline ? 'text-white/70' : 'text-slate-800'}`}>{labelOff}</span>
-                <span className={`${isOnline ? 'text-white' : 'text-white/70'}`}>{labelOn}</span>
-              </div>
-            </>
+            {isProf ? (
+              <>
+                <div className={`absolute inset-0 ${isOnline ? 'bg-green-500' : 'bg-slate-400'} rounded-full`} />
+                <div className={`absolute top-1 left-1 w-7 h-7 rounded-full bg-white transition-transform ${isOnline ? 'translate-x-11' : ''}`} />
+                <div className="absolute inset-0 flex items-center justify-between px-2 text-[8px] font-extrabold uppercase">
+                  <span className={`${isOnline ? 'text-white/70' : 'text-slate-800'}`}>{labelOff}</span>
+                  <span className={`${isOnline ? 'text-white' : 'text-white/70'}`}>{labelOn}</span>
+                </div>
+              </>
+            ) : (
+              <Zap className="text-white w-5 h-5 fill-current" />
+            )}
           </motion.button>
           <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest mt-1 whitespace-nowrap truncate max-w-[72px] text-center">
-            {isOnline ? labelOn : labelOff}
+            {isProf ? (isOnline ? labelOn : labelOff) : 'PawGo'}
           </span>
         </div>
 
