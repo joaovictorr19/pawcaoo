@@ -85,56 +85,59 @@ export default function MobileHeader() {
   ];
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-3 py-2 space-y-1" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
-      <div className="flex items-center justify-between gap-2">
-      {isRootRoute ? (
-        <button
-          onClick={() => navigate(createPageUrl('Home'))}
-          className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/60 transition-colors active:scale-95"
-          aria-label="Home"
-        >
-          <PawCaoLogo size="tiny" showText={false} />
-        </button>
-      ) : (
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/60 transition-colors active:scale-95"
-          aria-label="Go back"
-        >
-          <ArrowLeft className="w-5 h-5 text-slate-700" />
-        </button>
-      )}
-      {!isRootRoute && <h1 className="text-base font-bold text-slate-900 flex-1 truncate">{pageTitle}</h1>}
-      {!authed ? (
-        <Button size="sm" variant="default" onClick={() => base44.auth.redirectToLogin()} className="h-8 px-3">
-          Entrar
-        </Button>
-      ) : (
-        <Button size="sm" variant="outline" onClick={() => base44.auth.logout()} className="h-8 px-3">
-          Sair
-        </Button>
-      )}
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-3 py-2 flex items-center justify-between gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
+      <div className="flex items-center gap-2 w-full">
+        {isRootRoute ? (
+          <button
+            onClick={() => navigate(createPageUrl('Home'))}
+            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/60 transition-colors active:scale-95 shrink-0"
+            aria-label="Home"
+          >
+            <PawCaoLogo size="tiny" showText={false} />
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/60 transition-colors active:scale-95 shrink-0"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
+          </button>
+        )}
+
+        {isOnProfHub && (
+          <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
+            <div className="flex items-center gap-2 pr-2">
+              {tabs.map((t) => (
+                <button
+                  key={t.value}
+                  onClick={() => navigate(createPageUrl('ProfessionalHubV2') + `?tab=${t.value}`)}
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-colors ${
+                    activeTab === t.value
+                      ? 'bg-orange-500 text-white border-orange-500'
+                      : 'bg-white/60 text-slate-700 border-slate-300 hover:bg-white/70'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {!isOnProfHub && <div className="flex-1" />}
+
+        {!authed ? (
+          <Button size="sm" variant="default" onClick={() => base44.auth.redirectToLogin()} className="h-8 px-3 shrink-0">
+            Entrar
+          </Button>
+        ) : (
+          <Button size="sm" variant="outline" onClick={() => base44.auth.logout()} className="h-8 px-3 shrink-0">
+            Sair
+          </Button>
+        )}
       </div>
 
-      {isOnProfHub && (
-        <div className="mt-2 -mb-1 w-full overflow-x-auto whitespace-nowrap">
-          <div className="flex items-center gap-2 pr-2">
-            {tabs.map((t) => (
-              <button
-                key={t.value}
-                onClick={() => navigate(createPageUrl('ProfessionalHubV2') + `?tab=${t.value}`)}
-                className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-colors ${
-                  activeTab === t.value
-                    ? 'bg-orange-500 text-white border-orange-500'
-                    : 'bg-white/60 text-slate-700 border-slate-300 hover:bg-white/70'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
