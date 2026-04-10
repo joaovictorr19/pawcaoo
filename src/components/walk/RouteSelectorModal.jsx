@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Map, MapRoute, MapMarker, MarkerContent } from "@/components/ui/map";
 import { 
   Navigation, 
   Clock, 
@@ -168,37 +167,15 @@ export default function RouteSelectorModal({ isOpen, onClose, onSelectRoute, cur
             </Tabs>
           </div>
 
-          {/* Right: Map Preview */}
-          <div className="bg-gray-100 relative">
-            {previewRoute ? (
-              <Map 
-                center={previewRoute.coordinates[0] ? [previewRoute.coordinates[0].lng, previewRoute.coordinates[0].lat] : [-8.6291, 41.1579]}
-                zoom={13}
-              >
-                <MapRoute 
-                  coordinates={previewRoute.coordinates.map(c => [c.lng, c.lat])}
-                  color="#3b82f6"
-                  width={4}
-                />
-                {previewRoute.coordinates[0] && (
-                  <MapMarker 
-                    longitude={previewRoute.coordinates[0].lng} 
-                    latitude={previewRoute.coordinates[0].lat}
-                  >
-                    <MarkerContent>
-                      <div className="w-8 h-8 bg-green-500 rounded-full border-2 border-white shadow-lg" />
-                    </MarkerContent>
-                  </MapMarker>
-                )}
-              </Map>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400">
-                <div className="text-center">
-                  <MapPin className="w-16 h-16 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Passe o rato sobre uma rota para pré-visualizar</p>
-                </div>
-              </div>
-            )}
+          {/* Right: Map Preview (disabled) */}
+          <div className="bg-gray-100 relative h-full flex items-center justify-center">
+            <div className="text-center text-gray-500 p-6">
+              <MapPin className="w-14 h-14 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Mapa desativado no momento</p>
+              {previewRoute && (
+                <p className="text-xs mt-1">Rota selecionada: {previewRoute.route_name}</p>
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>
