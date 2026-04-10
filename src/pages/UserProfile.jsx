@@ -152,7 +152,7 @@ export default function UserProfile() {
 
       return userProfile;
     },
-    enabled: !!targetId || !!targetEmail || (isSelfView && !!currentUser),
+    enabled: !!targetId || !!targetEmail || !!targetUsername || (isSelfView && !!currentUser),
     retry: false,
   });
 
@@ -218,7 +218,7 @@ export default function UserProfile() {
         .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
         .slice(0, 6);
     },
-    enabled: !!profileEmail && !!(walkerProfile || trainerProfile),
+    enabled: !!profileEmail,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -432,7 +432,7 @@ export default function UserProfile() {
             )}
           </div>
 
-          {(walkerProfile || trainerProfile) && (
+          {true && (
             <div>
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Folgas Agendadas</h3>
               {daysOff.length === 0 ? (
