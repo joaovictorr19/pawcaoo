@@ -39,6 +39,16 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   const isTutor = user?.preferences?.current_mode === "tutor";
   const isOnline = user?.pawgo_status?.is_online;
 
+  // Localized labels with safe fallbacks
+  const labelDashboard = t('dashboard', language) || (language === 'pt' ? 'Painel' : language === 'es' ? 'Panel' : 'Dashboard');
+  const labelClient = t('client', language) || (language === 'pt' ? 'Cliente' : language === 'es' ? 'Cliente' : 'Client');
+  const labelExplore = t('explore', language) || (language === 'pt' ? 'Explorar' : language === 'es' ? 'Explorar' : 'Explore');
+  const labelSchedule = t('schedule', language) || (language === 'pt' ? 'Agenda' : language === 'es' ? 'Agenda' : 'Schedule');
+  const labelNotifications = t('notifications', language) || (language === 'pt' ? 'Notificações' : language === 'es' ? 'Notificaciones' : 'Notifications');
+  const labelProfile = t('profile', language) || (language === 'pt' ? 'Perfil' : language === 'es' ? 'Perfil' : 'Profile');
+  const labelOn = language === 'pt' ? 'Ligado' : (language === 'es' ? 'Encendido' : 'On');
+  const labelOff = language === 'pt' ? 'Desligado' : (language === 'es' ? 'Apagado' : 'Off');
+
   const isActive = (path) => {
     if (path === createPageUrl("Home") && location.pathname === path) return true;
     if (path !== createPageUrl("Home") && location.pathname.startsWith(path)) return true;
@@ -150,9 +160,9 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               : "text-slate-500 hover:bg-slate-50"
           }`}
         >
-          {isProf ? <LayoutDashboard size={22} /> : isTutor ? <LayoutDashboard size={22} /> : <Map size={22} />}
-          <span className="text-[10px] font-bold uppercase tracking-tight">
-            {isProf ? t('dashboard', language) : isTutor ? t('client', language) : t('explore', language)}
+          {isProf ? <LayoutDashboard size={18} /> : isTutor ? <LayoutDashboard size={18} /> : <Map size={18} />}
+          <span className="text-[9px] font-bold uppercase tracking-tight">
+            {isProf ? labelDashboard : isTutor ? labelClient : labelExplore}
           </span>
         </button>
 
@@ -172,8 +182,8 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               : "text-slate-500 hover:bg-slate-50"
           }`}
         >
-          <Calendar size={22} />
-          <span className="text-[10px] font-bold uppercase tracking-tight">{isProf ? (language === 'pt' ? 'Folgas' : 'Calendar') : (t('schedule', language) || 'Agenda')}</span>
+          <Calendar size={18} />
+          <span className="text-[9px] font-bold uppercase tracking-tight">{isProf ? (language === 'pt' ? 'Folgas' : language === 'es' ? 'Calendario' : 'Calendar') : labelSchedule}</span>
         </button>
 
         {/* BOTÃO CENTRAL: RADAR / PAWGO */}
@@ -189,16 +199,16 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               <>
                 <div className={`absolute inset-0 ${isOnline ? 'bg-green-500' : 'bg-slate-400'} rounded-full`} />
                 <div className={`absolute top-1 left-1 w-8 h-8 rounded-full bg-white transition-transform ${isOnline ? 'translate-x-14' : ''}`} />
-                <div className="absolute inset-0 flex items-center justify-between px-2 text-[10px] font-extrabold uppercase">
-                  <span className={`${isOnline ? 'text-white/70' : 'text-slate-800'}`}>Off</span>
-                  <span className={`${isOnline ? 'text-white' : 'text-white/70'}`}>On</span>
+                <div className="absolute inset-0 flex items-center justify-between px-2 text-[9px] font-extrabold uppercase">
+                  <span className={`${isOnline ? 'text-white/70' : 'text-slate-800'}`}>{labelOff}</span>
+                  <span className={`${isOnline ? 'text-white' : 'text-white/70'}`}>{labelOn}</span>
                 </div>
               </>
             ) : (
-              <Zap className="text-white w-6 h-6 fill-current" />
+              <Zap className="text-white w-5 h-5 fill-current" />
             )}
           </motion.button>
-          <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest mt-1">
+          <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest mt-1">
             {isProf ? (isOnline ? 'Online' : 'Offline') : 'PawGo'}
           </span>
         </div>
@@ -208,13 +218,13 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           onClick={onNotificationsClick}
           className="flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl relative border border-slate-200 text-slate-500 hover:bg-slate-50"
         >
-          <Bell size={22} />
+          <Bell size={18} />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
-          <span className="text-[10px] font-bold uppercase tracking-tight">{t('notifications', language) || 'Avisos'}</span>
+          <span className="text-[9px] font-bold uppercase tracking-tight">{labelNotifications}</span>
         </button>
 
 
@@ -227,8 +237,8 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           }}
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl border border-slate-200 ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
-          <User size={22} />
-          <span className="text-[10px] font-bold uppercase tracking-tight">{t('profile', language) || 'Perfil'}</span>
+          <User size={18} />
+          <span className="text-[9px] font-bold uppercase tracking-tight">{labelProfile}</span>
         </button>
 
       </div>
