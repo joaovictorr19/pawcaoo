@@ -1,9 +1,6 @@
-import { useEffect } from "react";
-
-// Tracking disabled — no-op hook
+// Tracking disabled — no-op
 export function useLiveTracking() {
-  useEffect(() => {
-    // intentionally left blank
-    return () => {};
-  }, []);
+  return;
 }
+
+export default useLiveTracking;
