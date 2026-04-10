@@ -259,7 +259,11 @@ export default function Home() {
     queryKey: ['allWalkers'],
     queryFn: async () => {
       try {
-        const result = await base44.entities.WalkerProfile.list('-created_date', 500);
+        const result = await base44.entities.WalkerProfile.filter(
+          { is_active: true, verification_status: 'verified' },
+          '-created_date',
+          500
+        );
         return Array.isArray(result) ? result : [];
       } catch (error) {
         console.error("Erro walkers:", error);
@@ -394,7 +398,7 @@ export default function Home() {
   };
 
   const filteredProfessionals = React.useMemo(() => {
-    const validWalkers = walkers.filter(w => w?.id && w?.walker_name);
+    const validWalkers = walkers.filter(w => w?.id && w?.walker_name && w?.verification_status === 'verified' && w?.is_active !== false);
     
     const processed = validWalkers.map(w => ({
       ...w,
