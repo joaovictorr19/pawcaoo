@@ -57,6 +57,7 @@ export default function ProfessionalSetup() {
     longitude: null,
     bio: "",
     photo_url: "",
+    cover_photo_url: "",
     whatsapp_number: "",
     professional_type: "walker",
     hourly_rate: "15",
@@ -105,6 +106,7 @@ export default function ProfessionalSetup() {
         longitude: existingProfile.longitude || null,
         bio: existingProfile.bio || "",
         photo_url: existingProfile.photo_url || "",
+        cover_photo_url: existingProfile.cover_photo_url || "",
         whatsapp_number: existingProfile.whatsapp_number || "",
         hourly_rate: String(existingProfile.hourly_rate || "15"),
         services_offered: existingProfile.services_offered?.length ? existingProfile.services_offered : prev.services_offered,
@@ -145,6 +147,20 @@ export default function ProfessionalSetup() {
       toast.success("Foto carregada!");
     } catch {
       toast.error("Erro no upload.");
+    }
+    setUploading(false);
+  };
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      set("cover_photo_url", file_url);
+      toast.success("Capa atualizada!");
+    } catch {
+      toast.error("Erro ao enviar a capa.");
     }
     setUploading(false);
   };
@@ -191,6 +207,7 @@ export default function ProfessionalSetup() {
        longitude: lng,
        bio: form.bio,
        photo_url: form.photo_url || user.profile_photo_url || "",
+       cover_photo_url: form.cover_photo_url || "",
        hourly_rate: parseFloat(form.hourly_rate) || 15,
        whatsapp_number: form.whatsapp_number || "",
        phone: form.whatsapp_number || "",
@@ -350,6 +367,28 @@ export default function ProfessionalSetup() {
                   </div>
                   <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" disabled={uploading} />
                 </label>
+              </div>
+
+              {/* Capa */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Foto de capa</label>
+                <div className="relative w-full h-28 rounded-2xl overflow-hidden bg-slate-800 border-2 border-slate-700">
+                  {form.cover_photo_url ? (
+                    <img src={form.cover_photo_url} className="w-full h-full object-cover" alt="capa" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Camera className="w-7 h-7 text-slate-600" />
+                    </div>
+                  )}
+                  <div className="absolute bottom-2 right-2">
+                    <label>
+                      <div className={`px-3 py-1.5 bg-slate-900/80 hover:bg-slate-900 text-slate-200 rounded-lg text-xs font-medium cursor-pointer transition-all ${uploading ? 'opacity-50' : ''}`}>
+                        <Upload className="inline w-3 h-3 mr-1" /> {uploading ? 'A carregar...' : 'Alterar capa'}
+                      </div>
+                      <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleCoverUpload} className="hidden" disabled={uploading} />
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <div>
