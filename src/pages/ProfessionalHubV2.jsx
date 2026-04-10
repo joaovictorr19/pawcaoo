@@ -24,6 +24,7 @@ import { DayOffManager } from "@/components/professional-hub/DayOffManager";
 import ServiceOfferingsEditor from "@/components/professional-hub/ServiceOfferingsEditor";
 import ReviewsManagementSection from "@/components/professional-hub/ReviewsManagementSection";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
+import PendingApproval from "@/components/professional-hub/PendingApproval";
 
 function ActiveRequestsList({ user }) {
   const { data: activeBookings = [] } = useQuery({
@@ -316,6 +317,11 @@ export default function ProfessionalHubV2() {
     );
   }
 
+
+  // Gate: only allow verified professionals
+  if (professionalProfile?.verification_status !== 'verified') {
+    return <PendingApproval profile={professionalProfile} />;
+  }
 
   const isOnline = user?.pawgo_status?.is_online || false;
 
