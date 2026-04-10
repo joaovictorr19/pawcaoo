@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import PawCaoLogo from '@/components/PawCaoLogo';
+import { LogOut } from 'lucide-react';
 
 const ROOT_ROUTES = [
   createPageUrl('Home'),
@@ -111,8 +112,14 @@ export default function MobileHeader() {
           </div>
         </div>
 
-        {/* Espaçador para balancear o centro */}
-        <div />
+        {/* Ações à direita */}
+        <div className="flex items-center justify-end">
+          {authed && (
+            <Button size="sm" variant="ghost" className="h-8 px-3 text-[11px]" onClick={() => base44.auth.logout()}>
+              <LogOut className="w-4 h-4 mr-1" /> Sair
+            </Button>
+          )}
+        </div>
       </div>
 
 
