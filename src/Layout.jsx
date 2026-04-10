@@ -448,11 +448,11 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <main className="min-h-0 flex-1 w-full pb-28 md:pb-8 overflow-y-auto md:overflow-visible" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+          <main className="min-h-0 flex-1 w-full pb-28 md:pb-0 overflow-y-auto md:overflow-visible" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
             {children}
           </main>
 
-          <div className="mt-auto"><LayoutFooter /></div>
+          <div className="mt-auto w-full"><LayoutFooter /></div>
         </div>
       </div>
     </SidebarProvider>
