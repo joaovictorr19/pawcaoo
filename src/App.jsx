@@ -28,7 +28,6 @@ const ProfessionalCalendar = lazy(() => import('./pages/ProfessionalCalendar').c
   console.error('Error loading ProfessionalCalendar:', e);
   return { default: () => <div>Erro ao carregar página</div> };
 }));
-import AdminDashboard from './pages/AdminDashboard';
 
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -114,7 +113,6 @@ const AuthenticatedApp = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/Home" element={<Home />} />
-            <Route path="/AdminDashboard" element={<AdminDashboard />} />
             {Object.entries(Pages).map(([path, Page]) => {
               try {
                 return <Route key={path} path={`/${path}`} element={<Page />} />;
