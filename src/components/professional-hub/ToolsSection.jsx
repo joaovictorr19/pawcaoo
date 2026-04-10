@@ -6,13 +6,14 @@ import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { QrCode, CreditCard, Download } from "lucide-react";
 import DigitalWalletPass from "../professionals/DigitalWalletPass";
-import DataExportPanel from "../professionals/DataExportPanel";
+import DataExportWindow from "../professionals/DataExportWindow";
 import StripeConnectSetup from "../professionals/StripeConnectSetup";
 
 export function ToolsSection({ user, professionalProfile, onEditProfile }) {
   const [iban, setIban] = React.useState("");
   const [amount, setAmount] = React.useState("");
   const [withdrawing, setWithdrawing] = React.useState(false);
+  const [exportOpen, setExportOpen] = React.useState(false);
 
   const handleIbanWithdrawal = async () => {
     if (!user?.email || !iban || !amount) {
@@ -121,7 +122,16 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
             </div>
           </div>
           <div className="bg-slate-950 rounded-xl p-4 text-slate-200">
-             <DataExportPanel professionalEmail={user?.email} country={professionalProfile?.country_of_operation} />
+             <div className="flex items-center justify-between gap-3 text-slate-200">
+               <p className="text-sm">Exporte relatórios financeiros por ano e mês.</p>
+               <Button onClick={() => setExportOpen(true)} className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-4 py-2 h-10">Abrir janela</Button>
+             </div>
+             <DataExportWindow 
+               open={exportOpen} 
+               onOpenChange={setExportOpen}
+               professionalEmail={user?.email}
+               country={professionalProfile?.country_of_operation}
+             />
           </div>
         </CardContent>
       </Card>
