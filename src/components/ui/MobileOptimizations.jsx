@@ -14,29 +14,38 @@ export default function MobileOptimizations() {
 
     document.addEventListener('touchend', preventDoubleTapZoom, { passive: false });
 
-    // Optimize scrolling performance
-    const optimizeScroll = () => {
-      document.body.style.webkitOverflowScrolling = 'touch';
-    };
-    optimizeScroll();
+    // Enable momentum scrolling on iOS
+    document.body.style.webkitOverflowScrolling = 'touch';
 
-    // Prevent pull-to-refresh on iOS for better UX
-    let lastY = 0;
-    const preventPullToRefresh = (event) => {
-      const scrollY = window.scrollY || window.pageYOffset;
-      const touchY = event.touches[0].clientY;
-      
-      if (scrollY === 0 && touchY > lastY) {
+    // Only prevent pull-to-refresh on iOS Safari
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isWebKit = /AppleWebKit/i.test(ua) && !/CriOS|FxiOS/i.test(ua);
+    const shouldPreventPTR = isIOS && isWebKit;
+
+    let startY = 0;
+    const onTouchStart = (event) => {
+      if (!shouldPreventPTR) return;
+      startY = event.touches[0]?.clientY ?? 0;
+    };
+
+    const onTouchMove = (event) => {
+      if (!shouldPreventPTR) return;
+      const currentY = event.touches[0]?.clientY ?? 0;
+      const dy = currentY - startY;
+      // At top and pulling down => prevent browser PTR
+      if ((window.scrollY || window.pageYOffset) <= 0 && dy > 10) {
         event.preventDefault();
       }
-      lastY = touchY;
     };
 
-    document.addEventListener('touchmove', preventPullToRefresh, { passive: false });
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
 
     return () => {
       document.removeEventListener('touchend', preventDoubleTapZoom);
-      document.removeEventListener('touchmove', preventPullToRefresh);
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchmove', onTouchMove);
     };
   }, []);
 
