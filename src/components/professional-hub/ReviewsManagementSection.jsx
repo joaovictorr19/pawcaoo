@@ -113,7 +113,7 @@ export default function ReviewsManagementSection({ professionalProfile, user }) 
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500"
+          className="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500"
         >
           <option value="recent">Mais Recentes</option>
           <option value="rating-high">Classificação: Alto → Baixo</option>
@@ -123,7 +123,7 @@ export default function ReviewsManagementSection({ professionalProfile, user }) 
         <select
           value={filterRating || ''}
           onChange={(e) => setFilterRating(e.target.value ? parseInt(e.target.value) : null)}
-          className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500"
+          className="w-full sm:w-auto px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:outline-none focus:border-blue-500"
         >
           <option value="">Todas as Classificações</option>
           {[5, 4, 3, 2, 1].map((rating) => (
