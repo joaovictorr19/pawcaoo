@@ -118,7 +118,7 @@ export default function MobileHeader() {
 
         {isOnProfHub && (
           <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
-            <div className="flex items-center gap-2 pr-2">
+            <div className="inline-flex w-max items-center gap-2 pr-4">
               {tabs.map((t) => (
                 <button
                   key={t.value}
@@ -137,7 +137,7 @@ export default function MobileHeader() {
         )}
         {!isOnProfHub && (
           <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
-            <div className="flex items-center gap-2 pr-2">
+            <div className="inline-flex w-max items-center gap-2 pr-4">
               <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
               <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
               {isAdmin && (
