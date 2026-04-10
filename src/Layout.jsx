@@ -397,7 +397,7 @@ function LayoutContent({ children, currentPageName }) {
 
       <div className="flex flex-col w-full relative z-10 min-h-screen" style={{ marginTop: '64px', overflowX: 'hidden' }}>
         <div className="hidden md:block" style={{ height: '26px' }} />
-        <div className="flex flex-1 w-full flex-col min-h-screen">
+        <div className="flex flex-1 w-full flex-col">
           {stableUser && (
             <MobileNavBar user={stableUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
           )}
@@ -421,7 +421,7 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <main className="flex-1 w-full min-h-screen">
+          <main className="flex-1 w-full pb-28 md:pb-0">
             {children}
           </main>
 
