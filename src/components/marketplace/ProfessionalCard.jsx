@@ -16,10 +16,7 @@ export function ProfessionalCard({ walker }) {
   }), [walker.id, walker.professional_profile, walker.verification_status, walker.is_verified, walker.is_verified_trainer, walker.is_pawcao_employee]); // Só muda se o ID ou o Perfil mudarem
 
   return (
-    <div 
-      className={`bg-white rounded-[2.5rem] p-4 mb-3 border ${profileData.isPawcao ? 'border-amber-400 ring-2 ring-amber-300/60 shadow-amber-100' : 'border-slate-100'} shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow`}
-      onClick={() => navigate(createPageUrl(`UserProfile?id=${walker.id}`))}
-    >
+    <div className={`bg-white rounded-[2.5rem] p-4 mb-3 border ${profileData.isPawcao ? 'border-amber-400 ring-2 ring-amber-300/60 shadow-amber-100' : 'border-slate-100'} shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow`} onClick={() => navigate(createPageUrl('UserProfile?id=' + walker.id))}>
       
       {/* 2. Container da Foto com KEY FIXA (Evita o sumiço) */}
       <div className="relative w-16 h-16 shrink-0 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-inner">
