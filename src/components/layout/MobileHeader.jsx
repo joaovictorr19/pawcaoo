@@ -52,12 +52,12 @@ export default function MobileHeader() {
     location.pathname === route || location.pathname.startsWith(route)
   );
 
-  if (isRootRoute) return null;
 
-  // Get page title from route
-  const pageTitle = Object.entries(ROUTE_TITLES).find(
-    ([route]) => location.pathname.startsWith(route)
-  )?.[1] || 'Página';
+
+  // Get page title from route (Home/root shows brand)
+  const pageTitle = isRootRoute
+    ? 'PawCão'
+    : (Object.entries(ROUTE_TITLES).find(([route]) => location.pathname.startsWith(route))?.[1] || 'Página');
 
   return (
     <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3" style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top))' }}>
