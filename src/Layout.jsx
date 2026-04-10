@@ -389,7 +389,9 @@ function LayoutContent({ children, currentPageName }) {
       <ImpersonationBanner />
       <LayoutSEO />
       <LayoutStyles />
-      <DynamicBackground />
+      <div className="hidden md:block">
+        <DynamicBackground />
+      </div>
 
       {/* Top header for desktop */}
       <header className="hidden md:flex fixed top-0 left-0 right-0 z-[10000] h-16 bg-white/90 backdrop-blur border-b border-slate-200">
