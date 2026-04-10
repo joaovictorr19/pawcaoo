@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle, Trophy } from "lucide-react";
 import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
 import TestimonialsSection from "../components/home/TestimonialsSection";
-import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
+
 import { Skeleton } from "@/components/ui/skeleton";
-import { Suspense } from "react";
+
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import { calculateTier } from "@/components/gamification/tierSystem";
@@ -26,9 +26,9 @@ import { createPageUrl } from "@/utils";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/components/ThemeContext";
-import { CardContent } from "@/components/ui/card";
+
 import { Progress } from "@/components/ui/progress";
-import { Trophy } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
@@ -549,11 +549,11 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen relative w-full">
+    <div className="min-h-screen relative w-full pb-24 md:pb-28">
 
-      <div className="relative z-10 overflow-hidden">
+      <div className="relative overflow-hidden">
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
+        <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           {user ? (
             <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
               {/* Embedded Owner Dashboard */}
