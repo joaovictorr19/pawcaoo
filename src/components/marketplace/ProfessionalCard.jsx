@@ -17,7 +17,7 @@ export function ProfessionalCard({ walker }) {
 
   return (
     <div 
-      className="bg-white rounded-[2.5rem] p-4 mb-3 border border-slate-100 shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow"
+      className={`bg-white rounded-[2.5rem] p-4 mb-3 border ${profileData.isPawcao ? 'border-amber-400 ring-2 ring-amber-300/60 shadow-amber-100' : 'border-slate-100'} shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow`}
       onClick={() => navigate(createPageUrl(`UserProfile?id=${walker.id}`))}
     >
       
