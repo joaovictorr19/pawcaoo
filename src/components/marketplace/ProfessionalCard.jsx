@@ -12,8 +12,8 @@ export function ProfessionalCard({ walker }) {
     photo: walker?.photo_url || walker?.professional_profile?.avatar_url || walker?.profile_photo_url,
     isVerified: walker?.verification_status === 'verified' || walker?.is_verified || walker?.professional_profile?.verification_status === 'verified',
     isTrained: walker?.is_verified_trainer || walker?.professional_profile?.is_trained,
-    isPawcao: !!(walker?.has_pawcao_seal || walker?.is_pawcao_employee || walker?.professional_profile?.has_pawcao_seal || walker?.professional_profile?.is_pawcao_employee || walker?.professional_profile?.is_pawcao)
-  }), [walker.id, walker.professional_profile, walker.verification_status, walker.is_verified, walker.is_verified_trainer, walker.is_pawcao_employee, walker.has_pawcao_seal]); // Só muda se o ID ou o Perfil mudarem
+    isPawcao: !!(walker?.has_pawcao_seal || walker?.is_pawcao_employee)
+  }), [walker.id, walker.has_pawcao_seal, walker.is_pawcao_employee, walker.verification_status, walker.is_verified, walker.is_verified_trainer]); // Só muda se o ID ou o Perfil mudarem
 
   return (
     <div className={`bg-white rounded-[2.5rem] p-4 mb-3 border ${profileData.isPawcao ? 'border-amber-400 ring-2 ring-amber-300/60 shadow-amber-100' : 'border-slate-100'} shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow`} onClick={() => navigate(createPageUrl('UserProfile?id=' + walker.id))}>
