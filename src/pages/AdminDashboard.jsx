@@ -53,7 +53,7 @@ import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
-import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
+
 import Pagination from "../components/ui/Pagination";
 import ClientDetails from "../components/admin/ClientDetails";
 import ProductManagement from "../components/admin/ProductManagement";
@@ -799,7 +799,14 @@ export default function AdminDashboard() {
             {activeTab === 'approvals' && (
               <AdminApprovals
                 pendingUsers={pendingProfessionals}
-                onRefresh={() => queryClient.invalidateQueries({ queryKey: ['allUsers'] })}
+                onRefresh={async () => {
+                  await Promise.all([
+                    queryClient.invalidateQueries({ queryKey: ['allUsers'] }),
+                    queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] }),
+                    queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] }),
+                  ]);
+                  toast.success("Atualizado!");
+                }}
               />
             )}
           </TabsContent>
@@ -1014,17 +1021,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            <div className="mt-6">
-              <AdminVerificationQueue
-                walkers={walkerApplications}
-                trainers={trainerApplications}
-                shelters={shelterApplications}
-                onApprove={handleApproveApplication}
-                onReject={handleRejectApplication}
-                onViewDetails={handleViewApplicationDetails}
-                onRefresh={handleRefreshApplications}
-              />
-            </div>
+
 
             <div className="mt-6">
               <ProfileEditRequests />

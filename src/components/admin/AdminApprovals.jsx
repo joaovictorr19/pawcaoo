@@ -1,4 +1,4 @@
-import { Check, X, User, ShieldAlert, Award } from "lucide-react";
+import { Check, X, User, ShieldAlert, Award, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
@@ -64,11 +64,23 @@ export function AdminApprovals({ pendingUsers, onRefresh }) {
         <h2 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">
           Candidaturas Pendentes
         </h2>
-        {pendingUsers.length > 0 && (
-          <span className="ml-auto bg-orange-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
-            {pendingUsers.length}
-          </span>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          {pendingUsers.length > 0 && (
+            <span className="bg-orange-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
+              {pendingUsers.length}
+            </span>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-3"
+            onClick={() => onRefresh && onRefresh()}
+            title="Atualizar lista"
+          >
+            <RefreshCw className="w-4 h-4 mr-1" />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       {pendingUsers.length === 0 && (
