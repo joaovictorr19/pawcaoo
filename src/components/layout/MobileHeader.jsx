@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
-import PawCaoLogo from '@/components/PawCaoLogo';
 
 const ROOT_ROUTES = [
   createPageUrl('Home'),
@@ -95,15 +94,8 @@ export default function MobileHeader() {
   ];
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white border-b border-slate-200 px-3 py-1 flex items-center justify-between gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white border-b border-slate-200 px-3 py-1 flex items-center justify-center gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
       <div className="flex items-center gap-2 w-full">
-        <button
-          onClick={() => navigate(createPageUrl('Home'))}
-          className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100 transition-colors active:scale-95 shrink-0"
-          aria-label="Home"
-        >
-          <PawCaoLogo size="tiny" showText={false} />
-        </button>
 
         {false && (
           <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
@@ -124,21 +116,14 @@ export default function MobileHeader() {
             </div>
           </div>
         )}
-        {!isOnProfHub && (
-          <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
-            <div className="inline-flex w-max items-center gap-2 pr-4">
-              <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
-              <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
-
-            </div>
+        <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
+          <div className="inline-flex w-max items-center gap-2 pr-4">
+            <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
+            <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
+            <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
           </div>
-        )}
+        </div>
 
-        {authed && (
-          <Button size="sm" variant="outline" onClick={() => base44.auth.logout()} className="h-8 px-3 shrink-0">
-            Sair
-          </Button>
-        )}
       </div>
 
 
