@@ -152,7 +152,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
             const targetPath = isProf ? createPageUrl("ProfessionalHubV2") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
             handleTabClick(targetPath);
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl border border-slate-200 ${
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl border border-slate-200 ${
             (isProf && isActive(createPageUrl("ProfessionalHubV2"))) ||
             (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
             (!isProf && !isTutor && isActive(createPageUrl("Home")))
@@ -161,7 +161,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           }`}
         >
           {isProf ? <LayoutDashboard size={18} /> : isTutor ? <LayoutDashboard size={18} /> : <Map size={18} />}
-          <span className="text-[9px] font-bold uppercase tracking-tight">
+          <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">
             {isProf ? labelDashboard : isTutor ? labelClient : labelExplore}
           </span>
         </button>
@@ -175,7 +175,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               handleTabClick(createPageUrl("MyBookings"));
             }
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl border border-slate-200 ${
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl border border-slate-200 ${
             (isProf && (isActive(createPageUrl("ManageAvailability")) || isActive(createPageUrl("ProfessionalCalendar")))) ||
             (!isProf && isActive(createPageUrl("MyBookings")))
               ? "text-orange-500 bg-orange-50" 
@@ -183,7 +183,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           }`}
         >
           <Calendar size={18} />
-          <span className="text-[9px] font-bold uppercase tracking-tight">{isProf ? (language === 'pt' ? 'Folgas' : language === 'es' ? 'Calendario' : 'Calendar') : labelSchedule}</span>
+          <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">{isProf ? (language === 'pt' ? 'Agenda' : language === 'es' ? 'Calendario' : 'Calendar') : labelSchedule}</span>
         </button>
 
         {/* BOTÃO CENTRAL: RADAR / PAWGO */}
@@ -208,15 +208,15 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               <Zap className="text-white w-5 h-5 fill-current" />
             )}
           </motion.button>
-          <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest mt-1">
-            {isProf ? (isOnline ? 'Online' : 'Offline') : 'PawGo'}
+          <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest mt-1 whitespace-nowrap truncate max-w-[72px] text-center">
+            {isProf ? (isOnline ? labelOn : labelOff) : 'PawGo'}
           </span>
         </div>
 
         {/* ABA 3: NOTIFICAÇÕES */}
         <button 
           onClick={onNotificationsClick}
-          className="flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl relative border border-slate-200 text-slate-500 hover:bg-slate-50"
+          className="flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl relative border border-slate-200 text-slate-500 hover:bg-slate-50"
         >
           <Bell size={18} />
           {unreadCount > 0 && (
@@ -224,7 +224,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
-          <span className="text-[9px] font-bold uppercase tracking-tight">{labelNotifications}</span>
+          <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">{labelNotifications}</span>
         </button>
 
 
@@ -235,10 +235,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
             const profilePath = createPageUrl("UserProfile");
             handleTabClick(profilePath);
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl border border-slate-200 ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl border border-slate-200 ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
           <User size={18} />
-          <span className="text-[9px] font-bold uppercase tracking-tight">{labelProfile}</span>
+          <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">{labelProfile}</span>
         </button>
 
       </div>
