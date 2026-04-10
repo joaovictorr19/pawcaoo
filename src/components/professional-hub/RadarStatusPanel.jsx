@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { motion } from "framer-motion";
 import { Clock, TrendingUp, Calendar, Dog, MapPin, Search } from "lucide-react";
 
 export function RadarStatusPanel({ userEmail, isOnline, city = "Portugal" }) {
@@ -67,18 +66,6 @@ export function RadarStatusPanel({ userEmail, isOnline, city = "Portugal" }) {
       <div className="relative p-8 bg-white/5 rounded-[2.5rem] border border-white/8 overflow-hidden min-h-[220px] flex items-center justify-center">
         {isOnline ? (
           <>
-            {/* Pulse rings */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              {[1, 2, 3].map((circle) => (
-                <motion.div
-                  key={circle}
-                  className="absolute rounded-full bg-orange-500/10 border border-orange-500/20"
-                  style={{ width: 100, height: 100 }}
-                  animate={{ scale: [1, 3.5], opacity: [0.5, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, delay: circle * 0.8, ease: "easeInOut" }}
-                />
-              ))}
-            </div>
 
             {/* Center icon + text */}
             <div className="relative z-10 flex flex-col items-center text-center gap-4">
