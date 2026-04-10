@@ -141,7 +141,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
   return (
     <div
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] w-full px-3 pt-3 bg-white/98  border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] rounded-t-2xl pointer-events-auto"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] w-full px-3 pt-3 bg-white  border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] rounded-t-2xl pointer-events-auto"
       style={{ pointerEvents: 'auto', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
     >
       <div className="max-w-3xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
