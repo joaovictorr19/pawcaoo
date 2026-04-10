@@ -391,6 +391,28 @@ function LayoutContent({ children, currentPageName }) {
       <LayoutStyles />
       <DynamicBackground />
 
+      {/* Top header for desktop */}
+      <header className="hidden md:flex fixed top-0 left-0 right-0 z-[10000] h-16 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div className="max-w-6xl mx-auto w-full h-full px-4 flex items-center justify-between">
+          <Link to={createPageUrl("Home")} className="flex items-center gap-2">
+            <PawCaoLogo size="small" showText={false} />
+            <span className="sr-only">PawCão</span>
+          </Link>
+          <nav className="flex items-center gap-2">
+            <NavLink to={createPageUrl("Home")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Profissionais</NavLink>
+            <NavLink to={createPageUrl("ProfessionalHubV2")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Painel Profissional</NavLink>
+            <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Painel Cliente</NavLink>
+          </nav>
+          <div className="flex items-center gap-2">
+            {stableUser ? (
+              <Button variant="outline" size="sm" onClick={handleLogout}>Sair</Button>
+            ) : (
+              <Button size="sm" onClick={() => base44.auth.redirectToLogin()}>Entrar</Button>
+            )}
+          </div>
+        </div>
+      </header>
+
       <PushNotificationManager user={authUser} />
       <NotificationTriggers user={authUser} />
       <NotificationManager />
