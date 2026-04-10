@@ -11,11 +11,20 @@ export default function ProfileActions({ walker, currentUser }) {
 
 
   const handlePawGoClick = () => {
+    const params = new URLSearchParams({
+      immediate: '1',
+      walkerId: walker?.id || '',
+      walkerName: encodeURIComponent(walker?.walker_name || ''),
+      walkerEmail: encodeURIComponent(walker?.created_by || '')
+    });
+
+    const targetUrl = `${createPageUrl('RequestWalk')}?${params.toString()}`;
+
     if (!currentUser) {
-      base44.auth.redirectToLogin(createPageUrl('RequestWalk'));
+      base44.auth.redirectToLogin(targetUrl);
       return;
     }
-    navigate(createPageUrl('RequestWalk'));
+    navigate(targetUrl);
   };
 
   return (

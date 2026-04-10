@@ -37,6 +37,30 @@ export default function RequestWalk() {
     special_notes: ""
   });
 
+  // PawGo immediate mode (from profile "Chamar Agora")
+  const [immediateMode, setImmediateMode] = useState(false);
+  const [selectedWalker, setSelectedWalker] = useState({ id: null, name: "", email: "" });
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const imm = urlParams.get("immediate") === "1";
+    const wid = urlParams.get("walkerId");
+    const wname = urlParams.get("walkerName") || "";
+    const wemail = urlParams.get("walkerEmail") || "";
+
+    if (imm) {
+      setImmediateMode(true);
+      setDetails((prev) => ({
+        ...prev,
+        walk_date: new Date().toISOString().split("T")[0],
+        walk_time: "now",
+      }));
+    }
+    if (wid || wname || wemail) {
+      setSelectedWalker({ id: wid || null, name: decodeURIComponent(wname), email: decodeURIComponent(wemail) });
+    }
+  }, []);
+
   // Current user
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ["currentUser"],
@@ -94,6 +118,7 @@ export default function RequestWalk() {
         owner_name: user.full_name || user.email,
         owner_email: user.email,
         owner_phone: user.phone || "",
+        ...(immediateMode && selectedWalker.email ? { walker_id: selectedWalker.id, walker_name: selectedWalker.name, walker_email: selectedWalker.email } : {}),
         // Multi-dog support
         dogs: selectedDogs.map((d) => ({
           dog_id: d.id,
@@ -116,7 +141,7 @@ export default function RequestWalk() {
         walk_date: details.walk_date,
         walk_time: details.walk_time,
         duration_hours: details.duration_hours,
-        special_notes: details.special_notes,
+        special_notes: details.special_notes + (immediateMode ? `${details.special_notes ? ' ' : ''}[PawGo] Pedido imediato (15-30min)` : ''),
         // Financials
         service_amount: serviceAmount,
         platform_fee: platformFee,
@@ -127,8 +152,28 @@ export default function RequestWalk() {
         type: "walk"
       });
     },
-    onSuccess: () => {
+    onSuccess: async (booking) => {
       queryClient.invalidateQueries(["userBookings"]);
+      if (immediateMode && selectedWalker.email) {
+        try {
+          await base44.entities.Notification.create({
+            recipient_email: selectedWalker.email,
+            title: "Novo pedido PawGo",
+            message: `${user?.full_name || user?.email} solicitou um passeio imediato para ${selectedDogs.length || 1} animal(is) nas próximas 15–30 min.`,
+            type: "booking",
+            link: createPageUrl("ProfessionalHubV2"),
+            icon: "⚡",
+            related_id: booking?.id
+          });
+          await base44.integrations.Core.SendEmail({
+            to: selectedWalker.email,
+            subject: "Novo pedido imediato PawGo",
+            body: `Olá ${selectedWalker.name || ''},\n\nRecebeste um novo pedido imediato via PawGo.\nJanela: 15–30 minutos a partir de agora.\nCliente: ${user?.full_name || user?.email}\nAnimais: ${selectedDogs.map(d=>d.dog_name).join(', ') || '1'}\nMorada: ${address || '—'}\n\nAcede ao painel para aceitar.\n\n— PawCão`
+          });
+        } catch (e) {
+          console.error('Erro ao enviar notificação/email PawGo:', e);
+        }
+      }
       setSubmitted(true);
     }
   });
@@ -234,6 +279,11 @@ export default function RequestWalk() {
         {/* STEP 2: Pickup Method + Location */}
         {step === 2 && (
           <div className="space-y-5">
+            {immediateMode && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-xs text-orange-700 font-semibold">
+                Modo PawGo ativo: pedido imediato. Data/hora predefinidas para "agora".
+              </div>
+            )}
             <div>
               <h2 className="text-lg font-bold text-gray-900">Como vai funcionar a recolha?</h2>
               <p className="text-sm text-gray-500 mt-0.5">Escolhe o método que preferes.</p>
@@ -254,7 +304,7 @@ export default function RequestWalk() {
         )}
 
         {/* STEP 3: Walk Details */}
-        {step === 3 && (
+        {step === 3 && !immediateMode && (
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900">Detalhes do Passeio</h2>
@@ -265,7 +315,7 @@ export default function RequestWalk() {
         )}
 
         {/* STEP 4: Summary */}
-        {step === 4 && (
+        {((!immediateMode && step === 4) || (immediateMode && step === 3)) && (
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900">Confirma o Pedido</h2>
@@ -285,7 +335,7 @@ export default function RequestWalk() {
         {/* Navigation Buttons */}
         {step < 4 && (
           <button
-            onClick={() => setStep(step + 1)}
+            onClick={() => setStep(step + (immediateMode && step === 2 ? 2 : 1))}
             disabled={step === 1 && selectedDogs.length === 0}
             className="w-full py-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-base rounded-2xl transition-all shadow-lg shadow-green-100"
           >
