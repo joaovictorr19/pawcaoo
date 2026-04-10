@@ -551,7 +551,7 @@ export default function Home() {
   return (
     <div className="min-h-screen relative w-full">
 
-      <div className="relative z-10 overflow-hidden">
+      <div className="relative z-10 overflow-visible md:overflow-hidden">
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           {user ? (
@@ -687,19 +687,19 @@ export default function Home() {
                     </div>
 
                     <div className="grid grid-cols-4 gap-2 w-full">
-                      <button onClick={() => navigate(createPageUrl('Favorites'))} className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
+                      <button onClick={() => navigate(createPageUrl('Favorites'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
                         <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
                         <span className="text-[9px] font-semibold text-slate-700">Favoritos</span>
                       </button>
-                      <button onClick={() => navigate(createPageUrl('MyWallet'))} className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
+                      <button onClick={() => navigate(createPageUrl('MyWallet'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
                         <Wallet className="w-4 h-4 text-green-600" strokeWidth={2} />
                         <span className="text-[9px] font-semibold text-slate-700">Wallet</span>
                       </button>
-                      <button onClick={() => navigate(createPageUrl('Gamification'))} className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
+                      <button onClick={() => navigate(createPageUrl('Gamification'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
                         <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
                         <span className="text-[9px] font-semibold text-slate-700">Legado</span>
                       </button>
-                      <button onClick={() => navigate(createPageUrl('MyBookings'))} className="flex flex-col items-center gap-1 p-2 bg-white/70 backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
+                      <button onClick={() => navigate(createPageUrl('MyBookings'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
                         <Calendar className="w-4 h-4 text-blue-600" strokeWidth={2} />
                         <span className="text-[9px] font-semibold text-slate-700">Histórico</span>
                       </button>
@@ -897,7 +897,7 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto bg-white/80 backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
+              <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto bg-white md:bg-white/80 md:backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
                 <button
                   onClick={() => setActiveTab('professionals')}
                   className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
@@ -924,7 +924,7 @@ export default function Home() {
               </div>
 
               <TabsContent value="professionals">
-                <div className="bg-black/10 backdrop-blur-lg rounded-2xl p-6 md:p-8 shadow-lg">
+                <div className="bg-black/5 md:bg-black/10 md:backdrop-blur-lg rounded-2xl p-6 md:p-8 shadow-lg">
                   <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg mb-6">
                     {language === 'pt' ? 'Profissionais Disponíveis' : 
                      language === 'es' ? 'Profesionales Disponibles' : 
