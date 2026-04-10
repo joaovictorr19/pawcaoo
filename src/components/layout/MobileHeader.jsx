@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
+import PawCaoLogo from '@/components/PawCaoLogo';
 
 const ROOT_ROUTES = [
   createPageUrl('Home'),
@@ -84,15 +85,26 @@ export default function MobileHeader() {
   ];
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-3 py-2 flex items-center justify-between gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/60 transition-colors active:scale-95"
-        aria-label="Go back"
-      >
-        <ArrowLeft className="w-5 h-5 text-slate-700" />
-      </button>
-      <h1 className="text-base font-bold text-slate-900 flex-1 truncate">{pageTitle}</h1>
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-3 py-2 space-y-1" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
+      <div className="flex items-center justify-between gap-2">
+      {isRootRoute ? (
+        <button
+          onClick={() => navigate(createPageUrl('Home'))}
+          className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/60 transition-colors active:scale-95"
+          aria-label="Home"
+        >
+          <PawCaoLogo size="tiny" showText={false} />
+        </button>
+      ) : (
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/60 transition-colors active:scale-95"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="w-5 h-5 text-slate-700" />
+        </button>
+      )}
+      {!isRootRoute && <h1 className="text-base font-bold text-slate-900 flex-1 truncate">{pageTitle}</h1>}
       {!authed ? (
         <Button size="sm" variant="default" onClick={() => base44.auth.redirectToLogin()} className="h-8 px-3">
           Entrar
@@ -102,6 +114,7 @@ export default function MobileHeader() {
           Sair
         </Button>
       )}
+      </div>
 
       {isOnProfHub && (
         <div className="mt-2 -mb-1 w-full overflow-x-auto whitespace-nowrap">

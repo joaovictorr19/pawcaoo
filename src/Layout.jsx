@@ -423,9 +423,7 @@ function LayoutContent({ children, currentPageName }) {
       <div className="flex flex-col w-full relative z-10 min-h-screen overflow-x-hidden mt-0 md:mt-16">
         <div className="hidden md:block" style={{ height: '26px' }} />
         <div className="flex flex-1 w-full flex-col">
-          {!(location.pathname === '/ProfessionalHubV2' || location.pathname === createPageUrl('ProfessionalHubV2')) && (
-            <MobileHeader />
-          )}
+          <MobileHeader />
           {stableUser && (
             <MobileNavBar user={stableUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
           )}
