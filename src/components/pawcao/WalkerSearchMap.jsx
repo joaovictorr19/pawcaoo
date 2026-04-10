@@ -1,5 +1,6 @@
 import React from 'react';
-import { Map } from '@/components/ui/map';
+// Map dependency neutralized in this module
+const Map = () => null;
 
 export function WalkerSearchMap({ walkers = [], userLocation, onWalkerClick }) {
   return (
