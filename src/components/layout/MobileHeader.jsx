@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
+import PawCaoLogo from '@/components/PawCaoLogo';
 
 const ROOT_ROUTES = [
   createPageUrl('Home'),
@@ -95,35 +96,23 @@ export default function MobileHeader() {
 
   return (
     <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white border-b border-slate-200 px-3 py-1 flex items-center justify-center gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
-      <div className="flex items-center gap-2 w-full">
+      <div className="grid grid-cols-3 items-center w-full">
+        {/* Logo à esquerda */}
+        <div className="flex items-center">
+          <PawCaoLogo size="small" showText={false} />
+        </div>
 
-        {false && (
-          <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
-            <div className="inline-flex w-max items-center gap-2 pr-4">
-              {tabs.map((t) => (
-                <button
-                  key={t.value}
-                  onClick={() => navigate(createPageUrl('ProfessionalHubV2') + `?tab=${t.value}`)}
-                  className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-colors ${
-                    activeTab === t.value
-                      ? 'bg-orange-500 text-white border-orange-500'
-                      : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
-          <div className="inline-flex w-max items-center gap-2 pr-4">
-            <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
-            <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
-            <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
+        {/* Botões centralizados */}
+        <div className="flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="h-8 px-3 text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
+            <Button size="sm" variant="outline" className="h-8 px-3 text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
+            <Button size="sm" variant="outline" className="h-8 px-3 text-[11px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
           </div>
         </div>
 
+        {/* Espaçador para balancear o centro */}
+        <div />
       </div>
 
 
