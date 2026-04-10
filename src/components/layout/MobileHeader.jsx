@@ -50,12 +50,23 @@ export default function MobileHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const [authed, setAuthed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     let mounted = true;
     base44.auth.isAuthenticated()
-      .then((ok) => { if (mounted) setAuthed(!!ok); })
-      .catch(() => { if (mounted) setAuthed(false); });
+      .then(async (ok) => {
+        if (mounted) setAuthed(!!ok);
+        if (ok) {
+          try {
+            const me = await base44.auth.me();
+            if (mounted) setIsAdmin(me?.role === 'admin');
+          } catch {}
+        } else {
+          if (mounted) setIsAdmin(false);
+        }
+      })
+      .catch(() => { if (mounted) { setAuthed(false); setIsAdmin(false); } });
     return () => { mounted = false; };
   }, []);
 
@@ -124,7 +135,17 @@ export default function MobileHeader() {
             </div>
           </div>
         )}
-        {!isOnProfHub && <div className="flex-1" />}
+        {!isOnProfHub && (
+          <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
+            <div className="flex items-center gap-2 pr-2">
+              <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
+              <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
+              {isAdmin && (
+                <Button size="sm" variant="outline" className="h-8 px-3 shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
+              )}
+            </div>
+          </div>
+        )}
 
         {!authed ? (
           <Button size="sm" variant="default" onClick={() => base44.auth.redirectToLogin()} className="h-8 px-3 shrink-0">
