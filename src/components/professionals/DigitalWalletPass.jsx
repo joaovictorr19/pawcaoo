@@ -136,7 +136,7 @@ export default function DigitalWalletPass({
         <div 
           className="relative px-5 pt-4 pb-5"
           style={{ 
-            background: `linear-gradient(135deg, ${levelColor}, ${levelColor}dd)`,
+            background: 'linear-gradient(135deg, #ea580c, #f59e0b)',
           }}
         >
           {/* Efeito de brilho */}
@@ -235,7 +235,7 @@ export default function DigitalWalletPass({
                     color: 'white',
                     fontSize: 32,
                     fontWeight: 900,
-                    background: `linear-gradient(135deg, ${levelColor}, ${levelColor}cc)`
+                    background: 'linear-gradient(135deg, #ea580c, #f59e0b)'
                   }}
                 >
                   {name.charAt(0).toUpperCase()}
