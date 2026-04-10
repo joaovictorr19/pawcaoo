@@ -67,7 +67,7 @@ export const PAGES = {
     "AnimalProfile": page(() => import('./pages/AnimalProfile')),
     "ApiDocs": page(() => import('./pages/ApiDocs')),
     "ApproveAnnouncements": page(() => import('./pages/ApproveAnnouncements')),
-    "BecomeProfessional": page(() => import('./pages/BecomeProfessional')),
+
     "BookService": page(() => import('./pages/BookService')),
     "CheckoutSuccess": page(() => import('./pages/CheckoutSuccess')),
     "ClientDashboard": page(() => import('./pages/ClientDashboard')),
