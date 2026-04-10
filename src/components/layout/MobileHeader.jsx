@@ -97,7 +97,7 @@ export default function MobileHeader() {
 
   return (
     <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white border-b border-slate-200 px-3 py-1 flex items-center justify-center gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
-      <div className="grid grid-cols-3 items-center w-full">
+      <div className="grid grid-cols-[auto,1fr,auto] items-center w-full">
         {/* Logo à esquerda */}
         <div className="flex items-center">
           <PawCaoLogo size="small" showText={false} />
@@ -105,17 +105,17 @@ export default function MobileHeader() {
 
         {/* Botões centralizados */}
         <div className="flex items-center justify-center">
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" className="h-8 px-3 text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
-            <Button size="sm" variant="outline" className="h-8 px-3 text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
-            <Button size="sm" variant="outline" className="h-8 px-3 text-[11px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
+          <div className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+            <Button size="sm" variant="outline" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
+            <Button size="sm" variant="outline" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
+            <Button size="sm" variant="outline" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
           </div>
         </div>
 
         {/* Ações à direita */}
         <div className="flex items-center justify-end">
           {authed && (
-            <Button size="sm" variant="ghost" className="h-8 px-3 text-[11px]" onClick={() => base44.auth.logout()}>
+            <Button size="sm" variant="ghost" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.logout()}>
               <LogOut className="w-4 h-4 mr-1" /> Sair
             </Button>
           )}
