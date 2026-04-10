@@ -4,6 +4,7 @@ import { Camera, ScanLine, X, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { tryDecodeQR, validateForBooking, encodeQR } from '@/utils/qrTokens';
 
 export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START' }) {
   const [scanning, setScanning] = useState(false);
@@ -21,12 +22,10 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
 
     setLoading(true);
     try {
-      const expectedToken = type === 'START' 
-        ? (booking.pickup_token || `PK-${booking.id.slice(0, 8).toUpperCase()}`)
-        : (booking.dropoff_token || `DO-${booking.id.slice(-8).toUpperCase()}`);
-
-      if (manualCode.toUpperCase() === expectedToken.toUpperCase()) {
-        await handleSuccessfulScan({ token: expectedToken, type, bookingId: booking.id });
+      const decoded = tryDecodeQR(manualCode);
+      const result = validateForBooking(booking, decoded, type);
+      if (result.valid) {
+        await handleSuccessfulScan({ token: decoded.token || manualCode, type: result.step === 'start' ? 'START' : 'END', bookingId: booking.id });
       } else {
         toast.error('❌ Código incorreto!');
         onScanError?.();
@@ -117,11 +116,8 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
 
   // Mock QR reading (real implementation would use jsQR or similar)
   const simulateScan = () => {
-    const expectedToken = type === 'START' 
-      ? (booking.pickup_token || `PK-${booking.id.slice(0, 8).toUpperCase()}`)
-      : (booking.dropoff_token || `DO-${booking.id.slice(-8).toUpperCase()}`);
-    
-    handleSuccessfulScan({ token: expectedToken, type, bookingId: booking.id });
+    const payload = encodeQR(booking, type === 'START' ? 'START' : 'END');
+    handleSuccessfulScan({ token: payload, type, bookingId: booking.id });
   };
 
   const buttonColor = type === 'START' 

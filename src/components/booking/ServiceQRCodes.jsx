@@ -2,6 +2,7 @@ import React from 'react';
 import QRCode from 'react-qr-code';
 import { Card, CardContent } from '@/components/ui/card';
 import { QrCode, PlayCircle, StopCircle, MapPin, Clock, User } from 'lucide-react';
+import { getStartToken, getEndToken, encodeQR } from '@/utils/qrTokens';
 
 /**
  * Mostra os 2 QR Codes para o cliente:
@@ -11,8 +12,8 @@ import { QrCode, PlayCircle, StopCircle, MapPin, Clock, User } from 'lucide-reac
 export default function ServiceQRCodes({ booking }) {
   if (!booking) return null;
 
-  const startToken = booking.pickup_token || `PK-${booking.id.slice(0, 8).toUpperCase()}`;
-  const endToken = booking.dropoff_token || `DO-${booking.id.slice(-8).toUpperCase()}`;
+  const startToken = getStartToken(booking);
+  const endToken = getEndToken(booking);
 
   const isStarted = ['in_progress', 'service_completed', 'completed'].includes(booking.status);
   const isFinished = ['service_completed', 'completed'].includes(booking.status);
@@ -66,7 +67,7 @@ export default function ServiceQRCodes({ booking }) {
           </div>
           <div className={`flex justify-center p-4 rounded-xl ${isStarted ? 'bg-gray-100' : 'bg-white'}`}>
             <QRCode
-              value={startToken}
+              value={encodeQR(booking, "START")}
               size={160}
               style={{ opacity: isStarted ? 0.4 : 1 }}
             />
@@ -93,7 +94,7 @@ export default function ServiceQRCodes({ booking }) {
           </div>
           <div className={`flex justify-center p-4 rounded-xl ${isFinished ? 'bg-gray-100' : 'bg-white'}`}>
             <QRCode
-              value={endToken}
+              value={encodeQR(booking, "END")}
               size={160}
               fgColor={isFinished ? '#9ca3af' : '#dc2626'}
               style={{ opacity: isFinished ? 0.4 : 1 }}

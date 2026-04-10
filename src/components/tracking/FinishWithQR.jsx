@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { QrCode, ShieldCheck, Camera, X } from "lucide-react";
+import { buildDeliveryConfirm, decodeDeliveryConfirm } from '@/utils/qrTokens';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -11,7 +12,8 @@ export function FinishWithQR({ walkId, onValidated }) {
   const intervalRef = useRef(null);
 
   const validate = (text) => {
-    if (text === `PAWGO-CONFIRM-${walkId}`) {
+    const res = decodeDeliveryConfirm(text);
+    if (res.valid && res.walkId === String(walkId)) {
       setIsValidated(true);
       setScanning(false);
       toast.success("Código Validado! Identidade confirmada.");

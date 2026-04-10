@@ -26,6 +26,40 @@ Deno.serve(async (req) => {
     const payload = await req.json();
     console.log('📥 Received payload:', JSON.stringify(payload));
 
+    const { walletTopup, amount, productName } = payload || {};
+
+    // Handle wallet top-up flow
+    if (walletTopup && amount) {
+      const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'payment',
+        line_items: [
+          {
+            price_data: {
+              currency: 'eur',
+              product_data: { name: productName || 'Wallet Top-up' },
+              unit_amount: parseInt(amount, 10), // amount already in cents from frontend
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${origin}/MyWallet?topup=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/MyWallet?topup=cancelled` ,
+        customer_email: user.email,
+        metadata: {
+          wallet_topup: 'true',
+          user_email: user.email,
+          topup_amount_cents: String(amount),
+        },
+      });
+      console.log('✅ Wallet top-up session created:', session.id);
+      return new Response(JSON.stringify({ sessionId: session.id, url: session.url, success: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const { bookingId, successUrl, cancelUrl, voucherCode, discountAmount, bookingData } = payload;
 
     // Use bookingData passed from frontend (avoids SDK filter-by-id limitation)

@@ -47,7 +47,11 @@ Deno.serve(async (req) => {
 
             case 'checkout.session.completed': {
                 const session = event.data.object;
-                await handleCheckoutCompleted(base44, session);
+                if (session?.metadata?.wallet_topup === 'true' || session?.metadata?.wallet_topup === true) {
+                    await handleWalletTopup(base44, session);
+                } else {
+                    await handleCheckoutCompleted(base44, session);
+                }
                 break;
             }
 
@@ -441,6 +445,47 @@ async function handlePaymentFailed(base44, paymentIntent) {
             payment_status: 'failed',
             status: 'available'
         });
+    }
+}
+
+async function handleWalletTopup(base44, session) {
+    try {
+        const amountEuro = (session.amount_total || 0) / 100;
+        const userEmail = session?.customer_details?.email || session?.customer_email || session?.metadata?.user_email;
+        if (!userEmail || amountEuro <= 0) return;
+
+        const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: userEmail });
+        let wallet = wallets[0];
+        if (!wallet) {
+            wallet = await base44.asServiceRole.entities.UserWallet.create({
+                user_email: userEmail,
+                cashback_balance: 0,
+                service_tokens: 0,
+                total_points: 0,
+                available_balance: 0,
+                pending_balance: 0,
+                total_earnings: 0
+            });
+        }
+        const newBalance = (wallet.cashback_balance || 0) + amountEuro;
+        await base44.asServiceRole.entities.UserWallet.update(wallet.id, { cashback_balance: newBalance });
+
+        await base44.asServiceRole.entities.WalletTransaction.create({
+            user_email: userEmail,
+            transaction_type: 'topup',
+            amount: amountEuro,
+            description: 'Wallet top-up (Stripe)',
+            balance_after: newBalance
+        });
+
+        await base44.asServiceRole.entities.Notification.create({
+            recipient_email: userEmail,
+            title: '💳 Crédito adicionado',
+            message: `€${amountEuro.toFixed(2)} foram adicionados à sua carteira.`,
+            type: 'payment'
+        });
+    } catch (e) {
+        console.error('Wallet top-up handling error:', e);
     }
 }
 
