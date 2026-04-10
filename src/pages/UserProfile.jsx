@@ -481,6 +481,15 @@ export default function UserProfile() {
             </div>
           )}
 
+          {!isOwnProfile && (walkerProfile || trainerProfile) && (
+            <div className="mb-6">
+              <ProfileActions 
+                walker={walkerProfile || trainerProfile}
+                currentUser={currentUser}
+              />
+            </div>
+          )}
+
           {(walkerProfile || trainerProfile) && (
             <div>
               <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Feedback</h3>
@@ -501,14 +510,6 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {!isOwnProfile && (walkerProfile || trainerProfile) && (
-        <div className="mx-6 mb-32">
-          <ProfileActions 
-            walker={walkerProfile || trainerProfile}
-            currentUser={currentUser}
-          />
-        </div>
-      )}
 
       {currentUser?.role === 'admin' && (
         <div className="bg-red-600 text-white p-2 text-xs font-bold flex justify-center gap-4 z-40 relative shadow-md">
