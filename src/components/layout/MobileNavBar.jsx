@@ -94,43 +94,33 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   };
 
   const handleCenterButtonClick = async () => {
-    if (isProf) {
-      // Profissional: toggle online/offline with optimistic update
-      const newStatus = !isOnline;
-      
-      // Optimistic update: update local state immediately
-      queryClient.setQueryData(['currentUser'], (old) => ({
-        ...old,
+    // Sempre alterna o PawGo online/offline (sem redirecionar)
+    const newStatus = !isOnline;
+
+    // Atualização otimista
+    queryClient.setQueryData(['currentUser'], (old) => ({
+      ...old,
+      pawgo_status: {
+        ...(old?.pawgo_status || {}),
+        is_online: newStatus,
+        last_active: new Date().toISOString()
+      }
+    }));
+
+    try {
+      await base44.auth.updateMe({
         pawgo_status: {
-          ...old?.pawgo_status,
+          ...(user?.pawgo_status || {}),
           is_online: newStatus,
           last_active: new Date().toISOString()
         }
-      }));
-      
-      try {
-        await base44.auth.updateMe({
-          pawgo_status: {
-            ...user.pawgo_status,
-            is_online: newStatus,
-            last_active: new Date().toISOString()
-          }
-        });
-        queryClient.invalidateQueries(['currentUser']);
-        queryClient.invalidateQueries(['myProfessionalProfile']);
-        queryClient.invalidateQueries(['allWalkers']);
-      } catch (error) {
-        console.error("Erro ao atualizar status:", error);
-        // Rollback optimistic update on error
-        queryClient.invalidateQueries(['currentUser']);
-      }
-    } else {
-      // Cliente/Tutor: voltar para modo usuário normal (não profissional)
-      if (location.pathname !== createPageUrl("Dashboard")) {
-          navigate(createPageUrl("Dashboard"), { state: { triggerTransition: true, toProfessional: false } });
-      } else {
-          window.dispatchEvent(new CustomEvent('triggerModeSwitch', { detail: { toProfessional: false } }));
-      }
+      });
+      queryClient.invalidateQueries(['currentUser']);
+      queryClient.invalidateQueries(['myProfessionalProfile']);
+      queryClient.invalidateQueries(['allWalkers']);
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+      queryClient.invalidateQueries(['currentUser']);
     }
   };
 
