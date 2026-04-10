@@ -420,7 +420,7 @@ function LayoutContent({ children, currentPageName }) {
       <NotificationTriggers user={authUser} />
       <NotificationManager />
 
-      <div className="flex flex-col w-full relative z-10 min-h-screen overflow-x-hidden mt-0 md:mt-16">
+      <div className="flex flex-col w-full relative z-10 min-h-[100dvh] overflow-x-hidden mt-0 md:mt-16">
         <div className="hidden md:block" style={{ height: '26px' }} />
         <div className="flex flex-1 w-full flex-col">
           <MobileHeader />
@@ -448,7 +448,7 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <main className="flex-1 w-full pb-28 md:pb-0">
+          <main className="flex-1 w-full pb-28 md:pb-0 overflow-y-auto md:overflow-visible" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
             {children}
           </main>
 
