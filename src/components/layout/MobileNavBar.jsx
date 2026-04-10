@@ -224,7 +224,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
-          <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">{labelNotifications}</span>
+          <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">{labelNotifications}</span>
         </button>
 
 
