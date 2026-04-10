@@ -9,7 +9,7 @@ export default function LayoutFooter() {
   const { language } = useLanguage();
 
   return (
-    <footer className="hidden md:block mt-auto pt-16 relative z-0 bg-white border-t border-slate-200 w-full">
+    <footer className="hidden md:block relative z-0 w-full bg-white border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-6 py-8 w-full">
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
