@@ -448,7 +448,7 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <main className="min-h-0 flex-1 w-full pb-28 md:pb-0 overflow-y-auto md:overflow-visible" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+          <main className="min-h-0 flex-1 w-full pb-28 md:pb-0 overflow-visible" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
             {children}
           </main>
 
