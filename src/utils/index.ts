@@ -1,6 +1,7 @@
-
-
-
 export function createPageUrl(pageName: string) {
-    return '/' + pageName.toLowerCase().replace(/ /g, '-');
+    if (!pageName) return '/';
+    const key = pageName.trim();
+    if (key.toLowerCase() === 'home') return '/';
+    // Keep original casing (matches App routes) and remove spaces
+    return '/' + key.replace(/\s+/g, '');
 }
