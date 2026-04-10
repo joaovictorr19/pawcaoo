@@ -465,7 +465,7 @@ export default function ProfessionalHubV2() {
             </motion.div>
           )}
 
-          {activeTab === "wallet" && (
+          {activeTab === "active" && (
             <motion.div 
               key="active" 
               initial={{ opacity: 0, x: 20 }} 
@@ -474,6 +474,18 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
             >
               <ActiveRequestsList user={user} />
+            </motion.div>
+          )}
+
+          {activeTab === "wallet" && (
+            <motion.div
+              key="wallet"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <WalletSection user={user} professionalProfile={professionalProfile} />
             </motion.div>
           )}
 
