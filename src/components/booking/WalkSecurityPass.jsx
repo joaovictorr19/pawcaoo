@@ -3,7 +3,7 @@ import QRCode from "react-qr-code";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { QrCode, Shield, CheckCircle } from "lucide-react";
+import { QrCode, Shield, CheckCircle, MessageCircle } from "lucide-react";
 
 export function WalkSecurityPass({ booking, onCodeShown }) {
   if (!booking) return null;
@@ -32,6 +32,10 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
     timestamp: new Date().toISOString()
   });
 
+  const rawPhone = booking.walker_payment_contact || booking.walker_phone || booking.walker_whatsapp || '';
+  const phoneDigits = String(rawPhone).replace(/\D/g, '');
+  const whatsappLink = phoneDigits ? `https://wa.me/${phoneDigits}` : null;
+
   return (
     <Dialog onOpenChange={(open) => open && onCodeShown?.()}>
       <DialogTrigger asChild>
@@ -59,6 +63,26 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
           />
         </div>
 
+        {whatsappLink && (
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full mb-3 inline-flex items-center justify-center gap-2 rounded-xl border border-green-600 text-green-700 bg-white hover:bg-green-50 px-4 py-3 font-semibold"
+          >
+            <MessageCircle className="w-4 h-4" /> Falar no WhatsApp
+          </a>
+        )}
+        <div className="w-full rounded-xl border p-3 mb-4 flex items-center gap-3 bg-white">
+          <div className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold">
+            {(booking.walker_name || 'P').charAt(0).toUpperCase()}
+          </div>
+          <div className="text-left">
+            <p className="text-sm font-bold text-slate-900">Profissional: {booking.walker_name || '—'}</p>
+            <p className="text-xs text-slate-600">{booking.walker_email || ''}</p>
+          </div>
+        </div>
+
         <div className="bg-slate-900 rounded-xl p-4 w-full text-center shadow-lg mb-4">
           <p className="text-xs text-slate-400 mb-1">CÓDIGO DE SEGURANÇA</p>
           <p className="font-mono text-2xl md:text-3xl font-bold tracking-[0.3em] text-green-400">
@@ -77,9 +101,8 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
           <CheckCircle className="w-5 h-5 text-green-600 ml-auto" />
         </div>
 
-        <p className="text-xs text-center text-slate-500 mt-4">
-          🔒 Código válido apenas para este passeio
-        </p>
+        <p className="text-xs text-center text-slate-500 mt-4">🔒 Código válido apenas para este passeio</p>
+        <p className="text-xs text-center text-slate-500">💸 O pagamento ao profissional é liberado automaticamente após a entrega (QR final).</p>
       </DialogContent>
     </Dialog>
   );
