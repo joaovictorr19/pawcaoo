@@ -330,6 +330,10 @@ export default function UserProfile() {
           className="w-full h-full object-cover"
           alt="Capa"
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=400&fit=crop";
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-transparent to-black/20" />
         <button onClick={() => navigate(-1)} className="absolute top-6 left-6 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all">
@@ -341,7 +345,16 @@ export default function UserProfile() {
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
             <Avatar className="w-32 h-32 border-4 border-white shadow-2xl rounded-[2.5rem]">
-              <AvatarImage src={displayPhotoUrl} className="object-cover w-full h-full" style={{ objectFit: 'cover' }} />
+              <AvatarImage
+                src={displayPhotoUrl}
+                className="object-cover w-full h-full"
+                style={{ objectFit: 'cover' }}
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=256&h=256&fit=crop';
+                }}
+              />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl font-black">
                 {displayName[0]?.toUpperCase()}
               </AvatarFallback>
@@ -376,7 +389,16 @@ export default function UserProfile() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl">
                 {walkerProfile.portfolio.filter(p => p.media_url).slice(0, 4).map((item, idx) => (
                   <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100">
-                    <img src={item.media_url} alt={item.title || 'foto'} className="w-full h-full object-cover" loading="lazy" />
+                    <img
+                      src={item.media_url}
+                      alt={item.title || 'foto'}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1558944351-c3ad969c1a63?w=600&h=600&fit=crop';
+                      }}
+                    />
                     {item.title && (
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                         <p className="text-white text-[10px] font-bold truncate">{item.title}</p>
