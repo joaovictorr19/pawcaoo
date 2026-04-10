@@ -622,8 +622,6 @@ export default function AdminDashboard() {
     toast.success("Status atualizado!");
   };
 
-
-
   if (loadingUser) {
     return (
       <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
@@ -658,8 +656,6 @@ export default function AdminDashboard() {
           <AlertTriangle className="w-24 h-24 mb-6 animate-bounce text-white" />
           <h1 className="text-5xl font-black mb-2">ALERTA DE SEGURANÇA!</h1>
           <p className="text-xl mb-8">Um profissional solicitou ajuda imediata.</p>
-          
-
 
           <div className="mt-8 flex gap-4">
             <Button className="bg-white text-red-600 font-bold px-10 h-14 rounded-full hover:bg-gray-100">
@@ -1020,8 +1016,6 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-
-
             <div className="mt-6">
               <ProfileEditRequests />
             </div>
@@ -1150,7 +1144,6 @@ export default function AdminDashboard() {
             )}
           </TabsContent>
 
-
           <TabsContent value="operations">
             {activeTab === 'operations' && (
             <div className="mt-6 space-y-6">
@@ -1250,11 +1243,9 @@ export default function AdminDashboard() {
                         public_badges: [...(targetUser.public_badges || []), badge]
                       };
                       
-                      // Auto-update social_role base on rarity
                       if (badge.rarity === 'legendary') updates.social_role = 'ambassador';
                       else if (badge.rarity === 'epic' && targetUser.social_role !== 'ambassador') updates.social_role = 'influencer';
 
-                      // Fee exemptions for specific badges
                       if (badge.name.toLowerCase().includes('ouro') || badge.name.toLowerCase().includes('gold')) {
                         updates.professional_profile = {
                           ...(targetUser.professional_profile || {}),
