@@ -1,10 +1,10 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Map, Calendar, User, Zap, LayoutDashboard, Globe, Bell } from "lucide-react";
+import { Map, Calendar, User, LayoutDashboard, Globe, Bell } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
-import { motion } from "framer-motion";
+
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
@@ -134,7 +134,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
       className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] w-full px-3 pt-3 bg-white/98 backdrop-blur-lg border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] rounded-t-2xl pointer-events-auto"
       style={{ pointerEvents: 'auto', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
     >
-      <div className="max-w-3xl mx-auto flex items-center justify-center gap-2 sm:gap-4">
+      <div className="max-w-3xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
         
         {/* ABA 1: EXPLORAR / PAINEL PROFISSIONAL / CLIENTE */}
         <button 
@@ -175,33 +175,6 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           <Calendar size={18} />
           <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">{isProf ? (language === 'pt' ? 'Agenda' : language === 'es' ? 'Calendario' : 'Calendar') : labelSchedule}</span>
         </button>
-
-        {/* BOTÃO CENTRAL: RADAR / PAWGO */}
-        <div className="flex flex-col items-center">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleCenterButtonClick}
-            aria-pressed={isProf ? isOnline : undefined}
-            title={isProf ? (isOnline ? 'Ficar offline' : 'Ficar online') : 'PawGo'}
-            className={`relative ${isProf ? 'w-24 h-10' : 'w-14 h-14 bg-orange-500'} rounded-full shadow-lg flex items-center justify-center transition-all border border-slate-200`}
-          >
-            {isProf ? (
-              <>
-                <div className={`absolute inset-0 ${isOnline ? 'bg-green-500' : 'bg-slate-400'} rounded-full`} />
-                <div className={`absolute top-1 left-1 w-8 h-8 rounded-full bg-white transition-transform ${isOnline ? 'translate-x-14' : ''}`} />
-                <div className="absolute inset-0 flex items-center justify-between px-2 text-[9px] font-extrabold uppercase">
-                  <span className={`${isOnline ? 'text-white/70' : 'text-slate-800'}`}>{labelOff}</span>
-                  <span className={`${isOnline ? 'text-white' : 'text-white/70'}`}>{labelOn}</span>
-                </div>
-              </>
-            ) : (
-              <Zap className="text-white w-5 h-5 fill-current" />
-            )}
-          </motion.button>
-          <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest mt-1 whitespace-nowrap truncate max-w-[72px] text-center">
-            {isProf ? (isOnline ? labelOn : labelOff) : 'PawGo'}
-          </span>
-        </div>
 
         {/* ABA 3: NOTIFICAÇÕES */}
         <button 
