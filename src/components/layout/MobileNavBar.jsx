@@ -131,10 +131,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
   return (
     <div
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] w-full px-3 pt-3 bg-white/95 backdrop-blur-lg border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] pointer-events-auto"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] w-full px-3 pt-3 bg-white/98 backdrop-blur-lg border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] rounded-t-2xl pointer-events-auto"
       style={{ pointerEvents: 'auto', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
     >
-      <div className="max-w-2xl mx-auto flex items-center justify-center gap-2 sm:gap-4">
+      <div className="max-w-3xl mx-auto flex items-center justify-center gap-2 sm:gap-4">
         
         {/* ABA 1: EXPLORAR / PAINEL PROFISSIONAL / CLIENTE */}
         <button 
@@ -142,7 +142,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
             const targetPath = isProf ? createPageUrl("ProfessionalHubV2") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
             handleTabClick(targetPath);
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl border border-slate-200 ${
             (isProf && isActive(createPageUrl("ProfessionalHubV2"))) ||
             (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
             (!isProf && !isTutor && isActive(createPageUrl("Home")))
@@ -150,8 +150,8 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               : "text-slate-500 hover:bg-slate-50"
           }`}
         >
-          {isProf ? <LayoutDashboard size={20} /> : isTutor ? <LayoutDashboard size={20} /> : <Map size={20} />}
-          <span className="text-[9px] font-bold uppercase tracking-tight">
+          {isProf ? <LayoutDashboard size={22} /> : isTutor ? <LayoutDashboard size={22} /> : <Map size={22} />}
+          <span className="text-[10px] font-bold uppercase tracking-tight">
             {isProf ? t('dashboard', language) : isTutor ? t('client', language) : t('explore', language)}
           </span>
         </button>
@@ -165,35 +165,40 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               handleTabClick(createPageUrl("MyBookings"));
             }
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl border border-slate-200 ${
             (isProf && (isActive(createPageUrl("ManageAvailability")) || isActive(createPageUrl("ProfessionalCalendar")))) ||
             (!isProf && isActive(createPageUrl("MyBookings")))
               ? "text-orange-500 bg-orange-50" 
               : "text-slate-500 hover:bg-slate-50"
           }`}
         >
-          <Calendar size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-tight">{isProf ? (language === 'pt' ? 'Folgas' : 'Calendar') : (t('schedule', language) || 'Agenda')}</span>
+          <Calendar size={22} />
+          <span className="text-[10px] font-bold uppercase tracking-tight">{isProf ? (language === 'pt' ? 'Folgas' : 'Calendar') : (t('schedule', language) || 'Agenda')}</span>
         </button>
 
         {/* BOTÃO CENTRAL: RADAR / PAWGO */}
         <div className="flex flex-col items-center">
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleCenterButtonClick}
-            className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all border-3 border-white
-              ${isProf 
-                ? (isOnline ? "bg-slate-900" : "bg-slate-400") 
-                : "bg-orange-500"}
-            `}
+            aria-pressed={isProf ? isOnline : undefined}
+            title={isProf ? (isOnline ? 'Ficar offline' : 'Ficar online') : 'PawGo'}
+            className={`relative ${isProf ? 'w-24 h-10' : 'w-14 h-14 bg-orange-500'} rounded-full shadow-lg flex items-center justify-center transition-all border border-slate-200`}
           >
             {isProf ? (
-              <Globe className={`text-white w-6 h-6 ${isOnline ? "animate-spin-slow" : "opacity-50"}`} />
+              <>
+                <div className={`absolute inset-0 ${isOnline ? 'bg-green-500' : 'bg-slate-400'} rounded-full`} />
+                <div className={`absolute top-1 left-1 w-8 h-8 rounded-full bg-white transition-transform ${isOnline ? 'translate-x-14' : ''}`} />
+                <div className="absolute inset-0 flex items-center justify-between px-2 text-[10px] font-extrabold uppercase">
+                  <span className={`${isOnline ? 'text-white/70' : 'text-slate-800'}`}>Off</span>
+                  <span className={`${isOnline ? 'text-white' : 'text-white/70'}`}>On</span>
+                </div>
+              </>
             ) : (
               <Zap className="text-white w-6 h-6 fill-current" />
             )}
           </motion.button>
-          <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest mt-1">
+          <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest mt-1">
             {isProf ? (isOnline ? 'Online' : 'Offline') : 'PawGo'}
           </span>
         </div>
@@ -201,15 +206,15 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         {/* ABA 3: NOTIFICAÇÕES */}
         <button 
           onClick={onNotificationsClick}
-          className="flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl relative text-slate-500 hover:bg-slate-50 h-20 min-h-[2.75rem]"
+          className="flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl relative border border-slate-200 text-slate-500 hover:bg-slate-50"
         >
-          <Bell size={20} />
+          <Bell size={22} />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
-          <span className="text-[9px] font-bold uppercase tracking-tight">{t('notifications', language) || 'Avisos'}</span>
+          <span className="text-[10px] font-bold uppercase tracking-tight">{t('notifications', language) || 'Avisos'}</span>
         </button>
 
 
@@ -220,10 +225,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
             const profilePath = createPageUrl("UserProfile");
             handleTabClick(profilePath);
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
+          className={`flex flex-col items-center gap-0.5 transition-all flex-1 py-2 rounded-xl border border-slate-200 ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
         >
-          <User size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-tight">{t('profile', language) || 'Perfil'}</span>
+          <User size={22} />
+          <span className="text-[10px] font-bold uppercase tracking-tight">{t('profile', language) || 'Perfil'}</span>
         </button>
 
       </div>
