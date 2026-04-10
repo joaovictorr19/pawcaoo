@@ -116,7 +116,7 @@ export default function MobileHeader() {
           </button>
         )}
 
-        {isOnProfHub && (
+        {false && (
           <div className="flex-1 overflow-x-auto whitespace-nowrap min-w-0">
             <div className="inline-flex w-max items-center gap-2 pr-4">
               {tabs.map((t) => (
