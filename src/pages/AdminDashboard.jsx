@@ -56,7 +56,7 @@ import AdminUserTable from "../components/admin/AdminUserTable";
 
 import Pagination from "../components/ui/Pagination";
 import ClientDetails from "../components/admin/ClientDetails";
-import ProductManagement from "../components/admin/ProductManagement";
+
 import BroadcastManager from "../components/admin/BroadcastManager";
 import StoreItemsManager from "../components/admin/StoreItemsManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
@@ -751,7 +751,6 @@ export default function AdminDashboard() {
                 )}
               </TabsTrigger>
               <TabsTrigger value="users" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
-              <TabsTrigger value="commerce" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🛍️ Comércio</TabsTrigger>
               <TabsTrigger value="operations" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
               <TabsTrigger value="gamification" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
               <TabsTrigger value="debug" className="rounded-full bg-red-50 text-red-600 shadow-sm data-[state=active]:bg-red-600 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
@@ -1151,16 +1150,6 @@ export default function AdminDashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="commerce">
-            {activeTab === 'commerce' && (
-              <div className="mt-6">
-                <ProductManagement
-                  products={allPartnerProducts}
-                  isLoading={false}
-                />
-              </div>
-            )}
-          </TabsContent>
 
           <TabsContent value="operations">
             {activeTab === 'operations' && (

@@ -64,9 +64,6 @@ export const PAGES = {
     "AdminDebug": page(() => import('./pages/AdminDebug')),
     "AdminFinanceDashboard": page(() => import('./pages/AdminFinanceDashboard')),
     "AdminProfessionalApprovals": page(() => import('./pages/AdminProfessionalApprovals')),
-    "AdminProductManagement": page(() => import('./pages/AdminProductManagement')),
-    "AdminShelterVerification": page(() => import('./pages/AdminShelterVerification')),
-    "AdminShopHub": page(() => import('./pages/AdminShopHub')),
     "AffiliateDashboard": page(() => import('./pages/AffiliateDashboard')),
     "AnimalProfile": page(() => import('./pages/AnimalProfile')),
     "ApiDocs": page(() => import('./pages/ApiDocs')),
@@ -125,11 +122,6 @@ export const PAGES = {
     "RegisterCompany": page(() => import('./pages/RegisterCompany')),
     "RequestWalk": page(() => import('./pages/RequestWalk')),
     "ScheduledWalks": page(() => import('./pages/ScheduledWalks')),
-    "Shop": page(() => import('./pages/Shop')),
-    "ShelterDashboard": page(() => import('./pages/ShelterDashboard')),
-    "ShelterProfile": page(() => import('./pages/ShelterProfile')),
-    "ShelterRegister": page(() => import('./pages/ShelterRegister')),
-    "Shelters": page(() => import('./pages/Shelters')),
 
     "Sitemap": page(() => import('./pages/Sitemap')),
 
