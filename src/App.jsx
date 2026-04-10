@@ -3,6 +3,7 @@ import React, { Suspense, lazy } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { AnimatePresence, motion } from 'framer-motion'
 import Home from './pages/Home.jsx'
+import UserProfile from './pages/UserProfile.jsx'
 const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2').catch(e => {
   console.error('Error loading ProfessionalHubV2:', e);
   return { default: () => <div>Erro ao carregar página</div> };
@@ -113,6 +114,7 @@ const AuthenticatedApp = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/Home" element={<Home />} />
+            <Route path="/UserProfile" element={<UserProfile />} />
             {Object.entries(Pages).map(([path, Page]) => {
               try {
                 return <Route key={path} path={`/${path}`} element={<Page />} />;

@@ -3,6 +3,14 @@ import { useEffect } from 'react';
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
+      const ua = navigator.userAgent || '';
+      const isSafari = /Safari\//.test(ua) && !/Chrome\//.test(ua);
+      const isSecure = window.isSecureContext === true;
+      // Safari (and some WebViews) don't allow registering blob: service workers
+      if (isSafari || !isSecure) {
+        console.warn('Skipping Service Worker registration: environment does not support blob: scripts or not secure context');
+        return;
+      }
       // Service Worker code inline (workaround para não poder criar public/sw.js)
       const swCode = `
         // Service Worker para Push Notifications - iOS e Android
