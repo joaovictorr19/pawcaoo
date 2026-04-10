@@ -46,8 +46,8 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
       <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
         <CardContent className="p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
-              <QrCode className="w-5 h-5 text-blue-500" />
+            <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
+              <QrCode className="w-5 h-5 text-amber-500" />
             </div>
             <div>
               <h4 className="font-bold text-white text-sm">Cartão Digital PawGo</h4>
@@ -67,15 +67,15 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
       <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
         <CardContent className="p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-              <CreditCard className="w-5 h-5 text-purple-500" />
+            <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-amber-500" />
             </div>
             <div>
               <h4 className="font-bold text-white text-sm">Receber Pagamentos</h4>
               <p className="text-xs text-slate-400">Configuração Stripe Connect</p>
             </div>
           </div>
-          <div className="bg-slate-950 rounded-xl p-4">
+          <div className="bg-slate-950 rounded-xl p-4 text-slate-200">
             <StripeConnectSetup />
           </div>
         </CardContent>
@@ -112,15 +112,15 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
       <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
         <CardContent className="p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-              <Download className="w-5 h-5 text-emerald-500" />
+            <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
+              <Download className="w-5 h-5 text-amber-500" />
             </div>
             <div>
               <h4 className="font-bold text-white text-sm">Exportação Fiscal</h4>
               <p className="text-xs text-slate-400">Faturas e relatórios</p>
             </div>
           </div>
-          <div className="bg-slate-950 rounded-xl p-4">
+          <div className="bg-slate-950 rounded-xl p-4 text-slate-200">
              <DataExportPanel professionalEmail={user?.email} country={professionalProfile?.country_of_operation} />
           </div>
         </CardContent>
