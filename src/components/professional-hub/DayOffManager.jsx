@@ -48,7 +48,9 @@ export function DayOffManager({ userEmail }) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['daysOff', userEmail]);
+      queryClient.invalidateQueries({ queryKey: ['daysOff'] });
+      queryClient.invalidateQueries({ queryKey: ['myAvailability'] });
+      queryClient.invalidateQueries({ queryKey: ['walkerDaysOff'] });
       toast.success("Folga marcada! 📅");
     },
     onError: () => {
@@ -73,7 +75,9 @@ export function DayOffManager({ userEmail }) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['daysOff', userEmail]);
+      queryClient.invalidateQueries({ queryKey: ['daysOff'] });
+      queryClient.invalidateQueries({ queryKey: ['myAvailability'] });
+      queryClient.invalidateQueries({ queryKey: ['walkerDaysOff'] });
       toast.success("Folga removida! ✅");
     },
     onError: () => {

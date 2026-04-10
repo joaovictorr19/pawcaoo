@@ -84,7 +84,9 @@ export default function ProfessionalCalendar() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['myAvailability']);
+      queryClient.invalidateQueries({ queryKey: ['myAvailability'] });
+      queryClient.invalidateQueries({ queryKey: ['daysOff'] });
+      queryClient.invalidateQueries({ queryKey: ['walkerDaysOff'] });
       toast.success('Disponibilidade atualizada!');
     },
     onError: () => toast.error('Erro ao atualizar disponibilidade'),
