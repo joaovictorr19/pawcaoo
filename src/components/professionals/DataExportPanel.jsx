@@ -13,6 +13,7 @@ export default function DataExportPanel({ professionalEmail, country }) {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [isExporting, setIsExporting] = useState(false);
+  const currency = React.useMemo(() => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }), []);
 
   const { data: bookings = [] } = useQuery({
     queryKey: ['professionalBookings', professionalEmail],
@@ -151,7 +152,7 @@ export default function DataExportPanel({ professionalEmail, country }) {
     <Card className="glass-panel border-0 shadow-xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileText className="w-6 h-6 text-blue-600" />
+          <FileText className="w-6 h-6 text-amber-600" />
           Meus Dados e Finanças
         </CardTitle>
         <p className="text-sm text-gray-600 mt-1">{getTaxGuidance()}</p>
@@ -189,23 +190,23 @@ export default function DataExportPanel({ professionalEmail, country }) {
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-3 gap-4 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+        <div className="grid grid-cols-3 gap-4 p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">€{totalGross.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-amber-600">{currency.format(totalGross)}</div>
             <div className="text-xs text-gray-600">Valor Bruto</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">-€{totalFees.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-red-600">-{currency.format(totalFees)}</div>
             <div className="text-xs text-gray-600">Taxas</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">€{totalNet.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-emerald-600">{currency.format(totalNet)}</div>
             <div className="text-xs text-gray-600">Valor Líquido</div>
           </div>
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <p className="text-sm text-amber-800">
             <strong>{filteredData.length}</strong> serviço{filteredData.length !== 1 ? 's' : ''} completado{filteredData.length !== 1 ? 's' : ''} neste período
           </p>
         </div>
@@ -214,7 +215,7 @@ export default function DataExportPanel({ professionalEmail, country }) {
         <Button
           onClick={exportToCSV}
           disabled={isExporting || filteredData.length === 0}
-          className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold h-12"
+          className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold h-12"
         >
           {isExporting ? (
             <>
