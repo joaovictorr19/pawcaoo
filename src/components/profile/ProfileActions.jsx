@@ -56,36 +56,6 @@ export default function ProfileActions({ walker, currentUser }) {
         </div>
       )}
 
-      {/* 📅 BLOCO 2: FOLGAS (SEM AGENDA) */}
-      <div className="bg-white rounded-[2.5rem] p-6 shadow-2xl shadow-slate-200/50 border border-slate-50">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <div className="bg-slate-900 p-2 rounded-xl text-white">
-              <Calendar size={18} />
-            </div>
-            <h4 className="font-black uppercase text-[11px] tracking-widest text-slate-900 italic">Folgas</h4>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          {Array.isArray(walker?.days_off) && walker.days_off.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {walker.days_off.map((d, idx) => (
-                <span
-                  key={idx}
-                  className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-600 border border-slate-200"
-                >
-                  {d}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
-              Sem folgas publicadas
-            </p>
-          )}
-        </div>
-      </div>
 
     </div>
   );
