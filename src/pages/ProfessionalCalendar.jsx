@@ -43,7 +43,15 @@ export default function ProfessionalCalendar() {
 
   const { data: availability = [] } = useQuery({
     queryKey: ['myAvailability', user?.email, format(currentMonth, 'yyyy-MM')],
-    queryFn: () => base44.entities.CalendarAvailability.filter({ professional_email: user.email }),
+    queryFn: async () => {
+      const all = await base44.entities.CalendarAvailability.filter({ professional_email: user.email });
+      const start = format(monthStart, 'yyyy-MM-dd');
+      const end = format(monthEnd, 'yyyy-MM-dd');
+      return all.filter(a => {
+        const d = (a.date?.includes('T') ? a.date.split('T')[0] : a.date) || '';
+        return d >= start && d <= end;
+      });
+    },
     enabled: !!user?.email,
     staleTime: 60 * 1000,
   });

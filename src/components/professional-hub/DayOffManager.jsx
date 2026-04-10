@@ -21,7 +21,8 @@ export function DayOffManager({ userEmail }) {
         professional_email: userEmail,
         is_day_off: true
       });
-      return results || [];
+      const today = new Date().toISOString().split('T')[0];
+      return (results || []).filter(r => ((r.date?.split('T')[0] || '') >= today));
     },
     enabled: !!userEmail
   });
