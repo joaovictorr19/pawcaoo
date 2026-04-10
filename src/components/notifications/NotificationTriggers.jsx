@@ -6,6 +6,28 @@ import { base44 } from '@/api/base44Client';
  * Componente que monitora condições e dispara notificações automáticas
  */
 export default function NotificationTriggers({ user }) {
+  const { data: notifPrefs } = useQuery({
+    queryKey: ['notifPrefs-local', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const recs = await base44.entities.NotificationPreference.filter({ user_email: user.email });
+      return recs[0]?.preferences || null;
+    },
+    enabled: !!user?.email,
+    staleTime: 60 * 1000,
+  });
+
+  const allowPush = (type) => {
+    if (!notifPrefs) return true;
+    const key = type;
+    return notifPrefs[key]?.push !== false;
+  };
+
+  const allowInApp = (type) => {
+    if (!notifPrefs) return true;
+    const key = type;
+    return notifPrefs[key]?.in_app !== false;
+  };
   // Monitorar reviews pendentes
   const { data: pendingReviews } = useQuery({
     queryKey: ['pendingReviews', user?.email],
@@ -199,6 +221,166 @@ export default function NotificationTriggers({ user }) {
 
     notifyBehaviorUpdate();
   }, [behaviorCheckpoints, user?.email]);
+
+  // ─── Booking status real-time → criar notificações ──────────────────────────
+  useEffect(() => {
+    if (!user?.email) return;
+    const last = new Map();
+
+    const unsubscribe = base44.entities.Booking.subscribe(async (event) => {
+      const b = event.data;
+      if (!b) return;
+
+      // New booking for professional
+      if (event.type === 'create' && b.walker_email === user.email) {
+        try {
+          await base44.entities.Notification.create({
+            recipient_email: user.email,
+            title: '🆕 Nova reserva',
+            message: `${b.owner_name || 'Cliente'} reservou para ${b.dog_name || 'seu animal'} (${b.walk_date || ''}).`,
+            type: 'booking',
+            link: '/ProfessionalHubV2',
+            related_id: b.id
+          });
+        } catch {}
+      }
+
+      // Status updates for owner
+      const prev = last.get(b.id);
+      last.set(b.id, b.status);
+      const isOwner = (b.owner_email === user.email) || (b.created_by === user.email);
+      const isWalker = b.walker_email === user.email;
+      if (!prev || prev === b.status) return;
+
+      const notifyBrowser = (title, body, tag) => {
+        try {
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body, tag, icon: '/logo.png', badge: '/favicon.png' });
+          }
+        } catch {}
+      };
+
+      if (isOwner) {
+        if (b.status === 'confirmed' && allowInApp('booking')) {
+          await base44.entities.Notification.create({
+            recipient_email: user.email,
+            title: '✅ Reserva aceite',
+            message: `${b.walker_name || 'Profissional'} aceitou o seu pedido para ${b.walk_date || ''}.`,
+            type: 'booking',
+            related_id: b.id,
+            link: '/MyBookings'
+          });
+          if (allowPush('booking')) notifyBrowser('Reserva aceite', 'O profissional confirmou o passeio.', `booking_${b.id}_confirmed`);
+        }
+        if (b.status === 'in_progress' && allowInApp('booking')) {
+          await base44.entities.Notification.create({
+            recipient_email: user.email,
+            title: '🚶 Passeio iniciado',
+            message: `${b.walker_name || 'Profissional'} iniciou o passeio de ${b.dog_name || 'o seu cão'}.`,
+            type: 'booking',
+            related_id: b.id,
+            link: '/MyBookings'
+          });
+          if (allowPush('booking')) notifyBrowser('Passeio iniciado', 'O passeio está em curso.', `booking_${b.id}_started`);
+        }
+        if ((b.status === 'service_completed' || b.status === 'completed') && allowInApp('booking')) {
+          await base44.entities.Notification.create({
+            recipient_email: user.email,
+            title: '🎉 Passeio concluído',
+            message: `O passeio de ${b.dog_name || 'o seu cão'} foi concluído.`,
+            type: 'booking',
+            related_id: b.id,
+            link: '/MyBookings'
+          });
+          if (allowPush('booking')) notifyBrowser('Passeio concluído', 'Obrigado por usar a PawCão!', `booking_${b.id}_done`);
+        }
+      }
+
+      // Canceled → notify professional
+      if (isWalker && b.status === 'cancelled') {
+        try {
+          await base44.entities.Notification.create({
+            recipient_email: user.email,
+            title: '❌ Reserva cancelada',
+            message: `${b.owner_name || 'Cliente'} cancelou a reserva de ${b.dog_name || ''}.`,
+            type: 'booking',
+            related_id: b.id,
+            link: '/ProfessionalHubV2'
+          });
+        } catch {}
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user?.email, notifPrefs]);
+
+  // ─── Atrasos: alerta se passou 10 min do horário e não iniciou ───────────────
+  useEffect(() => {
+    if (!user?.email) return;
+    const timer = setInterval(async () => {
+      try {
+        const today = new Date().toISOString().slice(0,10);
+        const my = await base44.entities.Booking.filter({ owner_email: user.email, walk_date: today });
+        const now = new Date();
+        for (const b of my) {
+          if ((b.status === 'pending' || b.status === 'confirmed') && b.walk_time) {
+            const [hh, mm] = String(b.walk_time).split(':');
+            const sched = new Date(today + 'T' + (hh?.padStart(2,'0')||'00') + ':' + (mm?.padStart(2,'0')||'00') + ':00');
+            if ((now - sched) > 10*60*1000) {
+              // One-off marker per booking in sessionStorage
+              const key = `delay_notified_${b.id}`;
+              if (!sessionStorage.getItem(key)) {
+                if (allowInApp('alert')) {
+                  await base44.entities.Notification.create({
+                    recipient_email: user.email,
+                    title: '⏱️ Possível atraso',
+                    message: `O passeio com ${b.walker_name || 'profissional'} parece atrasado.`,
+                    type: 'alert',
+                    related_id: b.id,
+                    link: '/MyBookings'
+                  });
+                }
+                if (allowPush('alert') && 'Notification' in window && Notification.permission === 'granted') {
+                  new Notification('Possível atraso', { body: 'O passeio ainda não começou.', tag: `booking_${b.id}_delay`, icon: '/logo.png' });
+                }
+                sessionStorage.setItem(key, '1');
+              }
+            }
+          }
+        }
+      } catch {}
+    }, 60000);
+    return () => clearInterval(timer);
+  }, [user?.email, notifPrefs]);
+
+  // ─── Pedidos urgentes PawGo (EmergencyWalk) para profissionais ───────────────
+  useEffect(() => {
+    if (!user?.email) return;
+    const unsubscribe = base44.entities.EmergencyWalk.subscribe(async (event) => {
+      try {
+        if (event.type !== 'create') return;
+        const ew = event.data;
+        if (!ew || ew.status !== 'available') return;
+        const me = await base44.auth.me();
+        const isPro = ['walker','both','professional'].includes(me?.account_type);
+        if (!isPro) return;
+        if (allowInApp('alert')) {
+          await base44.entities.Notification.create({
+            recipient_email: user.email,
+            title: '⚡ Pedido urgente PawGo',
+            message: `${ew.owner_name || 'Cliente'} precisa de um passeio ${ew.needed_time || 'agora'} em ${ew.location || ''}.`,
+            type: 'alert',
+            related_id: ew.id,
+            link: '/ProfessionalHubV2'
+          });
+        }
+        if (allowPush('alert') && 'Notification' in window && Notification.permission === 'granted') {
+          new Notification('Pedido urgente PawGo', { body: 'Novo pedido disponível na sua área.', tag: `pawgo_${ew.id}`, icon: '/logo.png' });
+        }
+      } catch {}
+    });
+    return () => unsubscribe();
+  }, [user?.email, notifPrefs]);
 
   return null; // Componente invisível
 }

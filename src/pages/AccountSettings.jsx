@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
 import SubscriptionManager from "../components/subscriptions/SubscriptionManager";
+import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 
 export default function AccountSettings() {
@@ -740,11 +741,11 @@ export default function AccountSettings() {
               )}
 
               {activeSection === "preferences" && (
-                <Card className="border-border shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Preferências</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
+               <Card className="border-border shadow-sm">
+                 <CardHeader>
+                   <CardTitle>Preferências</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-6">
                     <div className="space-y-4">
                       <Label>Notificações</Label>
                       
@@ -812,6 +813,9 @@ export default function AccountSettings() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Preferências avançadas por tipo/canal */}
+                    <NotificationPreferences />
 
                     <Button onClick={handleSavePreferences} className="w-full bg-green-600 hover:bg-green-700">
                       <Save className="w-4 h-4 mr-2" />

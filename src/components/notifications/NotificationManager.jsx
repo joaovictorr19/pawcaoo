@@ -91,9 +91,27 @@ export default function NotificationManager() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: notifPrefs } = useQuery({
+    queryKey: ['notifPrefs', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return null;
+      const recs = await base44.entities.NotificationPreference.filter({ user_email: currentUser.email });
+      return recs[0]?.preferences || null;
+    },
+    enabled: !!currentUser?.email,
+    staleTime: 60 * 1000,
+  });
+
   const durations = { pawgo_request: 30000, walk_update: 8000, booking: 10000, payment: 8000, alert: 12000, system: 8000 };
 
+  const allowInApp = (type) => {
+    if (!notifPrefs) return true; // default allow
+    const key = type && ['booking','payment','review','system','alert','promo'].includes(type) ? type : 'system';
+    return notifPrefs[key]?.in_app !== false; // treat undefined as allowed
+  };
+
   const addToast = (notification) => {
+    if (!allowInApp(notification.type)) return;
     const _id = Math.random().toString(36).slice(2);
     const toast = { ...notification, _id };
     setToasts(prev => [toast, ...prev].slice(0, 4)); // max 4 toasts
