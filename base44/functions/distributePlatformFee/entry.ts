@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user?.role === 'admin') {
+    if (user?.role !== 'admin') {
       return Response.json({ error: 'Admin only' }, { status: 403 });
     }
 
@@ -31,12 +31,17 @@ Deno.serve(async (req) => {
 
     const booking = bookings[0];
     
-    // Check if walker is exempt
-    const walkerProfiles = await base44.asServiceRole.entities.WalkerProfile.filter({
-      id: booking.walker_id
-    });
-    
-    const isExempt = walkerProfiles.length > 0 && walkerProfiles[0].exempt_from_platform_fees === true;
+    // Check if walker is exempt (by id, fallback to email)
+    let walkerProfile = null;
+    if (booking.walker_id) {
+      const byId = await base44.asServiceRole.entities.WalkerProfile.filter({ id: booking.walker_id });
+      if (byId.length > 0) walkerProfile = byId[0];
+    }
+    if (!walkerProfile && booking.walker_email) {
+      const byEmail = await base44.asServiceRole.entities.WalkerProfile.filter({ created_by: booking.walker_email });
+      if (byEmail.length > 0) walkerProfile = byEmail[0];
+    }
+    const isExempt = walkerProfile?.exempt_from_platform_fees === true;
     const feeToTransfer = isExempt ? 0 : PLATFORM_FEE_EUR;
 
     console.log(`📤 Distributing fees for booking ${bookingId}`);
@@ -54,8 +59,8 @@ Deno.serve(async (req) => {
     const payment = payments[0];
 
     // If fee needs to be transferred and walker has Stripe account
-    if (feeToTransfer > 0 && walkerProfiles[0]?.stripe_account_id) {
-      const stripeAcct = walkerProfiles[0].stripe_account_id;
+    if (feeToTransfer > 0 && walkerProfile?.stripe_account_id) {
+      const stripeAcct = walkerProfile.stripe_account_id;
 
       try {
         // Create payout from connected account to PawCão
@@ -73,6 +78,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.Payment.update(payment.id, {
           status: 'released',
           released_date: new Date().toISOString(),
+          platform_fee: feeToTransfer,
           split_details: {
             walker_receives: booking.service_amount,
             platform_receives: feeToTransfer,
@@ -98,15 +104,16 @@ Deno.serve(async (req) => {
     } else {
       // No fee to transfer (exempt) or no Stripe account
       await base44.asServiceRole.entities.Payment.update(payment.id, {
-        status: 'released',
-        released_date: new Date().toISOString(),
-        split_details: {
-          walker_receives: booking.service_amount,
-          platform_receives: feeToTransfer,
-          payment_processor_fee: 0
-        },
-        notes: isExempt ? 'Walker exempt from platform fee' : 'No Stripe account'
-      });
+          status: 'released',
+          released_date: new Date().toISOString(),
+          platform_fee: feeToTransfer,
+          split_details: {
+            walker_receives: booking.service_amount,
+            platform_receives: feeToTransfer,
+            payment_processor_fee: 0
+          },
+          notes: isExempt ? 'Walker exempt from platform fee' : 'No Stripe account'
+        });
 
       return Response.json({
         success: true,
