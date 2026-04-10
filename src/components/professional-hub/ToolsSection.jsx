@@ -10,25 +10,6 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
     <div className="space-y-4">
       <h3 className="text-lg font-black text-white mb-2">Ferramentas Pro</h3>
       
-      <Card className="bg-gradient-to-br from-orange-900/30 to-red-900/30 border-orange-500/20 rounded-[2rem] overflow-hidden">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-orange-500/30 rounded-xl flex items-center justify-center">
-              <Edit3 className="w-5 h-5 text-orange-400" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm">Editar Perfil Completo</h4>
-              <p className="text-xs text-slate-300">Atualizar dados, localização e serviços</p>
-            </div>
-          </div>
-          <Button
-            onClick={onEditProfile}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg py-2 text-sm"
-          >
-            Abrir Editor de Perfil
-          </Button>
-        </CardContent>
-      </Card>
       
       <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
         <CardContent className="p-5">
