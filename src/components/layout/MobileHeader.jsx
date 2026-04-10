@@ -96,12 +96,12 @@ export default function MobileHeader() {
   ];
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-3 py-1 flex items-center justify-between gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white border-b border-slate-200 px-3 py-1 flex items-center justify-between gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
       <div className="flex items-center gap-2 w-full">
         {isRootRoute ? (
           <button
             onClick={() => navigate(createPageUrl('Home'))}
-            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/60 transition-colors active:scale-95 shrink-0"
+            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100 transition-colors active:scale-95 shrink-0"
             aria-label="Home"
           >
             <PawCaoLogo size="tiny" showText={false} />
@@ -109,7 +109,7 @@ export default function MobileHeader() {
         ) : (
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/60 transition-colors active:scale-95 shrink-0"
+            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-slate-100 transition-colors active:scale-95 shrink-0"
             aria-label="Go back"
           >
             <ArrowLeft className="w-5 h-5 text-slate-700" />
@@ -126,7 +126,7 @@ export default function MobileHeader() {
                   className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-colors ${
                     activeTab === t.value
                       ? 'bg-orange-500 text-white border-orange-500'
-                      : 'bg-white/60 text-slate-700 border-slate-300 hover:bg-white/70'
+                      : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
                   }`}
                 >
                   {t.label}
