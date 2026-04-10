@@ -85,7 +85,7 @@ export default function MobileHeader() {
   ];
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-3 py-2 flex items-center justify-between gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-3 py-1 flex items-center justify-between gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
       <div className="flex items-center gap-2 w-full">
         {isRootRoute ? (
           <button
@@ -112,7 +112,7 @@ export default function MobileHeader() {
                 <button
                   key={t.value}
                   onClick={() => navigate(createPageUrl('ProfessionalHubV2') + `?tab=${t.value}`)}
-                  className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-colors ${
+                  className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-colors ${
                     activeTab === t.value
                       ? 'bg-orange-500 text-white border-orange-500'
                       : 'bg-white/60 text-slate-700 border-slate-300 hover:bg-white/70'
