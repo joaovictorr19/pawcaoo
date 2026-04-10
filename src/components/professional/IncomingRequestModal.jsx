@@ -1,10 +1,43 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Clock, Dog, CheckCircle, X } from "lucide-react";
+import { MapPin, Clock, Dog, CheckCircle, X, Stethoscope, Syringe, AlertCircle } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 
 export default function IncomingRequestModal({ request, onAccept, onDecline }) {
   const [timeLeft, setTimeLeft] = useState(30);
+
+  // Preload health hooks BEFORE any early returns
+  const dogName = request?.dogs?.[0]?.dog_name || request?.dog_name || "Cão";
+  const [health, setHealth] = useState(null);
+  useEffect(() => {
+    const loadHealth = async () => {
+      try {
+        const dogId = request?.dogs?.[0]?.dog_id;
+        let profile = null;
+        if (dogId) {
+          const res = await base44.entities.DogProfile.filter({ id: dogId });
+          profile = res?.[0] || null;
+        } else if (request?.owner_email && dogName) {
+          const res = await base44.entities.DogProfile.filter({ owner_email: request.owner_email, dog_name: dogName });
+          profile = res?.[0] || null;
+        }
+        if (profile) {
+          const allergies = profile.allergies || "";
+          const lastVaccine = Array.isArray(profile.vaccination_records) && profile.vaccination_records.length > 0
+            ? profile.vaccination_records[profile.vaccination_records.length - 1]
+            : null;
+          const meds = Array.isArray(profile.medications) ? profile.medications : [];
+          setHealth({ allergies, lastVaccine, meds });
+        } else {
+          setHealth(null);
+        }
+      } catch (e) {
+        setHealth(null);
+      }
+    };
+    if (request) loadHealth();
+  }, [request, dogName]);
 
   useEffect(() => {
     if (!request) return;
@@ -24,7 +57,7 @@ export default function IncomingRequestModal({ request, onAccept, onDecline }) {
 
   if (!request) return null;
 
-  const dogName = request.dogs?.[0]?.dog_name || request.dog_name || "Cão";
+
   const dogBreed = request.dogs?.[0]?.dog_breed || request.dog_breed || "SRD";
   const dogPhoto = request.dogs?.[0]?.dog_photo_url || request.dog_photo_url;
   const earnings = request.service_amount || ((request.offered_amount || request.total_amount || 0) * 0.85).toFixed(2);
@@ -112,6 +145,29 @@ export default function IncomingRequestModal({ request, onAccept, onDecline }) {
               <Clock className="w-4 h-4 text-blue-400 shrink-0" />
               <span className="text-slate-300">{duration}h de passeio</span>
             </div>
+            {health && (
+              <div className="mt-3 p-3 rounded-xl border border-white/10 bg-white/5 space-y-2">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-slate-400">
+                  <Stethoscope className="w-3.5 h-3.5 text-emerald-400" />
+                  Saúde Crítica
+                </div>
+                {health.allergies ? (
+                  <div className="flex items-center gap-2 text-sm text-red-300">
+                    <AlertCircle className="w-4 h-4" /> Alergias: <span className="text-slate-200">{health.allergies}</span>
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-400">Sem alergias registadas.</div>
+                )}
+                {health.lastVaccine && (
+                  <div className="flex items-center gap-2 text-sm text-emerald-300">
+                    <Syringe className="w-4 h-4" /> Última vacina: <span className="text-slate-200">{health.lastVaccine.name}</span> • <span className="text-slate-400">{health.lastVaccine.date && new Date(health.lastVaccine.date).toLocaleDateString('pt-PT')}</span>
+                  </div>
+                )}
+                {health.meds?.length > 0 && (
+                  <div className="text-xs text-slate-300">Medicação atual: {health.meds.slice(0,2).map(m => m.name).filter(Boolean).join(', ')}{health.meds.length > 2 ? '…' : ''}</div>
+                )}
+              </div>
+            )}
           </div>
         </motion.div>
 
