@@ -60,7 +60,7 @@ export const PAGES = {
     "AccountSettings": page(() => import('./pages/AccountSettings')),
 
 
-    "AdminDashboard": page(() => import('./pages/AdminDashboard')),
+    "AdminDashboard": page(() => import('./pages/AdminDashboard.jsx')),
     "AdminDebug": page(() => import('./pages/AdminDebug')),
     "AdminFinanceDashboard": page(() => import('./pages/AdminFinanceDashboard')),
     "AdminProfessionalApprovals": page(() => import('./pages/AdminProfessionalApprovals')),
