@@ -422,7 +422,7 @@ function LayoutContent({ children, currentPageName }) {
 
       <div className="flex flex-col w-full relative z-10 min-h-screen overflow-x-hidden mt-0 md:mt-16">
         <div className="hidden md:block" style={{ height: '26px' }} />
-        <div className="flex flex-1 w-full flex-col min-h-0">
+        <div className="flex flex-1 w-full flex-col">
           <MobileHeader />
           <div className="block md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top))' }} />
           {stableUser && (
@@ -448,11 +448,11 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <main className="min-h-0 flex-1 w-full pb-28 md:pb-0 overflow-visible" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+          <main className="flex-1 w-full pb-28 md:pb-0">
             {children}
           </main>
 
-          <div className="mt-auto w-full"><LayoutFooter /></div>
+          <LayoutFooter />
         </div>
       </div>
     </SidebarProvider>
