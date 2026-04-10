@@ -94,10 +94,10 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   };
 
   const handleCenterButtonClick = async () => {
-    // Sempre alterna o PawGo online/offline (sem redirecionar)
+    // Sempre alterna o PawGo online/offline (uma única fonte de verdade)
     const newStatus = !isOnline;
 
-    // Atualização otimista
+    // Atualização otimista no utilizador
     queryClient.setQueryData(['currentUser'], (old) => ({
       ...old,
       pawgo_status: {
@@ -108,6 +108,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     }));
 
     try {
+      // Atualiza o utilizador (auth.me)
       await base44.auth.updateMe({
         pawgo_status: {
           ...(user?.pawgo_status || {}),
@@ -115,9 +116,29 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           last_active: new Date().toISOString()
         }
       });
+
+      // Sincroniza também os perfis profissionais (Walker/Trainer)
+      try {
+        const walkers = await base44.entities.WalkerProfile.filter(user?.id ? { user_id: user.id } : { created_by: user?.email });
+        if (Array.isArray(walkers) && walkers.length > 0) {
+          await base44.entities.WalkerProfile.update(walkers[0].id, { is_online: newStatus });
+        }
+      } catch (e) {}
+      try {
+        const trainers = await base44.entities.TrainerProfile.filter(user?.id ? { user_id: user.id } : { created_by: user?.email });
+        if (Array.isArray(trainers) && trainers.length > 0) {
+          await base44.entities.TrainerProfile.update(trainers[0].id, { is_online: newStatus });
+        }
+      } catch (e) {}
+
+      // Evento global para outras views ouvirem (Home, Hub, etc.)
+      try { window.dispatchEvent(new CustomEvent('pawgoStatusChanged', { detail: { is_online: newStatus } })); } catch {}
+
+      // Refresca caches relacionados
       queryClient.invalidateQueries(['currentUser']);
       queryClient.invalidateQueries(['myProfessionalProfile']);
       queryClient.invalidateQueries(['allWalkers']);
+      queryClient.invalidateQueries(['allTrainers']);
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
       queryClient.invalidateQueries(['currentUser']);
@@ -181,25 +202,21 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={handleCenterButtonClick}
-            aria-pressed={isProf ? isOnline : undefined}
-            title={isProf ? (isOnline ? 'Ficar offline' : 'Ficar online') : 'PawGo'}
-            className={`relative ${isProf ? 'w-24 h-10' : 'w-14 h-14 bg-orange-500'} rounded-full shadow-lg flex items-center justify-center transition-all border border-slate-200`}
+            aria-pressed={isOnline}
+            title={isOnline ? 'Ficar offline' : 'Ficar online'}
+            className="relative w-24 h-10 rounded-full shadow-lg flex items-center justify-center transition-all border border-slate-200"
           >
-            {isProf ? (
-              <>
-                <div className={`absolute inset-0 ${isOnline ? 'bg-green-500' : 'bg-slate-400'} rounded-full`} />
-                <div className={`absolute top-1 left-1 w-8 h-8 rounded-full bg-white transition-transform ${isOnline ? 'translate-x-14' : ''}`} />
-                <div className="absolute inset-0 flex items-center justify-between px-2 text-[9px] font-extrabold uppercase">
-                  <span className={`${isOnline ? 'text-white/70' : 'text-slate-800'}`}>{labelOff}</span>
-                  <span className={`${isOnline ? 'text-white' : 'text-white/70'}`}>{labelOn}</span>
-                </div>
-              </>
-            ) : (
-              <Zap className="text-white w-5 h-5 fill-current" />
-            )}
+            <>
+              <div className={`absolute inset-0 ${isOnline ? 'bg-green-500' : 'bg-slate-400'} rounded-full`} />
+              <div className={`absolute top-1 left-1 w-8 h-8 rounded-full bg-white transition-transform ${isOnline ? 'translate-x-14' : ''}`} />
+              <div className="absolute inset-0 flex items-center justify-between px-2 text-[9px] font-extrabold uppercase">
+                <span className={`${isOnline ? 'text-white/70' : 'text-slate-800'}`}>{labelOff}</span>
+                <span className={`${isOnline ? 'text-white' : 'text-white/70'}`}>{labelOn}</span>
+              </div>
+            </>
           </motion.button>
           <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest mt-1 whitespace-nowrap truncate max-w-[72px] text-center">
-            {isProf ? (isOnline ? labelOn : labelOff) : 'PawGo'}
+            {isOnline ? labelOn : labelOff}
           </span>
         </div>
 
