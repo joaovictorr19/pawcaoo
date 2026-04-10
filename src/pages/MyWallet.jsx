@@ -20,7 +20,7 @@ import { pt, ptBR } from "date-fns/locale";
 import { useLanguage } from "@/components/LanguageContext";
 import { toast } from "sonner";
 
-const ACCENT_COLOR = "#3b82f6"; // Azul unificado
+const ACCENT_COLOR = "#f97316"; // Laranja (PawGo)
 
 export default function MyWallet() {
   const navigate = useNavigate();
@@ -240,7 +240,7 @@ export default function MyWallet() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-8 px-4 pb-24 md:pb-8">
+    <div className="min-h-screen bg-slate-950 text-white py-8 px-4 pb-24 md:pb-8 selection:bg-orange-500/30">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
@@ -250,8 +250,8 @@ export default function MyWallet() {
               <Wallet className="w-7 h-7" style={{ color: ACCENT_COLOR }} />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">Minha Wallet</h1>
-              <p className="text-gray-600 text-sm">Gerencie seu saldo e ganhos</p>
+              <h1 className="text-4xl font-black text-white">Minha Wallet</h1>
+              <p className="text-slate-400 text-sm">Gerencie seu saldo e ganhos</p>
             </div>
           </div>
         </motion.div>
@@ -267,35 +267,7 @@ export default function MyWallet() {
           <TabsContent value="client" className="space-y-6">
             
             {/* Plan Card */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="border-0 shadow-sm overflow-hidden" style={{ borderTop: `4px solid ${ACCENT_COLOR}` }}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Crown className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-                        <span className="font-bold text-lg text-gray-900">
-                          Plano {membership?.plan_type || 'Free'}
-                        </span>
-                      </div>
-                      <p className="text-gray-600 text-sm">
-                        {membership?.plan_type === 'FREE' || !membership
-                          ? 'Faça upgrade para ganhar mais benefícios'
-                          : `Próxima renovação: ${membership?.current_period_end || 'N/A'}`
-                        }
-                      </p>
-                    </div>
-                    <Button
-                      onClick={() => navigate(createPageUrl('MembershipPlans'))}
-                      className="text-white"
-                      style={{ backgroundColor: ACCENT_COLOR }}
-                    >
-                      {membership?.plan_type === 'FREE' || !membership ? 'Fazer Upgrade' : 'Gerenciar'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+            
 
             {/* Balances Grid */}
             <div className="grid md:grid-cols-3 gap-4">
@@ -308,16 +280,16 @@ export default function MyWallet() {
                         <Zap className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
                       </div>
                       {wallet?.tokens_expiry_date && (
-                        <span className="text-xs font-medium text-gray-500">
+                        <span className="text-xs font-medium text-slate-500">
                           {new Date(wallet.tokens_expiry_date) < new Date() 
                             ? 'Expirado' 
                             : `Expira ${format(new Date(wallet.tokens_expiry_date), 'dd/MM')}`}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-600 mb-1 font-medium">Passeios Grátis</p>
-                    <p className="text-2xl font-bold text-gray-900">{wallet?.service_tokens || 0}</p>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-slate-400 mb-1 font-medium">Passeios Grátis</p>
+                    <p className="text-2xl font-bold text-white">{wallet?.service_tokens || 0}</p>
+                    <p className="text-xs text-slate-500 mt-2">
                       €{((wallet?.service_tokens || 0) * (membership?.token_value || 12)).toFixed(2)} em valor
                     </p>
                   </CardContent>
@@ -336,9 +308,9 @@ export default function MyWallet() {
                         {(membership?.cashback_rate * 100 || 0)}%
                       </Badge>
                     </div>
-                    <p className="text-xs text-gray-600 mb-1 font-medium">Crédito Interno</p>
-                    <p className="text-2xl font-bold text-gray-900">€{(wallet?.cashback_balance || 0).toFixed(2)}</p>
-                    <p className="text-xs text-gray-500 mt-2">Ganhe em compras</p>
+                    <p className="text-xs text-slate-400 mb-1 font-medium">Crédito Interno</p>
+                    <p className="text-2xl font-bold text-white">€{(wallet?.cashback_balance || 0).toFixed(2)}</p>
+                    <p className="text-xs text-slate-500 mt-2">Ganhe em compras</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -355,9 +327,9 @@ export default function MyWallet() {
                         {membership?.points_multiplier || 1}x
                       </Badge>
                     </div>
-                    <p className="text-xs text-gray-600 mb-1 font-medium">Pontos</p>
-                    <p className="text-2xl font-bold text-gray-900">{(wallet?.total_points || 0).toLocaleString()}</p>
-                    <p className="text-xs text-gray-500 mt-2">Troque por recompensas</p>
+                    <p className="text-xs text-slate-400 mb-1 font-medium">Pontos</p>
+                    <p className="text-2xl font-bold text-white">{(wallet?.total_points || 0).toLocaleString()}</p>
+                    <p className="text-xs text-slate-500 mt-2">Troque por recompensas</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -386,27 +358,27 @@ export default function MyWallet() {
             {/* Transactions */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <Card className="border-0 shadow-sm">
-                <CardHeader className="border-b border-gray-100 pb-4">
+                <CardHeader className="border-b border-white/10 pb-4">
                   <CardTitle className="text-lg">Transações Recentes</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   {transactions.length === 0 ? (
-                    <div className="p-12 text-center text-gray-500">
+                    <div className="p-12 text-center text-slate-500">
                       <Wallet className="w-12 h-12 mx-auto mb-3 opacity-20" />
                       <p className="text-sm">Nenhuma transação</p>
                     </div>
                   ) : (
-                    <div className="divide-y">
+                    <div className="divide-y divide-white/5">
                       {transactions.slice(0, 5).map((tx) => (
-                        <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition">
+                        <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-900/40 transition">
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-900">{tx.description}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">
+                            <p className="text-sm font-medium text-white">{tx.description}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
                               {format(new Date(tx.created_date), "dd/MM/yyyy HH:mm", { locale: pt })}
                             </p>
                           </div>
                           {tx.amount > 0 && (
-                            <p className="font-semibold text-gray-900">
+                            <p className="font-semibold text-white">
                               {['cashback_earned', 'token_credited', 'points_earned'].includes(tx.transaction_type) ? '+' : '-'}€{tx.amount.toFixed(2)}
                             </p>
                           )}
@@ -433,8 +405,8 @@ export default function MyWallet() {
                           <DollarSign className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
                         </div>
                       </div>
-                      <p className="text-xs text-gray-600 font-medium mb-1">Saldo Disponível</p>
-                      <p className="text-xl font-bold text-gray-900">€{(wallet?.available_balance || 0).toFixed(2)}</p>
+                      <p className="text-xs text-slate-400 font-medium mb-1">Saldo Disponível</p>
+                      <p className="text-xl font-bold text-white">€{(wallet?.available_balance || 0).toFixed(2)}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -447,8 +419,8 @@ export default function MyWallet() {
                           <Clock className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
                         </div>
                       </div>
-                      <p className="text-xs text-gray-600 font-medium mb-1">Pendente</p>
-                      <p className="text-xl font-bold text-gray-900">€{(wallet?.pending_balance || 0).toFixed(2)}</p>
+                      <p className="text-xs text-slate-400 font-medium mb-1">Pendente</p>
+                      <p className="text-xl font-bold text-white">€{(wallet?.pending_balance || 0).toFixed(2)}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -461,8 +433,8 @@ export default function MyWallet() {
                           <TrendingUp className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
                         </div>
                       </div>
-                      <p className="text-xs text-gray-600 font-medium mb-1">Total Ganho</p>
-                      <p className="text-xl font-bold text-gray-900">€{metrics.totalEarnings}</p>
+                      <p className="text-xs text-slate-400 font-medium mb-1">Total Ganho</p>
+                      <p className="text-xl font-bold text-white">€{metrics.totalEarnings}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -475,8 +447,8 @@ export default function MyWallet() {
                           <Star className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
                         </div>
                       </div>
-                      <p className="text-xs text-gray-600 font-medium mb-1">Avaliação</p>
-                      <p className="text-xl font-bold text-gray-900">⭐ {metrics.avgRating}</p>
+                      <p className="text-xs text-slate-400 font-medium mb-1">Avaliação</p>
+                      <p className="text-xl font-bold text-white">⭐ {metrics.avgRating}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -506,7 +478,7 @@ export default function MyWallet() {
               {/* Chart */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
                 <Card className="border-0 shadow-sm">
-                  <CardHeader className="border-b border-gray-100 pb-4">
+                  <CardHeader className="border-b border-white/10 pb-4">
                     <CardTitle className="text-lg">Ganhos (Últimos 6 Meses)</CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
@@ -536,25 +508,25 @@ export default function MyWallet() {
               {/* Activity */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                 <Card className="border-0 shadow-sm">
-                  <CardHeader className="border-b border-gray-100 pb-4">
+                  <CardHeader className="border-b border-white/10 pb-4">
                     <CardTitle className="text-lg">Atividades</CardTitle>
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">{walkerBookings.length}</p>
-                      <p className="text-xs text-gray-600 mt-1">Passeios</p>
+                      <p className="text-2xl font-bold text-white">{walkerBookings.length}</p>
+                      <p className="text-xs text-slate-400 mt-1">Passeios</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">{trainerBookings.length}</p>
-                      <p className="text-xs text-gray-600 mt-1">Treinos</p>
+                      <p className="text-2xl font-bold text-white">{trainerBookings.length}</p>
+                      <p className="text-xs text-slate-400 mt-1">Treinos</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">{reviews.length}</p>
-                      <p className="text-xs text-gray-600 mt-1">Avaliações</p>
+                      <p className="text-2xl font-bold text-white">{reviews.length}</p>
+                      <p className="text-xs text-slate-400 mt-1">Avaliações</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-900">{metrics.totalKm} km</p>
-                      <p className="text-xs text-gray-600 mt-1">Distância</p>
+                      <p className="text-2xl font-bold text-white">{metrics.totalKm} km</p>
+                      <p className="text-xs text-slate-400 mt-1">Distância</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -575,7 +547,7 @@ export default function MyWallet() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium text-gray-900 block mb-2">Valor (€)</label>
+              <label className="text-sm font-medium text-white block mb-2">Valor (€)</label>
               <Input
                 type="number"
                 placeholder="50"
@@ -599,8 +571,8 @@ export default function MyWallet() {
                 </Button>
               ))}
             </div>
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-xs text-gray-600">
+            <div className="bg-slate-900/40 p-3 rounded-lg">
+              <p className="text-xs text-slate-400">
                 <strong>Total:</strong> €{(parseFloat(credits) || 0).toFixed(2)}
               </p>
             </div>
@@ -638,13 +610,13 @@ export default function MyWallet() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="p-4 rounded-lg" style={{ backgroundColor: ACCENT_COLOR + "10", border: `1px solid ${ACCENT_COLOR}20` }}>
-              <p className="text-xs text-gray-600 font-medium">Saldo Disponível</p>
+              <p className="text-xs text-slate-400 font-medium">Saldo Disponível</p>
               <p className="text-2xl font-bold mt-1" style={{ color: ACCENT_COLOR }}>
                 €{(wallet?.available_balance || 0).toFixed(2)}
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-900 block mb-2">Valor (€)</label>
+              <label className="text-sm font-medium text-white block mb-2">Valor (€)</label>
               <Input
                 type="number"
                 value={withdrawAmount}
