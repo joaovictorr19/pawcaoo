@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, ArrowLeft, Shield, User, Star } from "lucide-react";
+import { MapPin, ArrowLeft, Shield, User, Star, Calendar } from "lucide-react";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/LanguageContext";
@@ -431,6 +431,26 @@ export default function UserProfile() {
               <p className="text-[10px] text-slate-300 font-bold italic">Sem emblemas atribuídos ainda.</p>
             )}
           </div>
+
+          {(walkerProfile || trainerProfile) && (
+            <div>
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Folgas Agendadas</h3>
+              {daysOff.length === 0 ? (
+                <p className="text-[12px] text-slate-500">Sem folgas futuras.</p>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {daysOff.map((d) => (
+                    <div key={d.id} className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-slate-600" />
+                      <span className="text-xs font-semibold text-slate-700">
+                        {new Date(d.date).toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {(walkerProfile || trainerProfile) && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
             <div>

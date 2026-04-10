@@ -9,14 +9,27 @@ import { useEffect } from 'react';
 export function useModalCleanup() {
   useEffect(() => {
     const cleanup = () => {
-      // Fix any stuck backdrop overlays — do NOT remove() them as React owns the DOM
-      const backdrops = document.querySelectorAll('[class*="backdrop"], [class*="overlay"]');
-      backdrops.forEach(backdrop => {
-        const zIndex = window.getComputedStyle(backdrop).zIndex;
-        if (parseInt(zIndex) > 30 && backdrop.style.pointerEvents !== 'none') {
-          console.warn('🧹 Removing stuck backdrop:', backdrop);
-          backdrop.style.pointerEvents = 'none';
-          backdrop.style.opacity = '0';
+      // Fix stuck overlays (only true full-screen overlays), avoid headers/toolbars
+      const candidates = document.querySelectorAll('[class*="backdrop"], [data-radix-dialog-overlay], [data-radix-popover-overlay]');
+      Array.from(candidates).forEach((el) => {
+        const tag = el.tagName?.toLowerCase?.() || '';
+        if (tag === 'header' || el.closest('header')) return;
+
+        const style = window.getComputedStyle(el);
+        const rect = el.getBoundingClientRect();
+        const isFixed = style.position === 'fixed' || style.position === 'sticky';
+        const coversViewport =
+          rect.width >= window.innerWidth * 0.9 &&
+          rect.height >= window.innerHeight * 0.9 &&
+          rect.top <= 1 &&
+          rect.left <= 1;
+
+        const z = parseInt(style.zIndex || '0', 10);
+
+        if (isFixed && coversViewport && z >= 30 && el.style.pointerEvents !== 'none') {
+          console.warn('🧹 Disabling stuck overlay:', el);
+          el.style.pointerEvents = 'none';
+          el.style.opacity = '0';
         }
       });
 
