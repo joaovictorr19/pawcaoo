@@ -40,6 +40,7 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { setupIframeMessaging } from './lib/iframe-messaging';
 import PageNotFound from './lib/PageNotFound';
+import PawCaoLogo from '@/components/PawCaoLogo';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
@@ -50,9 +51,9 @@ const MainPage = mainPageKey && Pages[mainPageKey] ? Pages[mainPageKey] : () => 
 setupIframeMessaging();
 
 const PageLoader = () => (
-  <div className="fixed inset-0 flex items-center justify-center" role="status" aria-live="polite">
-    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" aria-hidden="true"></div>
-    <span className="sr-only">Loading page...</span>
+  <div className="fixed inset-0 flex items-center justify-center bg-white" role="status" aria-live="polite">
+    <PawCaoLogo size="large" animated={true} />
+    <span className="sr-only">A carregar PawCão...</span>
   </div>
 );
 

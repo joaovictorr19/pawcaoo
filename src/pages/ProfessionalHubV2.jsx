@@ -40,7 +40,7 @@ function ActiveRequestsList({ user }) {
       }, '-created_date', 50);
     },
     enabled: !!user?.email,
-    refetchInterval: 5000
+    refetchInterval: user?.pawgo_status?.is_online ? 15000 : false
   });
 
   const navigate = useNavigate();
@@ -108,7 +108,7 @@ export default function ProfessionalHubV2() {
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
     refetchOnMount: 'always',
-    refetchInterval: 5000,
+    refetchInterval: false,
   });
 
   // Fetch the related profile
@@ -190,7 +190,7 @@ export default function ProfessionalHubV2() {
       return validBookings;
     },
     enabled: !!user?.email && isOnlinePro,
-    refetchInterval: 5000,
+    refetchInterval: isOnlinePro ? 15000 : false,
     refetchOnWindowFocus: false,
   });
 
