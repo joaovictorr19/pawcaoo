@@ -420,7 +420,7 @@ function LayoutContent({ children, currentPageName }) {
       <NotificationTriggers user={authUser} />
       <NotificationManager />
 
-      <div className="flex flex-col w-full relative z-10 min-h-[100dvh] overflow-x-hidden mt-0 md:mt-16">
+      <div className="flex flex-col w-full relative z-10 min-h-screen overflow-x-hidden mt-0 md:mt-16">
         <div className="hidden md:block" style={{ height: '26px' }} />
         <div className="flex flex-1 w-full flex-col min-h-0">
           <MobileHeader />
@@ -452,7 +452,7 @@ function LayoutContent({ children, currentPageName }) {
             {children}
           </main>
 
-          <LayoutFooter />
+          <div className="mt-auto"><LayoutFooter /></div>
         </div>
       </div>
     </SidebarProvider>
