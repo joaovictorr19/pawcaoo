@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Zap, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
 
 
 export default function ProfileActions({ walker, currentUser }) {
@@ -11,9 +12,10 @@ export default function ProfileActions({ walker, currentUser }) {
 
   const handlePawGoClick = () => {
     if (!currentUser) {
+      base44.auth.redirectToLogin(createPageUrl('RequestWalk'));
       return;
     }
-    navigate(createPageUrl('Dashboard'));
+    navigate(createPageUrl('RequestWalk'));
   };
 
   return (
