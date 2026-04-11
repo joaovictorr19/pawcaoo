@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2, Gift, Wallet, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { createPageUrl } from "@/utils";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
-export function AdminBadgeManager({ user, onUpdate }) {
+export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
   const [updating, setUpdating] = useState(null);
 
   const handleToggle = async (field, checked) => {
@@ -70,6 +70,7 @@ export function AdminBadgeManager({ user, onUpdate }) {
         }
       }
 
+      if (typeof refreshProfile === 'function') { await refreshProfile(); }
       toast.success(`Selo atualizado com sucesso!`);
     } catch (error) {
       toast.error("Erro ao atualizar selo.");
@@ -93,7 +94,7 @@ export function AdminBadgeManager({ user, onUpdate }) {
           <span className="text-sm font-bold text-slate-700">Identidade Verificada</span>
         </div>
         <Switch 
-          checked={user.professional_profile?.verification_status === 'verified'} 
+          checked={(profile?.is_verified ?? (user.professional_profile?.verification_status === 'verified'))} 
           onCheckedChange={(checked) => handleToggle('verification_status', checked)}
           disabled={updating === 'verification_status'}
         />
@@ -108,7 +109,7 @@ export function AdminBadgeManager({ user, onUpdate }) {
           <span className="text-sm font-bold text-slate-700">Treinador Certificado</span>
         </div>
         <Switch 
-          checked={user.professional_profile?.is_trained || false} 
+          checked={(profile?.trainer_verified ?? (user.professional_profile?.is_trained || false))} 
           onCheckedChange={(checked) => handleToggle('is_trained', checked)}
           disabled={updating === 'is_trained'}
         />
@@ -123,7 +124,7 @@ export function AdminBadgeManager({ user, onUpdate }) {
           <span className="text-sm font-bold text-slate-700">Selo Especial PawCão</span>
         </div>
         <Switch 
-          checked={user.professional_profile?.is_pawcao || false} 
+          checked={(profile?.pawcao_seal ?? (user.professional_profile?.is_pawcao || false))} 
           onCheckedChange={(checked) => handleToggle('is_pawcao', checked)}
           disabled={updating === 'is_pawcao'}
         />
@@ -134,6 +135,17 @@ export function AdminBadgeManager({ user, onUpdate }) {
 
 export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpdate, onDelete }) {
   const [isGifting, setIsGifting] = useState(false);
+  const [profile, setProfile] = useState(null);
+
+  const fetchProfile = async () => {
+    if (!user?.email) return;
+    const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+    setProfile(Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null);
+  };
+
+  useEffect(() => {
+    if (isOpen) { fetchProfile(); }
+  }, [isOpen, user?.email]);
 
   const handleGiftFreeWalk = async () => {
     setIsGifting(true);
@@ -252,7 +264,7 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
             </div>
 
             <div className="mb-8">
-              <AdminBadgeManager user={user} onUpdate={onUpdate} />
+              <AdminBadgeManager user={user} profile={profile} onUpdate={onUpdate} refreshProfile={fetchProfile} />
             </div>
 
             {/* INJEÇÃO DE PASSEIO DIRETO */}

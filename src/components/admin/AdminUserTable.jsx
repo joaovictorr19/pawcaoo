@@ -21,6 +21,7 @@ import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
 import { AdminQuickVerify } from "./AdminQuickVerify";
 import { AdminUserCard } from "./AdminUserCard";
 import { AdminUserDrawer } from "./AdminUserDrawer";
+import { base44 } from "@/api/base44Client";
 
 export default function AdminUserTable({ 
   users = [], 
@@ -45,19 +46,38 @@ export default function AdminUserTable({
   const [selectedUser, setSelectedUser] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  const [profilesByEmail, setProfilesByEmail] = useState({});
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const list = await base44.entities.UserProfile.list('-updated_date', 1000);
+        const map = {};
+        (Array.isArray(list) ? list : []).forEach(p => { if (p?.user_email) map[p.user_email] = p; });
+        if (mounted) setProfilesByEmail(map);
+      } catch (e) {
+        console.error('UserProfile fetch error:', e);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [users]);
+
   const handleOpenAction = (user) => {
     setSelectedUser(user);
     setIsDrawerOpen(true);
   };
 
-  // Conta rápida para os badges — baseada em WalkerProfile real
+  // Contagem baseada em UserProfile (fonte de verdade)
   const stats = useMemo(() => {
-    return {
-      pending: walkers.filter(w => w.verification_status === 'pending' || w.verification_status === 'requires_documents').length,
-      active: walkers.filter(w => w.verification_status === 'verified' && w.is_active).length,
-      reports: 0
-    };
-  }, [walkers]);
+    const emails = Array.isArray(users) ? users.map(u => u.email).filter(Boolean) : [];
+    let pending = 0, active = 0;
+    emails.forEach(email => {
+      const p = profilesByEmail[email];
+      if (p?.is_verified) active++; else pending++;
+    });
+    return { pending, active, reports: 0 };
+  }, [users, profilesByEmail]);
 
   // Lógica de Filtragem (Extraída do Dashboard) - OTIMIZADA
   const filteredUsers = useMemo(() => {
@@ -81,9 +101,10 @@ export default function AdminUserTable({
         }
       }
 
-      // Quick Filters (Pílulas do Topo)
-      if (quickFilter === 'pending' && u.professional_profile?.verification_status !== 'pending') return false;
-      if (quickFilter === 'active' && u.professional_profile?.verification_status !== 'verified') return false;
+      // Quick Filters (Pílulas do Topo) — baseados em UserProfile
+      const prof = profilesByEmail[u.email];
+      if (quickFilter === 'pending' && prof?.is_verified === true) return false;
+      if (quickFilter === 'active' && prof?.is_verified !== true) return false;
       if (quickFilter === 'reports') return false; // Fixo zero para já
 
       // Filtros Avançados (apenas se existirem)
@@ -119,7 +140,7 @@ export default function AdminUserTable({
 
       return true;
     });
-  }, [users, userSearchState]);
+  }, [users, userSearchState, profilesByEmail]);
 
   // Paginação (otimizada com useMemo)
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -263,7 +284,7 @@ export default function AdminUserTable({
                     </TableRow>
                   ) : (
                     paginatedUsers.map(user => (
-                    <TableRow key={user.id} className="hover:bg-purple-50/40 transition-colors border-b border-gray-100">
+                    <TableRow key={user.id} className="hover:bg-purple-50/40 transition-colors border-b border-gray-100" data-email={user.email}>
                       <TableCell className="font-mono text-[10px] text-gray-500">{user.id.substring(0, 8)}...</TableCell>
                       <TableCell className="font-medium text-xs text-gray-800 break-all" title={user.email}>{user.email}</TableCell>
                       <TableCell className="text-xs text-gray-600 break-all" title={user.full_name}>
@@ -271,7 +292,7 @@ export default function AdminUserTable({
                           <span>{user.full_name || 'N/A'}</span>
                           <div className="flex gap-1">
                             {/* Mini Badges Icons */}
-                            <ShieldAlert className={`w-3.5 h-3.5 ${(user.professional_profile?.verification_status === 'verified' || user.professional_profile?.is_verified) ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
+                            <ShieldAlert className={`w-3.5 h-3.5 ${((profilesByEmail[user.email]?.is_verified) || user.professional_profile?.verification_status === 'verified' || user.professional_profile?.is_verified) ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
                             <Award className={`w-3.5 h-3.5 ${user.professional_profile?.is_trained ? 'text-purple-500' : 'text-gray-300'}`} title="Treinado" />
                             <UserCircle className={`w-3.5 h-3.5 ${user.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-gray-300'}`} title="PawCão" />
                           </div>
@@ -301,15 +322,16 @@ export default function AdminUserTable({
                           <Badge className={`${user.role === 'admin' ? 'bg-purple-600' : 'bg-gray-600'} text-white text-[10px] h-5`}>
                             {user.role === 'admin' ? 'Admin' : 'User'}
                           </Badge>
-                          {user.professional_profile?.verification_status === 'pending' ? (
-                            <div className="flex gap-1">
-                              <AdminQuickVerify userProfile={user} walkerData={user.professional_profile} />
-                            </div>
-                          ) : user.professional_profile?.verification_status === 'verified' || user.is_verified ? (
-                            <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 text-[10px] h-5">✓ Verificado</Badge>
-                          ) : user.professional_profile?.verification_status === 'rejected' ? (
-                            <Badge variant="outline" className="border-red-500 text-red-600 bg-red-50 text-[10px] h-5">✗ Rejeitado</Badge>
-                          ) : null}
+                          {profilesByEmail[user.email]?.is_verified === true ? (
+                              <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 text-[10px] h-5">✓ Verificado</Badge>
+                            ) : (
+                              <div className="flex gap-1">
+                                <AdminQuickVerify 
+                                  userProfile={user} 
+                                  walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} 
+                                />
+                              </div>
+                            )}}
                         </div>
                       </TableCell>
                       <TableCell className="text-[10px] text-gray-500 whitespace-nowrap">
