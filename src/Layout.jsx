@@ -280,6 +280,13 @@ function LayoutContent({ children, currentPageName }) {
       
       profileSetupRef.current.initialized = true;
 
+      // Derive a friendly display name from email if full_name is missing
+      const emailPart = (authUser.email || '').split('@')[0] || '';
+      const cleaned = emailPart.replace(/[._-]+/g, ' ').trim();
+      const deriveName = (authUser.full_name && authUser.full_name.trim())
+        ? authUser.full_name
+        : (cleaned ? cleaned.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : 'Utilizador');
+
       if (authUser.profile_stats === undefined || authUser.profile_stats === null) {
         try {
           await base44.auth.updateMe({
@@ -316,7 +323,7 @@ function LayoutContent({ children, currentPageName }) {
             user_email: authUser.email,
             user_id: authUser.id,
             username: authUser.username,
-            full_name: authUser.full_name || 'Utilizador',
+            full_name: deriveName,
             profile_photo_url: authUser.profile_photo_url,
             cover_photo_url: authUser.cover_photo_url,
             bio: authUser.bio || '',
@@ -330,6 +337,34 @@ function LayoutContent({ children, currentPageName }) {
             owned_dogs: []
           });
         }
+
+        // Backfill missing names on existing profiles (user + professional)
+        try {
+          if (userProfile && (!userProfile.full_name || String(userProfile.full_name).trim() === '' || userProfile.full_name === 'Utilizador')) {
+            await base44.entities.UserProfile.update(userProfile.id, { full_name: deriveName });
+          }
+        } catch (e) { console.warn('UserProfile name backfill skipped:', e?.message); }
+
+        try {
+          const walkers = await base44.entities.WalkerProfile.filter({ created_by: authUser.email });
+          if (walkers?.length) {
+            const w = walkers[0];
+            if (!w.walker_name || String(w.walker_name).trim() === '') {
+              await base44.entities.WalkerProfile.update(w.id, { walker_name: deriveName });
+            }
+          }
+        } catch (e) { console.warn('WalkerProfile name backfill skipped:', e?.message); }
+
+        try {
+          const trainers = await base44.entities.TrainerProfile.filter({ created_by: authUser.email });
+          if (trainers?.length) {
+            const t = trainers[0];
+            if (!t.trainer_name || String(t.trainer_name).trim() === '') {
+              await base44.entities.TrainerProfile.update(t.id, { trainer_name: deriveName });
+            }
+          }
+        } catch (e) { console.warn('TrainerProfile name backfill skipped:', e?.message); }
+
       } catch (err) {
         console.error("Error ensuring UserProfile entity:", err);
       }
