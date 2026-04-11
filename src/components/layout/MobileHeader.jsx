@@ -116,9 +116,13 @@ export default function MobileHeader() {
 
         {/* Ações à direita */}
         <div className="flex items-center justify-end">
-          {authed && (
+          {authed ? (
             <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.logout()}>
               <LogOut className="w-4 h-4 mr-1" /> Sair
+            </Button>
+          ) : (
+            <Button size="sm" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.redirectToLogin()}>
+              Entrar
             </Button>
           )}
         </div>
