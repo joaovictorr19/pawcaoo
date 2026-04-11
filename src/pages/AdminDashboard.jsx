@@ -1051,9 +1051,18 @@ export default function AdminDashboard() {
                 isSyncing={isSyncingProfiles}
                 onUpdateUser={async (userId, updates) => {
                   try {
-                    await base44.entities.User.update(userId, updates);
-                    // Update related profiles if necessary
                     const userToUpdate = allUsers.find(u => u.id === userId);
+                    const mergedUpdates = (updates && updates.professional_profile && userToUpdate)
+                      ? { 
+                          ...updates, 
+                          professional_profile: { 
+                            ...(userToUpdate.professional_profile || {}), 
+                            ...updates.professional_profile 
+                          } 
+                        }
+                      : updates;
+                    await base44.entities.User.update(userId, mergedUpdates);
+                    // Update related profiles if necessary
                     if (userToUpdate && updates.professional_profile) {
                       const updatedProfProfile = { ...userToUpdate.professional_profile, ...updates.professional_profile };
                       

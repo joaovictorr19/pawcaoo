@@ -17,6 +17,14 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
       const prof = user.professional_profile || {};
       const updates = { professional_profile: { ...prof } };
 
+      // Garantir que não desligamos outros campos ao atualizar um específico
+      if (field !== 'verification_status') {
+        // preservar flags existentes
+        updates.professional_profile.is_trained = prof.is_trained ?? profile?.trainer_verified ?? false;
+        updates.professional_profile.is_pawcao = prof.is_pawcao ?? profile?.pawcao_seal ?? false;
+        updates.professional_profile.is_fee_exempt = prof.is_fee_exempt ?? profile?.is_fee_exempt ?? false;
+      }
+
       if (field === 'verification_status') {
         updates.professional_profile.verification_status = checked ? 'verified' : 'pending';
         updates.professional_profile.is_verified = !!checked;
@@ -98,9 +106,9 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           <span className="text-sm font-bold text-slate-700">Identidade Verificada</span>
         </div>
         <Switch 
-          checked={(profile?.is_verified ?? (user.professional_profile?.verification_status === 'verified'))} 
-          onCheckedChange={(checked) => handleToggle('verification_status', checked)}
-          disabled={updating === 'verification_status'}
+        checked={Boolean(profile?.is_verified)} 
+        onCheckedChange={(checked) => handleToggle('verification_status', checked)}
+        disabled={updating === 'verification_status'}
         />
       </div>
 
@@ -113,7 +121,7 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           <span className="text-sm font-bold text-slate-700">Treinador Certificado</span>
         </div>
         <Switch 
-          checked={(profile?.trainer_verified ?? (user.professional_profile?.is_trained || false))} 
+          checked={Boolean(profile?.trainer_verified)} 
           onCheckedChange={(checked) => handleToggle('is_trained', checked)}
           disabled={updating === 'is_trained'}
         />
@@ -128,7 +136,7 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           <span className="text-sm font-bold text-slate-700">Selo Especial PawCão</span>
         </div>
         <Switch 
-          checked={(profile?.pawcao_seal ?? (user.professional_profile?.is_pawcao || false))} 
+          checked={Boolean(profile?.pawcao_seal)} 
           onCheckedChange={(checked) => handleToggle('is_pawcao', checked)}
           disabled={updating === 'is_pawcao'}
         />
