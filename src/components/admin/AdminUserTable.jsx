@@ -127,8 +127,8 @@ export default function AdminUserTable({
     const { searchTerm, filters } = userSearchState;
     const searchLower = searchTerm?.toLowerCase().trim() || "";
     
-    // Fast path: sem filtros
-    if (!searchLower && (!filters || Object.keys(filters).length === 0)) {
+    // Fast path: sem filtros — apenas quando a pílula rápida é 'all'
+    if (!searchLower && (!filters || Object.keys(filters).length === 0) && quickFilter === 'all') {
       return users;
     }
     
@@ -144,8 +144,13 @@ export default function AdminUserTable({
 
       // Quick Filters (Pílulas do Topo) — baseados em UserProfile
       const prof = profilesByEmail[u.email];
-      if (quickFilter === 'pending' && prof?.is_verified === true) return false;
-      if (quickFilter === 'active' && prof?.is_verified !== true) return false;
+      if (quickFilter === 'pending') {
+        if (prof?.is_verified === true) return false;
+        return true; // mostrar todos os não verificados (ou sem perfil)
+      }
+      if (quickFilter === 'active') {
+        return prof?.is_verified === true;
+      }
       if (quickFilter === 'reports') return false; // Fixo zero para já
 
       // Filtros Avançados (apenas se existirem)
