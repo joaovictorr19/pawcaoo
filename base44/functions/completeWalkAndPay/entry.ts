@@ -32,24 +32,9 @@ Deno.serve(async (req) => {
     completed_date: new Date().toISOString(),
   });
 
-  // 3. Atualiza a Wallet do profissional via UserWallet entity
-  const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: booking.walker_email });
-  
-  if (wallets.length > 0) {
-    const wallet = wallets[0];
-    await base44.asServiceRole.entities.UserWallet.update(wallet.id, {
-      balance: (wallet.balance || 0) + walkPrice,
-      total_earned: (wallet.total_earned || 0) + walkPrice,
-    });
-  } else {
-    // Cria wallet se não existir
-    await base44.asServiceRole.entities.UserWallet.create({
-      user_email: booking.walker_email,
-      balance: walkPrice,
-      total_earned: walkPrice,
-      total_withdrawn: 0,
-    });
-  }
+  // 3. Pagamento: deixar para automação Stripe
+  // Ao marcar como service_completed acima, a automação 'Release Payment on Booking Completion'
+  // fará a transferência Stripe para o profissional e atualizará Payment/Booking.
 
   // 4. Liberta o profissional no WalkerProfile (is_online mas não busy)
   const profiles = await base44.asServiceRole.entities.WalkerProfile.filter({ created_by: booking.walker_email });
@@ -59,15 +44,29 @@ Deno.serve(async (req) => {
     });
   }
 
-  // 5. Regista a transação na WalletTransaction
-  await base44.asServiceRole.entities.WalletTransaction.create({
-    user_email: booking.walker_email,
-    amount: walkPrice,
-    type: 'credit',
-    description: `Passeio concluído - ${booking.dog_name || 'cão'} - Booking #${walkId.slice(-6)}`,
-    booking_id: walkId,
-    status: 'completed',
-  });
+  // 5. Notificações: informar que o pagamento será libertado automaticamente
+  try {
+    await base44.asServiceRole.entities.Notification.create({
+      recipient_email: booking.walker_email,
+      title: '🚀 Passeio concluído',
+      message: `Pagamento de €${walkPrice} será libertado automaticamente para a sua conta Stripe em instantes.`,
+      type: 'payment',
+      related_id: walkId
+    });
+  } catch (_) {}
+  
+  try {
+    const ownerEmail = booking.owner_email || booking.created_by;
+    if (ownerEmail) {
+      await base44.asServiceRole.entities.Notification.create({
+        recipient_email: ownerEmail,
+        title: '🐾 Obrigado! Passeio concluído',
+        message: 'O pagamento está a ser libertado para o profissional.',
+        type: 'booking',
+        related_id: walkId
+      });
+    }
+  } catch (_) {}
 
   return Response.json({
     success: true,
