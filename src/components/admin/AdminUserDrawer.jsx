@@ -12,13 +12,14 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
   const [updating, setUpdating] = useState(null);
   const [localFlags, setLocalFlags] = useState({});
   useEffect(() => {
+    const prof = user?.professional_profile || {};
     setLocalFlags({
-      is_verified: !!profile?.is_verified,
-      trainer_verified: !!profile?.trainer_verified,
-      pawcao_seal: !!profile?.pawcao_seal,
-      is_fee_exempt: !!profile?.is_fee_exempt,
+      is_verified: (profile?.is_verified ?? prof.is_verified ?? (prof.verification_status === 'verified')) || false,
+      trainer_verified: (profile?.trainer_verified ?? prof.is_trained) || false,
+      pawcao_seal: (profile?.pawcao_seal ?? prof.is_pawcao) || false,
+      is_fee_exempt: (profile?.is_fee_exempt ?? prof.is_fee_exempt) || false,
     });
-  }, [profile]);
+  }, [profile, user?.professional_profile]);
 
   const handleToggle = async (field, checked) => {
       // Optimistic local state
@@ -48,8 +49,12 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
         updates.professional_profile.verification_status = checked ? 'verified' : 'pending';
         updates.professional_profile.is_verified = !!checked;
         updates.professional_profile.is_active = !!checked;
-      } else {
-        updates.professional_profile[field] = !!checked;
+      } else if (field === 'is_trained') {
+        updates.professional_profile.is_trained = !!checked;
+      } else if (field === 'is_pawcao') {
+        updates.professional_profile.is_pawcao = !!checked;
+      } else if (field === 'is_fee_exempt') {
+        updates.professional_profile.is_fee_exempt = !!checked;
       }
 
       await onUpdate(user.id, updates);
@@ -60,30 +65,33 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
       const walkers = await base44.entities.WalkerProfile.filter({ created_by: email });
       if (Array.isArray(walkers) && walkers.length > 0) {
         const wId = walkers[0].id;
+        const walkerPatch = {};
         if (field === 'verification_status') {
-          await base44.entities.WalkerProfile.update(wId, {
-            verification_status: checked ? 'verified' : 'pending',
-            is_active: !!checked
-          });
-        } else if (field === 'is_trained') {
-          await base44.entities.WalkerProfile.update(wId, { is_verified_trainer: !!checked });
-        } else if (field === 'is_pawcao') {
-          await base44.entities.WalkerProfile.update(wId, { has_pawcao_seal: !!checked });
-        } else if (field === 'is_fee_exempt') {
-          await base44.entities.WalkerProfile.update(wId, { exempt_from_platform_fees: !!checked });
+          walkerPatch.verification_status = checked ? 'verified' : 'pending';
+          walkerPatch.is_active = !!checked;
+        }
+        if (field === 'is_trained') walkerPatch.is_verified_trainer = !!checked;
+        if (field === 'is_pawcao') walkerPatch.has_pawcao_seal = !!checked;
+        if (field === 'is_fee_exempt') walkerPatch.exempt_from_platform_fees = !!checked;
+        if (Object.keys(walkerPatch).length) {
+          await base44.entities.WalkerProfile.update(wId, walkerPatch);
         }
       }
 
       const trainers = await base44.entities.TrainerProfile.filter({ created_by: email });
       if (Array.isArray(trainers) && trainers.length > 0) {
         const tId = trainers[0].id;
+        const trainerPatch = {};
         if (field === 'verification_status') {
-          await base44.entities.TrainerProfile.update(tId, {
-            verification_status: checked ? 'verified' : 'pending',
-            is_active: !!checked
-          });
-        } else if (field === 'is_trained') {
-          await base44.entities.TrainerProfile.update(tId, { is_verified: !!checked, is_verified_trainer: !!checked });
+          trainerPatch.verification_status = checked ? 'verified' : 'pending';
+          trainerPatch.is_active = !!checked;
+        }
+        if (field === 'is_trained') {
+          trainerPatch.is_verified = !!checked;
+          trainerPatch.is_verified_trainer = !!checked;
+        }
+        if (Object.keys(trainerPatch).length) {
+          await base44.entities.TrainerProfile.update(tId, trainerPatch);
         }
       }
 
@@ -92,9 +100,9 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
         const pId = profiles[0].id;
         const patch = {};
         if (field === 'verification_status') patch.is_verified = !!checked;
-        else if (field === 'is_trained') patch.trainer_verified = !!checked;
-        else if (field === 'is_pawcao') patch.pawcao_seal = !!checked;
-        else if (field === 'is_fee_exempt') patch.is_fee_exempt = !!checked;
+        if (field === 'is_trained') patch.trainer_verified = !!checked;
+        if (field === 'is_pawcao') patch.pawcao_seal = !!checked;
+        if (field === 'is_fee_exempt') patch.is_fee_exempt = !!checked;
         if (Object.keys(patch).length) {
           await base44.entities.UserProfile.update(pId, patch);
         }
