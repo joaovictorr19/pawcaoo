@@ -20,7 +20,16 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const forceTop = () => {
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } catch {}
+    };
+    forceTop();
+    const t = setTimeout(forceTop, 300);
+    return () => clearTimeout(t);
   }, []);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -37,6 +46,11 @@ export default function UserProfile() {
 
   const profileIdParam = urlParams.get('id');
   const profileUsernameParam = urlParams.get('username');
+
+  // Ensure page always opens at top when target profile changes
+  useEffect(() => {
+    try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch {}
+  }, [profileIdParam, profileEmailParam, profileUsernameParam]);
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
