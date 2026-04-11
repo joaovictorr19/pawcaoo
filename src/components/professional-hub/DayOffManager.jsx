@@ -12,19 +12,23 @@ export function DayOffManager({ userEmail }) {
   const [selectedDates, setSelectedDates] = useState([]);
   const [showPicker, setShowPicker] = useState(false);
 
+  // Use authenticated user to satisfy RLS on create
+  const { data: me } = useQuery({ queryKey: ['currentUser'], queryFn: () => base44.auth.me() });
+  const effectiveEmail = me?.email || userEmail;
+
   // Fetch existing days off
   const { data: daysOff = [], isLoading } = useQuery({
-    queryKey: ['daysOff', userEmail],
+    queryKey: ['daysOff', effectiveEmail],
     queryFn: async () => {
-      if (!userEmail) return [];
+      if (!effectiveEmail) return [];
       const results = await base44.entities.CalendarAvailability.filter({
-        professional_email: userEmail,
+        professional_email: effectiveEmail,
         is_day_off: true
       });
       const today = new Date().toISOString().split('T')[0];
       return (results || []).filter(r => ((r.date?.split('T')[0] || '') >= today));
     },
-    enabled: !!userEmail
+    enabled: !!effectiveEmail
   });
 
   // Mutation to add day off
@@ -32,7 +36,7 @@ export function DayOffManager({ userEmail }) {
     mutationFn: async (date) => {
       const dateStr = format(date, 'yyyy-MM-dd');
       const exists = await base44.entities.CalendarAvailability.filter({
-        professional_email: userEmail,
+        professional_email: effectiveEmail,
         date: dateStr
       });
 
@@ -42,7 +46,7 @@ export function DayOffManager({ userEmail }) {
         });
       } else {
         await base44.entities.CalendarAvailability.create({
-          professional_email: userEmail,
+          professional_email: effectiveEmail,
           date: dateStr,
           is_day_off: true
         });
@@ -64,7 +68,7 @@ export function DayOffManager({ userEmail }) {
     mutationFn: async (date) => {
       const dateStr = format(date, 'yyyy-MM-dd');
       const existing = await base44.entities.CalendarAvailability.filter({
-        professional_email: userEmail,
+        professional_email: effectiveEmail,
         date: dateStr,
         is_day_off: true
       });
@@ -100,11 +104,13 @@ export function DayOffManager({ userEmail }) {
 
   // Apply selected dates
   const handleApply = async () => {
-    for (const date of selectedDates) {
-      await addDayOffMutation.mutateAsync(date);
+    try {
+      await Promise.all(selectedDates.map((date) => addDayOffMutation.mutateAsync(date)));
+      setSelectedDates([]);
+      setShowPicker(false);
+    } catch (e) {
+      // Error toasts handled in onError; avoid unhandled rejection
     }
-    setSelectedDates([]);
-    setShowPicker(false);
   };
 
   // Generate dates for picker (next 60 days)
