@@ -64,7 +64,7 @@ import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
 import AdminProfessionalManager from "../components/admin/AdminProfessionalManager";
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
-import { AdminApprovals } from "../components/admin/AdminApprovals";
+
 import { BadgeManager } from "../components/admin/BadgeManager";
 import { GrantBadgeModal } from "../components/admin/GrantBadgeModal";
 import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
@@ -751,13 +751,8 @@ export default function AdminDashboard() {
               <TabsTrigger value="overview" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📊 Dashboard</TabsTrigger>
               <TabsTrigger value="godmode" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🌍 God Mode</TabsTrigger>
               <TabsTrigger value="calendar" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
-              <TabsTrigger value="professionals" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">👥 Profissionais</TabsTrigger>
-              <TabsTrigger value="approvals" className="relative rounded-full bg-orange-50 text-orange-700 shadow-sm data-[state=active]:bg-orange-500 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
-                🛡️ Aprovações
-                {pendingProfessionals.length > 0 && (
-                  <span className="ml-1.5 bg-orange-500 data-[state=active]:bg-white data-[state=active]:text-orange-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{pendingProfessionals.length}</span>
-                )}
-              </TabsTrigger>
+
+
               <TabsTrigger value="users" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
               <TabsTrigger value="operations" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
               <TabsTrigger value="gamification" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
@@ -802,378 +797,151 @@ export default function AdminDashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="approvals">
-            {activeTab === 'approvals' && (
-              <div className="mt-6 space-y-6">
-                <AdminApprovals
-                  pendingUsers={pendingProfessionals}
-                  onRefresh={async () => {
-                    await Promise.all([
-                      queryClient.invalidateQueries({ queryKey: ['allUsers'] }),
-                      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] }),
-                      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] }),
-                    ]);
-                    toast.success("Atualizado!");
-                  }}
-                />
-                <ProfileEditRequests />
-              </div>
-            )}
-          </TabsContent>
 
-          <TabsContent value="professionals">
-            {activeTab === 'professionals' && (
-              <>
-            <Card className="glass-panel border-0 shadow-xl mt-6" style={{ borderRadius: 0 }}>
-              <CardHeader>
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div>
-                    <CardTitle className="text-2xl flex items-center gap-2">
-                      <Shield className="w-6 h-6 text-green-600" />
-                      Gestão de Profissionais ({activeWalkers.length})
-                    </CardTitle>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Controle completo: Selo PawCão, isenção de taxas e privilégios
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setSelectedUser(null);
-                        setShowProfessionalManager(true);
-                      }}
-                      className="gap-2 bg-green-600 hover:bg-green-700 text-white"
-                      style={{ borderRadius: 0 }}
-                    >
-                      <Plus className="w-4 h-4" />
-                      Novo Profissional
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-                        toast.success("Atualizado!");
-                      }}
-                      className="gap-2"
-                      style={{ borderRadius: 0 }}
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      Atualizar
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[250px]">Profissional</TableHead>
-                        <TableHead>Localização</TableHead>
-                        <TableHead className="text-center">Avaliação</TableHead>
-                        <TableHead className="text-right">Ganhos</TableHead>
-                        <TableHead className="text-center">Privilégios</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {activeWalkers.map(walker => (
-                        <TableRow key={walker.id} className="hover:bg-gray-50">
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="w-10 h-10" style={{ borderRadius: 0 }}>
-                                <AvatarImage src={walker.photo_url} />
-                                <AvatarFallback className="bg-green-100 text-green-700" style={{ borderRadius: 0 }}>
-                                  {walker.walker_name?.[0]?.toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-semibold flex items-center gap-2">
-                                  {walker.walker_name}
-                                  {walker.has_pawcao_seal && (
-                                    <Badge className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white text-[9px] h-4 px-1" style={{ borderRadius: 0 }}>
-                                      <Award className="w-2.5 h-2.5 mr-0.5" />
-                                      SELO
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="text-xs text-gray-500">{walker.created_by}</div>
-                                {walker.exempt_from_platform_fees && (
-                                  <Badge className="bg-blue-50 text-blue-700 text-[9px] mt-1" style={{ borderRadius: 0 }}>
-                                    <DollarSign className="w-2.5 h-2.5 mr-0.5" />
-                                    0% Taxa
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm text-gray-700">{walker.location}</TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                              <span className="font-semibold">{walker.rating?.toFixed(1) || '0.0'}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right font-semibold text-green-700">
-                            €{(walker.total_earnings || 0).toLocaleString('pt-PT')}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1.5 justify-center">
-                              <Button
-                                size="sm"
-                                variant={walker.has_pawcao_seal ? "default" : "outline"}
-                                className={walker.has_pawcao_seal ? "bg-gradient-to-r from-amber-500 to-yellow-400 text-white h-7 px-2" : "border-amber-300 text-amber-600 h-7 px-2"}
-                                onClick={() => {
-                                  if(confirm(`${walker.has_pawcao_seal ? 'Remover' : 'Conceder'} Selo PawCão ${walker.has_pawcao_seal ? 'de' : 'a'} ${walker.walker_name}?`)) {
-                                    updateWalkerMutation.mutate({
-                                      id: walker.id,
-                                      data: { has_pawcao_seal: !walker.has_pawcao_seal }
-                                    });
-                                  }
-                                }}
-                                style={{ borderRadius: 0 }}
-                                title={walker.has_pawcao_seal ? "Remover Selo PawCão" : "Conceder Selo PawCão"}
-                              >
-                                <Award className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={walker.exempt_from_platform_fees ? "default" : "outline"}
-                                className={walker.exempt_from_platform_fees ? "bg-blue-600 text-white h-7 px-2" : "border-blue-300 text-blue-600 h-7 px-2"}
-                                onClick={() => {
-                                  if(confirm(`${walker.exempt_from_platform_fees ? 'Remover isenção (voltar 15%)' : 'Isentar de taxas (0%)'} para ${walker.walker_name}?`)) {
-                                    updateWalkerMutation.mutate({
-                                      id: walker.id,
-                                      data: { exempt_from_platform_fees: !walker.exempt_from_platform_fees }
-                                    });
-                                  }
-                                }}
-                                style={{ borderRadius: 0 }}
-                                title={walker.exempt_from_platform_fees ? "Remover Isenção" : "Isentar de Taxas"}
-                              >
-                                <DollarSign className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={walker.is_featured ? "default" : "outline"}
-                                className={walker.is_featured ? "bg-yellow-500 text-white h-7 px-2" : "border-yellow-300 text-yellow-600 h-7 px-2"}
-                                onClick={() => {
-                                  if(confirm(`${walker.is_featured ? 'Remover' : 'Marcar'} destaque?`)) {
-                                    updateWalkerMutation.mutate({
-                                      id: walker.id,
-                                      data: { is_featured: !walker.is_featured }
-                                    });
-                                  }
-                                }}
-                                style={{ borderRadius: 0 }}
-                                title={walker.is_featured ? "Remover Destaque" : "Marcar como Destaque"}
-                              >
-                                <Sparkles className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1.5 justify-end">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => navigate(createPageUrl(`WalkerDetails?id=${walker.id}`))}
-                                className="h-8 px-2.5"
-                                style={{ borderRadius: 0 }}
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={walker.is_active ? "outline" : "default"}
-                                className={walker.is_active ? "text-orange-600 border-orange-300 h-8 px-2.5" : "bg-green-600 h-8 px-2.5"}
-                                onClick={() => {
-                                  if(confirm(`${walker.is_active ? 'Pausar' : 'Ativar'} ${walker.walker_name}?`)) {
-                                    updateWalkerMutation.mutate({
-                                      id: walker.id,
-                                      data: { is_active: !walker.is_active }
-                                    });
-                                  }
-                                }}
-                                style={{ borderRadius: 0 }}
-                              >
-                                {walker.is_active ? '⏸' : '▶'}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="text-red-600 border-red-300 h-8 px-2.5"
-                                onClick={() => {
-                                  if(confirm(`ELIMINAR ${walker.walker_name}?`)) {
-                                    deleteWalkerMutation.mutate(walker.id);
-                                  }
-                                }}
-                                style={{ borderRadius: 0 }}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
 
-                {activeWalkers.length === 0 && (
-                  <div className="text-center py-12">
-                    <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600">Nenhum profissional ativo</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
-            <div className="mt-6">
-              <ProfileEditRequests />
-            </div>
-            </>
-            )}
-          </TabsContent>
 
           <TabsContent value="users">
             {activeTab === 'users' && (
-              <AdminUserTable
-                users={allUsers}
-                walkers={allWalkers}
-                isLoading={loadingAllUsers}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteUser}
-                onEditBadges={handleOpenBadgesDialog}
-                onSyncProfiles={handleSyncUserProfiles}
-                isSyncing={isSyncingProfiles}
-                onUpdateUser={async (userId, updates) => {
-                  try {
-                    const userToUpdate = allUsers.find(u => u.id === userId);
-                    const mergedUpdates = (updates && updates.professional_profile && userToUpdate)
-                      ? { 
-                          ...updates, 
-                          professional_profile: { 
-                            ...(userToUpdate.professional_profile || {}), 
-                            ...updates.professional_profile 
-                          } 
-                        }
-                      : updates;
-                    await base44.entities.User.update(userId, mergedUpdates);
-                    // Update related profiles if necessary
-                    if (userToUpdate && updates.professional_profile) {
-                      const updatedProfProfile = { ...userToUpdate.professional_profile, ...updates.professional_profile };
-                      
-                      if (userToUpdate.account_type === 'walker' || userToUpdate.account_type === 'both') {
-                        const w = await base44.entities.WalkerProfile.filter({ created_by: userToUpdate.email });
-                        if (w.length) {
-                          const walkerUpdates = {};
-                          if (updates.professional_profile.verification_status) walkerUpdates.verification_status = updates.professional_profile.verification_status;
-                          if (updates.professional_profile.is_pawcao !== undefined) walkerUpdates.has_pawcao_seal = updates.professional_profile.is_pawcao;
-                          if (updates.professional_profile.is_trained !== undefined) walkerUpdates.is_verified_trainer = updates.professional_profile.is_trained;
-                          if (Object.keys(walkerUpdates).length > 0) {
-                            await base44.entities.WalkerProfile.update(w[0].id, walkerUpdates);
-                          }
-                        }
-                      }
-                      if (userToUpdate.account_type === 'trainer' || userToUpdate.account_type === 'both') {
-                        const t = await base44.entities.TrainerProfile.filter({ created_by: userToUpdate.email });
-                        if (t.length) {
-                          const trainerUpdates = {};
-                          if (updates.professional_profile.verification_status) trainerUpdates.verification_status = updates.professional_profile.verification_status;
-                          if (updates.professional_profile.is_pawcao !== undefined) trainerUpdates.is_pawcao_employee = updates.professional_profile.is_pawcao;
-                          if (updates.professional_profile.is_trained !== undefined) trainerUpdates.is_verified_trainer = updates.professional_profile.is_trained;
-                          if (Object.keys(trainerUpdates).length > 0) {
-                            await base44.entities.TrainerProfile.update(t[0].id, trainerUpdates);
-                          }
-                        }
-                      }
-                    }
-                    queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-                    queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-                    queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-                  } catch (e) {
-                    toast.error("Erro ao atualizar");
-                    throw e;
-                  }
-                }}
-                onApproveUser={async (u) => {
-                  try {
-                    await base44.entities.User.update(u.id, {
-                      professional_profile: {
-                        ...(u.professional_profile || {}),
-                        verification_status: 'verified',
-                        is_verified: true
-                      }
-                    });
-                    if (u.account_type === 'walker' || u.account_type === 'both') {
-                      const w = await base44.entities.WalkerProfile.filter({ created_by: u.email });
-                      if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'verified', is_active: true });
-                    }
-                    if (u.account_type === 'trainer' || u.account_type === 'both') {
-                      const t = await base44.entities.TrainerProfile.filter({ created_by: u.email });
-                      if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'verified', is_active: true });
-                    }
-                    // Garantir que a aba Usuários reflete o estado (UserProfile -> is_verified)
+              <>
+                <AdminUserTable
+                  users={allUsers}
+                  walkers={allWalkers}
+                  isLoading={loadingAllUsers}
+                  onEdit={handleEditUser}
+                  onDelete={handleDeleteUser}
+                  onEditBadges={handleOpenBadgesDialog}
+                  onSyncProfiles={handleSyncUserProfiles}
+                  isSyncing={isSyncingProfiles}
+                  onUpdateUser={async (userId, updates) => {
                     try {
-                      const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
-                      if (profiles.length) {
-                        await base44.entities.UserProfile.update(profiles[0].id, { is_verified: true });
+                      const userToUpdate = allUsers.find(u => u.id === userId);
+                      const mergedUpdates = (updates && updates.professional_profile && userToUpdate)
+                        ? { 
+                            ...updates, 
+                            professional_profile: { 
+                              ...(userToUpdate.professional_profile || {}), 
+                              ...updates.professional_profile 
+                            } 
+                          }
+                        : updates;
+                      await base44.entities.User.update(userId, mergedUpdates);
+                      // Update related profiles if necessary
+                      if (userToUpdate && updates.professional_profile) {
+                        const updatedProfProfile = { ...userToUpdate.professional_profile, ...updates.professional_profile };
+                        
+                        if (userToUpdate.account_type === 'walker' || userToUpdate.account_type === 'both') {
+                          const w = await base44.entities.WalkerProfile.filter({ created_by: userToUpdate.email });
+                          if (w.length) {
+                            const walkerUpdates = {};
+                            if (updates.professional_profile.verification_status) walkerUpdates.verification_status = updates.professional_profile.verification_status;
+                            if (updates.professional_profile.is_pawcao !== undefined) walkerUpdates.has_pawcao_seal = updates.professional_profile.is_pawcao;
+                            if (updates.professional_profile.is_trained !== undefined) walkerUpdates.is_verified_trainer = updates.professional_profile.is_trained;
+                            if (Object.keys(walkerUpdates).length > 0) {
+                              await base44.entities.WalkerProfile.update(w[0].id, walkerUpdates);
+                            }
+                          }
+                        }
+                        if (userToUpdate.account_type === 'trainer' || userToUpdate.account_type === 'both') {
+                          const t = await base44.entities.TrainerProfile.filter({ created_by: userToUpdate.email });
+                          if (t.length) {
+                            const trainerUpdates = {};
+                            if (updates.professional_profile.verification_status) trainerUpdates.verification_status = updates.professional_profile.verification_status;
+                            if (updates.professional_profile.is_pawcao !== undefined) trainerUpdates.is_pawcao_employee = updates.professional_profile.is_pawcao;
+                            if (updates.professional_profile.is_trained !== undefined) trainerUpdates.is_verified_trainer = updates.professional_profile.is_trained;
+                            if (Object.keys(trainerUpdates).length > 0) {
+                              await base44.entities.TrainerProfile.update(t[0].id, trainerUpdates);
+                            }
+                          }
+                        }
                       }
-                    } catch (err) {
-                      console.error('Sync UserProfile.is_verified error:', err);
+                      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+                      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+                    } catch (e) {
+                      toast.error("Erro ao atualizar");
+                      throw e;
                     }
-                    queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-                    toast.success("Usuário aprovado!");
-                  } catch (e) {
-                    toast.error("Erro ao aprovar");
-                  }
-                }}
-                onRejectUser={async (u) => {
-                  const reason = prompt("Motivo da rejeição:");
-                  if (!reason) return;
-                  try {
-                    await base44.entities.User.update(u.id, {
-                      professional_profile: {
-                        ...(u.professional_profile || {}),
-                        verification_status: 'rejected',
-                        rejection_reason: reason
+                  }}
+                  onApproveUser={async (u) => {
+                    try {
+                      await base44.entities.User.update(u.id, {
+                        professional_profile: {
+                          ...(u.professional_profile || {}),
+                          verification_status: 'verified',
+                          is_verified: true
+                        }
+                      });
+                      if (u.account_type === 'walker' || u.account_type === 'both') {
+                        const w = await base44.entities.WalkerProfile.filter({ created_by: u.email });
+                        if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'verified', is_active: true });
                       }
-                    });
-                    if (u.account_type === 'walker' || u.account_type === 'both') {
-                      const w = await base44.entities.WalkerProfile.filter({ created_by: u.email });
-                      if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'rejected', rejection_reason: reason });
+                      if (u.account_type === 'trainer' || u.account_type === 'both') {
+                        const t = await base44.entities.TrainerProfile.filter({ created_by: u.email });
+                        if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'verified', is_active: true });
+                      }
+                      // Garantir que a aba Usuários reflete o estado (UserProfile -> is_verified)
+                      try {
+                        const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+                        if (profiles.length) {
+                          await base44.entities.UserProfile.update(profiles[0].id, { is_verified: true });
+                        }
+                      } catch (err) {
+                        console.error('Sync UserProfile.is_verified error:', err);
+                      }
+                      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+                      toast.success("Usuário aprovado!");
+                    } catch (e) {
+                      toast.error("Erro ao aprovar");
                     }
-                    if (u.account_type === 'trainer' || u.account_type === 'both') {
-                      const t = await base44.entities.TrainerProfile.filter({ created_by: u.email });
-                      if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'rejected', rejection_reason: reason });
+                  }}
+                  onRejectUser={async (u) => {
+                    const reason = prompt("Motivo da rejeição:");
+                    if (!reason) return;
+                    try {
+                      await base44.entities.User.update(u.id, {
+                        professional_profile: {
+                          ...(u.professional_profile || {}),
+                          verification_status: 'rejected',
+                          rejection_reason: reason
+                        }
+                      });
+                      if (u.account_type === 'walker' || u.account_type === 'both') {
+                        const w = await base44.entities.WalkerProfile.filter({ created_by: u.email });
+                        if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'rejected', rejection_reason: reason });
+                      }
+                      if (u.account_type === 'trainer' || u.account_type === 'both') {
+                        const t = await base44.entities.TrainerProfile.filter({ created_by: u.email });
+                        if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'rejected', rejection_reason: reason });
+                      }
+                      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+                      toast.success("Usuário rejeitado!");
+                    } catch (e) {
+                      toast.error("Erro ao rejeitar");
                     }
-                    queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-                    toast.success("Usuário rejeitado!");
-                  } catch (e) {
-                    toast.error("Erro ao rejeitar");
-                  }
-                }}
-                onImpersonate={async (user) => {
-                  if (!confirm(`Login como ${user.full_name}?`)) return;
-                  toast.info('Redirecionando...');
-                  try {
-                    const response = await base44.functions.invoke('impersonateUser', {
-                      targetUserId: user.id
-                    });
-                    if (response.data?.success) {
-                      localStorage.setItem('impersonation', JSON.stringify(response.data.impersonationData));
-                      window.location.href = createPageUrl('Home');
-                    } else {
-                      toast.error('Erro ao iniciar');
+                  }}
+                  onImpersonate={async (user) => {
+                    if (!confirm(`Login como ${user.full_name}?`)) return;
+                    toast.info('Redirecionando...');
+                    try {
+                      const response = await base44.functions.invoke('impersonateUser', {
+                        targetUserId: user.id
+                      });
+                      if (response.data?.success) {
+                        localStorage.setItem('impersonation', JSON.stringify(response.data.impersonationData));
+                        window.location.href = createPageUrl('Home');
+                      } else {
+                        toast.error('Erro ao iniciar');
+                      }
+                    } catch (error) {
+                      toast.error('Erro: ' + error.message);
                     }
-                  } catch (error) {
-                    toast.error('Erro: ' + error.message);
-                  }
-                }}
-              />
+                  }}
+                />
+                <div className="mt-6">
+                  <ProfileEditRequests />
+                </div>
+              </>
             )}
           </TabsContent>
 
