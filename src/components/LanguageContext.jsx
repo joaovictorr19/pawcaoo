@@ -53,20 +53,7 @@ export const LanguageProvider = ({ children }) => {
       return savedLang;
     }
     
-    // 3. Detect from browser
-    if (typeof navigator !== 'undefined') {
-      const browserLang = navigator.language || navigator.userLanguage;
-      if (BROWSER_LANG_MAP[browserLang]) {
-        return BROWSER_LANG_MAP[browserLang];
-      }
-      // Try just the first part (e.g., 'pt' from 'pt-PT')
-      const baseLang = browserLang.split('-')[0];
-      if (SUPPORTED_LANGUAGES.includes(baseLang)) {
-        return baseLang;
-      }
-    }
-    
-    // 4. Default to Portuguese
+    // 3. Default to Portuguese (app default)
     return 'pt';
   });
 
