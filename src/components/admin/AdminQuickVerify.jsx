@@ -58,6 +58,14 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
             is_verified: status === 'verified',
             pawcao_seal: status === 'verified'
           });
+        } else {
+          await base44.entities.UserProfile.create({
+            user_email: userProfile.email,
+            user_id: userProfile.id,
+            full_name: userProfile.full_name || 'Utilizador',
+            is_verified: status === 'verified',
+            pawcao_seal: status === 'verified'
+          });
         }
       }
     },
