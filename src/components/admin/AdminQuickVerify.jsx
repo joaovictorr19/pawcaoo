@@ -54,7 +54,8 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
         const profiles = await base44.entities.UserProfile.filter({ user_email: userProfile.email });
         if (Array.isArray(profiles) && profiles.length > 0) {
           await base44.entities.UserProfile.update(profiles[0].id, {
-            is_verified: status === 'verified'
+            is_verified: status === 'verified',
+            pawcao_seal: status === 'verified'
           });
         }
       }

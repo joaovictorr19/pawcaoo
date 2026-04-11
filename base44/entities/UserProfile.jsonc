@@ -104,6 +104,11 @@
       "default": false,
       "description": "Selo de treinador verificado"
     },
+    "is_fee_exempt": {
+      "type": "boolean",
+      "default": false,
+      "description": "Isento de taxa de plataforma (0% fee)"
+    },
     "is_adoption_advocate": {
       "type": "boolean",
       "default": false,

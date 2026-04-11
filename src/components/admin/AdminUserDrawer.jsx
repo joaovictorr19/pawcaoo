@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2, Gift, Wallet, Trash2 } from "lucide-react";
+import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2, Gift, Wallet, Trash2, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -42,6 +42,8 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           await base44.entities.WalkerProfile.update(wId, { is_verified_trainer: !!checked });
         } else if (field === 'is_pawcao') {
           await base44.entities.WalkerProfile.update(wId, { has_pawcao_seal: !!checked });
+        } else if (field === 'is_fee_exempt') {
+          await base44.entities.WalkerProfile.update(wId, { exempt_from_platform_fees: !!checked });
         }
       }
 
@@ -67,6 +69,8 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           await base44.entities.UserProfile.update(pId, { trainer_verified: !!checked });
         } else if (field === 'is_pawcao') {
           await base44.entities.UserProfile.update(pId, { pawcao_seal: !!checked });
+        } else if (field === 'is_fee_exempt') {
+          await base44.entities.UserProfile.update(pId, { is_fee_exempt: !!checked });
         }
       }
 
@@ -127,6 +131,21 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           checked={(profile?.pawcao_seal ?? (user.professional_profile?.is_pawcao || false))} 
           onCheckedChange={(checked) => handleToggle('is_pawcao', checked)}
           disabled={updating === 'is_pawcao'}
+        />
+      </div>
+
+      {/* LINHA: ISENÇÃO DE TAXA (0% Fee) */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 rounded-lg">
+            {updating === 'is_fee_exempt' ? <Loader2 size={18} className="text-green-600 animate-spin" /> : <Percent size={18} className="text-green-600" />}
+          </div>
+          <span className="text-sm font-bold text-slate-700">Isenção de Taxa (0% Fee)</span>
+        </div>
+        <Switch 
+          checked={Boolean(profile?.is_fee_exempt)} 
+          onCheckedChange={(checked) => handleToggle('is_fee_exempt', checked)}
+          disabled={updating === 'is_fee_exempt'}
         />
       </div>
     </div>
