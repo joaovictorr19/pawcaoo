@@ -675,18 +675,18 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {emergencyUsers?.length > 0 && (
-        <div className="fixed inset-0 z-[9999] bg-red-600/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white text-center">
+        <div className="fixed inset-0 z-[9999] bg-red-600/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white text-center pointer-events-none">
           <AlertTriangle className="w-24 h-24 mb-6 animate-bounce text-white" />
           <h1 className="text-5xl font-black mb-2">ALERTA DE SEGURANÇA!</h1>
           <p className="text-xl mb-8">Um profissional solicitou ajuda imediata.</p>
 
           <div className="mt-8 flex gap-4">
-            <Button className="bg-white text-red-600 font-bold px-10 h-14 rounded-full hover:bg-gray-100">
+            <Button className="bg-white text-red-600 font-bold px-10 h-14 rounded-full hover:bg-gray-100 pointer-events-auto">
               Ligar para {emergencyUsers[0].full_name || emergencyUsers[0].email}
             </Button>
             <Button 
               variant="outline" 
-              className="border-white text-white hover:bg-red-700 px-10 h-14 rounded-full bg-transparent"
+              className="border-white text-white hover:bg-red-700 px-10 h-14 rounded-full bg-transparent pointer-events-auto"
               onClick={async () => {
                 if(confirm("Confirmar que a emergência foi resolvida?")) {
                   try {
