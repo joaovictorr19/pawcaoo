@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -378,11 +378,20 @@ export default function AdminDashboard() {
   // Profissionais pendentes via novo sistema unificado (professional_profile)
   const pendingProfessionals = allUsers.filter(u => {
     const status = u.professional_profile?.verification_status;
-    return (
-      ['walker', 'trainer', 'both', 'professional'].includes(u.account_type) &&
-      (status === 'pending' || status === 'requires_documents' || !status)
+    const isPro = (
+      ['walker', 'trainer', 'both', 'professional'].includes(u.account_type || '') ||
+      !!u.professional_profile?.requested_role ||
+      u.professional_profile?.is_professional === true ||
+      !!u.professional_profile
     );
+    return isPro && (status === 'pending' || status === 'requires_documents' || !status);
   });
+
+  useEffect(() => {
+    if (activeTab === 'approvals') {
+      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+    }
+  }, [activeTab, queryClient]);
 
   const dashboardStats = useMemo(() => [
     {
@@ -795,17 +804,20 @@ export default function AdminDashboard() {
 
           <TabsContent value="approvals">
             {activeTab === 'approvals' && (
-              <AdminApprovals
-                pendingUsers={pendingProfessionals}
-                onRefresh={async () => {
-                  await Promise.all([
-                    queryClient.invalidateQueries({ queryKey: ['allUsers'] }),
-                    queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] }),
-                    queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] }),
-                  ]);
-                  toast.success("Atualizado!");
-                }}
-              />
+              <div className="mt-6 space-y-6">
+                <AdminApprovals
+                  pendingUsers={pendingProfessionals}
+                  onRefresh={async () => {
+                    await Promise.all([
+                      queryClient.invalidateQueries({ queryKey: ['allUsers'] }),
+                      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] }),
+                      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] }),
+                    ]);
+                    toast.success("Atualizado!");
+                  }}
+                />
+                <ProfileEditRequests />
+              </div>
             )}
           </TabsContent>
 
