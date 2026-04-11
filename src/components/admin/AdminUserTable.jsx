@@ -75,7 +75,7 @@ export default function AdminUserTable({
     emails.forEach(email => {
       const p = profilesByEmail[email];
       if (p?.is_verified === true) active++;
-      else if (p) pending++;
+      else pending++;
     });
     return { pending, active, reports: 0 };
   }, [users, profilesByEmail]);
@@ -104,12 +104,8 @@ export default function AdminUserTable({
 
       // Quick Filters (Pílulas do Topo) — baseados em UserProfile
       const prof = profilesByEmail[u.email];
-      if (quickFilter === 'pending') {
-        if (!prof || prof.is_verified === true) return false;
-      }
-      if (quickFilter === 'active') {
-        if (!prof || prof.is_verified !== true) return false;
-      }
+      if (quickFilter === 'pending' && prof?.is_verified === true) return false;
+      if (quickFilter === 'active' && prof?.is_verified !== true) return false;
       if (quickFilter === 'reports') return false; // Fixo zero para já
 
       // Filtros Avançados (apenas se existirem)
