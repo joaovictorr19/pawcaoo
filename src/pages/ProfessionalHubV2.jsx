@@ -86,6 +86,11 @@ function ActiveRequestsList({ user }) {
 export default function ProfessionalHubV2() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const urlParams = new URLSearchParams(window.location.search);
   const initialTab = urlParams.get('tab') === 'agenda' ? 'calendar' : urlParams.get('tab') === 'active' ? 'active' : 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);

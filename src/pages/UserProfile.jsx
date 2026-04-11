@@ -19,6 +19,10 @@ export default function UserProfile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const urlParams = new URLSearchParams(window.location.search);
   const rawEmail = urlParams.get('email');
   let profileEmailParam = rawEmail;
