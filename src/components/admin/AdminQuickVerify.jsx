@@ -13,13 +13,14 @@ import { toast } from "sonner";
 export function AdminQuickVerify({ userProfile, walkerData }) {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
+  const wd = walkerData || {};
 
   // Mutação Única para Aprovar e Ativar no PawGo
   const verifyMutation = useMutation({
     mutationFn: async (status) => {
       // 1. Atualiza o Perfil de Walker
-      if (walkerData && walkerData.id) {
-        await base44.entities.WalkerProfile.update(walkerData.id, {
+      if (wd && wd.id) {
+        await base44.entities.WalkerProfile.update(wd.id, {
           verification_status: status,
           is_active: status === 'verified',
           has_pawcao_seal: status === 'verified' // Dá o selo automaticamente
@@ -68,7 +69,7 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
     }
   });
 
-  if (!walkerData) return null;
+
 
   return (
     <>
@@ -87,10 +88,10 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
             <div className="flex justify-between items-center">
               <DialogTitle className="text-xl flex items-center gap-2">
                 <ShieldCheck className="text-green-400" /> 
-                Verificação: {walkerData.walker_name}
+                Verificação: {walkerData?.walker_name || userProfile?.full_name || userProfile?.email || 'Utilizador'}
               </DialogTitle>
               <Badge variant="outline" className="text-white border-white/20">
-                ID: {walkerData.id ? walkerData.id.slice(0,8) : 'N/A'}
+                ID: {wd.id ? wd.id.slice(0,8) : 'N/A'}
               </Badge>
             </div>
           </DialogHeader>
@@ -100,9 +101,9 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
             <div className="space-y-2">
               <Label className="text-xs uppercase font-bold text-gray-500">Documento de Identificação</Label>
               <div className="aspect-[4/3] bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden group cursor-zoom-in">
-                {walkerData.id_document_url ? (
+                {wd.id_document_url ? (
                   <img 
-                    src={walkerData.id_document_url} 
+                    src={wd.id_document_url} 
                     alt="ID Document" 
                     className="w-full h-full object-contain transition-transform group-hover:scale-110"
                   />
@@ -119,16 +120,16 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
             <div className="space-y-4">
               <div className="bg-white p-4 rounded-lg shadow-sm border">
                 <h4 className="font-bold text-sm mb-3 border-b pb-2">Dados Fiscais (NIF)</h4>
-                <p className="text-lg font-mono text-blue-700">{walkerData.tax_id_portugal || "Não informado"}</p>
-                <p className="text-xs text-gray-500 mt-1">País: {walkerData.country_of_operation}</p>
+                <p className="text-lg font-mono text-blue-700">{wd.tax_id_portugal || "Não informado"}</p>
+                <p className="text-xs text-gray-500 mt-1">País: {wd.country_of_operation}</p>
               </div>
 
               <div className="bg-white p-4 rounded-lg shadow-sm border">
                 <h4 className="font-bold text-sm mb-3 border-b pb-2">Resumo Profissional</h4>
                 <div className="space-y-1 text-sm">
-                  <p><strong>Experiência:</strong> {walkerData.experience_years} anos</p>
-                  <p><strong>Taxa Horária:</strong> {walkerData.hourly_rate}€</p>
-                  <p><strong>WhatsApp:</strong> {walkerData.whatsapp_number}</p>
+                  <p><strong>Experiência:</strong> {wd.experience_years} anos</p>
+                  <p><strong>Taxa Horária:</strong> {wd.hourly_rate}€</p>
+                  <p><strong>WhatsApp:</strong> {wd.whatsapp_number}</p>
                 </div>
               </div>
             </div>

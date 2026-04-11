@@ -74,7 +74,8 @@ export default function AdminUserTable({
     let pending = 0, active = 0;
     emails.forEach(email => {
       const p = profilesByEmail[email];
-      if (p?.is_verified) active++; else pending++;
+      if (p?.is_verified === true) active++;
+      else if (p) pending++;
     });
     return { pending, active, reports: 0 };
   }, [users, profilesByEmail]);
@@ -103,8 +104,12 @@ export default function AdminUserTable({
 
       // Quick Filters (Pílulas do Topo) — baseados em UserProfile
       const prof = profilesByEmail[u.email];
-      if (quickFilter === 'pending' && prof?.is_verified === true) return false;
-      if (quickFilter === 'active' && prof?.is_verified !== true) return false;
+      if (quickFilter === 'pending') {
+        if (!prof || prof.is_verified === true) return false;
+      }
+      if (quickFilter === 'active') {
+        if (!prof || prof.is_verified !== true) return false;
+      }
       if (quickFilter === 'reports') return false; // Fixo zero para já
 
       // Filtros Avançados (apenas se existirem)
@@ -140,7 +145,7 @@ export default function AdminUserTable({
 
       return true;
     });
-  }, [users, userSearchState, profilesByEmail]);
+  }, [users, userSearchState, profilesByEmail, quickFilter]);
 
   // Paginação (otimizada com useMemo)
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -154,6 +159,11 @@ export default function AdminUserTable({
     console.log('Filters changed, resetting to page 1');
     setCurrentPage(1);
   }, [userSearchState]);
+
+  // Reset page when quick pill changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [quickFilter]);
 
   // Debug: Log quando página muda
   React.useEffect(() => {
@@ -293,8 +303,8 @@ export default function AdminUserTable({
                           <div className="flex gap-1">
                             {/* Mini Badges Icons */}
                             <ShieldAlert className={`w-3.5 h-3.5 ${profilesByEmail[user.email]?.is_verified ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
-                            <Award className={`w-3.5 h-3.5 ${user.professional_profile?.is_trained ? 'text-purple-500' : 'text-gray-300'}`} title="Treinado" />
-                            <UserCircle className={`w-3.5 h-3.5 ${user.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-gray-300'}`} title="PawCão" />
+                            <Award className={`w-3.5 h-3.5 ${profilesByEmail[user.email]?.trainer_verified ? 'text-purple-500' : 'text-gray-300'}`} title="Treinado" />
+                            <UserCircle className={`w-3.5 h-3.5 ${profilesByEmail[user.email]?.pawcao_seal ? 'text-orange-500' : 'text-gray-300'}`} title="PawCão" />
                           </div>
                         </div>
                       </TableCell>

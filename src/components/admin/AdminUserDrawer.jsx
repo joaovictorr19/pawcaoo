@@ -251,7 +251,7 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-8">
-              {user.professional_profile?.verification_status === 'pending' ? (
+              {profile?.is_verified !== true ? (
                 <Button 
                   onClick={() => { onApprove(user); onClose(); }}
                   className="h-20 bg-orange-500 hover:bg-orange-600 rounded-3xl flex flex-col gap-1 shadow-lg shadow-orange-500/20"
