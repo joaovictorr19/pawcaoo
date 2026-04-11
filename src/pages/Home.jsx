@@ -13,6 +13,7 @@ const AdvancedWalkerFilters = React.lazy(() => import("../components/search/Adva
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
 import TestimonialsSection from "../components/home/TestimonialsSection";
+import CloudyBackground from "../components/home/CloudyBackground";
 import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
@@ -550,8 +551,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative w-full">
+      {!user && <CloudyBackground />}
 
       <div className="relative z-10 overflow-visible md:overflow-hidden">
+            
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           {user ? (
