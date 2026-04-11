@@ -10,8 +10,27 @@ import { toast } from "sonner";
 
 export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
   const [updating, setUpdating] = useState(null);
+  const [localFlags, setLocalFlags] = useState({});
+  useEffect(() => {
+    setLocalFlags({
+      is_verified: !!profile?.is_verified,
+      trainer_verified: !!profile?.trainer_verified,
+      pawcao_seal: !!profile?.pawcao_seal,
+      is_fee_exempt: !!profile?.is_fee_exempt,
+    });
+  }, [profile]);
 
   const handleToggle = async (field, checked) => {
+      // Optimistic local state
+      const mapFieldToLocal = {
+        verification_status: 'is_verified',
+        is_trained: 'trainer_verified',
+        is_pawcao: 'pawcao_seal',
+        is_fee_exempt: 'is_fee_exempt',
+      };
+      const localKey = mapFieldToLocal[field];
+      if (localKey) setLocalFlags((prev) => ({ ...prev, [localKey]: !!checked }));
+
     setUpdating(field);
     try {
       const prof = user.professional_profile || {};
@@ -94,6 +113,8 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
       if (typeof refreshProfile === 'function') { await refreshProfile(); }
       toast.success(`Selo atualizado com sucesso!`);
     } catch (error) {
+      // rollback optimistic state
+      if (localKey) setLocalFlags((prev) => ({ ...prev, [localKey]: !checked }));
       toast.error("Erro ao atualizar selo.");
     } finally {
       setUpdating(null);
@@ -115,7 +136,7 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           <span className="text-sm font-bold text-slate-700">Identidade Verificada</span>
         </div>
         <Switch 
-        checked={Boolean(profile?.is_verified)} 
+        checked={Boolean(localFlags.is_verified)} 
         onCheckedChange={(checked) => handleToggle('verification_status', checked)}
         disabled={updating === 'verification_status'}
         />
@@ -130,7 +151,7 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           <span className="text-sm font-bold text-slate-700">Treinador Certificado</span>
         </div>
         <Switch 
-          checked={Boolean(profile?.trainer_verified)} 
+          checked={Boolean(localFlags.trainer_verified)} 
           onCheckedChange={(checked) => handleToggle('is_trained', checked)}
           disabled={updating === 'is_trained'}
         />
@@ -145,7 +166,7 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           <span className="text-sm font-bold text-slate-700">Selo Especial PawCão</span>
         </div>
         <Switch 
-          checked={Boolean(profile?.pawcao_seal)} 
+          checked={Boolean(localFlags.pawcao_seal)} 
           onCheckedChange={(checked) => handleToggle('is_pawcao', checked)}
           disabled={updating === 'is_pawcao'}
         />
@@ -160,7 +181,7 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           <span className="text-sm font-bold text-slate-700">Isenção de Taxa (0% Fee)</span>
         </div>
         <Switch 
-          checked={Boolean(profile?.is_fee_exempt)} 
+          checked={Boolean(localFlags.is_fee_exempt)} 
           onCheckedChange={(checked) => handleToggle('is_fee_exempt', checked)}
           disabled={updating === 'is_fee_exempt'}
         />
@@ -179,6 +200,7 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
     const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
     setProfile(Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null);
   };
+
 
   useEffect(() => {
     if (isOpen) { fetchProfile(); }
@@ -265,7 +287,7 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm z-[150]"
           />
         )}
       </AnimatePresence>
@@ -277,7 +299,7 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="relative w-full max-w-lg bg-white rounded-t-[3rem] p-8 shadow-2xl pb-safe"
+            className="relative w-full max-w-lg bg-white rounded-t-[3rem] p-8 shadow-2xl pb-safe z-[200]"
           >
             <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8 cursor-grab active:cursor-grabbing" onClick={onClose} />
 
