@@ -100,13 +100,15 @@ export default function MobileHeader() {
       <div className="grid grid-cols-[auto,1fr,auto] items-center w-full">
         {/* Logo à esquerda */}
         <div className="flex items-center">
-          <PawCaoLogo size="small" showText={false} />
+          <button onClick={() => navigate(createPageUrl('Home'))} aria-label="Ir para a página inicial" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
+            <PawCaoLogo size="small" showText={false} />
+          </button>
         </div>
 
         {/* Botões centralizados */}
         <div className="flex items-center justify-center">
           <div className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
-            <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Explorar</Button>
+            <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
             <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
             <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
           </div>
