@@ -199,37 +199,41 @@ export default function AdminDashboard() {
     queryKey: ['allUsers'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.User.list('-created_date', 1000),
-    enabled: isAdmin,
+    enabled: isAdmin && activeTab === 'users',
     initialData: [],
     staleTime: 30 * 1000,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
   });
 
   const { data: allWalkers = [] } = useQuery({
     queryKey: ['allWalkersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.WalkerProfile.list('-created_date', 1000),
-    enabled: isAdmin,
+    enabled: isAdmin && activeTab === 'users',
     initialData: [],
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allTrainers = [] } = useQuery({
     queryKey: ['allTrainersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.TrainerProfile.list('-created_date', 1000),
-    enabled: isAdmin,
+    enabled: isAdmin && activeTab === 'users',
     initialData: [],
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allShelters = [] } = useQuery({
     queryKey: ['allSheltersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.ShelterProfile.list('-created_date', 1000),
-    enabled: isAdmin,
+    enabled: isAdmin && activeTab === 'users',
     initialData: [],
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: adoptionApplications = [] } = useQuery({
@@ -245,18 +249,20 @@ export default function AdminDashboard() {
     queryKey: ['allPartnerServices'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.PartnerService.list('-created_date'),
-    enabled: isAdmin,
+    enabled: isAdmin && activeTab === 'operations',
     initialData: [],
     staleTime: 3 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allPartnerProducts = [] } = useQuery({
     queryKey: ['allPartnerProducts'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.PartnerProduct.list('-created_date'),
-    enabled: isAdmin,
+    enabled: isAdmin && activeTab === 'operations',
     initialData: [],
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allBookings = [] } = useQuery({
@@ -267,19 +273,21 @@ export default function AdminDashboard() {
       const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 500)).map(b => ({...b, entityType: 'training'}));
       return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
-    enabled: isAdmin,
+    enabled: isAdmin && (activeTab === 'overview' || activeTab === 'godmode'),
     initialData: [],
     staleTime: 10 * 1000,
     refetchInterval: 10000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['allPayments'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.Payment.list('-held_date', 200),
-    enabled: isAdmin,
+    enabled: isAdmin && (activeTab === 'overview' || activeTab === 'godmode'),
     initialData: [],
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allAnnouncements = [] } = useQuery({
@@ -289,9 +297,10 @@ export default function AdminDashboard() {
       const announcements = await base44.entities.CompanyAnnouncement.list('-created_date');
       return announcements;
     },
-    enabled: isAdmin,
+    enabled: isAdmin && activeTab === 'operations',
     initialData: [],
     staleTime: 3 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: companies = [] } = useQuery({
@@ -336,9 +345,10 @@ export default function AdminDashboard() {
 
       return companiesWithStats;
     },
-    enabled: isAdmin,
+    enabled: isAdmin && activeTab === 'operations',
     staleTime: 5 * 60 * 1000,
     initialData: [],
+    refetchOnWindowFocus: false,
   });
 
   const { data: allReviews = [] } = useQuery({
@@ -362,10 +372,11 @@ export default function AdminDashboard() {
     queryKey: ['badgeDefinitions'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.BadgeDefinition.list('-created_date', 1000),
-    enabled: isAdmin,
+    enabled: isAdmin && activeTab === 'gamification',
     initialData: [],
     staleTime: 30 * 1000,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
   });
 
   const walkerApplications = allWalkers.filter(w => w.verification_status === 'pending' || !w.verification_status);
