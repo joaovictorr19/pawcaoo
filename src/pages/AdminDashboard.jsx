@@ -1107,6 +1107,15 @@ export default function AdminDashboard() {
                       const t = await base44.entities.TrainerProfile.filter({ created_by: u.email });
                       if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'verified', is_active: true });
                     }
+                    // Garantir que a aba Usuários reflete o estado (UserProfile -> is_verified)
+                    try {
+                      const profiles = await base44.entities.UserProfile.filter({ user_email: u.email });
+                      if (profiles.length) {
+                        await base44.entities.UserProfile.update(profiles[0].id, { is_verified: true });
+                      }
+                    } catch (err) {
+                      console.error('Sync UserProfile.is_verified error:', err);
+                    }
                     queryClient.invalidateQueries({ queryKey: ['allUsers'] });
                     toast.success("Usuário aprovado!");
                   } catch (e) {

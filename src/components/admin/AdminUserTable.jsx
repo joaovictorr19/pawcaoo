@@ -81,7 +81,29 @@ export default function AdminUserTable({
     return unsubscribe;
   }, []);
 
-  const handleOpenAction = (user) => {
+  const reloadProfiles = async () => {
+    try {
+      const list = await base44.entities.UserProfile.list('-updated_date', 1000);
+      const map = {};
+      (Array.isArray(list) ? list : []).forEach(p => { if (p?.user_email) map[p.user_email] = p; });
+      setProfilesByEmail(map);
+    } catch (e) {
+      console.error('UserProfile reload error:', e);
+    }
+  };
+
+  const handleSync = async () => {
+    try {
+      if (typeof onSyncProfiles === 'function') {
+        await onSyncProfiles();
+      }
+    } finally {
+      await reloadProfiles();
+      // manter filtro e paginação, apenas atualizar dados
+    }
+  };
+
+   const handleOpenAction = (user) => {
     setSelectedUser(user);
     setIsDrawerOpen(true);
   };
@@ -203,7 +225,7 @@ export default function AdminUserTable({
             </div>
             <Button 
               variant="outline" 
-              onClick={onSyncProfiles} 
+              onClick={handleSync} 
               disabled={isSyncing}
               size="sm"
               title="Sincronizar Perfis Públicos"
