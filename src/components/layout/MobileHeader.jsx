@@ -106,16 +106,16 @@ export default function MobileHeader() {
         {/* Botões centralizados */}
         <div className="flex items-center justify-center">
           <div className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
-            <Button size="sm" variant="outline" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
-            <Button size="sm" variant="outline" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
-            <Button size="sm" variant="outline" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
+            <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
+            <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
+            <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
           </div>
         </div>
 
         {/* Ações à direita */}
         <div className="flex items-center justify-end">
           {authed && (
-            <Button size="sm" variant="ghost" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.logout()}>
+            <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.logout()}>
               <LogOut className="w-4 h-4 mr-1" /> Sair
             </Button>
           )}
