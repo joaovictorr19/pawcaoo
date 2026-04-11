@@ -812,7 +812,7 @@ export default function Home() {
                   <span className="text-orange-500">cães extraordinários</span>
                 </h1>
                 <p className="text-slate-600 font-bold uppercase tracking-[0.3em] text-xs">
-                  A maior rede de dog walkers de Portugal
+                  A melhor rede de dog walkers de Portugal
                 </p>
               </div>
 
