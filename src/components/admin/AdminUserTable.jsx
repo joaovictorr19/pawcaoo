@@ -114,8 +114,8 @@ export default function AdminUserTable({
         }
 
         if (filters.verification && filters.verification !== 'all') {
-          if (filters.verification === 'verified' && !u.is_verified) return false;
-          if (filters.verification === 'unverified' && u.is_verified) return false;
+          if (filters.verification === 'verified' && prof?.is_verified !== true) return false;
+          if (filters.verification === 'unverified' && prof?.is_verified === true) return false;
         }
 
         if (filters.status === 'active' && (!u.public_badges || u.public_badges.length === 0)) {
@@ -292,7 +292,7 @@ export default function AdminUserTable({
                           <span>{user.full_name || 'N/A'}</span>
                           <div className="flex gap-1">
                             {/* Mini Badges Icons */}
-                            <ShieldAlert className={`w-3.5 h-3.5 ${((profilesByEmail[user.email]?.is_verified) || user.professional_profile?.verification_status === 'verified' || user.professional_profile?.is_verified) ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
+                            <ShieldAlert className={`w-3.5 h-3.5 ${profilesByEmail[user.email]?.is_verified ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
                             <Award className={`w-3.5 h-3.5 ${user.professional_profile?.is_trained ? 'text-purple-500' : 'text-gray-300'}`} title="Treinado" />
                             <UserCircle className={`w-3.5 h-3.5 ${user.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-gray-300'}`} title="PawCão" />
                           </div>
@@ -331,7 +331,7 @@ export default function AdminUserTable({
                                   walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} 
                                 />
                               </div>
-                            )}}
+                            )}
                         </div>
                       </TableCell>
                       <TableCell className="text-[10px] text-gray-500 whitespace-nowrap">
