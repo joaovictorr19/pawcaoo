@@ -271,7 +271,7 @@ export default function AdminUserTable({
                           <span>{user.full_name || 'N/A'}</span>
                           <div className="flex gap-1">
                             {/* Mini Badges Icons */}
-                            <ShieldAlert className={`w-3.5 h-3.5 ${user.professional_profile?.verification_status === 'verified' ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
+                            <ShieldAlert className={`w-3.5 h-3.5 ${(user.professional_profile?.verification_status === 'verified' || user.professional_profile?.is_verified) ? 'text-blue-500' : 'text-gray-300'}`} title="Verificado" />
                             <Award className={`w-3.5 h-3.5 ${user.professional_profile?.is_trained ? 'text-purple-500' : 'text-gray-300'}`} title="Treinado" />
                             <UserCircle className={`w-3.5 h-3.5 ${user.professional_profile?.is_pawcao ? 'text-orange-500' : 'text-gray-300'}`} title="PawCão" />
                           </div>

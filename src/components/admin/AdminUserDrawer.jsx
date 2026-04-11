@@ -11,16 +11,21 @@ import { toast } from "sonner";
 export function AdminBadgeManager({ user, onUpdate }) {
   const [updating, setUpdating] = useState(null);
 
-  const handleToggle = async (field, currentValue) => {
+  const handleToggle = async (field, checked) => {
     setUpdating(field);
     try {
-      // Atualiza o campo específico no professional_profile
-      await onUpdate(user.id, {
-        professional_profile: {
-          ...(user.professional_profile || {}),
-          [field]: currentValue === 'verified' ? 'pending' : (typeof currentValue === 'boolean' ? !currentValue : true)
-        }
-      });
+      const prof = user.professional_profile || {};
+      const updates = { professional_profile: { ...prof } };
+
+      if (field === 'verification_status') {
+        updates.professional_profile.verification_status = checked ? 'verified' : 'pending';
+        updates.professional_profile.is_verified = !!checked;
+        updates.professional_profile.is_active = !!checked;
+      } else {
+        updates.professional_profile[field] = !!checked;
+      }
+
+      await onUpdate(user.id, updates);
       toast.success(`Selo atualizado com sucesso!`);
     } catch (error) {
       toast.error("Erro ao atualizar selo.");
@@ -45,7 +50,7 @@ export function AdminBadgeManager({ user, onUpdate }) {
         </div>
         <Switch 
           checked={user.professional_profile?.verification_status === 'verified'} 
-          onCheckedChange={() => handleToggle('verification_status', user.professional_profile?.verification_status)}
+          onCheckedChange={(checked) => handleToggle('verification_status', checked)}
           disabled={updating === 'verification_status'}
         />
       </div>
@@ -60,7 +65,7 @@ export function AdminBadgeManager({ user, onUpdate }) {
         </div>
         <Switch 
           checked={user.professional_profile?.is_trained || false} 
-          onCheckedChange={() => handleToggle('is_trained', user.professional_profile?.is_trained || false)}
+          onCheckedChange={(checked) => handleToggle('is_trained', checked)}
           disabled={updating === 'is_trained'}
         />
       </div>
@@ -75,7 +80,7 @@ export function AdminBadgeManager({ user, onUpdate }) {
         </div>
         <Switch 
           checked={user.professional_profile?.is_pawcao || false} 
-          onCheckedChange={() => handleToggle('is_pawcao', user.professional_profile?.is_pawcao || false)}
+          onCheckedChange={(checked) => handleToggle('is_pawcao', checked)}
           disabled={updating === 'is_pawcao'}
         />
       </div>
