@@ -154,6 +154,7 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
 
 export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpdate, onDelete }) {
   const [isGifting, setIsGifting] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [profile, setProfile] = useState(null);
 
   const fetchProfile = async () => {
@@ -165,6 +166,34 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
   useEffect(() => {
     if (isOpen) { fetchProfile(); }
   }, [isOpen, user?.email]);
+
+  const handleApprove = async () => {
+    if (!user?.email) return;
+    setIsApproving(true);
+    try {
+      const email = user.email;
+      const profiles = await base44.entities.UserProfile.filter({ user_email: email });
+      if (Array.isArray(profiles) && profiles.length > 0) {
+        await base44.entities.UserProfile.update(profiles[0].id, { is_verified: true });
+      }
+      const walkers = await base44.entities.WalkerProfile.filter({ created_by: email });
+      if (Array.isArray(walkers) && walkers.length > 0) {
+        await base44.entities.WalkerProfile.update(walkers[0].id, { verification_status: 'verified', is_active: true });
+      }
+      const trainers = await base44.entities.TrainerProfile.filter({ created_by: email });
+      if (Array.isArray(trainers) && trainers.length > 0) {
+        await base44.entities.TrainerProfile.update(trainers[0].id, { verification_status: 'verified', is_active: true });
+      }
+      if (typeof onApprove === 'function') { await onApprove(user); }
+      await fetchProfile();
+      toast.success('Utilizador aprovado com sucesso');
+      onClose();
+    } catch (e) {
+      toast.error('Erro ao aprovar utilizador');
+    } finally {
+      setIsApproving(false);
+    }
+  };
 
   const handleGiftFreeWalk = async () => {
     setIsGifting(true);
@@ -253,10 +282,11 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
             <div className="grid grid-cols-2 gap-4 mb-8">
               {profile?.is_verified !== true ? (
                 <Button 
-                  onClick={() => { onApprove(user); onClose(); }}
+                  onClick={handleApprove}
+                  disabled={isApproving}
                   className="h-20 bg-orange-500 hover:bg-orange-600 rounded-3xl flex flex-col gap-1 shadow-lg shadow-orange-500/20"
                 >
-                  <ShieldCheck className="w-6 h-6 text-white" />
+                  {isApproving ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <ShieldCheck className="w-6 h-6 text-white" />}
                   <span className="text-[10px] font-black uppercase text-white">Aprovar Pro</span>
                 </Button>
               ) : (
