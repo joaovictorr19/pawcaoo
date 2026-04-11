@@ -108,17 +108,19 @@ export default function AdminUserTable({
     setIsDrawerOpen(true);
   };
 
-  // Contagem baseada em UserProfile (fonte de verdade)
+  // Contagem baseada em estado unificado (UserProfile/User/Walker)
   const stats = useMemo(() => {
-    const emails = Array.isArray(users) ? users.map(u => u.email).filter(Boolean) : [];
     let pending = 0, active = 0;
-    emails.forEach(email => {
-      const p = profilesByEmail[email];
-      if (p?.is_verified === true) active++;
-      else pending++;
+    (Array.isArray(users) ? users : []).forEach(u => {
+      const prof = profilesByEmail[u.email];
+      const isVerifiedProfile = prof?.is_verified === true;
+      const isVerifiedUser = u?.professional_profile?.verification_status === 'verified' || u?.professional_profile?.is_verified === true;
+      const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && (w.is_active === true || w.verification_status === 'verified'));
+      const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker;
+      if (isActive) active++; else pending++;
     });
     return { pending, active, reports: 0 };
-  }, [users, profilesByEmail]);
+  }, [users, profilesByEmail, walkers]);
 
   // Lógica de Filtragem (Extraída do Dashboard) - OTIMIZADA
   const filteredUsers = useMemo(() => {
@@ -142,14 +144,18 @@ export default function AdminUserTable({
         }
       }
 
-      // Quick Filters (Pílulas do Topo) — baseados em UserProfile
+      // Quick Filters (Pílulas do Topo) — estado unificado (UserProfile/User/Walker)
       const prof = profilesByEmail[u.email];
+      const isVerifiedProfile = prof?.is_verified === true;
+      const isVerifiedUser = u?.professional_profile?.verification_status === 'verified' || u?.professional_profile?.is_verified === true;
+      const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && (w.is_active === true || w.verification_status === 'verified'));
+      const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker;
+
       if (quickFilter === 'pending') {
-        if (prof?.is_verified === true) return false;
-        return true; // mostrar todos os não verificados (ou sem perfil)
+        return !isActive; // mostrar todos os não ativos
       }
       if (quickFilter === 'active') {
-        return prof?.is_verified === true;
+        return isActive;
       }
       if (quickFilter === 'reports') return false; // Fixo zero para já
 
