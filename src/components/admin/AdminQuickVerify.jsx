@@ -39,6 +39,25 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
           }
         });
       }
+
+      // TrainerProfile sync
+      if (userProfile?.email) {
+        const trainers = await base44.entities.TrainerProfile.filter({ created_by: userProfile.email });
+        if (Array.isArray(trainers) && trainers.length > 0) {
+          await base44.entities.TrainerProfile.update(trainers[0].id, {
+            verification_status: status,
+            is_active: status === 'verified'
+          });
+        }
+
+        // UserProfile flag sync
+        const profiles = await base44.entities.UserProfile.filter({ user_email: userProfile.email });
+        if (Array.isArray(profiles) && profiles.length > 0) {
+          await base44.entities.UserProfile.update(profiles[0].id, {
+            is_verified: status === 'verified'
+          });
+        }
+      }
     },
     onSuccess: (_, status) => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });

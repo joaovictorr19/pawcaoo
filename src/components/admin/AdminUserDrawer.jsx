@@ -26,6 +26,50 @@ export function AdminBadgeManager({ user, onUpdate }) {
       }
 
       await onUpdate(user.id, updates);
+
+      // Sincronizar Walker/Trainer e UserProfile
+      const email = user.email;
+
+      const walkers = await base44.entities.WalkerProfile.filter({ created_by: email });
+      if (Array.isArray(walkers) && walkers.length > 0) {
+        const wId = walkers[0].id;
+        if (field === 'verification_status') {
+          await base44.entities.WalkerProfile.update(wId, {
+            verification_status: checked ? 'verified' : 'pending',
+            is_active: !!checked
+          });
+        } else if (field === 'is_trained') {
+          await base44.entities.WalkerProfile.update(wId, { is_verified_trainer: !!checked });
+        } else if (field === 'is_pawcao') {
+          await base44.entities.WalkerProfile.update(wId, { has_pawcao_seal: !!checked });
+        }
+      }
+
+      const trainers = await base44.entities.TrainerProfile.filter({ created_by: email });
+      if (Array.isArray(trainers) && trainers.length > 0) {
+        const tId = trainers[0].id;
+        if (field === 'verification_status') {
+          await base44.entities.TrainerProfile.update(tId, {
+            verification_status: checked ? 'verified' : 'pending',
+            is_active: !!checked
+          });
+        } else if (field === 'is_trained') {
+          await base44.entities.TrainerProfile.update(tId, { is_verified: !!checked, is_verified_trainer: !!checked });
+        }
+      }
+
+      const profiles = await base44.entities.UserProfile.filter({ user_email: email });
+      if (Array.isArray(profiles) && profiles.length > 0) {
+        const pId = profiles[0].id;
+        if (field === 'verification_status') {
+          await base44.entities.UserProfile.update(pId, { is_verified: !!checked });
+        } else if (field === 'is_trained') {
+          await base44.entities.UserProfile.update(pId, { trainer_verified: !!checked });
+        } else if (field === 'is_pawcao') {
+          await base44.entities.UserProfile.update(pId, { pawcao_seal: !!checked });
+        }
+      }
+
       toast.success(`Selo atualizado com sucesso!`);
     } catch (error) {
       toast.error("Erro ao atualizar selo.");

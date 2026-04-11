@@ -94,6 +94,16 @@
       "default": false,
       "description": "Selo de verifica\u00e7\u00e3o azul (apenas admins podem ativar)"
     },
+    "pawcao_seal": {
+      "type": "boolean",
+      "default": false,
+      "description": "Selo especial PawC\u00e3o"
+    },
+    "trainer_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Selo de treinador verificado"
+    },
     "is_adoption_advocate": {
       "type": "boolean",
       "default": false,
