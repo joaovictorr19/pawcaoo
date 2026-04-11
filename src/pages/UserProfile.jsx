@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -19,17 +19,20 @@ export default function UserProfile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    let tries = 0;
     const forceTop = () => {
       try {
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        window.scrollTo(0, 0);
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
       } catch {}
+      if (tries < 5) {
+        tries += 1;
+        setTimeout(forceTop, 200);
+      }
     };
     forceTop();
-    const t = setTimeout(forceTop, 300);
-    return () => clearTimeout(t);
   }, []);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -49,7 +52,19 @@ export default function UserProfile() {
 
   // Ensure page always opens at top when target profile changes
   useEffect(() => {
-    try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch {}
+    let cancelled = false;
+    const nudgeTop = () => {
+      if (cancelled) return;
+      try {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } catch {}
+    };
+    // Run twice to override late layout shifts (images/data)
+    setTimeout(nudgeTop, 0);
+    setTimeout(nudgeTop, 400);
+    return () => { cancelled = true; };
   }, [profileIdParam, profileEmailParam, profileUsernameParam]);
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
