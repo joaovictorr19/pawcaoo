@@ -63,6 +63,24 @@ export default function AdminUserTable({
     return () => { mounted = false; };
   }, [users]);
 
+  // Real-time sync with UserProfile changes
+  useEffect(() => {
+    const unsubscribe = base44.entities.UserProfile.subscribe((event) => {
+      const data = event.data || {};
+      const email = data.user_email;
+      setProfilesByEmail((prev) => {
+        const next = { ...prev };
+        if (event.type === 'delete' && email) {
+          delete next[email];
+        } else if (email) {
+          next[email] = data;
+        }
+        return next;
+      });
+    });
+    return unsubscribe;
+  }, []);
+
   const handleOpenAction = (user) => {
     setSelectedUser(user);
     setIsDrawerOpen(true);
