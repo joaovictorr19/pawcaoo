@@ -54,14 +54,8 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
           report: 'Concluído via QR Code'
         });
 
-        // Atualizar payment como released
-        const payments = await base44.entities.Payment.filter({ booking_id: booking.id });
-        if (payments.length > 0) {
-          await base44.entities.Payment.update(payments[0].id, {
-            status: 'released',
-            released_date: new Date().toISOString()
-          });
-        }
+        // Liberação do pagamento é automática via automação 'Release Payment on Booking Completion'
+        // (não atualizar Payment manualmente aqui).
 
         // Notificar dono
         await base44.entities.Notification.create({

@@ -152,35 +152,8 @@ async function handlePaymentSuccess(base44, paymentIntent) {
             console.log('   Walker exempt from fees:', isWalkerExempt);
             console.log('   Platform fee charged:', actualPlatformFee);
             
-            // 💳 TRANSFER PLATFORM FEE (€1.5 or €0 if exempt) TO PAWCAO
-            if (actualPlatformFee > 0 && booking.walker_email) {
-                try {
-                    const transferAmount = Math.round(actualPlatformFee * 100); // Stripe uses cents
-                    console.log('💸 Creating transfer to PawCão: €' + actualPlatformFee);
-                    
-                    // Get walker's Stripe account
-                    const stripeAccount = walkerProfiles[0]?.stripe_account_id;
-                    if (stripeAccount && stripeAccount !== 'none') {
-                        // Create transfer from walker's account to PawCão (platform account)
-                        const transfer = await stripe.transfers.create({
-                            amount: transferAmount,
-                            currency: 'eur',
-                            destination: stripeAccount, // This transfers FROM connected account
-                            // We need to reverse: take FROM connected, give TO PawCão
-                            // Actually in Stripe: we need to use reversal or manual payout
-                            metadata: {
-                                booking_id: bookingId,
-                                type: 'platform_commission'
-                            }
-                        });
-                        console.log('✅ Transfer created:', transfer.id);
-                    } else {
-                        console.warn('⚠️  Walker has no Stripe account for transfer');
-                    }
-                } catch (transferErr) {
-                    console.error('❌ Transfer error:', transferErr.message);
-                }
-            }
+            // Platform fee handling is processed at release time (after service completion).
+            // No money movement here on payment success to avoid early/incorrect transfers.
 
             // CRITICAL: Create chat conversation immediately
             try {
