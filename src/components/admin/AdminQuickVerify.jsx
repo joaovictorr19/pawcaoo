@@ -31,7 +31,6 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
       if (userProfile && userProfile.id) {
         await base44.entities.User.update(userProfile.id, {
           is_verified: status === 'verified',
-          role: status === 'verified' ? 'professional' : 'user',
           professional_profile: {
             ...(userProfile.professional_profile || {}),
             verification_status: status,

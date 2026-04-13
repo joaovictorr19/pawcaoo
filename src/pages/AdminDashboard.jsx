@@ -818,6 +818,7 @@ export default function AdminDashboard() {
                 <AdminUserTable
                   users={allUsers}
                   walkers={allWalkers}
+                  trainers={allTrainers}
                   isLoading={loadingAllUsers}
                   onEdit={handleEditUser}
                   onDelete={handleDeleteUser}

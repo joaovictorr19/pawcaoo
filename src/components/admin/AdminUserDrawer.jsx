@@ -327,24 +327,50 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-8">
-              {profile?.is_verified !== true ? (
-                <Button 
-                  onClick={handleApprove}
-                  disabled={isApproving}
-                  className="h-20 bg-orange-500 hover:bg-orange-600 rounded-3xl flex flex-col gap-1 shadow-lg shadow-orange-500/20"
-                >
-                  {isApproving ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <ShieldCheck className="w-6 h-6 text-white" />}
-                  <span className="text-[10px] font-black uppercase text-white">Aprovar Pro</span>
-                </Button>
-              ) : (
-                <Button 
-                  disabled
-                  className="h-20 bg-slate-100 rounded-3xl flex flex-col gap-1 text-slate-400 shadow-none border-0"
-                >
-                  <ShieldCheck className="w-6 h-6" />
-                  <span className="text-[10px] font-black uppercase">Já Aprovado</span>
-                </Button>
-              )}
+              {(() => {
+                const isProfessional = (
+                  ['walker','trainer','both','professional'].includes(user.account_type || '') ||
+                  user?.professional_profile?.is_professional === true ||
+                  !!user?.professional_profile?.requested_role
+                );
+                const isActive = Boolean(
+                  profile?.is_verified === true ||
+                  user?.professional_profile?.verification_status === 'verified' ||
+                  user?.professional_profile?.is_verified === true
+                );
+                if (!isProfessional) {
+                  return (
+                    <Button 
+                      disabled
+                      className="h-20 bg-slate-100 rounded-3xl flex flex-col gap-1 text-slate-400 shadow-none border-0"
+                    >
+                      <ShieldCheck className="w-6 h-6" />
+                      <span className="text-[10px] font-black uppercase">Conta de Cliente</span>
+                    </Button>
+                  );
+                }
+                if (!isActive) {
+                  return (
+                    <Button 
+                      onClick={handleApprove}
+                      disabled={isApproving}
+                      className="h-20 bg-orange-500 hover:bg-orange-600 rounded-3xl flex flex-col gap-1 shadow-lg shadow-orange-500/20"
+                    >
+                      {isApproving ? <Loader2 className="w-6 h-6 text-white animate-spin" /> : <ShieldCheck className="w-6 h-6 text-white" />}
+                      <span className="text-[10px] font-black uppercase text-white">Aprovar Pro</span>
+                    </Button>
+                  );
+                }
+                return (
+                  <Button 
+                    disabled
+                    className="h-20 bg-slate-100 rounded-3xl flex flex-col gap-1 text-slate-400 shadow-none border-0"
+                  >
+                    <ShieldCheck className="w-6 h-6" />
+                    <span className="text-[10px] font-black uppercase">Já Aprovado</span>
+                  </Button>
+                );
+              })()}
 
               <Button 
                 variant="outline"

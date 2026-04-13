@@ -26,6 +26,7 @@ import { base44 } from "@/api/base44Client";
 export default function AdminUserTable({ 
   users = [], 
   walkers = [],
+  trainers = [],
   isLoading = false, 
   onEdit, 
   onDelete, 
@@ -116,11 +117,20 @@ export default function AdminUserTable({
       const isVerifiedProfile = prof?.is_verified === true;
       const isVerifiedUser = u?.professional_profile?.verification_status === 'verified' || u?.professional_profile?.is_verified === true;
       const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && (w.is_active === true || w.verification_status === 'verified'));
-      const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker;
+      const hasActiveTrainer = Array.isArray(trainers) && trainers.some(t => t.created_by === u.email && (t.is_active === true || t.verification_status === 'verified'));
+      const isProfessional = (
+        ['walker','trainer','both','professional'].includes(u.account_type || '') ||
+        (Array.isArray(walkers) && walkers.some(w => w.created_by === u.email)) ||
+        (Array.isArray(trainers) && trainers.some(t => t.created_by === u.email)) ||
+        u?.professional_profile?.is_professional === true ||
+        !!u?.professional_profile?.requested_role
+      );
+      if (!isProfessional) return; // não contar clientes
+      const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker || hasActiveTrainer;
       if (isActive) active++; else pending++;
     });
     return { pending, active, reports: 0 };
-  }, [users, profilesByEmail, walkers]);
+  }, [users, profilesByEmail, walkers, trainers]);
 
   // Lógica de Filtragem (Extraída do Dashboard) - OTIMIZADA
   const filteredUsers = useMemo(() => {
@@ -144,18 +154,26 @@ export default function AdminUserTable({
         }
       }
 
-      // Quick Filters (Pílulas do Topo) — estado unificado (UserProfile/User/Walker)
+      // Quick Filters (Pílulas do Topo) — estado unificado (UserProfile/User/Walker/Trainer)
       const prof = profilesByEmail[u.email];
       const isVerifiedProfile = prof?.is_verified === true;
       const isVerifiedUser = u?.professional_profile?.verification_status === 'verified' || u?.professional_profile?.is_verified === true;
       const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && (w.is_active === true || w.verification_status === 'verified'));
-      const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker;
+      const hasActiveTrainer = Array.isArray(trainers) && trainers.some(t => t.created_by === u.email && (t.is_active === true || t.verification_status === 'verified'));
+      const isProfessional = (
+        ['walker','trainer','both','professional'].includes(u.account_type || '') ||
+        (Array.isArray(walkers) && walkers.some(w => w.created_by === u.email)) ||
+        (Array.isArray(trainers) && trainers.some(t => t.created_by === u.email)) ||
+        u?.professional_profile?.is_professional === true ||
+        !!u?.professional_profile?.requested_role
+      );
+      const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker || hasActiveTrainer;
 
       if (quickFilter === 'pending') {
-        return !isActive; // mostrar todos os não ativos
+        return isProfessional && !isActive; // apenas pros
       }
       if (quickFilter === 'active') {
-        return isActive;
+        return isProfessional && isActive; // apenas pros
       }
       if (quickFilter === 'reports') return false; // Fixo zero para já
 
@@ -192,7 +210,7 @@ export default function AdminUserTable({
 
       return true;
     });
-  }, [users, userSearchState, profilesByEmail, quickFilter]);
+  }, [users, userSearchState, profilesByEmail, quickFilter, walkers, trainers]);
 
   // Paginação (otimizada com useMemo)
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -363,10 +381,12 @@ export default function AdminUserTable({
                       <TableCell>
                         {(() => {
                           const hasWalker = walkers.some(w => w.created_by === user.email);
-                          const label = hasWalker
-                            ? (user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Profissional')
-                            : 'Cliente';
-                          const color = hasWalker ? 'bg-green-600' : 'bg-blue-600';
+                          const hasTrainer = trainers.some(t => t.created_by === user.email);
+                          let label = 'Cliente';
+                          if (hasWalker && hasTrainer) label = 'Prof. Misto';
+                          else if (hasWalker) label = 'Profissional';
+                          else if (hasTrainer) label = 'Treinador';
+                          const color = (hasWalker || hasTrainer) ? 'bg-green-600' : 'bg-blue-600';
                           return (
                             <Badge className={`capitalize text-white text-[10px] h-5 whitespace-nowrap ${color}`}>
                               {label}
@@ -379,16 +399,37 @@ export default function AdminUserTable({
                           <Badge className={`${user.role === 'admin' ? 'bg-purple-600' : 'bg-gray-600'} text-white text-[10px] h-5`}>
                             {user.role === 'admin' ? 'Admin' : 'User'}
                           </Badge>
-                          {profilesByEmail[user.email]?.is_verified === true ? (
-                              <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 text-[10px] h-5">✓ Verificado</Badge>
-                            ) : (
+                          {(() => {
+                            const prof = profilesByEmail[user.email];
+                            const isVerifiedProfile = prof?.is_verified === true;
+                            const isVerifiedUser = user?.professional_profile?.verification_status === 'verified' || user?.professional_profile?.is_verified === true;
+                            const walker = walkers.find(w => w.created_by === user.email);
+                            const trainer = trainers.find(t => t.created_by === user.email);
+                            const hasActiveWalker = !!walker && (walker.is_active === true || walker.verification_status === 'verified');
+                            const hasActiveTrainer = !!trainer && (trainer.is_active === true || trainer.verification_status === 'verified');
+                            const isProfessional = (
+                              ['walker','trainer','both','professional'].includes(user.account_type || '') ||
+                              !!walker || !!trainer ||
+                              user?.professional_profile?.is_professional === true ||
+                              !!user?.professional_profile?.requested_role
+                            );
+                            const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker || hasActiveTrainer;
+
+                            if (!isProfessional) {
+                              return <Badge variant="outline" className="text-slate-600 bg-slate-50 text-[10px] h-5">Cliente</Badge>;
+                            }
+                            if (isActive) {
+                              return <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 text-[10px] h-5">✓ Verificado</Badge>;
+                            }
+                            return (
                               <div className="flex gap-1">
                                 <AdminQuickVerify 
                                   userProfile={user} 
-                                  walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} 
+                                  walkerData={walker || user.professional_profile} 
                                 />
                               </div>
-                            )}
+                            );
+                          })()}
                         </div>
                       </TableCell>
                       <TableCell className="text-[10px] text-gray-500 whitespace-nowrap">
@@ -399,11 +440,32 @@ export default function AdminUserTable({
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title="Ver Perfil">
                             <Eye className="w-3.5 h-3.5 text-gray-500" />
                           </Button>
-                          {/* AdminQuickVerify as requested by the user */}
-                          <AdminQuickVerify 
-                            userProfile={user} 
-                            walkerData={walkers.find(w => w.created_by === user.email) || user.professional_profile} 
-                          />
+                          {/* AdminQuickVerify apenas para profissionais pendentes */}
+                          {(() => {
+                            const walker = walkers.find(w => w.created_by === user.email);
+                            const trainer = trainers.find(t => t.created_by === user.email);
+                            const prof = profilesByEmail[user.email];
+                            const isVerifiedProfile = prof?.is_verified === true;
+                            const isVerifiedUser = user?.professional_profile?.verification_status === 'verified' || user?.professional_profile?.is_verified === true;
+                            const hasActiveWalker = !!walker && (walker.is_active === true || walker.verification_status === 'verified');
+                            const hasActiveTrainer = !!trainer && (trainer.is_active === true || trainer.verification_status === 'verified');
+                            const isProfessional = (
+                              ['walker','trainer','both','professional'].includes(user.account_type || '') ||
+                              !!walker || !!trainer ||
+                              user?.professional_profile?.is_professional === true ||
+                              !!user?.professional_profile?.requested_role
+                            );
+                            const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker || hasActiveTrainer;
+                            if (isProfessional && !isActive) {
+                              return (
+                                <AdminQuickVerify 
+                                  userProfile={user} 
+                                  walkerData={walker || user.professional_profile} 
+                                />
+                              );
+                            }
+                            return null;
+                          })()}
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-blue-100 rounded-full" onClick={() => onEdit(user)} title="Editar Conta">
                             <Edit className="w-3.5 h-3.5 text-blue-600" />
                           </Button>
