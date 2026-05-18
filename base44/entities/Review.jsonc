@@ -1,0 +1,151 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "Related booking ID"
+    },
+    "training_booking_id": {
+      "type": "string",
+      "description": "Related training booking ID"
+    },
+    "walker_id": {
+      "type": "string",
+      "description": "Walker being reviewed"
+    },
+    "walker_name": {
+      "type": "string",
+      "description": "Walker's name"
+    },
+    "trainer_id": {
+      "type": "string",
+      "description": "Trainer being reviewed"
+    },
+    "trainer_name": {
+      "type": "string",
+      "description": "Trainer's name"
+    },
+    "reviewer_email": {
+      "type": "string",
+      "description": "Reviewer's email (owner)"
+    },
+    "reviewer_name": {
+      "type": "string",
+      "description": "Reviewer's name"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Star rating (1-5)"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Review comment"
+    },
+    "categories": {
+      "type": "object",
+      "properties": {
+        "punctuality": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "care": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "communication": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "professionalism": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "effectiveness": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Training effectiveness (for trainers)"
+        },
+        "knowledge": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Professional knowledge (for trainers)"
+        }
+      },
+      "description": "Detailed category ratings"
+    },
+    "would_recommend": {
+      "type": "boolean",
+      "description": "Would recommend this professional"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": true,
+      "description": "Review from verified booking"
+    }
+  },
+  "required": [
+    "reviewer_email",
+    "rating"
+  ],
+  "rls": {
+    "create": {
+      "data.reviewer_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.rating": {
+            "$gte": 1
+          }
+        },
+        {
+          "data.reviewer_email": "{{user.email}}"
+        },
+        {
+          "data.walker_id": "{{user.id}}"
+        },
+        {
+          "data.trainer_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.reviewer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.reviewer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
