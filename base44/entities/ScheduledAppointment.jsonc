@@ -1,0 +1,158 @@
+{
+  "name": "ScheduledAppointment",
+  "type": "object",
+  "properties": {
+    "walker_id": {
+      "type": "string",
+      "description": "ID of the walker"
+    },
+    "walker_name": {
+      "type": "string",
+      "description": "Name of the walker"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Name of the dog owner"
+    },
+    "owner_phone": {
+      "type": "string",
+      "description": "Phone number of the dog owner"
+    },
+    "dog_name": {
+      "type": "string",
+      "description": "Name of the dog"
+    },
+    "dog_size": {
+      "type": "string",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "extra_large"
+      ]
+    },
+    "recurrence": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "biweekly",
+        "monthly"
+      ],
+      "description": "How often the walk repeats"
+    },
+    "days_of_week": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday"
+        ]
+      },
+      "description": "Which days of the week (for weekly/biweekly)"
+    },
+    "time_slot": {
+      "type": "string",
+      "description": "Preferred time (morning, afternoon, evening)"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Duration in hours",
+      "default": 1
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the schedule starts"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the schedule ends (optional)"
+    },
+    "service_amount_per_walk": {
+      "type": "number",
+      "description": "Amount per walk"
+    },
+    "platform_fee_per_walk": {
+      "type": "number",
+      "description": "Platform fee per walk"
+    },
+    "total_amount_per_walk": {
+      "type": "number",
+      "description": "Total per walk"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the schedule is active"
+    },
+    "special_notes": {
+      "type": "string",
+      "description": "Special instructions"
+    }
+  },
+  "required": [
+    "walker_id",
+    "owner_name",
+    "dog_name",
+    "recurrence",
+    "start_date"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
