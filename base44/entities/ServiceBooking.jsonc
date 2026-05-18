@@ -1,0 +1,304 @@
+{
+  "name": "ServiceBooking",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "description": "Partner providing service"
+    },
+    "partner_name": {
+      "type": "string",
+      "description": "Partner name"
+    },
+    "partner_company_email": {
+      "type": "string",
+      "description": "Email da empresa parceira (para RLS)"
+    },
+    "service_id": {
+      "type": "string",
+      "description": "Service ID"
+    },
+    "service_name": {
+      "type": "string",
+      "description": "Service name"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "bath",
+        "grooming",
+        "veterinary",
+        "vaccination",
+        "checkup",
+        "surgery",
+        "emergency",
+        "pharmacy",
+        "training",
+        "daycare",
+        "boarding"
+      ],
+      "description": "Type of service"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Pet owner email"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Owner name"
+    },
+    "owner_phone": {
+      "type": "string",
+      "description": "Owner phone"
+    },
+    "dog_profile_id": {
+      "type": "string",
+      "description": "Dog profile ID"
+    },
+    "dog_name": {
+      "type": "string",
+      "description": "Dog name"
+    },
+    "dog_breed": {
+      "type": "string",
+      "description": "Dog breed"
+    },
+    "dog_size": {
+      "type": "string",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "extra_large"
+      ],
+      "description": "Dog size"
+    },
+    "dog_weight": {
+      "type": "number",
+      "description": "Dog weight (kg)"
+    },
+    "booking_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Service date"
+    },
+    "booking_time": {
+      "type": "string",
+      "description": "Service time"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Service duration"
+    },
+    "is_emergency": {
+      "type": "boolean",
+      "default": false,
+      "description": "Emergency booking"
+    },
+    "urgency_level": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "urgent",
+        "very_urgent",
+        "critical"
+      ],
+      "default": "normal",
+      "description": "Urgency level (for vet/emergency)"
+    },
+    "symptoms": {
+      "type": "string",
+      "description": "Symptoms (for vet appointments)"
+    },
+    "special_requests": {
+      "type": "string",
+      "description": "Special requests or notes"
+    },
+    "service_price": {
+      "type": "number",
+      "description": "Service price"
+    },
+    "emergency_surcharge": {
+      "type": "number",
+      "default": 0,
+      "description": "Emergency fee"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total amount"
+    },
+    "platform_commission": {
+      "type": "number",
+      "default": 0,
+      "description": "Platform commission"
+    },
+    "points_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "PawPoints earned from this booking"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "credit_card",
+        "debit_card",
+        "mbway",
+        "multibanco",
+        "paypal"
+      ],
+      "description": "Payment method selected"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "no_show"
+      ],
+      "default": "pending",
+      "description": "Booking status"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "refunded"
+      ],
+      "default": "pending",
+      "description": "Payment status"
+    },
+    "payment_id": {
+      "type": "string",
+      "description": "Payment record ID"
+    },
+    "check_in_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When pet was dropped off"
+    },
+    "check_out_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When pet was picked up"
+    },
+    "service_notes": {
+      "type": "string",
+      "description": "Notes from service provider after completion"
+    },
+    "before_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photos before service",
+      "default": []
+    },
+    "after_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photos after service",
+      "default": []
+    },
+    "veterinarian_name": {
+      "type": "string",
+      "description": "Veterinarian who attended (if vet service)"
+    },
+    "diagnosis": {
+      "type": "string",
+      "description": "Diagnosis (for vet appointments)"
+    },
+    "treatment_provided": {
+      "type": "string",
+      "description": "Treatment provided"
+    },
+    "prescription_id": {
+      "type": "string",
+      "description": "Related prescription ID"
+    },
+    "follow_up_needed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Needs follow-up appointment"
+    },
+    "follow_up_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Suggested follow-up date"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether reminder was sent"
+    }
+  },
+  "required": [
+    "partner_id",
+    "service_id",
+    "owner_email",
+    "dog_name",
+    "booking_date"
+  ],
+  "rls": {
+    "create": {
+      "data.owner_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "social_role": "moderator"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "social_role": "moderator"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
