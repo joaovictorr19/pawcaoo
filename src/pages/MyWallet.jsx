@@ -555,7 +555,7 @@ export default function MyWallet() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium text-white block mb-2">Valor (€)</label>
+              <label className="text-sm font-medium text-slate-900 block mb-2">Valor (€)</label>
               <Input
                 type="number"
                 placeholder="50"
@@ -624,7 +624,7 @@ export default function MyWallet() {
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-white block mb-2">Valor (€)</label>
+              <label className="text-sm font-medium text-slate-900 block mb-2">Valor (€)</label>
               <Input
                 type="number"
                 value={withdrawAmount}
