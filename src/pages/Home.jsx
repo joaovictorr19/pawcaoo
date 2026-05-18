@@ -138,7 +138,6 @@ export default function Home() {
 
   const [reviewBooking, setReviewBooking] = useState(null);
   const userPets = myDogs;
-  const isProfileOnline = !!(user?.pawgo_status?.is_online || professionalProfile?.is_online);
 
   const toggleOnlineMutation = useMutation({
     mutationFn: async (checked) => {
@@ -265,6 +264,7 @@ export default function Home() {
   });
 
   const hasProfessionalProfile = !!professionalProfile;
+  const isProfileOnline = !!(user?.pawgo_status?.is_online || professionalProfile?.is_online);
 
   const currentXP = currentUserProfile?.gamification_xp || 0;
   const [displayedXP, setDisplayedXP] = useState(currentXP);
