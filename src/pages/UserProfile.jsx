@@ -20,26 +20,39 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
 
   useLayoutEffect(() => {
-    let tries = 0;
-    let rafId = null;
-    const forceTop = () => {
+    let timeouts = [];
+    const resetAllScrollContainers = () => {
       try {
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        const root = document.getElementById('root');
-        if (root) root.scrollTop = 0;
-      } catch {}
-      if (tries < 8) {
-        tries += 1;
-        rafId = window.requestAnimationFrame(() => setTimeout(forceTop, 120));
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      } catch {
+        window.scrollTo(0, 0);
+      }
+
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+
+      const selectors = ['#root', 'main', '[data-radix-scroll-area-viewport]', '.overflow-y-auto', '.overflow-auto'];
+      selectors.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((el) => {
+          el.scrollTop = 0;
+        });
+      });
+
+      const topAnchor = document.getElementById('profile-top');
+      if (topAnchor) {
+        topAnchor.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
       }
     };
-    forceTop();
+
+    [0, 80, 180, 320, 550, 900].forEach((delay) => {
+      const timeoutId = window.setTimeout(resetAllScrollContainers, delay);
+      timeouts.push(timeoutId);
+    });
+
     return () => {
-      if (rafId) window.cancelAnimationFrame(rafId);
+      timeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
     };
-  }, []);
+  }, [window.location.search]);
 
   const urlParams = new URLSearchParams(window.location.search);
   const rawEmail = urlParams.get('email');
@@ -58,21 +71,34 @@ export default function UserProfile() {
 
   // Ensure page always opens at top when target profile changes
   useEffect(() => {
-    let cancelled = false;
-    const nudgeTop = () => {
-      if (cancelled) return;
+    const resetAllScrollContainers = () => {
       try {
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        const root = document.getElementById('root');
-        if (root) root.scrollTop = 0;
-      } catch {}
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      } catch {
+        window.scrollTo(0, 0);
+      }
+
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+
+      const selectors = ['#root', 'main', '[data-radix-scroll-area-viewport]', '.overflow-y-auto', '.overflow-auto'];
+      selectors.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((el) => {
+          el.scrollTop = 0;
+        });
+      });
+
+      const topAnchor = document.getElementById('profile-top');
+      if (topAnchor) {
+        topAnchor.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
+      }
     };
-    setTimeout(nudgeTop, 0);
-    setTimeout(nudgeTop, 250);
-    setTimeout(nudgeTop, 700);
-    return () => { cancelled = true; };
+
+    const timeouts = [0, 150, 350, 800].map((delay) => window.setTimeout(resetAllScrollContainers, delay));
+
+    return () => {
+      timeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    };
   }, [profileIdParam, profileEmailParam, profileUsernameParam]);
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
