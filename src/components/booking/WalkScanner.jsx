@@ -55,7 +55,7 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
           walk_start_time: new Date().toISOString()
         });
         toast.success('✅ Serviço iniciado!', {
-          description: 'Serviço em curso — leia o QR de fim ao terminar'
+          description: 'O QR de finalização foi libertado para o cliente.'
         });
       } else {
         if (!['in_progress'].includes(booking.status)) {

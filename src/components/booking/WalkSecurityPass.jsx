@@ -12,6 +12,8 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
   const isPickup = status === 'confirmed' || status === 'pending';
   const isDropoff = status === 'in_progress';
 
+  if (!isPickup && !isDropoff) return null;
+
   // Generate secure tokens if not exists
   const pickupToken = booking.pickup_token || `PK-${booking.id.slice(0, 8).toUpperCase()}`;
   const dropoffToken = booking.dropoff_token || `DO-${booking.id.slice(-8).toUpperCase()}`;

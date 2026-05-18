@@ -557,10 +557,41 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     );
   }
 
-  if (booking.status !== 'in_progress') {
+  const isOwnerParticipant = !!(user && booking && (booking.owner_email === user.email || booking.created_by === user.email));
+  const isWalkerParticipant = !!(user && booking && booking.walker_email === user.email);
+
+  if (!['confirmed', 'in_progress', 'service_completed', 'completed'].includes(booking.status)) {
     return (
       <div className="h-[100dvh] bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-center">Serviço não está ativo</div>
+        <div className="text-white text-center">Serviço não está disponível</div>
+      </div>
+    );
+  }
+
+  if (booking.status === 'confirmed') {
+    return (
+      <div className="h-[100dvh] bg-gray-900 flex items-center justify-center p-4">
+        <div className="text-white text-center max-w-md space-y-4">
+          <h2 className="text-2xl font-bold">Validação de início pendente</h2>
+          <p className="text-gray-400">
+            {isOwnerParticipant
+              ? 'Mostre o QR de início ao profissional para começar o passeio.'
+              : 'Leia o QR de início do cliente para iniciar o passeio.'}
+          </p>
+          {isWalkerParticipant && (
+            <WalkScanner
+              booking={booking}
+              type="START"
+              onScanSuccess={() => {
+                queryClient.invalidateQueries(['activeBooking']);
+                toast.success('Passeio iniciado com sucesso.');
+              }}
+              onScanError={() => {
+                toast.error('Falha na validação do QR de início.');
+              }}
+            />
+          )}
+        </div>
       </div>
     );
   }
@@ -765,20 +796,26 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
 
           {/* End Walk Button */}
           <div className="mt-2">
-            <WalkScanner
-              booking={booking}
-              type="END"
-              onScanSuccess={async () => {
-                await base44.entities.Booking.update(bookingId, { 
-                  distance_km: distanceKm
-                });
-                queryClient.invalidateQueries(['activeBooking']);
-                navigate(createPageUrl('ProfessionalDashboard'));
-              }}
-              onScanError={() => {
-                toast.error('Verificação falhou');
-              }}
-            />
+            {isWalkerParticipant ? (
+              <WalkScanner
+                booking={booking}
+                type="END"
+                onScanSuccess={async () => {
+                  await base44.entities.Booking.update(bookingId, { 
+                    distance_km: distanceKm
+                  });
+                  queryClient.invalidateQueries(['activeBooking']);
+                  navigate(createPageUrl('ProfessionalDashboard'));
+                }}
+                onScanError={() => {
+                  toast.error('Verificação falhou');
+                }}
+              />
+            ) : (
+              <div className="w-full rounded-xl bg-blue-600 px-4 py-4 text-center text-sm font-semibold text-white">
+                QR de finalização disponível apenas para o cliente mostrar ao profissional no fim do passeio.
+              </div>
+            )}
           </div>
         </div>
       </div>
