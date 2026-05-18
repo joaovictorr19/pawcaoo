@@ -1,0 +1,179 @@
+{
+  "name": "PartnerReview",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "description": "ID of the partner being reviewed"
+    },
+    "partner_name": {
+      "type": "string",
+      "description": "Partner name"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "ID of the product being reviewed (optional, null if reviewing partner)"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Product name (if applicable)"
+    },
+    "reviewer_email": {
+      "type": "string",
+      "description": "Reviewer's email"
+    },
+    "reviewer_name": {
+      "type": "string",
+      "description": "Reviewer's name"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Overall rating (1-5 stars)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Review title/headline"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Detailed review comment"
+    },
+    "categories": {
+      "type": "object",
+      "properties": {
+        "quality": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Product/service quality"
+        },
+        "value": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Value for money"
+        },
+        "service": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Customer service"
+        },
+        "delivery": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Delivery/shipping experience"
+        }
+      },
+      "description": "Detailed category ratings"
+    },
+    "would_recommend": {
+      "type": "boolean",
+      "description": "Would recommend to others"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo URLs attached to review",
+      "default": []
+    },
+    "verified_purchase": {
+      "type": "boolean",
+      "default": false,
+      "description": "Review from verified purchase/redemption"
+    },
+    "redemption_id": {
+      "type": "string",
+      "description": "Related redemption ID (if verified)"
+    },
+    "helpful_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of users who found this helpful"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "flagged"
+      ],
+      "default": "pending",
+      "description": "Moderation status"
+    },
+    "moderation_notes": {
+      "type": "string",
+      "description": "Admin notes for moderation"
+    },
+    "moderated_by": {
+      "type": "string",
+      "description": "Admin who moderated"
+    },
+    "moderated_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When moderated"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Featured review (highlighted by admins)"
+    }
+  },
+  "required": [
+    "partner_id",
+    "reviewer_email",
+    "rating",
+    "comment"
+  ],
+  "rls": {
+    "create": {
+      "data.reviewer_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.status": "approved"
+        },
+        {
+          "data.reviewer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.reviewer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.reviewer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
