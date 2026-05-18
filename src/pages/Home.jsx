@@ -670,9 +670,13 @@ export default function Home() {
                                 await base44.entities.WalkerProfile.update(walkerProfiles[0].id, { is_online: isProfessional });
                               }
                               queryClient.invalidateQueries(['currentUser']);
+                              queryClient.invalidateQueries({ queryKey: ['currentUser'] });
                               queryClient.invalidateQueries(['walkers']);
+                              queryClient.invalidateQueries(['allWalkers']);
+                              toast.success(isProfessional ? 'PawGo ligado' : 'PawGo desligado');
                             } catch (error) {
                               console.error('Erro ao ativar modo profissional:', error);
+                              toast.error('Não foi possível atualizar o PawGo');
                             }
                           }}
                           className={`flex items-center gap-2 px-5 py-2.5 rounded-full border transition-all active:scale-95 font-black text-xs uppercase tracking-wider ${
@@ -680,11 +684,13 @@ export default function Home() {
                               ? 'bg-green-500 border-green-400 text-white shadow-lg shadow-green-500/30'
                               : 'bg-black/20 backdrop-blur-md border-white/20 text-white/80 hover:text-white'
                           }`}
+                          title={user.preferences?.current_mode === 'professional' ? 'Desligar PawGo' : 'Ligar PawGo'}
                         >
+                          <Zap className="w-3.5 h-3.5" />
                           <div className={`w-2 h-2 rounded-full ${
                             user.preferences?.current_mode === 'professional' ? 'bg-white animate-pulse' : 'bg-white/40'
                           }`} />
-                          {user.preferences?.current_mode === 'professional' ? 'PawGo Ativo' : 'Off'}
+                          {user.preferences?.current_mode === 'professional' ? 'PawGo Ativo' : 'Ligar PawGo'}
                         </button>
                       )}
                     </div>
