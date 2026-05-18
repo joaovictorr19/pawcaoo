@@ -138,6 +138,7 @@ export default function Home() {
 
   const [reviewBooking, setReviewBooking] = useState(null);
   const userPets = myDogs;
+  const isProfileOnline = !!(user?.pawgo_status?.is_online || professionalProfile?.is_online);
 
   const toggleOnlineMutation = useMutation({
     mutationFn: async (checked) => {
@@ -150,6 +151,16 @@ export default function Home() {
         }
       });
 
+      if (currentUserProfile?.id) {
+        await base44.entities.UserProfile.update(currentUserProfile.id, {
+          profile_stats: {
+            ...(currentUserProfile?.profile_stats || {}),
+            is_online: checked,
+            last_active: new Date().toISOString()
+          }
+        });
+      }
+
       if (professionalProfile) {
         const entity = professionalProfile.walker_name ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
         await entity.update(professionalProfile.id, { is_online: checked });
@@ -157,6 +168,10 @@ export default function Home() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['currentUser']);
+      queryClient.invalidateQueries(['currentUserProfileXP']);
+      queryClient.invalidateQueries(['profileUser']);
+      queryClient.invalidateQueries(['walkerProfile']);
+      queryClient.invalidateQueries(['trainerProfile']);
       queryClient.invalidateQueries(['allWalkers']);
       queryClient.invalidateQueries(['allTrainers']);
       queryClient.invalidateQueries(['myProfessionalProfile']);
@@ -843,21 +858,34 @@ export default function Home() {
                     ))}
                   </div>
 
-                  {['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                  {hasProfessionalProfile && (
                     <button
-                      onClick={() => toggleOnlineMutation.mutate(!(user?.pawgo_status?.is_online || false))}
-                      className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 ${
-                        user?.pawgo_status?.is_online
-                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                          : 'bg-black/20 backdrop-blur-md border border-white/20 text-white/80 hover:text-white'
+                      onClick={() => toggleOnlineMutation.mutate(!isProfileOnline)}
+                      disabled={toggleOnlineMutation.isPending}
+                      className={`mt-4 w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl font-semibold text-sm transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed ${
+                        isProfileOnline
+                          ? 'bg-emerald-500/95 text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-500'
+                          : 'bg-white/60 backdrop-blur-md border border-white/50 text-slate-800 hover:bg-white/80'
                       }`}
                     >
-                      <div className={`w-2 h-2 rounded-full ${user?.pawgo_status?.is_online ? 'bg-white animate-pulse' : 'bg-white/40'}`} />
-                      {toggleOnlineMutation.isPending
-                        ? 'A atualizar...'
-                        : user?.pawgo_status?.is_online
-                          ? 'User Profile Online'
-                          : 'Colocar User Profile Online'}
+                      <span className="flex items-center gap-3">
+                        <span className={`relative flex h-3 w-3 ${isProfileOnline ? '' : 'opacity-70'}`}>
+                          <span className={`absolute inline-flex h-full w-full rounded-full ${isProfileOnline ? 'animate-ping bg-white/70' : 'bg-slate-400/40'}`}></span>
+                          <span className={`relative inline-flex h-3 w-3 rounded-full ${isProfileOnline ? 'bg-white' : 'bg-slate-500'}`}></span>
+                        </span>
+                        <span>
+                          {toggleOnlineMutation.isPending
+                            ? 'A atualizar estado...'
+                            : isProfileOnline
+                              ? 'Perfil online'
+                              : 'Colocar perfil online'}
+                        </span>
+                      </span>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                        isProfileOnline ? 'bg-white/20 text-white' : 'bg-slate-900/10 text-slate-700'
+                      }`}>
+                        {isProfileOnline ? 'Ativo' : 'Offline'}
+                      </span>
                     </button>
                   )}
                 </div>
