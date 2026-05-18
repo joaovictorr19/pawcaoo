@@ -462,7 +462,6 @@ function LayoutContent({ children, currentPageName }) {
         <div className="hidden md:block" style={{ height: '26px' }} />
         <div className="flex flex-1 w-full flex-col">
           <MobileHeader />
-          <div className="block md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top))' }} />
           {stableUser && (
             <MobileNavBar user={stableUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
           )}
