@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,19 +10,15 @@ import MyDogsManager from "@/components/profile/MyDogsManager";
 import ClientDataSettings from "@/components/client/ClientDataSettings";
 import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
 import { 
-  History, 
-  TrendingUp, 
-  Calendar, 
-  Heart,
+  History,
   MapPin,
-  Clock,
   Star,
   Shield,
   Award,
   ChevronRight
 } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR, pt } from "date-fns/locale";
+import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -74,7 +70,7 @@ export default function ClientDashboard() {
   });
 
   // Calculate stats
-  const stats = React.useMemo(() => {
+  const stats = useMemo(() => {
     const completed = bookings.filter(b => b.status === 'completed');
     const totalDistance = completed.reduce((sum, b) => sum + (b.distance_km || 0), 0);
     const totalWalks = completed.length;

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Clock, MapPin, CalendarDays, X, ChevronLeft } from 'lucide-react';
@@ -22,6 +23,15 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
       setPickupMethod('walker_pickup');
     }
   }, [isOpen, initialDate]);
+
+  const { data: clientProfile } = useQuery({
+    queryKey: ['bookingClientProfile', currentUser?.email],
+    queryFn: async () => {
+      const profiles = await base44.entities.UserProfile.filter({ user_email: currentUser.email });
+      return profiles[0] || null;
+    },
+    enabled: !!currentUser?.email,
+  });
 
   if (!walkerProfile) return null;
 
@@ -63,10 +73,18 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
     setIsCreating(true);
     try {
+      const profileStats = clientProfile?.profile_stats || {};
+      const pickupAddress = profileStats.pickup_address || profileStats.address || [profileStats.street, profileStats.door_number, profileStats.floor_apt].filter(Boolean).join(', ') + (profileStats.postal_code ? `, ${profileStats.postal_code}` : '') + (profileStats.city ? ` ${profileStats.city}` : '') + (profileStats.country ? `, ${profileStats.country}` : '');
+      const accessNotes = profileStats.access_notes || '';
+      const ownerPhone = profileStats.phone || currentUser.phone || '';
+
       const booking = await base44.entities.Booking.create({
-        owner_name: currentUser.full_name || currentUser.email,
+        owner_name: clientProfile?.full_name || currentUser.full_name || currentUser.email,
         owner_email: currentUser.email,
-        dog_name: 'Cão',
+        owner_phone: ownerPhone,
+        dog_name: clientProfile?.owned_dogs?.[0]?.dog_name || 'Cão',
+        dogs: clientProfile?.owned_dogs || [],
+        total_dogs: clientProfile?.owned_dogs?.length || 1,
         total_amount: totalAmount,
         service_amount: serviceAmount,
         platform_fee: platformFee,
@@ -77,10 +95,13 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
         walk_time: selectedTime,
         duration_hours: durationNum,
         pickup_method: pickupMethod,
+        pickup_address: pickupAddress,
+        pickup_lat: profileStats.pickup_lat,
+        pickup_lng: profileStats.pickup_lng,
         status: 'pending',
         payment_status: 'pending',
         type: walkerProfile.trainer_name ? 'training' : 'walk',
-        special_notes: selectedService ? `Serviço: ${selectedService.service_name}` : '',
+        special_notes: [selectedService ? `Serviço: ${selectedService.service_name}` : '', accessNotes ? `Acesso: ${accessNotes}` : ''].filter(Boolean).join(' • '),
       });
 
       // Redirect to Stripe Checkout

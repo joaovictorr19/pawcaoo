@@ -61,13 +61,13 @@ export default function ClientDataSettings({ user }) {
         city: form.city,
       });
 
-      if (!profile?.id) return;
-
-      await base44.entities.UserProfile.update(profile.id, {
+      const updateData = {
+        user_email: user.email,
+        user_id: user.id,
         full_name: form.full_name,
         city: form.city,
         profile_stats: {
-          ...(profile.profile_stats || {}),
+          ...(profile?.profile_stats || {}),
           street: form.street,
           door_number: form.door_number,
           floor_apt: form.floor_apt,
@@ -79,7 +79,13 @@ export default function ClientDataSettings({ user }) {
           phone: form.phone,
           access_notes: form.access_notes,
         },
-      });
+      };
+
+      if (profile?.id) {
+        await base44.entities.UserProfile.update(profile.id, updateData);
+      } else {
+        await base44.entities.UserProfile.create(updateData);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
