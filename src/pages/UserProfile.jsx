@@ -20,37 +20,23 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
 
   useLayoutEffect(() => {
-    let timeouts = [];
-    const resetAllScrollContainers = () => {
-      try {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      } catch {
-        window.scrollTo(0, 0);
-      }
-
+    const resetProfileScroll = () => {
+      window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-
-      const selectors = ['#root', 'main', '[data-radix-scroll-area-viewport]', '.overflow-y-auto', '.overflow-auto'];
-      selectors.forEach((selector) => {
-        document.querySelectorAll(selector).forEach((el) => {
-          el.scrollTop = 0;
-        });
-      });
-
-      const topAnchor = document.getElementById('profile-top');
-      if (topAnchor) {
-        topAnchor.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
-      }
+      const root = document.getElementById('root');
+      if (root) root.scrollTop = 0;
+      const main = document.querySelector('main');
+      if (main) main.scrollTop = 0;
     };
 
-    [0, 80, 180, 320, 550, 900].forEach((delay) => {
-      const timeoutId = window.setTimeout(resetAllScrollContainers, delay);
-      timeouts.push(timeoutId);
-    });
+    resetProfileScroll();
+    const rafId = window.requestAnimationFrame(resetProfileScroll);
+    const timeoutId = window.setTimeout(resetProfileScroll, 120);
 
     return () => {
-      timeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
     };
   }, [window.location.search]);
 
@@ -71,33 +57,23 @@ export default function UserProfile() {
 
   // Ensure page always opens at top when target profile changes
   useEffect(() => {
-    const resetAllScrollContainers = () => {
-      try {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      } catch {
-        window.scrollTo(0, 0);
-      }
-
+    const resetProfileScroll = () => {
+      window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-
-      const selectors = ['#root', 'main', '[data-radix-scroll-area-viewport]', '.overflow-y-auto', '.overflow-auto'];
-      selectors.forEach((selector) => {
-        document.querySelectorAll(selector).forEach((el) => {
-          el.scrollTop = 0;
-        });
-      });
-
-      const topAnchor = document.getElementById('profile-top');
-      if (topAnchor) {
-        topAnchor.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
-      }
+      const root = document.getElementById('root');
+      if (root) root.scrollTop = 0;
+      const main = document.querySelector('main');
+      if (main) main.scrollTop = 0;
     };
 
-    const timeouts = [0, 150, 350, 800].map((delay) => window.setTimeout(resetAllScrollContainers, delay));
+    resetProfileScroll();
+    const rafId = window.requestAnimationFrame(resetProfileScroll);
+    const timeoutId = window.setTimeout(resetProfileScroll, 150);
 
     return () => {
-      timeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
     };
   }, [profileIdParam, profileEmailParam, profileUsernameParam]);
 
@@ -393,7 +369,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32 pt-2">
+    <div id="profile-page" className="min-h-screen bg-slate-50 pb-32 pt-2">
       <div id="profile-top" className="relative h-64 md:h-80 w-full overflow-hidden">
         <img
           src={displayCoverUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=400&fit=crop"}
