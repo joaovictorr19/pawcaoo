@@ -1,0 +1,101 @@
+{
+  "name": "WalkerPayout",
+  "type": "object",
+  "properties": {
+    "walker_email": {
+      "type": "string",
+      "description": "Email do walker/treinador"
+    },
+    "walker_name": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "ID do booking associado"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Email do cliente"
+    },
+    "payout_type": {
+      "type": "string",
+      "enum": [
+        "subscription_token",
+        "direct_payment",
+        "emergency_walk"
+      ],
+      "description": "Origem do pagamento"
+    },
+    "gross_amount": {
+      "type": "number",
+      "description": "Valor bruto do servi\u00e7o (\u20ac12-15 para tokens)"
+    },
+    "platform_fee": {
+      "type": "number",
+      "description": "Taxa da plataforma (0% para tokens de subscri\u00e7\u00e3o)"
+    },
+    "net_amount": {
+      "type": "number",
+      "description": "Valor l\u00edquido a receber"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "stripe_transfer_id": {
+      "type": "string",
+      "description": "ID da transfer\u00eancia Stripe"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora do pagamento"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionais"
+    }
+  },
+  "required": [
+    "walker_email",
+    "booking_id",
+    "gross_amount",
+    "net_amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
