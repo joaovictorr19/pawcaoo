@@ -23,24 +23,15 @@ export default function UserProfile() {
 
   useLayoutEffect(() => {
     const resetProfileScroll = () => {
-      window.history.scrollRestoration = 'manual';
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-      const root = document.getElementById('root');
-      if (root) root.scrollTop = 0;
-      const main = document.querySelector('main');
-      if (main) main.scrollTop = 0;
     };
 
     resetProfileScroll();
-    const rafId1 = window.requestAnimationFrame(resetProfileScroll);
-    const rafId2 = window.requestAnimationFrame(() => window.requestAnimationFrame(resetProfileScroll));
-    const timeoutId = window.setTimeout(resetProfileScroll, 250);
+    const timeoutId = window.setTimeout(resetProfileScroll, 150);
 
     return () => {
-      window.cancelAnimationFrame(rafId1);
-      window.cancelAnimationFrame(rafId2);
       window.clearTimeout(timeoutId);
     };
   }, [location.key, location.pathname, location.search]);
@@ -63,25 +54,15 @@ export default function UserProfile() {
   // Ensure page always opens at top when target profile changes
   useEffect(() => {
     const resetProfileScroll = () => {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-      const root = document.getElementById('root');
-      if (root) root.scrollTop = 0;
-      const main = document.querySelector('main');
-      if (main) main.scrollTop = 0;
-      const profilePage = document.getElementById('profile-page');
-      if (profilePage) profilePage.scrollIntoView({ block: 'start', behavior: 'auto' });
     };
 
     resetProfileScroll();
-    const rafId1 = window.requestAnimationFrame(resetProfileScroll);
-    const rafId2 = window.requestAnimationFrame(() => window.requestAnimationFrame(resetProfileScroll));
-    const timeoutId = window.setTimeout(resetProfileScroll, 400);
+    const timeoutId = window.setTimeout(resetProfileScroll, 200);
 
     return () => {
-      window.cancelAnimationFrame(rafId1);
-      window.cancelAnimationFrame(rafId2);
       window.clearTimeout(timeoutId);
     };
   }, [profileIdParam, profileEmailParam, profileUsernameParam, location.key]);
