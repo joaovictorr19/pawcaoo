@@ -20,17 +20,24 @@ export default function PendingApproval({ profile }) {
             <Clock className="w-3.5 h-3.5" /> Estado atual: <span className="uppercase tracking-wider font-bold">{String(profile.verification_status)}</span>
           </p>
         )}
-        <div className="flex gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <Button
             onClick={() => (window.location.href = createPageUrl('Home'))}
             variant="outline"
-            className="flex-1 border-slate-800 text-slate-300 hover:bg-slate-800 rounded-2xl"
+            className="border-slate-800 text-slate-300 hover:bg-slate-800 rounded-2xl"
           >
             Voltar
           </Button>
           <Button
+            onClick={() => (window.location.href = `${createPageUrl('ProfessionalHubV2')}?tab=documents`)}
+            variant="outline"
+            className="border-orange-500/40 text-orange-300 hover:bg-orange-500/10 rounded-2xl"
+          >
+            Ver documentos
+          </Button>
+          <Button
             onClick={() => (window.location.href = createPageUrl('ProfessionalSetup'))}
-            className="flex-1 bg-white text-slate-900 hover:bg-slate-100 rounded-2xl"
+            className="bg-white text-slate-900 hover:bg-slate-100 rounded-2xl"
           >
             Completar verificação
           </Button>

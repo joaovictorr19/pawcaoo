@@ -93,7 +93,8 @@ export default function ProfessionalHubV2() {
   }, []);
 
   const urlParams = new URLSearchParams(window.location.search);
-  const initialTab = urlParams.get('tab') === 'agenda' ? 'calendar' : urlParams.get('tab') === 'active' ? 'active' : 'overview';
+  const tabParam = urlParams.get('tab');
+  const initialTab = tabParam === 'agenda' ? 'calendar' : tabParam === 'active' ? 'active' : tabParam === 'documents' ? 'documents' : 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -330,8 +331,10 @@ export default function ProfessionalHubV2() {
   }
 
 
-  // Gate: only allow verified professionals
-  if (professionalProfile?.verification_status !== 'verified') {
+  const verificationStatus = professionalProfile?.verification_status;
+  const showRestrictedPendingScreen = verificationStatus !== 'verified' && activeTab !== 'documents';
+
+  if (showRestrictedPendingScreen) {
     return <PendingApproval profile={professionalProfile} />;
   }
 
