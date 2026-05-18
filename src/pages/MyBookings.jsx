@@ -16,6 +16,11 @@ import { toast } from "sonner";
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { pt } from "date-fns/locale";
 import BookingDetailsModal from "../components/booking/BookingDetailsModal";
+import BookingsHeader from "@/components/bookings/BookingsHeader";
+import BookingsFilters from "@/components/bookings/BookingsFilters";
+import BookingsEmptyState from "@/components/bookings/BookingsEmptyState";
+import BookingsPagination from "@/components/bookings/BookingsPagination";
+import StatusBadge from "@/components/bookings/StatusBadge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -559,20 +564,6 @@ export default function MyBookings() {
     }
   });
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      pending: { label: 'Pendente', color: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' },
-      confirmed: { label: 'Confirmado', color: 'bg-green-500/20 text-green-300 border border-green-500/30' },
-      in_progress: { label: 'Em Andamento', color: 'bg-orange-500/20 text-orange-300 border border-orange-500/30' },
-      service_completed: { label: 'Serviço Feito', color: 'bg-blue-500/20 text-blue-300 border border-blue-500/30' },
-      completed: { label: 'Concluído', color: 'bg-slate-600/40 text-slate-300 border border-slate-600/40' },
-      cancelled: { label: 'Cancelado', color: 'bg-red-500/20 text-red-300 border border-red-500/30' },
-      rejected: { label: 'Rejeitado', color: 'bg-red-500/20 text-red-400 border border-red-500/30' }
-    };
-    const config = statusConfig[status] || statusConfig.pending;
-    return <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg ${config.color}`}>{config.label}</span>;
-  };
-
   // Helper de Extração de ID Robusto (Data Mapping Fallback)
   const getProfessionalId = (booking) => {
     // Tentativa de extração profunda para garantir que nunca retorne nulo se o dado existir
@@ -622,7 +613,7 @@ export default function MyBookings() {
                 {booking.type === 'walk' ? '🐕 Passeio' : '🎓 Treino'} · {booking.dog_name}
               </p>
             </div>
-            {getStatusBadge(booking.status)}
+            <StatusBadge status={booking.status} />
           </div>
 
           {/* Info */}
@@ -800,94 +791,14 @@ export default function MyBookings() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-32 font-sans">
-      {/* Header */}
-      <header className="bg-slate-950 text-white p-6 rounded-b-[2.5rem] shadow-xl mb-6">
-        <div className="max-w-lg mx-auto">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h1 className="text-xl font-black italic">Minhas Reservas 📅</h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Passeios & Treinos</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => navigate(createPageUrl('Home'))}
-                className="px-3 py-2 rounded-2xl border border-slate-700 text-slate-300 hover:border-white hover:text-white transition-all active:scale-95 text-xs font-bold"
-              >
-                + Passeio
-              </button>
-              <button
-                onClick={() => navigate(createPageUrl('Trainers'))}
-                className="px-3 py-2 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white transition-all active:scale-95 text-xs font-bold"
-              >
-                + Treino
-              </button>
-            </div>
-          </div>
-
-          {/* Stats rápidas */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'Total', value: allBookings.length, color: 'text-white' },
-              { label: 'Ativos', value: allBookings.filter(b => b.status === 'confirmed' || b.status === 'in_progress').length, color: 'text-orange-400' },
-              { label: 'Concluídos', value: allBookings.filter(b => b.status === 'completed').length, color: 'text-green-400' },
-            ].map(s => (
-              <div key={s.label} className="bg-slate-900 rounded-2xl p-3 border border-white/5 text-center">
-                <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </header>
+      <BookingsHeader allBookings={allBookings} />
 
       <main className="p-4 max-w-lg mx-auto space-y-4">
-        {/* Quick Filters */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {[
-            { value: 'all', label: 'Todos' },
-            { value: 'confirmed', label: 'Confirmados' },
-            { value: 'in_progress', label: 'Ativos' },
-            { value: 'completed', label: 'Concluídos' },
-            { value: 'cancelled', label: 'Cancelados' },
-          ].map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => { setFilters({...filters, status: value}); setCurrentPage(1); }}
-              className={`px-3 py-1.5 rounded-2xl text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 ${
-                filters.status === value
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-slate-900 border border-white/5 text-slate-400 hover:text-white'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {/* Type Filter */}
-        <div className="flex gap-2">
-          {[{v:'all',l:'🐾 Todos'},{v:'walk',l:'🐕 Passeios'},{v:'training',l:'🎓 Treinos'}].map(({v,l}) => (
-            <button
-              key={v}
-              onClick={() => { setFilters({...filters, type: v}); setCurrentPage(1); }}
-              className={`flex-1 py-2 rounded-2xl text-xs font-bold transition-all active:scale-95 ${
-                filters.type === v
-                  ? 'bg-white text-slate-900'
-                  : 'bg-slate-900 border border-white/5 text-slate-400'
-              }`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
+        <BookingsFilters filters={filters} setFilters={setFilters} setCurrentPage={setCurrentPage} />
 
         {/* Bookings List */}
         {paginatedBookings.length === 0 ? (
-          <div className="text-center py-16 bg-slate-900 rounded-3xl border border-white/5">
-            <div className="text-5xl mb-4">📭</div>
-            <h3 className="text-lg font-black text-white">Nenhuma reserva</h3>
-            <p className="text-slate-400 text-sm mt-1 max-w-xs mx-auto">Tente ajustar os filtros ou crie uma nova reserva.</p>
-          </div>
+          <BookingsEmptyState />
         ) : (
           <div className="space-y-3">
             {paginatedBookings.map((booking) => (
@@ -896,28 +807,7 @@ export default function MyBookings() {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 py-4">
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="w-10 h-10 rounded-2xl bg-slate-900 border border-white/5 text-slate-400 hover:text-white disabled:opacity-30 flex items-center justify-center transition-all active:scale-95"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-sm font-bold text-slate-400">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="w-10 h-10 rounded-2xl bg-slate-900 border border-white/5 text-slate-400 hover:text-white disabled:opacity-30 flex items-center justify-center transition-all active:scale-95"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        <BookingsPagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
       </main>
 
       {/* Details Modal */}
