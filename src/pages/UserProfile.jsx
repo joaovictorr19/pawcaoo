@@ -380,13 +380,7 @@ export default function UserProfile() {
       <div className="relative -mt-20 px-6">
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
-            <Avatar className={`w-32 h-32 border-4 shadow-2xl rounded-[2.5rem] ${
-              (walkerProfile?.has_pawcao_seal || trainerProfile?.has_pawcao_seal || profileUser?.pawcao_seal)
-                ? 'border-amber-400 ring-4 ring-amber-200'
-                : (walkerProfile?.is_verified_trainer || trainerProfile?.is_verified_trainer || profileUser?.trainer_verified)
-                  ? 'border-purple-500 ring-4 ring-purple-200'
-                  : 'border-white'
-            }`}>
+            <Avatar className="w-32 h-32 border-4 border-white shadow-2xl rounded-[2.5rem]">
               <AvatarImage
                 src={displayPhotoUrl}
                 className="object-cover w-full h-full"
