@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import WalkReview from "@/components/reviews/WalkReview";
+import CockpitLoadingState from "@/components/service/CockpitLoadingState";
+import CockpitErrorState from "@/components/service/CockpitErrorState";
+import CockpitPendingStartState from "@/components/service/CockpitPendingStartState";
+import CockpitCompletedState from "@/components/service/CockpitCompletedState";
+import CockpitTopBar from "@/components/service/CockpitTopBar";
+import CockpitChatPanel from "@/components/service/CockpitChatPanel";
 import { 
   MessageCircle, 
   AlertTriangle, 
@@ -29,8 +32,6 @@ import {
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
 
-import ChatMessageBubble from "@/components/chat/ChatMessageBubble";
-import ChatInput from "@/components/chat/ChatInput";
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { WalkScanner } from "@/components/booking/WalkScanner";
@@ -49,7 +50,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   const startTimeRef = useRef(null);
   const updateIntervalRef = useRef(null);
   const pendingPositionRef = useRef(null);
-  const [pathMarkers, setPathMarkers] = useState([]);
+  const [, setPathMarkers] = useState([]);
   const [isCorrectionMode, setIsCorrectionMode] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const [isEventMenuOpen, setIsEventMenuOpen] = useState(false);
@@ -463,97 +464,50 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
   };
 
   if (loadingBooking) {
-    return (
-      <div className="h-[100dvh] bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p>A carregar serviço...</p>
-        </div>
-      </div>
-    );
+    return <CockpitLoadingState />;
   }
 
   if (error || !booking) {
-    return (
-      <div className="h-[100dvh] bg-gray-900 flex items-center justify-center p-4">
-        <div className="text-white text-center max-w-md">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-bold mb-2">Erro ao carregar</h2>
-          <p className="text-gray-400 mb-4">{error?.message || 'Serviço não encontrado'}</p>
-          <Button onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}>
-            Voltar ao Painel
-          </Button>
-        </div>
-      </div>
-    );
+    return <CockpitErrorState error={error} />;
   }
 
 
 
   if (booking.status === 'completed') {
     return (
-      <>
-        <div className="h-[100dvh] bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-4">
-          <div className="text-center max-w-md">
-            <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-12 h-12 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Passeio Concluído!</h2>
-            <p className="text-gray-600 mb-6">
-              {isOwner ? 'Obrigado por usar a PawCão!' : 'Serviço finalizado com sucesso!'}
-            </p>
-            <Button onClick={() => navigate(createPageUrl(isOwner ? 'ClientDashboard' : 'ProfessionalDashboard'))}>
-              {isOwner ? 'Ver Relatório' : 'Voltar ao Painel'}
-            </Button>
-          </div>
-        </div>
-        
-        {/* Auto-open review for owner */}
-        {isOwner && (
-          <WalkReview 
-            isOpen={showReview}
-            booking={booking}
-            onSubmit={async (reviewData) => {
-              try {
-                // Create review
-                await base44.entities.Review.create(reviewData);
-                
-                // Update booking with tip
-                if (reviewData.tip_amount > 0) {
-                  await base44.entities.Booking.update(booking.id, {
-                    tip_amount: reviewData.tip_amount,
-                    total_amount: (booking.total_amount || 0) + reviewData.tip_amount
-                  });
-                }
-                
-                // Update walker profile stats
-                const profile = await base44.entities.WalkerProfile.get(booking.walker_id);
-                if (profile) {
-                  const currentRating = profile.rating || 5;
-                  const currentCount = profile.total_walks || 1;
-                  const newRating = ((currentRating * currentCount) + reviewData.rating) / (currentCount + 1);
-                  
-                  await base44.entities.WalkerProfile.update(booking.walker_id, {
-                    rating: parseFloat(newRating.toFixed(2)),
-                    total_walks: currentCount + 1
-                  });
-                }
-                
-                toast.success('✅ Avaliação enviada com sucesso!');
-                setShowReview(false);
-                navigate(createPageUrl('ClientDashboard'));
-              } catch (error) {
-                console.error('Review error:', error);
-                toast.error('Erro ao enviar avaliação');
-              }
-            }}
-            onClose={() => {
-              setShowReview(false);
-              navigate(createPageUrl('ClientDashboard'));
-            }}
-          />
-        )}
-      </>
+      <CockpitCompletedState
+        booking={booking}
+        isOwner={isOwner}
+        showReview={showReview}
+        setShowReview={setShowReview}
+        onSubmitReview={async (reviewData) => {
+          try {
+            await base44.entities.Review.create(reviewData);
+            if (reviewData.tip_amount > 0) {
+              await base44.entities.Booking.update(booking.id, {
+                tip_amount: reviewData.tip_amount,
+                total_amount: (booking.total_amount || 0) + reviewData.tip_amount
+              });
+            }
+            const profile = await base44.entities.WalkerProfile.get(booking.walker_id);
+            if (profile) {
+              const currentRating = profile.rating || 5;
+              const currentCount = profile.total_walks || 1;
+              const newRating = ((currentRating * currentCount) + reviewData.rating) / (currentCount + 1);
+              await base44.entities.WalkerProfile.update(booking.walker_id, {
+                rating: parseFloat(newRating.toFixed(2)),
+                total_walks: currentCount + 1
+              });
+            }
+            toast.success('✅ Avaliação enviada com sucesso!');
+            setShowReview(false);
+            navigate(createPageUrl('ClientDashboard'));
+          } catch (error) {
+            console.error('Review error:', error);
+            toast.error('Erro ao enviar avaliação');
+          }
+        }}
+      />
     );
   }
 
@@ -570,113 +524,29 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
 
   if (booking.status === 'confirmed') {
     return (
-      <div className="h-[100dvh] bg-gray-900 flex items-center justify-center p-4">
-        <div className="text-white text-center max-w-md space-y-4">
-          <h2 className="text-2xl font-bold">Validação de início pendente</h2>
-          <p className="text-gray-400">
-            {isOwnerParticipant
-              ? 'Mostre o QR de início ao profissional para começar o passeio.'
-              : 'Leia o QR de início do cliente para iniciar o passeio.'}
-          </p>
-          {isWalkerParticipant && (
-            <WalkScanner
-              booking={booking}
-              type="START"
-              onScanSuccess={() => {
-                queryClient.invalidateQueries(['activeBooking']);
-                toast.success('Passeio iniciado com sucesso.');
-              }}
-              onScanError={() => {
-                toast.error('Falha na validação do QR de início.');
-              }}
-            />
-          )}
-        </div>
-      </div>
+      <CockpitPendingStartState
+        booking={booking}
+        isOwnerParticipant={isOwnerParticipant}
+        isWalkerParticipant={isWalkerParticipant}
+        onStartSuccess={() => {
+          queryClient.invalidateQueries(['activeBooking']);
+          toast.success('Passeio iniciado com sucesso.');
+        }}
+        onStartError={() => {
+          toast.error('Falha na validação do QR de início.');
+        }}
+      />
     );
   }
 
   // Note: Map functionality removed - no rendering of map component
-
-  const ChatContent = () => {
-    // Auto-scroll to bottom when new messages arrive
-    React.useEffect(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      }
-    }, [messages.length]);
-
-    return (
-      <>
-        <div className="flex-1 overflow-y-auto px-4 py-3 bg-gray-50" ref={scrollRef}>
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <p className="text-sm">Nenhuma mensagem</p>
-            </div>
-          ) : (
-            <div className="space-y-2 pb-4">
-              {messages.map((msg) => {
-                const isMine = msg.sender_email === user?.email;
-                return (
-                  <ChatMessageBubble
-                    key={msg.id}
-                    message={msg}
-                    isMine={isMine}
-                    showAvatar={true}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </div>
-        <div className="border-t bg-white shrink-0">
-          <ChatInput
-            onSendMessage={(data) => sendMessageMutation.mutate(data)}
-            disabled={sendMessageMutation.isPending}
-          />
-        </div>
-      </>
-    );
-  };
 
   return (
     <div className="h-[100dvh] md:h-screen relative overflow-hidden bg-gray-900">
       {/* Layer 0: Background - Gray placeholder */}
       <div className="absolute inset-0 z-0 bg-gray-800"></div>
 
-      {/* Layer 1: Compact Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-10 pt-safe px-2 md:px-3 pb-2" style={{ paddingTop: 'max(8px, env(safe-area-inset-top))' }}>
-        <div className="bg-white/95 backdrop-blur-xl rounded-xl shadow-lg border border-white/60 p-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <div className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-0.5">
-                <Clock className="w-3 h-3 text-gray-700" />
-                <span className="font-bold text-[10px] md:text-xs text-gray-900">{formatTime(elapsedTime)}</span>
-              </div>
-              <div className="flex items-center gap-1 bg-gray-100 rounded-full px-2 py-0.5">
-                <Navigation className="w-3 h-3 text-gray-700" />
-                <span className="font-bold text-[10px] md:text-xs text-gray-900">{distanceKm.toFixed(2)} km</span>
-              </div>
-            </div>
-
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="destructive"
-                className="bg-red-600 hover:bg-red-700 rounded-full px-2 h-7 text-[10px] md:text-xs shadow-lg"
-                onClick={() => {
-                  if (confirm('⚠️ ATIVAR SOS?')) {
-                    toast.error('🚨 EMERGÊNCIA ATIVADA!');
-                  }
-                }}
-              >
-                <AlertTriangle className="w-3 h-3" />
-                <span className="hidden md:inline ml-1">SOS</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CockpitTopBar elapsedTime={elapsedTime} distanceKm={distanceKm} formatTime={formatTime} />
 
       {/* Layer 2: Bottom Compact Bar */}
       <div className="absolute bottom-0 left-0 right-0 z-10 px-2 md:px-3 pb-safe" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
@@ -820,31 +690,15 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
         </div>
       </div>
 
-      {/* Chat Drawer (Mobile) - FIXED: Full viewport height */}
-      <div className="md:hidden">
-        <Drawer open={isChatOpen} onOpenChange={setIsChatOpen}>
-          <DrawerContent className="h-[100dvh] flex flex-col bg-white border-0 rounded-t-3xl">
-            <DrawerHeader className="border-b bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-3xl shrink-0">
-              <DrawerTitle className="text-white flex items-center gap-2">
-                💬 Chat com {otherParticipant?.name}
-              </DrawerTitle>
-            </DrawerHeader>
-            <ChatContent />
-          </DrawerContent>
-        </Drawer>
-      </div>
-
-      {/* Chat Sheet (Desktop) */}
-      <div className="hidden md:block">
-        <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-          <SheetContent side="right" className="w-[500px] flex flex-col p-0 bg-white">
-            <SheetHeader className="p-4 border-b bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-              <SheetTitle className="text-white">💬 Chat com {otherParticipant?.name}</SheetTitle>
-            </SheetHeader>
-            <ChatContent />
-          </SheetContent>
-        </Sheet>
-      </div>
+      <CockpitChatPanel
+        isChatOpen={isChatOpen}
+        setIsChatOpen={setIsChatOpen}
+        otherParticipant={otherParticipant}
+        messages={messages}
+        user={user}
+        scrollRef={scrollRef}
+        sendMessageMutation={sendMessageMutation}
+      />
     </div>
   );
 }
