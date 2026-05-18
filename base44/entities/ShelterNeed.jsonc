@@ -1,0 +1,101 @@
+{
+  "name": "ShelterNeed",
+  "type": "object",
+  "properties": {
+    "shelter_id": {
+      "type": "string",
+      "description": "ID do abrigo pai"
+    },
+    "item_name": {
+      "type": "string",
+      "description": "Item necess\u00e1rio (ex: Ra\u00e7\u00e3o, Vacinas)"
+    },
+    "quantity_needed": {
+      "type": "number",
+      "description": "Quantidade necess\u00e1ria"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unidade (kg, unidades, litros, etc.)"
+    },
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium",
+      "description": "N\u00edvel de urg\u00eancia"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o adicional sobre a necessidade"
+    },
+    "is_fulfilled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a necessidade foi atendida"
+    }
+  },
+  "required": [
+    "shelter_id",
+    "item_name",
+    "quantity_needed",
+    "urgency"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.shelter_id": {
+            "$in": [
+              {
+                "entities": "ShelterProfile",
+                "query": {
+                  "created_by": "{{user.email}}"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
