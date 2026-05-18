@@ -258,19 +258,85 @@ export default function ProfessionalHubV2() {
   });
 
   const handleAcceptRequest = async (req) => {
-    // Optimistic update: immediately show as confirmed
     setIncomingRequest(null);
     queryClient.setQueryData(['incomingRequests', user?.email], (old) => 
       old?.filter(r => r.id !== req.id) || []
     );
     
     try {
-      await base44.entities.Booking.update(req.id, { status: 'confirmed' });
+      const professionalPhone = professionalProfile?.whatsapp_number || professionalProfile?.phone || user?.phone || '';
+      await base44.entities.Booking.update(req.id, {
+        status: 'confirmed',
+        walker_payment_contact: professionalPhone,
+      });
+
+      const ownerEmail = req.owner_email || req.created_by;
+      const ownerPhone = req.owner_phone || '';
+      const professionalEmail = req.walker_email || user?.email;
+      const professionalName = req.walker_name || professionalProfile?.walker_name || user?.full_name || 'Profissional';
+      const dateStr = req.walk_date ? new Date(req.walk_date).toLocaleDateString('pt-PT') : '';
+      const timeStr = req.walk_time || '';
+      const locationStr = req.pickup_address || req.pickup_location || req.location || '';
+
+      if (ownerEmail) {
+        await base44.integrations.Core.SendEmail({
+          from_name: 'PawCão',
+          to: ownerEmail,
+          subject: 'Reserva aceite — contactos disponíveis | PawCão',
+          body: [
+            'Olá,',
+            'A sua reserva foi aceite pelo profissional.',
+            '',
+            'Estado da reserva: ACEITE',
+            '',
+            'Resumo',
+            `- Profissional: ${professionalName}`,
+            dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
+            locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
+            '',
+            'Contacto do profissional',
+            professionalPhone ? `- WhatsApp / telefone: ${professionalPhone}` : null,
+            professionalEmail ? `- Email: ${professionalEmail}` : null,
+            '',
+            'Obrigado,',
+            'Equipa PawCão'
+          ].filter(Boolean).join('\n')
+        });
+      }
+
+      if (professionalEmail) {
+        await base44.integrations.Core.SendEmail({
+          from_name: 'PawCão',
+          to: professionalEmail,
+          subject: 'Reserva aceite com sucesso — contactos do cliente | PawCão',
+          body: [
+            'Olá,',
+            'Confirmamos que aceitou esta reserva com sucesso.',
+            '',
+            'Estado da reserva: ACEITE',
+            '',
+            'Resumo',
+            `- Cliente: ${req.owner_name || 'Cliente'}`,
+            `- Animal: ${req.dog_name || 'Pet'}`,
+            dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
+            locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
+            '',
+            'Contacto do cliente',
+            ownerPhone ? `- WhatsApp / telefone: ${ownerPhone}` : null,
+            ownerEmail ? `- Email: ${ownerEmail}` : null,
+            '',
+            'Obrigado,',
+            'Equipa PawCão'
+          ].filter(Boolean).join('\n')
+        });
+      }
+
       queryClient.invalidateQueries(['incomingRequests']);
+      queryClient.invalidateQueries(['walkerWalks']);
+      queryClient.invalidateQueries(['myWalks']);
       toast.success("Passeio aceite! 🎉");
       navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${req.id}`));
     } catch (error) {
-      // Rollback optimistic update
       queryClient.invalidateQueries(['incomingRequests']);
       toast.error("Erro ao aceitar. Tenta novamente.");
     }

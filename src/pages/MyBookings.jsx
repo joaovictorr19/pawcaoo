@@ -626,7 +626,7 @@ export default function MyBookings() {
           </div>
 
           {/* Info */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
               <Calendar className="w-3.5 h-3.5 text-orange-400" />
               {booking.date ? format(new Date(booking.date), 'dd/MM/yy', { locale: pt }) : 'N/A'}
@@ -641,6 +641,16 @@ export default function MyBookings() {
               <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold ml-auto">
                 <DollarSign className="w-3.5 h-3.5 text-green-400" />
                 €{booking.total_amount.toFixed(2)}
+              </div>
+            )}
+            {!isProfessional && booking.status === 'confirmed' && booking.walker_payment_contact && (
+              <div className="w-full text-[11px] text-slate-300 font-semibold">
+                Contacto do profissional: {booking.walker_payment_contact}
+              </div>
+            )}
+            {isProfessional && booking.status === 'confirmed' && booking.owner_phone && (
+              <div className="w-full text-[11px] text-slate-300 font-semibold">
+                Contacto do cliente: {booking.owner_phone}
               </div>
             )}
           </div>
@@ -695,9 +705,9 @@ export default function MyBookings() {
               </button>
             )}
 
-            {professionalContact && (
+            {(professionalContact || booking.walker_payment_contact) && (
               <button
-                onClick={() => window.open(`https://wa.me/${professionalContact.replace(/[^0-9]/g, '')}`, '_blank')}
+                onClick={() => window.open(`https://wa.me/${String(professionalContact || booking.walker_payment_contact).replace(/[^0-9]/g, '')}`, '_blank')}
                 className="w-9 h-9 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 flex items-center justify-center transition-all active:scale-95"
                 title="WhatsApp"
               >
