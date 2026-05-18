@@ -150,19 +150,15 @@ export default function Home() {
         }
       });
 
-      const walkerProfiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
-      if (walkerProfiles.length > 0) {
-        await base44.entities.WalkerProfile.update(walkerProfiles[0].id, { is_online: checked });
-      }
-
-      const trainerProfiles = await base44.entities.TrainerProfile.filter({ created_by: user.email });
-      if (trainerProfiles.length > 0) {
-        await base44.entities.TrainerProfile.update(trainerProfiles[0].id, { is_online: checked });
+      if (professionalProfile) {
+        const entity = professionalProfile.walker_name ? base44.entities.WalkerProfile : base44.entities.TrainerProfile;
+        await entity.update(professionalProfile.id, { is_online: checked });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['currentUser']);
       queryClient.invalidateQueries(['allWalkers']);
+      queryClient.invalidateQueries(['allTrainers']);
       queryClient.invalidateQueries(['myProfessionalProfile']);
       toast.success('Estado online atualizado.');
     },
@@ -239,6 +235,21 @@ export default function Home() {
     staleTime: 10 * 1000,
     refetchOnWindowFocus: true,
   });
+
+  const { data: professionalProfile } = useQuery({
+    queryKey: ['myProfessionalProfile', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      let profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email }, '-created_date');
+      if (profiles.length === 0) {
+        profiles = await base44.entities.TrainerProfile.filter({ created_by: user.email }, '-created_date');
+      }
+      return profiles[0] || null;
+    },
+    enabled: !!user?.email,
+  });
+
+  const hasProfessionalProfile = !!professionalProfile;
 
   const currentXP = currentUserProfile?.gamification_xp || 0;
   const [displayedXP, setDisplayedXP] = useState(currentXP);
@@ -689,7 +700,7 @@ export default function Home() {
 
                     {/* Mode Toggle & Quick Actions */}
                     <div className="flex items-center justify-center mb-3">
-                      {['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                      {hasProfessionalProfile && (
                         <button
                           onClick={async () => {
                             const isProfessional = user.preferences?.current_mode !== 'professional';
