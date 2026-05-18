@@ -24,6 +24,7 @@ import { DayOffManager } from "@/components/professional-hub/DayOffManager";
 import ServiceOfferingsEditor from "@/components/professional-hub/ServiceOfferingsEditor";
 import ReviewsManagementSection from "@/components/professional-hub/ReviewsManagementSection";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
+import DocumentsVerificationSection from "@/components/professional-hub/DocumentsVerificationSection";
 import PendingApproval from "@/components/professional-hub/PendingApproval";
 
 function ActiveRequestsList({ user }) {
@@ -549,6 +550,18 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
             >
               <PortfolioSection professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "documents" && (
+            <motion.div
+              key="documents"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DocumentsVerificationSection professionalProfile={professionalProfile} user={user} />
             </motion.div>
           )}
 

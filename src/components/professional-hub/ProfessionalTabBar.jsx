@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BarChart3, Package, Calendar, QrCode, Wallet, Zap, TrendingUp, Star, Image } from "lucide-react";
+import { BarChart3, Package, Calendar, QrCode, Wallet, Zap, TrendingUp, Star, Image, ShieldCheck } from "lucide-react";
 
 export function ProfessionalTabBar({ active, onChange }) {
   const tabs = [
@@ -8,6 +8,7 @@ export function ProfessionalTabBar({ active, onChange }) {
     { id: "services", label: "Serviços", icon: Package },
     { id: "calendar", label: "Agenda", icon: Calendar },
     { id: "portfolio", label: "Portfólio", icon: Image },
+    { id: "documents", label: "Documentos", icon: ShieldCheck },
     { id: "active", label: "Ativos", icon: Zap },
     { id: "reviews", label: "Avaliações", icon: Star },
     { id: "finances", label: "Finanças", icon: TrendingUp },
