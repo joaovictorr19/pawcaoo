@@ -1,0 +1,46 @@
+{
+  "name": "SavedSearch",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que salvou a busca"
+    },
+    "term": {
+      "type": "string",
+      "description": "Termo pesquisado"
+    },
+    "filters": {
+      "type": "object",
+      "description": "Filtros aplicados na busca",
+      "default": {}
+    },
+    "name": {
+      "type": "string",
+      "description": "Nome amig\u00e1vel para a busca salva (opcional)"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se \u00e9 uma busca favorita/fixada"
+    }
+  },
+  "required": [
+    "user_email",
+    "term"
+  ],
+  "rls": {
+    "create": {
+      "data.user_email": "{{user.email}}"
+    },
+    "read": {
+      "data.user_email": "{{user.email}}"
+    },
+    "update": {
+      "data.user_email": "{{user.email}}"
+    },
+    "delete": {
+      "data.user_email": "{{user.email}}"
+    }
+  }
+}
