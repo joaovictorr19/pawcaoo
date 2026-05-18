@@ -37,23 +37,34 @@ Deno.serve(async (req) => {
     const duration = booking.duration_hours ? `${booking.duration_hours}h` : '';
     const location = booking.pickup_address || booking.pickup_location || booking.location || '';
 
-    const subject = `Novo pedido de ${type} — PawCão`;
+    const subject = `Novo pedido de ${type} — estado pendente | PawCão`;
+    const dashboardUrl = `${(new URL('/ProfessionalHubV2', req.url)).origin}/ProfessionalHubV2`;
+    const total = typeof booking.total_amount === 'number' ? `${booking.total_amount.toFixed(2)}€` : null;
+    const service = booking.special_notes?.replace('Serviço: ', '') || (booking.type === 'training' ? 'Treino' : 'Passeio');
 
     const lines = [
-      `Olá!`,
-      `Recebeu um novo pedido de ${type}.`,
+      `Olá,`,
+      `Recebeu um novo pedido de ${type} na PawCão.`,
       '',
-      `Cliente: ${owner}`,
-      `Animal: ${dog}`,
-      dateStr || timeStr ? `Quando: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
-      duration ? `Duração: ${duration}` : null,
-      location ? `Local: ${location}` : null,
+      `Estado da reserva: PENDENTE`,
       '',
-      'Aceda ao seu painel para aceitar ou gerir o pedido:',
-      `${(new URL('/ProfessionalHubV2', req.url)).origin}/ProfessionalHubV2`,
+      `Resumo da reserva`,
+      `- Cliente: ${owner}`,
+      `- Animal: ${dog}`,
+      `- Serviço: ${service}`,
+      dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
+      duration ? `- Duração: ${duration}` : null,
+      location ? `- Local de recolha/encontro: ${location}` : null,
+      total ? `- Valor total pago pelo cliente: ${total}` : null,
       '',
-      'Obrigado,',
-      'Equipa PawCão'
+      `O pagamento do cliente foi registado e a reserva está à espera da sua decisão.`,
+      `Entre no seu painel para aceitar ou gerir este pedido:`,
+      dashboardUrl,
+      '',
+      `Se aceitar, o cliente seguirá com a reserva agendada para a data indicada.`,
+      '',
+      `Obrigado,`,
+      `Equipa PawCão`
     ].filter(Boolean).join('\n');
 
     await base44.asServiceRole.integrations.Core.SendEmail({

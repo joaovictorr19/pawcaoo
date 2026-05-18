@@ -590,6 +590,39 @@ async function handleCheckoutCompleted(base44, session) {
                     related_id: bookingId,
                     icon: '🐾'
                 });
+
+                const dateStr = booking.walk_date ? new Date(booking.walk_date).toLocaleDateString('pt-PT') : '';
+                const timeStr = booking.walk_time || '';
+                const durationStr = booking.duration_hours ? `${booking.duration_hours}h` : '';
+                const locationStr = booking.pickup_address || booking.pickup_location || booking.location || '';
+                const serviceStr = booking.special_notes?.replace('Serviço: ', '') || (booking.type === 'training' ? 'Treino' : 'Passeio');
+                const totalStr = typeof booking.total_amount === 'number' ? `${booking.total_amount.toFixed(2)}€` : '';
+
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                    from_name: 'PawCão',
+                    to: booking.walker_email,
+                    subject: 'Nova reserva paga — ação necessária | PawCão',
+                    body: [
+                        'Olá,',
+                        'Recebeu uma nova reserva com pagamento confirmado.',
+                        '',
+                        'Estado da reserva: PENDENTE',
+                        '',
+                        'Resumo da reserva',
+                        `- Cliente: ${booking.owner_name || 'Cliente'}`,
+                        `- Animal: ${booking.dog_name || 'Pet'}`,
+                        `- Serviço: ${serviceStr}`,
+                        dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
+                        durationStr ? `- Duração: ${durationStr}` : null,
+                        locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
+                        totalStr ? `- Valor pago pelo cliente: ${totalStr}` : null,
+                        '',
+                        'Entre no seu painel para aceitar ou gerir esta reserva.',
+                        '',
+                        'Obrigado,',
+                        'Equipa PawCão'
+                    ].filter(Boolean).join('\n')
+                });
             }
             // Notify owner of successful payment
             const ownerEmail = booking.owner_email || booking.created_by;
@@ -601,6 +634,41 @@ async function handleCheckoutCompleted(base44, session) {
                     type: 'payment',
                     related_id: bookingId,
                     icon: '✅'
+                });
+
+                const dateStr = booking.walk_date ? new Date(booking.walk_date).toLocaleDateString('pt-PT') : '';
+                const timeStr = booking.walk_time || '';
+                const durationStr = booking.duration_hours ? `${booking.duration_hours}h` : '';
+                const locationStr = booking.pickup_address || booking.pickup_location || booking.location || '';
+                const serviceStr = booking.special_notes?.replace('Serviço: ', '') || (booking.type === 'training' ? 'Treino' : 'Passeio');
+                const professionalName = booking.walker_name || booking.trainer_name || 'Profissional';
+                const totalStr = typeof booking.total_amount === 'number' ? `${booking.total_amount.toFixed(2)}€` : '';
+
+                await base44.asServiceRole.integrations.Core.SendEmail({
+                    from_name: 'PawCão',
+                    to: ownerEmail,
+                    subject: 'Pagamento confirmado — reserva pendente de aceitação | PawCão',
+                    body: [
+                        'Olá,',
+                        'O seu pagamento foi confirmado com sucesso na PawCão.',
+                        '',
+                        'Estado da reserva: PENDENTE',
+                        '',
+                        'Resumo da reserva',
+                        `- Profissional: ${professionalName}`,
+                        `- Animal: ${booking.dog_name || 'Pet'}`,
+                        `- Serviço: ${serviceStr}`,
+                        dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
+                        durationStr ? `- Duração: ${durationStr}` : null,
+                        locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
+                        totalStr ? `- Valor pago: ${totalStr}` : null,
+                        '',
+                        'O profissional ainda precisa de aceitar o pedido.',
+                        'Assim que houver atualização, receberá nova confirmação no sistema.',
+                        '',
+                        'Obrigado,',
+                        'Equipa PawCão'
+                    ].filter(Boolean).join('\n')
                 });
             }
         }
