@@ -595,12 +595,16 @@ export default function Home() {
     );
   };
 
+  const handleClientStart = () => {
+    base44.auth.redirectToLogin(createPageUrl('ClientSetup'));
+  };
+
   const handleLogin = () => {
     base44.auth.redirectToLogin(window.location.href);
   };
 
   const handleBecomePro = () => {
-    base44.auth.redirectToLogin(createPageUrl('BecomeProfessional'));
+    base44.auth.redirectToLogin(createPageUrl('ProfessionalSetup'));
   };
 
 
@@ -864,11 +868,11 @@ export default function Home() {
               
               <div className="mb-16">
                 <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6">
-                  O passeio que o seu cão precisa,<br/>
-                  <span className="text-orange-500">com a confiança que você procura.</span>
+                  Entre na PawCão do jeito certo,<br/>
+                  <span className="text-orange-500">como cliente ou profissional.</span>
                 </h1>
                 <p className="text-slate-600 font-bold uppercase tracking-[0.3em] text-xs">
-                  A melhor rede de dog walkers de Portugal
+                  Escolha o seu percurso e complete o perfil desde o início
                 </p>
               </div>
 
@@ -879,12 +883,12 @@ export default function Home() {
                     <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-orange-200">
                       <MapPin size={28} />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 mb-2">Encontrar Passeador</h2>
+                    <h2 className="text-2xl font-black text-slate-900 mb-2">Criar Perfil Cliente</h2>
                     <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
-                      Profissionais verificados prontos para dar ao seu cão o passeio que ele merece.
+                      Preencha os seus dados, morada e animais logo no início para pedir serviços com tudo mais completo.
                     </p>
-                    <button onClick={handleLogin} className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors">
-                      Começar Agora
+                    <button onClick={handleClientStart} className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors">
+                      Criar Perfil Cliente
                     </button>
                   </div>
                 </div>
@@ -894,12 +898,12 @@ export default function Home() {
                     <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-6">
                       <Zap size={28} className="text-orange-400" />
                     </div>
-                    <h2 className="text-2xl font-black text-white mb-2">Ser Profissional</h2>
+                    <h2 className="text-2xl font-black text-white mb-2">Criar Perfil Profissional</h2>
                     <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
-                      Transforme a sua paixão por animais numa fonte de rendimento flexível.
+                      Comece com um onboarding próprio para profissionais e preencha logo os dados certos do seu perfil público.
                     </p>
                     <button onClick={handleBecomePro} className="w-full bg-orange-500 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-orange-500/20">
-                      Fazer Registo Pro
+                      Criar Perfil Profissional
                     </button>
                   </div>
                 </div>

@@ -149,11 +149,11 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         {/* ABA 1: EXPLORAR / PAINEL PROFISSIONAL / CLIENTE */}
         <button 
           onClick={() => {
-            const targetPath = isProf ? createPageUrl("Dashboard") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
+            const targetPath = isProf ? createPageUrl("ProfessionalHubV2") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
             handleTabClick(targetPath);
           }}
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl border border-slate-200 ${
-            (isProf && isActive(createPageUrl("Dashboard"))) ||
+            (isProf && isActive(createPageUrl("ProfessionalHubV2"))) ||
             (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
             (!isProf && !isTutor && isActive(createPageUrl("Home")))
               ? "text-orange-500 bg-orange-50" 
