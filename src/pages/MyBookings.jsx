@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2, CalendarPlus, Map as MapIcon, Star } from "lucide-react";
+import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2, CalendarPlus, Map as MapIcon, Star, LocateFixed } from "lucide-react";
 import { getGoogleCalendarUrl, generateICS, downloadICS, bookingToEvent } from "../components/calendar/calendarHelpers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
@@ -644,13 +644,27 @@ export default function MyBookings() {
               </div>
             )}
             {!isProfessional && booking.status === 'confirmed' && booking.walker_payment_contact && (
-              <div className="w-full text-[11px] text-slate-300 font-semibold">
-                Contacto do profissional: {booking.walker_payment_contact}
+              <div className="w-full space-y-2">
+                <div className="text-[11px] text-slate-300 font-semibold">
+                  Contacto do profissional: {booking.walker_payment_contact}
+                </div>
+                <div className="rounded-2xl border border-green-500/20 bg-green-500/10 p-3">
+                  <p className="text-[11px] font-bold text-green-300">
+                    Se quiser, pode pedir pelo WhatsApp ao profissional a partilha da localização em tempo real durante o serviço.
+                  </p>
+                </div>
               </div>
             )}
             {isProfessional && booking.status === 'confirmed' && booking.owner_phone && (
-              <div className="w-full text-[11px] text-slate-300 font-semibold">
-                Contacto do cliente: {booking.owner_phone}
+              <div className="w-full space-y-2">
+                <div className="text-[11px] text-slate-300 font-semibold">
+                  Contacto do cliente: {booking.owner_phone}
+                </div>
+                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
+                  <p className="text-[11px] font-bold text-blue-300">
+                    O cliente pode pedir por WhatsApp a partilha da sua localização em tempo real durante o serviço, se desejar.
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -706,13 +720,29 @@ export default function MyBookings() {
             )}
 
             {(professionalContact || booking.walker_payment_contact) && (
-              <button
-                onClick={() => window.open(`https://wa.me/${String(professionalContact || booking.walker_payment_contact).replace(/[^0-9]/g, '')}`, '_blank')}
-                className="w-9 h-9 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 flex items-center justify-center transition-all active:scale-95"
-                title="WhatsApp"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </button>
+              <>
+                {!isProfessional && booking.status === 'confirmed' && (
+                  <button
+                    onClick={() => {
+                      const phone = String(professionalContact || booking.walker_payment_contact).replace(/[^0-9]/g, '');
+                      const text = encodeURIComponent(`Olá ${professionalName || ''}! Gostaria que partilhasse a sua localização em tempo real pelo WhatsApp durante o serviço, se possível.`);
+                      window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+                    }}
+                    className="flex-1 h-9 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 text-[11px] font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                    title="Pedir localização"
+                  >
+                    <LocateFixed className="w-3.5 h-3.5" />
+                    Pedir localização
+                  </button>
+                )}
+                <button
+                  onClick={() => window.open(`https://wa.me/${String(professionalContact || booking.walker_payment_contact).replace(/[^0-9]/g, '')}`, '_blank')}
+                  className="w-9 h-9 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 flex items-center justify-center transition-all active:scale-95"
+                  title="WhatsApp"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </button>
+              </>
             )}
 
             {booking.status !== 'in_progress' && !(booking.status === 'completed' && !hasReview) && (
