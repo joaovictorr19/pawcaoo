@@ -395,16 +395,17 @@ function LayoutContent({ children, currentPageName }) {
 
   React.useEffect(() => {
     const handleUnhandledRejection = (event) => {
-      try {
-        const reason = event.reason;
-        console.error('🔴 Unhandled Promise Rejection:', reason);
-        
-        if (!reason || typeof reason !== 'object' || !reason.stack) {}
-        
-        event.preventDefault();
-      } catch (e) {
-        console.error('Error in unhandled rejection handler:', e);
+      const reason = event?.reason;
+      const safeError = reason instanceof Error
+        ? reason
+        : new Error(typeof reason === 'string' ? reason : 'Unhandled promise rejection');
+
+      if (!safeError.stack) {
+        safeError.stack = safeError.message || 'Unhandled promise rejection';
       }
+
+      console.error('🔴 Unhandled Promise Rejection:', safeError);
+      event?.preventDefault?.();
     };
 
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
