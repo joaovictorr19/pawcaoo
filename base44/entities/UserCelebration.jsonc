@@ -23,11 +23,6 @@
       "type": "number",
       "default": 10,
       "description": "XP dado ao celebrado"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [
@@ -36,15 +31,15 @@
   ],
   "rls": {
     "create": {
-      "from_email": "{{user.email}}"
+      "data.from_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "from_email": "{{user.email}}"
+          "data.from_email": "{{user.email}}"
         },
         {
-          "to_email": "{{user.email}}"
+          "data.to_email": "{{user.email}}"
         },
         {
           "user_condition": {
