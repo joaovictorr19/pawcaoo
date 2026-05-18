@@ -559,47 +559,62 @@ export default function MyWallet() {
 
       {/* Add Credits Modal */}
       <Dialog open={showAddCredits} onOpenChange={setShowAddCredits}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-              Adicionar Créditos
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <label className="text-sm font-medium text-white block mb-2">Valor (€)</label>
+        <DialogContent className="max-w-md rounded-3xl border border-slate-200 bg-white p-0 shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-5 text-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3 text-xl font-bold text-white">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                Adicionar fundos
+              </DialogTitle>
+            </DialogHeader>
+            <p className="mt-2 text-sm text-white/85">Escolha um valor para carregar a sua carteira.</p>
+          </div>
+
+          <div className="space-y-5 p-6">
+            <div className="grid grid-cols-3 gap-3">
+              {[10, 25, 50].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setCredits(v.toString())}
+                  className={`rounded-2xl border px-4 py-4 text-center transition-all ${credits === v.toString() ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:bg-orange-50/60'}`}
+                >
+                  <div className="text-xs font-medium uppercase tracking-wide text-slate-400">Adicionar</div>
+                  <div className="mt-1 text-lg font-bold">€{v}</div>
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-slate-900">Outro valor</label>
               <Input
                 type="number"
-                placeholder="50"
+                placeholder="Ex: 30"
                 value={credits}
                 onChange={(e) => setCredits(e.target.value)}
                 min="5"
-                step="5"
-                className="h-10"
+                step="1"
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:ring-orange-500"
               />
+              <p className="text-xs text-slate-500">Valor mínimo: €5</p>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[25, 50, 100].map(v => (
-                <Button
-                  key={v}
-                  variant={credits === v.toString() ? 'default' : 'outline'}
-                  onClick={() => setCredits(v.toString())}
-                  className="text-sm"
-                  style={credits === v.toString() ? { backgroundColor: ACCENT_COLOR } : {}}
-                >
-                  €{v}
-                </Button>
-              ))}
+
+            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200">
+              <div className="flex items-center justify-between text-sm text-slate-500">
+                <span>Total a pagar</span>
+                <span className="text-lg font-bold text-slate-900">€{(parseFloat(credits) || 0).toFixed(2)}</span>
+              </div>
             </div>
-            <div className="bg-slate-900/40 p-3 rounded-lg">
-              <p className="text-xs text-slate-400">
-                <strong>Total:</strong> €{(parseFloat(credits) || 0).toFixed(2)}
-              </p>
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button variant="outline" onClick={() => setShowAddCredits(false)} className="flex-1 bg-slate-900 border-white/10 text-white hover:bg-slate-800">
-              Cancelar
+
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowAddCredits(false)}
+                className="w-full sm:w-auto rounded-2xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              >
+                Fechar
               </Button>
               <Button
                 onClick={() => {
@@ -610,10 +625,9 @@ export default function MyWallet() {
                   addCreditsMutation.mutate(parseFloat(credits));
                 }}
                 disabled={addCreditsMutation.isPending}
-                className="flex-1 text-white"
-                style={{ backgroundColor: ACCENT_COLOR }}
+                className="w-full sm:w-auto rounded-2xl bg-orange-500 text-white hover:bg-orange-600"
               >
-                {addCreditsMutation.isPending ? 'Processando...' : 'Pagar'}
+                {addCreditsMutation.isPending ? 'A abrir pagamento...' : 'Continuar para pagamento'}
               </Button>
             </div>
           </div>
