@@ -27,7 +27,7 @@ export default function ServiceQRCodes({ booking }) {
           Os Seus Códigos QR
         </h3>
         <p className="text-sm text-blue-700">
-          Guarde estes códigos. O profissional irá ler o QR de Início ao chegar e o QR de Fim ao entregar o seu animal.
+          Guarde estes códigos. O QR de início e o QR de fim são diferentes para evitar burlas: o profissional lê um ao chegar e o outro apenas na entrega final.
         </p>
         <div className="flex flex-wrap gap-3 text-xs text-blue-800">
           {booking.walk_date && (

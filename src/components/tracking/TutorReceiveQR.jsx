@@ -13,7 +13,7 @@ export function TutorReceiveQR({ walkId }) {
         <QRCode value={qrValue} size={200} />
       </div>
       <p className="text-[10px] font-bold text-slate-400 uppercase italic">
-        Isto confirma que o teu cão foi entregue em segurança.
+        Este QR é só para finalização e libertação do pagamento.
       </p>
     </div>
   );

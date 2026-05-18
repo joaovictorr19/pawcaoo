@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Camera, ScanLine, X, CheckCircle, XCircle } from "lucide-react";
+import { Camera, ScanLine, X } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { tryDecodeQR, validateForBooking, encodeQR } from '@/utils/qrTokens';
+import { tryDecodeQR, validateForBooking } from '@/utils/qrTokens';
 
 export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START' }) {
   const [scanning, setScanning] = useState(false);
@@ -12,6 +12,8 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
   const [manualCode, setManualCode] = useState('');
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const scanIntervalRef = useRef(null);
+  const hasProcessedRef = useRef(false);
 
   // Manual code verification (fallback if camera fails)
   const handleManualVerify = async () => {
@@ -39,34 +41,34 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
 
   const handleSuccessfulScan = async (data) => {
     try {
+      if (hasProcessedRef.current) return;
+      hasProcessedRef.current = true;
+
       if (type === 'START') {
+        if (['in_progress', 'service_completed', 'completed'].includes(booking.status)) {
+          toast.error('Este serviço já foi iniciado.');
+          return;
+        }
+
         await base44.entities.Booking.update(booking.id, {
           status: 'in_progress',
           walk_start_time: new Date().toISOString()
         });
         toast.success('✅ Serviço iniciado!', {
-          description: 'Serviço em curso — leia o QR de Fim ao terminar'
+          description: 'Serviço em curso — leia o QR de fim ao terminar'
         });
       } else {
-        // FIM: marcar concluído e liberar pagamento ao profissional
+        if (!['in_progress'].includes(booking.status)) {
+          toast.error('O serviço precisa estar em andamento antes da finalização.');
+          return;
+        }
+
         await base44.functions.invoke('completeWalkAndPay', {
           walkId: booking.id,
           report: 'Concluído via QR Code'
         });
 
-        // Liberação do pagamento é automática via automação 'Release Payment on Booking Completion'
-        // (não atualizar Payment manualmente aqui).
-
-        // Notificar dono
-        await base44.entities.Notification.create({
-          recipient_email: booking.owner_email || booking.created_by,
-          title: '✅ Serviço Concluído!',
-          message: `O serviço com ${booking.walker_name} foi concluído. Pagamento processado.`,
-          type: 'booking',
-          related_id: booking.id
-        });
-
-        toast.success('✅ Serviço concluído! Pagamento liberado ao profissional 💰');
+        toast.success('✅ Serviço concluído! Pagamento enviado para processamento.');
       }
 
       setScanning(false);
@@ -81,17 +83,19 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
 
   const startCamera = async () => {
     try {
+      hasProcessedRef.current = false;
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' } 
       });
-      
+
+      streamRef.current = stream;
+      setScanning(true);
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        streamRef.current = stream;
       }
-      
-      setScanning(true);
-      toast.info('📸 Câmera ativa - Aponte para o QR Code');
+
+      toast.info('📸 Câmera ativa - aponte para o QR Code');
     } catch (error) {
       console.error('Camera error:', error);
       toast.error('Erro ao acessar câmera', {
@@ -101,6 +105,10 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
   };
 
   const stopCamera = () => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
@@ -108,16 +116,41 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
     setScanning(false);
   };
 
-  // Mock QR reading (real implementation would use jsQR or similar)
-  const simulateScan = () => {
-    const payload = encodeQR(booking, type === 'START' ? 'START' : 'END');
-    handleSuccessfulScan({ token: payload, type, bookingId: booking.id });
-  };
+  useEffect(() => {
+    if (!scanning || !videoRef.current || !("BarcodeDetector" in window)) return;
+
+    const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+    scanIntervalRef.current = setInterval(async () => {
+      if (!videoRef.current || hasProcessedRef.current) return;
+      try {
+        const codes = await detector.detect(videoRef.current);
+        if (!codes?.length) return;
+        const decoded = tryDecodeQR(codes[0].rawValue);
+        const result = validateForBooking(booking, decoded, type);
+        if (result.valid) {
+          await handleSuccessfulScan({
+            token: decoded.token || codes[0].rawValue,
+            type: result.step === 'start' ? 'START' : 'END',
+            bookingId: booking.id
+          });
+        }
+      } catch (error) {
+        console.error('QR detect error:', error);
+      }
+    }, 700);
+
+    return () => {
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current);
+        scanIntervalRef.current = null;
+      }
+    };
+  }, [scanning, booking?.id, booking?.status, type]);
 
   const buttonColor = type === 'START' 
     ? 'bg-green-600 hover:bg-green-700' 
     : 'bg-blue-600 hover:bg-blue-700';
-  const buttonText = type === 'START' ? '🟢 Ler QR de Início' : '🔴 Ler QR de Entrega';
+  const buttonText = type === 'START' ? '🟢 Ler QR de Início' : '🔴 Ler QR de Finalização';
 
   return (
     <>
@@ -188,22 +221,13 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
             {/* Bottom Controls */}
             <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent">
               <div className="space-y-3">
-                {/* Test button (development only) */}
-                <Button
-                  onClick={simulateScan}
-                  variant="secondary"
-                  className="w-full h-12 bg-white/20 hover:bg-white/30 text-white font-bold backdrop-blur-sm"
-                >
-                  🧪 Simular Scan (Teste)
-                </Button>
-
                 {/* Manual entry */}
                 <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                   <p className="text-white text-sm mb-2 font-medium">Câmera não funciona? Insira manualmente:</p>
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="PK-XXXXXXXX"
+                      placeholder={type === 'START' ? 'PK-XXXXXXXX' : 'DO-XXXXXXXX'}
                       value={manualCode}
                       onChange={(e) => setManualCode(e.target.value.toUpperCase())}
                       className="flex-1 px-4 py-2 rounded-lg bg-white/90 text-gray-900 font-mono font-bold text-center uppercase"
