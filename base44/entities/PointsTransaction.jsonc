@@ -1,0 +1,77 @@
+{
+  "name": "PointsTransaction",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User's email"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "earned",
+        "redeemed",
+        "expired",
+        "bonus"
+      ],
+      "description": "Type of transaction"
+    },
+    "points_amount": {
+      "type": "number",
+      "description": "Points amount (positive for earned, negative for redeemed)"
+    },
+    "related_booking_id": {
+      "type": "string",
+      "description": "Related booking if applicable"
+    },
+    "description": {
+      "type": "string",
+      "description": "Transaction description"
+    },
+    "balance_after": {
+      "type": "number",
+      "description": "Balance after transaction"
+    }
+  },
+  "required": [
+    "user_email",
+    "transaction_type",
+    "points_amount"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
