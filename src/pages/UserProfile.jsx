@@ -70,19 +70,21 @@ export default function UserProfile() {
       if (root) root.scrollTop = 0;
       const main = document.querySelector('main');
       if (main) main.scrollTop = 0;
-      const profileTop = document.getElementById('profile-top');
-      if (profileTop) profileTop.scrollIntoView({ block: 'start', behavior: 'auto' });
+      const profilePage = document.getElementById('profile-page');
+      if (profilePage) profilePage.scrollIntoView({ block: 'start', behavior: 'auto' });
     };
 
     resetProfileScroll();
-    const rafId = window.requestAnimationFrame(resetProfileScroll);
-    const timeoutId = window.setTimeout(resetProfileScroll, 300);
+    const rafId1 = window.requestAnimationFrame(resetProfileScroll);
+    const rafId2 = window.requestAnimationFrame(() => window.requestAnimationFrame(resetProfileScroll));
+    const timeoutId = window.setTimeout(resetProfileScroll, 400);
 
     return () => {
-      window.cancelAnimationFrame(rafId);
+      window.cancelAnimationFrame(rafId1);
+      window.cancelAnimationFrame(rafId2);
       window.clearTimeout(timeoutId);
     };
-  }, [profileIdParam, profileEmailParam, profileUsernameParam]);
+  }, [profileIdParam, profileEmailParam, profileUsernameParam, location.key]);
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
