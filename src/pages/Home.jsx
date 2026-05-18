@@ -655,46 +655,6 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Mode Toggle & Quick Actions */}
-                    <div className="flex items-center justify-center mb-3">
-                      {['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                        <button
-                          onClick={async () => {
-                            const isProfessional = user.preferences?.current_mode !== 'professional';
-                            try {
-                              await base44.auth.updateMe({
-                                preferences: { ...user.preferences, current_mode: isProfessional ? 'professional' : 'owner' }
-                              });
-                              const walkerProfiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
-                              if (walkerProfiles.length > 0) {
-                                await base44.entities.WalkerProfile.update(walkerProfiles[0].id, { is_online: isProfessional });
-                              }
-                              queryClient.invalidateQueries(['currentUser']);
-                              queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-                              queryClient.invalidateQueries(['walkers']);
-                              queryClient.invalidateQueries(['allWalkers']);
-                              toast.success(isProfessional ? 'PawGo ligado' : 'PawGo desligado');
-                            } catch (error) {
-                              console.error('Erro ao ativar modo profissional:', error);
-                              toast.error('Não foi possível atualizar o PawGo');
-                            }
-                          }}
-                          className={`flex items-center gap-2 px-5 py-2.5 rounded-full border transition-all active:scale-95 font-black text-xs uppercase tracking-wider ${
-                            user.preferences?.current_mode === 'professional'
-                              ? 'bg-green-500 border-green-400 text-white shadow-lg shadow-green-500/30'
-                              : 'bg-black/20 backdrop-blur-md border-white/20 text-white/80 hover:text-white'
-                          }`}
-                          title={user.preferences?.current_mode === 'professional' ? 'Desligar PawGo' : 'Ligar PawGo'}
-                        >
-                          <Zap className="w-3.5 h-3.5" />
-                          <div className={`w-2 h-2 rounded-full ${
-                            user.preferences?.current_mode === 'professional' ? 'bg-white animate-pulse' : 'bg-white/40'
-                          }`} />
-                          {user.preferences?.current_mode === 'professional' ? 'PawGo Ativo' : 'Ligar PawGo'}
-                        </button>
-                      )}
-                    </div>
-
                     <div className="grid grid-cols-4 gap-2 w-full">
                       <button onClick={() => navigate(createPageUrl('Favorites'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
                         <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
@@ -768,43 +728,86 @@ export default function Home() {
               })()}
 
               {/* Animals Section */}
-              {myDogs && myDogs.length > 0 && (
-                <div className="bg-white/30 backdrop-blur-lg border border-white/40 shadow-xl rounded-3xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
-                      <Heart className="w-4 h-4 text-pink-500" />
-                      Meus Animais ({myDogs.length})
-                    </h3>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => navigate(createPageUrl('EditAnimalProfile'))}
-                      className="text-xs h-7 px-3 hover:bg-white/50"
-                    >
-                      + Adicionar
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
-                    {myDogs?.map((dog) => (
-                      <motion.div
-                        key={dog.id}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        className="cursor-pointer"
-                        onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
+              {user && (
+                <div className="space-y-3">
+                  {myDogs && myDogs.length > 0 && (
+                    <div className="bg-white/30 backdrop-blur-lg border border-white/40 shadow-xl rounded-3xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                          <Heart className="w-4 h-4 text-pink-500" />
+                          Meus Animais ({myDogs.length})
+                        </h3>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => navigate(createPageUrl('EditAnimalProfile'))}
+                          className="text-xs h-7 px-3 hover:bg-white/50"
+                        >
+                          + Adicionar
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+                        {myDogs?.map((dog) => (
+                          <motion.div
+                            key={dog.id}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            className="cursor-pointer"
+                            onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
+                          >
+                            <div className="bg-white/20 backdrop-blur-md rounded-xl p-2 text-center border border-white/30 hover:border-blue-300 hover:bg-white/40 transition-all shadow-md hover:shadow-lg aspect-square flex flex-col items-center justify-center">
+                              <div className="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-white shadow-md overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
+                                {dog.photo_url ? (
+                                  <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-slate-200"></div>
+                                )}
+                              </div>
+                              <p className="font-bold text-[10px] text-gray-900 truncate w-full px-1">{dog.dog_name}</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                    <div className="flex justify-center">
+                      <button
+                        onClick={async () => {
+                          const isProfessional = user.preferences?.current_mode !== 'professional';
+                          try {
+                            await base44.auth.updateMe({
+                              preferences: { ...user.preferences, current_mode: isProfessional ? 'professional' : 'owner' }
+                            });
+                            const walkerProfiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+                            if (walkerProfiles.length > 0) {
+                              await base44.entities.WalkerProfile.update(walkerProfiles[0].id, { is_online: isProfessional });
+                            }
+                            queryClient.invalidateQueries(['currentUser']);
+                            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+                            queryClient.invalidateQueries(['walkers']);
+                            queryClient.invalidateQueries(['allWalkers']);
+                            toast.success(isProfessional ? 'PawGo ligado' : 'PawGo desligado');
+                          } catch (error) {
+                            console.error('Erro ao ativar modo profissional:', error);
+                            toast.error('Não foi possível atualizar o PawGo');
+                          }
+                        }}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-full border transition-all active:scale-95 font-black text-xs uppercase tracking-wider ${
+                          user.preferences?.current_mode === 'professional'
+                            ? 'bg-green-500 border-green-400 text-white shadow-lg shadow-green-500/30'
+                            : 'bg-black/20 backdrop-blur-md border-white/20 text-white/80 hover:text-white'
+                        }`}
+                        title={user.preferences?.current_mode === 'professional' ? 'Desligar PawGo' : 'Ligar PawGo'}
                       >
-                        <div className="bg-white/20 backdrop-blur-md rounded-xl p-2 text-center border border-white/30 hover:border-blue-300 hover:bg-white/40 transition-all shadow-md hover:shadow-lg aspect-square flex flex-col items-center justify-center">
-                          <div className="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-white shadow-md overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
-                            {dog.photo_url ? (
-                              <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-slate-200"></div>
-                            )}
-                          </div>
-                          <p className="font-bold text-[10px] text-gray-900 truncate w-full px-1">{dog.dog_name}</p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
+                        <Zap className="w-4 h-4" />
+                        <div className={`w-2 h-2 rounded-full ${
+                          user.preferences?.current_mode === 'professional' ? 'bg-white animate-pulse' : 'bg-white/40'
+                        }`} />
+                        {user.preferences?.current_mode === 'professional' ? 'PawGo Ativo' : 'Ligar PawGo'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
