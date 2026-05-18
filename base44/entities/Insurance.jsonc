@@ -1,0 +1,114 @@
+{
+  "name": "Insurance",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "Related booking ID"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Dog owner's email"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Owner's name"
+    },
+    "dog_name": {
+      "type": "string",
+      "description": "Dog's name"
+    },
+    "insurance_type": {
+      "type": "string",
+      "enum": [
+        "basic",
+        "standard",
+        "premium"
+      ],
+      "default": "basic",
+      "description": "Insurance coverage level"
+    },
+    "coverage_amount": {
+      "type": "number",
+      "description": "Maximum coverage amount"
+    },
+    "premium_amount": {
+      "type": "number",
+      "description": "Insurance premium paid"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Coverage start"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Coverage end"
+    },
+    "policy_number": {
+      "type": "string",
+      "description": "Insurance policy number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "claimed",
+        "cancelled"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "owner_email",
+    "dog_name",
+    "insurance_type",
+    "coverage_amount",
+    "premium_amount"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
