@@ -714,39 +714,6 @@ export default function Home() {
                     </div>
 
                     {/* Mode Toggle & Quick Actions */}
-                    <div className="flex items-center justify-center mb-3">
-                      {hasProfessionalProfile && (
-                        <button
-                          onClick={async () => {
-                            const isProfessional = user.preferences?.current_mode !== 'professional';
-                            try {
-                              await base44.auth.updateMe({
-                                preferences: { ...user.preferences, current_mode: isProfessional ? 'professional' : 'owner' }
-                              });
-                              const walkerProfiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
-                              if (walkerProfiles.length > 0) {
-                                await base44.entities.WalkerProfile.update(walkerProfiles[0].id, { is_online: isProfessional });
-                              }
-                              queryClient.invalidateQueries(['currentUser']);
-                              queryClient.invalidateQueries(['walkers']);
-                            } catch (error) {
-                              console.error('Erro ao ativar modo profissional:', error);
-                            }
-                          }}
-                          className={`flex items-center gap-2 px-5 py-2.5 rounded-full border transition-all active:scale-95 font-black text-xs uppercase tracking-wider ${
-                            user.preferences?.current_mode === 'professional'
-                              ? 'bg-green-500 border-green-400 text-white shadow-lg shadow-green-500/30'
-                              : 'bg-black/20 backdrop-blur-md border-white/20 text-white/80 hover:text-white'
-                          }`}
-                        >
-                          <div className={`w-2 h-2 rounded-full ${
-                            user.preferences?.current_mode === 'professional' ? 'bg-white animate-pulse' : 'bg-white/40'
-                          }`} />
-                          {user.preferences?.current_mode === 'professional' ? 'PawGo Ativo' : 'Off'}
-                        </button>
-                      )}
-                    </div>
-
                     <div className="grid grid-cols-4 gap-2 w-full">
                       <button onClick={() => navigate(createPageUrl('Favorites'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
                         <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
