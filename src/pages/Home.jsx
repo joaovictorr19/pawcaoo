@@ -164,7 +164,7 @@ export default function Home() {
       queryClient.invalidateQueries(['currentUser']);
       queryClient.invalidateQueries(['allWalkers']);
       queryClient.invalidateQueries(['myProfessionalProfile']);
-      toast.success('walker' === user?.account_type || 'trainer' === user?.account_type || 'both' === user?.account_type ? 'Estado online atualizado.' : '');
+      toast.success('Estado online atualizado.');
     },
     onError: () => {
       toast.error('Erro ao atualizar estado online.');
@@ -721,24 +721,6 @@ export default function Home() {
                       )}
                     </div>
 
-                    {['walker', 'trainer', 'both'].includes(user?.account_type) && (
-                      <button
-                        onClick={() => toggleOnlineMutation.mutate(!(user?.pawgo_status?.is_online || false))}
-                        className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 mb-3 ${
-                          user?.pawgo_status?.is_online
-                            ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                            : 'bg-black/20 backdrop-blur-md border border-white/20 text-white/80 hover:text-white'
-                        }`}
-                      >
-                        <div className={`w-2 h-2 rounded-full ${user?.pawgo_status?.is_online ? 'bg-white animate-pulse' : 'bg-white/40'}`} />
-                        {toggleOnlineMutation.isPending
-                          ? 'A atualizar...'
-                          : user?.pawgo_status?.is_online
-                            ? 'User Profile Online'
-                            : 'Colocar User Profile Online'}
-                      </button>
-                    )}
-
                     <div className="grid grid-cols-4 gap-2 w-full">
                       <button onClick={() => navigate(createPageUrl('Favorites'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
                         <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
@@ -849,6 +831,24 @@ export default function Home() {
                       </motion.div>
                     ))}
                   </div>
+
+                  {['walker', 'trainer', 'both'].includes(user?.account_type) && (
+                    <button
+                      onClick={() => toggleOnlineMutation.mutate(!(user?.pawgo_status?.is_online || false))}
+                      className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 ${
+                        user?.pawgo_status?.is_online
+                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                          : 'bg-black/20 backdrop-blur-md border border-white/20 text-white/80 hover:text-white'
+                      }`}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${user?.pawgo_status?.is_online ? 'bg-white animate-pulse' : 'bg-white/40'}`} />
+                      {toggleOnlineMutation.isPending
+                        ? 'A atualizar...'
+                        : user?.pawgo_status?.is_online
+                          ? 'User Profile Online'
+                          : 'Colocar User Profile Online'}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
