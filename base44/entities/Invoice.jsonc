@@ -132,11 +132,6 @@
       "type": "string",
       "format": "date-time",
       "description": "Data de envio ao cliente"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [
@@ -153,10 +148,10 @@
     "read": {
       "$or": [
         {
-          "professional_email": "{{user.email}}"
+          "data.professional_email": "{{user.email}}"
         },
         {
-          "client_email": "{{user.email}}"
+          "data.client_email": "{{user.email}}"
         },
         {
           "user_condition": {
