@@ -1,0 +1,73 @@
+{
+  "name": "ProductReview",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "ID do produto"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "reviewer_email": {
+      "type": "string"
+    },
+    "reviewer_name": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da review"
+    },
+    "comment": {
+      "type": "string"
+    },
+    "verified_purchase": {
+      "type": "boolean",
+      "default": false,
+      "description": "Review de compra verificada"
+    },
+    "helpful_count": {
+      "type": "number",
+      "default": 0
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "product_id",
+    "reviewer_email",
+    "rating"
+  ],
+  "rls": {
+    "create": {
+      "data.reviewer_email": "{{user.email}}"
+    },
+    "read": {},
+    "update": {
+      "data.reviewer_email": "{{user.email}}"
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.reviewer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
