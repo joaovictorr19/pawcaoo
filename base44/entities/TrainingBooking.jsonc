@@ -1,0 +1,211 @@
+{
+  "name": "TrainingBooking",
+  "type": "object",
+  "properties": {
+    "trainer_id": {
+      "type": "string",
+      "description": "ID of the trainer"
+    },
+    "trainer_name": {
+      "type": "string",
+      "description": "Trainer's name"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Dog owner's name"
+    },
+    "owner_phone": {
+      "type": "string",
+      "description": "Owner's phone"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Owner's email"
+    },
+    "dog_name": {
+      "type": "string",
+      "description": "Dog's name"
+    },
+    "dog_age": {
+      "type": "number",
+      "description": "Dog's age in years"
+    },
+    "dog_breed": {
+      "type": "string",
+      "description": "Dog's breed"
+    },
+    "dog_size": {
+      "type": "string",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "extra_large"
+      ]
+    },
+    "training_type": {
+      "type": "string",
+      "description": "Type of training requested"
+    },
+    "consultation_method": {
+      "type": "string",
+      "enum": [
+        "in_person",
+        "online",
+        "hybrid"
+      ],
+      "description": "How the training will be conducted"
+    },
+    "session_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the session"
+    },
+    "session_time": {
+      "type": "string",
+      "description": "Time of the session"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Session duration in hours",
+      "default": 1
+    },
+    "package_type": {
+      "type": "string",
+      "enum": [
+        "single",
+        "package_5",
+        "package_10"
+      ],
+      "default": "single",
+      "description": "Package type purchased"
+    },
+    "sessions_remaining": {
+      "type": "number",
+      "description": "Sessions remaining in package",
+      "default": 1
+    },
+    "service_amount": {
+      "type": "number",
+      "description": "Amount trainer receives"
+    },
+    "platform_fee": {
+      "type": "number",
+      "description": "Platform commission"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total paid by owner"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "held",
+        "released",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "training_goals": {
+      "type": "string",
+      "description": "What the owner wants to achieve"
+    },
+    "behavioral_issues": {
+      "type": "string",
+      "description": "Any behavioral issues to address"
+    },
+    "previous_training": {
+      "type": "string",
+      "description": "Previous training experience"
+    },
+    "special_notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "completion_code": {
+      "type": "string",
+      "description": "Code for session completion"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "session_notes": {
+      "type": "string",
+      "description": "Trainer's notes after session"
+    },
+    "homework_assigned": {
+      "type": "string",
+      "description": "Homework for owner to practice"
+    }
+  },
+  "required": [
+    "trainer_id",
+    "owner_name",
+    "dog_name",
+    "session_date",
+    "total_amount"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.trainer_email": "{{user.email}}"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.trainer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
