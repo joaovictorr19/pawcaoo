@@ -1,0 +1,67 @@
+{
+  "name": "UserCelebration",
+  "type": "object",
+  "properties": {
+    "from_email": {
+      "type": "string",
+      "description": "Email de quem celebrou"
+    },
+    "to_email": {
+      "type": "string",
+      "description": "Email de quem foi celebrado"
+    },
+    "celebration_type": {
+      "type": "string",
+      "enum": [
+        "congrats",
+        "cheer",
+        "applause"
+      ],
+      "default": "congrats"
+    },
+    "xp_bonus_given": {
+      "type": "number",
+      "default": 10,
+      "description": "XP dado ao celebrado"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
+    }
+  },
+  "required": [
+    "from_email",
+    "to_email"
+  ],
+  "rls": {
+    "create": {
+      "from_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "from_email": "{{user.email}}"
+        },
+        {
+          "to_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

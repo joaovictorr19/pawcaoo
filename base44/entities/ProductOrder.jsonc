@@ -100,6 +100,11 @@
     },
     "tracking_number": {
       "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
     }
   },
   "required": [
@@ -109,12 +114,12 @@
   ],
   "rls": {
     "create": {
-      "data.customer_email": "{{user.email}}"
+      "customer_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "data.customer_email": "{{user.email}}"
+          "customer_email": "{{user.email}}"
         },
         {
           "user_condition": {

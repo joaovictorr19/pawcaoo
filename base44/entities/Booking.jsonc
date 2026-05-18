@@ -1,0 +1,372 @@
+{
+  "name": "Booking",
+  "type": "object",
+  "properties": {
+    "pickup_token": {
+      "type": "string",
+      "description": "QR Code token for pickup verification (START)"
+    },
+    "dropoff_token": {
+      "type": "string",
+      "description": "QR Code token for dropoff verification (END)"
+    },
+    "walker_id": {
+      "type": "string",
+      "description": "ID of the walker profile"
+    },
+    "walker_name": {
+      "type": "string",
+      "description": "Name of the walker (denormalized for easier querying)"
+    },
+    "walker_email": {
+      "type": "string",
+      "description": "Email of the walker"
+    },
+    "walker_payment_contact": {
+      "type": "string",
+      "description": "Contact number for MBWay/Payment (visible after acceptance)"
+    },
+    "walker_lat": {
+      "type": "number",
+      "description": "Walker's current latitude during walk"
+    },
+    "walker_lng": {
+      "type": "number",
+      "description": "Walker's current longitude during walk"
+    },
+    "pickup_lat": {
+      "type": "number",
+      "description": "Latitude of pickup/destination location"
+    },
+    "pickup_lng": {
+      "type": "number",
+      "description": "Longitude of pickup/destination location"
+    },
+    "route_coordinates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "accuracy": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "GPS trail of the walk",
+      "default": []
+    },
+    "distance_km": {
+      "type": "number",
+      "description": "Total distance walked in kilometers"
+    },
+    "walk_start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the walk actually started (GPS tracking)"
+    },
+    "last_update": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last GPS update timestamp"
+    },
+    "drop_off_photo": {
+      "type": "string",
+      "description": "Photo proof of delivery"
+    },
+    "forced_finish_reason": {
+      "type": "string",
+      "description": "Reason if finished far from destination"
+    },
+    "actual_delivery_distance": {
+      "type": "number",
+      "description": "Distance from destination when finished (meters)"
+    },
+    "trainer_id": {
+      "type": "string",
+      "description": "ID of the trainer profile"
+    },
+    "trainer_name": {
+      "type": "string",
+      "description": "Name of the trainer"
+    },
+    "trainer_email": {
+      "type": "string",
+      "description": "Email of the trainer"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Name of the dog owner"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the dog owner"
+    },
+    "owner_phone": {
+      "type": "string",
+      "description": "Phone number of the dog owner"
+    },
+    "dog_name": {
+      "type": "string",
+      "description": "Name of the dog to be walked (legacy - use dogs array)"
+    },
+    "dog_size": {
+      "type": "string",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "extra_large"
+      ],
+      "description": "Size of the dog (legacy - use dogs array)"
+    },
+    "dogs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dog_id": {
+            "type": "string"
+          },
+          "dog_name": {
+            "type": "string"
+          },
+          "dog_size": {
+            "type": "string",
+            "enum": [
+              "small",
+              "medium",
+              "large",
+              "extra_large"
+            ]
+          },
+          "dog_breed": {
+            "type": "string"
+          },
+          "photo_url": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "List of dogs included in this booking",
+      "default": []
+    },
+    "total_dogs": {
+      "type": "number",
+      "default": 1,
+      "description": "Total number of dogs in this booking"
+    },
+    "pickup_method": {
+      "type": "string",
+      "enum": [
+        "walker_pickup",
+        "owner_dropoff"
+      ],
+      "default": "walker_pickup",
+      "description": "walker_pickup = walker goes to owner's address; owner_dropoff = owner brings dog to a meeting point or professional's home"
+    },
+    "dropoff_location_type": {
+      "type": "string",
+      "enum": [
+        "park",
+        "professional_home",
+        "other"
+      ],
+      "description": "Type of dropoff location when pickup_method is owner_dropoff"
+    },
+    "walk_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "walk_time": {
+      "type": "string",
+      "description": "Preferred time slot"
+    },
+    "session_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "session_time": {
+      "type": "string",
+      "description": "Preferred time slot"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Duration in hours",
+      "default": 1
+    },
+    "service_amount": {
+      "type": "number",
+      "description": "Amount the walker will receive"
+    },
+    "platform_fee": {
+      "type": "number",
+      "description": "Commission taken by platform"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total amount paid by owner"
+    },
+    "tip_amount": {
+      "type": "number",
+      "description": "Optional tip amount",
+      "default": 0
+    },
+    "refund_amount": {
+      "type": "number",
+      "description": "Amount refunded on cancellation",
+      "default": 0
+    },
+    "refund_percentage": {
+      "type": "number",
+      "description": "Percentage of total refunded",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "service_completed",
+        "completed",
+        "in_progress",
+        "cancelled",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "payment_id": {
+      "type": "string",
+      "description": "ID of the associated payment record"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "held",
+        "released",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "special_notes": {
+      "type": "string",
+      "description": "Any special instructions or notes about the dog"
+    },
+    "pickup_address": {
+      "type": "string",
+      "description": "Address for pickup or dropoff meeting point"
+    },
+    "completion_code": {
+      "type": "string",
+      "description": "Code that walker provides to owner to confirm walk completion"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the walk was marked as completed"
+    },
+    "calendar_event_id": {
+      "type": "string",
+      "description": "ID of the event in the calendar/availability system"
+    },
+    "review_id": {
+      "type": "string",
+      "description": "ID of the review associated with this booking"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "walk",
+        "training"
+      ],
+      "default": "walk"
+    },
+    "paid_via_subscription": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this booking was paid using subscription free walk token"
+    },
+    "subscription_walk_value": {
+      "type": "number",
+      "description": "Value covered by subscription token (max \u20ac15)",
+      "default": 0
+    },
+    "extra_charge": {
+      "type": "number",
+      "description": "Extra amount owner needs to pay if service exceeds \u20ac15",
+      "default": 0
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
+    }
+  },
+  "required": [
+    "owner_name",
+    "dog_name",
+    "total_amount"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "data.trainer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "data.trainer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

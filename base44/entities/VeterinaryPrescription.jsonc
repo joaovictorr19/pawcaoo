@@ -160,6 +160,11 @@
       },
       "description": "Hist\u00f3rico de recargas",
       "default": []
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
     }
   },
   "required": [
@@ -172,7 +177,7 @@
     "create": {
       "$or": [
         {
-          "data.veterinarian_email": "{{user.email}}"
+          "veterinarian_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -184,13 +189,13 @@
     "read": {
       "$or": [
         {
-          "data.owner_email": "{{user.email}}"
+          "owner_email": "{{user.email}}"
         },
         {
-          "data.veterinarian_email": "{{user.email}}"
+          "veterinarian_email": "{{user.email}}"
         },
         {
-          "data.pharmacy_company_email": "{{user.email}}"
+          "pharmacy_company_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -202,7 +207,7 @@
     "update": {
       "$or": [
         {
-          "data.veterinarian_email": "{{user.email}}"
+          "veterinarian_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -214,7 +219,7 @@
     "delete": {
       "$or": [
         {
-          "data.veterinarian_email": "{{user.email}}"
+          "veterinarian_email": "{{user.email}}"
         },
         {
           "user_condition": {

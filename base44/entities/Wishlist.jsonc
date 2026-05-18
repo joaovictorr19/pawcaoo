@@ -16,6 +16,11 @@
     },
     "product_price": {
       "type": "number"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
     }
   },
   "required": [
@@ -24,16 +29,16 @@
   ],
   "rls": {
     "create": {
-      "data.user_email": "{{user.email}}"
+      "user_email": "{{user.email}}"
     },
     "read": {
-      "data.user_email": "{{user.email}}"
+      "user_email": "{{user.email}}"
     },
     "update": {
-      "data.user_email": "{{user.email}}"
+      "user_email": "{{user.email}}"
     },
     "delete": {
-      "data.user_email": "{{user.email}}"
+      "user_email": "{{user.email}}"
     }
   }
 }

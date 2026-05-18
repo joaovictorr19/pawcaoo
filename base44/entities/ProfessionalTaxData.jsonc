@@ -134,6 +134,11 @@
     "verified_by": {
       "type": "string",
       "description": "Admin que verificou"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
     }
   },
   "required": [
@@ -147,7 +152,7 @@
     "read": {
       "$or": [
         {
-          "data.professional_email": "{{user.email}}"
+          "professional_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -159,7 +164,7 @@
     "update": {
       "$or": [
         {
-          "data.professional_email": "{{user.email}}"
+          "professional_email": "{{user.email}}"
         },
         {
           "user_condition": {

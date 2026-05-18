@@ -1,0 +1,40 @@
+{
+  "name": "ReviewHelpful",
+  "type": "object",
+  "properties": {
+    "review_id": {
+      "type": "string",
+      "description": "ID of the review"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "User who found it helpful"
+    },
+    "is_helpful": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether they found it helpful or not"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
+    }
+  },
+  "required": [
+    "review_id",
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "user_email": "{{user.email}}"
+    },
+    "read": {},
+    "update": {
+      "user_email": "{{user.email}}"
+    },
+    "delete": {
+      "user_email": "{{user.email}}"
+    }
+  }
+}

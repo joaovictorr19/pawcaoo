@@ -57,6 +57,11 @@
       "type": "string",
       "format": "date-time",
       "description": "Quando foi convertido (primeira reserva)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
     }
   },
   "required": [
@@ -66,15 +71,15 @@
   ],
   "rls": {
     "create": {
-      "data.referrer_email": "{{user.email}}"
+      "referrer_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "data.referrer_email": "{{user.email}}"
+          "referrer_email": "{{user.email}}"
         },
         {
-          "data.referee_email": "{{user.email}}"
+          "referee_email": "{{user.email}}"
         },
         {
           "user_condition": {

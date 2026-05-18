@@ -1,0 +1,58 @@
+{
+  "name": "UserTag",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do utilizador"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID do utilizador"
+    },
+    "tag_name": {
+      "type": "string",
+      "description": "Nome da tag/segmento"
+    },
+    "tag_color": {
+      "type": "string",
+      "default": "blue",
+      "description": "Cor da tag para UI"
+    },
+    "created_by_admin": {
+      "type": "string",
+      "description": "Email do admin que criou"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
+    }
+  },
+  "required": [
+    "user_email",
+    "tag_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

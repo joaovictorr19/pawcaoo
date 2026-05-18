@@ -1,0 +1,132 @@
+{
+  "name": "Redemption",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User redeeming points"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "User's name"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "Product being redeemed"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Product name"
+    },
+    "partner_id": {
+      "type": "string",
+      "description": "Partner providing the product"
+    },
+    "partner_name": {
+      "type": "string",
+      "description": "Partner name"
+    },
+    "points_spent": {
+      "type": "number",
+      "description": "Points used for redemption"
+    },
+    "euro_value": {
+      "type": "number",
+      "description": "Euro value of the redemption"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "shipped",
+        "delivered",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Redemption status"
+    },
+    "delivery_address": {
+      "type": "string",
+      "description": "Where to deliver the product"
+    },
+    "delivery_phone": {
+      "type": "string",
+      "description": "Contact phone for delivery"
+    },
+    "tracking_number": {
+      "type": "string",
+      "description": "Shipping tracking number"
+    },
+    "redemption_code": {
+      "type": "string",
+      "description": "Unique code to collect product at partner store"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
+    }
+  },
+  "required": [
+    "user_email",
+    "product_id",
+    "partner_id",
+    "points_spent"
+  ],
+  "rls": {
+    "create": {
+      "user_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_email": "{{user.email}}"
+        },
+        {
+          "data.partner_id": {
+            "$in": [
+              {
+                "entities": "PartnerCompany",
+                "query": {
+                  "company_email": "{{user.email}}"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.partner_id": {
+            "$in": [
+              {
+                "entities": "PartnerCompany",
+                "query": {
+                  "company_email": "{{user.email}}"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

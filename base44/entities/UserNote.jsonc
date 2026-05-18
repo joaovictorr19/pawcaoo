@@ -1,0 +1,70 @@
+{
+  "name": "UserNote",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do utilizador alvo"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID do utilizador alvo"
+    },
+    "note_content": {
+      "type": "string",
+      "description": "Conte\u00fado da nota privada"
+    },
+    "note_type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "support",
+        "billing",
+        "behavior",
+        "important"
+      ],
+      "default": "general",
+      "description": "Tipo de nota"
+    },
+    "is_pinned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Nota fixada no topo"
+    },
+    "created_by_admin": {
+      "type": "string",
+      "description": "Email do admin que criou a nota"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
+    }
+  },
+  "required": [
+    "user_email",
+    "note_content"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
