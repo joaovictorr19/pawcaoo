@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,13 @@ import ProfessionalBookingModal from "../components/professional/ProfessionalBoo
 
 export default function UserProfile() {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
 
   useLayoutEffect(() => {
     const resetProfileScroll = () => {
-      window.scrollTo(0, 0);
+      window.history.scrollRestoration = 'manual';
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
       const root = document.getElementById('root');
@@ -31,14 +34,16 @@ export default function UserProfile() {
     };
 
     resetProfileScroll();
-    const rafId = window.requestAnimationFrame(resetProfileScroll);
-    const timeoutId = window.setTimeout(resetProfileScroll, 120);
+    const rafId1 = window.requestAnimationFrame(resetProfileScroll);
+    const rafId2 = window.requestAnimationFrame(() => window.requestAnimationFrame(resetProfileScroll));
+    const timeoutId = window.setTimeout(resetProfileScroll, 250);
 
     return () => {
-      window.cancelAnimationFrame(rafId);
+      window.cancelAnimationFrame(rafId1);
+      window.cancelAnimationFrame(rafId2);
       window.clearTimeout(timeoutId);
     };
-  }, [window.location.search]);
+  }, [location.key, location.pathname, location.search]);
 
   const urlParams = new URLSearchParams(window.location.search);
   const rawEmail = urlParams.get('email');
@@ -58,18 +63,20 @@ export default function UserProfile() {
   // Ensure page always opens at top when target profile changes
   useEffect(() => {
     const resetProfileScroll = () => {
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
       const root = document.getElementById('root');
       if (root) root.scrollTop = 0;
       const main = document.querySelector('main');
       if (main) main.scrollTop = 0;
+      const profileTop = document.getElementById('profile-top');
+      if (profileTop) profileTop.scrollIntoView({ block: 'start', behavior: 'auto' });
     };
 
     resetProfileScroll();
     const rafId = window.requestAnimationFrame(resetProfileScroll);
-    const timeoutId = window.setTimeout(resetProfileScroll, 150);
+    const timeoutId = window.setTimeout(resetProfileScroll, 300);
 
     return () => {
       window.cancelAnimationFrame(rafId);
