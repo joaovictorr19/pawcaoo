@@ -1,0 +1,174 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "invoice_number": {
+      "type": "string",
+      "description": "N\u00famero da fatura (gerado pelo software de fatura\u00e7\u00e3o)"
+    },
+    "invoice_type": {
+      "type": "string",
+      "enum": [
+        "client_invoice",
+        "professional_receipt",
+        "platform_invoice"
+      ],
+      "description": "Tipo de documento"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "ID da reserva associada"
+    },
+    "professional_email": {
+      "type": "string",
+      "description": "Email do profissional"
+    },
+    "professional_name": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "professional_tax_id": {
+      "type": "string",
+      "description": "NIF/NIE/SIRET do profissional"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Email do cliente"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "client_tax_id": {
+      "type": "string",
+      "description": "NIF do cliente (se fornecido)"
+    },
+    "service_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do servi\u00e7o"
+    },
+    "service_description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do servi\u00e7o prestado"
+    },
+    "gross_amount": {
+      "type": "number",
+      "description": "Valor bruto do servi\u00e7o"
+    },
+    "platform_fee": {
+      "type": "number",
+      "description": "Taxa da plataforma"
+    },
+    "net_amount": {
+      "type": "number",
+      "description": "Valor l\u00edquido (profissional recebe)"
+    },
+    "vat_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Taxa de IVA aplicada (%)"
+    },
+    "vat_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor do IVA"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Valor total com IVA"
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR",
+      "description": "Moeda"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "generated",
+        "sent",
+        "paid",
+        "cancelled",
+        "error"
+      ],
+      "default": "pending",
+      "description": "Estado da fatura"
+    },
+    "external_invoice_id": {
+      "type": "string",
+      "description": "ID da fatura no software externo (InvoiceXpress)"
+    },
+    "pdf_url": {
+      "type": "string",
+      "description": "URL do PDF (armazenamento seguro)"
+    },
+    "pdf_expiry": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Expira\u00e7\u00e3o do link do PDF"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Mensagem de erro (se falhou)"
+    },
+    "invoicing_software": {
+      "type": "string",
+      "enum": [
+        "invoicexpress",
+        "moloni",
+        "manual"
+      ],
+      "default": "manual",
+      "description": "Software utilizado"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de emiss\u00e3o"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data de envio ao cliente"
+    }
+  },
+  "required": [
+    "booking_id",
+    "professional_email",
+    "gross_amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
