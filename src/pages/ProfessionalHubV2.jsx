@@ -99,10 +99,18 @@ export default function ProfessionalHubV2() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showProfileUpdateRequired, setShowProfileUpdateRequired] = useState(false);
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('tab') === 'agenda') setActiveTab('calendar');
   }, []);
+
+  useEffect(() => {
+    scrollToTop();
+  }, [activeTab]);
   const [incomingRequest, setIncomingRequest] = useState(null);
 
   // 1. Fonte Única de Dados
@@ -532,7 +540,10 @@ export default function ProfessionalHubV2() {
         </AnimatePresence>
       </main>
 
-      <ProfessionalTabBar active={activeTab} onChange={setActiveTab} />
+      <ProfessionalTabBar active={activeTab} onChange={(tab) => {
+        setActiveTab(tab);
+        scrollToTop();
+      }} />
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
