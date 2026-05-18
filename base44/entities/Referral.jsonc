@@ -1,0 +1,97 @@
+{
+  "name": "Referral",
+  "type": "object",
+  "properties": {
+    "referrer_email": {
+      "type": "string",
+      "description": "Email de quem indicou"
+    },
+    "referrer_code": {
+      "type": "string",
+      "description": "C\u00f3digo de refer\u00eancia usado"
+    },
+    "referee_email": {
+      "type": "string",
+      "description": "Email de quem foi indicado"
+    },
+    "referee_name": {
+      "type": "string",
+      "description": "Nome de quem foi indicado"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "rewarded"
+      ],
+      "default": "pending",
+      "description": "Status da indica\u00e7\u00e3o"
+    },
+    "points_awarded_referrer": {
+      "type": "number",
+      "default": 0,
+      "description": "Pontos dados a quem indicou"
+    },
+    "points_awarded_referee": {
+      "type": "number",
+      "default": 0,
+      "description": "Pontos dados a quem foi indicado"
+    },
+    "first_booking_completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o indicado j\u00e1 fez a primeira reserva"
+    },
+    "first_booking_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da primeira reserva"
+    },
+    "total_referee_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor total gasto pelo indicado"
+    },
+    "conversion_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando foi convertido (primeira reserva)"
+    }
+  },
+  "required": [
+    "referrer_email",
+    "referrer_code",
+    "referee_email"
+  ],
+  "rls": {
+    "create": {
+      "data.referrer_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.referrer_email": "{{user.email}}"
+        },
+        {
+          "data.referee_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
