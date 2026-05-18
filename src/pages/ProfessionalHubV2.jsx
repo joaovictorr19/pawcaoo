@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Loader2, Trash2, LogOut, Star, UserCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 import { ProfessionalTabBar } from "../components/professional-hub/ProfessionalTabBar";
@@ -87,10 +87,7 @@ function ActiveRequestsList({ user }) {
 export default function ProfessionalHubV2() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const location = useLocation();
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
@@ -102,7 +99,14 @@ export default function ProfessionalHubV2() {
   const [showProfileUpdateRequired, setShowProfileUpdateRequired] = useState(false);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.history.scrollRestoration = 'manual';
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const root = document.getElementById('root');
+    if (root) root.scrollTop = 0;
+    const main = document.querySelector('main');
+    if (main) main.scrollTop = 0;
   };
 
   useEffect(() => {
@@ -112,7 +116,14 @@ export default function ProfessionalHubV2() {
 
   useEffect(() => {
     scrollToTop();
-  }, [activeTab]);
+    const rafId = window.requestAnimationFrame(scrollToTop);
+    const timeoutId = window.setTimeout(scrollToTop, 250);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [location.key, location.pathname, location.search, activeTab]);
   const [incomingRequest, setIncomingRequest] = useState(null);
 
   // 1. Fonte Única de Dados
