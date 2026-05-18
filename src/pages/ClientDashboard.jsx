@@ -7,6 +7,7 @@ import { ClientTabBar } from "@/components/client/ClientTabBar";
 import { Button } from "@/components/ui/button";
 import WalkReport from "@/components/client/WalkReport";
 import MyDogsManager from "@/components/profile/MyDogsManager";
+import ClientDataSettings from "@/components/client/ClientDataSettings";
 import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
 import { 
   History, 
@@ -239,6 +240,12 @@ export default function ClientDashboard() {
           {activeTab === 'dogs' && (
             <motion.div key="dogs" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
               <MyDogsManager userEmail={user?.email} />
+            </motion.div>
+          )}
+
+          {activeTab === 'client_data' && (
+            <motion.div key="client_data" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+              <ClientDataSettings user={user} />
             </motion.div>
           )}
         </AnimatePresence>
