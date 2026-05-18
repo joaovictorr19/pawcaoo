@@ -4,10 +4,11 @@ import { BarChart3, Package, Calendar, QrCode, Wallet, Zap, TrendingUp, Star, Im
 export function ProfessionalTabBar({ active, onChange }) {
   const tabs = [
     { id: "overview", label: "Resumo", icon: BarChart3 },
-    { id: "active", label: "Ativos", icon: Zap },
+    { id: "profile", label: "Perfil", icon: Package },
     { id: "services", label: "Serviços", icon: Package },
     { id: "calendar", label: "Agenda", icon: Calendar },
     { id: "portfolio", label: "Portfólio", icon: Image },
+    { id: "active", label: "Ativos", icon: Zap },
     { id: "reviews", label: "Avaliações", icon: Star },
     { id: "finances", label: "Finanças", icon: TrendingUp },
     { id: "wallet", label: "Carteira", icon: Wallet },

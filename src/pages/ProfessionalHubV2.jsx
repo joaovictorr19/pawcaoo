@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Loader2, Trash2, LogOut, Star } from "lucide-react";
+import { Bell, Loader2, Trash2, LogOut, Star, UserCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -142,12 +142,6 @@ export default function ProfessionalHubV2() {
 
   // Check if profile needs update to new format (missing lat/lng or service_areas)
   const profileNeedsUpdate = professionalProfile && (!professionalProfile?.latitude || !professionalProfile?.longitude || !professionalProfile?.service_areas?.length);
-  
-  useEffect(() => {
-    if (profileNeedsUpdate) {
-      navigate(createPageUrl('ProfessionalSetup'), { replace: false });
-    }
-  }, [profileNeedsUpdate]);
 
   // Polling: detectar pedidos pendentes direcionados a este profissional (estilo Uber)
   const isOnlinePro = user?.pawgo_status?.is_online || false;
@@ -436,6 +430,38 @@ export default function ProfessionalHubV2() {
                  </h3>
                 <RadarStatusPanel userEmail={user?.email} isOnline={isOnline} city={professionalProfile?.location || user?.city || "Portugal"} />
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === "profile" && (
+            <motion.div 
+              key="profile" 
+              initial={{ opacity: 0, x: 20 }} 
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-8"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <UserCircle2 className="w-5 h-5 text-orange-400" />
+                <h2 className="text-lg font-black text-white">Gestão de Perfil</h2>
+              </div>
+              <ProfessionalEditProfile
+                user={{
+                  ...user,
+                  full_name: professionalProfile?.walker_name || professionalProfile?.trainer_name || user?.full_name,
+                  photo_url: professionalProfile?.photo_url || user?.photo_url || user?.profile_photo_url,
+                  professional_profile: {
+                    bio: professionalProfile?.bio || "",
+                    cover_url: professionalProfile?.cover_photo_url || "",
+                    gallery: professionalProfile?.portfolio?.filter(item => item.media_type !== 'video').map(item => item.media_url).slice(0, 4) || []
+                  }
+                }}
+                onUpdate={() => {
+                  queryClient.invalidateQueries(['currentUser']);
+                  queryClient.invalidateQueries(['myProfessionalProfile']);
+                }}
+              />
             </motion.div>
           )}
 
