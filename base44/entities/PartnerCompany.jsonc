@@ -126,11 +126,6 @@
       ],
       "default": "free",
       "description": "Partnership tier"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [
@@ -147,7 +142,7 @@
     "read": {
       "$or": [
         {
-          "company_email": "{{user.email}}"
+          "data.company_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -159,7 +154,7 @@
     "update": {
       "$or": [
         {
-          "company_email": "{{user.email}}"
+          "data.company_email": "{{user.email}}"
         },
         {
           "user_condition": {
