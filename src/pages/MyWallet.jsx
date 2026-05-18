@@ -53,8 +53,7 @@ export default function MyWallet() {
         pending_walker_payments: 0,
       };
     },
-    enabled: !!user?.email,
-    staleTime: 60000,
+    enabled: !!user?.email
   });
 
   // Fetch membership
@@ -76,9 +75,8 @@ export default function MyWallet() {
     queryKey: ['walletTransactions', user?.email],
     queryFn: () => base44.entities.WalletTransaction.filter({ 
       user_email: user.email 
-    }, '-created_date', 20),
-    enabled: !!user?.email,
-    staleTime: 60000,
+    }, '-created_date', 50),
+    enabled: !!user?.email
   });
 
   // Professional profiles
@@ -108,11 +106,11 @@ export default function MyWallet() {
     queryFn: async () => {
       if (!user?.email) return [];
       return await base44.entities.Booking.filter({ 
-        walker_email: user.email
-      }, '-created_date', 50);
+        walker_email: user.email, 
+        status: 'completed' 
+      }, '-created_date');
     },
     enabled: !!user?.email,
-    staleTime: 60000,
   });
 
   const { data: trainerBookings = [] } = useQuery({
@@ -120,28 +118,36 @@ export default function MyWallet() {
     queryFn: async () => {
       if (!user?.email) return [];
       return await base44.entities.TrainingBooking.filter({ 
-        trainer_email: user.email
-      }, '-created_date', 50);
+        trainer_email: user.email, 
+        status: 'completed' 
+      }, '-created_date');
     },
     enabled: !!user?.email,
-    staleTime: 60000,
   });
 
+  // Reviews
   const { data: reviews = [] } = useQuery({
-    queryKey: ['professionalsReviews', user?.email],
+    queryKey: ['professionalsReviews', user?.id],
     queryFn: async () => {
-      if (!user?.email) return [];
-      const [walkerReviews, trainerReviews] = await Promise.all([
-        base44.entities.Review.filter({ reviewer_email: user.email }, '-created_date', 20),
-        base44.entities.Review.filter({ reviewer_email: user.email }, '-created_date', 20),
-      ]);
+      if (!user?.id) return [];
+      const walkerReviews = await base44.entities.Review.filter({ walker_id: user.id });
+      const trainerReviews = await base44.entities.Review.filter({ trainer_id: user.id });
       return [...walkerReviews, ...trainerReviews];
     },
-    enabled: !!user?.email,
-    staleTime: 60000,
+    enabled: !!user?.id,
   });
 
-  const walkCheckpoints = [];
+  // Walk checkpoints
+  const { data: walkCheckpoints = [] } = useQuery({
+    queryKey: ['walkCheckpoints', user?.email],
+    queryFn: async () => {
+      if (!walkerBookings.length) return [];
+      const bookingIds = walkerBookings.map(b => b.id);
+      const allCheckpoints = await base44.entities.WalkCheckpoint.list();
+      return allCheckpoints.filter(cp => bookingIds.includes(cp.booking_id));
+    },
+    enabled: !!walkerBookings.length,
+  });
 
   // Metrics
   const metrics = useMemo(() => {
@@ -187,19 +193,22 @@ export default function MyWallet() {
     };
   }, [walkerBookings, trainerBookings, reviews, walkCheckpoints]);
 
+  const clientFunds = wallet?.cashback_balance || 0;
+  const professionalPending = wallet?.pending_walker_payments || 0;
+
   // Mutations
   const addCreditsMutation = useMutation({
     mutationFn: async (amount) => {
-      const session = await base44.functions.invoke('createStripeCheckout', {
+      const response = await base44.functions.invoke('createStripeCheckout', {
         productName: `Créditos - €${amount}`,
         amount: Math.round(amount * 100),
         quantity: 1,
         walletTopup: true,
       });
-      return session;
+      return response.data;
     },
-    onSuccess: (session) => {
-      if (session?.url) window.location.href = session.url;
+    onSuccess: (data) => {
+      if (data?.url) window.location.href = data.url;
       else toast.error('Erro ao gerar link');
     },
     onError: () => toast.error('Erro ao processar')
@@ -207,31 +216,33 @@ export default function MyWallet() {
 
   const withdrawMutation = useMutation({
     mutationFn: async (amount) => {
-      if (!user?.email) throw new Error('Utilizador inválido');
-      const availableBalance = isProfessional ? (wallet?.escrow_balance || 0) : (wallet?.cashback_balance || 0);
-      if (amount > availableBalance) {
+      const payouts = await base44.entities.WalkerPayout.filter({ walker_email: user.email, status: 'pending' }, '-created_date', 100);
+      const totalPending = payouts.reduce((sum, item) => sum + (item.net_amount || 0), 0);
+      if (amount > totalPending) {
         throw new Error('Saldo insuficiente');
       }
-      return await base44.entities.IbanWithdrawalRequest.create({
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      const trainerProfiles = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+      const iban = profiles[0]?.bank_account_number || trainerProfiles[0]?.bank_account_number;
+      if (!iban) {
+        throw new Error('Adicione o IBAN primeiro nas definições fiscais');
+      }
+      return base44.entities.IbanWithdrawalRequest.create({
         user_email: user.email,
-        iban: (walkerProfile?.bank_account_number || trainerProfile?.bank_account_number || '').trim(),
-        amount,
-        status: 'pending'
+        iban,
+        amount
       });
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       toast.success('Pedido de saque enviado com sucesso');
       setShowWithdraw(false);
       setWithdrawAmount('');
-      await queryClient.invalidateQueries({ queryKey: ['myWallet', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['myWallet'] });
     },
     onError: (error) => toast.error(error.message)
   });
 
-  const isProfessional = !!(walkerProfile || trainerProfile);
-  const clientBalance = wallet?.cashback_balance || 0;
-  const professionalAvailableBalance = wallet?.escrow_balance || 0;
-  const professionalPendingBalance = wallet?.pending_walker_payments || 0;
+  const isProfessional = walkerProfile || trainerProfile;
 
   if (loadingUser) {
     return (
@@ -260,9 +271,9 @@ export default function MyWallet() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className={`grid w-full mb-8 h-12 bg-slate-900 border border-slate-800 ${isProfessional ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            <TabsTrigger value="client" className="text-slate-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white">Cliente</TabsTrigger>
-            {isProfessional && <TabsTrigger value="pro" className="text-slate-300 data-[state=active]:bg-orange-500 data-[state=active]:text-white">Profissional</TabsTrigger>}
+          <TabsList className="grid w-full grid-cols-2 mb-8 h-11">
+            <TabsTrigger value="client">Cliente</TabsTrigger>
+            {isProfessional && <TabsTrigger value="pro">Profissional</TabsTrigger>}
           </TabsList>
 
           {/* CLIENT TAB */}
@@ -275,7 +286,7 @@ export default function MyWallet() {
             <div className="grid md:grid-cols-3 gap-4">
               {/* Tokens */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className="border-0 shadow-sm">
+                <Card className="border border-white/10 bg-slate-900 shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
@@ -298,28 +309,28 @@ export default function MyWallet() {
                 </Card>
               </motion.div>
 
-              {/* Cashback */}
+              {/* Fundos */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-                <Card className="border-0 shadow-sm">
+                <Card className="border border-white/10 bg-slate-900 shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
                         <Wallet className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
                       </div>
                       <Badge className="text-xs" style={{ backgroundColor: ACCENT_COLOR + "20", color: ACCENT_COLOR }}>
-                        {(membership?.cashback_rate * 100 || 0)}%
+                        Fundos
                       </Badge>
                     </div>
-                    <p className="text-xs text-slate-400 mb-1 font-medium">Crédito Interno</p>
-                    <p className="text-2xl font-bold text-white">€{clientBalance.toFixed(2)}</p>
-                    <p className="text-xs text-slate-500 mt-2">Ganhe em compras</p>
+                    <p className="text-xs text-slate-400 mb-1 font-medium">Saldo para Serviços</p>
+                    <p className="text-2xl font-bold text-white">€{clientFunds.toFixed(2)}</p>
+                    <p className="text-xs text-slate-500 mt-2">Adicione saldo e pague sem repetir a transação</p>
                   </CardContent>
                 </Card>
               </motion.div>
 
               {/* Points */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <Card className="border-0 shadow-sm">
+                <Card className="border border-white/10 bg-slate-900 shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
@@ -338,35 +349,36 @@ export default function MyWallet() {
             </div>
 
             {/* Quick Actions */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Button
-                className="h-12 font-medium bg-orange-500 hover:bg-orange-600 text-white"
-                onClick={() => setShowAddCredits(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Fundos
-              </Button>
-              <Button
-                variant="outline"
-                className="h-12 font-medium border-slate-700 bg-slate-900 text-white hover:bg-slate-800"
-                onClick={() => navigate(createPageUrl('Home'))}
-              >
-                <Dog className="w-4 h-4 mr-2" />
-                Usar Token
-              </Button>
-              <Button
-                variant="outline"
-                className="h-12 font-medium border-slate-700 bg-slate-900 text-white hover:bg-slate-800"
-                onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
-              >
-                <Gift className="w-4 h-4 mr-2" />
-                Resgatar
-              </Button>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <Button
+              variant="outline"
+              className="h-12 font-medium bg-slate-900 border-white/10 text-white hover:bg-slate-800"
+              onClick={() => setShowAddCredits(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Fundos
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 font-medium bg-slate-900 border-white/10 text-white hover:bg-slate-800"
+              onClick={() => navigate(createPageUrl('Home'))}
+            >
+              <Dog className="w-4 h-4 mr-2" />
+              Usar Token
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 font-medium bg-slate-900 border-white/10 text-white hover:bg-slate-800"
+              onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
+            >
+              <Gift className="w-4 h-4 mr-2" />
+              Resgatar
+            </Button>
             </motion.div>
 
             {/* Transactions */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <Card className="border-0 shadow-sm">
+              <Card className="border border-white/10 bg-slate-900 shadow-sm">
                 <CardHeader className="border-b border-white/10 pb-4">
                   <CardTitle className="text-lg">Transações Recentes</CardTitle>
                 </CardHeader>
@@ -407,35 +419,35 @@ export default function MyWallet() {
               {/* Stats Grid */}
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border border-white/10 bg-slate-900 shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
                           <DollarSign className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
                         </div>
                       </div>
-                      <p className="text-xs text-slate-400 font-medium mb-1">Saldo Disponível</p>
-                      <p className="text-xl font-bold text-white">€{professionalAvailableBalance.toFixed(2)}</p>
+                      <p className="text-xs text-slate-400 font-medium mb-1">Saques Disponíveis</p>
+                      <p className="text-xl font-bold text-white">€{professionalPending.toFixed(2)}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border border-white/10 bg-slate-900 shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
                           <Clock className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
                         </div>
                       </div>
-                      <p className="text-xs text-slate-400 font-medium mb-1">Pendente</p>
-                      <p className="text-xl font-bold text-white">€{professionalPendingBalance.toFixed(2)}</p>
+                      <p className="text-xs text-slate-400 font-medium mb-1">Em Cofre</p>
+                      <p className="text-xl font-bold text-white">€{(wallet?.escrow_balance || 0).toFixed(2)}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border border-white/10 bg-slate-900 shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
@@ -449,7 +461,7 @@ export default function MyWallet() {
                 </motion.div>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                  <Card className="border-0 shadow-sm">
+                  <Card className="border border-white/10 bg-slate-900 shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
@@ -466,18 +478,19 @@ export default function MyWallet() {
               {/* Quick Actions */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid md:grid-cols-2 gap-4">
                 <Button
-                  onClick={() => navigate(createPageUrl('FiscalSettings'))}
-                  className="h-12 font-medium text-white bg-orange-500 hover:bg-orange-600"
+                  onClick={() => setShowAddCredits(true)}
+                  className="h-12 font-medium text-white"
+                  style={{ backgroundColor: ACCENT_COLOR }}
                 >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Gerir Conta
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Créditos
                 </Button>
                 <Button
                   onClick={() => setShowWithdraw(true)}
-                  disabled={!professionalAvailableBalance || professionalAvailableBalance <= 0}
+                  disabled={professionalPending <= 0}
                   variant="outline"
-                  className="h-12 font-medium border-slate-700 bg-slate-900 text-white hover:bg-slate-800"
-                >
+                  className="h-12 font-medium bg-slate-900 border-white/10 text-white hover:bg-slate-800"
+                  >
                   <ArrowUpRight className="w-4 h-4 mr-2" />
                   Solicitar Saque
                 </Button>
@@ -485,7 +498,7 @@ export default function MyWallet() {
 
               {/* Chart */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-                <Card className="border-0 shadow-sm">
+                <Card className="border border-white/10 bg-slate-900 shadow-sm">
                   <CardHeader className="border-b border-white/10 pb-4">
                     <CardTitle className="text-lg">Ganhos (Últimos 6 Meses)</CardTitle>
                   </CardHeader>
@@ -515,7 +528,7 @@ export default function MyWallet() {
 
               {/* Activity */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                <Card className="border-0 shadow-sm">
+                <Card className="border border-white/10 bg-slate-900 shadow-sm">
                   <CardHeader className="border-b border-white/10 pb-4">
                     <CardTitle className="text-lg">Atividades</CardTitle>
                   </CardHeader>
@@ -555,7 +568,7 @@ export default function MyWallet() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium text-slate-900 block mb-2">Valor (€)</label>
+              <label className="text-sm font-medium text-white block mb-2">Valor (€)</label>
               <Input
                 type="number"
                 placeholder="50"
@@ -585,8 +598,8 @@ export default function MyWallet() {
               </p>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button variant="outline" onClick={() => setShowAddCredits(false)} className="flex-1 border-slate-300 bg-white text-slate-900 hover:bg-slate-100">
-                Cancelar
+              <Button variant="outline" onClick={() => setShowAddCredits(false)} className="flex-1 bg-slate-900 border-white/10 text-white hover:bg-slate-800">
+              Cancelar
               </Button>
               <Button
                 onClick={() => {
@@ -620,22 +633,22 @@ export default function MyWallet() {
             <div className="p-4 rounded-lg" style={{ backgroundColor: ACCENT_COLOR + "10", border: `1px solid ${ACCENT_COLOR}20` }}>
               <p className="text-xs text-slate-400 font-medium">Saldo Disponível</p>
               <p className="text-2xl font-bold mt-1" style={{ color: ACCENT_COLOR }}>
-                €{professionalAvailableBalance.toFixed(2)}
+                €{(wallet?.available_balance || 0).toFixed(2)}
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-900 block mb-2">Valor (€)</label>
+              <label className="text-sm font-medium text-white block mb-2">Valor (€)</label>
               <Input
                 type="number"
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                max={wallet?.available_balance || 0}
+                max={professionalPending || 0}
                 step="0.01"
                 className="h-10"
               />
             </div>
             <div className="flex gap-2 pt-2">
-              <Button variant="outline" onClick={() => setShowWithdraw(false)} className="flex-1 border-slate-300 bg-white text-slate-900 hover:bg-slate-100">
+              <Button variant="outline" onClick={() => setShowWithdraw(false)} className="flex-1 bg-slate-900 border-white/10 text-white hover:bg-slate-800">
                 Cancelar
               </Button>
               <Button
@@ -643,12 +656,6 @@ export default function MyWallet() {
                   const amount = parseFloat(withdrawAmount);
                   if (!amount || amount <= 0) {
                     toast.error('Valor inválido');
-                    return;
-                  }
-                  const iban = (walkerProfile?.bank_account_number || trainerProfile?.bank_account_number || '').trim();
-                  if (!iban) {
-                    toast.error('Adicione primeiro o IBAN nos dados fiscais');
-                    navigate(createPageUrl('FiscalSettings'));
                     return;
                   }
                   withdrawMutation.mutate(amount);

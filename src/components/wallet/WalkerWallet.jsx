@@ -14,6 +14,7 @@ export default function WalkerWallet({ walkerEmail }) {
   const queryClient = useQueryClient();
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [isSettingUp, setIsSettingUp] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
 
   const { data: walkerProfile, isLoading: profileLoading } = useQuery({
     queryKey: ['walkerProfile', walkerEmail],
@@ -36,9 +37,18 @@ export default function WalkerWallet({ walkerEmail }) {
     enabled: !!walkerEmail,
   });
 
-  const availableBalance = completedBookings
-    .filter(b => b.payment_status === 'held')
-    .reduce((sum, b) => sum + (b.service_amount || 0) + (b.tip_amount || 0), 0);
+  const { data: payouts = [] } = useQuery({
+    queryKey: ['walkerPayouts', walkerEmail],
+    queryFn: async () => {
+      const records = await base44.entities.WalkerPayout.filter({ walker_email: walkerEmail }, '-created_date', 100);
+      return records || [];
+    },
+    enabled: !!walkerEmail,
+  });
+
+  const availableBalance = payouts
+    .filter(p => p.status === 'pending')
+    .reduce((sum, p) => sum + (p.net_amount || 0), 0);
 
   const todayEarnings = completedBookings
     .filter(b => {
@@ -58,37 +68,26 @@ export default function WalkerWallet({ walkerEmail }) {
     .reduce((sum, b) => sum + (b.service_amount || 0) + (b.tip_amount || 0), 0);
 
   const handleWithdraw = async () => {
-    if (availableBalance <= 0) return;
+    const amount = parseFloat(withdrawAmount || '0');
+    if (!amount || amount <= 0 || amount > availableBalance) return;
     setIsWithdrawing(true);
-    
+
     try {
-      const pendingPayouts = completedBookings.filter(b => b.payment_status === 'held');
-      let successCount = 0;
-
-      // Process individually to avoid full failure
-      for (const booking of pendingPayouts) {
-        try {
-          const amountCents = Math.round(((booking.service_amount || 0) + (booking.tip_amount || 0)) * 100);
-          if (amountCents > 0) {
-            await base44.functions.invoke('createPayoutToWalker', {
-              booking_id: booking.id,
-              amount_cents: amountCents
-            });
-            successCount++;
-          }
-        } catch (err) {
-          console.error(`Failed payout for booking ${booking.id}:`, err);
-        }
+      const iban = walkerProfile?.bank_account_number;
+      if (!iban) {
+        toast.error('Adicione o seu IBAN primeiro');
+        return;
       }
-
-      if (successCount > 0) {
-        toast.success(`Transferido €${availableBalance.toFixed(2)} para sua conta Stripe!`);
-        queryClient.invalidateQueries({ queryKey: ['walkerEarnings'] });
-      } else {
-        toast.error("Não foi possível processar a transferência. Tente novamente.");
-      }
+      await base44.entities.IbanWithdrawalRequest.create({
+        user_email: walkerEmail,
+        iban,
+        amount
+      });
+      toast.success('Pedido de saque enviado');
+      setWithdrawAmount('');
+      queryClient.invalidateQueries({ queryKey: ['walkerPayouts'] });
     } catch (error) {
-      toast.error("Erro ao processar levantamento");
+      toast.error('Erro ao processar levantamento');
     } finally {
       setIsWithdrawing(false);
     }
@@ -153,7 +152,7 @@ export default function WalkerWallet({ walkerEmail }) {
                   disabled={isSettingUp}
                   className="bg-orange-600 hover:bg-orange-700 text-white border-0"
                 >
-                  {isSettingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Conectar Conta"}
+                  {isSettingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Configurar Stripe"}
                 </Button>
               </div>
             </div>
@@ -175,13 +174,24 @@ export default function WalkerWallet({ walkerEmail }) {
             </div>
             
             <div className="grid grid-cols-2 gap-3">
-              <Button 
-                onClick={handleWithdraw}
-                disabled={availableBalance <= 0 || isWithdrawing || !walkerProfile?.stripe_account_id}
-                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold h-12 rounded-xl shadow-lg shadow-green-900/30"
-              >
-                {isWithdrawing ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ArrowUpRight className="mr-2 h-5 w-5" /> Levantar</>}
-              </Button>
+              <div className="space-y-2 w-full">
+                <input
+                  type="number"
+                  min="0.5"
+                  step="0.01"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  placeholder="Valor do saque"
+                  className="w-full h-12 rounded-xl border border-white/15 bg-white/10 px-4 text-white placeholder:text-white/50 outline-none"
+                />
+                <Button 
+                  onClick={handleWithdraw}
+                  disabled={availableBalance <= 0 || isWithdrawing}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold h-12 rounded-xl shadow-lg shadow-green-900/30"
+                >
+                  {isWithdrawing ? <Loader2 className="w-5 h-5 animate-spin" /> : <><ArrowUpRight className="mr-2 h-5 w-5" /> Solicitar Saque</>}
+                </Button>
+              </div>
               
               <Button 
                 onClick={handleSetupStripe}

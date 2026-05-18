@@ -27,7 +27,7 @@ export default function WalkerWalletPage() {
   }
 
   // Check if user has walker profile
-  if (user.account_type !== 'walker' && user.account_type !== 'both') {
+  if (user.role !== 'walker' && user.role !== 'admin' && user.account_type !== 'walker' && user.account_type !== 'both') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
