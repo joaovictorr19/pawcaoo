@@ -1,0 +1,133 @@
+{
+  "name": "PartnerProduct",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "description": "ID of the partner selling this product"
+    },
+    "partner_name": {
+      "type": "string",
+      "description": "Partner name"
+    },
+    "partner_company_email": {
+      "type": "string",
+      "description": "Email of the partner company"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Name of the product"
+    },
+    "description": {
+      "type": "string",
+      "description": "Product description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "food",
+        "toys",
+        "accessories",
+        "grooming",
+        "health",
+        "training",
+        "other"
+      ],
+      "description": "Product category"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Product image URL"
+    },
+    "price_euro": {
+      "type": "number",
+      "description": "Price in euros"
+    },
+    "points_cost": {
+      "type": "number",
+      "description": "Cost in loyalty points (alternative to euro price)"
+    },
+    "stock_quantity": {
+      "type": "number",
+      "description": "Available stock",
+      "default": 0
+    },
+    "is_redeemable_with_points": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can be purchased with points"
+    },
+    "is_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Product availability"
+    },
+    "discount_percentage": {
+      "type": "number",
+      "description": "Special discount for PawC\u00e3o members",
+      "default": 0
+    },
+    "moderation_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Moderation status"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Reason for rejection if rejected"
+    },
+    "moderation_notes": {
+      "type": "string",
+      "description": "Internal notes from moderator"
+    }
+  },
+  "required": [
+    "partner_id",
+    "product_name",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
