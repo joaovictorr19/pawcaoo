@@ -1,0 +1,227 @@
+{
+  "name": "VeterinaryPrescription",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "Related service booking ID"
+    },
+    "veterinarian_email": {
+      "type": "string",
+      "description": "Vet who prescribed"
+    },
+    "veterinarian_name": {
+      "type": "string",
+      "description": "Vet name"
+    },
+    "clinic_id": {
+      "type": "string",
+      "description": "Veterinary clinic ID"
+    },
+    "clinic_name": {
+      "type": "string",
+      "description": "Clinic name"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Pet owner email"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Owner name"
+    },
+    "dog_profile_id": {
+      "type": "string",
+      "description": "Dog profile ID"
+    },
+    "dog_name": {
+      "type": "string",
+      "description": "Dog name"
+    },
+    "diagnosis": {
+      "type": "string",
+      "description": "Medical diagnosis"
+    },
+    "prescription_type": {
+      "type": "string",
+      "enum": [
+        "medication",
+        "food",
+        "supplement",
+        "treatment",
+        "product"
+      ],
+      "description": "Type of prescription"
+    },
+    "prescribed_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "medication",
+              "food",
+              "supplement",
+              "product"
+            ]
+          },
+          "item_name": {
+            "type": "string"
+          },
+          "product_id": {
+            "type": "string",
+            "description": "Linked partner product ID"
+          },
+          "dosage": {
+            "type": "string"
+          },
+          "frequency": {
+            "type": "string"
+          },
+          "duration_days": {
+            "type": "number"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "instructions": {
+            "type": "string"
+          },
+          "warnings": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Itens prescritos",
+      "default": []
+    },
+    "general_instructions": {
+      "type": "string",
+      "description": "Instru\u00e7\u00f5es gerais"
+    },
+    "warnings": {
+      "type": "string",
+      "description": "Avisos importantes"
+    },
+    "follow_up_instructions": {
+      "type": "string",
+      "description": "Instru\u00e7\u00f5es de acompanhamento"
+    },
+    "prescription_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da prescri\u00e7\u00e3o"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de validade"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Prescri\u00e7\u00e3o ativa"
+    },
+    "prescription_document_url": {
+      "type": "string",
+      "description": "Documento PDF da prescri\u00e7\u00e3o"
+    },
+    "linked_pharmacy_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Farm\u00e1cias onde pode comprar",
+      "default": []
+    },
+    "refills_remaining": {
+      "type": "number",
+      "default": 0,
+      "description": "Quantas recargas restam"
+    },
+    "refill_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "pharmacy_id": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Hist\u00f3rico de recargas",
+      "default": []
+    }
+  },
+  "required": [
+    "veterinarian_email",
+    "owner_email",
+    "dog_name",
+    "prescribed_items"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.veterinarian_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "data.veterinarian_email": "{{user.email}}"
+        },
+        {
+          "data.pharmacy_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.veterinarian_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.veterinarian_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
