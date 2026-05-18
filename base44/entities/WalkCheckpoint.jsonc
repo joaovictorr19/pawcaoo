@@ -1,0 +1,156 @@
+{
+  "name": "WalkCheckpoint",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "Related booking ID"
+    },
+    "walker_email": {
+      "type": "string",
+      "description": "Walker's email"
+    },
+    "checkpoint_type": {
+      "type": "string",
+      "enum": [
+        "check_in",
+        "check_out",
+        "midpoint",
+        "photo_update",
+        "video_update",
+        "behavior_note"
+      ],
+      "description": "Type of checkpoint"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Photo taken at checkpoint"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "Video taken at checkpoint"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "GPS latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "GPS longitude"
+    },
+    "location_address": {
+      "type": "string",
+      "description": "Human-readable address"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When checkpoint was created"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "dog_behavior": {
+      "type": "object",
+      "properties": {
+        "energy_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "normal",
+            "high",
+            "very_high"
+          ]
+        },
+        "mood": {
+          "type": "string",
+          "enum": [
+            "happy",
+            "calm",
+            "excited",
+            "anxious",
+            "tired"
+          ]
+        },
+        "socialization": {
+          "type": "string",
+          "enum": [
+            "friendly",
+            "neutral",
+            "shy",
+            "aggressive"
+          ]
+        },
+        "bathroom_breaks": {
+          "type": "number",
+          "description": "Number of bathroom breaks"
+        },
+        "water_intake": {
+          "type": "boolean",
+          "description": "Did the dog drink water"
+        },
+        "played_with_other_dogs": {
+          "type": "boolean"
+        },
+        "special_notes": {
+          "type": "string"
+        }
+      },
+      "description": "Dog behavior observations"
+    },
+    "distance_km": {
+      "type": "number",
+      "description": "Distance walked in kilometers"
+    }
+  },
+  "required": [
+    "booking_id",
+    "walker_email",
+    "checkpoint_type"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
