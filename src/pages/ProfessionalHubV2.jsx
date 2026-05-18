@@ -396,10 +396,10 @@ export default function ProfessionalHubV2() {
 
               <div className="flex gap-2 mb-6">
                 <Button
-                  onClick={() => setActiveTab('services')}
+                  onClick={() => setActiveTab('portfolio')}
                   className="flex-1 bg-white text-slate-900 hover:bg-slate-100 font-bold rounded-2xl h-12"
                 >
-                  Gerir Painel
+                  Fotos Portfólio
                 </Button>
                 <Button
                   onClick={() => navigate(createPageUrl(`UserProfile?id=${user?.id}`))}
