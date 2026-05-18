@@ -69,6 +69,9 @@ export default function ProfessionalSetup() {
     availability: ["morning", "afternoon"],
     instant_booking: true,
     work_radius_km: 5,
+    portfolio: [],
+    id_document_url: "",
+    proof_of_address_url: "",
     };
   });
 
@@ -115,6 +118,9 @@ export default function ProfessionalSetup() {
         availability: existingProfile.availability?.length ? existingProfile.availability : prev.availability,
         instant_booking: existingProfile.instant_booking ?? true,
         work_radius_km: existingProfile.service_areas?.[0]?.radius_km || 5,
+        portfolio: existingProfile.portfolio?.length ? existingProfile.portfolio : prev.portfolio,
+        id_document_url: existingProfile.id_document_url || "",
+        proof_of_address_url: existingProfile.proof_of_address_url || "",
         professional_type: existingProfile.is_verified_trainer ? 'both' : 'walker',
       }));
     } else if (user.full_name) {
@@ -161,6 +167,44 @@ export default function ProfessionalSetup() {
       toast.success("Capa atualizada!");
     } catch {
       toast.error("Erro ao enviar a capa.");
+    }
+    setUploading(false);
+  };
+
+  const handlePortfolioUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const uploaded = [];
+      for (const file of files.slice(0, Math.max(0, 6 - (form.portfolio?.length || 0)))) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push({
+          media_url: file_url,
+          media_type: 'photo',
+          title: 'Portfólio',
+          category: 'walk',
+          is_featured: false,
+        });
+      }
+      set("portfolio", [...(form.portfolio || []), ...uploaded].slice(0, 6));
+      toast.success("Portfólio atualizado!");
+    } catch {
+      toast.error("Erro ao carregar portfólio.");
+    }
+    setUploading(false);
+  };
+
+  const handleOptionalDocumentUpload = async (e, field, successMessage) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      set(field, file_url);
+      toast.success(successMessage);
+    } catch {
+      toast.error("Erro ao carregar documento.");
     }
     setUploading(false);
   };
@@ -215,6 +259,9 @@ export default function ProfessionalSetup() {
        accepted_animals: form.accepted_animals,
        dog_sizes: form.dog_sizes,
        availability: form.availability,
+       portfolio: form.portfolio || [],
+       id_document_url: form.id_document_url || "",
+       proof_of_address_url: form.proof_of_address_url || "",
        is_active: false,
        is_online: false,
        is_verified: false,
@@ -439,9 +486,36 @@ export default function ProfessionalSetup() {
                   rows={3}
                   className="w-full px-4 py-3 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm resize-none"
                 />
-              </div>
-            </div>
-          )}
+                </div>
+
+                <div className="space-y-3">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Portfólio (opcional)</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {(form.portfolio || []).map((item, index) => (
+                    <div key={index} className="relative h-24 rounded-xl overflow-hidden border border-slate-700 bg-slate-800">
+                      <img src={item.media_url} alt="Portfólio" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => set("portfolio", form.portfolio.filter((_, i) => i !== index))}
+                        className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-white text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {(form.portfolio || []).length < 6 && (
+                    <label className={`h-24 rounded-xl border border-dashed border-slate-600 bg-slate-900 flex items-center justify-center text-slate-400 text-xs cursor-pointer ${uploading ? 'opacity-50' : ''}`}>
+                      <div className="text-center">
+                        <Upload className="w-4 h-4 mx-auto mb-1" />
+                        Adicionar
+                      </div>
+                      <input type="file" accept="image/*" multiple onChange={handlePortfolioUpload} className="hidden" disabled={uploading} />
+                    </label>
+                  )}
+                </div>
+                </div>
+                </div>
+                )}
 
           {/* STEP 1 - Tipo */}
           {step === 1 && (
@@ -686,6 +760,33 @@ export default function ProfessionalSetup() {
                       </div>
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Documentos (opcional)</p>
+                <div className="grid gap-3">
+                  <label className={`w-full p-4 rounded-2xl border-2 ${form.id_document_url ? 'border-green-500 bg-green-500/10' : 'border-slate-800 bg-slate-900'} cursor-pointer`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-white">Documento de identificação</p>
+                        <p className="text-xs text-slate-400">Pode enviar agora ou depois</p>
+                      </div>
+                      <span className="text-xs text-orange-400 font-bold">{form.id_document_url ? 'Carregado' : 'Carregar'}</span>
+                    </div>
+                    <input type="file" accept="image/*,.pdf" onChange={(e) => handleOptionalDocumentUpload(e, 'id_document_url', 'Documento carregado!')} className="hidden" disabled={uploading} />
+                  </label>
+
+                  <label className={`w-full p-4 rounded-2xl border-2 ${form.proof_of_address_url ? 'border-green-500 bg-green-500/10' : 'border-slate-800 bg-slate-900'} cursor-pointer`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-white">Comprovativo de morada</p>
+                        <p className="text-xs text-slate-400">Opcional nesta fase</p>
+                      </div>
+                      <span className="text-xs text-orange-400 font-bold">{form.proof_of_address_url ? 'Carregado' : 'Carregar'}</span>
+                    </div>
+                    <input type="file" accept="image/*,.pdf" onChange={(e) => handleOptionalDocumentUpload(e, 'proof_of_address_url', 'Comprovativo carregado!')} className="hidden" disabled={uploading} />
+                  </label>
                 </div>
               </div>
             </div>
