@@ -24,20 +24,23 @@ function onAppError({ title, details, componentName, originalError }) {
 }
 
 function handleUnhandledRejection(event) {
-	const stack = event.reason.stack;
-	// extract function name from "at X (eval" where x is the function name
+	const reason = event?.reason;
+	const stack = typeof reason?.stack === 'string' ? reason.stack : '';
 	const functionName = stack.match(/at\s+(\w+)\s+\(eval/)?.[1];
-	const msg = functionName ? `Error in ${functionName}: ${event.reason.toString()}` : event.reason.toString();
-	onAppError({ title: msg, details: event.reason.toString(), componentName: functionName, originalError: event.reason });
+	const reasonText = reason?.toString?.() || 'Unhandled promise rejection';
+	const msg = functionName ? `Error in ${functionName}: ${reasonText}` : reasonText;
+	onAppError({ title: msg, details: reasonText, componentName: functionName, originalError: reason });
 }
 
 function handleWindowError(event) {
-		const stack = event.error?.stack;
-		let functionName = stack.match(/at\s+(\w+)\s+\(eval/)?.[1];
-		if (functionName === 'eval') {
-			functionName = null;
-		}
+	const error = event?.error;
+	const stack = typeof error?.stack === 'string' ? error.stack : '';
+	let functionName = stack.match(/at\s+(\w+)\s+\(eval/)?.[1];
+	if (functionName === 'eval') {
+		functionName = null;
+	}
 
-		const msg = functionName ? `in ${functionName}: ${event.error.toString()}` : event.error.toString();
-	onAppError({ title: msg, details: event.error.toString(), componentName: functionName, originalError: event.error });
+	const errorText = error?.toString?.() || event?.message || 'Unknown error';
+	const msg = functionName ? `in ${functionName}: ${errorText}` : errorText;
+	onAppError({ title: msg, details: errorText, componentName: functionName, originalError: error || event });
 }
