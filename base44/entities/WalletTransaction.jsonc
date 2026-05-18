@@ -1,0 +1,101 @@
+{
+  "name": "WalletTransaction",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do utilizador"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "cashback_earned",
+        "cashback_used",
+        "token_credited",
+        "token_used",
+        "token_expired",
+        "points_earned",
+        "points_redeemed",
+        "escrow_reserved",
+        "escrow_released",
+        "surcharge_paid",
+        "walker_payment_pending",
+        "walker_payment_completed"
+      ],
+      "description": "Tipo de transa\u00e7\u00e3o"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Valor da transa\u00e7\u00e3o em euros"
+    },
+    "tokens_amount": {
+      "type": "number",
+      "description": "Quantidade de tokens (se aplic\u00e1vel)"
+    },
+    "points_amount": {
+      "type": "number",
+      "description": "Quantidade de pontos (se aplic\u00e1vel)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da transa\u00e7\u00e3o"
+    },
+    "related_booking_id": {
+      "type": "string",
+      "description": "ID do booking relacionado"
+    },
+    "related_order_id": {
+      "type": "string",
+      "description": "ID da compra relacionada"
+    },
+    "related_payout_id": {
+      "type": "string",
+      "description": "ID do payout ao walker"
+    },
+    "balance_after": {
+      "type": "number",
+      "description": "Saldo ap\u00f3s transa\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "user_email",
+    "transaction_type",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
