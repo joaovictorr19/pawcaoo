@@ -57,6 +57,11 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
     { value: '3', label: '3h' },
   ];
 
+  const profileStats = clientProfile?.profile_stats || {};
+  const pickupAddress = profileStats.pickup_address || profileStats.address || [profileStats.street, profileStats.door_number, profileStats.floor_apt].filter(Boolean).join(', ') + (profileStats.postal_code ? `, ${profileStats.postal_code}` : '') + (profileStats.city ? ` ${profileStats.city}` : '') + (profileStats.country ? `, ${profileStats.country}` : '');
+  const accessNotes = profileStats.access_notes || '';
+  const ownerPhone = profileStats.phone || currentUser?.phone || '';
+
   const availableDates = Array.from({ length: 30 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i + 1);
@@ -73,11 +78,6 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
     setIsCreating(true);
     try {
-      const profileStats = clientProfile?.profile_stats || {};
-      const pickupAddress = profileStats.pickup_address || profileStats.address || [profileStats.street, profileStats.door_number, profileStats.floor_apt].filter(Boolean).join(', ') + (profileStats.postal_code ? `, ${profileStats.postal_code}` : '') + (profileStats.city ? ` ${profileStats.city}` : '') + (profileStats.country ? `, ${profileStats.country}` : '');
-      const accessNotes = profileStats.access_notes || '';
-      const ownerPhone = profileStats.phone || currentUser.phone || '';
-
       const booking = await base44.entities.Booking.create({
         owner_name: clientProfile?.full_name || currentUser.full_name || currentUser.email,
         owner_email: currentUser.email,
@@ -274,6 +274,10 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   <span className="font-bold text-slate-900">{walkerProfile.walker_name || walkerProfile.trainer_name}</span>
                 </div>
                 <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Cliente</span>
+                  <span className="font-bold text-slate-900">{clientProfile?.full_name || currentUser?.full_name || currentUser?.email}</span>
+                </div>
+                <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Data</span>
                   <span className="font-bold text-slate-900">
                     {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -293,6 +297,22 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                     <span className="font-bold text-slate-900">{selectedService.service_name}</span>
                   </div>
                 )}
+                <div className="space-y-2 pt-1">
+                  <div className="text-sm">
+                    <span className="text-slate-500 block mb-1">Morada de recolha</span>
+                    <span className="font-bold text-slate-900 break-words">{pickupAddress || 'Ainda não definida'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Telefone</span>
+                    <span className="font-bold text-slate-900">{ownerPhone || 'Ainda não definido'}</span>
+                  </div>
+                  {accessNotes && (
+                    <div className="text-sm">
+                      <span className="text-slate-500 block mb-1">Instruções de acesso</span>
+                      <span className="font-bold text-slate-900 break-words">{accessNotes}</span>
+                    </div>
+                  )}
+                </div>
                 <div className="pt-2 border-t border-slate-200 space-y-1.5">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">Serviço</span>
@@ -320,6 +340,11 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
               <p className="text-center text-xs text-slate-400">
                 Será redirecionado para o Stripe para pagamento seguro.
               </p>
+              {!pickupAddress && (
+                <p className="text-center text-xs text-orange-600 font-bold">
+                  Atenção: complete os seus dados de recolha no painel do cliente para enviar a morada correta ao profissional.
+                </p>
+              )}
             </div>
           )}
         </div>

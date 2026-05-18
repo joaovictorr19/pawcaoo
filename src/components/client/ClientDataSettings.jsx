@@ -106,6 +106,12 @@ export default function ClientDataSettings({ user }) {
             <p className="text-xs text-slate-400 mt-1">Estes dados são usados na recolha do animal após a reserva ser aceite.</p>
           </div>
 
+          <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-3">
+            <p className="text-[11px] font-bold text-orange-300">
+              Sempre que alterar estes dados, as próximas reservas passam a usar estas informações na contratação.
+            </p>
+          </div>
+
           <div>
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
               <User className="w-3.5 h-3.5" /> Nome completo
@@ -158,6 +164,13 @@ export default function ClientDataSettings({ user }) {
             <Save className="w-4 h-4 mr-2" />
             {saveMutation.isPending ? 'A guardar...' : 'Guardar dados de recolha'}
           </Button>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-800 p-3 space-y-1">
+            <p className="text-[11px] uppercase tracking-widest text-slate-500 font-bold">Pré-visualização enviada</p>
+            <p className="text-sm text-white break-words">{[form.street, form.door_number, form.floor_apt].filter(Boolean).join(', ') || 'Sem morada definida'}</p>
+            <p className="text-xs text-slate-400">{[form.postal_code, form.city, form.country].filter(Boolean).join(' ') || 'Complete a morada para melhorar a recolha.'}</p>
+            <p className="text-xs text-slate-400">{form.phone || 'Sem telefone definido'}</p>
+          </div>
         </CardContent>
       </Card>
     </div>
