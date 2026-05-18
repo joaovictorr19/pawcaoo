@@ -102,6 +102,10 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           trainerPatch.has_pawcao_seal = !!checked;
           trainerPatch.pawcao_seal = !!checked;
         }
+        if (field === 'is_fee_exempt') {
+          trainerPatch.is_fee_exempt = !!checked;
+          trainerPatch.exempt_from_platform_fees = !!checked;
+        }
         if (Object.keys(trainerPatch).length) {
           await base44.entities.TrainerProfile.update(tId, trainerPatch);
         }
