@@ -21,18 +21,24 @@ export default function UserProfile() {
 
   useLayoutEffect(() => {
     let tries = 0;
+    let rafId = null;
     const forceTop = () => {
       try {
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
+        const root = document.getElementById('root');
+        if (root) root.scrollTop = 0;
       } catch {}
-      if (tries < 5) {
+      if (tries < 8) {
         tries += 1;
-        setTimeout(forceTop, 200);
+        rafId = window.requestAnimationFrame(() => setTimeout(forceTop, 120));
       }
     };
     forceTop();
+    return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -56,14 +62,16 @@ export default function UserProfile() {
     const nudgeTop = () => {
       if (cancelled) return;
       try {
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
+        const root = document.getElementById('root');
+        if (root) root.scrollTop = 0;
       } catch {}
     };
-    // Run twice to override late layout shifts (images/data)
     setTimeout(nudgeTop, 0);
-    setTimeout(nudgeTop, 400);
+    setTimeout(nudgeTop, 250);
+    setTimeout(nudgeTop, 700);
     return () => { cancelled = true; };
   }, [profileIdParam, profileEmailParam, profileUsernameParam]);
 
@@ -360,7 +368,7 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32 pt-2">
-      <div className="relative h-64 md:h-80 w-full overflow-hidden">
+      <div id="profile-top" className="relative h-64 md:h-80 w-full overflow-hidden">
         <img
           src={displayCoverUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=400&fit=crop"}
           className="w-full h-full object-cover"
