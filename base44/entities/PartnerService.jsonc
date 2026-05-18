@@ -1,0 +1,229 @@
+{
+  "name": "PartnerService",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "description": "Partner company ID"
+    },
+    "partner_name": {
+      "type": "string",
+      "description": "Partner name"
+    },
+    "partner_company_email": {
+      "type": "string",
+      "description": "Email da empresa parceira (para RLS)"
+    },
+    "service_name": {
+      "type": "string",
+      "description": "Nome do servi\u00e7o"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "bath",
+        "grooming",
+        "veterinary",
+        "vaccination",
+        "checkup",
+        "surgery",
+        "emergency",
+        "pharmacy",
+        "training",
+        "daycare",
+        "boarding",
+        "transport"
+      ],
+      "description": "Tipo de servi\u00e7o"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o detalhada"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Dura\u00e7\u00e3o em minutos"
+    },
+    "base_price": {
+      "type": "number",
+      "description": "Pre\u00e7o base"
+    },
+    "location": {
+      "type": "string",
+      "description": "Cidade/localiza\u00e7\u00e3o do servi\u00e7o"
+    },
+    "address": {
+      "type": "string",
+      "description": "Morada completa"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Imagem do servi\u00e7o"
+    },
+    "price_by_size": {
+      "type": "object",
+      "properties": {
+        "small": {
+          "type": "number"
+        },
+        "medium": {
+          "type": "number"
+        },
+        "large": {
+          "type": "number"
+        },
+        "extra_large": {
+          "type": "number"
+        }
+      },
+      "description": "Pre\u00e7os por tamanho do c\u00e3o"
+    },
+    "includes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "O que est\u00e1 inclu\u00eddo no servi\u00e7o",
+      "default": []
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Requisitos necess\u00e1rios (ex: vacinas em dia)",
+      "default": []
+    },
+    "available_days": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday"
+        ]
+      },
+      "description": "Dias dispon\u00edveis",
+      "default": []
+    },
+    "available_hours": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Hor\u00e1rios dispon\u00edveis",
+      "default": []
+    },
+    "max_daily_bookings": {
+      "type": "number",
+      "description": "M\u00e1ximo de agendamentos por dia"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Servi\u00e7o ativo"
+    },
+    "is_emergency": {
+      "type": "boolean",
+      "default": false,
+      "description": "Servi\u00e7o de emerg\u00eancia (24/7)"
+    },
+    "emergency_surcharge": {
+      "type": "number",
+      "default": 0,
+      "description": "Taxa adicional para emerg\u00eancias"
+    },
+    "total_bookings": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de agendamentos"
+    },
+    "average_rating": {
+      "type": "number",
+      "default": 0,
+      "description": "Avalia\u00e7\u00e3o m\u00e9dia"
+    },
+    "moderation_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "approved",
+      "description": "Status de modera\u00e7\u00e3o"
+    },
+    "pending_changes": {
+      "type": "object",
+      "description": "Mudan\u00e7as pendentes de aprova\u00e7\u00e3o do admin"
+    },
+    "last_edit_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima data de edi\u00e7\u00e3o"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Motivo da rejei\u00e7\u00e3o pelo admin"
+    }
+  },
+  "required": [
+    "partner_id",
+    "partner_company_email",
+    "service_name",
+    "service_type",
+    "base_price"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
