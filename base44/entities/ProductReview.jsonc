@@ -42,11 +42,6 @@
         "type": "string"
       },
       "default": []
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [
@@ -56,16 +51,16 @@
   ],
   "rls": {
     "create": {
-      "reviewer_email": "{{user.email}}"
+      "data.reviewer_email": "{{user.email}}"
     },
     "read": {},
     "update": {
-      "reviewer_email": "{{user.email}}"
+      "data.reviewer_email": "{{user.email}}"
     },
     "delete": {
       "$or": [
         {
-          "reviewer_email": "{{user.email}}"
+          "data.reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {
