@@ -1,0 +1,123 @@
+{
+  "name": "SavedRoute",
+  "type": "object",
+  "properties": {
+    "walker_email": {
+      "type": "string",
+      "description": "Email do passeador"
+    },
+    "route_name": {
+      "type": "string",
+      "description": "Nome da rota (ex: Parque da Cidade)"
+    },
+    "coordinates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Coordenadas da rota guardada"
+    },
+    "distance_km": {
+      "type": "number",
+      "description": "Dist\u00e2ncia total em km"
+    },
+    "estimated_duration_minutes": {
+      "type": "number",
+      "description": "Dura\u00e7\u00e3o estimada em minutos"
+    },
+    "times_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Quantas vezes foi usada"
+    },
+    "average_rating": {
+      "type": "number",
+      "default": 0,
+      "description": "Avalia\u00e7\u00e3o m\u00e9dia (1-5)"
+    },
+    "difficulty_level": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "moderate",
+        "hard"
+      ],
+      "default": "moderate",
+      "description": "N\u00edvel de dificuldade"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Tags como 'parque', 'urbano', 'natureza'"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas sobre a rota"
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se outros passeadores podem ver esta rota"
+    }
+  },
+  "required": [
+    "walker_email",
+    "route_name",
+    "coordinates"
+  ],
+  "rls": {
+    "create": {
+      "data.walker_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "data.is_public": true
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.walker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
