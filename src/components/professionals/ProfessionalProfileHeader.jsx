@@ -46,10 +46,6 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
                   alt={name}
                   className="w-32 h-32 rounded-full border-4 border-white aspect-square object-cover object-center bg-gray-100"
                   loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.style.display = 'none';
-                  }}
                 />
               ) : (
                 <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center">

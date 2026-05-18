@@ -34,7 +34,6 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
     location: "", // Main location for profile
     is_online: false,
     platform_fee_percentage: 15,
-    is_fee_exempt: false,
     documents: { tax_id: '', id_url: '', address_proof_url: '' }
   });
 
@@ -55,8 +54,7 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
         verification_status: userToEdit.professional_profile?.verification_status || "pending",
         location: "",
         is_online: userToEdit.pawgo_status?.is_online || false,
-        platform_fee_percentage: userToEdit.professional_profile?.platform_fee_percentage ?? 15,
-        is_fee_exempt: userToEdit.professional_profile?.is_fee_exempt || false,
+        platform_fee_percentage: userToEdit.professional_profile?.platform_fee_percentage || 15,
         documents: userToEdit.professional_profile?.documents || { tax_id: '', id_url: '', address_proof_url: '' }
       });
     } else {
@@ -75,7 +73,6 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
         location: "",
         is_online: false,
         platform_fee_percentage: 15,
-        is_fee_exempt: false,
         documents: { tax_id: '', id_url: '', address_proof_url: '' }
       });
     }
@@ -188,10 +185,9 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
           ...(userToEdit.professional_profile || {}),
           verification_status: data.verification_status,
           is_verified: data.verification_status === 'verified',
-          platform_fee_percentage: data.is_fee_exempt ? 0 : parseFloat(data.platform_fee_percentage || 15),
-          is_fee_exempt: !!data.is_fee_exempt
+          platform_fee_percentage: parseFloat(data.platform_fee_percentage || 15)
         }
-        });
+      });
 
       // 2. Update Profile if exists
       if (profile) {
@@ -200,10 +196,7 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
           bio: data.bio,
           is_active: data.is_active,
           verification_status: data.verification_status,
-          location: data.location,
-          exempt_from_platform_fees: !!data.is_fee_exempt,
-          is_fee_exempt: !!data.is_fee_exempt,
-          platform_fee_percentage: data.is_fee_exempt ? 0 : parseFloat(data.platform_fee_percentage || 15)
+          location: data.location
         };
         
         if (profile.name === 'WalkerProfile' || userToEdit.account_type === 'walker') {
@@ -419,34 +412,17 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
                 <Label className="text-base text-blue-900">Gestão de Taxas / Comissões</Label>
                 <p className="text-sm text-blue-700">Defina a percentagem que a plataforma cobra sobre os serviços</p>
               </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-white/70">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Isenção de taxa da plataforma</Label>
-                  <p className="text-sm text-gray-500">Quando ativo, a comissão fica em 0%</p>
-                </div>
-                <Switch
-                  checked={formData.is_fee_exempt}
-                  onCheckedChange={(checked) => setFormData({
-                    ...formData,
-                    is_fee_exempt: checked,
-                    platform_fee_percentage: checked ? 0 : (formData.platform_fee_percentage || 15)
-                  })}
-                />
-              </div>
-
               <div className="flex items-center gap-4">
                 <div className="relative w-32">
                   <Input 
-                    type="number"
-                    disabled={formData.is_fee_exempt}
-                    value={formData.is_fee_exempt ? 0 : formData.platform_fee_percentage}
+                    type="number" 
+                    value={formData.platform_fee_percentage} 
                     onChange={(e) => setFormData({...formData, platform_fee_percentage: e.target.value})} 
                   />
                   <span className="absolute right-3 top-2.5 text-gray-500">%</span>
                 </div>
                 <p className="text-xs text-gray-600">
-                  O profissional receberá {formData.is_fee_exempt ? 100 : 100 - (formData.platform_fee_percentage || 0)}%.
+                  O profissional receberá {100 - (formData.platform_fee_percentage || 0)}%.
                 </p>
               </div>
             </div>

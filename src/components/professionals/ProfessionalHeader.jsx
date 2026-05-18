@@ -12,7 +12,7 @@ export function ProfessionalHeader({ user, isOwnProfile, onCoverUpload, onAvatar
   const [isAvatarLoaded, setIsAvatarLoaded] = useState(false);
 
   const coverUrl = user?.cover_photo_url || user?.professional_profile?.cover_url || "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?auto=format&fit=crop&q=80&w=1000";
-  const avatarUrl = user?.photo_url || user?.profile_photo_url || "";
+  const avatarUrl = user?.photo_url || user?.profile_photo_url || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=200";
 
   return (
     <div className="relative w-full h-[280px] bg-slate-100 overflow-hidden rounded-b-3xl">
