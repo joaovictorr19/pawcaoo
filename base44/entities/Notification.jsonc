@@ -1,0 +1,100 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "description": "Email do destinat\u00e1rio"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo da notifica\u00e7\u00e3o"
+    },
+    "message": {
+      "type": "string",
+      "description": "Mensagem da notifica\u00e7\u00e3o"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "booking",
+        "payment",
+        "review",
+        "system",
+        "alert",
+        "promo"
+      ],
+      "default": "system"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "link": {
+      "type": "string",
+      "description": "URL opcional para redirecionar ao clicar"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji ou \u00edcone representativo"
+    },
+    "related_id": {
+      "type": "string",
+      "description": "ID do registo relacionado (booking, payment, etc.)"
+    }
+  },
+  "required": [
+    "recipient_email",
+    "message"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.recipient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.recipient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.recipient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.recipient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
