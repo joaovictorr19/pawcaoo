@@ -221,9 +221,8 @@ export default function AdminUserTable({
 
   // Efeito para resetar página quando filtro muda
   React.useEffect(() => {
-    console.log('Filters changed, resetting to page 1');
     setCurrentPage(1);
-  }, [userSearchState]);
+  }, [userSearchState.searchTerm, JSON.stringify(userSearchState.filters)]);
 
   // Reset page when quick pill changes
   React.useEffect(() => {
@@ -419,7 +418,7 @@ export default function AdminUserTable({
                               return <Badge variant="outline" className="text-slate-600 bg-slate-50 text-[10px] h-5">Cliente</Badge>;
                             }
                             if (isActive) {
-                              return <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 text-[10px] h-5">✓ Verificado</Badge>;
+                              return <Badge variant="outline" className="border-green-500 text-green-600 bg-green-50 text-[10px] min-h-5 h-auto leading-none py-1 whitespace-nowrap">✓ Verificado</Badge>;
                             }
                             return (
                               <div className="flex gap-1">
