@@ -1,0 +1,118 @@
+{
+  "name": "LoyaltyPoints",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User's email"
+    },
+    "points_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Current points balance"
+    },
+    "total_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Total points ever earned"
+    },
+    "total_redeemed": {
+      "type": "number",
+      "default": 0,
+      "description": "Total points redeemed"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "silver",
+        "gold",
+        "platinum"
+      ],
+      "default": "bronze",
+      "description": "Loyalty tier"
+    },
+    "achievements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "achievement_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "earned_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Earned achievements and badges",
+      "default": []
+    },
+    "lifetime_bookings": {
+      "type": "number",
+      "default": 0,
+      "description": "Total bookings made"
+    },
+    "lifetime_redemptions": {
+      "type": "number",
+      "default": 0,
+      "description": "Total rewards redeemed"
+    }
+  },
+  "required": [
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
