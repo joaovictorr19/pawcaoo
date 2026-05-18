@@ -178,10 +178,10 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
               </div>
             )}
             
-            {booking.location_address && (
+            {(booking.location_address || booking.pickup_address) && (
                <div className="text-sm flex items-start gap-2 mt-2">
                   <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                  <span>{booking.location_address}</span>
+                  <span>{booking.location_address || booking.pickup_address}</span>
                </div>
             )}
           </div>

@@ -100,8 +100,8 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500/30" style={{ marginTop: '-64px', paddingBottom: 'calc(110px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
-      <header className="bg-slate-950 px-4 pt-20 pb-6 rounded-b-[2.5rem] shadow-xl mb-6">
+    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500/30" style={{ paddingBottom: 'calc(110px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
+      <header className="bg-slate-950 px-4 pt-6 md:pt-20 pb-6 rounded-b-[2.5rem] shadow-xl mb-6">
         <h1 className="text-xl font-black italic">Olá, {user?.full_name?.split(' ')[0] || 'Amigo'}! 🐾</h1>
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Painel do Cliente</p>
       </header>

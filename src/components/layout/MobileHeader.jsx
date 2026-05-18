@@ -71,9 +71,7 @@ export default function MobileHeader() {
   }, []);
 
   // Check if we're on a root tab
-  const isRootRoute = ROOT_ROUTES.some(route => 
-    location.pathname === route || location.pathname.startsWith(route)
-  );
+  const isRootRoute = ROOT_ROUTES.some(route => location.pathname === route);
 
 
 
