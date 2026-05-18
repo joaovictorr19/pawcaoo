@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck, Clock } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
-export default function PendingApproval({ profile }) {
+export default function PendingApproval({ profile, activeTab, onChangeTab }) {
   return (
     <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
       <div className="max-w-md w-full text-center bg-slate-900/60 border border-slate-800 rounded-3xl p-6">
@@ -29,17 +29,17 @@ export default function PendingApproval({ profile }) {
             Voltar
           </Button>
           <Button
-            onClick={() => (window.location.href = `${createPageUrl('ProfessionalHubV2')}?tab=documents`)}
+            onClick={() => onChangeTab?.(activeTab === 'portfolio' ? 'documents' : 'portfolio')}
             variant="outline"
             className="border-orange-500/40 text-orange-300 hover:bg-orange-500/10 rounded-2xl"
           >
-            Ver documentos
+            {activeTab === 'portfolio' ? 'Ver documentos' : 'Ver portfólio'}
           </Button>
           <Button
-            onClick={() => (window.location.href = createPageUrl('ProfessionalSetup'))}
+            onClick={() => onChangeTab?.('documents')}
             className="bg-white text-slate-900 hover:bg-slate-100 rounded-2xl"
           >
-            Completar verificação
+            Abrir documentos
           </Button>
         </div>
       </div>

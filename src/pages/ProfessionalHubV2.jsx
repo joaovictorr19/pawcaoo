@@ -332,10 +332,10 @@ export default function ProfessionalHubV2() {
 
 
   const verificationStatus = professionalProfile?.verification_status;
-  const showRestrictedPendingScreen = verificationStatus !== 'verified' && activeTab !== 'documents';
+  const showRestrictedPendingScreen = verificationStatus !== 'verified' && !['documents', 'portfolio'].includes(activeTab);
 
   if (showRestrictedPendingScreen) {
-    return <PendingApproval profile={professionalProfile} />;
+    return <PendingApproval profile={professionalProfile} activeTab={activeTab} onChangeTab={setActiveTab} />;
   }
 
   const isOnline = user?.pawgo_status?.is_online || false;
@@ -559,6 +559,30 @@ export default function ProfessionalHubV2() {
           {activeTab === "documents" && (
             <motion.div
               key="documents"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DocumentsVerificationSection professionalProfile={professionalProfile} user={user} />
+            </motion.div>
+          )}
+
+          {verificationStatus !== 'verified' && activeTab === 'portfolio' && (
+            <motion.div
+              key="portfolio-pending"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PortfolioSection professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {verificationStatus !== 'verified' && activeTab === 'documents' && (
+            <motion.div
+              key="documents-pending"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
