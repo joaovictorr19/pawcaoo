@@ -1024,9 +1024,9 @@ export default function Home() {
                   size="default"
                   onClick={() => {
                     if (user) {
-                      navigate(createPageUrl('ProfessionalSetup'));
+                      navigate(createPageUrl('ProfessionalHubV2'));
                     } else {
-                      base44.auth.redirectToLogin(createPageUrl('ProfessionalSetup'));
+                      base44.auth.redirectToLogin(createPageUrl('ProfessionalHubV2'));
                     }
                   }}
                   className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
