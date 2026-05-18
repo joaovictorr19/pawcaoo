@@ -1,0 +1,172 @@
+{
+  "name": "PartnerCompany",
+  "type": "object",
+  "properties": {
+    "company_email": {
+      "type": "string",
+      "description": "Company email for login"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "partnership_id": {
+      "type": "string",
+      "description": "Related partnership ID"
+    },
+    "company_type": {
+      "type": "string",
+      "enum": [
+        "veterinary",
+        "pet_store",
+        "grooming",
+        "insurance",
+        "training",
+        "food_brand",
+        "clothing_brand"
+      ],
+      "description": "Type of company"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Company logo"
+    },
+    "address": {
+      "type": "string",
+      "description": "Endere\u00e7o completo"
+    },
+    "city": {
+      "type": "string",
+      "description": "Cidade"
+    },
+    "postal_code": {
+      "type": "string",
+      "description": "C\u00f3digo postal"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Telefone de contacto"
+    },
+    "website": {
+      "type": "string",
+      "description": "Website da empresa"
+    },
+    "services_offered": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of services offered"
+    },
+    "service_areas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Areas served"
+    },
+    "business_hours": {
+      "type": "object",
+      "properties": {
+        "monday": {
+          "type": "string"
+        },
+        "tuesday": {
+          "type": "string"
+        },
+        "wednesday": {
+          "type": "string"
+        },
+        "thursday": {
+          "type": "string"
+        },
+        "friday": {
+          "type": "string"
+        },
+        "saturday": {
+          "type": "string"
+        },
+        "sunday": {
+          "type": "string"
+        }
+      },
+      "description": "Operating hours"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "total_sales": {
+      "type": "number",
+      "default": 0,
+      "description": "Total sales through platform"
+    },
+    "total_products": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of products listed"
+    },
+    "commission_rate": {
+      "type": "number",
+      "default": 10,
+      "description": "Commission percentage PawC\u00e3o takes"
+    },
+    "monthly_fee": {
+      "type": "number",
+      "default": 0,
+      "description": "Monthly partnership fee"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "basic",
+        "premium",
+        "enterprise"
+      ],
+      "default": "free",
+      "description": "Partnership tier"
+    }
+  },
+  "required": [
+    "company_email",
+    "company_name",
+    "company_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
