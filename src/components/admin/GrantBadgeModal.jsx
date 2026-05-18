@@ -40,14 +40,12 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
     mutationFn: async () => {
       if (!userEmail || !selectedBadge) throw new Error("Preenche todos os campos.");
 
-      // Check if already has this badge
       const existing = await base44.entities.UserBadge.filter({
         user_email: userEmail,
         badge_definition_id: selectedBadge.id
       });
       if (existing.length > 0) throw new Error("Este utilizador já tem este emblema.");
 
-      // Create UserBadge
       await base44.entities.UserBadge.create({
         user_email: userEmail,
         badge_definition_id: selectedBadge.id,
@@ -62,21 +60,40 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
         granted_by: 'admin',
       });
 
-      // Update UserProfile XP if badge has XP
-      if (selectedBadge.xp > 0) {
-        const profiles = await base44.entities.UserProfile.filter({ user_email: userEmail });
-        if (profiles.length > 0) {
-          const p = profiles[0];
-          const newXP = (p.gamification_xp || 0) + selectedBadge.xp;
-          const newLevel = 1 + Math.floor(newXP / 1000);
-          await base44.entities.UserProfile.update(p.id, {
-            gamification_xp: newXP,
-            gamification_level: newLevel,
-          });
-        }
+      const profiles = await base44.entities.UserProfile.filter({ user_email: userEmail });
+      const walkers = await base44.entities.WalkerProfile.filter({ created_by: userEmail });
+      const trainers = await base44.entities.TrainerProfile.filter({ created_by: userEmail });
+      const feeExempt = (selectedBadge.name || '').toLowerCase().includes('ouro') || (selectedBadge.name || '').toLowerCase().includes('gold');
+
+      if (profiles.length > 0) {
+        const p = profiles[0];
+        const newXP = (p.gamification_xp || 0) + (selectedBadge.xp || 0);
+        const newLevel = 1 + Math.floor(newXP / 1000);
+        await base44.entities.UserProfile.update(p.id, {
+          gamification_xp: newXP,
+          gamification_level: newLevel,
+          is_verified: selectedBadge.rarity === 'legendary' ? true : (p.is_verified || false),
+          pawcao_seal: feeExempt ? true : (p.pawcao_seal || false)
+        });
       }
 
-      // Send notification
+      if (walkers.length > 0) {
+        await Promise.all(walkers.map((walker) =>
+          base44.entities.WalkerProfile.update(walker.id, {
+            has_pawcao_seal: feeExempt ? true : (walker.has_pawcao_seal || false),
+            exempt_from_platform_fees: feeExempt ? true : (walker.exempt_from_platform_fees || false)
+          })
+        ));
+      }
+
+      if (trainers.length > 0) {
+        await Promise.all(trainers.map((trainer) =>
+          base44.entities.TrainerProfile.update(trainer.id, {
+            is_pawcao_employee: feeExempt ? true : (trainer.is_pawcao_employee || false)
+          })
+        ));
+      }
+
       await base44.entities.Notification.create({
         recipient_email: userEmail,
         title: `🏆 Novo Emblema: ${selectedBadge.name}`,
@@ -96,10 +113,48 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
   });
 
   const revokeMutation = useMutation({
-    mutationFn: (badgeId) => base44.entities.UserBadge.delete(badgeId),
+    mutationFn: async (badge) => {
+      await base44.entities.UserBadge.delete(badge.id);
+
+      const profiles = await base44.entities.UserProfile.filter({ user_email: userEmail });
+      const walkers = await base44.entities.WalkerProfile.filter({ created_by: userEmail });
+      const trainers = await base44.entities.TrainerProfile.filter({ created_by: userEmail });
+      const feeExempt = (badge.name || '').toLowerCase().includes('ouro') || (badge.name || '').toLowerCase().includes('gold');
+
+      if (profiles.length > 0) {
+        const p = profiles[0];
+        const newXP = Math.max(0, (p.gamification_xp || 0) - (badge.xp || 0));
+        const newLevel = 1 + Math.floor(newXP / 1000);
+        await base44.entities.UserProfile.update(p.id, {
+          gamification_xp: newXP,
+          gamification_level: newLevel,
+          pawcao_seal: feeExempt ? false : p.pawcao_seal
+        });
+      }
+
+      if (feeExempt && walkers.length > 0) {
+        await Promise.all(walkers.map((walker) =>
+          base44.entities.WalkerProfile.update(walker.id, {
+            has_pawcao_seal: false,
+            exempt_from_platform_fees: false
+          })
+        ));
+      }
+
+      if (feeExempt && trainers.length > 0) {
+        await Promise.all(trainers.map((trainer) =>
+          base44.entities.TrainerProfile.update(trainer.id, {
+            is_pawcao_employee: false
+          })
+        ));
+      }
+    },
     onSuccess: () => {
       toast.success("Emblema revogado.");
       refetchUserBadges();
+      queryClient.invalidateQueries(['allUsers']);
+      queryClient.invalidateQueries(['allWalkersAdmin']);
+      queryClient.invalidateQueries(['allTrainersAdmin']);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -253,7 +308,7 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
                       <button
                         onClick={() => {
                           if (confirm(`Revogar o emblema "${ub.name}" deste utilizador?`)) {
-                            revokeMutation.mutate(ub.id);
+                            revokeMutation.mutate(ub);
                           }
                         }}
                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
