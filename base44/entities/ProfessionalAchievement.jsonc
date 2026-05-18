@@ -1,0 +1,170 @@
+{
+  "name": "ProfessionalAchievement",
+  "type": "object",
+  "properties": {
+    "professional_email": {
+      "type": "string",
+      "description": "Professional's email"
+    },
+    "professional_name": {
+      "type": "string",
+      "description": "Professional's name"
+    },
+    "professional_type": {
+      "type": "string",
+      "enum": [
+        "walker",
+        "trainer",
+        "both"
+      ],
+      "description": "Type of professional"
+    },
+    "achievements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "achievement_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "milestone",
+              "quality",
+              "streak",
+              "special"
+            ]
+          },
+          "rarity": {
+            "type": "string",
+            "enum": [
+              "common",
+              "rare",
+              "epic",
+              "legendary"
+            ]
+          },
+          "earned_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "progress": {
+            "type": "number",
+            "description": "Progress towards next achievement"
+          },
+          "max_progress": {
+            "type": "number",
+            "description": "Required progress to unlock"
+          }
+        }
+      },
+      "description": "Earned achievements",
+      "default": []
+    },
+    "total_achievements": {
+      "type": "number",
+      "default": 0,
+      "description": "Total achievements earned"
+    },
+    "achievement_points": {
+      "type": "number",
+      "default": 0,
+      "description": "Points from achievements"
+    },
+    "current_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Current consecutive days/weeks of activity"
+    },
+    "longest_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Longest streak ever"
+    },
+    "badges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "badge_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Display badges",
+      "default": []
+    },
+    "leaderboard_stats": {
+      "type": "object",
+      "properties": {
+        "total_earnings_rank": {
+          "type": "number"
+        },
+        "rating_rank": {
+          "type": "number"
+        },
+        "bookings_rank": {
+          "type": "number"
+        },
+        "response_time_rank": {
+          "type": "number"
+        }
+      },
+      "description": "Ranking positions"
+    }
+  },
+  "required": [
+    "professional_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
