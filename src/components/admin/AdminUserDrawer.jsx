@@ -36,6 +36,8 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
     try {
       const prof = user.professional_profile || {};
       const updates = { professional_profile: { ...prof } };
+      const isWalkerAccount = Array.isArray(await base44.entities.WalkerProfile.filter({ created_by: user.email })) && (await base44.entities.WalkerProfile.filter({ created_by: user.email })).length > 0;
+      const isTrainerAccount = Array.isArray(await base44.entities.TrainerProfile.filter({ created_by: user.email })) && (await base44.entities.TrainerProfile.filter({ created_by: user.email })).length > 0;
 
       // Garantir que não desligamos outros campos ao atualizar um específico
       if (field !== 'verification_status') {
@@ -53,6 +55,8 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
         updates.professional_profile.is_trained = !!checked;
       } else if (field === 'is_pawcao') {
         updates.professional_profile.is_pawcao = !!checked;
+        updates.professional_profile.has_pawcao_seal = !!checked;
+        updates.professional_profile.pawcao_seal = !!checked;
       } else if (field === 'is_fee_exempt') {
         updates.professional_profile.is_fee_exempt = !!checked;
       }
@@ -71,7 +75,10 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
           walkerPatch.is_active = !!checked;
         }
         if (field === 'is_trained') walkerPatch.is_verified_trainer = !!checked;
-        if (field === 'is_pawcao') walkerPatch.has_pawcao_seal = !!checked;
+        if (field === 'is_pawcao') {
+          walkerPatch.has_pawcao_seal = !!checked;
+          walkerPatch.pawcao_seal = !!checked;
+        }
         if (field === 'is_fee_exempt') walkerPatch.exempt_from_platform_fees = !!checked;
         if (Object.keys(walkerPatch).length) {
           await base44.entities.WalkerProfile.update(wId, walkerPatch);
@@ -89,6 +96,11 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
         if (field === 'is_trained') {
           trainerPatch.is_verified = !!checked;
           trainerPatch.is_verified_trainer = !!checked;
+          trainerPatch.trainer_verified = !!checked;
+        }
+        if (field === 'is_pawcao') {
+          trainerPatch.has_pawcao_seal = !!checked;
+          trainerPatch.pawcao_seal = !!checked;
         }
         if (Object.keys(trainerPatch).length) {
           await base44.entities.TrainerProfile.update(tId, trainerPatch);
