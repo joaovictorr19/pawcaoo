@@ -14,11 +14,6 @@
       "type": "boolean",
       "default": true,
       "description": "Whether they found it helpful"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [
@@ -27,14 +22,14 @@
   ],
   "rls": {
     "create": {
-      "user_email": "{{user.email}}"
+      "data.user_email": "{{user.email}}"
     },
     "read": {},
     "update": {
-      "user_email": "{{user.email}}"
+      "data.user_email": "{{user.email}}"
     },
     "delete": {
-      "user_email": "{{user.email}}"
+      "data.user_email": "{{user.email}}"
     }
   }
 }
