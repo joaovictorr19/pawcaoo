@@ -184,7 +184,11 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
         "Precisamos que atualize alguns dados em falta no seu perfil profissional:",
         ...fieldLabels.map((label) => `- ${label}`),
         "",
-        requestMessage || "Por favor entre no seu painel profissional e complete estes dados assim que possível.",
+        requestMessage || "Por favor entre no Painel Profissional > Documentos e complete estes dados assim que possível.",
+        "",
+        "Local para atualizar:",
+        "- Professional Hub V2",
+        "- Aba: Documentos",
         "",
         "Obrigado,",
         "Equipa PawCão"
@@ -222,22 +226,22 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl rounded-3xl border-0 p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-white">
-          <div className="flex items-center gap-4">
-            <Avatar className="w-14 h-14 border border-white/20">
+      <DialogContent className="w-[calc(100vw-24px)] max-w-2xl rounded-2xl border-0 p-0 overflow-hidden max-h-[88vh] sm:max-h-[84vh]">
+        <DialogHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-white">
+          <div className="flex items-start gap-3">
+            <Avatar className="w-11 h-11 sm:w-12 sm:h-12 border border-white/20">
               <AvatarImage src={formData?.profile_photo_url || userToEdit?.profile_photo_url} />
               <AvatarFallback>{(formData?.full_name || userToEdit?.full_name || "U")[0]}</AvatarFallback>
             </Avatar>
-            <div>
-              <DialogTitle className="text-xl font-black">Editar conta</DialogTitle>
-              <DialogDescription className="text-slate-300">
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="text-base sm:text-lg font-black">Editar conta</DialogTitle>
+              <DialogDescription className="text-slate-300 text-xs sm:text-sm line-clamp-2">
                 Janela unificada para cliente e profissional com sincronização real.
               </DialogDescription>
             </div>
-            <div className="ml-auto flex gap-2">
+            <div className="ml-auto hidden sm:flex gap-2 flex-wrap justify-end max-w-[45%]">
               <Badge className="bg-white/10 text-white border-white/10">{isProfessional ? "Profissional" : "Cliente"}</Badge>
-              <Badge className="bg-white/10 text-white border-white/10">{userToEdit?.email}</Badge>
+              <Badge className="bg-white/10 text-white border-white/10 max-w-[220px] truncate">{userToEdit?.email}</Badge>
             </div>
           </div>
         </DialogHeader>
@@ -245,16 +249,16 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
         {isLoading || !formData ? (
           <div className="p-10 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin" /></div>
         ) : (
-          <div className="p-6">
+          <div className="px-4 sm:px-5 py-4 overflow-y-auto max-h-[calc(88vh-148px)] sm:max-h-[calc(84vh-150px)]">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className={`grid w-full ${isProfessional ? 'grid-cols-3' : 'grid-cols-2'}`}>
+              <TabsList className={`grid w-full h-auto ${isProfessional ? 'grid-cols-3' : 'grid-cols-2'}`}>
                 <TabsTrigger value="profile">Perfil</TabsTrigger>
                 <TabsTrigger value="account">Conta</TabsTrigger>
                 {isProfessional && <TabsTrigger value="documents">Dados em falta</TabsTrigger>}
               </TabsList>
 
-              <TabsContent value="profile" className="space-y-5 pt-5">
-                <div className="grid md:grid-cols-2 gap-4">
+              <TabsContent value="profile" className="space-y-4 pt-4 mt-0">
+                <div className="grid md:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>Nome completo</Label>
                     <Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} />
@@ -294,8 +298,8 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                 </div>
               </TabsContent>
 
-              <TabsContent value="account" className="space-y-5 pt-5">
-                <div className="grid md:grid-cols-2 gap-4">
+              <TabsContent value="account" className="space-y-4 pt-4 mt-0">
+                <div className="grid md:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>Tipo de conta</Label>
                     <Select value={formData.account_type} onValueChange={(value) => setFormData({ ...formData, account_type: value })}>
@@ -335,7 +339,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
               </TabsContent>
 
               {isProfessional && (
-                <TabsContent value="documents" className="space-y-5 pt-5">
+                <TabsContent value="documents" className="space-y-4 pt-4 mt-0">
                   <div className="rounded-2xl border border-slate-200 p-4 bg-slate-50">
                     <div className="flex items-center gap-2 mb-2">
                       <FileText className="w-4 h-4 text-slate-600" />
@@ -362,7 +366,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-2 gap-3">
                     {EMPTY_REQUEST_FIELDS.map((field) => (
                       <div key={field.key} className="space-y-2">
                         <Label>{field.label}</Label>
@@ -390,9 +394,9 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
           </div>
         )}
 
-        <DialogFooter className="px-6 pb-6 pt-0">
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || isLoading} className="bg-slate-900 hover:bg-slate-800">
+        <DialogFooter className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0 border-t bg-white flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancelar</Button>
+          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || isLoading} className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800">
             {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Salvar alterações
           </Button>
