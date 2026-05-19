@@ -483,9 +483,17 @@ export default function Gamification() {
   const { data: allUsers = [], refetch } = useQuery({
     queryKey: ['allUsersRanking'],
     queryFn: async () => {
-      const profiles = await base44.entities.UserProfile.list('-gamification_xp', 1000);
-      // Removemos o filtro de XP > 0 para garantir que todos os utilizadores (mesmo com 0 pontos) apareçam no pódio se não houver utilizadores suficientes.
+      const profiles = await base44.entities.UserProfile.list('-updated_date', 1000);
       return profiles
+        .map((profile) => ({
+          ...profile,
+          ...profile.data,
+          gamification_xp: profile.gamification_xp ?? profile.data?.gamification_xp ?? 0,
+          gamification_level: profile.gamification_level ?? profile.data?.gamification_level ?? 1,
+          full_name: profile.full_name ?? profile.data?.full_name ?? 'Utilizador',
+          profile_photo_url: profile.profile_photo_url ?? profile.data?.profile_photo_url ?? '',
+          user_email: profile.user_email ?? profile.data?.user_email ?? ''
+        }))
         .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
     },
     staleTime: 0,
@@ -547,7 +555,7 @@ export default function Gamification() {
     }
   });
 
-  const currentXP = userProfile?.gamification_xp || 0;
+  const currentXP = userProfile?.gamification_xp ?? userProfile?.data?.gamification_xp ?? 0;
   const currentLevel = Math.max(1, getLevelFromXP(currentXP));
   const xpNeeded = getXPToNextLevel(currentXP);
   const progressInLevel = getLevelProgress(currentXP);
