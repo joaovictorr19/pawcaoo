@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight, Wallet, PartyPopper, ArrowDown, ArrowUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import WeeklyDuelsPanel from "@/components/gamification/WeeklyDuelsPanel";
 import { createPageUrl } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -906,6 +907,8 @@ export default function Gamification() {
           </div>
         </div>
       </section>
+
+      <WeeklyDuelsPanel user={user} users={allUsers} />
 
       {/* ========== SECÇÃO 3: AS PROVAÇÕES ========== */}
       <section className="relative py-16 px-4 border-t border-amber-500/10">

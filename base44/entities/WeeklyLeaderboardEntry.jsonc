@@ -1,0 +1,92 @@
+{
+  "name": "WeeklyLeaderboardEntry",
+  "type": "object",
+  "properties": {
+    "week_key": {
+      "type": "string",
+      "description": "Identificador da semana"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email do utilizador"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Nome do utilizador"
+    },
+    "profile_photo_url": {
+      "type": "string",
+      "description": "Foto do utilizador"
+    },
+    "walks_completed": {
+      "type": "number",
+      "default": 0,
+      "description": "Passeios conclu\u00eddos na semana"
+    },
+    "weekly_xp_won": {
+      "type": "number",
+      "default": 0,
+      "description": "XP ganho em duelos na semana"
+    },
+    "wins": {
+      "type": "number",
+      "default": 0,
+      "description": "Vit\u00f3rias na semana"
+    },
+    "losses": {
+      "type": "number",
+      "default": 0,
+      "description": "Derrotas na semana"
+    },
+    "draws": {
+      "type": "number",
+      "default": 0,
+      "description": "Empates na semana"
+    },
+    "unique_medals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Medalhas \u00fanicas conquistadas na semana"
+    }
+  },
+  "required": [
+    "week_key",
+    "user_email",
+    "full_name"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "name": "WeeklyDuel",
+  "type": "object",
+  "properties": {
+    "week_key": {
+      "type": "string",
+      "description": "Identificador da semana do duelo"
+    },
+    "challenger_email": {
+      "type": "string",
+      "description": "Email do desafiante"
+    },
+    "challenger_name": {
+      "type": "string",
+      "description": "Nome do desafiante"
+    },
+    "challenger_photo_url": {
+      "type": "string",
+      "description": "Foto do desafiante"
+    },
+    "opponent_email": {
+      "type": "string",
+      "description": "Email do advers\u00e1rio"
+    },
+    "opponent_name": {
+      "type": "string",
+      "description": "Nome do advers\u00e1rio"
+    },
+    "opponent_photo_url": {
+      "type": "string",
+      "description": "Foto do advers\u00e1rio"
+    },
+    "mission_type": {
+      "type": "string",
+      "enum": [
+        "walks"
+      ],
+      "default": "walks",
+      "description": "Tipo de miss\u00e3o competitiva"
+    },
+    "mission_label": {
+      "type": "string",
+      "description": "Nome leg\u00edvel da miss\u00e3o"
+    },
+    "xp_bet": {
+      "type": "number",
+      "description": "XP apostado por cada utilizador"
+    },
+    "prize_pool_xp": {
+      "type": "number",
+      "description": "Total apostado no duelo"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Estado do duelo"
+    },
+    "challenger_progress": {
+      "type": "number",
+      "default": 0,
+      "description": "Progresso do desafiante na semana"
+    },
+    "opponent_progress": {
+      "type": "number",
+      "default": 0,
+      "description": "Progresso do advers\u00e1rio na semana"
+    },
+    "winner_email": {
+      "type": "string",
+      "description": "Email do vencedor"
+    },
+    "winner_name": {
+      "type": "string",
+      "description": "Nome do vencedor"
+    },
+    "winner_medal": {
+      "type": "string",
+      "description": "Medalha \u00fanica recebida pelo vencedor"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando o duelo foi resolvido"
+    }
+  },
+  "required": [
+    "week_key",
+    "challenger_email",
+    "opponent_email",
+    "xp_bet"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.challenger_email": "{{user.email}}"
+        },
+        {
+          "data.opponent_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.challenger_email": "{{user.email}}"
+        },
+        {
+          "data.opponent_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.challenger_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
