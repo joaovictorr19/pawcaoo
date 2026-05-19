@@ -13,11 +13,22 @@ export default function GroupWalkBookingCard({ event, dogProfiles = [], user }) 
   const [selectedDogId, setSelectedDogId] = useState("");
 
   const availableDogs = dogProfiles.filter((dog) => event.accepted_sizes?.includes(dog.dog_size || dog.size));
+  const isFull = (event.dogs_booked || 0) >= (event.max_dogs || 0) || event.status === "full";
+  const alreadyJoined = (event.participants || []).some((participant) => participant.owner_email === user?.email && participant.dog_id === selectedDogId);
 
   const joinMutation = useMutation({
     mutationFn: async () => {
       const dog = dogProfiles.find((item) => item.id === selectedDogId);
       if (!dog) throw new Error("Selecione um cão");
+
+      if ((event.dogs_booked || 0) >= (event.max_dogs || 0) || event.status === "full") {
+        throw new Error("Este passeio já atingiu a lotação máxima");
+      }
+
+      const alreadyExists = (event.participants || []).some((participant) => participant.owner_email === user.email && participant.dog_id === dog.id);
+      if (alreadyExists) {
+        throw new Error("Este cão já está inscrito neste passeio");
+      }
 
       const updatedParticipants = [
         ...(event.participants || []),
@@ -76,10 +87,10 @@ export default function GroupWalkBookingCard({ event, dogProfiles = [], user }) 
 
         <Button
           onClick={() => joinMutation.mutate()}
-          disabled={!selectedDogId || joinMutation.isPending || event.status !== "open"}
+          disabled={!selectedDogId || joinMutation.isPending || event.status !== "open" || isFull || alreadyJoined}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl"
         >
-          Agendar neste passeio
+          {isFull ? 'Lotação esgotada' : 'Agendar neste passeio'}
         </Button>
       </CardContent>
     </Card>

@@ -35,11 +35,11 @@ const AVAILABILITY_SLOTS = [
 ];
 
 const SERVICE_PRESETS = [
-  { key: "walk_30", service_name: "Passeio 30 min", description: "Passeio individual rápido", defaultPrice: 10, service_type: "standard" },
-  { key: "walk_60", service_name: "Passeio 1h", description: "Passeio individual de 1 hora", defaultPrice: 15, service_type: "standard" },
-  { key: "group_walk", service_name: "Passeio em Grupo", description: "Passeio social com vários cães", defaultPrice: 12, service_type: "group_walk" },
-  { key: "home_visit", service_name: "Visita ao domicílio", description: "Visita para alimentação e companhia", defaultPrice: 14, service_type: "standard" },
-  { key: "training_session", service_name: "Sessão de treino", description: "Sessão individual de treino", defaultPrice: 25, service_type: "standard" },
+  { key: "walk_30", service_name: "Passeio 30 min", description: "Passeio individual rápido", defaultPrice: 10, service_type: "standard", is_active: true },
+  { key: "walk_60", service_name: "Passeio 1h", description: "Passeio individual de 1 hora", defaultPrice: 15, service_type: "standard", is_active: true },
+  { key: "group_walk", service_name: "Passeio em Grupo", description: "Passeio social com vários cães", defaultPrice: 12, service_type: "group_walk", is_active: true },
+  { key: "home_visit", service_name: "Visita ao domicílio", description: "Visita para alimentação e companhia", defaultPrice: 14, service_type: "standard", is_active: true },
+  { key: "training_session", service_name: "Sessão de treino", description: "Sessão individual de treino", defaultPrice: 25, service_type: "standard", is_active: true },
 ];
 
 const DOCUMENT_RULES = {
@@ -138,8 +138,8 @@ export default function ProfessionalSetup() {
           (service) => service.key === preset.key || service.service_name === preset.service_name
         );
         return existingService
-          ? { ...preset, ...existingService, price: existingService.price ?? preset.defaultPrice }
-          : { ...preset, price: preset.defaultPrice };
+          ? { ...preset, ...existingService, price: existingService.price ?? preset.defaultPrice, is_active: existingService.is_active ?? true }
+          : { ...preset, price: preset.defaultPrice, is_active: true };
       });
 
       setForm(prev => ({
@@ -640,32 +640,48 @@ export default function ProfessionalSetup() {
                     const svc = i >= 0 ? form.services_offered[i] : { ...preset, price: preset.defaultPrice };
 
                     return (
-                      <div key={preset.key} className="p-3 bg-slate-800 rounded-xl space-y-2">
+                      <div key={preset.key} className="p-3 bg-slate-800 rounded-xl space-y-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="text-white font-bold text-sm">{svc.service_name}</p>
                             <p className="text-slate-400 text-xs">{svc.description}</p>
                           </div>
-                          <div className="flex items-center gap-1 w-24 px-2 py-2 bg-slate-700 rounded-lg border border-slate-600">
-                            <Euro className="w-3 h-3 text-orange-400 flex-shrink-0" />
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder="0"
-                              value={svc.price || ""}
-                              onChange={e => {
-                                const nextPrice = parseFloat(e.target.value) || 0;
-                                const nextServices = [...form.services_offered];
-                                if (i >= 0) {
-                                  nextServices[i] = { ...nextServices[i], price: nextPrice };
-                                } else {
-                                  nextServices.push({ ...preset, price: nextPrice });
-                                }
-                                set("services_offered", nextServices);
-                              }}
-                              className="w-full bg-transparent text-white text-xs outline-none"
-                            />
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const nextServices = [...form.services_offered];
+                              if (i >= 0) {
+                                nextServices[i] = { ...nextServices[i], is_active: !(nextServices[i].is_active ?? true) };
+                              } else {
+                                nextServices.push({ ...preset, price: preset.defaultPrice, is_active: false });
+                              }
+                              set("services_offered", nextServices);
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-xs font-bold ${svc.is_active !== false ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-slate-700 text-slate-300 border border-slate-600'}`}
+                          >
+                            {svc.is_active !== false ? 'Ativo' : 'Oculto'}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-1 w-24 px-2 py-2 bg-slate-700 rounded-lg border border-slate-600">
+                          <Euro className="w-3 h-3 text-orange-400 flex-shrink-0" />
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={svc.price || ""}
+                            onChange={e => {
+                              const nextPrice = parseFloat(e.target.value) || 0;
+                              const nextServices = [...form.services_offered];
+                              if (i >= 0) {
+                                nextServices[i] = { ...nextServices[i], price: nextPrice };
+                              } else {
+                                nextServices.push({ ...preset, price: nextPrice, is_active: true });
+                              }
+                              set("services_offered", nextServices);
+                            }}
+                            className="w-full bg-transparent text-white text-xs outline-none"
+                          />
                         </div>
                       </div>
                     );

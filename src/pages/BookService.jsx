@@ -236,7 +236,7 @@ export default function BookService() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {services.map((service) => (
+                {services.filter((service) => service.is_active !== false).map((service) => (
                   <motion.div
                     key={service.id}
                     whileHover={{ scale: 1.02 }}

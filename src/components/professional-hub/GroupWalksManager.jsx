@@ -98,7 +98,7 @@ export default function GroupWalksManager({ user, professionalProfile }) {
             <Input type="time" value={form.event_time} onChange={(e) => setForm({ ...form, event_time: e.target.value })} />
             <Input type="number" value={form.duration_minutes} onChange={(e) => setForm({ ...form, duration_minutes: Number(e.target.value) })} placeholder="Duração" />
             <Input type="number" value={form.price_per_dog} onChange={(e) => setForm({ ...form, price_per_dog: Number(e.target.value) })} placeholder="Preço por cão" />
-            <Input type="number" value={form.max_dogs} onChange={(e) => setForm({ ...form, max_dogs: Number(e.target.value) })} placeholder="Máx. cães" />
+            <Input type="number" min="1" value={form.max_dogs} onChange={(e) => setForm({ ...form, max_dogs: Number(e.target.value) })} placeholder="Máx. cães" />
           </div>
 
           <div>
