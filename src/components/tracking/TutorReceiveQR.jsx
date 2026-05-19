@@ -1,8 +1,8 @@
 import QRCode from "react-qr-code";
-import { buildDeliveryConfirm } from '@/utils/qrTokens';
+import { encodeQR } from '@/utils/qrTokens';
 
-export function TutorReceiveQR({ walkId }) {
-  const qrValue = buildDeliveryConfirm(String(walkId));
+export function TutorReceiveQR({ booking }) {
+  const qrValue = booking ? encodeQR(booking, 'END') : '';
 
   return (
     <div className="p-8 bg-white rounded-[3rem] shadow-xl text-center">

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { QrCode, Shield, CheckCircle, MessageCircle } from "lucide-react";
+import { encodeQR, getStartToken, getEndToken } from '@/utils/qrTokens';
 
 export function WalkSecurityPass({ booking, onCodeShown }) {
   if (!booking) return null;
@@ -14,9 +15,8 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
 
   if (!isPickup && !isDropoff) return null;
 
-  // Generate secure tokens if not exists
-  const pickupToken = booking.pickup_token || `PK-${booking.id.slice(0, 8).toUpperCase()}`;
-  const dropoffToken = booking.dropoff_token || `DO-${booking.id.slice(-8).toUpperCase()}`;
+  const pickupToken = getStartToken(booking);
+  const dropoffToken = getEndToken(booking);
 
   const tokenToShow = isPickup ? pickupToken : dropoffToken;
   const title = isPickup ? "🟢 QR de Recolha (Início)" : "🔴 QR de Entrega (Final)";
@@ -26,13 +26,7 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
   const buttonColor = isPickup ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700";
   const buttonText = isPickup ? "🔓 Autorizar Recolha" : "✅ Confirmar Entrega";
 
-  const qrData = JSON.stringify({
-    bookingId: booking.id,
-    token: tokenToShow,
-    type: isPickup ? 'START' : 'END',
-    dogName: booking.dog_name,
-    timestamp: new Date().toISOString()
-  });
+  const qrData = encodeQR(booking, isPickup ? 'START' : 'END');
 
   const rawPhone = booking.walker_payment_contact || booking.walker_phone || booking.walker_whatsapp || '';
   const phoneDigits = String(rawPhone).replace(/\D/g, '');

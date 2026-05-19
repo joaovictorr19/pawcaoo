@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { QrCode, ShieldCheck, Camera, X } from "lucide-react";
-import { buildDeliveryConfirm, decodeDeliveryConfirm } from '@/utils/qrTokens';
+import { tryDecodeQR, validateForBooking } from '@/utils/qrTokens';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export function FinishWithQR({ walkId, onValidated }) {
+export function FinishWithQR({ booking, onValidated }) {
   const [scanning, setScanning] = useState(false);
   const [isValidated, setIsValidated] = useState(false);
   const videoRef = useRef(null);
@@ -12,8 +12,9 @@ export function FinishWithQR({ walkId, onValidated }) {
   const intervalRef = useRef(null);
 
   const validate = (text) => {
-    const res = decodeDeliveryConfirm(text);
-    if (res.valid && res.walkId === String(walkId)) {
+    const decoded = tryDecodeQR(text);
+    const res = validateForBooking(booking, decoded, 'END');
+    if (res.valid && res.step === 'end') {
       setIsValidated(true);
       setScanning(false);
       toast.success("Código Validado! Identidade confirmada.");

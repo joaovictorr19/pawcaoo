@@ -571,8 +571,67 @@ async function handleCheckoutCompleted(base44, session) {
                 priority: 'high'
             });
         }
+    } else if (!bookingId && session.metadata?.type === 'booking') {
+        const pickupToken = `PK-${crypto.randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+        const dropoffToken = `DO-${crypto.randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+
+        const booking = await base44.asServiceRole.entities.Booking.create({
+            walker_id: session.metadata?.professional_type === 'walker' ? session.metadata?.professional_id : undefined,
+            trainer_id: session.metadata?.professional_type === 'trainer' ? session.metadata?.professional_id : undefined,
+            walker_name: session.metadata?.professional_type === 'walker' ? session.metadata?.professional_name : undefined,
+            walker_email: session.metadata?.professional_type === 'walker' ? session.metadata?.professional_email : undefined,
+            trainer_name: session.metadata?.professional_type === 'trainer' ? session.metadata?.professional_name : undefined,
+            trainer_email: session.metadata?.professional_type === 'trainer' ? session.metadata?.professional_email : undefined,
+            walker_payment_contact: '',
+            owner_name: session.metadata?.owner_name,
+            owner_email: session.metadata?.owner_email || session.customer_email,
+            owner_phone: session.metadata?.owner_phone || '',
+            dog_name: session.metadata?.dog_name,
+            dog_size: session.metadata?.dog_size,
+            walk_date: session.metadata?.walk_date,
+            walk_time: session.metadata?.walk_time,
+            session_date: session.metadata?.type === 'training' ? session.metadata?.walk_date : undefined,
+            session_time: session.metadata?.type === 'training' ? session.metadata?.walk_time : undefined,
+            duration_hours: Number(session.metadata?.duration_hours || 1),
+            service_amount: Number(session.metadata?.service_amount || 0),
+            platform_fee: Number(session.metadata?.platform_fee || 0),
+            total_amount: Number(session.metadata?.total_amount || 0),
+            special_notes: session.metadata?.special_notes || '',
+            pickup_address: session.metadata?.pickup_address || '',
+            pickup_lat: session.metadata?.pickup_lat ? Number(session.metadata.pickup_lat) : undefined,
+            pickup_lng: session.metadata?.pickup_lng ? Number(session.metadata.pickup_lng) : undefined,
+            share_whatsapp_live_location: session.metadata?.share_whatsapp_live_location === 'true',
+            payment_status: 'held',
+            status: 'pending',
+            type: session.metadata?.type || 'walk',
+            pickup_token: pickupToken,
+            dropoff_token: dropoffToken
+        });
+
+        if (booking.walker_email || booking.trainer_email) {
+            const professionalEmail = booking.walker_email || booking.trainer_email;
+            await base44.asServiceRole.entities.Notification.create({
+                recipient_email: professionalEmail,
+                title: '💰 Nova Reserva Paga!',
+                message: `${booking.owner_name || 'Um cliente'} pagou uma reserva para ${booking.dog_name || 'o seu animal'} em ${booking.walk_date || ''}. Aceite agora!`,
+                type: 'booking',
+                related_id: booking.id,
+                icon: '🐾'
+            });
+        }
+
+        const ownerEmail = booking.owner_email || booking.created_by;
+        if (ownerEmail) {
+            await base44.asServiceRole.entities.Notification.create({
+                recipient_email: ownerEmail,
+                title: '✅ Pagamento Confirmado',
+                message: 'O seu pagamento foi recebido. Aguarde a aceitação do profissional.',
+                type: 'payment',
+                related_id: booking.id,
+                icon: '✅'
+            });
+        }
     } else if (bookingId) {
-        // Handle booking payment - keep as pending so walker can accept
         const bookings = await base44.asServiceRole.entities.Booking.filter({ id: bookingId });
         if (bookings.length > 0) {
             const booking = bookings[0];
@@ -580,97 +639,6 @@ async function handleCheckoutCompleted(base44, session) {
                 payment_status: 'held',
                 status: 'pending'
             });
-            // Notify walker about new paid booking
-            if (booking.walker_email) {
-                await base44.asServiceRole.entities.Notification.create({
-                    recipient_email: booking.walker_email,
-                    title: '💰 Nova Reserva Paga!',
-                    message: `${booking.owner_name || 'Um cliente'} pagou uma reserva para ${booking.dog_name || 'o seu animal'} em ${booking.walk_date || session.metadata?.walk_date || ''}. Aceite agora!`,
-                    type: 'booking',
-                    related_id: bookingId,
-                    icon: '🐾'
-                });
-
-                const dateStr = booking.walk_date ? new Date(booking.walk_date).toLocaleDateString('pt-PT') : '';
-                const timeStr = booking.walk_time || '';
-                const durationStr = booking.duration_hours ? `${booking.duration_hours}h` : '';
-                const locationStr = booking.pickup_address || booking.pickup_location || booking.location || '';
-                const serviceStr = booking.special_notes?.replace('Serviço: ', '') || (booking.type === 'training' ? 'Treino' : 'Passeio');
-                const totalStr = typeof booking.total_amount === 'number' ? `${booking.total_amount.toFixed(2)}€` : '';
-
-                await base44.asServiceRole.integrations.Core.SendEmail({
-                    from_name: 'PawCão',
-                    to: booking.walker_email,
-                    subject: 'Nova reserva paga — ação necessária | PawCão',
-                    body: [
-                        'Olá,',
-                        'Recebeu uma nova reserva com pagamento confirmado.',
-                        '',
-                        'Estado da reserva: PENDENTE',
-                        '',
-                        'Resumo da reserva',
-                        `- Cliente: ${booking.owner_name || 'Cliente'}`,
-                        `- Animal: ${booking.dog_name || 'Pet'}`,
-                        `- Serviço: ${serviceStr}`,
-                        dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
-                        durationStr ? `- Duração: ${durationStr}` : null,
-                        locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
-                        totalStr ? `- Valor pago pelo cliente: ${totalStr}` : null,
-                        '',
-                        'Entre no seu painel para aceitar ou gerir esta reserva.',
-                        '',
-                        'Obrigado,',
-                        'Equipa PawCão'
-                    ].filter(Boolean).join('\n')
-                });
-            }
-            // Notify owner of successful payment
-            const ownerEmail = booking.owner_email || booking.created_by;
-            if (ownerEmail) {
-                await base44.asServiceRole.entities.Notification.create({
-                    recipient_email: ownerEmail,
-                    title: '✅ Pagamento Confirmado',
-                    message: `O seu pagamento foi recebido. Aguarde a aceitação do profissional.`,
-                    type: 'payment',
-                    related_id: bookingId,
-                    icon: '✅'
-                });
-
-                const dateStr = booking.walk_date ? new Date(booking.walk_date).toLocaleDateString('pt-PT') : '';
-                const timeStr = booking.walk_time || '';
-                const durationStr = booking.duration_hours ? `${booking.duration_hours}h` : '';
-                const locationStr = booking.pickup_address || booking.pickup_location || booking.location || '';
-                const serviceStr = booking.special_notes?.replace('Serviço: ', '') || (booking.type === 'training' ? 'Treino' : 'Passeio');
-                const professionalName = booking.walker_name || booking.trainer_name || 'Profissional';
-                const totalStr = typeof booking.total_amount === 'number' ? `${booking.total_amount.toFixed(2)}€` : '';
-
-                await base44.asServiceRole.integrations.Core.SendEmail({
-                    from_name: 'PawCão',
-                    to: ownerEmail,
-                    subject: 'Pagamento confirmado — reserva pendente de aceitação | PawCão',
-                    body: [
-                        'Olá,',
-                        'O seu pagamento foi confirmado com sucesso na PawCão.',
-                        '',
-                        'Estado da reserva: PENDENTE',
-                        '',
-                        'Resumo da reserva',
-                        `- Profissional: ${professionalName}`,
-                        `- Animal: ${booking.dog_name || 'Pet'}`,
-                        `- Serviço: ${serviceStr}`,
-                        dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
-                        durationStr ? `- Duração: ${durationStr}` : null,
-                        locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
-                        totalStr ? `- Valor pago: ${totalStr}` : null,
-                        '',
-                        'O profissional ainda precisa de aceitar o pedido.',
-                        'Assim que houver atualização, receberá nova confirmação no sistema.',
-                        '',
-                        'Obrigado,',
-                        'Equipa PawCão'
-                    ].filter(Boolean).join('\n')
-                });
-            }
         }
     }
 }
