@@ -114,6 +114,11 @@
       "type": "string",
       "description": "Phone number of the dog owner"
     },
+    "share_whatsapp_live_location": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the client allows sharing the live trip location via WhatsApp"
+    },
     "dog_name": {
       "type": "string",
       "description": "Name of the dog to be walked (legacy - use dogs array)"
@@ -304,11 +309,6 @@
       "type": "number",
       "description": "Extra amount owner needs to pay if service exceeds \u20ac15",
       "default": 0
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [

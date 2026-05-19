@@ -10,7 +10,8 @@ import MobileSelect from "@/components/ui/MobileSelect";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, DollarSign, Clock, AlertCircle, MessageCircle, MapPin } from "lucide-react";
+import { CalendarIcon, DollarSign, Clock, AlertCircle, MessageCircle, MapPin, Phone, LocateFixed } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -50,7 +51,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     walk_time: "09:00",
     duration_hours: 1,
     special_notes: "",
-    owner_phone: ""
+    owner_phone: "",
+    share_whatsapp_live_location: false
   });
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
@@ -391,7 +393,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           sender_email: user.email,
           sender_name: user.full_name || 'Cliente',
           participants: [user.email, pro.created_by],
-          content: `🎉 Reserva criada!\n\n🐕 Cão: ${bookingData.dog_name}\n📅 Data: ${walkDate}\n⏰ Horário: ${bookingData.walk_time}\n📍 Local: ${bookingData.pickup_address || 'A definir'}\n\nO passeador receberá os detalhes completos após confirmação.`,
+          content: `🎉 Reserva criada!\n\n🐕 Cão: ${bookingData.dog_name}\n📅 Data: ${walkDate}\n⏰ Horário: ${bookingData.walk_time}\n📍 Local: ${bookingData.pickup_address || 'A definir'}\n📲 Partilha de localização por WhatsApp: ${bookingData.share_whatsapp_live_location ? 'Autorizada' : 'Não autorizada'}\n\nO número do profissional será liberado após confirmação da reserva.`,
           message_type: 'system'
         });
 
@@ -526,6 +528,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         pickup_address: pickupAddress,
         pickup_lat: pickupCoords.lat,
         pickup_lng: pickupCoords.lng,
+        share_whatsapp_live_location: formData.share_whatsapp_live_location,
         professional_type: isWalker ? 'walker' : 'trainer',
         professional_id: pro.id,
         status: 'pending',
@@ -942,15 +945,43 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                 </div>
               </div>
 
-              <div>
-                <Label className="text-sm">Observações</Label>
-                <Textarea
-                  value={formData.special_notes}
-                  onChange={(e) => setFormData({...formData, special_notes: e.target.value})}
-                  placeholder="Informações importantes..."
-                  rows={2}
-                  className="text-sm"
-                />
+              <div className="space-y-3">
+                <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
+                  <div className="flex items-start gap-2">
+                    <Phone className="w-4 h-4 text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">Contacto do profissional</p>
+                      <p className="text-xs text-slate-600">O número do profissional será liberado logo após a reserva ser aceite.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="pr-2">
+                      <Label className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                        <LocateFixed className="w-4 h-4 text-green-600" />
+                        Partilhar localização da viagem pelo WhatsApp
+                      </Label>
+                      <p className="text-xs text-slate-500 mt-1">Ative se quiser que o profissional saiba que pode partilhar a localização consigo durante a viagem.</p>
+                    </div>
+                    <Switch
+                      checked={formData.share_whatsapp_live_location}
+                      onCheckedChange={(checked) => setFormData({ ...formData, share_whatsapp_live_location: checked })}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm">Observações</Label>
+                  <Textarea
+                    value={formData.special_notes}
+                    onChange={(e) => setFormData({...formData, special_notes: e.target.value})}
+                    placeholder="Informações importantes..."
+                    rows={2}
+                    className="text-sm"
+                  />
+                </div>
               </div>
             </>
           )}
@@ -982,8 +1013,23 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
-                  Pagamento seguro processado via Stripe. Cancelamento com 24h de antecedência: reembolso de 100%.
+                <div className="space-y-2">
+                  <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
+                    Pagamento seguro processado via Stripe. Cancelamento com 24h de antecedência: reembolso de 100%.
+                  </div>
+                  <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-slate-700">
+                    O número do profissional será liberado logo após a reserva ser aceite.
+                  </div>
+                  <div className="rounded-lg border border-green-100 bg-green-50 p-3 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold text-slate-900">Partilhar localização da viagem pelo WhatsApp</p>
+                      <p className="text-xs text-slate-600 mt-1">Pode ativar ou desativar esta opção antes de concluir.</p>
+                    </div>
+                    <Switch
+                      checked={formData.share_whatsapp_live_location}
+                      onCheckedChange={(checked) => setFormData({ ...formData, share_whatsapp_live_location: checked })}
+                    />
+                  </div>
                 </div>
               </div>
             </>
@@ -1095,6 +1141,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       pickup_address: pickupAddress,
                       pickup_lat: pickupCoords.lat || 0,
                       pickup_lng: pickupCoords.lng || 0,
+                      share_whatsapp_live_location: formData.share_whatsapp_live_location,
                       status: isTestBooking ? 'confirmed' : 'pending',
                       payment_status: isTestBooking ? 'released' : 'pending',
                       is_test_booking: isTestBooking,
