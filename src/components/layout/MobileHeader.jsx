@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import PawCaoLogo from '@/components/PawCaoLogo';
 import { LogOut } from 'lucide-react';
-import { useLanguage } from '@/components/LanguageContext';
 
 const ROOT_ROUTES = [
   createPageUrl('Home'),
@@ -50,7 +49,6 @@ const ROUTE_TITLES = {
 export default function MobileHeader() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { language, setLanguage } = useLanguage();
   const [authed, setAuthed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -95,11 +93,6 @@ export default function MobileHeader() {
     { value: 'finances', label: 'Finanças' },
   ];
 
-  const languageOptions = [
-    { code: 'pt', flag: '🇵🇹', label: 'Português' },
-    { code: 'en', flag: '🇬🇧', label: 'English' },
-    { code: 'fr', flag: '🇫🇷', label: 'Français' },
-  ];
 
   return (
     <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white border-b border-slate-200 px-3 py-1 flex items-center justify-center gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
@@ -125,20 +118,7 @@ export default function MobileHeader() {
         </div>
 
         {/* Ações à direita */}
-        <div className="flex items-center justify-end gap-1.5">
-          <div className="flex items-center rounded-full border border-slate-200 bg-slate-50 p-1">
-            {languageOptions.map((option) => (
-              <button
-                key={option.code}
-                onClick={() => setLanguage(option.code)}
-                aria-label={option.label}
-                title={option.label}
-                className={`h-7 w-7 rounded-full text-sm transition-all ${language === option.code ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'opacity-60'}`}
-              >
-                {option.flag}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center justify-end">
           {authed ? (
             <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.logout()}>
               <LogOut className="w-4 h-4 mr-1" /> Sair
