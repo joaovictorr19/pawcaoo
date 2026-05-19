@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Gift, X, Zap, Search, Trash2, CheckCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -18,10 +18,16 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
   const [userEmail, setUserEmail] = useState('');
   const [selectedBadgeId, setSelectedBadgeId] = useState('');
   const [badgeSearch, setBadgeSearch] = useState('');
+  const [userSearch, setUserSearch] = useState('');
 
   const { data: badgeDefinitions = [] } = useQuery({
     queryKey: ['badgeDefinitions'],
     queryFn: () => base44.entities.BadgeDefinition.list('-created_date', 100),
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['grantBadgeUsers'],
+    queryFn: () => base44.entities.User.list('-created_date', 1000),
   });
 
   const { data: userBadges = [], refetch: refetchUserBadges } = useQuery({
@@ -34,7 +40,18 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
     !badgeSearch || b.name.toLowerCase().includes(badgeSearch.toLowerCase())
   );
 
+  const filteredUsers = useMemo(() => {
+    const search = userSearch.trim().toLowerCase();
+    const users = Array.isArray(allUsers) ? allUsers : [];
+    if (!search) return users.slice(0, 12);
+    return users.filter((user) =>
+      (user.full_name || '').toLowerCase().includes(search) ||
+      (user.email || '').toLowerCase().includes(search)
+    ).slice(0, 20);
+  }, [allUsers, userSearch]);
+
   const selectedBadge = badgeDefinitions.find(b => b.id === selectedBadgeId);
+  const selectedUser = allUsers.find((user) => user.email === userEmail);
 
   const grantMutation = useMutation({
     mutationFn: async () => {
@@ -106,6 +123,7 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
       toast.success(`Emblema "${selectedBadge?.name}" atribuído com sucesso!`);
       setSelectedBadgeId('');
       setUserEmail('');
+      setUserSearch('');
       queryClient.invalidateQueries(['userBadges']);
       if (onSuccess) onSuccess();
     },
@@ -188,16 +206,45 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
         </div>
 
         <div className="overflow-y-auto flex-1 p-5 space-y-4">
-          {/* Email */}
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Email do Utilizador</label>
-            <input
-              type="email"
-              placeholder="utilizador@example.com"
-              className="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 ring-orange-400"
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-            />
+          {/* Utilizador */}
+          <div className="space-y-2">
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Escolher Utilizador</label>
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Pesquisar por nome ou email..."
+                className="w-full pl-8 p-3 bg-slate-50 rounded-xl text-sm outline-none focus:ring-2 ring-orange-400"
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+              />
+            </div>
+            <div className="max-h-44 overflow-y-auto rounded-xl border border-slate-200 bg-white">
+              {filteredUsers.length === 0 ? (
+                <p className="p-3 text-sm text-slate-400">Nenhum utilizador encontrado.</p>
+              ) : (
+                filteredUsers.map((user) => {
+                  const isSelected = userEmail === user.email;
+                  return (
+                    <button
+                      key={user.id}
+                      onClick={() => setUserEmail(user.email)}
+                      className={`w-full px-3 py-2.5 text-left border-b last:border-b-0 transition-all ${isSelected ? 'bg-orange-50' : 'hover:bg-slate-50'}`}
+                    >
+                      <p className="text-sm font-bold text-slate-900 truncate">{user.full_name || 'Sem nome'}</p>
+                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+            {selectedUser && (
+              <div className="rounded-xl border border-orange-200 bg-orange-50 p-3">
+                <p className="text-xs font-black uppercase tracking-widest text-orange-600">Selecionado</p>
+                <p className="text-sm font-bold text-slate-900 mt-1">{selectedUser.full_name || 'Sem nome'}</p>
+                <p className="text-xs text-slate-500">{selectedUser.email}</p>
+              </div>
+            )}
           </div>
 
           {tab === 'grant' && (
