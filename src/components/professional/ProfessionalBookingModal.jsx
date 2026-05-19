@@ -307,9 +307,12 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                     <span className="font-bold text-slate-900 break-words">{pickupAddress || 'Ainda não definida'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Telefone do profissional</span>
-                    <span className="font-bold text-slate-900">{walkerProfile?.whatsapp_number || walkerProfile?.phone || 'Disponível após aceitação'}</span>
+                    <span className="text-slate-500">Contacto do profissional</span>
+                    <span className="font-bold text-slate-900">Revelar dados após o pagamento</span>
                   </div>
+                  <p className="text-xs text-amber-600 font-medium -mt-1">
+                    Por segurança, o telefone do profissional fica oculto até o pedido ser aceite e o pagamento concluído.
+                  </p>
                   <div className="rounded-xl border border-green-100 bg-green-50 p-3 flex items-start justify-between gap-3">
                     <div className="pr-2">
                       <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
