@@ -51,7 +51,7 @@
     "create": {
       "$or": [
         {
-          "data.recipient_email": "{{user.email}}"
+          "recipient_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -63,7 +63,7 @@
     "read": {
       "$or": [
         {
-          "data.recipient_email": "{{user.email}}"
+          "recipient_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -75,7 +75,7 @@
     "update": {
       "$or": [
         {
-          "data.recipient_email": "{{user.email}}"
+          "recipient_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -87,7 +87,7 @@
     "delete": {
       "$or": [
         {
-          "data.recipient_email": "{{user.email}}"
+          "recipient_email": "{{user.email}}"
         },
         {
           "user_condition": {
