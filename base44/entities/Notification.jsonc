@@ -41,6 +41,11 @@
     "related_id": {
       "type": "string",
       "description": "ID do registo relacionado (booking, payment, etc.)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
     }
   },
   "required": [
@@ -48,18 +53,7 @@
     "message"
   ],
   "rls": {
-    "create": {
-      "$or": [
-        {
-          "recipient_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
+    "create": {},
     "read": {
       "$or": [
         {

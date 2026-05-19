@@ -61,6 +61,11 @@
     "redemption_code": {
       "type": "string",
       "description": "Unique code to collect product at partner store"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
     }
   },
   "required": [
@@ -71,12 +76,12 @@
   ],
   "rls": {
     "create": {
-      "data.user_email": "{{user.email}}"
+      "user_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "data.user_email": "{{user.email}}"
+          "user_email": "{{user.email}}"
         },
         {
           "data.partner_id": {
@@ -84,7 +89,7 @@
               {
                 "entities": "PartnerCompany",
                 "query": {
-                  "data.company_email": "{{user.email}}"
+                  "company_email": "{{user.email}}"
                 }
               }
             ]
@@ -105,7 +110,7 @@
               {
                 "entities": "PartnerCompany",
                 "query": {
-                  "data.company_email": "{{user.email}}"
+                  "company_email": "{{user.email}}"
                 }
               }
             ]

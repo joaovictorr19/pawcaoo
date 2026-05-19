@@ -55,6 +55,11 @@
       "type": "number",
       "default": 0,
       "description": "Total de breakage gerado (tokens n\u00e3o usados convertidos em lucro)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
     }
   },
   "required": [

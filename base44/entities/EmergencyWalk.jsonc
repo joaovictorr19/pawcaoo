@@ -145,6 +145,11 @@
       "type": "string",
       "format": "date-time",
       "description": "When the walk was marked as completed"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
     }
   },
   "required": [
@@ -163,7 +168,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "data.accepted_by_walker": "{{user.email}}"
+          "accepted_by_walker": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -171,7 +176,10 @@
           }
         },
         {
-          "data.status": "available"
+          "status": "available"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
         }
       ]
     },
@@ -181,7 +189,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "data.accepted_by_walker": "{{user.email}}"
+          "accepted_by_walker": "{{user.email}}"
         },
         {
           "user_condition": {

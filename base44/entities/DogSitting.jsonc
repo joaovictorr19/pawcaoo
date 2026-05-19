@@ -1,0 +1,235 @@
+{
+  "name": "DogSitting",
+  "type": "object",
+  "properties": {
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "boarding",
+        "house_sitting",
+        "drop_in_feeding"
+      ],
+      "description": "Type of service: boarding (dog stays with walker), house sitting (walker stays at owner's home), drop-in feeding (walker visits to feed)"
+    },
+    "walker_id": {
+      "type": "string",
+      "description": "ID of the walker providing service"
+    },
+    "walker_name": {
+      "type": "string",
+      "description": "Name of the walker"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Name of the dog owner"
+    },
+    "owner_phone": {
+      "type": "string",
+      "description": "Owner's phone"
+    },
+    "owner_address": {
+      "type": "string",
+      "description": "Owner's address (for house sitting / drop-in)"
+    },
+    "dog_name": {
+      "type": "string",
+      "description": "Name of the dog"
+    },
+    "dog_size": {
+      "type": "string",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "extra_large"
+      ]
+    },
+    "dog_breed": {
+      "type": "string",
+      "description": "Breed of the dog"
+    },
+    "dog_age": {
+      "type": "number",
+      "description": "Age of the dog in years"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date of service"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "End date of service"
+    },
+    "total_days": {
+      "type": "number",
+      "description": "Total number of days"
+    },
+    "daily_rate": {
+      "type": "number",
+      "description": "Rate per day for the service"
+    },
+    "service_amount": {
+      "type": "number",
+      "description": "Total service amount (walker receives)"
+    },
+    "platform_fee": {
+      "type": "number",
+      "description": "Platform commission"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total paid by owner"
+    },
+    "feeding_schedule": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Feeding times and amounts"
+    },
+    "medication_schedule": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "medication_name": {
+            "type": "string"
+          },
+          "dosage": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "instructions": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Medication details if needed"
+    },
+    "emergency_vet_name": {
+      "type": "string",
+      "description": "Emergency vet contact"
+    },
+    "emergency_vet_phone": {
+      "type": "string",
+      "description": "Emergency vet phone"
+    },
+    "special_instructions": {
+      "type": "string",
+      "description": "Any special care instructions"
+    },
+    "house_access_instructions": {
+      "type": "string",
+      "description": "How to access the house (for house sitting/drop-in)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "payment_id": {
+      "type": "string",
+      "description": "Associated payment record"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "held",
+        "released",
+        "refunded"
+      ],
+      "default": "pending"
+    },
+    "completion_code": {
+      "type": "string",
+      "description": "Code to confirm service completion"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional description"
+    }
+  },
+  "required": [
+    "service_type",
+    "walker_id",
+    "owner_name",
+    "dog_name",
+    "start_date",
+    "end_date",
+    "total_amount"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "walker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "walker_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
