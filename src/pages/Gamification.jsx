@@ -839,7 +839,7 @@ export default function Gamification() {
                 ))}
 
                 <motion.div
-                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
+                  className="absolute top-1/2 -translate-y-[70%] -translate-x-1/2 z-10"
                   style={{ left: `${Math.min(88, Math.max(18, progressInLevel))}%` }}
                   animate={{ y: [0, -4, 0] }}
                   transition={{ duration: 3, repeat: Infinity }}
