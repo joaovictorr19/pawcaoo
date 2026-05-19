@@ -1,0 +1,113 @@
+{
+  "name": "CalendarAvailability",
+  "type": "object",
+  "properties": {
+    "professional_email": {
+      "type": "string",
+      "description": "Email of walker or trainer"
+    },
+    "professional_name": {
+      "type": "string",
+      "description": "Name of professional"
+    },
+    "professional_type": {
+      "type": "string",
+      "enum": [
+        "walker",
+        "trainer"
+      ],
+      "description": "Type of professional"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of availability"
+    },
+    "time_slots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          },
+          "is_available": {
+            "type": "boolean"
+          },
+          "booking_id": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Time slots for the day"
+    },
+    "is_fully_booked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the entire day is booked"
+    },
+    "is_day_off": {
+      "type": "boolean",
+      "default": false,
+      "description": "Professional marked this day as unavailable (time-off/vacation)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Special notes about availability"
+    }
+  },
+  "required": [
+    "professional_email",
+    "date"
+  ],
+  "rls": {
+    "create": {
+      "data.professional_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.is_day_off": false
+        },
+        {
+          "data.time_slots.is_available": true
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
