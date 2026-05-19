@@ -68,9 +68,19 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
         }
       }
     },
-    onSuccess: (_, status) => {
-      queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+    onSuccess: async (_, status) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['allUsers'] }),
+        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] }),
+        queryClient.invalidateQueries({ queryKey: ['allWalkers'] }),
+        queryClient.invalidateQueries({ queryKey: ['featuredWalkers'] }),
+        queryClient.invalidateQueries({ queryKey: ['myProfessionalProfile'] }),
+        queryClient.invalidateQueries({ queryKey: ['existingProfessionalProfile'] }),
+        queryClient.invalidateQueries({ queryKey: ['myWalkerProfile'] }),
+        queryClient.invalidateQueries({ queryKey: ['myTrainerProfile'] }),
+        queryClient.invalidateQueries({ queryKey: ['currentUser'] }),
+        queryClient.invalidateQueries({ queryKey: ['currentUserProfileXP'] })
+      ]);
       toast.success(status === 'verified' ? "Profissional Ativado no PawGo!" : "Candidatura Rejeitada.");
       setIsOpen(false);
     }

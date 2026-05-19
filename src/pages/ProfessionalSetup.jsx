@@ -400,6 +400,10 @@ export default function ProfessionalSetup() {
 
       queryClient.invalidateQueries(['currentUser']);
       queryClient.invalidateQueries(['myProfessionalProfile']);
+      queryClient.invalidateQueries(['allWalkers']);
+      queryClient.invalidateQueries(['featuredWalkers']);
+      queryClient.invalidateQueries(['existingProfessionalProfile']);
+      queryClient.invalidateQueries(['myWalkerProfile']);
       toast.success("Perfil submetido para aprovação! Aguarda verificação da equipa PawCão. 🎉");
       navigate(createPageUrl("ProfessionalHubV2"), { replace: true });
     } catch (e) {

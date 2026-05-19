@@ -88,6 +88,10 @@ export default function EditWalkerProfile() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
       queryClient.invalidateQueries({ queryKey: ['myWalkerProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['myProfessionalProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['allWalkers'] });
+      queryClient.invalidateQueries({ queryKey: ['featuredWalkers'] });
+      queryClient.invalidateQueries({ queryKey: ['existingProfessionalProfile'] });
       
       if (result.hasSensitive && result.hasNonSensitive) {
         toast.success('Perfil atualizado! Mudanças de preço enviadas para aprovação.');
