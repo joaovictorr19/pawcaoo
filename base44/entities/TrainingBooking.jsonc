@@ -186,7 +186,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "data.trainer_email": "{{user.email}}"
+          "trainer_email": "{{user.email}}"
         },
         {
           "user_condition": {
