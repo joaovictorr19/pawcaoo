@@ -56,14 +56,13 @@
         },
         {
           "data.shelter_id": {
-            "$in": [
-              {
-                "entities": "ShelterProfile",
-                "query": {
-                  "created_by": "{{user.email}}"
-                }
-              }
-            ]
+            "$in": {
+              "entities": "ShelterProfile",
+              "query": {
+                "created_by": "{{user.email}}"
+              },
+              "field": "id"
+            }
           }
         },
         {
