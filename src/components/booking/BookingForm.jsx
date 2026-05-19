@@ -70,6 +70,10 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     queryFn: () => base44.auth.me(),
   });
 
+  React.useEffect(() => {
+    if (!user) return;
+  }, [user]);
+
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile', user?.email],
     queryFn: async () => {
@@ -583,6 +587,20 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     const dog = myDogs.find(d => d.id === dogId);
     return dog?.default_pickup_address && dog?.default_pickup_lat && dog?.default_pickup_lng;
   };
+
+  if (!user) {
+    return (
+      <Card className="glass-panel border-0 shadow-xl rounded-2xl">
+        <CardContent className="p-6 text-center space-y-4">
+          <h3 className="text-lg font-bold text-gray-900">Faça login para continuar</h3>
+          <p className="text-sm text-gray-600">É necessário entrar na sua conta antes de criar uma reserva.</p>
+          <Button onClick={() => base44.auth.redirectToLogin(window.location.href)} className="bg-green-600 hover:bg-green-700 text-white">
+            Entrar
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div>

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 export default function ClientDataSettings({ user }) {
   const queryClient = useQueryClient();
+
   const { data: profile } = useQuery({
     queryKey: ['clientDashboardProfile', user?.email],
     queryFn: async () => {
