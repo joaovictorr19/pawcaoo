@@ -98,6 +98,10 @@ export default function ClientDataSettings({ user }) {
     }
   });
 
+  if (!user?.email) {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
       <Card className="bg-slate-900 border border-white/5 shadow-lg">
