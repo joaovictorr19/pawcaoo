@@ -181,16 +181,21 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
       const body = [
         `Olá ${professionalName},`,
         "",
-        "Precisamos que atualize alguns dados em falta no seu perfil profissional:",
-        ...fieldLabels.map((label) => `- ${label}`),
+        "Estamos a rever o seu perfil profissional e ainda faltam alguns dados para concluir a validação.",
         "",
-        requestMessage || "Por favor entre no Painel Profissional > Documentos e complete estes dados assim que possível.",
+        "Documentos / dados em falta:",
+        ...fieldLabels.map((label, index) => `${index + 1}. ${label}`),
         "",
-        "Local para atualizar:",
-        "- Professional Hub V2",
-        "- Aba: Documentos",
+        "O que precisa de fazer:",
+        "1. Entrar no seu Painel Profissional",
+        "2. Abrir a secção Documentos",
+        "3. Preencher ou carregar os elementos indicados acima",
         "",
-        "Obrigado,",
+        requestMessage ? `Nota adicional da equipa PawCão:\n${requestMessage}` : "Se tiver alguma dúvida, responda a este email e ajudamos no que for necessário.",
+        "",
+        "Obrigado pela sua colaboração.",
+        "",
+        "Cumprimentos,",
         "Equipa PawCão"
       ].join("\n");
 
