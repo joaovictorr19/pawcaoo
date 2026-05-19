@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const LanguageContext = createContext();
 
 // Supported languages
-const SUPPORTED_LANGUAGES = ['pt', 'en', 'fr'];
+const SUPPORTED_LANGUAGES = ['pt', 'en', 'es', 'fr'];
 
 // Browser language to our language code mapping
 const BROWSER_LANG_MAP = {

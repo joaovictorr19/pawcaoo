@@ -864,11 +864,11 @@ export default function Home() {
               
               <div className="mb-16">
                 <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6">
-                  O passeio que o seu cão precisa,<br/>
-                  <span className="text-orange-500">com a confiança que você procura.</span>
+                  {language === 'pt' ? 'O passeio que o seu cão precisa,' : language === 'es' ? 'El paseo que tu perro necesita,' : language === 'fr' ? 'La promenade dont votre chien a besoin,' : 'The walk your dog needs,'}<br/>
+                  <span className="text-orange-500">{language === 'pt' ? 'com a confiança que você procura.' : language === 'es' ? 'con la confianza que buscas.' : language === 'fr' ? 'avec la confiance que vous recherchez.' : 'with the trust you are looking for.'}</span>
                 </h1>
                 <p className="text-slate-600 font-bold uppercase tracking-[0.3em] text-xs">
-                  A melhor rede de dog walkers de Portugal
+                  {language === 'pt' ? 'A melhor rede de dog walkers de Portugal' : language === 'es' ? 'La mejor red de paseadores de perros de Portugal' : language === 'fr' ? 'Le meilleur réseau de promeneurs de chiens du Portugal' : 'The best dog walker network in Portugal'}
                 </p>
               </div>
 
@@ -879,12 +879,12 @@ export default function Home() {
                     <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-orange-200">
                       <MapPin size={28} />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 mb-2">Encontrar Passeador</h2>
+                    <h2 className="text-2xl font-black text-slate-900 mb-2">{language === 'pt' ? 'Encontrar Passeador' : language === 'es' ? 'Encontrar Paseador' : language === 'fr' ? 'Trouver un promeneur' : 'Find a Walker'}</h2>
                     <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
-                      Profissionais verificados prontos para dar ao seu cão o passeio que ele merece.
+                      {language === 'pt' ? 'Profissionais verificados prontos para dar ao seu cão o passeio que ele merece.' : language === 'es' ? 'Profesionales verificados listos para darle a tu perro el paseo que merece.' : language === 'fr' ? 'Des professionnels vérifiés prêts à offrir à votre chien la promenade qu’il mérite.' : 'Verified professionals ready to give your dog the walk they deserve.'}
                     </p>
                     <button onClick={handleLogin} className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors">
-                      Começar Agora
+                      {language === 'pt' ? 'Começar Agora' : language === 'es' ? 'Empezar Ahora' : language === 'fr' ? 'Commencer Maintenant' : 'Start Now'}
                     </button>
                   </div>
                 </div>
@@ -894,12 +894,12 @@ export default function Home() {
                     <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-6">
                       <Zap size={28} className="text-orange-400" />
                     </div>
-                    <h2 className="text-2xl font-black text-white mb-2">Ser Profissional</h2>
+                    <h2 className="text-2xl font-black text-white mb-2">{language === 'pt' ? 'Ser Profissional' : language === 'es' ? 'Ser Profesional' : language === 'fr' ? 'Devenir Professionnel' : 'Become a Professional'}</h2>
                     <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
-                      Transforme a sua paixão por animais numa fonte de rendimento flexível.
+                      {language === 'pt' ? 'Transforme a sua paixão por animais numa fonte de rendimento flexível.' : language === 'es' ? 'Convierte tu pasión por los animales en una fuente de ingresos flexible.' : language === 'fr' ? 'Transformez votre passion pour les animaux en une source de revenus flexible.' : 'Turn your passion for animals into a flexible source of income.'}
                     </p>
                     <button onClick={handleBecomePro} className="w-full bg-orange-500 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-orange-500/20">
-                      Fazer Registo Pro
+                      {language === 'pt' ? 'Fazer Registo Pro' : language === 'es' ? 'Hacer Registro Pro' : language === 'fr' ? 'Créer un Profil Pro' : 'Create Pro Account'}
                     </button>
                   </div>
                 </div>

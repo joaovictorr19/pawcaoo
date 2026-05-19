@@ -8,6 +8,7 @@ import { MapPin, ArrowLeft, Shield, User, Star, Calendar } from "lucide-react";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/LanguageContext";
+import { t } from "@/components/translations";
 import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
 import BadgeItem from "@/components/gamification/BadgeItem";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +21,7 @@ export default function UserProfile() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { language } = useLanguage();
 
   useLayoutEffect(() => {
     const resetProfileScroll = () => {
@@ -341,16 +343,16 @@ export default function UserProfile() {
         <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-12 text-center">
           <User className="w-10 h-10 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {isSelfView && !currentUser ? "Faça Login" : "Perfil Não Encontrado"}
+            {isSelfView && !currentUser ? (language === 'pt' ? 'Faça Login' : language === 'es' ? 'Inicia sesión' : language === 'fr' ? 'Connectez-vous' : 'Log in') : (language === 'pt' ? 'Perfil Não Encontrado' : language === 'es' ? 'Perfil No Encontrado' : language === 'fr' ? 'Profil Introuvable' : 'Profile Not Found')}
           </h2>
           <p className="text-gray-600 mb-6">
-            {isSelfView && !currentUser ? "Para visualizar o seu perfil, entre na sua conta." : "Este perfil não está disponível."}
+            {isSelfView && !currentUser ? (language === 'pt' ? 'Para visualizar o seu perfil, entre na sua conta.' : language === 'es' ? 'Para ver tu perfil, inicia sesión en tu cuenta.' : language === 'fr' ? 'Pour voir votre profil, connectez-vous à votre compte.' : 'To view your profile, log in to your account.') : (language === 'pt' ? 'Este perfil não está disponível.' : language === 'es' ? 'Este perfil no está disponible.' : language === 'fr' ? 'Ce profil n’est pas disponible.' : 'This profile is not available.')}
           </p>
           {!currentUser ? (
-            <Button onClick={() => base44.auth.redirectToLogin(window.location.origin)} className="w-full bg-green-600 hover:bg-green-700">Entrar</Button>
+            <Button onClick={() => base44.auth.redirectToLogin(window.location.origin)} className="w-full bg-green-600 hover:bg-green-700">{language === 'pt' ? 'Entrar' : language === 'es' ? 'Entrar' : language === 'fr' ? 'Entrer' : 'Log in'}</Button>
           ) : (
             <Button onClick={() => window.location.href = '/'} className="w-full">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
+              <ArrowLeft className="w-4 h-4 mr-2" /> {t('back', language)}
             </Button>
           )}
         </div>
@@ -400,7 +402,7 @@ export default function UserProfile() {
               <div className={`absolute -bottom-1 -right-1 px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1.5 transition-all ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-500' : 'bg-slate-300'}`}>
                 <div className={`w-2 h-2 rounded-full bg-white ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'animate-ping' : ''}`} />
                 <span className="text-[8px] font-black text-white uppercase tracking-tighter">
-                  {(walkerProfile?.is_online || trainerProfile?.is_online) ? 'Disponível' : 'Offline'}
+                  {(walkerProfile?.is_online || trainerProfile?.is_online) ? t('available', language) : t('offline', language)}
                 </span>
               </div>
             )}
@@ -412,7 +414,7 @@ export default function UserProfile() {
         <div className="space-y-8 pb-6">
           {(walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio) && (
             <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">Sobre mim</h3>
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">{t('aboutMe', language)}</h3>
               <p className="text-slate-700 text-sm leading-relaxed">
                 {walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio}
               </p>
@@ -421,7 +423,7 @@ export default function UserProfile() {
 
           {(walkerProfile?.portfolio?.length > 0) && (
             <div>
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Portefólio</h3>
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">{language === 'pt' ? 'Portefólio' : language === 'es' ? 'Portafolio' : language === 'fr' ? 'Portfolio' : 'Portfolio'}</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl">
                 {walkerProfile.portfolio.filter(p => p.media_url).slice(0, 4).map((item, idx) => (
                   <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100">
@@ -464,15 +466,15 @@ export default function UserProfile() {
                 ))}
               </div>
             ) : (
-              <p className="text-[10px] text-slate-300 font-bold italic">Sem emblemas atribuídos ainda.</p>
+              <p className="text-[10px] text-slate-300 font-bold italic">{language === 'pt' ? 'Sem emblemas atribuídos ainda.' : language === 'es' ? 'Aún no hay insignias asignadas.' : language === 'fr' ? 'Aucun badge attribué pour le moment.' : 'No badges assigned yet.'}</p>
             )}
           </div>
 
           {(walkerProfile || trainerProfile) && (
             <div>
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Folgas Agendadas</h3>
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">{language === 'pt' ? 'Folgas Agendadas' : language === 'es' ? 'Días Libres Programados' : language === 'fr' ? 'Jours de repos planifiés' : 'Scheduled Days Off'}</h3>
               {daysOff.length === 0 ? (
-                <p className="text-[12px] text-slate-500">Sem folgas futuras.</p>
+                <p className="text-[12px] text-slate-500">{language === 'pt' ? 'Sem folgas futuras.' : language === 'es' ? 'No hay días libres futuros.' : language === 'fr' ? 'Aucun jour de repos à venir.' : 'No upcoming days off.'}</p>
               ) : (
                 <div className="flex gap-2 flex-wrap">
                   {daysOff.map((d) => (
@@ -490,7 +492,7 @@ export default function UserProfile() {
 
           {(walkerProfile || trainerProfile) && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
             <div>
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Serviços Oferecidos</h3>
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">{language === 'pt' ? 'Serviços Oferecidos' : language === 'es' ? 'Servicios Ofrecidos' : language === 'fr' ? 'Services proposés' : 'Services Offered'}</h3>
               <div className="space-y-3">
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
                   <div
@@ -528,7 +530,7 @@ export default function UserProfile() {
 
           {(walkerProfile || trainerProfile) && (
             <div>
-              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">Feedback</h3>
+              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">{language === 'pt' ? 'Feedback' : language === 'es' ? 'Opiniones' : language === 'fr' ? 'Avis' : 'Feedback'}</h3>
               {loadingReviews ? (
                 <div className="space-y-3">
                   {[1, 2].map(i => <div key={i} className="h-20 bg-slate-200 rounded-2xl animate-pulse" />)}
@@ -538,7 +540,7 @@ export default function UserProfile() {
               ) : (
                 <div className="text-center py-8">
                   <Star className="w-10 h-10 mx-auto mb-3 opacity-30 text-slate-400" />
-                  <p className="text-slate-500 text-sm">Sem avaliações</p>
+                  <p className="text-slate-500 text-sm">{language === 'pt' ? 'Sem avaliações' : language === 'es' ? 'Sin reseñas' : language === 'fr' ? 'Sans avis' : 'No reviews'}</p>
                 </div>
               )}
             </div>
