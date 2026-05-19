@@ -148,6 +148,18 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "data.partner_id": {
+            "$in": [
+              {
+                "entities": "PartnerCompany",
+                "query": {
+                  "company_email": "{{user.email}}"
+                }
+              }
+            ]
+          }
         }
       ]
     },
