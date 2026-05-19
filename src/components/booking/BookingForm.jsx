@@ -255,13 +255,9 @@ export default function BookingForm({ walker, professional, onClose, initialDate
 
   const amounts = calculateAmounts();
 
-  // Mutation para criar booking
+  // Mutation para criar booking apenas no modo teste
   const createBookingMutation = useMutation({
     mutationFn: async (bookingData) => {
-      console.log('📝 Criando booking com dados:', bookingData);
-      console.log('🎯 Profissional:', { id: pro.id, email: pro.created_by, nome: proName });
-      
-      // CRITICAL: Validate required fields before creating
       if (!bookingData.dog_name || !bookingData.walk_date) {
         throw new Error('Dados obrigatórios em falta');
       }
@@ -269,143 +265,20 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       if (!pro?.created_by || !pro?.id) {
         throw new Error('Profissional inválido - falta ID ou email');
       }
-      
-      // 1. Criar RESERVA DIRETA com Walker Específico - SEMPRE VISÍVEL
-      // Generate completion code (6 digits)
+
       const completionCode = Math.floor(100000 + Math.random() * 900000).toString();
-      
       const bookingPayload = {
         ...bookingData,
-        status: 'pending',
-        payment_status: 'pending',
-        walker_email: pro.created_by, // CRITICAL: Email do profissional
-        walker_id: pro.id, // CRITICAL: ID do perfil do profissional
+        walker_email: pro.created_by,
+        walker_id: pro.id,
         walker_name: proName,
         type: isWalker ? 'walk' : 'training',
         completion_code: completionCode
       };
-      
-      console.log('📦 Payload final da reserva:', bookingPayload);
-      
-      const booking = await base44.entities.Booking.create(bookingPayload);
-      console.log('✅ RESERVA CRIADA COM SUCESSO!');
-      console.log('   ID:', booking.id);
-      console.log('   Walker Email:', booking.walker_email);
-      console.log('   Walker ID:', booking.walker_id);
-      console.log('   Status:', booking.status);
-      console.log('   Código:', completionCode);
 
-      // 2. Atualizar Disponibilidade (Reservar Horário)
-      try {
-        const walkDate = typeof bookingData.walk_date === 'string' 
-          ? new Date(bookingData.walk_date) 
-          : bookingData.walk_date;
-        
-        const dateStr = format(walkDate, 'yyyy-MM-dd');
-        const availRecords = await base44.entities.CalendarAvailability.filter({
-          professional_email: pro.created_by,
-          date: dateStr
-        });
-        
-        if (availRecords.length > 0) {
-          const availRecord = availRecords[0];
-          const [startTime, endTime] = bookingData.walk_time.split(' - ');
-          
-          const updatedSlots = availRecord.time_slots.map(slot => {
-            if (slot.start_time === startTime && slot.end_time === endTime) {
-              return { ...slot, is_available: false, booking_id: booking.id };
-            }
-            return slot;
-          });
-          
-          const isFullyBooked = updatedSlots.every(slot => !slot.is_available);
-          
-          await base44.entities.CalendarAvailability.update(availRecord.id, {
-            time_slots: updatedSlots,
-            is_fully_booked: isFullyBooked
-          });
-          console.log('📅 Disponibilidade atualizada');
-        }
-      } catch (err) {
-        console.error("Erro ao atualizar disponibilidade:", err);
-      }
-
-      // 3. Criar/Atualizar Conversa de Chat (Sincronização GARANTIDA)
-      try {
-        const conversations = await base44.entities.ChatConversation.filter({
-          booking_id: booking.id
-        });
-        
-        let conversation = conversations[0];
-        
-        // Se não existe conversa para este booking, procurar por participantes
-        if (!conversation) {
-          const allConvos = await base44.entities.ChatConversation.filter({});
-          conversation = allConvos.find(c => 
-            c.participants?.includes(user.email) && 
-            c.participants?.includes(pro.created_by) &&
-            !c.booking_id
-          );
-        }
-
-        const walkDate = typeof bookingData.walk_date === 'string' 
-          ? bookingData.walk_date 
-          : format(bookingData.walk_date, 'yyyy-MM-dd');
-
-        const participant_photos = {};
-        if (user.profile_photo_url) participant_photos[user.email] = user.profile_photo_url;
-        if (pro.photo_url) participant_photos[pro.created_by] = pro.photo_url;
-
-        if (conversation) {
-          await base44.entities.ChatConversation.update(conversation.id, {
-            booking_id: booking.id,
-            participant_names: {
-              [user.email]: user.full_name || 'Cliente',
-              [pro.created_by]: proName || 'Profissional'
-            },
-            participant_photos,
-            last_message: `🐕 Nova reserva: ${bookingData.dog_name} - ${walkDate} às ${bookingData.walk_time}`,
-            last_message_date: new Date().toISOString(),
-            last_sender_email: user.email
-          });
-          console.log('💬 Chat atualizado:', conversation.id);
-        } else {
-          conversation = await base44.entities.ChatConversation.create({
-            participants: [user.email, pro.created_by],
-            participant_names: {
-              [user.email]: user.full_name || 'Cliente',
-              [pro.created_by]: proName || 'Profissional'
-            },
-            participant_photos,
-            booking_id: booking.id,
-            tags: ['booking', isWalker ? 'walk' : 'training'],
-            last_message: `🐕 Nova reserva: ${bookingData.dog_name} - ${walkDate} às ${bookingData.walk_time}`,
-            last_message_date: new Date().toISOString(),
-            last_sender_email: user.email,
-            unread_counts: { [user.email]: 0, [pro.created_by]: 1 }
-          });
-          console.log('✅ Chat criado:', conversation.id);
-        }
-
-        // Criar mensagem inicial no chat com detalhes
-        await base44.entities.ChatMessage.create({
-          conversation_id: conversation.id,
-          sender_email: user.email,
-          sender_name: user.full_name || 'Cliente',
-          participants: [user.email, pro.created_by],
-          content: `🎉 Reserva criada!\n\n🐕 Cão: ${bookingData.dog_name}\n📅 Data: ${walkDate}\n⏰ Horário: ${bookingData.walk_time}\n📍 Local: ${bookingData.pickup_address || 'A definir'}\n📲 Partilha de localização por WhatsApp: ${bookingData.share_whatsapp_live_location ? 'Autorizada' : 'Não autorizada'}\n\nO número do profissional será liberado após confirmação da reserva.`,
-          message_type: 'system'
-        });
-
-      } catch (err) {
-        console.error("❌ Erro ao sincronizar chat:", err);
-        // Não falhar o booking por causa do chat
-      }
-
-      return booking;
+      return await base44.entities.Booking.create(bookingPayload);
     },
     onError: (error) => {
-      console.error('❌ Erro ao criar booking:', error);
       setIsProcessing(false);
       setIsPaymentProcessing(false);
       toast.error('Erro ao criar reserva: ' + (error.message || 'Tente novamente'), {
@@ -495,55 +368,11 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     }
   };
 
-  // Handle payment - create booking first, then checkout
+  // Handle payment - só cria reserva após pagamento confirmado pelo webhook
   const handlePayment = async () => {
     setIsPaymentProcessing(true);
     try {
-      console.log('💳 Iniciando processo de pagamento...');
-      
-      // 1. Create booking first
-      const bookingData = {
-        walker_id: isWalker ? pro.id : undefined,
-        trainer_id: !isWalker ? pro.id : undefined,
-        walker_name: proName,
-        walker_email: pro.created_by,
-        trainer_email: !isWalker ? pro.created_by : undefined,
-        trainer_name: !isWalker ? proName : undefined,
-        walker_payment_contact: pro.whatsapp_number || pro.phone,
-        
-        owner_name: user.full_name,
-        owner_phone: formData.owner_phone,
-        owner_email: user.email,
-        dog_name: formData.dog_name,
-        dog_size: formData.dog_size,
-        walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
-        walk_time: formData.walk_time,
-        session_date: !isWalker ? format(formData.walk_date, 'yyyy-MM-dd') : undefined,
-        session_time: !isWalker ? formData.walk_time : undefined,
-        duration_hours: formData.duration_hours,
-        service_amount: amounts.walkerReceives,
-        platform_fee: amounts.platformFee,
-        total_amount: amounts.totalAmount,
-        special_notes: formData.special_notes,
-        pickup_address: pickupAddress,
-        pickup_lat: pickupCoords.lat,
-        pickup_lng: pickupCoords.lng,
-        share_whatsapp_live_location: formData.share_whatsapp_live_location,
-        professional_type: isWalker ? 'walker' : 'trainer',
-        professional_id: pro.id,
-        status: 'pending',
-        payment_status: 'pending',
-        type: isWalker ? 'walk' : 'training'
-      };
-
-      console.log('📝 Creating booking before checkout...', bookingData);
-      const booking = await createBookingMutation.mutateAsync(bookingData);
-      console.log('✅ Booking created:', booking.id);
-
-      // 2. Now create Stripe checkout session
-      console.log('💳 Calling createBookingCheckout...');
       const response = await base44.functions.invoke('createBookingCheckout', {
-        booking_id: booking.id,
         professional_id: pro.id,
         professional_email: pro.created_by,
         professional_name: proName,
@@ -561,20 +390,17 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         pickup_address: pickupAddress,
         pickup_lat: pickupCoords.lat,
         pickup_lng: pickupCoords.lng,
-        owner_phone: formData.owner_phone
+        owner_phone: formData.owner_phone,
+        share_whatsapp_live_location: formData.share_whatsapp_live_location,
+        type: isWalker ? 'walk' : 'training'
       });
 
-      console.log('📦 Checkout response:', response);
-
       if (response?.data?.url) {
-        console.log('🔗 Redirecting to Stripe checkout:', response.data.url);
         window.location.href = response.data.url;
       } else {
-        console.error('❌ No checkout URL in response:', response);
         toast.error(language === 'pt' ? 'Erro ao criar sessão de pagamento. Por favor tente novamente.' : 'Error creating payment session');
       }
     } catch (error) {
-      console.error('❌ Payment error:', error);
       toast.error(language === 'pt' ? `Erro ao processar pagamento: ${error.message || 'Tente novamente'}` : 'Error processing payment');
     } finally {
       setIsPaymentProcessing(false);

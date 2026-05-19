@@ -117,7 +117,10 @@ export default function MyBookings() {
     queryKey: ['myWalks', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return await base44.entities.Booking.filter({ created_by: user.email }, '-created_date', 50);
+      return await base44.entities.Booking.filter({ 
+        created_by: user.email,
+        payment_status: { '$in': ['held', 'released'] }
+      }, '-created_date', 50);
     },
     enabled: !!user?.email,
     staleTime: 30 * 1000,
@@ -634,7 +637,7 @@ export default function MyBookings() {
                 €{booking.total_amount.toFixed(2)}
               </div>
             )}
-            {!isProfessional && booking.status === 'confirmed' && booking.walker_payment_contact && (
+            {!isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'service_completed') && booking.walker_payment_contact && (
               <div className="w-full space-y-2">
                 <div className="text-[11px] text-slate-300 font-semibold">
                   Contacto do profissional: {booking.walker_payment_contact}

@@ -48,7 +48,11 @@ export default function ClientDashboard() {
     queryKey: ['clientBookings', user?.email],
     queryFn: async () => {
       const allBookings = await base44.entities.Booking.filter(
-        { created_by: user.email },
+        {
+          created_by: user.email,
+          payment_status: { '$in': ['held', 'released'] },
+          status: { '$in': ['confirmed', 'in_progress', 'service_completed', 'completed'] }
+        },
         '-walk_date'
       );
       return allBookings;
@@ -80,7 +84,7 @@ export default function ClientDashboard() {
       totalWalks,
       totalDistance: totalDistance.toFixed(1),
       avgRating: avgRating.toFixed(1),
-      nextWalk: bookings.find(b => b.status === 'confirmed'),
+      nextWalk: bookings.find(b => b.status === 'confirmed' || b.status === 'service_completed'),
       activeWalk: bookings.find(b => b.status === 'in_progress'),
     };
   }, [bookings]);

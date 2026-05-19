@@ -36,7 +36,9 @@ Deno.serve(async (req) => {
       pickup_address,
       pickup_lat,
       pickup_lng,
-      owner_phone
+      owner_phone,
+      share_whatsapp_live_location,
+      type
     } = body;
 
     // CRITICAL SECURITY: Validate date is not blocked (day-off or fully booked)
