@@ -3228,10 +3228,7 @@ export const t = (key, lang = 'pt') => {
 export const getAvailableLanguages = () => [
   { code: 'pt', name: 'Português', flag: '🇵🇹' },
   { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' }
+  { code: 'fr', name: 'Français', flag: '🇫🇷' }
 ];
 
 // Common keys for multi-language support
