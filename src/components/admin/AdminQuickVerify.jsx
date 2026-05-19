@@ -18,24 +18,32 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
   // Mutação Única para Aprovar e Ativar no PawGo
   const verifyMutation = useMutation({
     mutationFn: async (status) => {
+      const canBeVisible = Boolean(
+        wd?.walker_name &&
+        wd?.location &&
+        wd?.whatsapp_number &&
+        Number(wd?.hourly_rate || 0) > 0
+      );
+      const finalStatus = status === 'verified' && canBeVisible ? 'verified' : (status === 'verified' ? 'pending' : status);
+
       // 1. Atualiza o Perfil de Walker
       if (wd && wd.id) {
         await base44.entities.WalkerProfile.update(wd.id, {
-          verification_status: status,
-          is_active: status === 'verified',
-          has_pawcao_seal: status === 'verified' // Dá o selo automaticamente
+          verification_status: finalStatus,
+          is_active: finalStatus === 'verified',
+          has_pawcao_seal: finalStatus === 'verified' // Dá o selo automaticamente
         });
       }
 
       // 2. Atualiza o Usuário Global (Unificação)
       if (userProfile && userProfile.id) {
         await base44.entities.User.update(userProfile.id, {
-          is_verified: status === 'verified',
+          is_verified: finalStatus === 'verified',
           professional_profile: {
             ...(userProfile.professional_profile || {}),
-            verification_status: status,
-            is_verified: status === 'verified',
-            is_active: status === 'verified'
+            verification_status: finalStatus,
+            is_verified: finalStatus === 'verified',
+            is_active: finalStatus === 'verified'
           }
         });
       }
@@ -45,8 +53,8 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
         const trainers = await base44.entities.TrainerProfile.filter({ created_by: userProfile.email });
         if (Array.isArray(trainers) && trainers.length > 0) {
           await base44.entities.TrainerProfile.update(trainers[0].id, {
-            verification_status: status,
-            is_active: status === 'verified'
+            verification_status: finalStatus,
+            is_active: finalStatus === 'verified'
           });
         }
 
@@ -54,16 +62,16 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
         const profiles = await base44.entities.UserProfile.filter({ user_email: userProfile.email });
         if (Array.isArray(profiles) && profiles.length > 0) {
           await base44.entities.UserProfile.update(profiles[0].id, {
-            is_verified: status === 'verified',
-            pawcao_seal: status === 'verified'
+            is_verified: finalStatus === 'verified',
+            pawcao_seal: finalStatus === 'verified'
           });
         } else {
           await base44.entities.UserProfile.create({
             user_email: userProfile.email,
             user_id: userProfile.id,
             full_name: userProfile.full_name || 'Utilizador',
-            is_verified: status === 'verified',
-            pawcao_seal: status === 'verified'
+            is_verified: finalStatus === 'verified',
+            pawcao_seal: finalStatus === 'verified'
           });
         }
       }
@@ -81,7 +89,13 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
         queryClient.invalidateQueries({ queryKey: ['currentUser'] }),
         queryClient.invalidateQueries({ queryKey: ['currentUserProfileXP'] })
       ]);
-      toast.success(status === 'verified' ? "Profissional Ativado no PawGo!" : "Candidatura Rejeitada.");
+      toast.success(
+        status === 'verified'
+          ? (wd?.walker_name && wd?.location && wd?.whatsapp_number && Number(wd?.hourly_rate || 0) > 0
+              ? "Profissional aprovado e visível na Home!"
+              : "Perfil incompleto: ficou pendente e não aprovado até poder aparecer na Home.")
+          : "Candidatura Rejeitada."
+      );
       setIsOpen(false);
     }
   });
