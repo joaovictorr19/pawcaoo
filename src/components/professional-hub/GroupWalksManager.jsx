@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +30,16 @@ export default function GroupWalksManager({ user, professionalProfile }) {
     max_dogs: 5,
     accepted_sizes: professionalProfile?.dog_sizes || ["small", "medium"],
   });
+
+  useEffect(() => {
+    if (!professionalProfile) return;
+    setForm((prev) => ({
+      ...prev,
+      location: professionalProfile.location || prev.location,
+      price_per_dog: professionalProfile.hourly_rate || prev.price_per_dog,
+      accepted_sizes: professionalProfile.dog_sizes?.length ? professionalProfile.dog_sizes : prev.accepted_sizes,
+    }));
+  }, [professionalProfile]);
 
   const { data: events = [] } = useQuery({
     queryKey: ["groupWalkEvents", user?.email],

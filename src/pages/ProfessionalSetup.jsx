@@ -133,6 +133,15 @@ export default function ProfessionalSetup() {
     setFormInitialized(true);
     setIsLoadingData(false);
     if (existingProfile) {
+      const presetServices = SERVICE_PRESETS.map((preset) => {
+        const existingService = existingProfile.services_offered?.find(
+          (service) => service.key === preset.key || service.service_name === preset.service_name
+        );
+        return existingService
+          ? { ...preset, ...existingService, price: existingService.price ?? preset.defaultPrice }
+          : { ...preset, price: preset.defaultPrice };
+      });
+
       setForm(prev => ({
         ...prev,
         walker_name: existingProfile.walker_name || user.full_name || "",
@@ -144,7 +153,7 @@ export default function ProfessionalSetup() {
         cover_photo_url: existingProfile.cover_photo_url || "",
         whatsapp_number: existingProfile.whatsapp_number || "",
         hourly_rate: String(existingProfile.hourly_rate || "15"),
-        services_offered: existingProfile.services_offered?.length ? existingProfile.services_offered : prev.services_offered,
+        services_offered: presetServices,
         accepted_animals: existingProfile.accepted_animals?.length ? existingProfile.accepted_animals : prev.accepted_animals,
         dog_sizes: existingProfile.dog_sizes?.length ? existingProfile.dog_sizes : prev.dog_sizes,
         availability: existingProfile.availability?.length ? existingProfile.availability : prev.availability,
@@ -626,31 +635,41 @@ export default function ProfessionalSetup() {
               <div>
                 <p className="text-white text-sm font-bold mb-3">Serviços rápidos</p>
                 <div className="space-y-3">
-                  {form.services_offered.map((svc, i) => (
-                    <div key={svc.key || i} className="p-3 bg-slate-800 rounded-xl space-y-2">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-white font-bold text-sm">{svc.service_name}</p>
-                          <p className="text-slate-400 text-xs">{svc.description}</p>
-                        </div>
-                        <div className="flex items-center gap-1 w-24 px-2 py-2 bg-slate-700 rounded-lg border border-slate-600">
-                          <Euro className="w-3 h-3 text-orange-400 flex-shrink-0" />
-                          <input
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            value={svc.price || ""}
-                            onChange={e => {
-                              const arr = [...form.services_offered];
-                              arr[i].price = parseFloat(e.target.value) || 0;
-                              set("services_offered", arr);
-                            }}
-                            className="w-full bg-transparent text-white text-xs outline-none"
-                          />
+                  {SERVICE_PRESETS.map((preset) => {
+                    const i = form.services_offered.findIndex((service) => service.key === preset.key || service.service_name === preset.service_name);
+                    const svc = i >= 0 ? form.services_offered[i] : { ...preset, price: preset.defaultPrice };
+
+                    return (
+                      <div key={preset.key} className="p-3 bg-slate-800 rounded-xl space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-white font-bold text-sm">{svc.service_name}</p>
+                            <p className="text-slate-400 text-xs">{svc.description}</p>
+                          </div>
+                          <div className="flex items-center gap-1 w-24 px-2 py-2 bg-slate-700 rounded-lg border border-slate-600">
+                            <Euro className="w-3 h-3 text-orange-400 flex-shrink-0" />
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={svc.price || ""}
+                              onChange={e => {
+                                const nextPrice = parseFloat(e.target.value) || 0;
+                                const nextServices = [...form.services_offered];
+                                if (i >= 0) {
+                                  nextServices[i] = { ...nextServices[i], price: nextPrice };
+                                } else {
+                                  nextServices.push({ ...preset, price: nextPrice });
+                                }
+                                set("services_offered", nextServices);
+                              }}
+                              className="w-full bg-transparent text-white text-xs outline-none"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
