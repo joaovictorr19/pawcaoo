@@ -34,6 +34,35 @@ const AVAILABILITY_SLOTS = [
   { value: "night", label: "Madrugada", time: "22h-6h", icon: "🌃" },
 ];
 
+const SERVICE_PRESETS = [
+  { key: "walk_30", service_name: "Passeio 30 min", description: "Passeio individual rápido", defaultPrice: 10, service_type: "standard" },
+  { key: "walk_60", service_name: "Passeio 1h", description: "Passeio individual de 1 hora", defaultPrice: 15, service_type: "standard" },
+  { key: "group_walk", service_name: "Passeio em Grupo", description: "Passeio social com vários cães", defaultPrice: 12, service_type: "group_walk" },
+  { key: "home_visit", service_name: "Visita ao domicílio", description: "Visita para alimentação e companhia", defaultPrice: 14, service_type: "standard" },
+  { key: "training_session", service_name: "Sessão de treino", description: "Sessão individual de treino", defaultPrice: 25, service_type: "standard" },
+];
+
+const DOCUMENT_RULES = {
+  portugal: {
+    taxLabel: "NIF",
+    taxField: "tax_id_portugal",
+    extraLabel: null,
+    extraField: null,
+  },
+  spain: {
+    taxLabel: "NIF / NIE / CIF",
+    taxField: "tax_id_spain",
+    extraLabel: null,
+    extraField: null,
+  },
+  france: {
+    taxLabel: "Número Fiscal",
+    taxField: "tax_id_france",
+    extraLabel: "Tipo de prestador",
+    extraField: "france_professional_type",
+  },
+};
+
 export default function ProfessionalSetup() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -61,10 +90,7 @@ export default function ProfessionalSetup() {
     whatsapp_number: "",
     professional_type: "walker",
     hourly_rate: "15",
-    services_offered: [
-      { service_name: "Passeio 1h", price: 15, description: "Passeio individual de 1 hora", service_type: "standard" },
-      { service_name: "Passeio em Grupo", price: 12, description: "Passeio social com vários cães em simultâneo", service_type: "group_walk" },
-    ],
+    services_offered: SERVICE_PRESETS.map(service => ({ ...service, price: service.defaultPrice })),
     accepted_animals: ["dogs"],
     dog_sizes: ["small", "medium", "large"],
     availability: ["morning", "afternoon"],
@@ -73,6 +99,11 @@ export default function ProfessionalSetup() {
     portfolio: [],
     id_document_url: "",
     proof_of_address_url: "",
+    country_of_operation: "portugal",
+    tax_id_portugal: "",
+    tax_id_spain: "",
+    tax_id_france: "",
+    france_professional_type: "professional",
     };
   });
 
@@ -123,6 +154,11 @@ export default function ProfessionalSetup() {
         id_document_url: existingProfile.id_document_url || "",
         proof_of_address_url: existingProfile.proof_of_address_url || "",
         professional_type: existingProfile.is_verified_trainer ? 'both' : 'walker',
+        country_of_operation: existingProfile.country_of_operation || "portugal",
+        tax_id_portugal: existingProfile.tax_id_portugal || "",
+        tax_id_spain: existingProfile.tax_id_spain || "",
+        tax_id_france: existingProfile.tax_id_france || "",
+        france_professional_type: existingProfile.france_professional_type || "professional",
       }));
     } else if (user.full_name) {
       setForm(prev => ({ ...prev, walker_name: user.full_name }));
@@ -263,6 +299,11 @@ export default function ProfessionalSetup() {
        portfolio: form.portfolio || [],
        id_document_url: form.id_document_url || "",
        proof_of_address_url: form.proof_of_address_url || "",
+       country_of_operation: form.country_of_operation,
+       tax_id_portugal: form.tax_id_portugal || "",
+       tax_id_spain: form.tax_id_spain || "",
+       tax_id_france: form.tax_id_france || "",
+       france_professional_type: form.france_professional_type || "professional",
        is_active: false,
        is_online: false,
        is_verified: false,
@@ -299,6 +340,11 @@ export default function ProfessionalSetup() {
           phone: form.whatsapp_number || "",
           availability: form.availability,
           accepted_animals: form.accepted_animals,
+          country_of_operation: form.country_of_operation,
+          tax_id_portugal: form.tax_id_portugal || "",
+          tax_id_spain: form.tax_id_spain || "",
+          tax_id_france: form.tax_id_france || "",
+          france_professional_type: form.france_professional_type || "professional",
           is_active: false,
           is_verified: false,
           verification_status: "pending",
@@ -578,28 +624,16 @@ export default function ProfessionalSetup() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-white text-sm font-bold">Serviços Detalhados</p>
-                  <button
-                    onClick={() => set("services_offered", [...form.services_offered, { service_name: "", price: 0, description: "" }])}
-                    className="text-orange-400 text-xs font-bold hover:text-orange-300"
-                  >+ Adicionar</button>
-                </div>
+                <p className="text-white text-sm font-bold mb-3">Serviços rápidos</p>
                 <div className="space-y-3">
                   {form.services_offered.map((svc, i) => (
-                    <div key={i} className="p-3 bg-slate-800 rounded-xl space-y-2">
-                      <div className="flex gap-2">
-                        <input
-                          placeholder="Nome do serviço"
-                          value={svc.service_name}
-                          onChange={e => {
-                            const arr = [...form.services_offered];
-                            arr[i].service_name = e.target.value;
-                            set("services_offered", arr);
-                          }}
-                          className="flex-1 h-9 px-3 bg-slate-700 text-white rounded-lg text-xs outline-none border border-slate-600 focus:border-orange-500"
-                        />
-                        <div className="flex items-center gap-1 w-24 px-2 bg-slate-700 rounded-lg border border-slate-600">
+                    <div key={svc.key || i} className="p-3 bg-slate-800 rounded-xl space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-white font-bold text-sm">{svc.service_name}</p>
+                          <p className="text-slate-400 text-xs">{svc.description}</p>
+                        </div>
+                        <div className="flex items-center gap-1 w-24 px-2 py-2 bg-slate-700 rounded-lg border border-slate-600">
                           <Euro className="w-3 h-3 text-orange-400 flex-shrink-0" />
                           <input
                             type="number"
@@ -614,23 +648,7 @@ export default function ProfessionalSetup() {
                             className="w-full bg-transparent text-white text-xs outline-none"
                           />
                         </div>
-                        {form.services_offered.length > 1 && (
-                          <button
-                            onClick={() => set("services_offered", form.services_offered.filter((_, j) => j !== i))}
-                            className="text-red-400 text-xs px-2"
-                          >✕</button>
-                        )}
                       </div>
-                      <input
-                        placeholder="Descrição breve"
-                        value={svc.description}
-                        onChange={e => {
-                          const arr = [...form.services_offered];
-                          arr[i].description = e.target.value;
-                          set("services_offered", arr);
-                        }}
-                        className="w-full h-8 px-3 bg-slate-700 text-white rounded-lg text-xs outline-none border border-slate-600 focus:border-orange-500"
-                      />
                     </div>
                   ))}
                 </div>
@@ -765,13 +783,65 @@ export default function ProfessionalSetup() {
               </div>
 
               <div className="space-y-4">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Documentos (opcional)</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Documentos e país</p>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">País de operação</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 'portugal', label: 'Portugal' },
+                      { value: 'spain', label: 'Espanha' },
+                      { value: 'france', label: 'França' },
+                    ].map((country) => (
+                      <button
+                        key={country.value}
+                        type="button"
+                        onClick={() => set('country_of_operation', country.value)}
+                        className={`p-3 rounded-xl border-2 text-xs font-bold transition-all ${form.country_of_operation === country.value ? 'border-orange-500 bg-orange-500/10 text-white' : 'border-slate-800 bg-slate-900 text-slate-300'}`}
+                      >
+                        {country.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">{DOCUMENT_RULES[form.country_of_operation].taxLabel}</label>
+                  <input
+                    value={form[DOCUMENT_RULES[form.country_of_operation].taxField] || ''}
+                    onChange={e => set(DOCUMENT_RULES[form.country_of_operation].taxField, e.target.value)}
+                    placeholder={`Inserir ${DOCUMENT_RULES[form.country_of_operation].taxLabel}`}
+                    className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                  />
+                </div>
+
+                {form.country_of_operation === 'france' && (
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Tipo de prestador</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { value: 'professional', label: 'Profissional' },
+                        { value: 'individual', label: 'Particular' },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => set('france_professional_type', option.value)}
+                          className={`p-3 rounded-xl border-2 text-xs font-bold transition-all ${form.france_professional_type === option.value ? 'border-orange-500 bg-orange-500/10 text-white' : 'border-slate-800 bg-slate-900 text-slate-300'}`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid gap-3">
                   <label className={`w-full p-4 rounded-2xl border-2 ${form.id_document_url ? 'border-green-500 bg-green-500/10' : 'border-slate-800 bg-slate-900'} cursor-pointer`}>
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-bold text-white">Documento de identificação</p>
-                        <p className="text-xs text-slate-400">Pode enviar agora ou depois</p>
+                        <p className="text-xs text-slate-400">Portugal, Espanha ou França</p>
                       </div>
                       <span className="text-xs text-orange-400 font-bold">{form.id_document_url ? 'Carregado' : 'Carregar'}</span>
                     </div>
@@ -782,7 +852,7 @@ export default function ProfessionalSetup() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-bold text-white">Comprovativo de morada</p>
-                        <p className="text-xs text-slate-400">Opcional nesta fase</p>
+                        <p className="text-xs text-slate-400">Documento recente do país escolhido</p>
                       </div>
                       <span className="text-xs text-orange-400 font-bold">{form.proof_of_address_url ? 'Carregado' : 'Carregar'}</span>
                     </div>
