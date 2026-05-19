@@ -792,12 +792,12 @@ export default function Gamification() {
 
           <div className="flex flex-col items-center justify-center gap-10">
             <motion.div
-              className="w-full max-w-3xl"
+              className="w-full max-w-3xl pt-20"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="relative h-14 md:h-16 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
+              <div className="relative h-14 md:h-16 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-visible shadow-2xl shadow-orange-500/20">
                 <motion.div
                   className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700 via-orange-500 to-amber-400"
                   style={{ width: `${progressInLevel}%` }}
@@ -831,7 +831,7 @@ export default function Gamification() {
                 ))}
 
                 <motion.div
-                  className="absolute bottom-full mb-3 -translate-x-1/2 z-20"
+                  className="absolute bottom-full mb-3 -translate-x-1/2 z-30"
                   style={{ left: `${Math.min(96, Math.max(10, progressInLevel))}%` }}
                   animate={{ y: [0, -4, 0] }}
                   transition={{ duration: 3, repeat: Infinity }}
