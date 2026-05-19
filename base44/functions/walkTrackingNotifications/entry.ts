@@ -17,12 +17,6 @@ function getDistance(lat1, lon1, lat2, lon2) {
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
-
-        if (!user || user.role !== 'admin') {
-            return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-        }
-
         const body = await req.json();
         
         // Verifica se é um update na entity Booking

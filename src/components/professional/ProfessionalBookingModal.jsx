@@ -35,22 +35,6 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
   if (!walkerProfile) return null;
 
-  if (!currentUser?.email) {
-    return (
-      <Drawer open={isOpen} onOpenChange={onClose}>
-        <DrawerContent className="max-h-[92vh] rounded-t-3xl focus:outline-none">
-          <div className="px-5 py-8 text-center space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Faça login para reservar</h3>
-            <p className="text-sm text-slate-600">É necessário entrar na sua conta antes de continuar.</p>
-            <Button onClick={() => base44.auth.redirectToLogin(window.location.href)} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl">
-              Entrar
-            </Button>
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   const durationNum = parseFloat(duration) || 1;
   const hourlyRate = selectedService?.price || walkerProfile.hourly_rate || 0;
   const serviceAmount = Math.round(hourlyRate * durationNum * 100) / 100;

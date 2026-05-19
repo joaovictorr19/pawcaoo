@@ -106,25 +106,6 @@ export default function BookingStepperModal({
 
   if (!isOpen) return null;
 
-  if (!currentUser?.email) {
-    return (
-      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-0 shadow-2xl">
-          <CardContent className="p-6 text-center space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Faça login para agendar</h3>
-            <p className="text-sm text-slate-600">Precisa de entrar na sua conta antes de continuar.</p>
-            <Button onClick={() => base44.auth.redirectToLogin(window.location.href)} className="w-full">
-              Entrar
-            </Button>
-            <button onClick={onClose} className="w-full text-sm text-slate-500 hover:text-slate-700 font-medium">
-              Cancelar
-            </button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const stepTitles = ['Data do Passeio', 'Selecione os Cães', 'Confirme o Agendamento'];
   const progress = (step / 3) * 100;
 

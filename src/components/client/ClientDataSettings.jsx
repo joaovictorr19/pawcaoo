@@ -10,7 +10,6 @@ import { toast } from "sonner";
 
 export default function ClientDataSettings({ user }) {
   const queryClient = useQueryClient();
-
   const { data: profile } = useQuery({
     queryKey: ['clientDashboardProfile', user?.email],
     queryFn: async () => {
@@ -97,10 +96,6 @@ export default function ClientDataSettings({ user }) {
       toast.error('Não foi possível atualizar os dados.');
     }
   });
-
-  if (!user?.email) {
-    return null;
-  }
 
   return (
     <div className="space-y-4">

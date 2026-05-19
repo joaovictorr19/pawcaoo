@@ -970,13 +970,7 @@ export default function Home() {
                   <span className="truncate sm:hidden">Pro</span>
                 </button>
                 <button
-                  onClick={() => {
-                    if (!user) {
-                      base44.auth.redirectToLogin(window.location.href);
-                      return;
-                    }
-                    setActiveTab('emergency');
-                  }}
+                  onClick={() => setActiveTab('emergency')}
                   className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
                     activeTab === 'emergency'
                       ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
@@ -1088,7 +1082,7 @@ export default function Home() {
                     if (user) {
                       navigate(createPageUrl('ProfessionalHubV2'));
                     } else {
-                      base44.auth.redirectToLogin(window.location.href);
+                      base44.auth.redirectToLogin(createPageUrl('ProfessionalHubV2'));
                     }
                   }}
                   className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
