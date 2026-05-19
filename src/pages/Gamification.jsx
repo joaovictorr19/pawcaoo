@@ -839,25 +839,6 @@ export default function Gamification() {
                   />
                 ))}
 
-                <motion.div
-                  className="absolute top-1/2 -translate-y-[70%] -translate-x-1/2 z-10"
-                  style={{ left: `${Math.min(88, Math.max(18, progressInLevel))}%` }}
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                >
-                  <motion.div
-                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-lg scale-125`}
-                    animate={{ scale: [1.2, 1.4, 1.2], opacity: [0.3, 0.5, 0.3] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-
-                  <Avatar className="w-10 h-10 border-2 border-amber-500 shadow-xl shadow-amber-500/40 relative z-10">
-                    <AvatarImage src={user?.profile_photo_url} className="object-cover object-center" />
-                    <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm font-black">
-                      {user?.full_name?.[0] || '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                </motion.div>
               </div>
             </motion.div>
 
