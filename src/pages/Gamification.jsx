@@ -405,10 +405,10 @@ const PodiumPedestal = ({ user, position, delay }) => {
       </motion.div>
 
       {/* Nome e Título */}
-      <h4 className="text-white font-bold text-xs mb-0.5 text-center max-w-[80px] truncate">
+      <h4 className="text-white font-bold text-xs mb-0.5 text-center max-w-[100px] leading-tight break-words">
         {user?.full_name || `Jogador ${position}`}
       </h4>
-      <p className="text-amber-500/70 text-[8px] uppercase tracking-wider text-center mb-1 max-w-[80px] truncate">
+      <p className="text-amber-500/70 text-[8px] uppercase tracking-wider text-center mb-1 max-w-[110px] leading-tight whitespace-normal">
         {funnyTitles[position - 1]}
       </p>
 
@@ -571,10 +571,12 @@ export default function Gamification() {
     setCarouselIndex((prev) => (prev - 1 + MISSIONS.length) % MISSIONS.length);
   };
 
-  const top3 = topUsers.slice(0, 3);
-  while (top3.length < 3) {
-    top3.push({ id: `placeholder-${top3.length}`, full_name: '???', gamification_xp: 0, isPlaceholder: true });
-  }
+  const top3 = [0, 1, 2].map((index) => topUsers[index] || {
+    id: `placeholder-${index}`,
+    full_name: `Jogador ${index + 1}`,
+    gamification_xp: 0,
+    isPlaceholder: true,
+  });
   const podiumOrder = [top3[1], top3[0], top3[2]];
 
   const paginatedUsers = showFullRanking 
