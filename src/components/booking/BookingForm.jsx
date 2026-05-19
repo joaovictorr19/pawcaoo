@@ -1022,8 +1022,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                   </div>
                   <div className="rounded-lg border border-green-100 bg-green-50 p-3 flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold text-slate-900">Partilhar localização da viagem pelo WhatsApp</p>
-                      <p className="text-xs text-slate-600 mt-1">Pode ativar ou desativar esta opção antes de concluir.</p>
+                      <p className="text-xs font-semibold text-slate-900">Acompanhamento de localização pelo WhatsApp</p>
+                      <p className="text-xs text-slate-600 mt-1">Marque esta opção antes de efetuar o pagamento se quiser receber a localização da viagem pelo WhatsApp.</p>
                     </div>
                     <Switch
                       checked={formData.share_whatsapp_live_location}
