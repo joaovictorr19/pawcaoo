@@ -438,8 +438,12 @@ function LayoutContent({ children, currentPageName }) {
           </Link>
           <nav className="flex items-center gap-2">
             <NavLink to={createPageUrl("Home")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Profissionais</NavLink>
-            <NavLink to={createPageUrl("ProfessionalHubV2")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Painel Profissional</NavLink>
-            <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Painel Cliente</NavLink>
+            {stableUser && (
+              <>
+                <NavLink to={createPageUrl("ProfessionalHubV2")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Painel Profissional</NavLink>
+                <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Painel Cliente</NavLink>
+              </>
+            )}
             {stableUser?.role === 'admin' && (
               <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Admin</NavLink>
             )}
