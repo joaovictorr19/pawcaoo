@@ -148,6 +148,10 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "data.is_active": true,
+          "data.verification_status": "approved"
         }
       ]
     },
