@@ -62,7 +62,8 @@ export default function ProfessionalSetup() {
     professional_type: "walker",
     hourly_rate: "15",
     services_offered: [
-      { service_name: "Passeio 1h", price: 15, description: "Passeio individual de 1 hora" },
+      { service_name: "Passeio 1h", price: 15, description: "Passeio individual de 1 hora", service_type: "standard" },
+      { service_name: "Passeio em Grupo", price: 12, description: "Passeio social com vários cães em simultâneo", service_type: "group_walk" },
     ],
     accepted_animals: ["dogs"],
     dog_sizes: ["small", "medium", "large"],

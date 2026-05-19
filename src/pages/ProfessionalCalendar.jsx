@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isPast, getDay } from "date-fns";
 import { pt } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Moon, X, CalendarDays, Clock, Dog, User, CheckCircle2, AlertCircle } from "lucide-react";
+import GroupWalksManager from "@/components/professional-hub/GroupWalksManager";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -314,6 +315,10 @@ export default function ProfessionalCalendar() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="mt-6">
+          <GroupWalksManager user={user} professionalProfile={walkerProfile || trainerProfile} />
         </div>
       </div>
     </div>

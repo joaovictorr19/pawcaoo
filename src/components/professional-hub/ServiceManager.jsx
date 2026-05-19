@@ -48,7 +48,7 @@ export function ServiceManager({ services = [] }) {
                 <div>
                   <h4 className="font-bold text-sm text-white leading-tight mb-0.5">{service.service_name || service.name}</h4>
                   <p className="text-[10px] text-slate-400 font-medium">
-                    {service.duration_options?.[0] || service.duration || 'Varia'} • {service.animal_type === 'cats' ? 'Gatos' : service.animal_type === 'reptiles' ? 'Répteis' : 'Cães'}
+                    {service.duration_options?.[0] || service.duration || 'Varia'} • {service.service_type === 'group_walk' ? 'Passeio em Grupo' : service.animal_type === 'cats' ? 'Gatos' : service.animal_type === 'reptiles' ? 'Répteis' : 'Cães'}
                   </p>
                 </div>
               </div>

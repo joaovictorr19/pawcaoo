@@ -1,0 +1,153 @@
+{
+  "name": "GroupWalkEvent",
+  "type": "object",
+  "properties": {
+    "professional_email": {
+      "type": "string",
+      "description": "Email do profissional organizador"
+    },
+    "professional_name": {
+      "type": "string",
+      "description": "Nome do profissional organizador"
+    },
+    "professional_profile_id": {
+      "type": "string",
+      "description": "ID do perfil do profissional"
+    },
+    "title": {
+      "type": "string",
+      "description": "Nome do passeio em grupo"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do evento"
+    },
+    "location": {
+      "type": "string",
+      "description": "Local do passeio"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do passeio"
+    },
+    "event_time": {
+      "type": "string",
+      "description": "Hora de in\u00edcio"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "default": 60,
+      "description": "Dura\u00e7\u00e3o em minutos"
+    },
+    "price_per_dog": {
+      "type": "number",
+      "default": 0,
+      "description": "Pre\u00e7o por c\u00e3o"
+    },
+    "max_dogs": {
+      "type": "number",
+      "default": 5,
+      "description": "N\u00famero m\u00e1ximo de c\u00e3es permitidos"
+    },
+    "dogs_booked": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero atual de c\u00e3es agendados"
+    },
+    "accepted_sizes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "small",
+          "medium",
+          "large",
+          "extra_large"
+        ]
+      },
+      "default": [],
+      "description": "Tamanhos aceites"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "full",
+        "cancelled",
+        "completed"
+      ],
+      "default": "open",
+      "description": "Estado do evento"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "owner_email": {
+            "type": "string"
+          },
+          "owner_name": {
+            "type": "string"
+          },
+          "dog_id": {
+            "type": "string"
+          },
+          "dog_name": {
+            "type": "string"
+          },
+          "dog_size": {
+            "type": "string",
+            "enum": [
+              "small",
+              "medium",
+              "large",
+              "extra_large"
+            ]
+          }
+        }
+      },
+      "default": [],
+      "description": "Participantes inscritos"
+    }
+  },
+  "required": [
+    "professional_email",
+    "professional_name",
+    "title",
+    "event_date",
+    "event_time",
+    "location"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

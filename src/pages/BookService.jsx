@@ -18,6 +18,7 @@ import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/LanguageContext";
 import { motion } from "framer-motion";
+import GroupWalkBookingCard from "@/components/professional-hub/GroupWalkBookingCard";
 
 export default function BookService() {
   const navigate = useNavigate();
@@ -60,7 +61,12 @@ export default function BookService() {
 
   const { data: dogProfiles = [] } = useQuery({
     queryKey: ['userDogs', user?.email],
-    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
+    queryFn: async () => {
+      const entityDogs = await base44.entities.DogProfile.filter({ owner_email: user?.email }).catch(() => []);
+      if (entityDogs.length > 0) return entityDogs;
+      const profiles = await base44.entities.UserProfile.filter({ user_email: user?.email });
+      return (profiles[0]?.owned_dogs || []).map((dog, index) => ({ ...dog, id: dog.dog_id || `${index}`, size: dog.dog_size }));
+    },
     enabled: !!user,
   });
 
@@ -144,6 +150,15 @@ export default function BookService() {
     });
   };
 
+  const selectedServiceObj = selectedService ? services.find(s => s.id === selectedService) : null;
+
+  const { data: publicGroupWalkEvents = [] } = useQuery({
+    queryKey: ['publicGroupWalkEvents', companyId],
+    queryFn: () => base44.entities.GroupWalkEvent.filter({ professional_profile_id: companyId, status: 'open' }, 'event_date', 50),
+    enabled: !!companyId,
+    initialData: [],
+  });
+
   if (!company) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6 flex items-center justify-center">
@@ -161,8 +176,6 @@ export default function BookService() {
       </div>
     );
   }
-
-  const selectedServiceObj = selectedService ? services.find(s => s.id === selectedService) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -242,6 +255,9 @@ export default function BookService() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="font-bold text-lg">{service.service_name}</h3>
+                              {service.service_type === 'group_walk' && (
+                                <Badge className="bg-green-500 text-white">Grupo</Badge>
+                              )}
                               {service.is_emergency && (
                                 <Badge className="bg-orange-500 text-white">
                                   <Zap className="w-3 h-3 mr-1" />
@@ -250,46 +266,30 @@ export default function BookService() {
                               )}
                             </div>
                             <p className="text-sm text-gray-600 mb-3">{service.description}</p>
-                            
-                            {service.includes && service.includes.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mb-2">
-                                {service.includes.map((item, idx) => (
-                                  <Badge key={idx} variant="outline" className="text-xs">
-                                    <CheckCircle className="w-3 h-3 mr-1 text-green-600" />
-                                    {item}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
                           </div>
 
                           <div className="text-right ml-4">
                             <div className="text-2xl font-bold text-blue-600">
-                              €{service.base_price}
+                              €{service.base_price || service.price}
                             </div>
                             <div className="text-xs text-gray-600">
-                              {service.duration_minutes}min
+                              {service.duration_minutes || service.duration_options?.[0] || '60min'}
                             </div>
                           </div>
                         </div>
-
-                        {selectedService === service.id && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            className="mt-4 pt-4 border-t"
-                          >
-                            <div className="bg-blue-50 rounded-lg p-3">
-                              <p className="text-sm font-semibold text-blue-900 mb-2">
-                                ✓ {language === 'pt' ? 'Serviço Selecionado' : 'Service Selected'}
-                              </p>
-                            </div>
-                          </motion.div>
-                        )}
                       </CardContent>
                     </Card>
                   </motion.div>
                 ))}
+
+                {selectedServiceObj?.service_type === 'group_walk' && publicGroupWalkEvents.length > 0 && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <h3 className="text-lg font-bold text-slate-900">Próximos Passeios em Grupo</h3>
+                    {publicGroupWalkEvents.map((event) => (
+                      <GroupWalkBookingCard key={event.id} event={event} dogProfiles={dogProfiles} user={user} />
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -322,28 +322,30 @@ export default function BookService() {
                     </Select>
                   </div>
 
-                  {/* Date */}
-                  <div className="space-y-2">
-                    <Label>{language === 'pt' ? 'Data' : 'Date'} *</Label>
-                    <Input
-                      type="date"
-                      value={bookingDate}
-                      onChange={(e) => setBookingDate(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      required
-                    />
-                  </div>
+                  {selectedServiceObj?.service_type !== 'group_walk' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>{language === 'pt' ? 'Data' : 'Date'} *</Label>
+                        <Input
+                          type="date"
+                          value={bookingDate}
+                          onChange={(e) => setBookingDate(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                          required
+                        />
+                      </div>
 
-                  {/* Time */}
-                  <div className="space-y-2">
-                    <Label>{language === 'pt' ? 'Horário' : 'Time'} *</Label>
-                    <Input
-                      type="time"
-                      value={bookingTime}
-                      onChange={(e) => setBookingTime(e.target.value)}
-                      required
-                    />
-                  </div>
+                      <div className="space-y-2">
+                        <Label>{language === 'pt' ? 'Horário' : 'Time'} *</Label>
+                        <Input
+                          type="time"
+                          value={bookingTime}
+                          onChange={(e) => setBookingTime(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </>
+                  )}
 
                   {/* Emergency */}
                   {selectedServiceObj?.is_emergency && (
@@ -423,16 +425,18 @@ export default function BookService() {
                     </div>
                   )}
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 h-12 text-lg font-semibold"
-                    disabled={createBookingMutation.isPending || !selectedService || !selectedDogProfile}
-                  >
-                    {createBookingMutation.isPending
-                      ? (language === 'pt' ? 'Agendando...' : 'Booking...')
-                      : (language === 'pt' ? 'Confirmar Agendamento' : 'Confirm Booking')
-                    }
-                  </Button>
+                  {selectedServiceObj?.service_type !== 'group_walk' && (
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 h-12 text-lg font-semibold"
+                      disabled={createBookingMutation.isPending || !selectedService || !selectedDogProfile}
+                    >
+                      {createBookingMutation.isPending
+                        ? (language === 'pt' ? 'Agendando...' : 'Booking...')
+                        : (language === 'pt' ? 'Confirmar Agendamento' : 'Confirm Booking')
+                      }
+                    </Button>
+                  )}
                 </form>
               </CardContent>
             </Card>

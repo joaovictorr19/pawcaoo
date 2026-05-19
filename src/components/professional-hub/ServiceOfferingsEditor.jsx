@@ -42,7 +42,8 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
       service_name: formData.service_name,
       description: formData.description || '',
       duration_options: durationInput ? [durationInput] : [],
-      price: parseFloat(formData.price)
+      price: parseFloat(formData.price),
+      service_type: formData.service_name.toLowerCase().includes('grupo') ? 'group_walk' : 'standard'
     };
 
     const updatedServices = editingIndex !== null
