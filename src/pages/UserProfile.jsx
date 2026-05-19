@@ -4,7 +4,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, ArrowLeft, Shield, User, Star, Calendar } from "lucide-react";
+import { MapPin, ArrowLeft, Shield, User, Star, Calendar, Moon } from "lucide-react";
+import AvailabilityCalendar from "@/components/calendar/AvailabilityCalendar";
 import ReviewCard from "../components/reviews/ReviewCard";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/LanguageContext";
@@ -250,8 +251,7 @@ export default function UserProfile() {
       const today = new Date().toISOString().split('T')[0];
       return avail
         .filter(a => a.is_day_off && (a.date?.split('T')[0] || '') >= today)
-        .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-        .slice(0, 6);
+        .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     },
     enabled: !!profileEmail && !!(walkerProfile || trainerProfile),
     staleTime: 5 * 60 * 1000,
@@ -471,22 +471,17 @@ export default function UserProfile() {
           </div>
 
           {(walkerProfile || trainerProfile) && (
-            <div>
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">{language === 'pt' ? 'Folgas Agendadas' : language === 'es' ? 'Días Libres Programados' : language === 'fr' ? 'Jours de repos planifiés' : 'Scheduled Days Off'}</h3>
-              {daysOff.length === 0 ? (
-                <p className="text-[12px] text-slate-500">{language === 'pt' ? 'Sem folgas futuras.' : language === 'es' ? 'No hay días libres futuros.' : language === 'fr' ? 'Aucun jour de repos à venir.' : 'No upcoming days off.'}</p>
-              ) : (
-                <div className="flex gap-2 flex-wrap">
-                  {daysOff.map((d) => (
-                    <div key={d.id} className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-600" />
-                      <span className="text-xs font-semibold text-slate-700">
-                        {new Date(d.date).toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+              <div className="flex items-center gap-2 mb-4">
+                <Moon className="w-4 h-4 text-red-500" />
+                <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">{language === 'pt' ? 'Calendário & Folgas' : language === 'es' ? 'Calendario y Días Libres' : language === 'fr' ? 'Calendrier et repos' : 'Calendar & Days Off'}</h3>
+              </div>
+              <AvailabilityCalendar
+                availabilityData={daysOff}
+                bookings={[]}
+                walkerEmail={profileEmail}
+                isInteractive={false}
+              />
             </div>
           )}
 

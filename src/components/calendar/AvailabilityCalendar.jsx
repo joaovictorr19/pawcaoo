@@ -118,11 +118,13 @@ export default function AvailabilityCalendar({
           return (
             <button
               key={date.toString()}
-              onClick={() => onDateSelect && onDateSelect(date)}
+              onClick={() => isInteractive && onDateSelect && onDateSelect(date)}
+              disabled={!isInteractive}
               className={`
                 relative h-10 md:h-12 w-full rounded-lg border flex flex-col items-center justify-center transition-all duration-200
                 ${getStatusColor(status)}
                 ${isSelected ? 'ring-2 ring-offset-2 ring-green-500 scale-105 z-10' : ''}
+                ${!isInteractive ? 'cursor-default' : ''}
               `}
             >
               <span className={`text-sm ${status === 'day_off' ? 'text-white' : ''}`}>
