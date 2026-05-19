@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2, Gift, Wallet, Trash2, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -199,6 +200,7 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
 }
 
 export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpdate, onDelete }) {
+  const queryClient = useQueryClient();
   const [isGifting, setIsGifting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -245,14 +247,24 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
   const handleGiftFreeWalk = async () => {
     setIsGifting(true);
     try {
-      const currentFreeWalks = user.wallet?.free_walks || 0;
-      
-      await onUpdate(user.id, {
-        wallet: {
-          ...(user.wallet || {}),
-          free_walks: currentFreeWalks + 1
-        }
-      });
+      const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
+      const currentWallet = wallets[0];
+      const currentFreeWalks = currentWallet?.service_tokens || 0;
+
+      if (currentWallet?.id) {
+        await base44.entities.UserWallet.update(currentWallet.id, {
+          service_tokens: currentFreeWalks + 1
+        });
+      } else {
+        await base44.entities.UserWallet.create({
+          user_email: user.email,
+          service_tokens: 1,
+          cashback_balance: 0,
+          total_points: 0,
+          escrow_balance: 0,
+          pending_walker_payments: 0
+        });
+      }
 
       // Regista o log da oferta no AdminLog
       await base44.entities.AdminLog.create({
@@ -274,6 +286,11 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
 
       if ("vibrate" in navigator) navigator.vibrate([50, 100, 50]);
       
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['myWallet'] }),
+        queryClient.invalidateQueries({ queryKey: ['walletTransactions'] })
+      ]);
+
       toast.success("Passeio oferecido com sucesso! 🎉", {
         description: `O cliente ${user.full_name} tem agora ${currentFreeWalks + 1} passeios grátis.`
       });

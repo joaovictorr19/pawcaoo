@@ -43,14 +43,25 @@ export default function MyWallet() {
     queryKey: ['myWallet', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
-      const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
-      return wallets[0] || {
+      const [wallets, ownerSubscriptions] = await Promise.all([
+        base44.entities.UserWallet.filter({ user_email: user.email }),
+        base44.entities.OwnerSubscription.filter({ owner_email: user.email, is_active: true })
+      ]);
+
+      const savedWallet = wallets[0] || null;
+      const activeSubscription = ownerSubscriptions[0] || null;
+      const subscriptionTokens = activeSubscription
+        ? Math.max((activeSubscription.free_walks_per_month || 0) - (activeSubscription.free_walks_used_this_month || 0), 0)
+        : 0;
+
+      return {
         user_email: user.email,
-        cashback_balance: 0,
-        service_tokens: 0,
-        total_points: 0,
-        escrow_balance: 0,
-        pending_walker_payments: 0,
+        cashback_balance: savedWallet?.cashback_balance || 0,
+        service_tokens: Math.max(savedWallet?.service_tokens || 0, subscriptionTokens),
+        total_points: savedWallet?.total_points || 0,
+        escrow_balance: savedWallet?.escrow_balance || 0,
+        pending_walker_payments: savedWallet?.pending_walker_payments || 0,
+        tokens_expiry_date: savedWallet?.tokens_expiry_date || activeSubscription?.current_period_end || null,
       };
     },
     enabled: !!user?.email
