@@ -35,6 +35,7 @@ Deno.serve(async (req) => {
             selectedPublisher = publishers[0];
 
             // Verificar se o utilizador está na lista de connected_user_emails
+            // API keys partilhadas foram desativadas por segurança; apenas utilizadores ligados podem publicar
             const connectedEmails = selectedPublisher.connected_user_emails || [];
             if (!connectedEmails.includes(user.email)) {
                 return Response.json({ 
