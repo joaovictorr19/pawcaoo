@@ -13,22 +13,36 @@ Deno.serve(async (req) => {
         let isExternalPublisher = false;
         let selectedPublisher = null;
 
-        // 1. Tentar autenticar via API Key (header x-api-key)
-        const apiKey = req.headers.get('x-api-key');
-        if (apiKey) {
-            console.log('🔑 Autenticação via API Key detectada');
-            const publishers = await base44.asServiceRole.entities.ExternalPublisher.filter({ 
-                api_key: apiKey, 
-                is_active: true 
-            });
+        const user = await base44.auth.me();
+        if (!user) {
+            return Response.json({ 
+                error: 'Unauthorized: User login required' 
+            }, { status: 401 });
+        }
+
+        console.log('👤 Utilizador autenticado:', user.email);
+
+        // Se publisher_id foi fornecido, verificar se o utilizador tem permissão
+        if (publisher_id) {
+            const publishers = await base44.asServiceRole.entities.ExternalPublisher.filter({ id: publisher_id });
             
             if (publishers.length === 0) {
                 return Response.json({ 
-                    error: 'Unauthorized: Invalid or inactive API Key' 
-                }, { status: 401 });
+                    error: 'Publisher not found' 
+                }, { status: 404 });
             }
-            
+
             selectedPublisher = publishers[0];
+
+            // Verificar se o utilizador está na lista de connected_user_emails
+            const connectedEmails = selectedPublisher.connected_user_emails || [];
+            if (!connectedEmails.includes(user.email)) {
+                return Response.json({ 
+                    error: 'Forbidden: User not authorized to publish for this publisher' 
+                }, { status: 403 });
+            }
+
+            // Publicar em nome do publisher
             authorInfo = {
                 author_email: selectedPublisher.contact_email,
                 author_name: selectedPublisher.publisher_name,
@@ -36,57 +50,16 @@ Deno.serve(async (req) => {
             };
             isExternalPublisher = true;
             
-            console.log('✅ Publisher autenticado:', selectedPublisher.publisher_name);
+            console.log('📰 Publicando em nome de:', selectedPublisher.publisher_name);
         } else {
-            // 2. Se não houver API Key, tentar autenticar utilizador logado
-            const user = await base44.auth.me();
-            if (!user) {
-                return Response.json({ 
-                    error: 'Unauthorized: User not logged in and no API key provided' 
-                }, { status: 401 });
-            }
-
-            console.log('👤 Utilizador autenticado:', user.email);
-
-            // Se publisher_id foi fornecido, verificar se o utilizador tem permissão
-            if (publisher_id) {
-                const publishers = await base44.asServiceRole.entities.ExternalPublisher.filter({ id: publisher_id });
-                
-                if (publishers.length === 0) {
-                    return Response.json({ 
-                        error: 'Publisher not found' 
-                    }, { status: 404 });
-                }
-
-                selectedPublisher = publishers[0];
-
-                // Verificar se o utilizador está na lista de connected_user_emails
-                const connectedEmails = selectedPublisher.connected_user_emails || [];
-                if (!connectedEmails.includes(user.email)) {
-                    return Response.json({ 
-                        error: 'Forbidden: User not authorized to publish for this publisher' 
-                    }, { status: 403 });
-                }
-
-                // Publicar em nome do publisher
-                authorInfo = {
-                    author_email: selectedPublisher.contact_email,
-                    author_name: selectedPublisher.publisher_name,
-                    author_photo_url: selectedPublisher.logo_url || "",
-                };
-                isExternalPublisher = true;
-                
-                console.log('📰 Publicando em nome de:', selectedPublisher.publisher_name);
-            } else {
-                // Publicar em nome próprio
-                authorInfo = {
-                    author_email: user.email,
-                    author_name: user.full_name,
-                    author_photo_url: user.profile_photo_url || "",
-                };
-                
-                console.log('👤 Publicando em nome próprio');
-            }
+            // Publicar em nome próprio
+            authorInfo = {
+                author_email: user.email,
+                author_name: user.full_name,
+                author_photo_url: user.profile_photo_url || "",
+            };
+            
+            console.log('👤 Publicando em nome próprio');
         }
 
         // Determinar moderation_status
