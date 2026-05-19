@@ -505,8 +505,16 @@ export default function Gamification() {
     refetch();
   }, [refetch]);
 
-  const topUsers = allUsers.slice(0, 10);
-  const userRank = allUsers.findIndex(p => p.user_email === user?.email) + 1;
+  const rankedUsers = [...allUsers]
+    .filter((profile) => profile.user_email)
+    .sort((a, b) => {
+      const xpDiff = (b.gamification_xp || 0) - (a.gamification_xp || 0);
+      if (xpDiff !== 0) return xpDiff;
+      return (b.gamification_level || 1) - (a.gamification_level || 1);
+    });
+
+  const topUsers = rankedUsers.slice(0, 10);
+  const userRank = rankedUsers.findIndex(p => p.user_email === user?.email) + 1;
 
   const celebrateMutation = useMutation({
     mutationFn: async ({ targetEmail, targetName }) => {
@@ -580,10 +588,10 @@ export default function Gamification() {
   const podiumOrder = [top3[1], top3[0], top3[2]];
 
   const paginatedUsers = showFullRanking 
-    ? allUsers.slice((rankingPage - 1) * rankingPerPage, rankingPage * rankingPerPage)
-    : allUsers.slice(3, 10);
+    ? rankedUsers.slice((rankingPage - 1) * rankingPerPage, rankingPage * rankingPerPage)
+    : rankedUsers.slice(3, 10);
   
-  const totalPages = Math.ceil(allUsers.length / rankingPerPage);
+  const totalPages = Math.ceil(rankedUsers.length / rankingPerPage);
 
   return (
     <div className="min-h-screen bg-neutral-950 relative overflow-hidden rounded-3xl mx-2 md:mx-4 my-2">
@@ -689,7 +697,7 @@ export default function Gamification() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-amber-400 font-bold text-sm">
-                  {showFullRanking ? `${t('fullRanking', language)} (${allUsers.length} ${t('users', language)})` : 'Top 10'}
+                  {showFullRanking ? `${t('fullRanking', language)} (${rankedUsers.length} ${t('users', language)})` : 'Top 10'}
                 </h3>
                 <Button
                   variant="ghost"
