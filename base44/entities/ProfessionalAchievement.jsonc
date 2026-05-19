@@ -137,22 +137,15 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "data.professional_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "read": {},
     "update": {
       "$or": [
         {
-          "data.professional_email": "{{user.email}}"
+          "professional_email": "{{user.email}}"
         },
         {
           "user_condition": {
