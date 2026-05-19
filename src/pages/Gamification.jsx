@@ -792,12 +792,12 @@ export default function Gamification() {
 
           <div className="flex flex-col items-center justify-center gap-10">
             <motion.div
-              className="w-full max-w-3xl pt-20"
+              className="w-full max-w-3xl"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="relative h-14 md:h-16 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-visible shadow-2xl shadow-orange-500/20">
+              <div className="relative h-14 md:h-16 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
                 <motion.div
                   className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700 via-orange-500 to-amber-400"
                   style={{ width: `${progressInLevel}%` }}
@@ -831,27 +831,23 @@ export default function Gamification() {
                 ))}
 
                 <motion.div
-                  className="absolute bottom-full mb-3 -translate-x-1/2 z-30"
-                  style={{ left: `${Math.min(96, Math.max(10, progressInLevel))}%` }}
-                  animate={{ y: [0, -4, 0] }}
+                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                  style={{ left: `${Math.min(95, Math.max(8, progressInLevel))}%` }}
+                  animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 3, repeat: Infinity }}
                 >
-                  <div className="relative flex items-center justify-center">
-                    <motion.div
-                      className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-md scale-125`}
-                      animate={{ scale: [1.2, 1.35, 1.2], opacity: [0.35, 0.55, 0.35] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
+                  <motion.div
+                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-lg scale-125`}
+                    animate={{ scale: [1.25, 1.5, 1.25], opacity: [0.4, 0.6, 0.4] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
 
-                    <div className="absolute inset-0 rounded-full border border-amber-300/40 scale-[1.18]" />
-
-                    <Avatar className="w-12 h-12 border-2 border-amber-400 bg-neutral-900 shadow-[0_0_20px_rgba(251,191,36,0.35)] relative z-10">
-                      <AvatarImage src={user?.profile_photo_url} className="object-cover object-center" />
-                      <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm font-black">
-                        {user?.full_name?.[0] || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
+                  <Avatar className="w-10 h-10 border-2 border-amber-500 shadow-xl shadow-amber-500/50 relative z-10">
+                    <AvatarImage src={user?.profile_photo_url} />
+                    <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm font-black">
+                      {user?.full_name?.[0] || '?'}
+                    </AvatarFallback>
+                  </Avatar>
                 </motion.div>
               </div>
             </motion.div>
