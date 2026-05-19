@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/LanguageContext";
 import { toast } from "sonner";
 import { t } from "@/components/translations";
+import { getLevelFromXP, getLevelProgress, getXPToNextLevel } from "@/components/gamification/tierSystem";
 
 // Missões/Provações
 const MISSIONS = [
@@ -547,11 +548,9 @@ export default function Gamification() {
   });
 
   const currentXP = userProfile?.gamification_xp || 0;
-  const currentLevel = Math.max(1, Math.floor(currentXP / 100));
-  const xpForCurrentLevel = currentLevel * 100;
-  const xpForNextLevel = (currentLevel + 1) * 100;
-  const xpNeeded = Math.max(0, xpForNextLevel - currentXP);
-  const progressInLevel = Math.min(100, Math.max(0, ((currentXP - xpForCurrentLevel) / 100) * 100));
+  const currentLevel = Math.max(1, getLevelFromXP(currentXP));
+  const xpNeeded = getXPToNextLevel(currentXP);
+  const progressInLevel = getLevelProgress(currentXP);
   const title = getTitle(currentLevel);
   const auraColor = getAuraColor(currentLevel);
 
@@ -722,7 +721,7 @@ export default function Gamification() {
                         {profile.full_name}
                         {isCurrentUser && <Badge className="bg-blue-500/20 text-blue-300 text-[10px]">{language === 'pt' ? 'Você' : language === 'es' ? 'Tú' : language === 'fr' ? 'Vous' : language === 'de' ? 'Sie' : language === 'it' ? 'Tu' : 'You'}</Badge>}
                       </p>
-                      <p className="text-gray-600 text-xs">{t('level', language)} {Math.floor((profile.gamification_xp || 0) / 100)}</p>
+                      <p className="text-gray-600 text-xs">{t('level', language)} {Math.max(1, getLevelFromXP(profile.gamification_xp || 0))}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge className="bg-black/50 border border-amber-500/20 text-amber-400/70 text-xs">
@@ -791,90 +790,70 @@ export default function Gamification() {
             O Teu Legado
           </motion.h2>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-12">
-            {/* Totem de Poder */}
+          <div className="flex flex-col items-center justify-center gap-10">
             <motion.div
-              className="relative"
+              className="w-full max-w-3xl"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
             >
-              {/* Barra vertical do totem */}
-              <div className="relative w-12 h-48 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
-                {/* Preenchimento de lava - começa de baixo */}
+              <div className="relative h-14 md:h-16 bg-neutral-900 rounded-full border-2 border-amber-500/30 overflow-hidden shadow-2xl shadow-orange-500/20">
                 <motion.div
-                  className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-700 via-orange-500 to-amber-400"
-                  style={{ height: `${progressInLevel}%` }}
-                  initial={{ height: 0 }}
-                  animate={{ height: `${progressInLevel}%` }}
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-700 via-orange-500 to-amber-400"
+                  style={{ width: `${progressInLevel}%` }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressInLevel}%` }}
                   transition={{ duration: 1.5, ease: "easeOut" }}
                 >
-                  {/* Efeito de lava borbulhante */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-t from-red-600/80 via-orange-400/50 to-yellow-300/30"
+                    className="absolute inset-0 bg-gradient-to-r from-red-600/80 via-orange-400/50 to-yellow-300/30"
                     animate={{ opacity: [0.5, 1, 0.5] }}
                     transition={{ duration: 1, repeat: Infinity }}
                   />
-                  {/* Bolhas */}
                   <motion.div
-                    className="absolute top-2 left-3 w-2 h-2 bg-yellow-300 rounded-full"
-                    animate={{ y: [-5, -15, -5], opacity: [1, 0, 1] }}
+                    className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-yellow-300 rounded-full"
+                    animate={{ x: [-5, 15, -5], opacity: [1, 0, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                   <motion.div
-                    className="absolute top-4 right-4 w-1.5 h-1.5 bg-yellow-200 rounded-full"
-                    animate={{ y: [-5, -20, -5], opacity: [1, 0, 1] }}
+                    className="absolute right-8 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-yellow-200 rounded-full"
+                    animate={{ x: [-5, 20, -5], opacity: [1, 0, 1] }}
                     transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
                   />
                 </motion.div>
 
-                {/* Marcadores de nível */}
                 {[25, 50, 75].map((mark) => (
-                  <div 
-                    key={mark} 
-                    className="absolute left-0 right-0 h-0.5 bg-amber-500/20"
-                    style={{ bottom: `${mark}%` }}
+                  <div
+                    key={mark}
+                    className="absolute top-0 bottom-0 w-0.5 bg-amber-500/20"
+                    style={{ left: `${mark}%` }}
                   />
                 ))}
-              </div>
 
-              {/* Avatar flutuante - sobe junto com o progresso do nível */}
-              <motion.div
-                className="absolute left-1/2 -translate-x-1/2"
-                style={{ bottom: `${Math.min(95, progressInLevel + 5)}%` }}
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                {/* Aura */}
                 <motion.div
-                  className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-lg scale-125`}
-                  animate={{ 
-                    scale: [1.25, 1.5, 1.25], 
-                    opacity: [0.4, 0.6, 0.4] 
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-                
-                <Avatar className="w-10 h-10 border-2 border-amber-500 shadow-xl shadow-amber-500/50 relative z-10">
-                  <AvatarImage src={user?.profile_photo_url} />
-                  <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm font-black">
-                    {user?.full_name?.[0] || '?'}
-                  </AvatarFallback>
-                </Avatar>
-              </motion.div>
+                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                  style={{ left: `${Math.min(95, Math.max(8, progressInLevel))}%` }}
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                >
+                  <motion.div
+                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${auraColor} blur-lg scale-125`}
+                    animate={{ scale: [1.25, 1.5, 1.25], opacity: [0.4, 0.6, 0.4] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
 
-              {/* XP atual na base */}
-              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                <Badge className="bg-black border border-amber-500/50 text-amber-400">
-                  <Flame className="w-3 h-3 mr-1" />
-                  {currentXP.toLocaleString()} XP
-                </Badge>
+                  <Avatar className="w-10 h-10 border-2 border-amber-500 shadow-xl shadow-amber-500/50 relative z-10">
+                    <AvatarImage src={user?.profile_photo_url} />
+                    <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm font-black">
+                      {user?.full_name?.[0] || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                </motion.div>
               </div>
             </motion.div>
 
-            {/* Info do Nível */}
             <motion.div
-              className="text-center md:text-left"
+              className="text-center"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
@@ -888,6 +867,15 @@ export default function Gamification() {
                 <span className="text-amber-400 text-sm font-bold uppercase tracking-wider">
                   Nível {currentLevel}
                 </span>
+                <Badge className="bg-black border border-amber-500/50 text-amber-400 ml-2">
+                  <Flame className="w-3 h-3 mr-1" />
+                  {currentXP.toLocaleString()} XP
+                </Badge>
+                {userRank > 0 && (
+                  <Badge className="bg-black border border-amber-500/50 text-amber-400">
+                    #{userRank}
+                  </Badge>
+                )}
               </motion.div>
 
               <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">
@@ -898,8 +886,7 @@ export default function Gamification() {
                 Faltam <span className="text-amber-400 font-bold">{xpNeeded.toLocaleString()} XP</span> para o próximo nível
               </p>
 
-              {/* Mini barra de progresso */}
-              <div className="w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-amber-500/20">
+              <div className="w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-amber-500/20 mx-auto">
                 <motion.div
                   className="h-full bg-gradient-to-r from-orange-600 to-amber-400"
                   initial={{ width: 0 }}
