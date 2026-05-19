@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { Clock, MapPin, CalendarDays, X, ChevronLeft } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Clock, MapPin, CalendarDays, X, ChevronLeft, Phone, LocateFixed } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 
@@ -12,6 +13,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
   const [selectedTime, setSelectedTime] = useState('10:00');
   const [duration, setDuration] = useState('1');
   const [pickupMethod, setPickupMethod] = useState('walker_pickup');
+  const [shareWhatsappLocation, setShareWhatsappLocation] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   React.useEffect(() => {
@@ -21,6 +23,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
       setSelectedTime('10:00');
       setDuration('1');
       setPickupMethod('walker_pickup');
+      setShareWhatsappLocation(false);
     }
   }, [isOpen, initialDate]);
 
@@ -98,6 +101,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
         pickup_address: pickupAddress,
         pickup_lat: profileStats.pickup_lat,
         pickup_lng: profileStats.pickup_lng,
+        share_whatsapp_live_location: shareWhatsappLocation,
         status: 'pending',
         payment_status: 'pending',
         type: walkerProfile.trainer_name ? 'training' : 'walk',
@@ -303,8 +307,21 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                     <span className="font-bold text-slate-900 break-words">{pickupAddress || 'Ainda não definida'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Telefone</span>
-                    <span className="font-bold text-slate-900">{ownerPhone || 'Ainda não definido'}</span>
+                    <span className="text-slate-500">Telefone do profissional</span>
+                    <span className="font-bold text-slate-900">{walkerProfile?.whatsapp_number || walkerProfile?.phone || 'Disponível após aceitação'}</span>
+                  </div>
+                  <div className="rounded-xl border border-green-100 bg-green-50 p-3 flex items-start justify-between gap-3">
+                    <div className="pr-2">
+                      <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <LocateFixed className="w-4 h-4 text-green-600" />
+                        Acompanhamento de localização por WhatsApp
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1">Marque esta opção se quiser receber a localização da viagem pelo WhatsApp.</p>
+                    </div>
+                    <Switch
+                      checked={shareWhatsappLocation}
+                      onCheckedChange={setShareWhatsappLocation}
+                    />
                   </div>
                   {accessNotes && (
                     <div className="text-sm">
