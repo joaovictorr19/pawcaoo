@@ -62,7 +62,7 @@ import StoreItemsManager from "../components/admin/StoreItemsManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
-import AdminProfessionalManager from "../components/admin/AdminProfessionalManager";
+import AdminAccountEditor from "../components/admin/AdminAccountEditor.jsx";
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
 
 import { BadgeManager } from "../components/admin/BadgeManager";
@@ -1106,7 +1106,7 @@ export default function AdminDashboard() {
           language={language}
         />
 
-        <AdminProfessionalManager 
+        <AdminAccountEditor 
           isOpen={showProfessionalManager}
           onClose={() => setShowProfessionalManager(false)}
           userToEdit={selectedUser}
