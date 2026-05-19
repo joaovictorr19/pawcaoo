@@ -100,11 +100,6 @@
     },
     "tracking_number": {
       "type": "string"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [
@@ -114,27 +109,16 @@
   ],
   "rls": {
     "create": {
-      "customer_email": "{{user.email}}"
+      "data.customer_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "customer_email": "{{user.email}}"
+          "data.customer_email": "{{user.email}}"
         },
         {
           "user_condition": {
             "role": "admin"
-          }
-        },
-        {
-          "data.items.product_id": {
-            "$in": {
-              "entities": "PartnerProduct",
-              "query": {
-                "partner_company_email": "{{user.email}}"
-              },
-              "field": "id"
-            }
           }
         }
       ]

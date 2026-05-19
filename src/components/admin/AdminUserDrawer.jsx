@@ -307,7 +307,7 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="relative w-full max-w-lg bg-white rounded-t-[3rem] p-8 shadow-2xl pb-safe z-[220]"
+            className="relative w-full max-w-lg bg-white rounded-t-[3rem] p-8 shadow-2xl pb-safe z-[200]"
           >
             <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8 cursor-grab active:cursor-grabbing" onClick={onClose} />
 

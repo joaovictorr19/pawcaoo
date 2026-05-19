@@ -139,11 +139,22 @@
         "role": "admin"
       }
     },
-    "read": {},
+    "read": {
+      "$or": [
+        {
+          "data.company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "update": {
       "$or": [
         {
-          "company_email": "{{user.email}}"
+          "data.company_email": "{{user.email}}"
         },
         {
           "user_condition": {

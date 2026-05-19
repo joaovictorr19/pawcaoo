@@ -96,11 +96,6 @@
     "special_notes": {
       "type": "string",
       "description": "Special instructions"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [
@@ -112,7 +107,7 @@
   ],
   "rls": {
     "create": {
-      "created_by": "{{user.email}} "
+      "created_by": "{{user.email}}"
     },
     "read": {
       "$or": [
@@ -120,7 +115,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "walker_email": "{{user.email}}  "
+          "data.walker_email": "{{user.email}}"
         },
         {
           "data.owner_email": "{{user.email}}"
@@ -138,7 +133,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "walker_email": "{{user.email}}"
+          "data.walker_email": "{{user.email}}"
         },
         {
           "user_condition": {

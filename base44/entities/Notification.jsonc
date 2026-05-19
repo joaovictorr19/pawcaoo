@@ -41,11 +41,6 @@
     "related_id": {
       "type": "string",
       "description": "ID do registo relacionado (booking, payment, etc.)"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [
@@ -53,11 +48,22 @@
     "message"
   ],
   "rls": {
-    "create": {},
+    "create": {
+      "$or": [
+        {
+          "data.recipient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
     "read": {
       "$or": [
         {
-          "recipient_email": "{{user.email}}"
+          "data.recipient_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -69,7 +75,7 @@
     "update": {
       "$or": [
         {
-          "recipient_email": "{{user.email}}"
+          "data.recipient_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -81,7 +87,7 @@
     "delete": {
       "$or": [
         {
-          "recipient_email": "{{user.email}}"
+          "data.recipient_email": "{{user.email}}"
         },
         {
           "user_condition": {

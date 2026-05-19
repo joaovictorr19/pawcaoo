@@ -359,28 +359,6 @@
           "user_condition": {
             "role": "admin"
           }
-        },
-        {
-          "data.owner_email": {
-            "$in": {
-              "entities": "Booking",
-              "query": {
-                "walker_email": "{{user.email}}"
-              },
-              "field": "owner_email"
-            }
-          }
-        },
-        {
-          "data.owner_email": {
-            "$in": {
-              "entities": "TrainingBooking",
-              "query": {
-                "trainer_email": "{{user.email}}"
-              },
-              "field": "owner_email"
-            }
-          }
         }
       ]
     },
