@@ -78,15 +78,12 @@
   ],
   "rls": {
     "create": {
-      "walker_email": "{{user.email}}"
+      "data.walker_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "walker_email": "{{user.email}}"
-        },
-        {
-          "is_public": true
+          "data.walker_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -98,7 +95,7 @@
     "update": {
       "$or": [
         {
-          "walker_email": "{{user.email}}"
+          "data.walker_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -110,7 +107,7 @@
     "delete": {
       "$or": [
         {
-          "walker_email": "{{user.email}}"
+          "data.walker_email": "{{user.email}}"
         },
         {
           "user_condition": {
