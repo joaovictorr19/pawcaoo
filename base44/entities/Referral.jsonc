@@ -66,15 +66,15 @@
   ],
   "rls": {
     "create": {
-      "referrer_email": "{{user.email}}"
+      "data.referrer_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "referrer_email": "{{user.email}}"
+          "data.referrer_email": "{{user.email}}"
         },
         {
-          "referee_email": "{{user.email}}"
+          "data.referee_email": "{{user.email}}"
         },
         {
           "user_condition": {
