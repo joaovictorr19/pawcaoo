@@ -95,7 +95,7 @@
     "create": {
       "$or": [
         {
-          "data.partner_company_email": "{{user.email}}"
+          "partner_company_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -108,7 +108,7 @@
     "update": {
       "$or": [
         {
-          "data.partner_company_email": "{{user.email}}"
+          "partner_company_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -120,7 +120,7 @@
     "delete": {
       "$or": [
         {
-          "data.partner_company_email": "{{user.email}}"
+          "partner_company_email": "{{user.email}}"
         },
         {
           "user_condition": {

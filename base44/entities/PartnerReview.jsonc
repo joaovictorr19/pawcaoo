@@ -134,15 +134,15 @@
   ],
   "rls": {
     "create": {
-      "data.reviewer_email": "{{user.email}}"
+      "reviewer_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "data.status": "approved"
+          "status": "approved"
         },
         {
-          "data.reviewer_email": "{{user.email}}"
+          "reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -154,7 +154,7 @@
     "update": {
       "$or": [
         {
-          "data.reviewer_email": "{{user.email}}"
+          "reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -166,7 +166,7 @@
     "delete": {
       "$or": [
         {
-          "data.reviewer_email": "{{user.email}}"
+          "reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {

@@ -107,7 +107,7 @@
   ],
   "rls": {
     "create": {
-      "created_by": "{{user.email}}"
+      "created_by": "{{user.email}} "
     },
     "read": {
       "$or": [
@@ -115,7 +115,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "data.walker_email": "{{user.email}}"
+          "walker_email": "{{user.email}}  "
         },
         {
           "data.owner_email": "{{user.email}}"
@@ -133,7 +133,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "data.walker_email": "{{user.email}}"
+          "walker_email": "{{user.email}}"
         },
         {
           "user_condition": {

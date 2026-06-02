@@ -148,10 +148,10 @@
     "read": {
       "$or": [
         {
-          "data.professional_email": "{{user.email}}"
+          "professional_email": "{{user.email}}"
         },
         {
-          "data.client_email": "{{user.email}}"
+          "client_email": "{{user.email}}"
         },
         {
           "user_condition": {

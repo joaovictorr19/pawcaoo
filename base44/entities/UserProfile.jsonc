@@ -176,14 +176,14 @@
     "full_name"
   ],
   "rls": {
-    "create": {
-      "data.user_email": "{{user.email}}"
-    },
     "read": {},
+    "create": {
+      "user_email": "{{user.email}}"
+    },
     "update": {
       "$or": [
         {
-          "data.user_email": "{{user.email}}"
+          "user_email": "{{user.email}}"
         },
         {
           "user_condition": {

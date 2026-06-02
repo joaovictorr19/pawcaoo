@@ -1,0 +1,560 @@
+{
+  "name": "WalkerProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Auth User ID linked to this profile"
+    },
+    "walker_name": {
+      "type": "string",
+      "description": "Name of the dog walker"
+    },
+    "age": {
+      "type": "number",
+      "description": "Age of the walker"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Profile photo URL"
+    },
+    "cover_photo_url": {
+      "type": "string",
+      "description": "Cover background photo URL"
+    },
+    "video_intro_url": {
+      "type": "string",
+      "description": "Video introduction URL (1-2 min)"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Short bio about the walker and their experience"
+    },
+    "location": {
+      "type": "string",
+      "description": "City or neighborhood"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Latitude of the main location"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Longitude of the main location"
+    },
+    "service_areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "area_name": {
+            "type": "string"
+          },
+          "postal_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "radius_km": {
+            "type": "number"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Areas where walker provides services",
+      "default": []
+    },
+    "hourly_rate": {
+      "type": "number",
+      "description": "Rate per hour in euros (for dogs and cats)"
+    },
+    "exotic_rate": {
+      "type": "number",
+      "description": "Rate per visit for exotic animals"
+    },
+    "services_offered": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "service_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "duration_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "price": {
+            "type": "number"
+          },
+          "custom_pricing": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Detailed services with pricing",
+      "default": []
+    },
+    "experience_years": {
+      "type": "number",
+      "description": "Years of experience"
+    },
+    "dog_sizes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "small",
+          "medium",
+          "large",
+          "extra_large"
+        ]
+      },
+      "default": []
+    },
+    "dog_breeds_handled": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "breed_specialization": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "accepted_animals": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "dogs",
+          "cats",
+          "reptiles",
+          "arachnids",
+          "rodents",
+          "birds"
+        ]
+      },
+      "default": [
+        "dogs"
+      ]
+    },
+    "availability": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "morning",
+          "afternoon",
+          "evening",
+          "night"
+        ]
+      },
+      "default": []
+    },
+    "rating": {
+      "type": "number",
+      "default": 0
+    },
+    "total_walks": {
+      "type": "number",
+      "default": 0
+    },
+    "phone": {
+      "type": "string"
+    },
+    "whatsapp_number": {
+      "type": "string"
+    },
+    "mbway_number": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_online": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indicates if the professional is currently online and available in PawGo"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_pawcao_employee": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_pawcao_seal": {
+      "type": "boolean",
+      "default": false,
+      "description": "Selo oficial PawC\u00e3o concedido por admin - aparece no perfil p\u00fablico"
+    },
+    "exempt_from_platform_fees": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se true, walker n\u00e3o paga comiss\u00e3o da plataforma (0% fee)"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se \u00e9 profissional em destaque (aparece no topo da lista)"
+    },
+    "is_verified_trainer": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se tamb\u00e9m \u00e9 treinador verificado (badge roxo)"
+    },
+    "training_specializations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "specialty_id": {
+            "type": "string",
+            "enum": [
+              "positive_reinforcement",
+              "agility_training",
+              "behavioral_correction",
+              "puppy_socialization",
+              "obedience_training",
+              "service_dog_training",
+              "anxiety_management",
+              "aggression_rehabilitation",
+              "clicker_training",
+              "protection_training"
+            ]
+          },
+          "specialty_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "years_experience": {
+            "type": "number"
+          },
+          "certifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "default": [],
+      "description": "Especializa\u00e7\u00f5es de treino detalhadas com descri\u00e7\u00f5es"
+    },
+    "training_specialties": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Legacy: Especialidades de treino (array simples)"
+    },
+    "training_philosophy": {
+      "type": "string",
+      "description": "Filosofia de treino (se for treinador)"
+    },
+    "consultation_options": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "in_person",
+          "online",
+          "hybrid"
+        ]
+      },
+      "default": [],
+      "description": "Op\u00e7\u00f5es de consulta (se for treinador)"
+    },
+    "can_walk_multiple_dogs": {
+      "type": "boolean",
+      "default": false
+    },
+    "max_dogs_at_once": {
+      "type": "number",
+      "default": 1
+    },
+    "portfolio": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "media_url": {
+            "type": "string"
+          },
+          "media_type": {
+            "type": "string",
+            "enum": [
+              "photo",
+              "video"
+            ]
+          },
+          "dog_name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "walk",
+              "playtime",
+              "training",
+              "milestone",
+              "other"
+            ]
+          },
+          "is_featured": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "default": []
+    },
+    "faq": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "success_stories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "dog_name": {
+            "type": "string"
+          },
+          "owner_name": {
+            "type": "string"
+          },
+          "story": {
+            "type": "string"
+          },
+          "before_photo_url": {
+            "type": "string"
+          },
+          "after_photo_url": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "testimonial": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "certifications_detailed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "issuing_organization": {
+            "type": "string"
+          },
+          "issue_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "certificate_url": {
+            "type": "string"
+          },
+          "verification_url": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "specializations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "puppies",
+          "senior_dogs",
+          "special_needs",
+          "behavioral_issues",
+          "multiple_dogs",
+          "large_breeds",
+          "small_breeds",
+          "anxious_dogs",
+          "high_energy"
+        ]
+      },
+      "default": []
+    },
+    "languages_spoken": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "requires_documents",
+        "pending",
+        "verified",
+        "rejected"
+      ],
+      "default": "requires_documents"
+    },
+    "total_earnings": {
+      "type": "number",
+      "default": 0
+    },
+    "id_document_url": {
+      "type": "string"
+    },
+    "proof_of_address_url": {
+      "type": "string"
+    },
+    "bank_account_holder": {
+      "type": "string"
+    },
+    "bank_account_number": {
+      "type": "string"
+    },
+    "bank_routing_number": {
+      "type": "string"
+    },
+    "instant_booking": {
+      "type": "boolean",
+      "default": false
+    },
+    "stripe_account_id": {
+      "type": "string"
+    },
+    "stripe_charges_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "stripe_payouts_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "stripe_onboarding_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "country_of_operation": {
+      "type": "string",
+      "enum": [
+        "portugal",
+        "spain",
+        "france"
+      ],
+      "description": "Pa\u00eds onde presta servi\u00e7os"
+    },
+    "tax_id_portugal": {
+      "type": "string",
+      "description": "NIF (Portugal) - Obrigat\u00f3rio para PT"
+    },
+    "tax_id_spain": {
+      "type": "string",
+      "description": "NIF/NIE/CIF (Espanha) - Obrigat\u00f3rio para ES"
+    },
+    "france_professional_type": {
+      "type": "string",
+      "enum": [
+        "professional",
+        "individual"
+      ],
+      "description": "Tipo de prestador em Fran\u00e7a"
+    },
+    "tax_id_france": {
+      "type": "string",
+      "description": "N\u00famero Fiscal (Fran\u00e7a) - Apenas se profissional"
+    }
+  },
+  "required": [
+    "walker_name",
+    "location",
+    "hourly_rate",
+    "whatsapp_number"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -22,11 +22,6 @@
     "created_by_admin": {
       "type": "string",
       "description": "Email do admin que criou"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [

@@ -1,0 +1,82 @@
+{
+  "name": "BadgeDefinition",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome do emblema"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do emblema"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji ou \u00edcone"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "URL da imagem do emblema (Legacy/Fallback)"
+    },
+    "image_png_file": {
+      "type": "string",
+      "description": "URL do ficheiro PNG personalizado do emblema"
+    },
+    "animation_url": {
+      "type": "string",
+      "description": "URL para vers\u00e3o animada (GIF/WebP) do emblema"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "rare",
+        "epic",
+        "legendary"
+      ],
+      "default": "common",
+      "description": "Raridade do emblema"
+    },
+    "category": {
+      "type": "string",
+      "default": "special",
+      "description": "Categoria do emblema"
+    },
+    "xp": {
+      "type": "number",
+      "default": 50,
+      "description": "XP concedido com o emblema"
+    },
+    "criteria": {
+      "type": "object",
+      "description": "Condi\u00e7\u00f5es complexas para conquista (ex: { 'type': 'action_count', 'action': 'post', 'count': 10 })"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o emblema est\u00e1 dispon\u00edvel para ser concedido"
+    }
+  },
+  "required": [
+    "name",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

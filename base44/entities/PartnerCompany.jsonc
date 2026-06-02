@@ -142,7 +142,7 @@
     "read": {
       "$or": [
         {
-          "data.company_email": "{{user.email}}"
+          "company_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -154,7 +154,7 @@
     "update": {
       "$or": [
         {
-          "data.company_email": "{{user.email}}"
+          "company_email": "{{user.email}}"
         },
         {
           "user_condition": {

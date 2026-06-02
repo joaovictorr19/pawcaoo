@@ -1,0 +1,148 @@
+{
+  "name": "Partnership",
+  "type": "object",
+  "properties": {
+    "partner_name": {
+      "type": "string",
+      "description": "Partner business name"
+    },
+    "partner_type": {
+      "type": "string",
+      "enum": [
+        "veterinary",
+        "pet_store",
+        "grooming",
+        "insurance",
+        "training",
+        "ong",
+        "shelter",
+        "other"
+      ],
+      "description": "Type of partner"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Partner logo"
+    },
+    "description": {
+      "type": "string",
+      "description": "Partner description"
+    },
+    "discount_percentage": {
+      "type": "number",
+      "description": "Discount offered to users"
+    },
+    "promo_code": {
+      "type": "string",
+      "description": "Promotional code"
+    },
+    "location": {
+      "type": "string",
+      "description": "Partner location"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone"
+    },
+    "email": {
+      "type": "string",
+      "description": "Contact email"
+    },
+    "website": {
+      "type": "string",
+      "description": "Website URL"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Partnership status"
+    },
+    "is_fee_exempt": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se ativado, loja n\u00e3o paga taxa \u00e0 PawC\u00e3o"
+    },
+    "fee_exemption_reason": {
+      "type": "string",
+      "description": "Motivo da isen\u00e7\u00e3o (ex: Parceiro de tr\u00e1fego, ONG, Promo\u00e7\u00e3o 6 meses)"
+    },
+    "fee_exemption_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data fim da isen\u00e7\u00e3o (opcional, para promo\u00e7\u00f5es tempor\u00e1rias)"
+    },
+    "custom_fee_percentage": {
+      "type": "number",
+      "default": 15,
+      "description": "Taxa personalizada (% de comiss\u00e3o). Padr\u00e3o: 15%"
+    },
+    "stripe_account_id": {
+      "type": "string",
+      "description": "Stripe Connect account ID para receber pagamentos"
+    },
+    "average_rating": {
+      "type": "number",
+      "default": 0,
+      "description": "Average review rating (1-5)"
+    },
+    "total_reviews": {
+      "type": "number",
+      "default": 0,
+      "description": "Total number of reviews"
+    },
+    "total_sales": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de vendas realizadas"
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de receita gerada"
+    },
+    "category_ratings": {
+      "type": "object",
+      "properties": {
+        "quality": {
+          "type": "number",
+          "default": 0
+        },
+        "value": {
+          "type": "number",
+          "default": 0
+        },
+        "service": {
+          "type": "number",
+          "default": 0
+        },
+        "delivery": {
+          "type": "number",
+          "default": 0
+        }
+      },
+      "description": "Average ratings by category"
+    }
+  },
+  "required": [
+    "partner_name",
+    "partner_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

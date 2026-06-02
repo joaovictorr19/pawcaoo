@@ -72,7 +72,7 @@
     "create": {
       "$or": [
         {
-          "data.owner_email": "{{user.email}}"
+          "owner_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -84,7 +84,7 @@
     "read": {
       "$or": [
         {
-          "data.owner_email": "{{user.email}}"
+          "owner_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -96,7 +96,7 @@
     "update": {
       "$or": [
         {
-          "data.owner_email": "{{user.email}}"
+          "owner_email": "{{user.email}}"
         },
         {
           "user_condition": {

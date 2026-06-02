@@ -22,14 +22,14 @@
   ],
   "rls": {
     "create": {
-      "data.user_email": "{{user.email}}"
+      "user_email": "{{user.email}}"
     },
     "read": {},
     "update": {
-      "data.user_email": "{{user.email}}"
+      "user_email": "{{user.email}}"
     },
     "delete": {
-      "data.user_email": "{{user.email}}"
+      "user_email": "{{user.email}}"
     }
   }
 }

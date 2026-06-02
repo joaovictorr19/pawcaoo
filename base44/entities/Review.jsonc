@@ -98,35 +98,17 @@
   ],
   "rls": {
     "create": {
-      "data.reviewer_email": "{{user.email}}"
+      "reviewer_email": "{{user.email}}"
     },
     "read": {
-      "$or": [
-        {
-          "data.rating": {
-            "$gte": 1
-          }
-        },
-        {
-          "data.reviewer_email": "{{user.email}}"
-        },
-        {
-          "data.walker_id": "{{user.id}}"
-        },
-        {
-          "data.trainer_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "rating": {
+        "$gte": 1
+      }
     },
     "update": {
       "$or": [
         {
-          "data.reviewer_email": "{{user.email}}"
+          "reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -138,7 +120,7 @@
     "delete": {
       "$or": [
         {
-          "data.reviewer_email": "{{user.email}}"
+          "reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {

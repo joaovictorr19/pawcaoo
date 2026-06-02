@@ -246,15 +246,15 @@
   ],
   "rls": {
     "create": {
-      "data.owner_email": "{{user.email}}"
+      "owner_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "data.owner_email": "{{user.email}}"
+          "owner_email": "{{user.email}}"
         },
         {
-          "data.partner_company_email": "{{user.email}}"
+          "partner_company_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -271,10 +271,10 @@
     "update": {
       "$or": [
         {
-          "data.owner_email": "{{user.email}}"
+          "owner_email": "{{user.email}}"
         },
         {
-          "data.partner_company_email": "{{user.email}}"
+          "partner_company_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -291,7 +291,7 @@
     "delete": {
       "$or": [
         {
-          "data.owner_email": "{{user.email}}"
+          "owner_email": "{{user.email}}"
         },
         {
           "user_condition": {

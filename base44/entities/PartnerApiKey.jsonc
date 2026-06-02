@@ -61,11 +61,6 @@
       "type": "string",
       "format": "date-time",
       "description": "Data de expira\u00e7\u00e3o (opcional)"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Optional description"
     }
   },
   "required": [

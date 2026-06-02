@@ -139,7 +139,7 @@
     "create": {
       "$or": [
         {
-          "data.professional_email": "{{user.email}}"
+          "professional_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -152,7 +152,7 @@
     "update": {
       "$or": [
         {
-          "data.professional_email": "{{user.email}}"
+          "professional_email": "{{user.email}}"
         },
         {
           "user_condition": {

@@ -1,0 +1,87 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "account_type": {
+      "type": "string"
+    },
+    "professional_profile": {
+      "type": "object",
+      "properties": {
+        "bio": {
+          "type": "string"
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "verification_status": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "number"
+        },
+        "joined_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "financial_info": {
+      "type": "object",
+      "properties": {
+        "iban": {
+          "type": "string"
+        },
+        "total_earned": {
+          "type": "number"
+        }
+      }
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user"
+    },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "current_mode": {
+          "type": "string",
+          "enum": [
+            "owner",
+            "professional"
+          ],
+          "default": "owner"
+        }
+      }
+    },
+    "pawgo_status": {
+      "type": "object",
+      "properties": {
+        "is_online": {
+          "type": "boolean",
+          "default": false
+        },
+        "last_active": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "gamification_xp": {
+      "type": "number"
+    },
+    "gamification_level": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "account_type"
+  ]
+}

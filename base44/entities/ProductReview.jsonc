@@ -51,16 +51,16 @@
   ],
   "rls": {
     "create": {
-      "data.reviewer_email": "{{user.email}}"
+      "reviewer_email": "{{user.email}}"
     },
     "read": {},
     "update": {
-      "data.reviewer_email": "{{user.email}}"
+      "reviewer_email": "{{user.email}}"
     },
     "delete": {
       "$or": [
         {
-          "data.reviewer_email": "{{user.email}}"
+          "reviewer_email": "{{user.email}}"
         },
         {
           "user_condition": {

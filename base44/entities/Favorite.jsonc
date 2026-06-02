@@ -1,0 +1,74 @@
+{
+  "name": "Favorite",
+  "type": "object",
+  "properties": {
+    "walker_id": {
+      "type": "string",
+      "description": "ID of the favorited walker"
+    },
+    "walker_name": {
+      "type": "string",
+      "description": "Name of the walker"
+    },
+    "walker_photo_url": {
+      "type": "string",
+      "description": "Photo of the walker"
+    },
+    "walker_location": {
+      "type": "string",
+      "description": "Walker's location"
+    },
+    "walker_hourly_rate": {
+      "type": "number",
+      "description": "Walker's hourly rate"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Personal notes about this walker"
+    }
+  },
+  "required": [
+    "walker_id"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

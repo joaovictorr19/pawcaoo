@@ -1,0 +1,572 @@
+{
+  "name": "TrainerProfile",
+  "type": "object",
+  "properties": {
+    "trainer_name": {
+      "type": "string",
+      "description": "Name of the dog trainer"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Profile photo URL"
+    },
+    "video_intro_url": {
+      "type": "string",
+      "description": "Video introduction URL (1-2 min)"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Professional bio and experience"
+    },
+    "location": {
+      "type": "string",
+      "description": "City or neighborhood"
+    },
+    "service_areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "area_name": {
+            "type": "string"
+          },
+          "postal_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "radius_km": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Areas where trainer provides services",
+      "default": []
+    },
+    "hourly_rate": {
+      "type": "number",
+      "description": "Rate per hour for training sessions (dogs and cats)"
+    },
+    "exotic_rate": {
+      "type": "number",
+      "description": "Rate per visit for exotic animals (reptiles, arachnids, rodents, birds)"
+    },
+    "services_offered": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "service_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "duration_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "price": {
+            "type": "number"
+          },
+          "package_options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "sessions": {
+                  "type": "number"
+                },
+                "price": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "description": "Detailed services with pricing",
+      "default": []
+    },
+    "package_rates": {
+      "type": "object",
+      "properties": {
+        "single_session": {
+          "type": "number"
+        },
+        "package_5": {
+          "type": "number"
+        },
+        "package_10": {
+          "type": "number"
+        }
+      },
+      "description": "Different package pricing options"
+    },
+    "experience_years": {
+      "type": "number",
+      "description": "Years of experience training dogs"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone number"
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "issuing_organization": {
+            "type": "string"
+          },
+          "year": {
+            "type": "number"
+          },
+          "certificate_url": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Professional certifications",
+      "default": []
+    },
+    "certifications_detailed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "issuing_organization": {
+            "type": "string"
+          },
+          "issue_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "certificate_url": {
+            "type": "string"
+          },
+          "verification_url": {
+            "type": "string"
+          },
+          "credential_id": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Detailed certifications with verification",
+      "default": []
+    },
+    "training_specialties": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "basic_obedience",
+          "advanced_obedience",
+          "behavior_modification",
+          "puppy_training",
+          "socialization",
+          "aggression",
+          "anxiety",
+          "potty_training",
+          "leash_training",
+          "service_dog",
+          "therapy_dog",
+          "agility",
+          "tricks"
+        ]
+      },
+      "description": "Training specialties",
+      "default": []
+    },
+    "training_methodologies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "methodology_name": {
+            "type": "string",
+            "enum": [
+              "positive_reinforcement",
+              "clicker_training",
+              "model_rival",
+              "dominance_based",
+              "e_collar",
+              "relationship_based",
+              "science_based",
+              "balanced_training"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "primary": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Training methodologies used by the trainer",
+      "default": []
+    },
+    "dog_sizes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "small",
+          "medium",
+          "large",
+          "extra_large"
+        ]
+      },
+      "description": "Dog sizes the trainer works with",
+      "default": []
+    },
+    "dog_breeds_handled": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specific dog breeds the trainer has experience with",
+      "default": []
+    },
+    "breed_specialization": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Breeds the trainer specializes in",
+      "default": []
+    },
+    "accepted_animals": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "dogs",
+          "cats",
+          "reptiles",
+          "arachnids",
+          "rodents",
+          "birds"
+        ]
+      },
+      "description": "Types of animals the trainer accepts",
+      "default": [
+        "dogs"
+      ]
+    },
+    "consultation_options": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "in_person",
+          "online",
+          "hybrid"
+        ]
+      },
+      "description": "Available consultation methods",
+      "default": []
+    },
+    "availability": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "morning",
+          "afternoon",
+          "evening",
+          "weekend"
+        ]
+      },
+      "description": "Time slots when trainer is available",
+      "default": []
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Languages spoken",
+      "default": []
+    },
+    "rating": {
+      "type": "number",
+      "description": "Average rating (1-5)",
+      "default": 5
+    },
+    "total_clients": {
+      "type": "number",
+      "description": "Total number of clients trained",
+      "default": 0
+    },
+    "success_rate": {
+      "type": "number",
+      "description": "Success rate percentage",
+      "default": 0
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether accepting new clients"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the trainer is officially verified by PawC\u00e3o"
+    },
+    "is_verified_trainer": {
+      "type": "boolean",
+      "default": false,
+      "description": "Verifica\u00e7\u00e3o espec\u00edfica para treinadores (badge roxo)"
+    },
+    "is_pawcao_employee": {
+      "type": "boolean",
+      "default": false,
+      "description": "Funcion\u00e1rio oficial da PawC\u00e3o (Gold Badge)"
+    },
+    "portfolio": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "media_url": {
+            "type": "string"
+          },
+          "media_type": {
+            "type": "string",
+            "enum": [
+              "photo",
+              "video"
+            ]
+          },
+          "dog_name": {
+            "type": "string"
+          },
+          "owner_name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "before_after",
+              "training_session",
+              "milestone",
+              "graduation",
+              "competition",
+              "testimonial"
+            ]
+          },
+          "is_featured": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "Portfolio showcasing training results",
+      "default": []
+    },
+    "success_stories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "dog_name": {
+            "type": "string"
+          },
+          "dog_breed": {
+            "type": "string"
+          },
+          "owner_name": {
+            "type": "string"
+          },
+          "initial_problem": {
+            "type": "string"
+          },
+          "solution": {
+            "type": "string"
+          },
+          "duration_weeks": {
+            "type": "number"
+          },
+          "before_photo_url": {
+            "type": "string"
+          },
+          "after_photo_url": {
+            "type": "string"
+          },
+          "video_url": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "testimonial": {
+            "type": "string"
+          },
+          "skills_learned": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "description": "Detailed training success stories with before/after",
+      "default": []
+    },
+    "training_philosophy": {
+      "type": "string",
+      "description": "Trainer's personal training philosophy and approach"
+    },
+    "specializations_detailed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "years_experience": {
+            "type": "number"
+          },
+          "success_rate": {
+            "type": "number"
+          },
+          "clients_helped": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Detailed specialization information",
+      "default": []
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "requires_documents",
+        "pending",
+        "verified",
+        "rejected"
+      ],
+      "default": "requires_documents",
+      "description": "Verification status"
+    },
+    "total_earnings": {
+      "type": "number",
+      "description": "Total earnings",
+      "default": 0
+    },
+    "id_document_url": {
+      "type": "string",
+      "description": "URL of ID document for verification"
+    },
+    "proof_of_address_url": {
+      "type": "string",
+      "description": "URL of proof of address"
+    },
+    "stripe_account_id": {
+      "type": "string",
+      "description": "Stripe Connect account ID"
+    },
+    "stripe_charges_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether Stripe charges are enabled"
+    },
+    "stripe_payouts_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether Stripe payouts are enabled"
+    },
+    "stripe_onboarding_complete": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether Stripe onboarding is complete"
+    }
+  },
+  "required": [
+    "trainer_name",
+    "location",
+    "hourly_rate"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "is_active": true,
+          "verification_status": "verified"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

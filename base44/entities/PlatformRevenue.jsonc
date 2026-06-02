@@ -1,0 +1,82 @@
+{
+  "name": "PlatformRevenue",
+  "type": "object",
+  "properties": {
+    "revenue_type": {
+      "type": "string",
+      "enum": [
+        "subscription",
+        "breakage",
+        "commission",
+        "shop_margin",
+        "premium_feature"
+      ],
+      "description": "Tipo de receita"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "ID da fonte (subscri\u00e7\u00e3o, wallet, booking)"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email do utilizador associado"
+    },
+    "gross_amount": {
+      "type": "number",
+      "description": "Valor bruto"
+    },
+    "cost_amount": {
+      "type": "number",
+      "description": "Custo (pagamento a walker, produto, etc)"
+    },
+    "net_profit": {
+      "type": "number",
+      "description": "Lucro l\u00edquido"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da transa\u00e7\u00e3o"
+    },
+    "plan_type": {
+      "type": "string",
+      "enum": [
+        "FREE",
+        "BASIC",
+        "PREMIUM",
+        "VIP"
+      ],
+      "description": "Plano do utilizador"
+    },
+    "period_month": {
+      "type": "string",
+      "description": "M\u00eas de refer\u00eancia (YYYY-MM)"
+    }
+  },
+  "required": [
+    "revenue_type",
+    "gross_amount",
+    "net_profit"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
