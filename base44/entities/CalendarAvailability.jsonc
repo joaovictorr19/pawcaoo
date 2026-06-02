@@ -65,12 +65,12 @@
   ],
   "rls": {
     "create": {
-      "professional_email": "{{user.email}}"
+      "data.professional_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "professional_email": "{{user.email}}"
+          "data.professional_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -82,7 +82,7 @@
     "update": {
       "$or": [
         {
-          "professional_email": "{{user.email}}"
+          "data.professional_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -94,7 +94,7 @@
     "delete": {
       "$or": [
         {
-          "professional_email": "{{user.email}}"
+          "data.professional_email": "{{user.email}}"
         },
         {
           "user_condition": {
