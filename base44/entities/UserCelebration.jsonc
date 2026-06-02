@@ -31,15 +31,15 @@
   ],
   "rls": {
     "create": {
-      "from_email": "{{user.email}}"
+      "data.from_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "from_email": "{{user.email}}"
+          "data.from_email": "{{user.email}}"
         },
         {
-          "to_email": "{{user.email}}"
+          "data.to_email": "{{user.email}}"
         },
         {
           "user_condition": {
