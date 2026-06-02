@@ -47,24 +47,12 @@
   ],
   "rls": {
     "create": {
-      "created_by": "{{user.email}} "
+      "created_by": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "created_by": "{{user.email}} "
-        },
-        {
-          "data.shelter_id": {
-            "$in": [
-              {
-                "entities": "ShelterProfile",
-                "query": {
-                  "created_by": "{{user.email}}"
-                }
-              }
-            ]
-          }
+          "created_by": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -76,7 +64,7 @@
     "update": {
       "$or": [
         {
-          "created_by": "{{user.email}} "
+          "created_by": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -88,7 +76,7 @@
     "delete": {
       "$or": [
         {
-          "created_by": "{{user.email}} "
+          "created_by": "{{user.email}}"
         },
         {
           "user_condition": {
