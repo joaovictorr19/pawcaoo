@@ -113,7 +113,7 @@
     "create": {
       "$or": [
         {
-          "walker_email": "{{user.email}}"
+          "data.walker_email": "{{user.email}}"
         },
         {
           "created_by": "{{user.email}}"
@@ -123,7 +123,7 @@
     "read": {
       "$or": [
         {
-          "walker_email": "{{user.email}}"
+          "data.walker_email": "{{user.email}}"
         },
         {
           "created_by": "{{user.email}}"
@@ -138,7 +138,7 @@
     "update": {
       "$or": [
         {
-          "walker_email": "{{user.email}}"
+          "data.walker_email": "{{user.email}}"
         },
         {
           "user_condition": {
