@@ -71,24 +71,15 @@
   ],
   "rls": {
     "create": {
-      "user_email": "{{user.email}}"
+      "data.user_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "user_email": "{{user.email}}"
+          "data.user_email": "{{user.email}}"
         },
         {
-          "data.partner_id": {
-            "$in": [
-              {
-                "entities": "PartnerCompany",
-                "query": {
-                  "company_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
+          "data.partner_company_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -100,16 +91,7 @@
     "update": {
       "$or": [
         {
-          "data.partner_id": {
-            "$in": [
-              {
-                "entities": "PartnerCompany",
-                "query": {
-                  "company_email": "{{user.email}}"
-                }
-              }
-            ]
-          }
+          "data.partner_company_email": "{{user.email}}"
         },
         {
           "user_condition": {
