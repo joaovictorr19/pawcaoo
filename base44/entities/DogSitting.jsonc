@@ -190,7 +190,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "walker_email": "{{user.email}}"
+          "data.walker_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -205,7 +205,7 @@
           "created_by": "{{user.email}}"
         },
         {
-          "walker_email": "{{user.email}}"
+          "data.walker_email": "{{user.email}}"
         },
         {
           "user_condition": {
