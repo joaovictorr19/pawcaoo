@@ -64,11 +64,10 @@
     "badge_definition_id"
   ],
   "rls": {
-    "read": {},
     "create": {
       "$or": [
         {
-          "user_email": "{{user.email}}"
+          "data.user_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -77,6 +76,7 @@
         }
       ]
     },
+    "read": {},
     "update": {
       "user_condition": {
         "role": "admin"
