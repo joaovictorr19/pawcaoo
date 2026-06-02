@@ -109,12 +109,12 @@
   ],
   "rls": {
     "create": {
-      "customer_email": "{{user.email}}"
+      "data.customer_email": "{{user.email}}"
     },
     "read": {
       "$or": [
         {
-          "customer_email": "{{user.email}}"
+          "data.customer_email": "{{user.email}}"
         },
         {
           "user_condition": {
