@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import { BarChart3, History, PawPrint, Settings } from "lucide-react";
+import { BarChart3, CalendarDays, PawPrint, Settings } from "lucide-react";
 
 export function ClientTabBar({ active, onChange }) {
   const tabs = [
     { id: "overview", label: "Resumo", icon: BarChart3 },
-    { id: "history", label: "Histórico", icon: History },
+    { id: "bookings", label: "Reservas", icon: CalendarDays },
     { id: "dogs", label: "Animais", icon: PawPrint },
-    { id: "client_data", label: "Dados", icon: Settings },
+    { id: "client_data", label: "Perfil", icon: Settings },
   ];
 
   return (

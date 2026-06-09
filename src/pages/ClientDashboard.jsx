@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClientTabBar } from "@/components/client/ClientTabBar";
 import { Button } from "@/components/ui/button";
@@ -9,25 +9,59 @@ import WalkReport from "@/components/client/WalkReport";
 import MyDogsManager from "@/components/profile/MyDogsManager";
 import ClientDataSettings from "@/components/client/ClientDataSettings";
 import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
-import { 
-  History,
-  MapPin,
-  Star,
-  Shield,
-  Award,
-  ChevronRight
+import {
+  History, MapPin, Star, Shield, Award, ChevronRight,
+  CalendarDays, PawPrint, Clock, CheckCircle2, XCircle, AlertCircle, User
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
+const statusConfig = {
+  pending:          { label: "Pendente",    color: "text-yellow-400", bg: "bg-yellow-500/10", icon: Clock },
+  confirmed:        { label: "Confirmada",  color: "text-blue-400",   bg: "bg-blue-500/10",   icon: CheckCircle2 },
+  in_progress:      { label: "Em progresso",color: "text-green-400",  bg: "bg-green-500/10",  icon: AlertCircle },
+  service_completed:{ label: "Concluída",   color: "text-green-400",  bg: "bg-green-500/10",  icon: CheckCircle2 },
+  completed:        { label: "Concluída",   color: "text-slate-400",  bg: "bg-slate-500/10",  icon: CheckCircle2 },
+  cancelled:        { label: "Cancelada",   color: "text-red-400",    bg: "bg-red-500/10",    icon: XCircle },
+  rejected:         { label: "Rejeitada",   color: "text-red-400",    bg: "bg-red-500/10",    icon: XCircle },
+};
+
+function BookingCard({ booking, onClick }) {
+  const cfg = statusConfig[booking.status] || statusConfig.pending;
+  const Icon = cfg.icon;
+  const dateStr = booking.walk_date || booking.session_date;
+  return (
+    <Card
+      className="bg-slate-900 border border-white/5 hover:border-orange-500/30 transition-all cursor-pointer"
+      onClick={() => onClick(booking)}
+    >
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+          <span className="text-2xl">🐕</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-white text-sm truncate">{booking.dog_name || booking.dogs?.map(d => d.dog_name).join(', ') || 'Cão'}</p>
+          <p className="text-xs text-slate-400 truncate">
+            {booking.walker_name || booking.trainer_name || '—'} · {dateStr ? format(new Date(dateStr + 'T12:00:00'), "dd MMM yyyy", { locale: ptBR }) : '—'}
+          </p>
+        </div>
+        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.color} flex-shrink-0`}>
+          <Icon className="w-3 h-3" />
+          {cfg.label}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function ClientDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [bookingsFilter, setBookingsFilter] = useState('active');
 
-  // Fetch current user
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
@@ -35,237 +69,236 @@ export default function ClientDashboard() {
       try {
         const imp = JSON.parse(localStorage.getItem('impersonation') || 'null');
         if (imp?.targetUserId && u?.role === 'admin') {
-           const t = await base44.entities.User.filter({ id: imp.targetUserId });
-           if (t.length > 0) u = { ...t[0], isImpersonating: true };
+          const t = await base44.entities.User.filter({ id: imp.targetUserId });
+          if (t.length > 0) u = { ...t[0], isImpersonating: true };
         }
-      } catch(e) {}
+      } catch (e) {}
       return u;
     }
   });
 
-  // Fetch all bookings for this client
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
-    queryKey: ['clientBookings', user?.email],
+  const { data: allBookings = [], isLoading: bookingsLoading } = useQuery({
+    queryKey: ['clientAllBookings', user?.email],
     queryFn: async () => {
-      const allBookings = await base44.entities.Booking.filter(
-        {
-          created_by: user.email,
-          payment_status: { '$in': ['held', 'released'] },
-          status: { '$in': ['confirmed', 'in_progress', 'service_completed', 'completed'] }
-        },
-        '-walk_date'
-      );
-      return allBookings;
+      const [walks, trainings] = await Promise.all([
+        base44.entities.Booking.filter({ owner_email: user.email }, '-walk_date', 50),
+        base44.entities.TrainingBooking
+          ? base44.entities.TrainingBooking.filter({ owner_email: user.email }, '-session_date', 50).catch(() => [])
+          : Promise.resolve([])
+      ]);
+      return [...walks, ...trainings].sort((a, b) => {
+        const da = a.walk_date || a.session_date || '';
+        const db = b.walk_date || b.session_date || '';
+        return db.localeCompare(da);
+      });
     },
     enabled: !!user?.email,
   });
 
-  // Fetch checkpoints for selected booking
   const { data: checkpoints = [] } = useQuery({
     queryKey: ['bookingCheckpoints', selectedBooking?.id],
-    queryFn: async () => {
-      const points = await base44.entities.WalkCheckpoint.filter(
-        { booking_id: selectedBooking.id },
-        'timestamp'
-      );
-      return points;
-    },
+    queryFn: () => base44.entities.WalkCheckpoint.filter({ booking_id: selectedBooking.id }, 'timestamp'),
     enabled: !!selectedBooking?.id,
   });
 
-  // Calculate stats
   const stats = useMemo(() => {
-    const completed = bookings.filter(b => b.status === 'completed');
+    const completed = allBookings.filter(b => b.status === 'completed');
     const totalDistance = completed.reduce((sum, b) => sum + (b.distance_km || 0), 0);
-    const totalWalks = completed.length;
-    const avgRating = completed.reduce((sum, b) => sum + (b.walker_rating || 0), 0) / (totalWalks || 1);
-    
     return {
-      totalWalks,
+      totalWalks: completed.length,
       totalDistance: totalDistance.toFixed(1),
-      avgRating: avgRating.toFixed(1),
-      nextWalk: bookings.find(b => b.status === 'confirmed' || b.status === 'service_completed'),
-      activeWalk: bookings.find(b => b.status === 'in_progress'),
+      avgRating: completed.length ? (completed.reduce((sum, b) => sum + (b.walker_rating || 0), 0) / completed.length).toFixed(1) : '—',
+      activeWalk: allBookings.find(b => b.status === 'in_progress'),
+      nextWalk: allBookings.find(b => b.status === 'confirmed'),
     };
-  }, [bookings]);
+  }, [allBookings]);
 
-  if (userLoading || bookingsLoading) {
+  const filteredBookings = useMemo(() => {
+    if (bookingsFilter === 'active') return allBookings.filter(b => ['pending','confirmed','in_progress','service_completed'].includes(b.status));
+    if (bookingsFilter === 'completed') return allBookings.filter(b => b.status === 'completed');
+    if (bookingsFilter === 'cancelled') return allBookings.filter(b => ['cancelled','rejected'].includes(b.status));
+    return allBookings;
+  }, [allBookings, bookingsFilter]);
+
+  if (userLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">A carregar painel...</p>
-        </div>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500/30" style={{ paddingBottom: 'calc(110px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
-      <header className="bg-slate-950 px-4 pt-6 md:pt-20 pb-6 rounded-b-[2.5rem] shadow-xl mb-6">
-        <h1 className="text-xl font-black italic">Olá, {user?.full_name?.split(' ')[0] || 'Amigo'}! 🐾</h1>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Painel do Cliente</p>
+    <div className="min-h-screen bg-slate-950 text-white font-sans" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
+      {/* Header */}
+      <header className="px-4 pt-6 md:pt-20 pb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center flex-shrink-0">
+            {user?.profile_photo_url
+              ? <img src={user.profile_photo_url} alt="" className="w-12 h-12 rounded-full object-cover" />
+              : <User className="w-6 h-6 text-white" />
+            }
+          </div>
+          <div>
+            <h1 className="text-lg font-black">Olá, {user?.full_name?.split(' ')[0] || 'Amigo'}! 🐾</h1>
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Painel do Cliente</p>
+          </div>
+        </div>
       </header>
 
-      <main className="px-4 md:px-6 pb-6 max-w-2xl mx-auto w-full">
+      <main className="px-4 pb-6 max-w-2xl mx-auto w-full">
         <AnimatePresence mode="wait">
+
+          {/* ─── OVERVIEW ─── */}
           {activeTab === 'overview' && (
-            <motion.div key="ov" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="space-y-6">
-              {/* Active Walk Alert */}
+            <motion.div key="ov" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+              {/* Passeio ativo */}
               {stats.activeWalk && (
-                <Card className="mb-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0 shadow-xl">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold mb-1 text-white/80">🔴 Passeio Ativo</p>
-                        <h3 className="text-xl font-bold">{stats.activeWalk.dog_name} está a passear!</h3>
-                        <p className="text-sm text-white/90 mt-1">Com {stats.activeWalk.walker_name}</p>
-                      </div>
-                      <Button onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${stats.activeWalk.id}`))} className="bg-white text-green-600 hover:bg-white/90 font-bold">Ver ao Vivo →</Button>
+                <Card className="bg-gradient-to-r from-green-600 to-emerald-600 border-0">
+                  <CardContent className="p-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold text-white/80 mb-0.5">🔴 Passeio Ativo</p>
+                      <p className="font-bold text-white">{stats.activeWalk.dog_name} está a passear!</p>
+                      <p className="text-xs text-white/80">Com {stats.activeWalk.walker_name}</p>
                     </div>
+                    <Button size="sm" onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${stats.activeWalk.id}`))} className="bg-white text-green-700 hover:bg-white/90 font-bold whitespace-nowrap">
+                      Ver →
+                    </Button>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Next Walk & Security Pass */}
+              {/* Próxima reserva */}
               {stats.nextWalk && (
-                <Card className="border border-blue-500/30 bg-slate-900 shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
+                <Card className="bg-slate-900 border border-blue-500/30">
+                  <CardContent className="p-4">
+                    <p className="text-xs font-semibold text-blue-400 mb-2">📅 Próxima Reserva</p>
+                    <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-blue-400 mb-1">📅 Próximo Passeio</p>
-                        <h3 className="text-xl font-bold text-white">{stats.nextWalk.dog_name}</h3>
-                        <p className="text-sm text-slate-300 mt-1">{format(new Date(stats.nextWalk.walk_date), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}</p>
-                        <p className="text-sm text-slate-400 mt-1">Passeador: {stats.nextWalk.walker_name}</p>
+                        <p className="font-bold text-white">{stats.nextWalk.dog_name}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {stats.nextWalk.walk_date ? format(new Date(stats.nextWalk.walk_date + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR }) : '—'} · {stats.nextWalk.walker_name}
+                        </p>
                       </div>
-                      <Shield className="w-12 h-12 text-blue-400" />
+                      <Shield className="w-8 h-8 text-blue-400 flex-shrink-0" />
                     </div>
-                    <WalkSecurityPass booking={stats.nextWalk} />
+                    <div className="mt-3">
+                      <WalkSecurityPass booking={stats.nextWalk} />
+                    </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-slate-900 border border-white/5">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-slate-400 font-medium mb-1">Total de Passeios</p>
-                        <p className="text-3xl font-bold text-white">{stats.totalWalks}</p>
-                      </div>
-                      <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
-                        <History className="w-6 h-6 text-orange-500" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-slate-900 border border-white/5">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-slate-400 font-medium mb-1">Distância Total</p>
-                        <p className="text-3xl font-bold text-white">{stats.totalDistance}</p>
-                        <p className="text-[10px] text-slate-400 mt-1">km percorridos</p>
-                      </div>
-                      <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
-                        <MapPin className="w-6 h-6 text-green-500" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-slate-900 border border-white/5">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-slate-400 font-medium mb-1">Avaliação Média</p>
-                        <div className="flex items-baseline gap-2">
-                          <p className="text-3xl font-bold text-white">{stats.avgRating}</p>
-                          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                        </div>
-                      </div>
-                      <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center">
-                        <Award className="w-6 h-6 text-yellow-500" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'history' && (
-            <motion.div key="hist" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-              <div className="space-y-4">
-                {bookings.filter(b => b.status === 'completed').length === 0 ? (
-                  <Card className="p-12 text-center bg-slate-900 border border-white/5">
-                    <History className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-white mb-2">Nenhum passeio ainda</h3>
-                    <p className="text-slate-400 mb-6">Reserve o primeiro passeio para começar!</p>
-                    <Button onClick={() => navigate(createPageUrl('Home'))}>Encontrar Passeador</Button>
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Passeios", value: stats.totalWalks, icon: History, color: "text-orange-500" },
+                  { label: "Distância", value: `${stats.totalDistance} km`, icon: MapPin, color: "text-green-500" },
+                  { label: "Avaliação", value: stats.avgRating, icon: Star, color: "text-yellow-500" },
+                ].map(s => (
+                  <Card key={s.label} className="bg-slate-900 border border-white/5">
+                    <CardContent className="p-3 flex flex-col items-center text-center gap-1">
+                      <s.icon className={`w-5 h-5 ${s.color}`} />
+                      <p className="text-lg font-black text-white leading-none">{s.value}</p>
+                      <p className="text-[10px] text-slate-500 font-medium">{s.label}</p>
+                    </CardContent>
                   </Card>
-                ) : (
-                  bookings
-                    .filter(b => b.status === 'completed')
-                    .map((booking) => (
-                      <Card key={booking.id} className="cursor-pointer hover:shadow-xl transition-all bg-slate-900 border border-white/5 hover:border-orange-500/40" onClick={() => setSelectedBooking(booking)}>
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                                <span className="text-3xl">🐕</span>
-                              </div>
-                              <div>
-                                <h3 className="font-bold text-lg text-white">{booking.dog_name}</h3>
-                                <p className="text-sm text-slate-400">{format(new Date(booking.walk_date), "dd 'de' MMMM, yyyy", { locale: ptBR })}</p>
-                                <p className="text-sm text-slate-500 mt-1">Passeador: {booking.walker_name}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="flex items-center gap-2 text-green-400 font-bold mb-2">
-                                <MapPin className="w-4 h-4" />
-                                {booking.distance_km?.toFixed(2)} km
-                              </div>
-                              <ChevronRight className="w-6 h-6 text-slate-500" />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                )}
+                ))}
+              </div>
+
+              {/* Atalhos rápidos */}
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => setActiveTab('bookings')} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
+                  <CalendarDays className="w-6 h-6 text-orange-400" />
+                  <p className="text-sm font-bold text-white">Minhas Reservas</p>
+                  <p className="text-xs text-slate-500">{allBookings.filter(b => ['pending','confirmed','in_progress'].includes(b.status)).length} ativas</p>
+                </button>
+                <button onClick={() => setActiveTab('dogs')} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
+                  <PawPrint className="w-6 h-6 text-pink-400" />
+                  <p className="text-sm font-bold text-white">Meus Animais</p>
+                  <p className="text-xs text-slate-500">Gerir perfis</p>
+                </button>
+                <button onClick={() => navigate(createPageUrl('Home'))} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
+                  <Award className="w-6 h-6 text-blue-400" />
+                  <p className="text-sm font-bold text-white">Encontrar Profissional</p>
+                  <p className="text-xs text-slate-500">Passeadores e treinadores</p>
+                </button>
+                <button onClick={() => setActiveTab('client_data')} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
+                  <User className="w-6 h-6 text-slate-400" />
+                  <p className="text-sm font-bold text-white">Meu Perfil</p>
+                  <p className="text-xs text-slate-500">Editar dados pessoais</p>
+                </button>
               </div>
             </motion.div>
           )}
 
+          {/* ─── RESERVAS ─── */}
+          {activeTab === 'bookings' && (
+            <motion.div key="bk" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {[
+                  { key: 'active', label: 'Ativas' },
+                  { key: 'completed', label: 'Concluídas' },
+                  { key: 'cancelled', label: 'Canceladas' },
+                  { key: 'all', label: 'Todas' },
+                ].map(f => (
+                  <button
+                    key={f.key}
+                    onClick={() => setBookingsFilter(f.key)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex-shrink-0 ${bookingsFilter === f.key ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              {bookingsLoading ? (
+                <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" /></div>
+              ) : filteredBookings.length === 0 ? (
+                <Card className="bg-slate-900 border border-white/5">
+                  <CardContent className="p-10 text-center">
+                    <CalendarDays className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                    <p className="text-white font-bold mb-1">Nenhuma reserva</p>
+                    <p className="text-slate-400 text-sm mb-4">Ainda não tens reservas nesta categoria</p>
+                    <Button size="sm" onClick={() => navigate(createPageUrl('Home'))}>Encontrar Profissional</Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {filteredBookings.map(b => (
+                    <BookingCard key={b.id} booking={b} onClick={setSelectedBooking} />
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ─── ANIMAIS ─── */}
           {activeTab === 'dogs' && (
-            <motion.div key="dogs" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+            <motion.div key="dogs" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
               <MyDogsManager userEmail={user?.email} />
             </motion.div>
           )}
 
+          {/* ─── PERFIL ─── */}
           {activeTab === 'client_data' && (
-            <motion.div key="client_data" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+            <motion.div key="cd" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
               <ClientDataSettings user={user} />
             </motion.div>
           )}
+
         </AnimatePresence>
       </main>
 
       <ClientTabBar active={activeTab} onChange={setActiveTab} />
 
-      {/* Report Modal */}
+      {/* Modal de relatório */}
       {selectedBooking && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setSelectedBooking(null)}
-        >
-          <div
-            className="max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-end md:items-center justify-center p-4" onClick={() => setSelectedBooking(null)}>
+          <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl" onClick={e => e.stopPropagation()}>
             <WalkReport booking={selectedBooking} checkpoints={checkpoints} />
-            <Button onClick={() => setSelectedBooking(null)} className="w-full mt-4 bg-gray-900 hover:bg-gray-800">
-              Fechar Relatório
+            <Button onClick={() => setSelectedBooking(null)} className="w-full mt-3 bg-slate-800 hover:bg-slate-700 rounded-2xl">
+              Fechar
             </Button>
           </div>
         </div>
