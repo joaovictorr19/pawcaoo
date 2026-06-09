@@ -4,6 +4,11 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    const user = await base44.auth.me();
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
+
     // Compute cutoff = first day of current month (UTC)
     const now = new Date();
     const cutoff = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));

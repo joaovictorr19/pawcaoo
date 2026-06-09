@@ -4,10 +4,13 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const { event, data } = await req.json();
+    // This function is called by entity automations — validate automation payload
+    const body = await req.json();
+    const { event, data } = body;
 
-    if (!data) {
-      return Response.json({ error: 'No data provided' }, { status: 400 });
+    // Must have event from automation — reject direct unauthenticated calls without payload
+    if (!event || !data) {
+      return Response.json({ error: 'Invalid automation payload' }, { status: 400 });
     }
 
     const professional_name = data.walker_name || data.trainer_name || 'Unknown';

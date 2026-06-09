@@ -7,6 +7,15 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
+    if (!user) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Only admins can create test bookings
+    if (user.role !== 'admin') {
+      return Response.json({ success: false, error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
+
     console.log('👤 User:', user?.email, 'Role:', user?.role);
 
     // Get walker from payload
