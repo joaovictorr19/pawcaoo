@@ -240,9 +240,9 @@ export default function AboutUs() {
   const t = content[language] || content.pt;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-green-600 via-green-500 to-blue-600 text-white py-16 md:py-24 px-4">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-20 md:py-32 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -262,76 +262,82 @@ export default function AboutUs() {
       <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
         {/* Mission */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mb-20"
         >
-          <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-8 md:p-12">
-              <div className="flex items-center gap-3 mb-4">
-                <Target className="w-10 h-10 text-green-600" />
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                  {t.missionTitle}
-                </h2>
+          <div className="max-w-4xl mx-auto bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 md:p-14 border border-blue-100/50">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                <Target className="w-7 h-7 text-white" />
               </div>
-              <p className="text-lg md:text-xl text-gray-700 leading-relaxed">
-                {t.missionText}
-              </p>
-            </CardContent>
-          </Card>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
+                {t.missionTitle}
+              </h2>
+            </div>
+            <p className="text-lg md:text-xl text-slate-700 leading-relaxed font-light">
+              {t.missionText}
+            </p>
+          </div>
         </motion.div>
 
         {/* Story */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="mb-20"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">
             {t.storyTitle}
           </h2>
-          <p className="text-lg text-gray-700 leading-relaxed">
-            {t.storyText}
-          </p>
+          <div className="prose prose-lg max-w-none text-slate-700">
+            {t.storyText.split('\n').map((paragraph, idx) => (
+              <p key={idx} className="text-lg leading-relaxed font-light mb-4 last:mb-0">
+                {paragraph}
+              </p>
+            ))}
+          </div>
         </motion.div>
 
         {/* Values */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="mb-20"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-12 text-center">
             {t.valuesTitle}
           </h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-8">
             {t.values.map((value, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <Card className="border-0 shadow-xl h-full hover:shadow-2xl transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <value.icon className="w-8 h-8 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
-                          {value.title}
-                        </h3>
-                        <p className="text-gray-700">
-                          {value.description}
-                        </p>
-                      </div>
+                <div className="h-full bg-white border border-slate-200 rounded-2xl p-8 hover:border-slate-300 hover:shadow-lg transition-all duration-300 group">
+                  <div className="flex items-start gap-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-slate-900 to-slate-700 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                      <value.icon className="w-8 h-8 text-white" />
                     </div>
-                  </CardContent>
-                </Card>
+                    <div>
+                      <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                        {value.title}
+                      </h3>
+                      <p className="text-slate-600 font-light leading-relaxed">
+                        {value.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -339,130 +345,84 @@ export default function AboutUs() {
 
         {/* Real-Time Stats */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="mb-20"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-12 text-center">
             {t.statsTitle}
           </h2>
           {loadingStats ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className="h-32 rounded-2xl" />
+                <Skeleton key={i} className="h-40 rounded-2xl" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.6 }}
-              >
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-green-500 to-blue-600 text-white hover:scale-105 transition-transform">
-                  <CardContent className="p-6 text-center">
-                    <TrendingUp className="w-8 h-8 mx-auto mb-3 opacity-80" />
-                    <div className="text-3xl md:text-4xl font-extrabold mb-2">
-                      {stats?.happyDogs?.toLocaleString('pt-PT') || 0}+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { icon: TrendingUp, label: language === 'pt' ? 'Cães Felizes' : language === 'es' ? 'Perros Felices' : 'Happy Dogs', value: stats?.happyDogs, gradient: 'from-emerald-600 to-teal-600', delay: 0.2 },
+                { icon: Users, label: language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals', value: stats?.totalProfessionals, gradient: 'from-blue-600 to-cyan-600', delay: 0.3 },
+                { icon: Heart, label: language === 'pt' ? 'Passeios' : language === 'es' ? 'Paseos' : 'Walks', value: stats?.totalWalks, gradient: 'from-rose-600 to-pink-600', delay: 0.4 },
+                { icon: Star, label: language === 'pt' ? 'Avaliação' : language === 'es' ? 'Calificación' : 'Rating', value: `${stats?.avgRating || '5.0'}/5`, gradient: 'from-amber-600 to-orange-600', delay: 0.5 }
+              ].map((stat, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: stat.delay }}
+                >
+                  <div className={`bg-gradient-to-br ${stat.gradient} text-white rounded-2xl p-8 text-center hover:shadow-2xl transition-all duration-300 group cursor-pointer`}>
+                    <stat.icon className="w-10 h-10 mx-auto mb-4 opacity-80 group-hover:scale-110 transition-transform duration-300" />
+                    <div className="text-4xl md:text-5xl font-bold mb-3">
+                      {typeof stat.value === 'number' ? stat.value.toLocaleString('pt-PT') : stat.value}+
                     </div>
-                    <div className="text-sm md:text-base text-white/90">
-                      {language === 'pt' ? 'Cães Felizes' : language === 'es' ? 'Perros Felices' : 'Happy Dogs'}
+                    <div className="text-sm md:text-base text-white/80 font-medium">
+                      {stat.label}
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.7 }}
-              >
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white hover:scale-105 transition-transform">
-                  <CardContent className="p-6 text-center">
-                    <Users className="w-8 h-8 mx-auto mb-3 opacity-80" />
-                    <div className="text-3xl md:text-4xl font-extrabold mb-2">
-                      {stats?.totalProfessionals?.toLocaleString('pt-PT') || 0}+
-                    </div>
-                    <div className="text-sm md:text-base text-white/90">
-                      {language === 'pt' ? 'Profissionais Verificados' : language === 'es' ? 'Profesionales Verificados' : 'Verified Professionals'}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.8 }}
-              >
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-purple-500 to-pink-600 text-white hover:scale-105 transition-transform">
-                  <CardContent className="p-6 text-center">
-                    <Heart className="w-8 h-8 mx-auto mb-3 opacity-80" />
-                    <div className="text-3xl md:text-4xl font-extrabold mb-2">
-                      {stats?.totalWalks?.toLocaleString('pt-PT') || 0}+
-                    </div>
-                    <div className="text-sm md:text-base text-white/90">
-                      {language === 'pt' ? 'Passeios Realizados' : language === 'es' ? 'Paseos Realizados' : 'Walks Completed'}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.9 }}
-              >
-                <Card className="border-0 shadow-xl bg-gradient-to-br from-yellow-500 to-orange-600 text-white hover:scale-105 transition-transform">
-                  <CardContent className="p-6 text-center">
-                    <Star className="w-8 h-8 mx-auto mb-3 opacity-80 fill-white" />
-                    <div className="text-3xl md:text-4xl font-extrabold mb-2">
-                      {stats?.avgRating || '5.0'}/5
-                    </div>
-                    <div className="text-sm md:text-base text-white/90">
-                      {language === 'pt' ? 'Avaliação Média' : language === 'es' ? 'Calificación Promedio' : 'Average Rating'}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           )}
         </motion.div>
 
         {/* Why Choose */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-          className="mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="mb-20"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-12 text-center">
             {t.whyTitle}
           </h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-8">
             {t.whyItems.map((item, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, delay: 0.8 + index * 0.1 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <Card className="border-0 shadow-xl h-full">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <item.icon className="w-8 h-8 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-sm text-gray-700">
-                        {item.description}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="bg-white border border-slate-200 rounded-2xl p-8 h-full hover:border-slate-300 hover:shadow-lg transition-all duration-300 group flex gap-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-slate-900 to-slate-700 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                    <item.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                      {item.title}
+                    </h3>
+                    <p className="text-slate-600 font-light">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -470,41 +430,54 @@ export default function AboutUs() {
 
         {/* Team */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-          className="mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="mb-20"
         >
-          <Card className="border-0 shadow-2xl bg-gradient-to-br from-purple-50 to-blue-50">
-            <CardContent className="p-8 md:p-12 text-center">
-              <Users className="w-16 h-16 text-purple-600 mx-auto mb-4" />
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                {t.teamTitle}
-              </h2>
-              <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-                {t.teamText}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-12 md:p-16 border border-slate-200">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-slate-900 to-slate-700 rounded-2xl flex items-center justify-center">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 text-center">
+              {t.teamTitle}
+            </h2>
+            <p className="text-lg text-slate-700 max-w-3xl mx-auto text-center font-light leading-relaxed">
+              {t.teamText}
+            </p>
+          </div>
         </motion.div>
 
         {/* CTA */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.0 }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
         >
-          <Card className="border-0 shadow-2xl bg-gradient-to-br from-green-600 to-blue-600 text-white">
-            <CardContent className="p-8 md:p-12 text-center">
-              <Star className="w-16 h-16 mx-auto mb-4" />
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-12 md:p-16 text-white text-center overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10">
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="inline-block mb-6"
+              >
+                <Star className="w-16 h-16 mx-auto" />
+              </motion.div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
                 {t.joinTitle}
               </h2>
-              <p className="text-xl text-white/90 mb-6">
+              <p className="text-xl text-white/90 max-w-2xl mx-auto font-light leading-relaxed">
                 {t.joinText}
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>
