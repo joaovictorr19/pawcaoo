@@ -115,23 +115,23 @@ export default function HotelDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 px-4 py-4 sticky top-0 z-20">
+      {/* Header — cor exclusiva do painel de hotéis */}
+      <div className="bg-gradient-to-r from-purple-700 to-purple-500 px-4 py-4 sticky top-0 z-20 shadow-lg">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-2xl flex items-center justify-center">
-              <Hotel className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
+              <Hotel className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-black text-slate-900 text-base">{hotelProfile?.walker_name || "Hotel"}</h1>
-              <p className="text-xs text-slate-400">{hotelProfile?.location}</p>
+              <h1 className="font-black text-white text-base">{hotelProfile?.walker_name || "Hotel"}</h1>
+              <p className="text-xs text-purple-200">{hotelProfile?.location}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className={`text-xs ${hotelProfile?.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
+            <Badge className={`text-xs border-0 ${hotelProfile?.is_active ? "bg-green-400/30 text-green-100" : "bg-red-400/30 text-red-100"}`}>
               {hotelProfile?.is_active ? "Ativo" : "Inativo"}
             </Badge>
-            <Button size="sm" variant="outline" onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}>
+            <Button size="sm" variant="outline" className="border-white/40 text-white bg-white/10 hover:bg-white/20" onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}>
               Editar Perfil
             </Button>
           </div>

@@ -96,7 +96,13 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
       onClick={handleCardClick}
       className="cursor-pointer group"
     >
-      <Card className="glass-panel border-0 shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full rounded-3xl">
+      <Card className={`glass-panel shadow-xl hover:shadow-2xl transition-all overflow-hidden h-full rounded-3xl ${
+        walker.professional_type === 'hotel'
+          ? 'border-2 border-purple-400 ring-2 ring-purple-300/40 shadow-purple-100'
+          : (walker.has_pawcao_seal || walker.is_pawcao_employee)
+            ? 'border-2 border-amber-400 ring-2 ring-amber-300/40 shadow-amber-100'
+            : 'border-0'
+      }`}>
         <div className="relative h-48 sm:h-52 md:h-60 bg-gradient-to-br from-green-100 to-blue-100 overflow-hidden rounded-t-xl">
           {walker.photo_url ? (
             <img

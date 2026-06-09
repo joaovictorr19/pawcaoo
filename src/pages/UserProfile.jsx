@@ -381,7 +381,14 @@ export default function UserProfile() {
       <div className="relative -mt-20 px-6">
         <div className="flex flex-col items-center mb-8">
           <div className="relative">
-            <Avatar className="w-32 h-32 border-4 border-white shadow-2xl rounded-[2.5rem]">
+            {/* Anel colorido: roxo para hotel, âmbar para PawCão, branco padrão */}
+            <Avatar className={`w-32 h-32 shadow-2xl rounded-[2.5rem] border-4 ${
+              walkerProfile?.professional_type === 'hotel'
+                ? 'border-purple-400 ring-4 ring-purple-300/50'
+                : (walkerProfile?.has_pawcao_seal || walkerProfile?.is_pawcao_employee)
+                  ? 'border-amber-400 ring-4 ring-amber-300/50'
+                  : 'border-white'
+            }`}>
               <AvatarImage
                 src={displayPhotoUrl}
                 className="object-cover w-full h-full"
