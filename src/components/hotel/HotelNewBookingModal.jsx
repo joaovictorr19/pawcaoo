@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Plus, Minus } from "lucide-react";
+import { X, Plus, Minus, CreditCard, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
 
 const SERVICE_OPTIONS = [
   { value: "boarding", label: "🛏️ Alojamento (noites)" },
@@ -19,6 +21,7 @@ const DOG_SIZES = [
 ];
 
 export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelProfile, partners = [], defaultDate }) {
+  const [payingNow, setPayingNow] = useState(false);
   const [form, setForm] = useState({
     owner_name: "",
     owner_email: "",
@@ -46,19 +49,66 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const addDog = () => setForm(f => ({ ...f, dogs: [...f.dogs, { dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "" }] }));
   const removeDog = (i) => setForm(f => ({ ...f, dogs: f.dogs.filter((_, idx) => idx !== i) }));
 
+  const buildPayload = () => ({
+    ...form,
+    total_dogs: form.dogs.length,
+    total_amount: parseFloat(form.total_amount) || 0,
+    hotel_profile_id: hotelProfile?.id,
+    hotel_name: hotelProfile?.walker_name || hotelProfile?.hotel_details?.hotel_name,
+    hotel_email: hotelProfile?.created_by,
+    status: "confirmed",
+    payment_status: "pending",
+  });
+
   const handleSave = () => {
     if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) return;
-    onSave({
-      ...form,
-      total_dogs: form.dogs.length,
-      total_amount: parseFloat(form.total_amount) || 0,
-      hotel_profile_id: hotelProfile?.id,
-      hotel_name: hotelProfile?.walker_name,
-      hotel_email: hotelProfile?.created_by,
-      status: "confirmed",
-      payment_status: "pending",
-    });
+    onSave(buildPayload());
     onClose();
+  };
+
+  const handlePayNow = async () => {
+    if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) {
+      toast.error("Preenche o nome do dono e a data de check-in.");
+      return;
+    }
+    const amount = parseFloat(form.total_amount);
+    if (!amount || amount <= 0) {
+      toast.error("Insere um valor total válido para efectuar o pagamento.");
+      return;
+    }
+    setPayingNow(true);
+    try {
+      const payload = {
+        hotel_profile_id: hotelProfile?.id,
+        hotel_name: hotelProfile?.walker_name || hotelProfile?.hotel_details?.hotel_name,
+        hotel_email: hotelProfile?.created_by,
+        owner_name: form.owner_name,
+        owner_email: form.owner_email,
+        owner_phone: form.owner_phone,
+        dogs: form.dogs,
+        service_type: form.service_type,
+        checkin_date: form.checkin_date,
+        checkout_date: form.checkout_date || form.checkin_date,
+        checkin_time: form.checkin_time,
+        checkout_time: form.checkout_time,
+        total_nights: form.checkout_date ? Math.max(1, Math.ceil((new Date(form.checkout_date) - new Date(form.checkin_date)) / 86400000)) : 1,
+        total_dogs: form.dogs.length,
+        total_amount: amount,
+        platform_fee: parseFloat((amount * 0.10).toFixed(2)),
+        service_amount: parseFloat((amount * 0.90).toFixed(2)),
+        special_requests: form.special_requests,
+        assigned_walker_email: form.assigned_walker_email,
+        assigned_walker_name: form.assigned_walker_name,
+      };
+      const res = await base44.functions.invoke("createHotelCheckout", payload);
+      const { url, error } = res.data;
+      if (error) { toast.error(error); return; }
+      if (url) window.location.href = url;
+    } catch (err) {
+      toast.error("Erro ao iniciar pagamento: " + err.message);
+    } finally {
+      setPayingNow(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -181,12 +231,26 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
         </div>
 
         {/* Footer */}
-        <div className="px-5 pb-6 flex gap-3 border-t border-purple-50 pt-4 bg-gradient-to-b from-white to-purple-50/30">
-          <Button variant="outline" onClick={onClose} className="flex-1 rounded-xl border-purple-100 text-purple-600 hover:bg-purple-50">Cancelar</Button>
-          <Button onClick={handleSave} disabled={!form.owner_name.trim() || !form.checkin_date}
-            className="flex-1 bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white rounded-xl font-black shadow-lg shadow-purple-500/30 disabled:opacity-40">
-            🏨 Criar Reserva
+        <div className="px-5 pb-6 border-t border-purple-50 pt-4 bg-gradient-to-b from-white to-purple-50/30 space-y-2">
+          {/* Pay with Stripe */}
+          <Button
+            onClick={handlePayNow}
+            disabled={payingNow || !form.owner_name.trim() || !form.checkin_date || !parseFloat(form.total_amount)}
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-black shadow-lg shadow-indigo-400/30 gap-2 disabled:opacity-40"
+          >
+            {payingNow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+            {payingNow ? "A redirecionar..." : `💳 Criar & Pagar ${parseFloat(form.total_amount) > 0 ? `(${parseFloat(form.total_amount).toFixed(2)}€)` : ""}`}
           </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} className="flex-1 rounded-xl border-purple-100 text-purple-600 hover:bg-purple-50">Cancelar</Button>
+            <Button onClick={handleSave} disabled={!form.owner_name.trim() || !form.checkin_date}
+              className="flex-1 bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white rounded-xl font-black shadow-lg shadow-purple-500/30 disabled:opacity-40">
+              🏨 Só Criar
+            </Button>
+          </div>
+          <p className="text-center text-[10px] text-slate-400">
+            "Criar &amp; Pagar" redireciona para checkout seguro Stripe
+          </p>
         </div>
       </div>
     </div>

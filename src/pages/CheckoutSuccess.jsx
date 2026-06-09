@@ -43,6 +43,7 @@ export default function CheckoutSuccess() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const bookingId = searchParams.get('booking_id');
+  const type = searchParams.get('type'); // 'booking' | 'hotel_booking'
   const [sessionDetails, setSessionDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,16 +51,49 @@ export default function CheckoutSuccess() {
   const updatePaymentMutation = useMutation({
     mutationFn: async () => {
       if (!bookingId) return;
-      
+
+      // --- Hotel booking ---
+      if (type === 'hotel_booking') {
+        const records = await base44.entities.HotelBooking.filter({ id: bookingId });
+        const booking = records[0];
+        if (!booking) return;
+
+        await base44.entities.HotelBooking.update(bookingId, {
+          status: 'confirmed',
+          payment_status: 'paid',
+        });
+
+        // Notify hotel
+        if (booking.hotel_email) {
+          await base44.entities.Notification.create({
+            recipient_email: booking.hotel_email,
+            title: '💰 Nova Reserva Paga!',
+            message: `Pagamento recebido de ${booking.owner_name} para ${booking.service_type} a partir de ${booking.checkin_date}.`,
+            type: 'booking',
+            related_id: bookingId,
+          });
+        }
+
+        return {
+          id: bookingId,
+          amount_total: (booking.total_amount || 0) * 100,
+          currency: 'eur',
+          payment_status: 'paid',
+          isHotel: true,
+          hotelName: booking.hotel_name,
+          serviceType: booking.service_type,
+          checkinDate: booking.checkin_date,
+          ownerName: booking.owner_name,
+        };
+      }
+
+      // --- Regular booking ---
       const bookings = await base44.entities.Booking.filter({ id: bookingId });
       const booking = bookings[0];
-      
       if (!booking) return;
-      
-      await base44.entities.Booking.update(bookingId, {
-        status: 'confirmed'
-      });
-      
+
+      await base44.entities.Booking.update(bookingId, { status: 'confirmed' });
+
       const payments = await base44.entities.Payment.filter({ booking_id: bookingId });
       if (payments.length > 0) {
         await base44.entities.Payment.update(payments[0].id, {
@@ -67,32 +101,36 @@ export default function CheckoutSuccess() {
           held_date: new Date().toISOString()
         });
       }
-      
+
       await base44.entities.Notification.create({
         recipient_email: booking.walker_email,
         title: '💰 Novo Passeio Confirmado!',
         message: `Pagamento recebido para ${booking.dog_name} em ${booking.walk_date}. Passeio confirmado!`,
         type: 'booking',
         related_id: bookingId,
-        priority: 'high'
       });
 
       return booking;
     },
-    onSuccess: (booking) => {
-      if (booking) {
-        setSessionDetails({
-          id: bookingId,
-          amount_total: booking.total_amount * 100,
-          currency: 'eur',
-          customer_email: booking.owner_email,
-          payment_status: 'paid',
-          dog_name: booking.dog_name,
-          walk_date: booking.walk_date,
-          bookingData: booking
-        });
+    onSuccess: (data) => {
+      if (data) {
+        if (data.isHotel) {
+          setSessionDetails(data);
+        } else {
+          setSessionDetails({
+            id: bookingId,
+            amount_total: data.total_amount * 100,
+            currency: 'eur',
+            customer_email: data.owner_email,
+            payment_status: 'paid',
+            dog_name: data.dog_name,
+            walk_date: data.walk_date,
+            bookingData: data
+          });
+        }
       }
       queryClient.invalidateQueries(['myWalks']);
+      queryClient.invalidateQueries(['hotelBookings']);
       setLoading(false);
     }
   });
@@ -103,12 +141,7 @@ export default function CheckoutSuccess() {
     } else {
       setLoading(false);
     }
-    
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
   }, [bookingId]);
 
 
@@ -176,10 +209,12 @@ export default function CheckoutSuccess() {
 
             {/* Success Message */}
             <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-4">
-              Pagamento Confirmado!
+              Pagamento Confirmado! 🎉
             </h1>
             <p className="text-center text-gray-600 text-lg mb-8">
-              O pagamento para o passeio de {sessionDetails?.dog_name} foi processado com sucesso.
+              {sessionDetails?.isHotel
+                ? `Reserva em ${sessionDetails.hotelName} confirmada com sucesso!`
+                : `O pagamento para o passeio de ${sessionDetails?.dog_name} foi processado com sucesso.`}
             </p>
 
             {/* Payment Details */}
