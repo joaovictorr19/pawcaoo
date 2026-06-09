@@ -42,34 +42,34 @@ export default function AboutUs() {
   const content = {
     pt: {
       title: "Sobre o PawCão",
-      subtitle: "A plataforma #1 de cuidados caninos em Portugal",
+      subtitle: "Nascido da Frustração com Plataformas Confusas",
       missionTitle: "A Nossa Missão",
-      missionText: "Conectar donos de cães com profissionais verificados e apaixonados, criando uma comunidade onde cada cão recebe o melhor cuidado possível.",
+      missionText: "Simplificar a forma como os donos de cães encontram profissionais, hotéis caninos e parceiros pet shop. Oferecemos eficiência, segurança e uma experiência tão intuitiva que qualquer pessoa consegue fazer uma reserva em segundos, sem burocracias desnecessárias.",
       
-      storyTitle: "A Nossa História",
-      storyText: "Fundado em 2024, o PawCão nasceu da paixão pelos cães e da necessidade de criar uma plataforma confiável onde donos possam encontrar profissionais qualificados. O que começou como uma ideia simples evoluiu para a maior rede de cuidados caninos em Portugal.",
+      storyTitle: "A Nossa História: Por Que Criamos o PawCão",
+      storyText: "Criámos o PawCão porque existe um problema real. Outros sites de cuidados para animais são confusos, longos em registos, cheios de passos desnecessários e francamente, não são eficientes. Vimos donos de cães frustrados, profissionais perdidos em interfaces complicadas, e hotéis caninos a gastar horas em processos que deviam levar minutos.\n\nDecidimos fazer diferente. O PawCão foi criado com um princípio simples: eficiência em primeiro lugar, sem comprometer a segurança. Queremos ser os líderes globais neste espaço, começando por Portugal e Espanha, criando uma plataforma que realmente serve as pessoas (e os cães).",
       
-      valuesTitle: "Os Nossos Valores",
+      valuesTitle: "Os Nossos Pilares",
       values: [
         {
-          icon: Heart,
-          title: "Paixão pelos Cães",
-          description: "Cada decisão que tomamos tem os cães no centro. O bem-estar animal é a nossa prioridade máxima."
+          icon: Zap,
+          title: "Eficiência Sem Compromissos",
+          description: "Reservas em segundos, registos simplificados. Nada de formulários longos ou processos confusos. Fazemos a tecnologia servir você, não o contrário."
         },
         {
           icon: Shield,
-          title: "Confiança & Segurança",
-          description: "Verificação rigorosa de todos os profissionais, seguro incluído, e pagamentos seguros para sua tranquilidade."
-        },
-        {
-          icon: Users,
-          title: "Comunidade",
-          description: "Construímos uma comunidade vibrante de amantes de cães, profissionais dedicados e proprietários responsáveis."
+          title: "Segurança Reforçada",
+          description: "Embora sejamos rápidos, nunca descuramos a segurança. Verificação rigorosa, pagamentos encriptados, e confiança total em cada transação."
         },
         {
           icon: Award,
-          title: "Qualidade",
-          description: "Mantemos os mais altos padrões de qualidade em todos os serviços oferecidos na plataforma."
+          title: "Gamificação & Recompensas",
+          description: "Torne a experiência divertida. Ganhe pontos, desbloqueie recompensas, e seja parte de uma comunidade que valoriza a lealdade."
+        },
+        {
+          icon: Users,
+          title: "Comunidade Global",
+          description: "Conectamos donos, profissionais, hotéis e pet shops. Um ecossistema completo onde todos prosperam juntos."
         }
       ],
 
@@ -78,63 +78,63 @@ export default function AboutUs() {
       whyTitle: "Por Que Escolher o PawCão?",
       whyItems: [
         {
+          icon: Zap,
+          title: "Reservas Simples",
+          description: "Faça uma reserva em menos de 1 minuto. Sem burocracias, sem confusão."
+        },
+        {
           icon: Shield,
-          title: "100% Verificado",
-          description: "Todos os profissionais passam por verificação de antecedentes e documentos"
+          title: "Segurança Total",
+          description: "Todos os profissionais verificados, seguros incluídos, pagamentos 100% seguros."
         },
         {
           icon: Heart,
-          title: "Seguro Incluído",
-          description: "Todos os serviços cobertos por seguro abrangente"
-        },
-        {
-          icon: Zap,
-          title: "Respostas Rápidas",
-          description: "Profissionais premium respondem em menos de 15 minutos"
+          title: "Acompanhamento em Tempo Real",
+          description: "Saiba exatamente onde está o seu cão. Tracking GPS, fotos diárias, e atualizações constantes."
         },
         {
           icon: Award,
-          title: "Programa de Fidelidade",
-          description: "Ganhe PawPoints em cada reserva e resgate recompensas"
+          title: "Recompensas Reais",
+          description: "Cada reserva vale pontos. Resgate prêmios, upgrades, e vantagens exclusivas."
         }
       ],
 
-      teamTitle: "A Nossa Equipa",
-      teamText: "Somos uma equipa apaixonada de amantes de cães, tecnólogos e especialistas em cuidados animais dedicados a criar a melhor experiência possível.",
+      teamTitle: "A Nossa Visão para o Futuro",
+      teamText: "Somos uma equipa de pessoas apaixonadas pela eficiência e pelo bem-estar animal. Acreditamos que a tecnologia deve tornar a vida mais simples, não mais complicada. O nosso objetivo é ser a plataforma número 1 globalmente para cuidados com animais de estimação.",
       
-      joinTitle: "Junte-se à Família PawCão",
-      joinText: "Seja você um dono de cão à procura de cuidados de confiança ou um profissional que quer fazer a diferença, tem um lugar aqui."
+      joinTitle: "Junte-se ao Movimento",
+      joinText: "Quer seja um dono que procura simplicidade e segurança, um profissional que quer crescer, ou um negócio pet que quer escalar—tem um lugar no PawCão. Estamos apenas a começar, e o melhor está por vir."
     },
     en: {
       title: "About PawCão",
-      subtitle: "Portugal's #1 dog care platform",
+      subtitle: "Born from Frustration with Confusing Platforms",
       missionTitle: "Our Mission",
-      missionText: "Connect dog owners with verified and passionate professionals, creating a community where every dog receives the best possible care.",
+      missionText: "Simplify how dog owners find professionals, dog hotels, and pet shop partners. We deliver efficiency, security, and such an intuitive experience that anyone can make a booking in seconds—without unnecessary red tape.",
       
-      storyTitle: "Our Story",
-      storyText: "Founded in 2024, PawCão was born from a passion for dogs and the need to create a reliable platform where owners can find qualified professionals. What started as a simple idea evolved into Portugal's largest dog care network.",
+      storyTitle: "Our Story: Why We Built PawCão",
+      storyText: "We created PawCão because there's a real problem. Other pet care websites are confusing, lengthy in registration, filled with unnecessary steps, and frankly, inefficient. We saw dog owners frustrated, professionals lost in complicated interfaces, and dog hotels spending hours on processes that should take minutes.\n\nWe decided to do it differently. PawCão was built on one principle: efficiency first, never compromising on safety. We want to be the global leaders in this space, starting with Portugal and Spain, building a platform that truly serves people (and dogs).",
       
-      valuesTitle: "Our Values",
+      valuesTitle: "Our Pillars",
       values: [
         {
-          icon: Heart,
-          title: "Passion for Dogs",
-          description: "Every decision we make has dogs at the center. Animal welfare is our top priority."
+          icon: Zap,
+          title: "Efficiency Without Compromise",
+          description: "Bookings in seconds, simplified registration. No long forms or confusing processes. We make technology work for you, not the other way around."
         },
         {
           icon: Shield,
-          title: "Trust & Safety",
-          description: "Rigorous verification of all professionals, insurance included, and secure payments for your peace of mind."
-        },
-        {
-          icon: Users,
-          title: "Community",
-          description: "We build a vibrant community of dog lovers, dedicated professionals and responsible owners."
+          title: "Reinforced Security",
+          description: "While we're fast, we never compromise on safety. Rigorous verification, encrypted payments, and complete trust in every transaction."
         },
         {
           icon: Award,
-          title: "Quality",
-          description: "We maintain the highest quality standards in all services offered on the platform."
+          title: "Gamification & Rewards",
+          description: "Make the experience fun. Earn points, unlock rewards, and be part of a community that values loyalty."
+        },
+        {
+          icon: Users,
+          title: "Global Community",
+          description: "We connect owners, professionals, hotels, and pet shops. A complete ecosystem where everyone thrives together."
         }
       ],
 
@@ -143,63 +143,63 @@ export default function AboutUs() {
       whyTitle: "Why Choose PawCão?",
       whyItems: [
         {
+          icon: Zap,
+          title: "Simple Bookings",
+          description: "Make a reservation in under 1 minute. No red tape, no confusion."
+        },
+        {
           icon: Shield,
-          title: "100% Verified",
-          description: "All professionals undergo background checks and document verification"
+          title: "Complete Safety",
+          description: "All professionals verified, insurance included, 100% secure payments."
         },
         {
           icon: Heart,
-          title: "Insurance Included",
-          description: "All services covered by comprehensive insurance"
-        },
-        {
-          icon: Zap,
-          title: "Fast Responses",
-          description: "Premium professionals respond in less than 15 minutes"
+          title: "Real-Time Tracking",
+          description: "Know exactly where your dog is. GPS tracking, daily photos, and constant updates."
         },
         {
           icon: Award,
-          title: "Loyalty Program",
-          description: "Earn PawPoints on every booking and redeem rewards"
+          title: "Real Rewards",
+          description: "Every booking earns you points. Redeem for prizes, upgrades, and exclusive perks."
         }
       ],
 
-      teamTitle: "Our Team",
-      teamText: "We are a passionate team of dog lovers, technologists and animal care experts dedicated to creating the best possible experience.",
+      teamTitle: "Our Vision for the Future",
+      teamText: "We're a team of people passionate about efficiency and animal welfare. We believe technology should make life simpler, not more complicated. Our goal is to be the #1 platform globally for pet care.",
       
-      joinTitle: "Join the PawCão Family",
-      joinText: "Whether you're a dog owner looking for trusted care or a professional wanting to make a difference, you have a place here."
+      joinTitle: "Join the Movement",
+      joinText: "Whether you're an owner seeking simplicity and safety, a professional wanting to grow, or a pet business ready to scale—you have a place in PawCão. We're just getting started, and the best is yet to come."
     },
     es: {
       title: "Sobre PawCão",
-      subtitle: "La plataforma #1 de cuidado canino en Portugal",
+      subtitle: "Nacido de la Frustración con Plataformas Confusas",
       missionTitle: "Nuestra Misión",
-      missionText: "Conectar dueños de perros con profesionales verificados y apasionados, creando una comunidad donde cada perro recibe el mejor cuidado posible.",
+      missionText: "Simplificar cómo los dueños de perros encuentran profesionales, hoteles caninos y socios de tiendas de mascotas. Ofrecemos eficiencia, seguridad y una experiencia tan intuitiva que cualquiera puede hacer una reserva en segundos, sin trámites innecesarios.",
       
-      storyTitle: "Nuestra Historia",
-      storyText: "Fundada en 2024, PawCão nació de la pasión por los perros y la necesidad de crear una plataforma confiable donde los dueños puedan encontrar profesionales calificados. Lo que comenzó como una idea simple evolucionó en la red de cuidado canino más grande de Portugal.",
+      storyTitle: "Nuestra Historia: Por Qué Creamos PawCão",
+      storyText: "Creamos PawCão porque existe un problema real. Otros sitios de cuidado de mascotas son confusos, tediosos en los registros, llenos de pasos innecesarios y francamente, no son eficientes. Vimos dueños de perros frustrados, profesionales perdidos en interfaces complicadas, y hoteles caninos gastando horas en procesos que deberían tomar minutos.\n\nDecidimos hacerlo diferente. PawCão fue creado con un principio simple: eficiencia primero, sin comprometer la seguridad. Queremos ser los líderes globales en este espacio, comenzando con Portugal y España, construyendo una plataforma que realmente sirva a las personas (y a los perros).",
       
-      valuesTitle: "Nuestros Valores",
+      valuesTitle: "Nuestros Pilares",
       values: [
         {
-          icon: Heart,
-          title: "Pasión por los Perros",
-          description: "Cada decisión que tomamos tiene a los perros en el centro. El bienestar animal es nuestra máxima prioridad."
+          icon: Zap,
+          title: "Eficiencia Sin Compromiso",
+          description: "Reservas en segundos, registros simplificados. Sin formularios largos ni procesos confusos. Hacemos que la tecnología le sirva a usted, no al revés."
         },
         {
           icon: Shield,
-          title: "Confianza y Seguridad",
-          description: "Verificación rigurosa de todos los profesionales, seguro incluido y pagos seguros para su tranquilidad."
-        },
-        {
-          icon: Users,
-          title: "Comunidad",
-          description: "Construimos una comunidad vibrante de amantes de perros, profesionales dedicados y propietarios responsables."
+          title: "Seguridad Reforzada",
+          description: "Aunque somos rápidos, nunca comprometemos la seguridad. Verificación rigurosa, pagos encriptados, y confianza total en cada transacción."
         },
         {
           icon: Award,
-          title: "Calidad",
-          description: "Mantenemos los más altos estándares de calidad en todos los servicios ofrecidos en la plataforma."
+          title: "Gamificación y Recompensas",
+          description: "Haga que la experiencia sea divertida. Gane puntos, desbloquee recompensas y sea parte de una comunidad que valora la lealtad."
+        },
+        {
+          icon: Users,
+          title: "Comunidad Global",
+          description: "Conectamos dueños, profesionales, hoteles y tiendas de mascotas. Un ecosistema completo donde todos prosperan juntos."
         }
       ],
 
@@ -208,32 +208,32 @@ export default function AboutUs() {
       whyTitle: "¿Por Qué Elegir PawCão?",
       whyItems: [
         {
+          icon: Zap,
+          title: "Reservas Simples",
+          description: "Haga una reserva en menos de 1 minuto. Sin trámites, sin confusión."
+        },
+        {
           icon: Shield,
-          title: "100% Verificado",
-          description: "Todos los profesionales pasan por verificación de antecedentes y documentos"
+          title: "Seguridad Total",
+          description: "Todos los profesionales verificados, seguros incluidos, pagos 100% seguros."
         },
         {
           icon: Heart,
-          title: "Seguro Incluido",
-          description: "Todos los servicios cubiertos por seguro integral"
-        },
-        {
-          icon: Zap,
-          title: "Respuestas Rápidas",
-          description: "Profesionales premium responden en menos de 15 minutos"
+          title: "Seguimiento en Tiempo Real",
+          description: "Sepa exactamente dónde está su perro. GPS tracking, fotos diarias y actualizaciones constantes."
         },
         {
           icon: Award,
-          title: "Programa de Lealtad",
-          description: "Gana PawPoints en cada reserva y canjea recompensas"
+          title: "Recompensas Reales",
+          description: "Cada reserva le gana puntos. Canjee premios, mejoras y ventajas exclusivas."
         }
       ],
 
-      teamTitle: "Nuestro Equipo",
-      teamText: "Somos un equipo apasionado de amantes de perros, tecnólogos y expertos en cuidado animal dedicados a crear la mejor experiencia posible.",
+      teamTitle: "Nuestra Visión para el Futuro",
+      teamText: "Somos un equipo de personas apasionadas por la eficiencia y el bienestar animal. Creemos que la tecnología debe hacer la vida más simple, no más complicada. Nuestro objetivo es ser la plataforma número 1 globalmente para el cuidado de mascotas.",
       
-      joinTitle: "Únete a la Familia PawCão",
-      joinText: "Ya seas un dueño de perro buscando cuidado confiable o un profesional que quiere hacer la diferencia, tienes un lugar aquí."
+      joinTitle: "Únete al Movimiento",
+      joinText: "Ya sea que busques simpleza y seguridad, que seas un profesional que quiere crecer, o un negocio de mascotas listo para escalar—tienes un lugar en PawCão. Acabamos de empezar, y lo mejor está por venir."
     }
   };
 
