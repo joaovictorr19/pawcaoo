@@ -440,13 +440,13 @@ function LayoutContent({ children, currentPageName }) {
               {language === 'es' ? 'Inicio' : 'Home'}
             </NavLink>
 
-            {/* Painel adaptativo por tipo de conta */}
-            {stableUser && (() => {
-              const isHotel = stableUser?.account_type === 'hotel' || stableUser?.role === 'hotel_admin';
+            {/* Só mostra links de painel se o utilizador estiver autenticado (authUser, não stableUser) */}
+            {authUser && (() => {
+              const isHotel = authUser.account_type === 'hotel' || authUser.role === 'hotel_admin';
               const isPro = !isHotel && (
-                stableUser?.account_type === 'walker' ||
-                stableUser?.account_type === 'trainer' ||
-                stableUser?.account_type === 'both'
+                authUser.account_type === 'walker' ||
+                authUser.account_type === 'trainer' ||
+                authUser.account_type === 'both'
               );
               if (isHotel) {
                 return (
@@ -457,9 +457,14 @@ function LayoutContent({ children, currentPageName }) {
               }
               if (isPro) {
                 return (
-                  <NavLink to={createPageUrl("ProfessionalHubV2")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
-                    {language === 'es' ? 'Panel Profesional' : 'Painel Profissional'}
-                  </NavLink>
+                  <>
+                    <NavLink to={createPageUrl("ProfessionalHubV2")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
+                      {language === 'es' ? 'Panel Profesional' : 'Painel Profissional'}
+                    </NavLink>
+                    <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
+                      {language === 'es' ? 'Reservas' : 'Reservas'}
+                    </NavLink>
+                  </>
                 );
               }
               // cliente comum
@@ -470,14 +475,7 @@ function LayoutContent({ children, currentPageName }) {
               );
             })()}
 
-            {/* Acesso extra ao Painel Cliente para profissionais (podem ser também donos) */}
-            {stableUser && (stableUser?.account_type === 'walker' || stableUser?.account_type === 'trainer' || stableUser?.account_type === 'both') && (
-              <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
-                {language === 'es' ? 'Reservas' : 'Reservas'}
-              </NavLink>
-            )}
-
-            {stableUser?.role === 'admin' && (
+            {authUser?.role === 'admin' && (
               <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-red-100 text-red-700' : 'hover:bg-red-50 text-red-600'}`}>
                 🛡️ Admin
               </NavLink>
