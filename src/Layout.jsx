@@ -436,14 +436,51 @@ function LayoutContent({ children, currentPageName }) {
             <span className="sr-only">PawCão</span>
           </Link>
           <nav className="flex items-center gap-2">
-            <NavLink to={createPageUrl("Home")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Home</NavLink>
-            <NavLink to={createPageUrl("ProfessionalHubV2")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Painel Profissional</NavLink>
-            <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Painel Cliente</NavLink>
-            {stableUser?.role === 'admin' && (
-              <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Admin</NavLink>
+            <NavLink to={createPageUrl("Home")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
+              {language === 'es' ? 'Inicio' : 'Home'}
+            </NavLink>
+
+            {/* Painel adaptativo por tipo de conta */}
+            {stableUser && (() => {
+              const isHotel = stableUser?.account_type === 'hotel' || stableUser?.role === 'hotel_admin';
+              const isPro = !isHotel && (
+                stableUser?.account_type === 'walker' ||
+                stableUser?.account_type === 'trainer' ||
+                stableUser?.account_type === 'both'
+              );
+              if (isHotel) {
+                return (
+                  <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-purple-100 text-purple-700' : 'hover:bg-purple-50 text-purple-600'}`}>
+                    🏨 {language === 'es' ? 'Mi Hotel' : 'Meu Hotel'}
+                  </NavLink>
+                );
+              }
+              if (isPro) {
+                return (
+                  <NavLink to={createPageUrl("ProfessionalHubV2")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
+                    {language === 'es' ? 'Panel Profesional' : 'Painel Profissional'}
+                  </NavLink>
+                );
+              }
+              // cliente comum
+              return (
+                <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
+                  {language === 'es' ? 'Mi Panel' : 'Meu Painel'}
+                </NavLink>
+              );
+            })()}
+
+            {/* Acesso extra ao Painel Cliente para profissionais (podem ser também donos) */}
+            {stableUser && (stableUser?.account_type === 'walker' || stableUser?.account_type === 'trainer' || stableUser?.account_type === 'both') && (
+              <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
+                {language === 'es' ? 'Reservas' : 'Reservas'}
+              </NavLink>
             )}
-            {(stableUser?.account_type === 'hotel' || stableUser?.role === 'hotel_admin') && (
-              <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-bold ${isActive ? 'bg-purple-100 text-purple-700' : 'hover:bg-purple-50 text-purple-600'}`}>🏨 Hotel</NavLink>
+
+            {stableUser?.role === 'admin' && (
+              <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-red-100 text-red-700' : 'hover:bg-red-50 text-red-600'}`}>
+                🛡️ Admin
+              </NavLink>
             )}
           </nav>
           <div className="flex items-center gap-2">

@@ -41,14 +41,32 @@ export default function ProfileEditRequests() {
         throw new Error('ID do perfil não encontrado');
       }
 
-      if (request.profile_type === 'walker' || request.walker_id) {
-        // Atualizar perfil de walker existente
-        await base44.entities.WalkerProfile.update(profileId, request.requested_changes);
+      if (request.profile_type === 'hotel') {
+        // Hotel: atualizar WalkerProfile com hotel_details
+        await base44.entities.WalkerProfile.update(profileId, {
+          ...request.requested_changes,
+          verification_status: 'verified',
+          is_active: true,
+        });
+      } else if (request.profile_type === 'walker' || request.walker_id) {
+        await base44.entities.WalkerProfile.update(profileId, {
+          ...request.requested_changes,
+          verification_status: 'verified',
+          is_active: true,
+        });
       } else if (request.profile_type === 'trainer' || request.trainer_id) {
-        // Atualizar perfil de trainer existente
-        await base44.entities.TrainerProfile.update(profileId, request.requested_changes);
+        await base44.entities.TrainerProfile.update(profileId, {
+          ...request.requested_changes,
+          verification_status: 'verified',
+          is_active: true,
+        });
       } else {
-        throw new Error('Tipo de perfil desconhecido');
+        // Fallback: tentar WalkerProfile
+        await base44.entities.WalkerProfile.update(profileId, {
+          ...request.requested_changes,
+          verification_status: 'verified',
+          is_active: true,
+        });
       }
 
       // Marcar pedido como aprovado

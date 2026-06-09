@@ -51,6 +51,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
+import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
 
@@ -210,7 +211,7 @@ export default function AdminDashboard() {
     queryKey: ['allWalkersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.WalkerProfile.list('-created_date', 1000),
-    enabled: isAdmin && activeTab === 'users',
+    enabled: isAdmin && (activeTab === 'users' || activeTab === 'approvals'),
     initialData: [],
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -220,7 +221,7 @@ export default function AdminDashboard() {
     queryKey: ['allTrainersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.TrainerProfile.list('-created_date', 1000),
-    enabled: isAdmin && activeTab === 'users',
+    enabled: isAdmin && (activeTab === 'users' || activeTab === 'approvals'),
     initialData: [],
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -230,7 +231,7 @@ export default function AdminDashboard() {
     queryKey: ['allSheltersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.ShelterProfile.list('-created_date', 1000),
-    enabled: isAdmin && activeTab === 'users',
+    enabled: isAdmin && (activeTab === 'users' || activeTab === 'approvals'),
     initialData: [],
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -401,6 +402,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (activeTab === 'approvals') {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
     }
   }, [activeTab, queryClient]);
 
@@ -764,6 +769,9 @@ export default function AdminDashboard() {
               <TabsTrigger value="calendar" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
 
 
+              <TabsTrigger value="approvals" className="rounded-full bg-orange-50 text-orange-700 shadow-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
+                ✅ Aprovações {(walkerApplications.length + trainerApplications.length) > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{walkerApplications.length + trainerApplications.length}</span>}
+              </TabsTrigger>
               <TabsTrigger value="users" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
               <TabsTrigger value="operations" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
               <TabsTrigger value="gamification" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
@@ -811,6 +819,28 @@ export default function AdminDashboard() {
 
 
 
+
+          <TabsContent value="approvals">
+            {activeTab === 'approvals' && (
+              <div className="mt-6 space-y-8">
+                <AdminVerificationQueue
+                  walkers={walkerApplications}
+                  trainers={trainerApplications}
+                  shelters={shelterApplications}
+                  onApprove={handleApproveApplication}
+                  onReject={handleRejectApplication}
+                  onViewDetails={handleViewApplicationDetails}
+                  onRefresh={handleRefreshApplications}
+                />
+                <div className="mt-6">
+                  <h3 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-yellow-600" /> Edições de Perfil Pendentes
+                  </h3>
+                  <ProfileEditRequests />
+                </div>
+              </div>
+            )}
+          </TabsContent>
 
           <TabsContent value="users">
             {activeTab === 'users' && (
