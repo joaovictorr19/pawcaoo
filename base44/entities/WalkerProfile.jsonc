@@ -2,45 +2,48 @@
   "name": "WalkerProfile",
   "type": "object",
   "properties": {
+    "professional_type": {
+      "type": "string",
+      "enum": [
+        "walker",
+        "trainer",
+        "both",
+        "hotel"
+      ],
+      "default": "walker",
+      "description": "Tipo de profissional"
+    },
     "user_id": {
       "type": "string",
       "description": "Auth User ID linked to this profile"
     },
     "walker_name": {
       "type": "string",
-      "description": "Name of the dog walker"
+      "description": "Name of the dog walker / hotel name"
     },
     "age": {
-      "type": "number",
-      "description": "Age of the walker"
+      "type": "number"
     },
     "photo_url": {
-      "type": "string",
-      "description": "Profile photo URL"
+      "type": "string"
     },
     "cover_photo_url": {
-      "type": "string",
-      "description": "Cover background photo URL"
+      "type": "string"
     },
     "video_intro_url": {
-      "type": "string",
-      "description": "Video introduction URL (1-2 min)"
+      "type": "string"
     },
     "bio": {
-      "type": "string",
-      "description": "Short bio about the walker and their experience"
+      "type": "string"
     },
     "location": {
-      "type": "string",
-      "description": "City or neighborhood"
+      "type": "string"
     },
     "latitude": {
-      "type": "number",
-      "description": "Latitude of the main location"
+      "type": "number"
     },
     "longitude": {
-      "type": "number",
-      "description": "Longitude of the main location"
+      "type": "number"
     },
     "service_areas": {
       "type": "array",
@@ -67,16 +70,13 @@
           }
         }
       },
-      "description": "Areas where walker provides services",
       "default": []
     },
     "hourly_rate": {
-      "type": "number",
-      "description": "Rate per hour in euros (for dogs and cats)"
+      "type": "number"
     },
     "exotic_rate": {
-      "type": "number",
-      "description": "Rate per visit for exotic animals"
+      "type": "number"
     },
     "services_offered": {
       "type": "array",
@@ -86,8 +86,26 @@
           "service_name": {
             "type": "string"
           },
+          "service_type": {
+            "type": "string",
+            "enum": [
+              "walk",
+              "training",
+              "boarding",
+              "daycare",
+              "grooming",
+              "dropin",
+              "other"
+            ]
+          },
           "description": {
             "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "price_per_day": {
+            "type": "number"
           },
           "duration_options": {
             "type": "array",
@@ -95,20 +113,31 @@
               "type": "string"
             }
           },
-          "price": {
-            "type": "number"
-          },
           "custom_pricing": {
             "type": "boolean"
+          },
+          "is_active": {
+            "type": "boolean",
+            "default": true
+          },
+          "accepted_dog_sizes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "small",
+                "medium",
+                "large",
+                "extra_large"
+              ]
+            }
           }
         }
       },
-      "description": "Detailed services with pricing",
       "default": []
     },
     "experience_years": {
-      "type": "number",
-      "description": "Years of experience"
+      "type": "number"
     },
     "dog_sizes": {
       "type": "array",
@@ -190,8 +219,7 @@
     },
     "is_online": {
       "type": "boolean",
-      "default": false,
-      "description": "Indicates if the professional is currently online and available in PawGo"
+      "default": false
     },
     "is_verified": {
       "type": "boolean",
@@ -203,75 +231,36 @@
     },
     "has_pawcao_seal": {
       "type": "boolean",
-      "default": false,
-      "description": "Selo oficial PawC\u00e3o concedido por admin - aparece no perfil p\u00fablico"
+      "default": false
     },
     "exempt_from_platform_fees": {
       "type": "boolean",
-      "default": false,
-      "description": "Se true, walker n\u00e3o paga comiss\u00e3o da plataforma (0% fee)"
+      "default": false
     },
     "is_featured": {
       "type": "boolean",
-      "default": false,
-      "description": "Se \u00e9 profissional em destaque (aparece no topo da lista)"
+      "default": false
     },
     "is_verified_trainer": {
       "type": "boolean",
-      "default": false,
-      "description": "Se tamb\u00e9m \u00e9 treinador verificado (badge roxo)"
+      "default": false
     },
     "training_specializations": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "specialty_id": {
-            "type": "string",
-            "enum": [
-              "positive_reinforcement",
-              "agility_training",
-              "behavioral_correction",
-              "puppy_socialization",
-              "obedience_training",
-              "service_dog_training",
-              "anxiety_management",
-              "aggression_rehabilitation",
-              "clicker_training",
-              "protection_training"
-            ]
-          },
-          "specialty_name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "years_experience": {
-            "type": "number"
-          },
-          "certifications": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
+        "type": "object"
       },
-      "default": [],
-      "description": "Especializa\u00e7\u00f5es de treino detalhadas com descri\u00e7\u00f5es"
+      "default": []
     },
     "training_specialties": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "default": [],
-      "description": "Legacy: Especialidades de treino (array simples)"
+      "default": []
     },
     "training_philosophy": {
-      "type": "string",
-      "description": "Filosofia de treino (se for treinador)"
+      "type": "string"
     },
     "consultation_options": {
       "type": "array",
@@ -283,8 +272,7 @@
           "hybrid"
         ]
       },
-      "default": [],
-      "description": "Op\u00e7\u00f5es de consulta (se for treinador)"
+      "default": []
     },
     "can_walk_multiple_dogs": {
       "type": "boolean",
@@ -297,124 +285,28 @@
     "portfolio": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "media_url": {
-            "type": "string"
-          },
-          "media_type": {
-            "type": "string",
-            "enum": [
-              "photo",
-              "video"
-            ]
-          },
-          "dog_name": {
-            "type": "string"
-          },
-          "date": {
-            "type": "string",
-            "format": "date"
-          },
-          "category": {
-            "type": "string",
-            "enum": [
-              "walk",
-              "playtime",
-              "training",
-              "milestone",
-              "other"
-            ]
-          },
-          "is_featured": {
-            "type": "boolean",
-            "default": false
-          }
-        }
+        "type": "object"
       },
       "default": []
     },
     "faq": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "question": {
-            "type": "string"
-          },
-          "answer": {
-            "type": "string"
-          }
-        }
+        "type": "object"
       },
       "default": []
     },
     "success_stories": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "dog_name": {
-            "type": "string"
-          },
-          "owner_name": {
-            "type": "string"
-          },
-          "story": {
-            "type": "string"
-          },
-          "before_photo_url": {
-            "type": "string"
-          },
-          "after_photo_url": {
-            "type": "string"
-          },
-          "date": {
-            "type": "string",
-            "format": "date"
-          },
-          "testimonial": {
-            "type": "string"
-          }
-        }
+        "type": "object"
       },
       "default": []
     },
     "certifications_detailed": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "issuing_organization": {
-            "type": "string"
-          },
-          "issue_date": {
-            "type": "string",
-            "format": "date"
-          },
-          "expiry_date": {
-            "type": "string",
-            "format": "date"
-          },
-          "certificate_url": {
-            "type": "string"
-          },
-          "verification_url": {
-            "type": "string"
-          }
-        }
+        "type": "object"
       },
       "default": []
     },
@@ -497,35 +389,219 @@
         "portugal",
         "spain",
         "france"
-      ],
-      "description": "Pa\u00eds onde presta servi\u00e7os"
+      ]
     },
     "tax_id_portugal": {
-      "type": "string",
-      "description": "NIF (Portugal) - Obrigat\u00f3rio para PT"
+      "type": "string"
     },
     "tax_id_spain": {
-      "type": "string",
-      "description": "NIF/NIE/CIF (Espanha) - Obrigat\u00f3rio para ES"
+      "type": "string"
     },
     "france_professional_type": {
       "type": "string",
       "enum": [
         "professional",
         "individual"
-      ],
-      "description": "Tipo de prestador em Fran\u00e7a"
+      ]
     },
     "tax_id_france": {
-      "type": "string",
-      "description": "N\u00famero Fiscal (Fran\u00e7a) - Apenas se profissional"
+      "type": "string"
+    },
+    "hotel_details": {
+      "type": "object",
+      "description": "Campos espec\u00edficos para perfis de hotel canino",
+      "properties": {
+        "hotel_name": {
+          "type": "string"
+        },
+        "hotel_description": {
+          "type": "string"
+        },
+        "full_address": {
+          "type": "string"
+        },
+        "capacity_total": {
+          "type": "number",
+          "description": "Capacidade m\u00e1xima de c\u00e3es simult\u00e2neos"
+        },
+        "capacity_available": {
+          "type": "number",
+          "description": "Vagas dispon\u00edveis hoje"
+        },
+        "price_per_night": {
+          "type": "number"
+        },
+        "price_daycare": {
+          "type": "number",
+          "description": "Pre\u00e7o por dia de creche"
+        },
+        "checkin_time": {
+          "type": "string"
+        },
+        "checkout_time": {
+          "type": "string"
+        },
+        "amenities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Comodidades: piscina, jardim, webcam, etc"
+        },
+        "accepted_dog_sizes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "small",
+              "medium",
+              "large",
+              "extra_large"
+            ]
+          }
+        },
+        "partner_walkers": {
+          "type": "array",
+          "description": "Passeadores parceiros do hotel",
+          "items": {
+            "type": "object",
+            "properties": {
+              "walker_email": {
+                "type": "string"
+              },
+              "walker_name": {
+                "type": "string"
+              },
+              "walker_photo_url": {
+                "type": "string"
+              },
+              "walker_profile_id": {
+                "type": "string"
+              },
+              "is_available_today": {
+                "type": "boolean",
+                "default": false
+              },
+              "services": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": []
+        },
+        "weekly_schedule": {
+          "type": "object",
+          "description": "Hor\u00e1rios por dia da semana",
+          "properties": {
+            "monday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "tuesday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "wednesday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "thursday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "friday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "saturday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "sunday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "required": [
     "walker_name",
-    "location",
-    "hourly_rate",
-    "whatsapp_number"
+    "location"
   ],
   "rls": {
     "create": {

@@ -40,7 +40,7 @@ export default function ProfessionalCalendar() {
     enabled: !!user?.email,
   });
 
-  const isProfessional = !!(walkerProfile || trainerProfile);
+  const isProfessional = !!(walkerProfile || trainerProfile) || walkerProfile?.professional_type === 'hotel';
 
   const { data: availability = [] } = useQuery({
     queryKey: ['myAvailability', user?.email, format(currentMonth, 'yyyy-MM')],
@@ -57,10 +57,16 @@ export default function ProfessionalCalendar() {
     staleTime: 60 * 1000,
   });
 
+  const isHotelProfile = walkerProfile?.professional_type === 'hotel';
+
   const { data: bookings = [] } = useQuery({
     queryKey: ['myProfBookings', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
+      if (isHotelProfile) {
+        const hotelBookings = await base44.entities.HotelBooking.filter({ hotel_email: user.email }, '-created_date', 100).catch(() => []);
+        return hotelBookings.map(b => ({ ...b, _type: 'hotel', _date: b.checkin_date }));
+      }
       const [walks, trainings] = await Promise.all([
         base44.entities.Booking.filter({ walker_email: user.email }, '-created_date', 100),
         base44.entities.TrainingBooking ? base44.entities.TrainingBooking.filter({ trainer_email: user.email }, '-created_date', 100).catch(() => []) : Promise.resolve([]),

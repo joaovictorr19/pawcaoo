@@ -12,14 +12,17 @@ export function ProfessionalCard({ walker }) {
     photo: walker?.photo_url || walker?.professional_profile?.avatar_url || walker?.profile_photo_url,
     isVerified: walker?.verification_status === 'verified' || walker?.is_verified || walker?.professional_profile?.verification_status === 'verified',
     isTrained: walker?.is_verified_trainer || walker?.professional_profile?.is_trained,
-    isPawcao: !!(walker?.has_pawcao_seal || walker?.is_pawcao_employee)
-  }), [walker.id, walker.has_pawcao_seal, walker.is_pawcao_employee, walker.verification_status, walker.is_verified, walker.is_verified_trainer]); // Só muda se o ID ou o Perfil mudarem
+    isPawcao: !!(walker?.has_pawcao_seal || walker?.is_pawcao_employee),
+    isHotel: walker?.professional_type === 'hotel',
+  }), [walker.id, walker.has_pawcao_seal, walker.is_pawcao_employee, walker.verification_status, walker.is_verified, walker.is_verified_trainer, walker.professional_type]);
 
   return (
-    <div className={`bg-white rounded-[2.5rem] p-4 mb-3 border ${profileData.isPawcao ? 'border-amber-400 ring-2 ring-amber-300/60 shadow-amber-100' : 'border-slate-100'} shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow`} onClick={() => navigate(createPageUrl('UserProfile?id=' + walker.id))}>
+    <div className={`bg-white rounded-[2.5rem] p-4 mb-3 border shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow
+      ${profileData.isHotel ? 'border-purple-400 ring-2 ring-purple-300/60 shadow-purple-50' : profileData.isPawcao ? 'border-amber-400 ring-2 ring-amber-300/60 shadow-amber-100' : 'border-slate-100'}`}
+      onClick={() => navigate(createPageUrl('UserProfile?id=' + walker.id))}>
       
       {/* 2. Container da Foto com KEY FIXA (Evita o sumiço) */}
-      <div className="relative w-16 h-16 shrink-0 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-inner">
+      <div className={`relative w-16 h-16 shrink-0 rounded-2xl bg-slate-100 overflow-hidden border-2 shadow-inner ${profileData.isHotel ? 'border-purple-300' : 'border-white'}`}>
         <img 
           key={`img-${walker.id}`} // KEY FIXA É VITAL
           src={profileData.photo}
@@ -44,7 +47,12 @@ export function ProfessionalCard({ walker }) {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {profileData.isPawcao && (
+          {profileData.isHotel && (
+            <span className="bg-purple-600 text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shrink-0">
+              🏨 Hotel Canino
+            </span>
+          )}
+          {!profileData.isHotel && profileData.isPawcao && (
             <span className="bg-orange-500 text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shrink-0">
               Parceiro PawGo
             </span>

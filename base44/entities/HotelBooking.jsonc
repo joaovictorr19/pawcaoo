@@ -1,0 +1,219 @@
+{
+  "name": "HotelBooking",
+  "type": "object",
+  "properties": {
+    "hotel_profile_id": {
+      "type": "string",
+      "description": "ID do WalkerProfile do hotel"
+    },
+    "hotel_name": {
+      "type": "string"
+    },
+    "hotel_email": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "owner_phone": {
+      "type": "string"
+    },
+    "dogs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dog_name": {
+            "type": "string"
+          },
+          "dog_breed": {
+            "type": "string"
+          },
+          "dog_size": {
+            "type": "string",
+            "enum": [
+              "small",
+              "medium",
+              "large",
+              "extra_large"
+            ]
+          },
+          "dog_age": {
+            "type": "number"
+          },
+          "special_notes": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "boarding",
+        "daycare",
+        "grooming",
+        "walk_with_partner",
+        "training"
+      ],
+      "description": "Tipo de servi\u00e7o reservado"
+    },
+    "checkin_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "checkout_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "checkin_time": {
+      "type": "string"
+    },
+    "checkout_time": {
+      "type": "string"
+    },
+    "total_nights": {
+      "type": "number",
+      "default": 1
+    },
+    "total_dogs": {
+      "type": "number",
+      "default": 1
+    },
+    "price_per_night": {
+      "type": "number"
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "platform_fee": {
+      "type": "number"
+    },
+    "service_amount": {
+      "type": "number"
+    },
+    "special_requests": {
+      "type": "string"
+    },
+    "assigned_walker_email": {
+      "type": "string",
+      "description": "Passeador parceiro atribu\u00eddo (se servi\u00e7o de passeio)"
+    },
+    "assigned_walker_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "checked_in",
+        "in_progress",
+        "checked_out",
+        "completed",
+        "cancelled",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "refunded",
+        "partial"
+      ],
+      "default": "pending"
+    },
+    "stripe_payment_intent_id": {
+      "type": "string"
+    },
+    "internal_notes": {
+      "type": "string",
+      "description": "Notas internas do hotel (n\u00e3o vis\u00edveis ao cliente)"
+    },
+    "checkin_photo_url": {
+      "type": "string"
+    },
+    "checkout_photo_url": {
+      "type": "string"
+    },
+    "daily_report_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Fotos/relat\u00f3rios di\u00e1rios enviados ao dono"
+    },
+    "cancellation_reason": {
+      "type": "string"
+    },
+    "review_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "hotel_profile_id",
+    "owner_name",
+    "owner_email",
+    "service_type",
+    "checkin_date",
+    "total_amount"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

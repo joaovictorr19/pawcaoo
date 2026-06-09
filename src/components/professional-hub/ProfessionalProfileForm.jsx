@@ -18,8 +18,10 @@ import OptimizedImageUpload from "../adoption/OptimizedImageUpload";
 import ImageCropModal from "../ui/ImageCropModal";
 import CenteredAvatarUpload from "../ui/CenteredAvatarUpload";
 import BreedSelector from "../professionals/BreedSelector";
+import HotelPartnersStep from "./HotelPartnersStep";
 
-const STEPS = ["Perfil", "Serviços", "Preferências", "Documentos"];
+const STEPS_DEFAULT = ["Perfil", "Serviços", "Preferências", "Documentos"];
+const STEPS_HOTEL = ["Hotel", "Serviços", "Passeadores", "Documentos"];
 
 const ANIMALS = [
   { value: "dogs", label: "Cães", icon: "🐕" },
@@ -54,6 +56,7 @@ function buildInitialForm(user, existingProfile) {
   if (existingProfile) {
     return {
       name: existingProfile.walker_name || existingProfile.trainer_name || user?.full_name || "",
+      hotel_details: existingProfile.hotel_details || { partner_walkers: [], amenities: [], accepted_dog_sizes: [], capacity_total: 10, price_per_night: 25, price_daycare: 15, checkin_time: "14:00", checkout_time: "12:00" },
       photo_url: existingProfile.photo_url || user?.profile_photo_url || "",
       cover_photo_url: existingProfile.cover_photo_url || "",
       video_intro_url: existingProfile.video_intro_url || "",
@@ -135,6 +138,7 @@ function buildInitialForm(user, existingProfile) {
     france_professional_type: "",
     instant_booking: true,
     work_radius_km: 5,
+    hotel_details: { partner_walkers: [], amenities: [], accepted_dog_sizes: [], capacity_total: 10, price_per_night: 25, price_daycare: 15, checkin_time: "14:00", checkout_time: "12:00" },
   };
 }
 
@@ -147,11 +151,15 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
   const [uploading, setUploading] = useState({});
   const [professionalType, setProfessionalType] = useState(() => {
     if (!professionalProfile) return "";
+    if (professionalProfile.professional_type === 'hotel') return "hotel";
     if (professionalProfile.is_verified_trainer) {
       return professionalProfile.walker_name ? "both" : "trainer";
     }
     return professionalProfile.walker_name ? "walker" : "";
   });
+
+  const isHotelType = professionalType === 'hotel';
+  const STEPS = isHotelType ? STEPS_HOTEL : STEPS_DEFAULT;
 
   const [formData, setFormData] = useState(() => buildInitialForm(user, professionalProfile));
   const [cropModal, setCropModal] = useState({ open: false, url: null, type: "photo" });
@@ -205,7 +213,8 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
 
   const canProceed = () => {
     if (currentStep === 0) return formData.name.trim() && formData.location.trim() && professionalType;
-    if (currentStep === 1) return parseFloat(formData.hourly_rate) > 0;
+    if (currentStep === 1 && isHotelType) return (formData.hotel_details?.price_per_night || 0) > 0;
+    if (currentStep === 1 && !isHotelType) return parseFloat(formData.hourly_rate) > 0;
     if (currentStep === 3) {
       if (!formData.country_of_operation) return false;
       if (formData.country_of_operation === 'portugal' && !formData.tax_id_portugal) return false;
@@ -220,8 +229,9 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
 
   const submitMutation = useMutation({
     mutationFn: async (data) => {
-      const isWalker = professionalType === 'walker' || professionalType === 'both';
-      const isTrainer = professionalType === 'trainer' || professionalType === 'both';
+      const isHotel = professionalType === 'hotel';
+      const isWalker = !isHotel && (professionalType === 'walker' || professionalType === 'both');
+      const isTrainer = !isHotel && (professionalType === 'trainer' || professionalType === 'both');
 
       // Geocode
       let lat = 38.7223, lng = -9.1393;
@@ -256,6 +266,32 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
       if (data.hasDropIn) services.push({ service_name: 'Drop-in Visits', price: parseFloat(data.dropInPrice), is_active: true });
 
       let savedProfileId = professionalProfile?.id;
+
+      if (isHotel) {
+        const hotelData = {
+          ...commonData,
+          walker_name: data.name,
+          professional_type: 'hotel',
+          hotel_details: data.hotel_details,
+          hourly_rate: data.hotel_details?.price_per_night || 0,
+          services_offered: [
+            { service_name: 'Alojamento', service_type: 'boarding', price: data.hotel_details?.price_per_night || 0, is_active: true },
+            { service_name: 'Creche Diária', service_type: 'daycare', price: data.hotel_details?.price_daycare || 0, is_active: true },
+          ],
+        };
+        if (isEditing && professionalProfile?.id) {
+          await base44.entities.WalkerProfile.update(professionalProfile.id, hotelData);
+        } else {
+          const res = await base44.entities.WalkerProfile.create(hotelData);
+          savedProfileId = res.id;
+        }
+        await base44.auth.updateMe({ account_type: 'hotel', profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, full_name: data.name });
+        const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        if (userProfiles.length > 0) await base44.entities.UserProfile.update(userProfiles[0].id, { full_name: data.name, profile_photo_url: data.photo_url, city: data.location });
+        await base44.entities.ProfileEditRequest.create({ profile_id: savedProfileId, profile_type: 'hotel', professional_name: data.name, professional_email: user.email, requested_changes: { hotel_details: data.hotel_details }, original_data: professionalProfile || {}, status: 'pending' });
+        if (!isEditing) { try { await base44.functions.invoke('notifyAdminProfessional', { professional_name: data.name, professional_type: 'hotel', professional_email: user.email }); } catch {} }
+        return;
+      }
 
       if (isWalker) {
         const walkerData = {
@@ -381,14 +417,15 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
               {/* Type Selection */}
               <div className="space-y-3">
                 <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo de Profissional *</Label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {[
                     { value: "walker", label: "Passeador", icon: <Dog className="w-8 h-8 text-green-400 mx-auto mb-2" /> },
                     { value: "trainer", label: "Treinador", icon: <GraduationCap className="w-8 h-8 text-blue-400 mx-auto mb-2" /> },
                     { value: "both", label: "Ambos", icon: <div className="flex justify-center gap-1 mb-2"><Dog className="w-6 h-6 text-green-400" /><GraduationCap className="w-6 h-6 text-blue-400" /></div> },
+                    { value: "hotel", label: "Hotel Canino", icon: <span className="text-3xl block mb-2 text-center">🏨</span> },
                   ].map(opt => (
                     <button key={opt.value} type="button" onClick={() => setProfessionalType(opt.value)}
-                      className={`p-4 rounded-xl border-2 text-center transition-all ${professionalType === opt.value ? 'border-orange-500 bg-orange-500/10' : 'border-slate-800 bg-slate-900 hover:border-slate-700'}`}>
+                      className={`p-4 rounded-xl border-2 text-center transition-all ${professionalType === opt.value ? (opt.value === 'hotel' ? 'border-purple-500 bg-purple-500/10' : 'border-orange-500 bg-orange-500/10') : 'border-slate-800 bg-slate-900 hover:border-slate-700'}`}>
                       {opt.icon}
                       <p className="text-xs font-bold text-white">{opt.label}</p>
                     </button>
@@ -454,8 +491,88 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
             </motion.div>
           )}
 
+          {/* STEP 1: Serviços Hotel */}
+          {currentStep === 1 && isHotelType && (
+            <motion.div key="s1h" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 pb-24">
+              <div>
+                <h2 className="text-3xl font-black text-white tracking-tighter">Serviços & Preços</h2>
+                <p className="text-slate-400 text-sm mt-1">Define os serviços e preços do hotel.</p>
+              </div>
+              <div className="p-4 bg-slate-800 rounded-2xl space-y-4">
+                <h3 className="text-white font-bold text-sm">Capacidade</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-slate-400 uppercase tracking-widest">Capacidade Total</Label>
+                    <input type="number" min="1" value={formData.hotel_details?.capacity_total || ''} onChange={e => set('hotel_details', { ...formData.hotel_details, capacity_total: parseInt(e.target.value) })}
+                      className="w-full h-10 px-3 bg-slate-900 text-white rounded-xl border border-slate-700 outline-none text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-slate-400 uppercase tracking-widest">Disponíveis Hoje</Label>
+                    <input type="number" min="0" value={formData.hotel_details?.capacity_available || ''} onChange={e => set('hotel_details', { ...formData.hotel_details, capacity_available: parseInt(e.target.value) })}
+                      className="w-full h-10 px-3 bg-slate-900 text-white rounded-xl border border-slate-700 outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-slate-800 rounded-2xl space-y-4">
+                <h3 className="text-white font-bold text-sm">Preços</h3>
+                {[
+                  { label: "Alojamento (por noite/cão)", key: "price_per_night" },
+                  { label: "Creche Diária (por dia/cão)", key: "price_daycare" },
+                ].map(f => (
+                  <div key={f.key} className="flex items-center justify-between">
+                    <span className="text-sm text-slate-300">{f.label}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-orange-400 text-sm">€</span>
+                      <input type="number" min="0" step="1" value={formData.hotel_details?.[f.key] || ''}
+                        onChange={e => set('hotel_details', { ...formData.hotel_details, [f.key]: parseFloat(e.target.value) })}
+                        className="w-16 bg-transparent text-orange-400 font-black text-lg text-right outline-none" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="p-4 bg-slate-800 rounded-2xl space-y-3">
+                <h3 className="text-white font-bold text-sm">Horários Check-in / Check-out</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[{ label: "Check-in", key: "checkin_time" }, { label: "Check-out", key: "checkout_time" }].map(f => (
+                    <div key={f.key} className="space-y-1">
+                      <Label className="text-xs text-slate-400 uppercase tracking-widest">{f.label}</Label>
+                      <input type="time" value={formData.hotel_details?.[f.key] || ''} onChange={e => set('hotel_details', { ...formData.hotel_details, [f.key]: e.target.value })}
+                        className="w-full h-10 px-3 bg-slate-900 text-white rounded-xl border border-slate-700 outline-none text-sm" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="p-4 bg-slate-800 rounded-2xl space-y-3">
+                <h3 className="text-white font-bold text-sm">Comodidades</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Jardim', 'Piscina', 'Webcam ao vivo', 'Relatórios diários', 'Transporte', 'Veterinário parceiro', 'Passeios incluídos', 'Grooming disponível'].map(a => (
+                    <button key={a} type="button" onClick={() => {
+                      const curr = formData.hotel_details?.amenities || [];
+                      set('hotel_details', { ...formData.hotel_details, amenities: curr.includes(a) ? curr.filter(x => x !== a) : [...curr, a] });
+                    }} className={`p-2 rounded-xl border-2 text-xs text-left transition-all ${(formData.hotel_details?.amenities || []).includes(a) ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-slate-700 text-slate-400'}`}>
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-3 mt-8">
+                <Button type="button" onClick={() => setCurrentStep(0)} variant="outline" className="flex-1 h-12 border-slate-700 text-slate-400 hover:text-white bg-transparent rounded-2xl">
+                  <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
+                </Button>
+                <Button type="button" onClick={() => setCurrentStep(2)} className="flex-1 h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold">
+                  Continuar <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 2: Passeadores Parceiros (apenas hotel) */}
+          {currentStep === 2 && isHotelType && (
+            <HotelPartnersStep formData={formData} set={set} onBack={() => setCurrentStep(1)} onNext={() => setCurrentStep(3)} />
+          )}
+
           {/* STEP 1: Serviços */}
-          {currentStep === 1 && (
+          {currentStep === 1 && !isHotelType && (
             <motion.div key="s1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 pb-24">
               <div>
                 <h2 className="text-3xl font-black text-white tracking-tighter">Serviços & Preços</h2>
@@ -516,8 +633,8 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
             </motion.div>
           )}
 
-          {/* STEP 2: Preferências */}
-          {currentStep === 2 && (
+          {/* STEP 2: Preferências (não-hotel) */}
+          {currentStep === 2 && !isHotelType && (
             <motion.div key="s2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 pb-24">
               <div>
                 <h2 className="text-3xl font-black text-white tracking-tighter">Preferências</h2>
@@ -586,7 +703,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
           )}
 
           {/* STEP 3: Documentos */}
-          {currentStep === 3 && (
+          {currentStep === 3 && (isHotelType || !isHotelType) && (
             <motion.div key="s3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 pb-24">
               <div>
                 <h2 className="text-3xl font-black text-white tracking-tighter">Verificação & Pagamento</h2>

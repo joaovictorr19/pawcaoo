@@ -442,6 +442,9 @@ function LayoutContent({ children, currentPageName }) {
             {stableUser?.role === 'admin' && (
               <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>Admin</NavLink>
             )}
+            {(stableUser?.account_type === 'hotel' || stableUser?.role === 'hotel_admin') && (
+              <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-bold ${isActive ? 'bg-purple-100 text-purple-700' : 'hover:bg-purple-50 text-purple-600'}`}>🏨 Hotel</NavLink>
+            )}
           </nav>
           <div className="flex items-center gap-2">
             <div className="flex items-center rounded-full border border-slate-200 bg-slate-50 p-1">
