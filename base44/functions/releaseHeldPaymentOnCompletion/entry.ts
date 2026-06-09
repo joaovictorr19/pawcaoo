@@ -7,6 +7,11 @@ Deno.serve(async (req) => {
     const event = payload?.event || {};
     let booking = payload?.data || null;
 
+    // Must come from an entity automation (event required)
+    if (!event?.entity_name && !event?.entity_id && !booking?.id) {
+      return Response.json({ error: 'Invalid automation payload' }, { status: 400 });
+    }
+
     if ((!booking || payload?.payload_too_large) && event?.entity_id) {
       const records = await base44.asServiceRole.entities.Booking.filter({ id: event.entity_id });
       booking = records[0] || null;
