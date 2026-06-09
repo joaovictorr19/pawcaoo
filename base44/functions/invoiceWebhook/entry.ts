@@ -7,9 +7,27 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    // Validate webhook signature or auth header
+    const authHeader = req.headers.get('authorization');
+    const webhookSecret = Deno.env.get('INVOICE_WEBHOOK_SECRET');
+    
+    // If Authorization header is missing, fall back to user authentication (admin-only)
+    if (!authHeader && webhookSecret) {
+      return Response.json({ error: 'Missing authorization header' }, { status: 401 });
+    }
+
+    // If Authorization header is present, validate it
+    if (authHeader && webhookSecret) {
+      const expectedAuth = `Bearer ${webhookSecret}`;
+      if (authHeader !== expectedAuth) {
+        return Response.json({ error: 'Invalid authorization' }, { status: 401 });
+      }
+    } else if (!authHeader) {
+      // No webhook secret configured, require admin auth
+      const user = await base44.auth.me();
+      if (!user || user.role !== 'admin') {
+        return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      }
     }
 
     const { booking_id, event_type } = await req.json();
