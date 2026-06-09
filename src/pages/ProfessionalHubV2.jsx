@@ -26,6 +26,7 @@ import ReviewsManagementSection from "@/components/professional-hub/ReviewsManag
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 import DocumentsVerificationSection from "@/components/professional-hub/DocumentsVerificationSection";
 import PendingApproval from "@/components/professional-hub/PendingApproval";
+import ProfessionalProfileForm from "@/components/professional-hub/ProfessionalProfileForm";
 
 function ActiveRequestsList({ user }) {
   const { data: activeBookings = [] } = useQuery({
@@ -387,23 +388,19 @@ export default function ProfessionalHubV2() {
     );
   }
 
-  // Redirect non-professionals to setup
-  if (!user?.account_type || !['walker', 'trainer', 'both'].includes(user.account_type)) {
-    navigate(createPageUrl('ProfessionalSetup'), { replace: true });
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-      </div>
-    );
-  }
+  // Show inline form for new professionals or those without a profile
+  const needsSetup = !user?.account_type || !['walker', 'trainer', 'both'].includes(user.account_type) || !professionalProfile;
 
-  // Redirect if no professional profile exists
-  if (!professionalProfile) {
-    navigate(createPageUrl('ProfessionalSetup'), { replace: true });
+  if (needsSetup) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-      </div>
+      <ProfessionalProfileForm
+        user={user}
+        professionalProfile={null}
+        onDone={() => {
+          queryClient.invalidateQueries(['currentUser']);
+          queryClient.invalidateQueries(['myProfessionalProfile']);
+        }}
+      />
     );
   }
 
@@ -521,26 +518,14 @@ export default function ProfessionalHubV2() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="space-y-8"
             >
-              <div className="flex items-center gap-3 mb-2">
-                <UserCircle2 className="w-5 h-5 text-orange-400" />
-                <h2 className="text-lg font-black text-white">Gestão de Perfil</h2>
-              </div>
-              <ProfessionalEditProfile
-                user={{
-                  ...user,
-                  full_name: professionalProfile?.walker_name || professionalProfile?.trainer_name || user?.full_name,
-                  photo_url: professionalProfile?.photo_url || user?.photo_url || user?.profile_photo_url,
-                  professional_profile: {
-                    bio: professionalProfile?.bio || "",
-                    cover_url: professionalProfile?.cover_photo_url || "",
-                    gallery: professionalProfile?.portfolio?.filter(item => item.media_type !== 'video').map(item => item.media_url).slice(0, 4) || []
-                  }
-                }}
-                onUpdate={() => {
+              <ProfessionalProfileForm
+                user={user}
+                professionalProfile={professionalProfile}
+                onDone={() => {
                   queryClient.invalidateQueries(['currentUser']);
                   queryClient.invalidateQueries(['myProfessionalProfile']);
+                  setActiveTab('overview');
                 }}
               />
             </motion.div>

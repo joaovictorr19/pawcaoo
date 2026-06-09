@@ -600,7 +600,19 @@ export default function Home() {
   };
 
   const handleBecomePro = () => {
-    base44.auth.redirectToLogin(createPageUrl('BecomeProfessional'));
+    if (user) {
+      navigate(createPageUrl('ProfessionalHubV2'));
+    } else {
+      base44.auth.redirectToLogin(createPageUrl('ProfessionalHubV2'));
+    }
+  };
+
+  const handleClientRegister = () => {
+    if (user) {
+      navigate(createPageUrl('ClientSetup'));
+    } else {
+      base44.auth.redirectToLogin(createPageUrl('ClientSetup'));
+    }
   };
 
 
@@ -883,7 +895,7 @@ export default function Home() {
                     <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
                       {language === 'pt' ? 'Profissionais verificados prontos para dar ao seu cão o passeio que ele merece.' : language === 'es' ? 'Profesionales verificados listos para darle a tu perro el paseo que merece.' : language === 'fr' ? 'Des professionnels vérifiés prêts à offrir à votre chien la promenade qu’il mérite.' : 'Verified professionals ready to give your dog the walk they deserve.'}
                     </p>
-                    <button onClick={handleLogin} className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors">
+                    <button onClick={handleClientRegister} className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors">
                       {language === 'pt' ? 'Começar Agora' : language === 'es' ? 'Empezar Ahora' : language === 'fr' ? 'Commencer Maintenant' : 'Start Now'}
                     </button>
                   </div>

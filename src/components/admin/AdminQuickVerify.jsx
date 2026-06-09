@@ -18,13 +18,8 @@ export function AdminQuickVerify({ userProfile, walkerData }) {
   // Mutação Única para Aprovar e Ativar no PawGo
   const verifyMutation = useMutation({
     mutationFn: async (status) => {
-      const canBeVisible = Boolean(
-        wd?.walker_name &&
-        wd?.location &&
-        wd?.whatsapp_number &&
-        Number(wd?.hourly_rate || 0) > 0
-      );
-      const finalStatus = status === 'verified' && canBeVisible ? 'verified' : (status === 'verified' ? 'pending' : status);
+      const isApproved = status === 'verified';
+      const finalStatus = isApproved ? 'verified' : (status === 'rejected' ? 'rejected' : 'pending');
 
       // 1. Atualiza o Perfil de Walker
       if (wd && wd.id) {
