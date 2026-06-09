@@ -86,6 +86,9 @@
           "data.walker_email": "{{user.email}}"
         },
         {
+          "data.is_public": true
+        },
+        {
           "user_condition": {
             "role": "admin"
           }

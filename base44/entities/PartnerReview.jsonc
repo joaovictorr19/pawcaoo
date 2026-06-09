@@ -136,18 +136,7 @@
     "create": {
       "data.reviewer_email": "{{user.email}}"
     },
-    "read": {
-      "$or": [
-        {
-          "data.reviewer_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
-    },
+    "read": {},
     "update": {
       "$or": [
         {

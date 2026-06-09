@@ -190,9 +190,6 @@
           "data.veterinarian_email": "{{user.email}}"
         },
         {
-          "data.pharmacy_company_email": "{{user.email}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
