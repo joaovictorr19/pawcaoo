@@ -27,6 +27,7 @@ import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 import DocumentsVerificationSection from "@/components/professional-hub/DocumentsVerificationSection";
 import PendingApproval from "@/components/professional-hub/PendingApproval";
 import ProfessionalProfileForm from "@/components/professional-hub/ProfessionalProfileForm";
+import HotelManagementPanel from "@/components/professional-hub/HotelManagementPanel";
 
 function ActiveRequestsList({ user }) {
   const { data: activeBookings = [] } = useQuery({
@@ -388,8 +389,10 @@ export default function ProfessionalHubV2() {
     );
   }
 
+  const isHotelProfile = professionalProfile?.professional_type === 'hotel';
+
   // Show inline form for new professionals or those without a profile
-  const needsSetup = !user?.account_type || !['walker', 'trainer', 'both'].includes(user.account_type) || !professionalProfile;
+  const needsSetup = !professionalProfile || (!isHotelProfile && !user?.account_type);
 
   if (needsSetup) {
     return (
@@ -404,9 +407,9 @@ export default function ProfessionalHubV2() {
     );
   }
 
-
+  // Hotéis têm painel próprio — sem pending approval screen
   const verificationStatus = professionalProfile?.verification_status;
-  const showRestrictedPendingScreen = verificationStatus !== 'verified' && !['documents', 'portfolio'].includes(activeTab);
+  const showRestrictedPendingScreen = !isHotelProfile && verificationStatus !== 'verified' && !['documents', 'portfolio'].includes(activeTab);
 
   if (showRestrictedPendingScreen) {
     return <PendingApproval profile={professionalProfile} activeTab={activeTab} onChangeTab={setActiveTab} />;
@@ -425,8 +428,8 @@ export default function ProfessionalHubV2() {
       <header className="bg-slate-950 text-white px-4 pt-20 pb-6 rounded-b-[2.5rem] shadow-xl mb-6">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h1 className="text-xl font-black italic">Olá, {user?.full_name?.split(' ')[0] || 'Pro'}! 🐾</h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Painel Profissional</p>
+            <h1 className="text-xl font-black italic">Olá, {user?.full_name?.split(' ')[0] || 'Pro'}! {isHotelProfile ? '🏨' : '🐾'}</h1>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -455,7 +458,14 @@ export default function ProfessionalHubV2() {
       <main className="px-4 md:px-6 pb-6 max-w-2xl mx-auto w-full">
         {/* Renderização Condicional por Abas */}
         <AnimatePresence mode="wait">
-          {activeTab === "overview" && (
+          {/* ── Painel Hotel ─────────────────────────────────── */}
+          {isHotelProfile && activeTab === "overview" && (
+            <motion.div key="hotel-ov" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <HotelManagementPanel user={user} hotelProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {!isHotelProfile && activeTab === "overview" && (
             <motion.div 
               key="ov" 
               initial={{ opacity: 0, y: 10 }} 
