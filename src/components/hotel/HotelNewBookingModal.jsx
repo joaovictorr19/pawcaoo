@@ -66,11 +66,16 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-lg rounded-t-3xl md:rounded-3xl max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white w-full max-w-lg rounded-t-3xl md:rounded-3xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-purple-900/20">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-700 to-purple-500 px-5 py-4 flex items-center justify-between rounded-t-3xl md:rounded-t-3xl">
-          <h2 className="text-white font-black text-base">Nova Reserva</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full text-white">
+        <div className="relative bg-gradient-to-br from-purple-800 via-purple-700 to-purple-500 px-5 py-5 flex items-center justify-between rounded-t-3xl md:rounded-t-3xl overflow-hidden">
+          <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute bottom-0 left-12 w-20 h-20 bg-white/5 rounded-full pointer-events-none" />
+          <div className="relative z-10">
+            <h2 className="text-white font-black text-base tracking-tight">Nova Reserva 🏨</h2>
+            <p className="text-purple-200 text-[11px] mt-0.5">Preenche os dados da estadia</p>
+          </div>
+          <button onClick={onClose} className="relative z-10 w-8 h-8 flex items-center justify-center bg-white/15 hover:bg-white/25 rounded-xl text-white transition-all">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -176,11 +181,11 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
         </div>
 
         {/* Footer */}
-        <div className="px-5 pb-6 flex gap-3 border-t border-slate-100 pt-4">
-          <Button variant="outline" onClick={onClose} className="flex-1 rounded-xl border-slate-200">Cancelar</Button>
+        <div className="px-5 pb-6 flex gap-3 border-t border-purple-50 pt-4 bg-gradient-to-b from-white to-purple-50/30">
+          <Button variant="outline" onClick={onClose} className="flex-1 rounded-xl border-purple-100 text-purple-600 hover:bg-purple-50">Cancelar</Button>
           <Button onClick={handleSave} disabled={!form.owner_name.trim() || !form.checkin_date}
-            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold">
-            Criar Reserva
+            className="flex-1 bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white rounded-xl font-black shadow-lg shadow-purple-500/30 disabled:opacity-40">
+            🏨 Criar Reserva
           </Button>
         </div>
       </div>

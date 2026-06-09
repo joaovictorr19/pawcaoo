@@ -153,10 +153,13 @@ export default function HotelDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 pb-24 md:pb-8">
       {/* ── Top Header ── */}
-      <div className="bg-gradient-to-r from-purple-800 via-purple-700 to-purple-500 sticky top-14 md:top-16 z-20 shadow-lg shadow-purple-900/20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-purple-600 sticky top-14 md:top-16 z-20 shadow-xl shadow-purple-900/30 overflow-hidden">
+        {/* Decorative blobs */}
+        <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
+        <div className="absolute -bottom-10 left-1/3 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
+        <div className="relative z-10 max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
               <Hotel className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -183,7 +186,7 @@ export default function HotelDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="max-w-5xl mx-auto px-4 pb-0 flex gap-1 overflow-x-auto scrollbar-none">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 pb-0 flex gap-1 overflow-x-auto scrollbar-none">
           {[
             { key: "agenda", label: "📅 Agenda", icon: null },
             { key: "today", label: "Hoje", count: todayCheckins.length + todayCheckouts.length },
@@ -227,7 +230,7 @@ export default function HotelDashboard() {
         </div>
 
         {/* ── Ocupação + vagas ── */}
-        <div className="bg-white rounded-2xl border border-purple-100 p-4">
+        <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl border border-purple-100 p-4 shadow-sm shadow-purple-100">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="font-bold text-slate-800 text-sm">Ocupação Hoje</p>
@@ -242,8 +245,12 @@ export default function HotelDashboard() {
                 className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">+</button>
             </div>
           </div>
-          <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-            <div className={`h-full rounded-full transition-all duration-500 ${occupancyPct >= 90 ? "bg-red-500" : occupancyPct >= 70 ? "bg-orange-500" : "bg-purple-500"}`}
+          <div className="h-3 bg-purple-100 rounded-full overflow-hidden shadow-inner">
+            <div className={`h-full rounded-full transition-all duration-700 ${
+              occupancyPct >= 90 ? "bg-gradient-to-r from-red-600 to-red-400"
+              : occupancyPct >= 70 ? "bg-gradient-to-r from-orange-500 to-orange-400"
+              : "bg-gradient-to-r from-purple-800 to-purple-400"
+            }`}
               style={{ width: `${occupancyPct}%` }} />
           </div>
           <div className="flex justify-between mt-1 text-[10px] text-slate-400">
@@ -368,9 +375,10 @@ export default function HotelDashboard() {
       {/* FAB */}
       <button
         onClick={() => setShowNewBooking(true)}
-        className="fixed bottom-24 md:bottom-8 right-5 z-30 w-14 h-14 bg-gradient-to-br from-purple-700 to-purple-500 rounded-full shadow-xl shadow-purple-900/30 flex items-center justify-center hover:scale-105 transition-transform"
+        className="fixed bottom-24 md:bottom-8 right-5 z-30 w-14 h-14 bg-gradient-to-br from-purple-800 to-purple-500 rounded-2xl shadow-2xl shadow-purple-900/40 flex items-center justify-center hover:scale-110 hover:shadow-purple-700/50 active:scale-95 transition-all border border-purple-400/30"
+        title="Nova Reserva"
       >
-        <Plus className="w-6 h-6 text-white" />
+        <Plus className="w-6 h-6 text-white drop-shadow" />
       </button>
 
       {/* New booking modal */}

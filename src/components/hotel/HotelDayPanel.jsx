@@ -52,48 +52,63 @@ export default function HotelDayPanel({ date, bookings = [], onUpdateBooking, ca
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-purple-100 overflow-hidden">
+    <div className="rounded-2xl overflow-hidden shadow-lg shadow-purple-900/10 border border-purple-100">
       {/* Day header */}
-      <div className="bg-gradient-to-r from-purple-600 to-purple-400 px-4 py-3 flex items-center justify-between">
-        <div>
-          <p className="text-white font-black text-base capitalize">
+      <div className="relative bg-gradient-to-br from-purple-800 via-purple-700 to-purple-500 px-4 py-4 flex items-center justify-between overflow-hidden">
+        <div className="absolute -top-6 -right-6 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+        <div className="absolute -bottom-8 left-8 w-24 h-24 bg-white/5 rounded-full pointer-events-none" />
+        <div className="relative z-10">
+          <p className="text-white font-black text-base capitalize leading-tight">
             {format(date, "EEEE, d 'de' MMMM", { locale: pt })}
-            {isToday(date) && <span className="ml-2 text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">Hoje</span>}
           </p>
-          <p className="text-purple-200 text-xs">{dayBookings.length} reservas activas · {occupancyCount} cães</p>
+          <div className="flex items-center gap-2 mt-1">
+            {isToday(date) && (
+              <span className="text-[10px] bg-white/25 text-white px-2 py-0.5 rounded-full font-bold">● Hoje</span>
+            )}
+            <span className="text-purple-200 text-[11px]">{dayBookings.length} reserva{dayBookings.length !== 1 ? "s" : ""} · {occupancyCount} cão(ões)</span>
+          </div>
         </div>
         {onClose && (
-          <button onClick={onClose} className="text-white/70 hover:text-white text-lg font-bold">×</button>
+          <button onClick={onClose} className="relative z-10 w-7 h-7 flex items-center justify-center bg-white/15 hover:bg-white/25 rounded-full text-white transition-all">×</button>
         )}
       </div>
 
       {/* Occupancy bar */}
-      <div className="px-4 pt-3 pb-2">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Ocupação</span>
-          <span className="text-xs font-black text-purple-600">{occupancyCount} / {capacity?.total || "?"} cães ({occupancyPct}%)</span>
+      <div className="px-4 pt-3 pb-2 bg-gradient-to-b from-purple-50/50 to-white border-b border-purple-50">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-black text-purple-500 uppercase tracking-widest">Ocupação</span>
+          <span className="text-xs font-black text-purple-700">{occupancyCount} / {capacity?.total || "?"} cães
+            <span className="ml-1 text-purple-400 font-normal">({occupancyPct}%)</span>
+          </span>
         </div>
-        <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-3 bg-purple-100 rounded-full overflow-hidden shadow-inner">
           <div
-            className={`h-full rounded-full transition-all ${occupancyPct >= 90 ? "bg-red-500" : occupancyPct >= 70 ? "bg-orange-500" : "bg-purple-500"}`}
+            className={`h-full rounded-full transition-all duration-500 ${
+              occupancyPct >= 90 ? "bg-gradient-to-r from-red-500 to-red-400"
+              : occupancyPct >= 70 ? "bg-gradient-to-r from-orange-500 to-orange-400"
+              : "bg-gradient-to-r from-purple-700 to-purple-400"
+            }`}
             style={{ width: `${occupancyPct}%` }}
           />
         </div>
-        <div className="flex justify-between mt-1.5 text-[10px] text-slate-400">
-          <span>↓ Chegadas: {checkinsToday.length}</span>
-          <span>↑ Saídas: {checkoutsToday.length}</span>
+        <div className="flex justify-between mt-1.5">
+          <span className="text-[10px] text-green-600 font-semibold flex items-center gap-1">↓ Chegadas: {checkinsToday.length}</span>
+          <span className="text-[10px] text-purple-500 font-semibold flex items-center gap-1">↑ Saídas: {checkoutsToday.length}</span>
         </div>
       </div>
 
       {/* Booking list */}
-      <div className="px-3 pb-3 space-y-2 max-h-96 overflow-y-auto">
+      <div className="px-3 pb-3 space-y-2 max-h-96 overflow-y-auto bg-white">
         {dayBookings.length === 0 ? (
-          <div className="text-center py-6 text-slate-400">
-            <Dog className="w-8 h-8 mx-auto mb-2 opacity-20" />
-            <p className="text-sm">Sem reservas neste dia</p>
+          <div className="text-center py-8 text-slate-300">
+            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-purple-50 flex items-center justify-center">
+              <Dog className="w-7 h-7 text-purple-200" />
+            </div>
+            <p className="text-sm text-slate-400 font-medium">Sem reservas neste dia</p>
+            <p className="text-[11px] text-slate-300 mt-0.5">Clica + para criar uma reserva</p>
           </div>
         ) : dayBookings.map(booking => (
-          <div key={booking.id} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+          <div key={booking.id} className="bg-gradient-to-br from-purple-50/40 to-white rounded-xl p-3 border border-purple-100/60 hover:border-purple-200 transition-colors">
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-slate-900 text-sm truncate">{booking.owner_name}</p>
