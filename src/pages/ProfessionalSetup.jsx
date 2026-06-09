@@ -104,6 +104,17 @@ export default function ProfessionalSetup() {
     tax_id_spain: "",
     tax_id_france: "",
     france_professional_type: "professional",
+    // Hotel specific
+    hotel_name: "",
+    hotel_description: "",
+    hotel_full_address: "",
+    hotel_price_per_night: "30",
+    hotel_price_daycare: "15",
+    hotel_checkin_time: "09:00",
+    hotel_checkout_time: "18:00",
+    hotel_capacity_total: "5",
+    hotel_amenities: [],
+    hotel_accepted_sizes: ["small", "medium", "large"],
     };
   });
 
@@ -259,7 +270,10 @@ export default function ProfessionalSetup() {
 
   const canProceed = () => {
     if (step === 0) return form.walker_name.trim() && form.location.trim();
-    if (step === 2) return parseFloat(form.hourly_rate) > 0;
+    if (step === 2) {
+      if (form.professional_type === 'hotel') return form.hotel_name.trim().length > 0;
+      return parseFloat(form.hourly_rate) > 0;
+    }
     return true;
   };
 
@@ -314,19 +328,36 @@ export default function ProfessionalSetup() {
        tax_id_france: form.tax_id_france || "",
        france_professional_type: form.france_professional_type || "professional",
        is_active: false,
-       is_online: false,
-       is_verified: false,
-       verification_status: "pending",
-       instant_booking: form.instant_booking,
-       service_areas: [{
-         area_name: form.location,
-         radius_km: form.work_radius_km,
-         latitude: lat,
-         longitude: lng,
-       }],
-       user_id: user.id,
-       is_verified_trainer: form.professional_type === 'trainer' || form.professional_type === 'both',
-      };
+        is_online: false,
+        is_verified: false,
+        verification_status: "pending",
+        instant_booking: form.professional_type === 'hotel' ? false : form.instant_booking,
+        service_areas: [{
+          area_name: form.location,
+          radius_km: form.work_radius_km,
+          latitude: lat,
+          longitude: lng,
+        }],
+        user_id: user.id,
+        professional_type: form.professional_type,
+        is_verified_trainer: form.professional_type === 'trainer' || form.professional_type === 'both',
+        ...(form.professional_type === 'hotel' ? {
+          hotel_details: {
+            hotel_name: form.hotel_name || form.walker_name,
+            hotel_description: form.bio,
+            full_address: form.hotel_full_address,
+            price_per_night: parseFloat(form.hotel_price_per_night) || 30,
+            price_daycare: parseFloat(form.hotel_price_daycare) || 15,
+            checkin_time: form.hotel_checkin_time,
+            checkout_time: form.hotel_checkout_time,
+            capacity_total: parseInt(form.hotel_capacity_total) || 5,
+            capacity_available: parseInt(form.hotel_capacity_total) || 5,
+            amenities: form.hotel_amenities || [],
+            accepted_dog_sizes: form.hotel_accepted_sizes || ["small", "medium", "large"],
+            partner_walkers: [],
+          }
+        } : {}),
+       };
 
       // Verificar se já existe
       const existing = await base44.entities.WalkerProfile.filter({ created_by: user.email });
@@ -588,7 +619,8 @@ export default function ProfessionalSetup() {
                 {[
                   { value: "walker", label: "Passeador 🦮", desc: "Passeios, guarda, visitas domiciliárias" },
                   { value: "trainer", label: "Treinador 🎓", desc: "Adestramento, treino comportamental" },
-                  { value: "both", label: "Ambos 🌟", desc: "Passeador + Treinador" },
+                  { value: "both", label: "Passeador + Treinador 🌟", desc: "Oferece ambos os serviços" },
+                  { value: "hotel", label: "Hotel Canino 🏨", desc: "Alojamento, creche e serviços de hotel para cães" },
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -610,8 +642,85 @@ export default function ProfessionalSetup() {
             </div>
           )}
 
-          {/* STEP 2 - Serviços */}
-          {step === 2 && (
+          {/* STEP 2 - Serviços ou Hotel Details */}
+          {step === 2 && form.professional_type === 'hotel' && (
+            <div className="space-y-5">
+              <div>
+                <h2 className="text-3xl font-black text-white tracking-tighter">Detalhes do Hotel 🏨</h2>
+                <p className="text-slate-400 text-sm mt-1">Informações sobre o teu hotel canino.</p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Nome do Hotel *</label>
+                <input value={form.hotel_name} onChange={e => set("hotel_name", e.target.value)} placeholder="Ex: Hotel PawCão Lisboa" className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Morada Completa</label>
+                <input value={form.hotel_full_address} onChange={e => set("hotel_full_address", e.target.value)} placeholder="Rua, nº, cidade, código postal" className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Preço/Noite (€)</label>
+                  <input type="number" min="0" value={form.hotel_price_per_night} onChange={e => set("hotel_price_per_night", e.target.value)} className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Preço Creche/Dia (€)</label>
+                  <input type="number" min="0" value={form.hotel_price_daycare} onChange={e => set("hotel_price_daycare", e.target.value)} className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Check-in</label>
+                  <input type="time" value={form.hotel_checkin_time} onChange={e => set("hotel_checkin_time", e.target.value)} className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Check-out</label>
+                  <input type="time" value={form.hotel_checkout_time} onChange={e => set("hotel_checkout_time", e.target.value)} className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Capacidade Total (nº de cães)</label>
+                <input type="number" min="1" value={form.hotel_capacity_total} onChange={e => set("hotel_capacity_total", e.target.value)} className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+              </div>
+
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tamanhos aceites</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {DOG_SIZES.map(s => (
+                    <button key={s.value} onClick={() => {
+                      const arr = form.hotel_accepted_sizes || [];
+                      set("hotel_accepted_sizes", arr.includes(s.value) ? arr.filter(x => x !== s.value) : [...arr, s.value]);
+                    }} className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${(form.hotel_accepted_sizes || []).includes(s.value) ? 'border-purple-500 bg-purple-500/10' : 'border-slate-800 bg-slate-900'}`}>
+                      <div className="text-left">
+                        <p className="text-sm font-bold text-white">{s.label}</p>
+                        <p className="text-xs text-slate-400">{s.desc}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Comodidades</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {["Jardim", "Piscina", "Webcam", "Ar condicionado", "Passeios incluídos", "Veterinário parceiro", "Transporte", "Grooming"].map(amenity => (
+                    <button key={amenity} onClick={() => {
+                      const arr = form.hotel_amenities || [];
+                      set("hotel_amenities", arr.includes(amenity) ? arr.filter(x => x !== amenity) : [...arr, amenity]);
+                    }} className={`p-3 rounded-xl border-2 text-xs font-bold text-left transition-all ${(form.hotel_amenities || []).includes(amenity) ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-slate-800 bg-slate-900 text-slate-400'}`}>
+                      {amenity}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && form.professional_type !== 'hotel' && (
             <div className="space-y-5">
               <div>
                 <h2 className="text-3xl font-black text-white tracking-tighter">Serviços & Preços</h2>
@@ -919,30 +1028,55 @@ export default function ProfessionalSetup() {
                     <img src={form.photo_url} className="w-14 h-14 rounded-xl object-cover" alt="foto" />
                   )}
                   <div>
-                    <p className="text-white font-black text-lg">{form.walker_name || user?.full_name}</p>
-                    <p className="text-slate-400 text-sm">{form.location}</p>
+                    <p className="text-white font-black text-lg">{form.professional_type === 'hotel' ? (form.hotel_name || form.walker_name) : (form.walker_name || user?.full_name)}</p>
+                    <p className="text-slate-400 text-sm">{form.professional_type === 'hotel' ? (form.hotel_full_address || form.location) : form.location}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700">
                   <div>
                     <p className="text-slate-500 text-xs uppercase tracking-widest">Tipo</p>
-                    <p className="text-white font-bold text-sm capitalize">{form.professional_type}</p>
+                    <p className="text-white font-bold text-sm">
+                      {form.professional_type === 'walker' ? '🦮 Passeador' :
+                       form.professional_type === 'trainer' ? '🎓 Treinador' :
+                       form.professional_type === 'both' ? '🌟 Passeador+Treinador' :
+                       '🏨 Hotel Canino'}
+                    </p>
                   </div>
-                  <div>
-                    <p className="text-slate-500 text-xs uppercase tracking-widest">Preço/hora</p>
-                    <p className="text-orange-400 font-black text-sm">{form.hourly_rate}€</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-xs uppercase tracking-widest">Serviços</p>
-                    <p className="text-white font-bold text-sm">{form.services_offered.filter(s => s.service_name).length} serviços</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-xs uppercase tracking-widest">Animais</p>
-                    <p className="text-white font-bold text-sm">{form.accepted_animals.length} tipos</p>
-                  </div>
+                  {form.professional_type === 'hotel' ? (
+                    <>
+                      <div>
+                        <p className="text-slate-500 text-xs uppercase tracking-widest">Preço/Noite</p>
+                        <p className="text-purple-400 font-black text-sm">{form.hotel_price_per_night}€</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 text-xs uppercase tracking-widest">Capacidade</p>
+                        <p className="text-white font-bold text-sm">{form.hotel_capacity_total} cães</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 text-xs uppercase tracking-widest">Comodidades</p>
+                        <p className="text-white font-bold text-sm">{(form.hotel_amenities || []).length} selecionadas</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <p className="text-slate-500 text-xs uppercase tracking-widest">Preço/hora</p>
+                        <p className="text-orange-400 font-black text-sm">{form.hourly_rate}€</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 text-xs uppercase tracking-widest">Serviços</p>
+                        <p className="text-white font-bold text-sm">{form.services_offered.filter(s => s.service_name).length} serviços</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 text-xs uppercase tracking-widest">Animais</p>
+                        <p className="text-white font-bold text-sm">{form.accepted_animals.length} tipos</p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
+              {form.professional_type !== 'hotel' && (
               <div className="flex gap-3">
                 <div className="flex-1 bg-slate-800 rounded-xl p-3">
                   <p className="text-slate-500 text-xs uppercase tracking-widest">PawGo</p>
@@ -953,6 +1087,7 @@ export default function ProfessionalSetup() {
                   <p className="text-white font-bold text-sm">{form.work_radius_km} km</p>
                 </div>
               </div>
+              )}
 
               <div className="bg-slate-800/50 border border-orange-500/20 rounded-xl p-3 text-xs text-slate-400">
                 ⚠️ O teu perfil ficará em análise. A equipa PawCão verificará os teus dados e serás notificado quando aprovado.
