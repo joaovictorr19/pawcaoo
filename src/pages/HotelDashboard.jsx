@@ -19,6 +19,7 @@ import HotelDayPanel from "@/components/hotel/HotelDayPanel";
 import HotelPartnersPanel from "@/components/hotel/HotelPartnersPanel";
 import HotelNewBookingModal from "@/components/hotel/HotelNewBookingModal";
 import HotelOccupancyManager from "@/components/hotel/HotelOccupancyManager";
+import HotelCapacityAlert from "@/components/hotel/HotelCapacityAlert";
 
 const STATUS_CONFIG = {
   pending:    { label: "Pendente",    cls: "bg-orange-100 text-orange-700" },
@@ -45,6 +46,7 @@ export default function HotelDashboard() {
   const [activeTab, setActiveTab] = useState("agenda");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showNewBooking, setShowNewBooking] = useState(false);
+  const [alertDismissed, setAlertDismissed] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
@@ -214,6 +216,15 @@ export default function HotelDashboard() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pt-4 space-y-4">
+
+        {/* ── Capacity Alert Banner ── */}
+        {!alertDismissed && (
+          <HotelCapacityAlert
+            bookings={bookings}
+            capacityTotal={capacityTotal}
+            onDismiss={() => setAlertDismissed(true)}
+          />
+        )}
 
         {/* ── KPI strip ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
