@@ -440,14 +440,34 @@ function LayoutContent({ children, currentPageName }) {
               {language === 'es' ? 'Inicio' : 'Home'}
             </NavLink>
 
-            {/* Só mostra links de painel se o utilizador estiver autenticado (authUser, não stableUser) */}
+            {/* Links de painel — só para utilizadores autenticados */}
             {authUser && (() => {
+              const isAdmin = authUser.role === 'admin';
               const isHotel = authUser.account_type === 'hotel' || authUser.role === 'hotel_admin';
               const isPro = !isHotel && (
                 authUser.account_type === 'walker' ||
                 authUser.account_type === 'trainer' ||
                 authUser.account_type === 'both'
               );
+
+              // Admin vê tudo
+              if (isAdmin) {
+                return (
+                  <>
+                    <NavLink to={createPageUrl("ProfessionalHubV2")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
+                      {language === 'es' ? 'Panel Profesional' : 'Painel Profissional'}
+                    </NavLink>
+                    <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
+                      {language === 'es' ? 'Panel Cliente' : 'Painel Cliente'}
+                    </NavLink>
+                    <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-red-100 text-red-700' : 'hover:bg-red-50 text-red-600'}`}>
+                      🛡️ Admin
+                    </NavLink>
+                  </>
+                );
+              }
+
+              // Hotel
               if (isHotel) {
                 return (
                   <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-purple-100 text-purple-700' : 'hover:bg-purple-50 text-purple-600'}`}>
@@ -455,6 +475,8 @@ function LayoutContent({ children, currentPageName }) {
                   </NavLink>
                 );
               }
+
+              // Profissional (walker/trainer) — vê painel pro + reservas como cliente
               if (isPro) {
                 return (
                   <>
@@ -467,19 +489,14 @@ function LayoutContent({ children, currentPageName }) {
                   </>
                 );
               }
-              // cliente comum
+
+              // Cliente comum
               return (
                 <NavLink to={createPageUrl("ClientDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
                   {language === 'es' ? 'Mi Panel' : 'Meu Painel'}
                 </NavLink>
               );
             })()}
-
-            {authUser?.role === 'admin' && (
-              <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-red-100 text-red-700' : 'hover:bg-red-50 text-red-600'}`}>
-                🛡️ Admin
-              </NavLink>
-            )}
           </nav>
           <div className="flex items-center gap-2">
             <div className="flex items-center rounded-full border border-slate-200 bg-slate-50 p-1">
