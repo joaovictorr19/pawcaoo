@@ -373,7 +373,7 @@ export default function UserProfile() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-transparent to-black/20" />
-        <button onClick={() => navigate(-1)} className="absolute top-6 left-6 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all">
+        <button onClick={() => navigate(-1)} className="absolute top-24 left-6 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all">
           <ArrowLeft size={20} />
         </button>
       </div>
