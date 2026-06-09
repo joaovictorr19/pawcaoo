@@ -39,23 +39,32 @@ export default function ManageAvailability() {
     enabled: !!authUser?.email,
   });
 
-  // --- BUSCA DAS RESERVAS ---
+  // --- BUSCA DAS RESERVAS (walk + training) ---
   const { data: bookings = [] } = useQuery({
     queryKey: ['professionalBookings', authUser?.email],
     queryFn: async () => {
       if (!authUser?.email) return [];
-      const walkerBookings = await base44.entities.Booking.filter({ walker_email: authUser.email });
-      return walkerBookings;
+      const [walkerBookings, trainingBookings] = await Promise.all([
+        base44.entities.Booking.filter({ walker_email: authUser.email }),
+        base44.entities.TrainingBooking
+          ? base44.entities.TrainingBooking.filter({ trainer_email: authUser.email }).catch(() => [])
+          : Promise.resolve([])
+      ]);
+      return [
+        ...walkerBookings.map(b => ({ ...b, _date: b.walk_date })),
+        ...trainingBookings.map(b => ({ ...b, _date: b.session_date }))
+      ];
     },
     enabled: !!authUser?.email,
   });
 
   // --- FILTRAR RESERVAS DO DIA SELECIONADO ---
   const selectedDateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
-  
+
   const daysBookings = bookings.filter(b => {
-      const bDate = b.walk_date ? (b.walk_date.includes('T') ? b.walk_date.split('T')[0] : b.walk_date) : null;
-      return bDate === selectedDateStr;
+    const bDate = (b._date || b.walk_date || b.session_date || '');
+    const cleanDate = bDate.includes('T') ? bDate.split('T')[0] : bDate;
+    return cleanDate === selectedDateStr;
   });
 
   // --- QUANDO CLICA NO DIA, ATUALIZA O ESTADO DO SWITCH ---
@@ -73,88 +82,51 @@ export default function ManageAvailability() {
     }
   }, [selectedDate, availabilityData]);
 
-  // --- GUARDAR A FOLGA (Versão com Debug Completo) ---
+  // --- GUARDAR / REMOVER FOLGA ---
   const handleToggleDayOff = async (checked) => {
     if (!selectedDate || !authUser?.email) {
-       toast.error("Erro: Utilizador ou data não identificados.");
-       console.error("❌ Dados em falta:", { selectedDate, email: authUser?.email });
-       return;
+      toast.error("Erro: Utilizador ou data não identificados.");
+      return;
     }
 
     const previousState = isDayOff;
-    setIsDayOff(checked); 
+    setIsDayOff(checked);
     setIsSaving(true);
-    
+
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    
-    console.log("🚀 INICIANDO SAVE:", {
-      date: dateStr,
-      isDayOff: checked,
-      userEmail: authUser.email,
-      userName: authUser.full_name
-    });
 
     try {
-      // Buscar registos existentes
-      console.log("📡 A buscar registos existentes...");
-      const allRecords = await base44.entities.CalendarAvailability.filter({ 
+      const allRecords = await base44.entities.CalendarAvailability.filter({
         professional_email: authUser.email
       });
-      console.log("📊 Registos encontrados:", allRecords?.length || 0, allRecords);
 
-      // Filtrar pelo dia específico
       const existingRecord = (allRecords || []).find(r => {
-         if (!r.date) return false;
-         const rDateClean = r.date.includes('T') ? r.date.split('T')[0] : r.date;
-         return rDateClean === dateStr;
+        if (!r.date) return false;
+        const rDateClean = r.date.includes('T') ? r.date.split('T')[0] : r.date;
+        return rDateClean === dateStr;
       });
 
-      console.log("🔍 Registo para esta data:", existingRecord ? `ID: ${existingRecord.id}` : "NENHUM");
-
-      let result;
       if (existingRecord) {
-        console.log("📝 ATUALIZANDO registo ID:", existingRecord.id);
-        result = await base44.entities.CalendarAvailability.update(existingRecord.id, {
+        await base44.entities.CalendarAvailability.update(existingRecord.id, {
           is_day_off: checked,
-          is_fully_booked: checked,
-          time_slots: checked ? [] : [{ start_time: "09:00", end_time: "18:00", is_available: true }] 
+          // is_fully_booked é gerido automaticamente pelas reservas — não sobreescrever aqui
         });
-        console.log("✅ UPDATE resultado:", result);
       } else {
-        console.log("➕ CRIANDO novo registo...");
-        const newRecord = {
+        await base44.entities.CalendarAvailability.create({
           professional_email: authUser.email,
           professional_name: authUser.full_name || 'Profissional',
           professional_type: 'walker',
           date: dateStr,
           is_day_off: checked,
-          is_fully_booked: checked,
+          is_fully_booked: false,
           time_slots: checked ? [] : [{ start_time: "09:00", end_time: "18:00", is_available: true }]
-        };
-        console.log("📦 Dados a criar:", newRecord);
-        result = await base44.entities.CalendarAvailability.create(newRecord);
-        console.log("✅ CREATE resultado:", result);
+        });
       }
 
-      // Verificar se guardou
-      console.log("🔄 A verificar se guardou...");
-      const verification = await base44.entities.CalendarAvailability.filter({ 
-        professional_email: authUser.email
-      });
-      const savedRecord = verification.find(r => {
-        const rDateClean = r.date?.includes('T') ? r.date.split('T')[0] : r.date;
-        return rDateClean === dateStr;
-      });
-      console.log("✅ VERIFICAÇÃO - Registo guardado:", savedRecord);
-
       await refetchAvailability();
-      toast.success(checked ? "✅ Folga guardada com sucesso!" : "✅ Dia desbloqueado!");
-
+      toast.success(checked ? "Folga marcada!" : "Dia disponível novamente!");
     } catch (error) {
-      console.error("❌ ERRO COMPLETO:", error);
-      console.error("❌ Error message:", error?.message);
-      console.error("❌ Error response:", error?.response?.data);
-      toast.error(`Erro: ${error?.message || 'Verifica a consola (F12)'}`);
+      toast.error(`Erro: ${error?.message || 'Tenta novamente'}`);
       setIsDayOff(previousState);
     } finally {
       setIsSaving(false);

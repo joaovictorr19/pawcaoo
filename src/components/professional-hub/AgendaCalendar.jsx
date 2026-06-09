@@ -291,8 +291,11 @@ export function AgendaCalendar({ user, walkerProfile }) {
         const d = a.date?.includes('T') ? a.date.split('T')[0] : a.date;
         return d === dateStr && a.professional_email === user.email;
       });
-      if (remove && existing) {
-        await base44.entities.CalendarAvailability.delete(existing.id);
+      if (remove) {
+        if (existing) {
+          // Nunca eliminar — apenas desmarcar is_day_off para preservar reservas e slots
+          await base44.entities.CalendarAvailability.update(existing.id, { is_day_off: false, notes: "" });
+        }
         return;
       }
       if (existing) {
@@ -305,12 +308,15 @@ export function AgendaCalendar({ user, walkerProfile }) {
           date: dateStr,
           is_day_off: true,
           notes: notes || "",
+          time_slots: [],
         });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['myAvailability']);
       queryClient.invalidateQueries(['walkerAvailability']);
+      queryClient.invalidateQueries(['daysOff']);
+      queryClient.invalidateQueries(['walkerDaysOff']);
       toast.success("Disponibilidade atualizada!");
       setSelectedDate(null);
     },

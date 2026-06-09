@@ -145,14 +145,14 @@ export function DayOffManager({ userEmail }) {
                 className="flex items-center justify-between bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2"
               >
                 <span className="text-xs font-semibold text-red-400">
-                  {new Date(dayOff.date).toLocaleDateString('pt-PT', {
+                  {new Date((dayOff.date?.split('T')[0] || dayOff.date) + 'T12:00:00').toLocaleDateString('pt-PT', {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric'
                   })}
                 </span>
                 <button
-                  onClick={() => removeDayOffMutation.mutate(new Date(dayOff.date))}
+                  onClick={() => removeDayOffMutation.mutate(new Date((dayOff.date?.split('T')[0] || dayOff.date) + 'T12:00:00'))}
                   disabled={removeDayOffMutation.isPending}
                   className="p-1 hover:bg-red-500/20 rounded transition-colors"
                 >
@@ -179,7 +179,7 @@ export function DayOffManager({ userEmail }) {
             {pickerDates.map((date) => {
               const dateStr = format(date, 'yyyy-MM-dd');
               const isSelected = selectedDates.some(d => format(d, 'yyyy-MM-dd') === dateStr);
-              const isCurrentDayOff = daysOff.some(d => format(new Date(d.date), 'yyyy-MM-dd') === dateStr);
+              const isCurrentDayOff = daysOff.some(d => (d.date?.split('T')[0] || d.date) === dateStr);
               const isPast = date < startOfToday();
 
               return (
