@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-// Motion animations removidas para melhorar scroll no Android
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -447,45 +447,50 @@ export default function ProfessionalSetup() {
 
   if (isLoadingData) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-slate-700 border-t-orange-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-400 text-sm">A carregar perfil...</p>
-        </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <motion.div className="text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <motion.div className="w-16 h-16 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 text-sm font-medium">A carregar perfil...</p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 pb-10 pt-6">
-      <div className="w-full max-w-md mx-auto">
+    <div className="min-h-screen bg-white px-4 pb-10 pt-6">
+      <div className="w-full max-w-2xl mx-auto">
         {/* Back button */}
-        <button
+        <motion.button
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
           onClick={() => navigate(-1)}
-          className="mb-6 flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors"
+          className="mb-8 flex items-center gap-2 text-slate-600 hover:text-slate-900 text-sm font-semibold transition-colors"
         >
           <ChevronLeft className="w-4 h-4" /> Voltar
-        </button>
+        </motion.button>
 
         {/* Progress */}
-        <div className="mb-8">
-          <div className="flex gap-1.5 mb-3">
+        <motion.div className="mb-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+          <div className="flex gap-2 mb-4">
             {STEPS.map((s, i) => (
-              <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= step ? 'bg-orange-500' : 'bg-slate-800'}`} />
+              <div key={i} className={`h-2 flex-1 rounded-full transition-all duration-500 ${i <= step ? 'bg-blue-600' : 'bg-slate-200'}`} />
             ))}
           </div>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-            Passo {step + 1} de {STEPS.length} — <span className="text-white">{STEPS[step]}</span>
-          </p>
-        </div>
+          <div className="flex justify-between items-center">
+            <p className="text-slate-600 text-sm font-semibold uppercase tracking-wider">
+              Passo {step + 1} de {STEPS.length}
+            </p>
+            <p className="text-slate-900 font-bold text-lg">{STEPS[step]}</p>
+          </div>
+        </motion.div>
 
         {/* STEP 0 - Perfil */}
-        {step === 0 && (
-          <div className="space-y-5">
-              <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">O teu perfil público</h2>
-                <p className="text-slate-400 text-sm mt-1">Como os donos de animais te vão conhecer.</p>
-              </div>
+         {step === 0 && (
+           <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+               <div>
+                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900">O teu perfil público</h2>
+                 <p className="text-slate-600 text-base mt-2 font-light">Como os donos de animais te vão conhecer.</p>
+               </div>
 
               {/* Foto */}
               <div className="flex items-center gap-4">
@@ -610,10 +615,10 @@ export default function ProfessionalSetup() {
 
           {/* STEP 1 - Tipo */}
           {step === 1 && (
-            <div className="space-y-5">
+            <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">O teu papel</h2>
-                <p className="text-slate-400 text-sm mt-1">Que tipo de serviços pretendes oferecer?</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">O teu papel</h2>
+                <p className="text-slate-600 text-base mt-2 font-light">Que tipo de serviços pretendes oferecer?</p>
               </div>
               <div className="space-y-3">
                 {[
@@ -639,15 +644,15 @@ export default function ProfessionalSetup() {
                   </button>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* STEP 2 - Serviços ou Hotel Details */}
           {step === 2 && form.professional_type === 'hotel' && (
-            <div className="space-y-5">
+            <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">Detalhes do Hotel 🏨</h2>
-                <p className="text-slate-400 text-sm mt-1">Informações sobre o teu hotel canino.</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Detalhes do Hotel 🏨</h2>
+                <p className="text-slate-600 text-base mt-2 font-light">Informações sobre o teu hotel canino.</p>
               </div>
 
               <div>
@@ -717,14 +722,14 @@ export default function ProfessionalSetup() {
                   ))}
                 </div>
               </div>
-            </div>
-          )}
+              </motion.div>
+              )}
 
-          {step === 2 && form.professional_type !== 'hotel' && (
-            <div className="space-y-5">
+              {step === 2 && form.professional_type !== 'hotel' && (
+            <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">Serviços & Preços</h2>
-                <p className="text-slate-400 text-sm mt-1">Define o que ofereces e quanto cobras.</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Serviços & Preços</h2>
+                <p className="text-slate-600 text-base mt-2 font-light">Define o que ofereces e quanto cobras.</p>
               </div>
 
               <div className="p-4 bg-slate-800 rounded-2xl flex items-center justify-between">
@@ -801,15 +806,15 @@ export default function ProfessionalSetup() {
                   })}
                 </div>
               </div>
-            </div>
-          )}
+              </motion.div>
+              )}
 
-          {/* STEP 3 - Preferências */}
+              {/* STEP 3 - Preferências */}
           {step === 3 && (
-            <div className="space-y-6">
+            <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">Preferências</h2>
-                <p className="text-slate-400 text-sm mt-1">Define quem podes ajudar e quando.</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Preferências</h2>
+                <p className="text-slate-600 text-base mt-2 font-light">Define quem podes ajudar e quando.</p>
               </div>
 
               <div>
@@ -1008,18 +1013,18 @@ export default function ProfessionalSetup() {
                   </label>
                 </div>
               </div>
-            </div>
-          )}
+              </motion.div>
+              )}
 
-          {/* STEP 4 - Confirmação */}
+              {/* STEP 4 - Confirmação */}
           {step === 4 && (
-            <div className="space-y-5">
+            <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div className="text-center">
-                <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-10 h-10 text-orange-500" />
-                </div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">Tudo pronto!</h2>
-                <p className="text-slate-400 text-sm mt-2">Confirma os teus dados e cria o perfil.</p>
+                <motion.div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
+                  <CheckCircle className="w-10 h-10 text-blue-600" />
+                </motion.div>
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Tudo pronto!</h2>
+                <p className="text-slate-600 text-base mt-2 font-light">Confirma os teus dados e cria o perfil.</p>
               </div>
 
               <div className="bg-slate-800 rounded-2xl p-5 space-y-4">
@@ -1092,38 +1097,38 @@ export default function ProfessionalSetup() {
               <div className="bg-slate-800/50 border border-orange-500/20 rounded-xl p-3 text-xs text-slate-400">
                 ⚠️ O teu perfil ficará em análise. A equipa PawCão verificará os teus dados e serás notificado quando aprovado.
               </div>
-            </div>
-          )}
+              </motion.div>
+              )}
 
-        {/* Navigation Buttons */}
-        <div className="flex gap-3 mt-8">
+              {/* Navigation Buttons */}
+              <motion.div className="flex gap-3 mt-10" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
           {step > 0 && (
             <Button
               onClick={() => setStep(s => s - 1)}
               variant="outline"
-              className="flex-1 h-13 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 bg-transparent rounded-2xl"
+              className="flex-1 h-12 border-slate-300 text-slate-600 hover:text-slate-900 hover:border-slate-400 hover:bg-slate-50 bg-white rounded-2xl font-semibold transition-all"
             >
-              <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
+              <ChevronLeft className="w-4 h-4 mr-2" /> Voltar
             </Button>
           )}
           {step < STEPS.length - 1 ? (
             <Button
               onClick={() => setStep(s => s + 1)}
               disabled={!canProceed()}
-              className="flex-1 h-13 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-bold disabled:opacity-40"
+              className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold disabled:opacity-50 transition-all shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40"
             >
-              Continuar <ChevronRight className="w-4 h-4 ml-1" />
+              Continuar <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
             <Button
               onClick={handleFinish}
               disabled={loading}
-              className="flex-1 h-13 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-bold shadow-lg shadow-orange-900/50"
+              className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 disabled:opacity-50 transition-all"
             >
               {loading ? "A guardar..." : isEditing ? "Guardar Alterações ✅" : "Criar Perfil 🚀"}
             </Button>
           )}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

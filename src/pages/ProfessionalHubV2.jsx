@@ -418,44 +418,44 @@ export default function ProfessionalHubV2() {
   const isOnline = user?.pawgo_status?.is_online || false;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-orange-500/30" style={{ paddingBottom: 'calc(130px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
+    <div className="min-h-screen bg-white text-slate-900 font-sans" style={{ paddingBottom: 'calc(130px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
       <IncomingRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}
         onDecline={handleDeclineRequest}
       />
       {/* 1. Header com saudação, status e stats rápidas */}
-      <header className="bg-slate-950 text-white px-4 pt-20 pb-6 rounded-b-[2.5rem] shadow-xl mb-6">
+      <header className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white px-4 pt-20 pb-8 rounded-b-3xl shadow-lg mb-8">
         <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-xl font-black italic">Olá, {user?.full_name?.split(' ')[0] || 'Pro'}! {isHotelProfile ? '🏨' : '🐾'}</h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => toggleOnlineMutation.mutate(!isOnline)}
-              className={`px-4 py-2 rounded-2xl border cursor-pointer active:scale-95 transition-transform ${
-                isOnline ? 'border-green-500 text-green-400' : 'border-slate-700 text-slate-500'
-              }`}
-            >
-              <span className="text-[10px] font-black uppercase flex items-center gap-1.5">
-                <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`} />
-                {isOnline ? 'Online' : 'Offline'}
-              </span>
-            </button>
-            <Button
-              onClick={() => navigate(createPageUrl('Notifications'))}
-              variant="ghost"
-              className="rounded-[1rem] bg-slate-900 border border-white/5 w-10 h-10 p-0 text-slate-400 hover:text-white hover:bg-slate-800"
-            >
-              <Bell size={18} />
-            </Button>
-          </div>
-        </div>
+           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
+             <h1 className="text-2xl md:text-3xl font-bold">Olá, {user?.full_name?.split(' ')[0] || 'Pro'}! {isHotelProfile ? '🏨' : '🐾'}</h1>
+             <p className="text-xs font-semibold text-white/70 uppercase tracking-wider mt-1">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
+           </motion.div>
+           <motion.div className="flex items-center gap-3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
+             <button
+               onClick={() => toggleOnlineMutation.mutate(!isOnline)}
+               className={`px-4 py-2 rounded-full border-2 cursor-pointer active:scale-95 transition-all font-semibold text-sm ${
+                 isOnline ? 'border-emerald-400 text-emerald-300 bg-emerald-500/10' : 'border-slate-600 text-slate-400 bg-slate-800'
+               }`}
+             >
+               <span className="flex items-center gap-2">
+                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+                 {isOnline ? 'Online' : 'Offline'}
+               </span>
+             </button>
+             <Button
+               onClick={() => navigate(createPageUrl('Notifications'))}
+               variant="ghost"
+               className="rounded-xl bg-white/10 border border-white/20 w-10 h-10 p-0 text-white hover:text-white hover:bg-white/20 transition-all"
+             >
+               <Bell size={18} />
+             </Button>
+           </motion.div>
+         </div>
         <VerificationBanner status={professionalProfile?.verification_status} />
       </header>
 
-      <main className="px-4 md:px-6 pb-6 max-w-2xl mx-auto w-full">
+      <main className="px-4 md:px-6 pb-6 max-w-3xl mx-auto w-full">
         {/* Renderização Condicional por Abas */}
         <AnimatePresence mode="wait">
           {/* ── Painel Hotel ─────────────────────────────────── */}
