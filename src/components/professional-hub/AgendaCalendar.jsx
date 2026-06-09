@@ -130,7 +130,7 @@ function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onDr
             {days.map(day => (
               <button
                 key={day.toISOString()}
-                onClick={() => !isPast(day) && onDayOffClick(day)}
+                onClick={() => !isPast(day) && !isToday(day) && onDayOffClick(day)}
                 className={`p-2 text-center border-l border-white/5 transition-colors ${
                   isToday(day) ? 'bg-orange-500/20' : ''
                 } ${isDayOff(day) ? 'bg-red-900/40' : 'hover:bg-slate-700/30'}`}
@@ -286,14 +286,16 @@ export function AgendaCalendar({ user, walkerProfile }) {
 
   const toggleDayOffMutation = useMutation({
     mutationFn: async ({ date, notes, remove }) => {
+      // Garante formato yyyy-MM-dd sem desvio de fuso horário
       const dateStr = format(date, 'yyyy-MM-dd');
+      // Busca registo existente pelo dateStr normalizado
       const existing = availability.find(a => {
-        const d = a.date?.includes('T') ? a.date.split('T')[0] : a.date;
+        const d = (a.date || '').split('T')[0];
         return d === dateStr && a.professional_email === user.email;
       });
       if (remove) {
+        // Nunca apagar — apenas desmarcar is_day_off
         if (existing) {
-          // Nunca eliminar — apenas desmarcar is_day_off para preservar reservas e slots
           await base44.entities.CalendarAvailability.update(existing.id, { is_day_off: false, notes: "" });
         }
         return;
@@ -307,6 +309,7 @@ export function AgendaCalendar({ user, walkerProfile }) {
           professional_type: 'walker',
           date: dateStr,
           is_day_off: true,
+          is_fully_booked: false,
           notes: notes || "",
           time_slots: [],
         });
@@ -339,8 +342,14 @@ export function AgendaCalendar({ user, walkerProfile }) {
     }
   };
 
+  // Normaliza a data para meio-dia local evitando desvios de fuso horário (UTC+1)
+  const normalizeDate = (date) => {
+    const str = format(date, 'yyyy-MM-dd');
+    return new Date(str + 'T12:00:00');
+  };
+
   const handleDayOffClick = (date, info) => {
-    setSelectedDate(date);
+    setSelectedDate(normalizeDate(date));
     setSelectedDateInfo(info || null);
   };
 

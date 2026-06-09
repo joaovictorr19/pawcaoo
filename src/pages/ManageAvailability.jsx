@@ -17,7 +17,14 @@ import { createPageUrl } from "@/utils";
 export default function ManageAvailability() {
   const navigate = useNavigate();
   const { language } = useLanguage();
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  // Normaliza para meio-dia local para evitar off-by-one em UTC+1
+  const normalizeDate = (date) => {
+    if (!date) return new Date();
+    const str = format(date, 'yyyy-MM-dd');
+    return new Date(str + 'T12:00:00');
+  };
+
+  const [selectedDate, setSelectedDate] = useState(normalizeDate(new Date()));
   const [isDayOff, setIsDayOff] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -159,7 +166,7 @@ export default function ManageAvailability() {
                     <AvailabilityCalendar
                         availabilityData={availabilityData}
                         bookings={bookings}
-                        onDateSelect={setSelectedDate}
+                        onDateSelect={(d) => setSelectedDate(normalizeDate(d))}
                         selectedDate={selectedDate}
                         walkerEmail={authUser?.email}
                         isInteractive={true}

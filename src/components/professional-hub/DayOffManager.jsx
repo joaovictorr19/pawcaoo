@@ -63,20 +63,17 @@ export function DayOffManager({ userEmail }) {
     }
   });
 
-  // Mutation to remove day off
+  // Mutation to remove day off — nunca apaga, apenas desmarca is_day_off
   const removeDayOffMutation = useMutation({
     mutationFn: async (date) => {
       const dateStr = format(date, 'yyyy-MM-dd');
+      // Busca por email+data (sem filtrar is_day_off para garantir que encontra sempre)
       const existing = await base44.entities.CalendarAvailability.filter({
         professional_email: effectiveEmail,
         date: dateStr,
-        is_day_off: true
       });
-
       if (existing.length > 0) {
-        await base44.entities.CalendarAvailability.update(existing[0].id, {
-          is_day_off: false
-        });
+        await base44.entities.CalendarAvailability.update(existing[0].id, { is_day_off: false, notes: "" });
       }
     },
     onSuccess: () => {
