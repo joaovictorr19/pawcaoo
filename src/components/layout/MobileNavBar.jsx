@@ -170,13 +170,13 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         <button 
           onClick={() => {
             if (isProf) {
-              navigate(createPageUrl("ManageAvailability"));
+              handleTabClick(createPageUrl("ProfessionalCalendar"));
             } else {
               handleTabClick(createPageUrl("MyBookings"));
             }
           }}
           className={`flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl border border-slate-200 ${
-            (isProf && (isActive(createPageUrl("ManageAvailability")) || isActive(createPageUrl("ProfessionalCalendar")))) ||
+            (isProf && isActive(createPageUrl("ProfessionalCalendar"))) ||
             (!isProf && isActive(createPageUrl("MyBookings")))
               ? "text-orange-500 bg-orange-50" 
               : "text-slate-500 hover:bg-slate-50"

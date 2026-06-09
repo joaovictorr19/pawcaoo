@@ -94,8 +94,6 @@ export const PAGES = {
 
     "LoyaltyRewards": page(() => import('./pages/LoyaltyRewards')),
 
-    "ManageAvailability": page(() => import('./pages/ManageAvailability')),
-
     "MembershipPlans": page(() => import('./pages/MembershipPlans')),
     "MembershipSuccess": page(() => import('./pages/MembershipSuccess')),
     "ModerationPanel": page(() => import('./pages/ModerationPanel')),
