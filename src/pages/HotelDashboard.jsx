@@ -18,6 +18,7 @@ import HotelCalendar from "@/components/hotel/HotelCalendar";
 import HotelDayPanel from "@/components/hotel/HotelDayPanel";
 import HotelPartnersPanel from "@/components/hotel/HotelPartnersPanel";
 import HotelNewBookingModal from "@/components/hotel/HotelNewBookingModal";
+import HotelOccupancyManager from "@/components/hotel/HotelOccupancyManager";
 
 const STATUS_CONFIG = {
   pending:    { label: "Pendente",    cls: "bg-orange-100 text-orange-700" },
@@ -189,6 +190,7 @@ export default function HotelDashboard() {
         <div className="relative z-10 max-w-5xl mx-auto px-4 pb-0 flex gap-1 overflow-x-auto scrollbar-none">
           {[
             { key: "agenda", label: "📅 Agenda", icon: null },
+            { key: "vagas", label: "🐾 Vagas" },
             { key: "today", label: "Hoje", count: todayCheckins.length + todayCheckouts.length },
             { key: "reservas", label: "Reservas", count: pendingBookings.length },
             { key: "parceiros", label: "Parceiros", count: partners.length },
@@ -281,6 +283,17 @@ export default function HotelDashboard() {
                   capacity={{ total: capacityTotal, available: hotelProfile?.hotel_details?.capacity_available }}
                 />
               </div>
+            </motion.div>
+          )}
+
+          {/* VAGAS */}
+          {activeTab === "vagas" && (
+            <motion.div key="vagas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelOccupancyManager
+                bookings={bookings}
+                hotelProfile={hotelProfile}
+                onUpdateCapacity={updateCapacity}
+              />
             </motion.div>
           )}
 
