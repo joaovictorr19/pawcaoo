@@ -413,10 +413,32 @@ export default function UserProfile() {
                  {walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio}
                </p>
              </div>
-           )}
+          )}
+
+          <div>
+            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas ({earnedBadges.length})</h3>
+            {loadingBadges ? (
+              <div className="flex gap-3 overflow-x-auto pb-4">
+                {[1, 2, 3].map(i => <div key={i} className="w-20 h-20 bg-slate-200 rounded-2xl flex-shrink-0 animate-pulse" />)}
+              </div>
+            ) : earnedBadges.length > 0 ? (
+              <div className="flex gap-3 overflow-x-auto pb-4">
+                {earnedBadges.map((badge) => (
+                  <div key={badge._uniqueId} className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20 bg-slate-50 rounded-2xl p-2 border border-slate-100">
+                    <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
+                    <p className="text-[10px] font-bold text-slate-700 text-center leading-tight w-full">
+                      {badge.name || badge.badge_id}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px] text-slate-300 font-bold italic">{language === 'pt' ? 'Sem emblemas atribuídos ainda.' : language === 'es' ? 'Aún no hay insignias asignadas.' : language === 'fr' ? 'Aucun badge attribué pour le moment.' : 'No badges assigned yet.'}</p>
+            )}
+          </div>
 
           {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details && (
-            <HotelProfileDisplay hotel={walkerProfile} badges={earnedBadges} />
+            <HotelProfileDisplay hotel={walkerProfile} />
           )}
 
           {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details?.business_hours && (
@@ -453,28 +475,6 @@ export default function UserProfile() {
               </div>
             </div>
           )}
-
-          <div>
-            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas ({earnedBadges.length})</h3>
-            {loadingBadges ? (
-              <div className="flex gap-3 overflow-x-auto pb-4">
-                {[1, 2, 3].map(i => <div key={i} className="w-20 h-20 bg-slate-200 rounded-2xl flex-shrink-0 animate-pulse" />)}
-              </div>
-            ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto pb-4">
-                {earnedBadges.map((badge) => (
-                  <div key={badge._uniqueId} className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20 bg-slate-50 rounded-2xl p-2 border border-slate-100">
-                    <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
-                    <p className="text-[10px] font-bold text-slate-700 text-center leading-tight w-full">
-                      {badge.name || badge.badge_id}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[10px] text-slate-300 font-bold italic">{language === 'pt' ? 'Sem emblemas atribuídos ainda.' : language === 'es' ? 'Aún no hay insignias asignadas.' : language === 'fr' ? 'Aucun badge attribué pour le moment.' : 'No badges assigned yet.'}</p>
-            )}
-          </div>
 
           {(walkerProfile || trainerProfile) && (
             <div>

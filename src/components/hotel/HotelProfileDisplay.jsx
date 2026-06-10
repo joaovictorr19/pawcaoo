@@ -64,7 +64,7 @@ const CapacityBar = ({ available, total, service_type }) => {
   );
 };
 
-export default function HotelProfileDisplay({ hotel, badges = [] }) {
+export default function HotelProfileDisplay({ hotel }) {
   const navigate = useNavigate();
   
   const activeServices = useMemo(
@@ -87,27 +87,6 @@ export default function HotelProfileDisplay({ hotel, badges = [] }) {
 
   return (
     <div className="space-y-4">
-      {/* Badges acima dos serviços */}
-      {badges && badges.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Conquistas & Certificações</h3>
-          <div className="flex flex-wrap gap-3">
-            {badges.map((badge, idx) => (
-              <motion.div
-                key={badge.badge_id || idx}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex items-center justify-center w-12 h-12 bg-yellow-100 border-2 border-yellow-300 rounded-full"
-                title={badge.name}
-              >
-                <span className="text-lg">{badge.icon || '🏆'}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Serviços Disponíveis</h3>
       </div>
