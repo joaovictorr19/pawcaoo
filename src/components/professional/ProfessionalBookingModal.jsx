@@ -13,7 +13,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
   const navigate = useNavigate();
   // Steps: 0=Animal, 1=Data, 2=Hora&Duração, 3=Recolha, 4=Resumo
   const [step, setStep] = useState(0);
-  const [selectedDogId, setSelectedDogId] = useState('');
+  const [selectedDogIds, setSelectedDogIds] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('10:00');
   const [duration, setDuration] = useState('1');
@@ -23,7 +23,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedDogId('');
+      setSelectedDogIds([]);
       setSelectedDate(initialDate || '');
       setStep(0);
       setSelectedTime('10:00');
@@ -48,13 +48,15 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
     enabled: !!currentUser?.email,
   });
 
-  const selectedDog = myDogs.find(d => d.id === selectedDogId);
+  const selectedDogs = myDogs.filter(d => selectedDogIds.includes(d.id));
+  const selectedDog = selectedDogs[0]; // backwards compat for summary
 
   if (!walkerProfile) return null;
 
   const durationNum = parseFloat(duration) || 1;
   const hourlyRate = selectedService?.price || walkerProfile.hourly_rate || 0;
-  const serviceAmount = Math.round(hourlyRate * durationNum * 100) / 100;
+  const dogCount = Math.max(selectedDogIds.length, 1);
+  const serviceAmount = Math.round(hourlyRate * durationNum * dogCount * 100) / 100;
   const platformFee = Math.round(serviceAmount * 0.15 * 100) / 100;
   const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
 
@@ -91,7 +93,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
       base44.auth.redirectToLogin(window.location.href);
       return;
     }
-    if (!selectedDog) { toast.error('Selecione um animal'); return; }
+    if (selectedDogs.length === 0) { toast.error('Selecione pelo menos um animal'); return; }
     if (!selectedDate) { toast.error('Escolha uma data'); return; }
 
     setIsCreating(true);
@@ -100,11 +102,11 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
         owner_name: clientProfile?.full_name || currentUser.full_name || currentUser.email,
         owner_email: currentUser.email,
         owner_phone: ownerPhone,
-        dog_name: selectedDog.dog_name,
-        dog_size: selectedDog.size || selectedDog.dog_size || 'medium',
-        dog_profile_id: selectedDog.id,
-        dogs: [{ dog_id: selectedDog.id, dog_name: selectedDog.dog_name, dog_size: selectedDog.size || 'medium', dog_breed: selectedDog.breed }],
-        total_dogs: 1,
+        dog_name: selectedDogs.map(d => d.dog_name).join(', '),
+        dog_size: selectedDog?.size || selectedDog?.dog_size || 'medium',
+        dog_profile_id: selectedDog?.id,
+        dogs: selectedDogs.map(d => ({ dog_id: d.id, dog_name: d.dog_name, dog_size: d.size || 'medium', dog_breed: d.breed })),
+        total_dogs: selectedDogs.length,
         total_amount: totalAmount,
         service_amount: serviceAmount,
         platform_fee: platformFee,
@@ -180,7 +182,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
         <div className="overflow-y-auto flex-1 px-5 pt-4 pb-8">
 
-          {/* STEP 0 — Animal */}
+          {/* STEP 0 — Animal(is) */}
           {step === 0 && (
             <div className="space-y-3">
               {myDogs.length === 0 ? (
@@ -197,32 +199,41 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Qual animal vai ao passeio?</p>
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">
+                    Quais animais vão? <span className="text-blue-500 normal-case font-normal">(pode selecionar mais de um)</span>
+                  </p>
                   <div className="space-y-2">
-                    {myDogs.map(dog => (
-                      <button
-                        key={dog.id}
-                        onClick={() => { setSelectedDogId(dog.id); setStep(1); }}
-                        className={`w-full p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98] flex items-center gap-3 ${
-                          selectedDogId === dog.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'
-                        }`}
-                      >
-                        {dog.photo_url ? (
-                          <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                        ) : (
-                          <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">🐾</div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-slate-900">{dog.dog_name}</p>
-                          <p className="text-xs text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : dog.size === 'extra_large' ? 'XL' : dog.size}</p>
-                        </div>
-                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                          selectedDogId === dog.id ? 'border-blue-500 bg-blue-500' : 'border-slate-300'
-                        }`}>
-                          {selectedDogId === dog.id && <div className="w-2 h-2 rounded-full bg-white" />}
-                        </div>
-                      </button>
-                    ))}
+                    {myDogs.map(dog => {
+                      const isSelected = selectedDogIds.includes(dog.id);
+                      return (
+                        <button
+                          key={dog.id}
+                          onClick={() => {
+                            setSelectedDogIds(prev =>
+                              isSelected ? prev.filter(id => id !== dog.id) : [...prev, dog.id]
+                            );
+                          }}
+                          className={`w-full p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98] flex items-center gap-3 ${
+                            isSelected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'
+                          }`}
+                        >
+                          {dog.photo_url ? (
+                            <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">🐾</div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-slate-900">{dog.dog_name}</p>
+                            <p className="text-xs text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : dog.size === 'extra_large' ? 'XL' : dog.size}</p>
+                          </div>
+                          <div className={`w-5 h-5 rounded-lg border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                            isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300'
+                          }`}>
+                            {isSelected && <span className="text-white text-xs font-black">✓</span>}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                   <button
                     onClick={() => { onClose(); navigate(createPageUrl('EditAnimalProfile')); }}
@@ -230,6 +241,14 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   >
                     <PlusCircle className="w-4 h-4" /> Adicionar outro animal
                   </button>
+                  {selectedDogIds.length > 0 && (
+                    <Button
+                      onClick={() => setStep(1)}
+                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base mt-2"
+                    >
+                      Continuar com {selectedDogIds.length} {selectedDogIds.length === 1 ? 'animal' : 'animais'} →
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -350,8 +369,11 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   <span className="font-bold text-slate-900">{walkerProfile.walker_name || walkerProfile.trainer_name}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Animal</span>
-                  <span className="font-bold text-slate-900">{selectedDog?.dog_name} {selectedDog?.breed ? `(${selectedDog.breed})` : ''}</span>
+                  <span className="text-slate-500">{selectedDogs.length > 1 ? 'Animais' : 'Animal'}</span>
+                  <span className="font-bold text-slate-900 text-right">
+                    {selectedDogs.map(d => d.dog_name).join(', ')}
+                    {selectedDogs.length > 1 && <span className="block text-xs text-blue-600 font-semibold">({selectedDogs.length} animais)</span>}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Cliente</span>
@@ -411,7 +433,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 </div>
                 <div className="pt-2 border-t border-slate-200 space-y-1.5">
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Serviço</span>
+                    <span className="text-slate-500">Serviço{selectedDogs.length > 1 ? ` × ${selectedDogs.length} animais` : ''}</span>
                     <span className="font-bold">{serviceAmount}€</span>
                   </div>
                   <div className="flex justify-between text-sm">
