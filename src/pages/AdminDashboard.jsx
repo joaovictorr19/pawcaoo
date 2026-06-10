@@ -69,6 +69,7 @@ import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalend
 import { BadgeManager } from "../components/admin/BadgeManager";
 import { GrantBadgeModal } from "../components/admin/GrantBadgeModal";
 import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
+import AdminProfessionalsPanel from "../components/admin/AdminProfessionalsPanel";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -211,7 +212,7 @@ export default function AdminDashboard() {
     queryKey: ['allWalkersAdmin'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.WalkerProfile.list('-created_date', 1000),
-    enabled: isAdmin && (activeTab === 'users' || activeTab === 'approvals'),
+    enabled: isAdmin && (activeTab === 'users' || activeTab === 'approvals' || activeTab === 'professionals'),
     initialData: [],
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -775,6 +776,7 @@ export default function AdminDashboard() {
               <TabsTrigger value="users" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
               <TabsTrigger value="operations" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
               <TabsTrigger value="gamification" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
+              <TabsTrigger value="professionals" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐾 Profissionais</TabsTrigger>
               <TabsTrigger value="debug" className="rounded-full bg-red-50 text-red-600 shadow-sm data-[state=active]:bg-red-600 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
             </TabsList>
           </div>
@@ -1006,6 +1008,22 @@ export default function AdminDashboard() {
               <SubscriptionsManager />
               <BroadcastManager />
             </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="professionals">
+            {activeTab === 'professionals' && (
+              <AdminProfessionalsPanel
+                walkers={allWalkers}
+                onDelete={(walker) => {
+                  if (window.confirm(`Eliminar perfil de "${walker.walker_name}"?`)) {
+                    deleteWalkerMutation.mutate(walker.id);
+                  }
+                }}
+                onToggleActive={(walker) => {
+                  updateWalkerMutation.mutate({ id: walker.id, data: { is_active: !walker.is_active } });
+                }}
+              />
             )}
           </TabsContent>
 
