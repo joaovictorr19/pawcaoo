@@ -10,7 +10,6 @@ import {
   Camera, MapPin, Euro, Dog, Clock, ChevronRight, ChevronLeft,
   CheckCircle, Upload, Phone, Zap, Video, AlertCircle, GraduationCap, Shield
 } from "lucide-react";
-import { RadioGroup } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { motion } from "framer-motion";
@@ -51,6 +50,11 @@ const DOCUMENT_RULES = {
   spain: { taxLabel: "NIF / NIE / CIF", taxField: "tax_id_spain" },
   france: { taxLabel: "Número Fiscal", taxField: "tax_id_france" },
 };
+
+// Shared input style
+const inputCls = "w-full h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400";
+const sectionCls = "bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4";
+const labelCls = "text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5";
 
 function buildInitialForm(user, existingProfile) {
   if (existingProfile) {
@@ -199,18 +203,6 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
     setUploading(prev => ({ ...prev, [key]: false }));
   };
 
-  const handleVideoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(prev => ({ ...prev, video: true }));
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      set("video_intro_url", file_url);
-      toast.success("Vídeo carregado!");
-    } catch { toast.error("Erro ao carregar vídeo."); }
-    setUploading(prev => ({ ...prev, video: false }));
-  };
-
   const canProceed = () => {
     if (currentStep === 0) return formData.name.trim() && formData.location.trim() && professionalType;
     if (currentStep === 1 && isHotelType) return (formData.hotel_details?.price_per_night || 0) > 0;
@@ -233,7 +225,6 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
       const isWalker = !isHotel && (professionalType === 'walker' || professionalType === 'both');
       const isTrainer = !isHotel && (professionalType === 'trainer' || professionalType === 'both');
 
-      // Geocode
       let lat = 38.7223, lng = -9.1393;
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(data.location)}`);
@@ -254,11 +245,9 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
         tax_id_spain: data.tax_id_spain, tax_id_france: data.tax_id_france,
         france_professional_type: data.france_professional_type, mbway_number: data.mbway_number,
         latitude: lat, longitude: lng, service_areas: serviceAreas, user_id: user.id,
-        // Always set to pending when submitting for admin review
         verification_status: "pending", is_active: false,
       };
 
-      // Build services
       const services = [];
       services.push({ service_name: 'Dog Walking', description: 'Passeio regular.', price: parseFloat(data.hourly_rate), is_active: true });
       if (data.hasBoarding) services.push({ service_name: 'Dog Boarding', price: parseFloat(data.boardingPrice), is_active: true });
@@ -326,22 +315,12 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
         }
       }
 
-      // Update auth user
-      await base44.auth.updateMe({
-        account_type: professionalType,
-        profile_photo_url: data.photo_url || user?.profile_photo_url,
-        city: data.location,
-        full_name: data.name,
-      });
+      await base44.auth.updateMe({ account_type: professionalType, profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, full_name: data.name });
 
-      // Sync UserProfile
       const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
       const profileUpdate = { full_name: data.name, profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, bio: data.bio };
-      if (userProfiles.length > 0) {
-        await base44.entities.UserProfile.update(userProfiles[0].id, profileUpdate);
-      }
+      if (userProfiles.length > 0) await base44.entities.UserProfile.update(userProfiles[0].id, profileUpdate);
 
-      // Create ProfileEditRequest for admin review
       await base44.entities.ProfileEditRequest.create({
         profile_id: savedProfileId,
         profile_type: professionalType,
@@ -352,11 +331,8 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
         status: 'pending',
       });
 
-      // Notify admin for new profiles
       if (!isEditing) {
-        try {
-          await base44.functions.invoke('notifyAdminProfessional', { professional_name: data.name, professional_type: professionalType, professional_email: user.email });
-        } catch {}
+        try { await base44.functions.invoke('notifyAdminProfessional', { professional_name: data.name, professional_type: professionalType, professional_email: user.email }); } catch {}
       }
     },
     onSuccess: () => {
@@ -383,11 +359,16 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
     submitMutation.mutate(formData);
   };
 
+  // Shared toggle button style
+  const toggleBtn = (active, colorActive = "border-orange-400 bg-orange-50") =>
+    `transition-all border-2 rounded-xl ${active ? colorActive + " shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`;
+
   return (
-    <div className="min-h-screen bg-slate-950 px-4 pb-10 pt-6">
+    <div className="min-h-screen bg-slate-50 px-4 pb-10 pt-6">
       <div className="w-full max-w-md mx-auto">
+        {/* Back + title */}
         <div className="mb-6 flex items-center justify-between">
-          <button onClick={onDone} className="flex items-center gap-2 text-slate-400 hover:text-white text-sm font-medium transition-colors">
+          <button onClick={onDone} className="flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors">
             <ChevronLeft className="w-4 h-4" /> Voltar ao Painel
           </button>
           <span className="text-slate-400 text-sm">{isEditing ? 'Editar Perfil' : 'Criar Perfil'}</span>
@@ -397,60 +378,68 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
         <div className="mb-8">
           <div className="flex gap-1.5 mb-3">
             {STEPS.map((s, i) => (
-              <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= currentStep ? 'bg-orange-500' : 'bg-slate-800'}`} />
+              <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= currentStep ? 'bg-orange-500' : 'bg-slate-200'}`} />
             ))}
           </div>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-            Passo {currentStep + 1} de {STEPS.length} — <span className="text-white">{STEPS[currentStep]}</span>
+          <p className="text-slate-400 text-xs font-medium">
+            Passo {currentStep + 1} de {STEPS.length} — <span className="text-slate-700 font-semibold">{STEPS[currentStep]}</span>
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           {/* STEP 0: Perfil */}
           {currentStep === 0 && (
-            <motion.div key="s0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 pb-24">
+            <motion.div key="s0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 pb-24">
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">O teu perfil público</h2>
-                <p className="text-slate-400 text-sm mt-1">Como os donos de animais te vão conhecer.</p>
+                <h2 className="text-2xl font-bold text-slate-900">O teu perfil público</h2>
+                <p className="text-slate-500 text-sm mt-1">Como os donos de animais te vão conhecer.</p>
               </div>
 
-              {/* Type Selection */}
-              <div className="space-y-3">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo de Profissional *</Label>
-                <div className="grid grid-cols-2 gap-3">
+              {/* Tipo de Profissional */}
+              <div className={sectionCls}>
+                <label className={labelCls}>Tipo de Profissional *</label>
+                <div className="grid grid-cols-2 gap-2">
                   {[
-                    { value: "walker", label: "Passeador", icon: <Dog className="w-8 h-8 text-green-400 mx-auto mb-2" /> },
-                    { value: "trainer", label: "Treinador", icon: <GraduationCap className="w-8 h-8 text-blue-400 mx-auto mb-2" /> },
-                    { value: "both", label: "Ambos", icon: <div className="flex justify-center gap-1 mb-2"><Dog className="w-6 h-6 text-green-400" /><GraduationCap className="w-6 h-6 text-blue-400" /></div> },
-                    { value: "hotel", label: "Hotel Canino", icon: <span className="text-3xl block mb-2 text-center">🏨</span> },
+                    { value: "walker", label: "Passeador", icon: <Dog className="w-6 h-6 text-emerald-500 mx-auto mb-1.5" /> },
+                    { value: "trainer", label: "Treinador", icon: <GraduationCap className="w-6 h-6 text-blue-500 mx-auto mb-1.5" /> },
+                    { value: "both", label: "Ambos", icon: <div className="flex justify-center gap-1 mb-1.5"><Dog className="w-5 h-5 text-emerald-500" /><GraduationCap className="w-5 h-5 text-blue-500" /></div> },
+                    { value: "hotel", label: "Hotel Canino", icon: <span className="text-2xl block mb-1.5 text-center">🏨</span> },
                   ].map(opt => (
-                    <button key={opt.value} type="button" onClick={() => setProfessionalType(opt.value)}
-                      className={`p-4 rounded-xl border-2 text-center transition-all ${professionalType === opt.value ? (opt.value === 'hotel' ? 'border-purple-500 bg-purple-500/10' : 'border-orange-500 bg-orange-500/10') : 'border-slate-800 bg-slate-900 hover:border-slate-700'}`}>
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setProfessionalType(opt.value)}
+                      className={`p-4 rounded-xl text-center transition-all ${
+                        professionalType === opt.value
+                          ? (opt.value === 'hotel' ? 'border-2 border-purple-400 bg-purple-50' : 'border-2 border-orange-400 bg-orange-50')
+                          : 'border-2 border-slate-200 bg-white hover:border-slate-300'
+                      }`}
+                    >
                       {opt.icon}
-                      <p className="text-xs font-bold text-white">{opt.label}</p>
+                      <p className="text-xs font-semibold text-slate-700">{opt.label}</p>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Photo */}
-              <div className="flex flex-col items-center justify-center w-full my-2">
+              {/* Foto */}
+              <div className="flex flex-col items-center justify-center w-full">
                 <CenteredAvatarUpload currentImageUrl={formData.photo_url} onImageChange={(url) => set("photo_url", url)} />
               </div>
 
-              {/* Cover */}
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Foto de Capa (Opcional)</Label>
-                <div className="relative w-full h-28 rounded-2xl overflow-hidden bg-slate-800 border-2 border-slate-700">
+              {/* Foto de capa */}
+              <div className={sectionCls}>
+                <label className={labelCls}>Foto de Capa (Opcional)</label>
+                <div className="relative w-full h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                   {formData.cover_photo_url ? (
                     <img src={formData.cover_photo_url} className="w-full h-full object-cover" alt="capa" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center"><Camera className="w-7 h-7 text-slate-600" /></div>
+                    <div className="w-full h-full flex items-center justify-center"><Camera className="w-6 h-6 text-slate-300" /></div>
                   )}
                   <div className="absolute bottom-2 right-2">
                     <label>
-                      <div className="px-3 py-1.5 bg-slate-900/80 hover:bg-slate-900 text-slate-200 rounded-lg text-xs cursor-pointer">
-                        <Upload className="inline w-3 h-3 mr-1" /> Alterar capa
+                      <div className="px-3 py-1.5 bg-white/90 hover:bg-white text-slate-700 rounded-lg text-xs cursor-pointer shadow-sm font-medium">
+                        <Upload className="inline w-3 h-3 mr-1" /> Alterar
                       </div>
                       <input type="file" accept="image/*" onChange={(e) => handleFileChangeForCrop(e, "cover")} className="hidden" />
                     </label>
@@ -458,162 +447,172 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nome Profissional *</Label>
-                <input value={formData.name} onChange={e => set("name", e.target.value)} placeholder="O teu nome"
-                  className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+              {/* Nome, Localização, WhatsApp, Bio */}
+              <div className={sectionCls}>
+                <div>
+                  <label className={labelCls}>Nome Profissional *</label>
+                  <input value={formData.name} onChange={e => set("name", e.target.value)} placeholder="O teu nome" className={inputCls} />
+                </div>
+                <div>
+                  <label className={`${labelCls} flex items-center gap-1`}><MapPin className="w-3 h-3" /> Localização *</label>
+                  <input value={formData.location} onChange={e => set("location", e.target.value)} placeholder="Lisboa, Porto..." className={inputCls} />
+                </div>
+                <div>
+                  <label className={`${labelCls} flex items-center gap-1`}><Phone className="w-3 h-3" /> WhatsApp</label>
+                  <input value={formData.whatsapp_number} onChange={e => set("whatsapp_number", e.target.value)} placeholder="351912345678" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Bio</label>
+                  <textarea value={formData.bio} onChange={e => set("bio", e.target.value)} placeholder="A tua experiência com animais..."
+                    rows={3} className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 resize-none" />
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1"><MapPin className="w-3 h-3" /> Localização *</Label>
-                <input value={formData.location} onChange={e => set("location", e.target.value)} placeholder="Lisboa, Porto..."
-                  className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1"><Phone className="w-3 h-3" /> WhatsApp</Label>
-                <input value={formData.whatsapp_number} onChange={e => set("whatsapp_number", e.target.value)} placeholder="351912345678"
-                  className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Bio</Label>
-                <Textarea value={formData.bio} onChange={e => set("bio", e.target.value)} placeholder="A tua experiência com animais..."
-                  rows={3} className="bg-slate-800 text-white border-slate-700 focus:border-orange-500 outline-none text-sm resize-none rounded-xl" />
-              </div>
-
-              <div className="flex gap-3 mt-8">
-                <Button type="button" onClick={() => setCurrentStep(1)} disabled={!canProceed()}
-                  className="flex-1 h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-bold disabled:opacity-40">
-                  Continuar <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </div>
+              <Button type="button" onClick={() => setCurrentStep(1)} disabled={!canProceed()}
+                className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-semibold disabled:opacity-40">
+                Continuar <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
             </motion.div>
           )}
 
           {/* STEP 1: Serviços Hotel */}
           {currentStep === 1 && isHotelType && (
-            <motion.div key="s1h" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 pb-24">
+            <motion.div key="s1h" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 pb-24">
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">Serviços & Preços</h2>
-                <p className="text-slate-400 text-sm mt-1">Define os serviços e preços do hotel.</p>
+                <h2 className="text-2xl font-bold text-slate-900">Serviços & Preços</h2>
+                <p className="text-slate-500 text-sm mt-1">Define os serviços e preços do hotel.</p>
               </div>
-              <div className="p-4 bg-slate-800 rounded-2xl space-y-4">
-                <h3 className="text-white font-bold text-sm">Capacidade</h3>
+
+              <div className={sectionCls}>
+                <h3 className="text-sm font-semibold text-slate-700">Capacidade</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-slate-400 uppercase tracking-widest">Capacidade Total</Label>
-                    <input type="number" min="1" value={formData.hotel_details?.capacity_total || ''} onChange={e => set('hotel_details', { ...formData.hotel_details, capacity_total: parseInt(e.target.value) })}
-                      className="w-full h-10 px-3 bg-slate-900 text-white rounded-xl border border-slate-700 outline-none text-sm" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-slate-400 uppercase tracking-widest">Disponíveis Hoje</Label>
-                    <input type="number" min="0" value={formData.hotel_details?.capacity_available || ''} onChange={e => set('hotel_details', { ...formData.hotel_details, capacity_available: parseInt(e.target.value) })}
-                      className="w-full h-10 px-3 bg-slate-900 text-white rounded-xl border border-slate-700 outline-none text-sm" />
-                  </div>
+                  {[
+                    { label: "Capacidade Total", key: "capacity_total" },
+                    { label: "Disponíveis Hoje", key: "capacity_available" },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <label className={labelCls}>{f.label}</label>
+                      <input type="number" min="1" value={formData.hotel_details?.[f.key] || ''} onChange={e => set('hotel_details', { ...formData.hotel_details, [f.key]: parseInt(e.target.value) })} className={inputCls} />
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="p-4 bg-slate-800 rounded-2xl space-y-4">
-                <h3 className="text-white font-bold text-sm">Preços</h3>
+
+              <div className={sectionCls}>
+                <h3 className="text-sm font-semibold text-slate-700">Preços</h3>
                 {[
                   { label: "Alojamento (por noite/cão)", key: "price_per_night" },
                   { label: "Creche Diária (por dia/cão)", key: "price_daycare" },
                 ].map(f => (
-                  <div key={f.key} className="flex items-center justify-between">
-                    <span className="text-sm text-slate-300">{f.label}</span>
+                  <div key={f.key} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                    <span className="text-sm text-slate-600">{f.label}</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-orange-400 text-sm">€</span>
+                      <span className="text-orange-500 text-sm font-semibold">€</span>
                       <input type="number" min="0" step="1" value={formData.hotel_details?.[f.key] || ''}
                         onChange={e => set('hotel_details', { ...formData.hotel_details, [f.key]: parseFloat(e.target.value) })}
-                        className="w-16 bg-transparent text-orange-400 font-black text-lg text-right outline-none" />
+                        className="w-16 bg-transparent text-orange-500 font-bold text-lg text-right outline-none" />
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="p-4 bg-slate-800 rounded-2xl space-y-3">
-                <h3 className="text-white font-bold text-sm">Horários Check-in / Check-out</h3>
+
+              <div className={sectionCls}>
+                <h3 className="text-sm font-semibold text-slate-700">Horários</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[{ label: "Check-in", key: "checkin_time" }, { label: "Check-out", key: "checkout_time" }].map(f => (
-                    <div key={f.key} className="space-y-1">
-                      <Label className="text-xs text-slate-400 uppercase tracking-widest">{f.label}</Label>
-                      <input type="time" value={formData.hotel_details?.[f.key] || ''} onChange={e => set('hotel_details', { ...formData.hotel_details, [f.key]: e.target.value })}
-                        className="w-full h-10 px-3 bg-slate-900 text-white rounded-xl border border-slate-700 outline-none text-sm" />
+                    <div key={f.key}>
+                      <label className={labelCls}>{f.label}</label>
+                      <input type="time" value={formData.hotel_details?.[f.key] || ''} onChange={e => set('hotel_details', { ...formData.hotel_details, [f.key]: e.target.value })} className={inputCls} />
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="p-4 bg-slate-800 rounded-2xl space-y-3">
-                <h3 className="text-white font-bold text-sm">Comodidades</h3>
+
+              <div className={sectionCls}>
+                <h3 className="text-sm font-semibold text-slate-700">Comodidades</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {['Jardim', 'Piscina', 'Webcam ao vivo', 'Relatórios diários', 'Transporte', 'Veterinário parceiro', 'Passeios incluídos', 'Grooming disponível'].map(a => (
-                    <button key={a} type="button" onClick={() => {
-                      const curr = formData.hotel_details?.amenities || [];
-                      set('hotel_details', { ...formData.hotel_details, amenities: curr.includes(a) ? curr.filter(x => x !== a) : [...curr, a] });
-                    }} className={`p-2 rounded-xl border-2 text-xs text-left transition-all ${(formData.hotel_details?.amenities || []).includes(a) ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-slate-700 text-slate-400'}`}>
-                      {a}
-                    </button>
-                  ))}
+                  {['Jardim', 'Piscina', 'Webcam ao vivo', 'Relatórios diários', 'Transporte', 'Veterinário parceiro', 'Passeios incluídos', 'Grooming disponível'].map(a => {
+                    const active = (formData.hotel_details?.amenities || []).includes(a);
+                    return (
+                      <button key={a} type="button"
+                        onClick={() => {
+                          const curr = formData.hotel_details?.amenities || [];
+                          set('hotel_details', { ...formData.hotel_details, amenities: curr.includes(a) ? curr.filter(x => x !== a) : [...curr, a] });
+                        }}
+                        className={`p-2.5 rounded-xl border-2 text-xs text-left font-medium transition-all ${active ? 'border-purple-400 bg-purple-50 text-purple-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                      >
+                        {a}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-              <div className="flex gap-3 mt-8">
-                <Button type="button" onClick={() => setCurrentStep(0)} variant="outline" className="flex-1 h-12 border-slate-700 text-slate-400 hover:text-white bg-transparent rounded-2xl">
+
+              <div className="flex gap-3">
+                <Button type="button" onClick={() => setCurrentStep(0)} variant="outline" className="flex-1 h-12 border-slate-200 text-slate-600 rounded-2xl">
                   <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
                 </Button>
-                <Button type="button" onClick={() => setCurrentStep(2)} className="flex-1 h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold">
+                <Button type="button" onClick={() => setCurrentStep(2)} className="flex-1 h-12 bg-purple-500 hover:bg-purple-600 text-white rounded-2xl font-semibold">
                   Continuar <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 2: Passeadores Parceiros (apenas hotel) */}
+          {/* STEP 2: Passeadores Parceiros (hotel) */}
           {currentStep === 2 && isHotelType && (
             <HotelPartnersStep formData={formData} set={set} onBack={() => setCurrentStep(1)} onNext={() => setCurrentStep(3)} />
           )}
 
-          {/* STEP 1: Serviços */}
+          {/* STEP 1: Serviços (não-hotel) */}
           {currentStep === 1 && !isHotelType && (
-            <motion.div key="s1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 pb-24">
+            <motion.div key="s1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 pb-24">
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">Serviços & Preços</h2>
-                <p className="text-slate-400 text-sm mt-1">Define o que ofereces e quanto cobras.</p>
+                <h2 className="text-2xl font-bold text-slate-900">Serviços & Preços</h2>
+                <p className="text-slate-500 text-sm mt-1">Define o que ofereces e quanto cobras.</p>
               </div>
 
-              <div className="p-4 bg-slate-800 rounded-2xl flex items-center justify-between">
-                <div><p className="text-white font-bold text-sm">Preço base por hora</p><p className="text-slate-400 text-xs">Cães e Gatos</p></div>
-                <div className="flex items-center gap-2">
-                  <Euro className="w-4 h-4 text-orange-400" />
-                  <input type="number" min="0" step="0.5" value={formData.hourly_rate} onChange={e => set("hourly_rate", e.target.value)}
-                    className="w-16 bg-transparent text-orange-400 font-black text-xl text-right outline-none" />
+              <div className={sectionCls}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">Preço base por hora</p>
+                    <p className="text-xs text-slate-400">Cães e Gatos</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Euro className="w-4 h-4 text-orange-500" />
+                    <input type="number" min="0" step="0.5" value={formData.hourly_rate} onChange={e => set("hourly_rate", e.target.value)}
+                      className="w-16 bg-transparent text-orange-500 font-bold text-xl text-right outline-none" />
+                  </div>
                 </div>
               </div>
 
-              {/* Serviços adicionais */}
-              <div className="space-y-3">
-                {[
-                  { key: "hasBoarding", priceKey: "boardingPrice", label: "Alojamento (Boarding)", desc: "Cuidado 24/7 na tua casa", defaultPrice: 25 },
-                  { key: "hasHouseSitting", priceKey: "houseSittingPrice", label: "Casa-Sitting", desc: "Ficas na casa do cliente", defaultPrice: 30 },
-                  { key: "hasDropIn", priceKey: "dropInPrice", label: "Visitas de Controlo", desc: "30-60 min, alimentação/medicação", defaultPrice: 15 },
-                ].map(svc => (
-                  <div key={svc.key} className="flex items-start gap-4 p-3 bg-slate-800 rounded-xl border border-slate-700">
-                    <Checkbox checked={formData[svc.key]} onCheckedChange={c => set(svc.key, c)} className="mt-1" />
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-white text-sm">{svc.label}</p>
-                        <p className="text-xs text-slate-400">{svc.desc}</p>
+              <div className={sectionCls}>
+                <h3 className="text-sm font-semibold text-slate-700 mb-1">Serviços Adicionais</h3>
+                <div className="space-y-3">
+                  {[
+                    { key: "hasBoarding", priceKey: "boardingPrice", label: "Alojamento (Boarding)", desc: "Cuidado 24/7 na tua casa" },
+                    { key: "hasHouseSitting", priceKey: "houseSittingPrice", label: "Casa-Sitting", desc: "Ficas na casa do cliente" },
+                    { key: "hasDropIn", priceKey: "dropInPrice", label: "Visitas de Controlo", desc: "30-60 min, alimentação/medicação" },
+                  ].map(svc => (
+                    <div key={svc.key} className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all ${formData[svc.key] ? 'border-orange-300 bg-orange-50' : 'border-slate-200'}`}>
+                      <Checkbox checked={formData[svc.key]} onCheckedChange={c => set(svc.key, c)} className="mt-0.5" />
+                      <div className="flex-1 flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-slate-800 text-sm">{svc.label}</p>
+                          <p className="text-xs text-slate-400">{svc.desc}</p>
+                        </div>
+                        {formData[svc.key] && (
+                          <input type="number" value={formData[svc.priceKey]} onChange={e => set(svc.priceKey, e.target.value)}
+                            className="w-20 h-8 pl-3 text-sm bg-white text-slate-800 rounded-lg border border-slate-200 outline-none font-semibold" />
+                        )}
                       </div>
-                      {formData[svc.key] && (
-                        <input type="number" value={formData[svc.priceKey]} onChange={e => set(svc.priceKey, e.target.value)}
-                          className="w-20 h-8 pl-4 text-sm bg-slate-900 text-white rounded-lg border border-slate-600 outline-none" />
-                      )}
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
-              {/* Portfolio */}
-              <div className="space-y-2 border-t border-slate-800 pt-4">
-                <Label className="block text-sm font-semibold text-white">Portfólio (Opcional)</Label>
+              <div className={sectionCls}>
+                <Label className="text-sm font-semibold text-slate-700">Portfólio (Opcional)</Label>
                 <OptimizedImageUpload
                   onImagesChange={(urls) => set("portfolio", urls.map(url => ({ media_url: url, media_type: 'photo', title: 'Trabalho', category: 'walk', is_featured: false })))}
                   currentImages={formData.portfolio?.map(p => p.media_url) || []}
@@ -621,12 +620,12 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                 />
               </div>
 
-              <div className="flex gap-3 mt-8">
-                <Button type="button" onClick={() => setCurrentStep(0)} variant="outline" className="flex-1 h-12 border-slate-700 text-slate-400 hover:text-white bg-transparent rounded-2xl">
+              <div className="flex gap-3">
+                <Button type="button" onClick={() => setCurrentStep(0)} variant="outline" className="flex-1 h-12 border-slate-200 text-slate-600 rounded-2xl">
                   <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
                 </Button>
                 <Button type="button" onClick={() => setCurrentStep(2)} disabled={!canProceed()}
-                  className="flex-1 h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-bold disabled:opacity-40">
+                  className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-semibold disabled:opacity-40">
                   Continuar <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
@@ -635,67 +634,69 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
 
           {/* STEP 2: Preferências (não-hotel) */}
           {currentStep === 2 && !isHotelType && (
-            <motion.div key="s2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 pb-24">
+            <motion.div key="s2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 pb-24">
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">Preferências</h2>
-                <p className="text-slate-400 text-sm mt-1">Define quem podes ajudar e quando.</p>
+                <h2 className="text-2xl font-bold text-slate-900">Preferências</h2>
+                <p className="text-slate-500 text-sm mt-1">Define quem podes ajudar e quando.</p>
               </div>
 
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Animais que aceitas</p>
+              <div className={sectionCls}>
+                <label className={labelCls}>Animais que aceitas</label>
                 <div className="grid grid-cols-3 gap-2">
                   {ANIMALS.map(a => (
                     <button key={a.value} type="button" onClick={() => toggleArr("accepted_animals", a.value)}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${formData.accepted_animals.includes(a.value) ? 'border-orange-500 bg-orange-500/10' : 'border-slate-800 bg-slate-900'}`}>
-                      <span className="text-2xl">{a.icon}</span>
-                      <span className="text-xs text-white font-medium">{a.label}</span>
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${formData.accepted_animals.includes(a.value) ? 'border-orange-400 bg-orange-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                      <span className="text-xl">{a.icon}</span>
+                      <span className="text-xs text-slate-700 font-medium">{a.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tamanhos de cão</p>
+              <div className={sectionCls}>
+                <label className={labelCls}>Tamanhos de cão</label>
                 <div className="grid grid-cols-2 gap-2">
                   {DOG_SIZES.map(s => (
                     <button key={s.value} type="button" onClick={() => toggleArr("dog_sizes", s.value)}
-                      className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${formData.dog_sizes.includes(s.value) ? 'border-orange-500 bg-orange-500/10' : 'border-slate-800 bg-slate-900'}`}>
-                      <div className="text-left"><p className="text-sm font-bold text-white">{s.label}</p><p className="text-xs text-slate-400">{s.desc}</p></div>
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${formData.dog_sizes.includes(s.value) ? 'border-orange-400 bg-orange-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                      <div><p className="text-sm font-semibold text-slate-700">{s.label}</p><p className="text-xs text-slate-400">{s.desc}</p></div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1"><Clock className="w-3 h-3" /> Disponibilidade</p>
+              <div className={sectionCls}>
+                <label className={`${labelCls} flex items-center gap-1`}><Clock className="w-3 h-3" /> Disponibilidade</label>
                 <div className="grid grid-cols-2 gap-2">
                   {AVAILABILITY_SLOTS.map(sl => (
                     <button key={sl.value} type="button" onClick={() => toggleArr("availability", sl.value)}
-                      className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${formData.availability.includes(sl.value) ? 'border-orange-500 bg-orange-500/10' : 'border-slate-800 bg-slate-900'}`}>
+                      className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${formData.availability.includes(sl.value) ? 'border-orange-400 bg-orange-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                       <span className="text-xl">{sl.icon}</span>
-                      <div className="text-left"><p className="text-sm font-bold text-white">{sl.label}</p><p className="text-xs text-slate-400">{sl.time}</p></div>
+                      <div><p className="text-sm font-semibold text-slate-700">{sl.label}</p><p className="text-xs text-slate-400">{sl.time}</p></div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1"><Zap className="w-3 h-3 text-orange-400" /> PawGo</p>
+              <div className={sectionCls}>
+                <label className={`${labelCls} flex items-center gap-1`}><Zap className="w-3 h-3 text-orange-500" /> PawGo</label>
                 <button type="button" onClick={() => set("instant_booking", !formData.instant_booking)}
-                  className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between ${formData.instant_booking ? 'border-orange-500 bg-orange-500/10' : 'border-slate-800 bg-slate-900'}`}>
-                  <div><p className="text-white font-bold text-sm">Ativar PawGo</p><p className="text-slate-400 text-xs mt-0.5">Pedidos urgentes em tempo real</p></div>
-                  <div className={`w-12 h-6 rounded-full transition-all ${formData.instant_booking ? 'bg-orange-500' : 'bg-slate-700'} flex items-center px-1`}>
-                    <div className={`w-4 h-4 bg-white rounded-full transition-transform ${formData.instant_booking ? 'translate-x-6' : 'translate-x-0'}`} />
+                  className={`w-full p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between ${formData.instant_booking ? 'border-orange-400 bg-orange-50' : 'border-slate-200 bg-white'}`}>
+                  <div>
+                    <p className="text-slate-800 font-semibold text-sm">Ativar PawGo</p>
+                    <p className="text-slate-400 text-xs mt-0.5">Pedidos urgentes em tempo real</p>
+                  </div>
+                  <div className={`w-11 h-6 rounded-full transition-all ${formData.instant_booking ? 'bg-orange-500' : 'bg-slate-200'} flex items-center px-0.5`}>
+                    <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-sm ${formData.instant_booking ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
                 </button>
               </div>
 
-              <div className="flex gap-3 mt-8">
-                <Button type="button" onClick={() => setCurrentStep(1)} variant="outline" className="flex-1 h-12 border-slate-700 text-slate-400 hover:text-white bg-transparent rounded-2xl">
+              <div className="flex gap-3">
+                <Button type="button" onClick={() => setCurrentStep(1)} variant="outline" className="flex-1 h-12 border-slate-200 text-slate-600 rounded-2xl">
                   <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
                 </Button>
-                <Button type="button" onClick={() => setCurrentStep(3)}
-                  className="flex-1 h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-bold">
+                <Button type="button" onClick={() => setCurrentStep(3)} className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-semibold">
                   Continuar <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
@@ -703,94 +704,96 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
           )}
 
           {/* STEP 3: Documentos */}
-          {currentStep === 3 && (isHotelType || !isHotelType) && (
-            <motion.div key="s3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6 pb-24">
+          {currentStep === 3 && (
+            <motion.div key="s3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5 pb-24">
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tighter">Verificação & Pagamento</h2>
-                <p className="text-slate-400 text-sm mt-1">Dados necessários para verificação e recebimento.</p>
+                <h2 className="text-2xl font-bold text-slate-900">Verificação & Pagamento</h2>
+                <p className="text-slate-500 text-sm mt-1">Dados para verificação e recebimento.</p>
               </div>
 
-              {/* País */}
-              <div className="space-y-4 bg-slate-800 border border-slate-700 p-5 rounded-2xl">
-                <h3 className="font-bold text-white">País & Dados Fiscais</h3>
-                <div className="grid grid-cols-3 gap-3">
+              <div className={sectionCls}>
+                <h3 className="text-sm font-semibold text-slate-700">País & Dados Fiscais</h3>
+                <div className="grid grid-cols-3 gap-2">
                   {[{ v: 'portugal', l: 'Portugal', flag: '🇵🇹' }, { v: 'spain', l: 'Espanha', flag: '🇪🇸' }, { v: 'france', l: 'França', flag: '🇫🇷' }].map(c => (
                     <button key={c.v} type="button" onClick={() => set('country_of_operation', c.v)}
-                      className={`p-3 rounded-xl border-2 text-center transition-all ${formData.country_of_operation === c.v ? 'border-orange-500 bg-orange-500/10' : 'border-slate-700'}`}>
+                      className={`p-3 rounded-xl border-2 text-center transition-all ${formData.country_of_operation === c.v ? 'border-orange-400 bg-orange-50' : 'border-slate-200 hover:border-slate-300'}`}>
                       <div className="text-2xl mb-1">{c.flag}</div>
-                      <p className="text-xs font-bold text-white">{c.l}</p>
+                      <p className="text-xs font-semibold text-slate-700">{c.l}</p>
                     </button>
                   ))}
                 </div>
                 {formData.country_of_operation && DOCUMENT_RULES[formData.country_of_operation] && (
-                  <div className="space-y-1">
-                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{DOCUMENT_RULES[formData.country_of_operation].taxLabel} *</Label>
+                  <div>
+                    <label className={labelCls}>{DOCUMENT_RULES[formData.country_of_operation].taxLabel} *</label>
                     <input value={formData[DOCUMENT_RULES[formData.country_of_operation].taxField]}
                       onChange={e => set(DOCUMENT_RULES[formData.country_of_operation].taxField, e.target.value)}
                       placeholder={`Inserir ${DOCUMENT_RULES[formData.country_of_operation].taxLabel}`}
-                      className="w-full h-12 px-4 bg-slate-900 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+                      className={inputCls} />
                   </div>
                 )}
                 {formData.country_of_operation === 'france' && (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2">
                     {[{ v: 'professional', l: 'Profissional' }, { v: 'individual', l: 'Particular' }].map(opt => (
                       <button key={opt.v} type="button" onClick={() => set('france_professional_type', opt.v)}
-                        className={`p-3 rounded-xl border-2 text-center transition-all ${formData.france_professional_type === opt.v ? 'border-orange-500 bg-orange-500/10' : 'border-slate-700'}`}>
-                        <p className="text-sm font-bold text-white">{opt.l}</p>
+                        className={`p-3 rounded-xl border-2 text-center transition-all ${formData.france_professional_type === opt.v ? 'border-orange-400 bg-orange-50' : 'border-slate-200'}`}>
+                        <p className="text-sm font-semibold text-slate-700">{opt.l}</p>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Documentos */}
-              <div className="space-y-4 bg-slate-800 border border-slate-700 p-5 rounded-2xl">
-                <h3 className="font-bold text-white">Documentos de Verificação</h3>
-                <Alert className="border-blue-500/30 bg-blue-500/10 text-blue-300">
+              <div className={sectionCls}>
+                <h3 className="text-sm font-semibold text-slate-700">Documentos de Verificação</h3>
+                <Alert className="border-blue-200 bg-blue-50 text-blue-700">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>Opcional: pode enviar agora ou depois no painel.</AlertDescription>
+                  <AlertDescription className="text-xs">Opcional — pode enviar agora ou depois no painel.</AlertDescription>
                 </Alert>
                 {[
                   { label: "Documento de Identificação", field: "id_document_url", key: "id" },
                   { label: "Comprovativo de Morada", field: "proof_of_address_url", key: "address" },
                 ].map(doc => (
-                  <div key={doc.key} className="space-y-1">
-                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{doc.label} (Opcional)</Label>
-                    <input type="file" accept="image/*,.pdf" onChange={(e) => handleDocUpload(e, doc.field, doc.key)} disabled={uploading[doc.key]} className="text-slate-400 text-sm" />
-                    {formData[doc.field] && <p className="text-xs text-green-400 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Carregado</p>}
+                  <div key={doc.key}>
+                    <label className={labelCls}>{doc.label} (Opcional)</label>
+                    <input type="file" accept="image/*,.pdf" onChange={(e) => handleDocUpload(e, doc.field, doc.key)} disabled={uploading[doc.key]} className="text-slate-500 text-sm" />
+                    {formData[doc.field] && (
+                      <p className="text-xs text-emerald-600 flex items-center gap-1 mt-1"><CheckCircle className="w-3 h-3" /> Carregado</p>
+                    )}
                   </div>
                 ))}
               </div>
 
-              {/* Pagamento */}
-              <div className="space-y-4 bg-slate-800 border border-slate-700 p-5 rounded-2xl">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-white">Informação de Pagamento</h3>
-                  <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full flex items-center gap-1"><Shield className="w-3 h-3" /> Seguro</span>
+              <div className={sectionCls}>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-sm font-semibold text-slate-700">Informação de Pagamento</h3>
+                  <span className="text-xs bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1 font-medium">
+                    <Shield className="w-3 h-3" /> Seguro
+                  </span>
                 </div>
-                {[
-                  { label: "MBWay (recomendado)", field: "mbway_number", placeholder: "912345678" },
-                  { label: "IBAN", field: "bank_account_number", placeholder: "PT50000201231234567890154" },
-                  { label: "Nome do Titular", field: "bank_account_holder", placeholder: "João Silva" },
-                ].map(f => (
-                  <div key={f.field} className="space-y-1">
-                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest">{f.label} (Opcional)</Label>
-                    <input value={formData[f.field] || ""} onChange={e => set(f.field, e.target.value)} placeholder={f.placeholder}
-                      className="w-full h-11 px-4 bg-slate-900 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
-                  </div>
-                ))}
+                <div className="space-y-3">
+                  {[
+                    { label: "MBWay (recomendado)", field: "mbway_number", placeholder: "912345678" },
+                    { label: "IBAN", field: "bank_account_number", placeholder: "PT50000201231234567890154" },
+                    { label: "Nome do Titular", field: "bank_account_holder", placeholder: "João Silva" },
+                  ].map(f => (
+                    <div key={f.field}>
+                      <label className={labelCls}>{f.label} (Opcional)</label>
+                      <input value={formData[f.field] || ""} onChange={e => set(f.field, e.target.value)} placeholder={f.placeholder} className={inputCls} />
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="bg-slate-800/50 border border-orange-500/20 rounded-xl p-3 text-xs text-slate-400">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700">
                 ⚠️ O teu perfil ficará em análise. Serás notificado quando aprovado pela equipa PawCão.
               </div>
 
-              <div className="flex gap-3 mt-8">
-                <Button type="button" onClick={() => setCurrentStep(2)} variant="outline" className="flex-1 h-12 border-slate-700 text-slate-400 hover:text-white bg-transparent rounded-2xl">
+              <div className="flex gap-3">
+                <Button type="button" onClick={() => setCurrentStep(2)} variant="outline" className="flex-1 h-12 border-slate-200 text-slate-600 rounded-2xl">
                   <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
                 </Button>
                 <Button type="submit" disabled={submitMutation.isPending || loading}
-                  className="flex-1 h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-bold shadow-lg">
+                  className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-semibold shadow-md">
                   {submitMutation.isPending ? "A guardar..." : isEditing ? "Guardar Alterações ✅" : "Criar Perfil 🚀"}
                 </Button>
               </div>

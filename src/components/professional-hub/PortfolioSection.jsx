@@ -3,31 +3,31 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Plus, Trash2, Award, Image, Video, X, ExternalLink, Star, Upload } from "lucide-react";
+import { Plus, Trash2, Award, ImageIcon, Video, X, ExternalLink, Star, Upload } from "lucide-react";
 
 // ─── Portfolio Item Card ───────────────────────────────────────────────────────
 function PortfolioCard({ item, onDelete }) {
   return (
-    <div className="relative bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 group">
+    <div className="relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group hover:shadow-md transition-shadow">
       {item.media_type === "video" ? (
         <video src={item.media_url} className="w-full h-40 object-cover" controls />
       ) : (
         <img src={item.media_url} alt={item.title} className="w-full h-40 object-cover" />
       )}
       {item.is_featured && (
-        <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1">
+        <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
           <Star className="w-3 h-3" /> Destaque
         </span>
       )}
       <button
         onClick={() => onDelete(item)}
-        className="absolute top-2 right-2 w-7 h-7 bg-red-600/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-50"
       >
-        <Trash2 className="w-3.5 h-3.5 text-white" />
+        <Trash2 className="w-3.5 h-3.5 text-red-500" />
       </button>
       <div className="p-3">
-        <p className="text-sm font-bold text-white">{item.title}</p>
-        {item.dog_name && <p className="text-xs text-slate-400">🐕 {item.dog_name}</p>}
+        <p className="text-sm font-semibold text-slate-800">{item.title}</p>
+        {item.dog_name && <p className="text-xs text-slate-400 mt-0.5">🐕 {item.dog_name}</p>}
         {item.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2">{item.description}</p>}
       </div>
     </div>
@@ -49,24 +49,26 @@ function AddPortfolioModal({ onClose, onAdd }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-end justify-center z-[9999] p-4">
-      <div className="bg-slate-900 rounded-3xl p-6 w-full max-w-lg border border-slate-700 space-y-4">
+    <div className="fixed inset-0 bg-black/30 flex items-end justify-center z-[9999] p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-lg border border-slate-200 shadow-xl space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-black text-white">Adicionar ao Portfólio</h3>
-          <button onClick={onClose}><X className="w-5 h-5 text-slate-400" /></button>
+          <h3 className="text-base font-semibold text-slate-800">Adicionar ao Portfólio</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
+            <X className="w-4 h-4 text-slate-500" />
+          </button>
         </div>
 
-        <div className="border-2 border-dashed border-slate-700 rounded-2xl p-4 text-center">
+        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center bg-slate-50 hover:bg-slate-100 transition-colors">
           {form.media_url ? (
             form.media_type === "video"
               ? <video src={form.media_url} className="w-full h-32 object-cover rounded-xl" controls />
               : <img src={form.media_url} className="w-full h-32 object-cover rounded-xl" alt="preview" />
           ) : (
             <label className="cursor-pointer flex flex-col items-center gap-2 text-slate-400">
-              {uploading ? <span className="text-sm animate-pulse">A carregar...</span> : (
+              {uploading ? <span className="text-sm text-slate-500 animate-pulse">A carregar...</span> : (
                 <>
-                  <Upload className="w-8 h-8" />
-                  <span className="text-sm">Foto ou vídeo</span>
+                  <Upload className="w-7 h-7 text-slate-300" />
+                  <span className="text-sm font-medium text-slate-500">Clique para adicionar foto ou vídeo</span>
                 </>
               )}
               <input type="file" accept="image/*,video/*" className="hidden" onChange={handleFile} />
@@ -74,16 +76,36 @@ function AddPortfolioModal({ onClose, onAdd }) {
           )}
         </div>
 
-        <input className="w-full bg-slate-800 text-white rounded-xl px-4 py-2.5 text-sm placeholder-slate-500 border border-slate-700 outline-none" placeholder="Título *" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
-        <input className="w-full bg-slate-800 text-white rounded-xl px-4 py-2.5 text-sm placeholder-slate-500 border border-slate-700 outline-none" placeholder="Nome do animal (opcional)" value={form.dog_name} onChange={e => setForm(f => ({ ...f, dog_name: e.target.value }))} />
-        <textarea className="w-full bg-slate-800 text-white rounded-xl px-4 py-2.5 text-sm placeholder-slate-500 border border-slate-700 outline-none resize-none" rows={2} placeholder="Descrição" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+        <input
+          className="w-full bg-slate-50 text-slate-900 rounded-xl px-4 py-2.5 text-sm border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400"
+          placeholder="Título *"
+          value={form.title}
+          onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+        />
+        <input
+          className="w-full bg-slate-50 text-slate-900 rounded-xl px-4 py-2.5 text-sm border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400"
+          placeholder="Nome do animal (opcional)"
+          value={form.dog_name}
+          onChange={e => setForm(f => ({ ...f, dog_name: e.target.value }))}
+        />
+        <textarea
+          className="w-full bg-slate-50 text-slate-900 rounded-xl px-4 py-2.5 text-sm border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 resize-none"
+          rows={2}
+          placeholder="Descrição (opcional)"
+          value={form.description}
+          onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+        />
 
         <div className="flex items-center gap-2">
-          <input type="checkbox" id="feat" checked={form.is_featured} onChange={e => setForm(f => ({ ...f, is_featured: e.target.checked }))} className="accent-orange-500" />
-          <label htmlFor="feat" className="text-sm text-slate-300">Marcar como destaque</label>
+          <input type="checkbox" id="feat" checked={form.is_featured} onChange={e => setForm(f => ({ ...f, is_featured: e.target.checked }))} className="accent-orange-500 w-4 h-4" />
+          <label htmlFor="feat" className="text-sm text-slate-600">Marcar como destaque</label>
         </div>
 
-        <Button disabled={!form.title || !form.media_url} onClick={() => onAdd(form)} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl">
+        <Button
+          disabled={!form.title || !form.media_url}
+          onClick={() => onAdd(form)}
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl"
+        >
           Adicionar
         </Button>
       </div>
@@ -102,7 +124,12 @@ function CertificationsManager({ profile, isWalker }) {
 
   const addMutation = useMutation({
     mutationFn: () => entity.update(profile.id, { certifications_detailed: [...certs, form] }),
-    onSuccess: () => { queryClient.invalidateQueries(['myProfessionalProfile']); toast.success("Certificação adicionada!"); setAdding(false); setForm({ name: "", issuing_organization: "", issue_date: "", expiry_date: "", certificate_url: "" }); }
+    onSuccess: () => {
+      queryClient.invalidateQueries(['myProfessionalProfile']);
+      toast.success("Certificação adicionada!");
+      setAdding(false);
+      setForm({ name: "", issuing_organization: "", issue_date: "", expiry_date: "", certificate_url: "" });
+    }
   });
 
   const removeMutation = useMutation({
@@ -110,27 +137,42 @@ function CertificationsManager({ profile, isWalker }) {
     onSuccess: () => queryClient.invalidateQueries(['myProfessionalProfile'])
   });
 
+  const inputCls = "w-full bg-white text-slate-900 rounded-xl px-3 py-2 text-sm border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400";
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Award className="w-4 h-4 text-yellow-500" /> Certificações</h3>
-        <button onClick={() => setAdding(true)} className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition-colors">
-          <Plus className="w-4 h-4 text-white" />
+        <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+          <Award className="w-4 h-4 text-amber-500" /> Certificações
+        </h3>
+        <button
+          onClick={() => setAdding(true)}
+          className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
+        >
+          <Plus className="w-4 h-4 text-slate-500" />
         </button>
       </div>
 
-      {certs.length === 0 && <p className="text-slate-500 text-sm text-center py-4">Sem certificações. Adiciona a tua primeira!</p>}
+      {certs.length === 0 && !adding && (
+        <p className="text-slate-400 text-sm text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          Sem certificações. Adiciona a tua primeira!
+        </p>
+      )}
 
       <div className="space-y-2">
         {certs.map((c, i) => (
-          <div key={i} className="flex items-start justify-between bg-slate-900 rounded-xl p-3 border border-slate-800">
+          <div key={i} className="flex items-start justify-between bg-white rounded-xl p-3 border border-slate-200 shadow-sm">
             <div>
-              <p className="text-sm font-bold text-white">{c.name}</p>
-              <p className="text-xs text-slate-400">{c.issuing_organization}</p>
-              {c.issue_date && <p className="text-xs text-slate-500">{c.issue_date}{c.expiry_date ? ` → ${c.expiry_date}` : ''}</p>}
-              {c.certificate_url && <a href={c.certificate_url} target="_blank" rel="noreferrer" className="text-xs text-orange-400 flex items-center gap-1 mt-1"><ExternalLink className="w-3 h-3" /> Ver certificado</a>}
+              <p className="text-sm font-semibold text-slate-800">{c.name}</p>
+              {c.issuing_organization && <p className="text-xs text-slate-500">{c.issuing_organization}</p>}
+              {c.issue_date && <p className="text-xs text-slate-400">{c.issue_date}{c.expiry_date ? ` → ${c.expiry_date}` : ''}</p>}
+              {c.certificate_url && (
+                <a href={c.certificate_url} target="_blank" rel="noreferrer" className="text-xs text-orange-500 flex items-center gap-1 mt-1 hover:text-orange-600">
+                  <ExternalLink className="w-3 h-3" /> Ver certificado
+                </a>
+              )}
             </div>
-            <button onClick={() => removeMutation.mutate(i)} className="text-red-400 hover:text-red-300 ml-2 flex-shrink-0">
+            <button onClick={() => removeMutation.mutate(i)} className="text-slate-300 hover:text-red-400 ml-2 flex-shrink-0 transition-colors">
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
@@ -138,17 +180,17 @@ function CertificationsManager({ profile, isWalker }) {
       </div>
 
       {adding && (
-        <div className="bg-slate-800 rounded-2xl p-4 space-y-3 border border-slate-700">
-          <input className="w-full bg-slate-700 text-white rounded-xl px-3 py-2 text-sm placeholder-slate-400 outline-none" placeholder="Nome da certificação *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          <input className="w-full bg-slate-700 text-white rounded-xl px-3 py-2 text-sm placeholder-slate-400 outline-none" placeholder="Entidade emissora" value={form.issuing_organization} onChange={e => setForm(f => ({ ...f, issuing_organization: e.target.value }))} />
-          <div className="flex gap-2">
-            <input type="date" className="flex-1 bg-slate-700 text-white rounded-xl px-3 py-2 text-sm outline-none" placeholder="Data emissão" value={form.issue_date} onChange={e => setForm(f => ({ ...f, issue_date: e.target.value }))} />
-            <input type="date" className="flex-1 bg-slate-700 text-white rounded-xl px-3 py-2 text-sm outline-none" placeholder="Validade" value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} />
+        <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-200">
+          <input className={inputCls} placeholder="Nome da certificação *" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          <input className={inputCls} placeholder="Entidade emissora" value={form.issuing_organization} onChange={e => setForm(f => ({ ...f, issuing_organization: e.target.value }))} />
+          <div className="grid grid-cols-2 gap-2">
+            <input type="date" className={inputCls} value={form.issue_date} onChange={e => setForm(f => ({ ...f, issue_date: e.target.value }))} />
+            <input type="date" className={inputCls} value={form.expiry_date} onChange={e => setForm(f => ({ ...f, expiry_date: e.target.value }))} />
           </div>
-          <input className="w-full bg-slate-700 text-white rounded-xl px-3 py-2 text-sm placeholder-slate-400 outline-none" placeholder="URL do certificado (opcional)" value={form.certificate_url} onChange={e => setForm(f => ({ ...f, certificate_url: e.target.value }))} />
+          <input className={inputCls} placeholder="URL do certificado (opcional)" value={form.certificate_url} onChange={e => setForm(f => ({ ...f, certificate_url: e.target.value }))} />
           <div className="flex gap-2">
-            <Button onClick={() => setAdding(false)} variant="outline" className="flex-1 border-slate-600 text-slate-300 rounded-xl text-sm">Cancelar</Button>
-            <Button onClick={() => addMutation.mutate()} disabled={!form.name} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold">Guardar</Button>
+            <Button onClick={() => setAdding(false)} variant="outline" className="flex-1 border-slate-200 text-slate-600 rounded-xl text-sm h-9">Cancelar</Button>
+            <Button onClick={() => addMutation.mutate()} disabled={!form.name} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold h-9">Guardar</Button>
           </div>
         </div>
       )}
@@ -180,22 +222,28 @@ export default function PortfolioSection({ professionalProfile }) {
       {/* Portfolio */}
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-            <Image className="w-4 h-4 text-purple-400" /> Portfólio
+          <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2">
+            <ImageIcon className="w-4 h-4 text-slate-400" /> Portfólio
           </h3>
-          <button onClick={() => setShowAdd(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-colors">
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-semibold transition-colors"
+          >
             <Plus className="w-3.5 h-3.5" /> Adicionar
           </button>
         </div>
 
         {portfolio.length === 0 ? (
-          <div className="text-center py-10 border-2 border-dashed border-slate-800 rounded-2xl">
-            <Image className="w-10 h-10 text-slate-700 mx-auto mb-2" />
-            <p className="text-slate-500 text-sm">Sem itens no portfólio</p>
-            <button onClick={() => setShowAdd(true)} className="mt-3 text-orange-400 text-sm font-bold hover:text-orange-300">+ Adiciona o primeiro</button>
+          <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
+            <ImageIcon className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-500 text-sm font-medium">Sem itens no portfólio</p>
+            <p className="text-slate-400 text-xs mt-1">Adiciona fotos dos teus trabalhos para impressionar os clientes</p>
+            <button onClick={() => setShowAdd(true)} className="mt-3 text-orange-500 text-sm font-semibold hover:text-orange-600">
+              + Adicionar primeira foto
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-5xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {portfolio.map((item, i) => (
               <PortfolioCard key={i} item={item} onDelete={(it) => deleteMutation.mutate(it)} />
             ))}
@@ -204,7 +252,9 @@ export default function PortfolioSection({ professionalProfile }) {
       </div>
 
       {/* Certifications */}
-      <CertificationsManager profile={professionalProfile} isWalker={isWalker} />
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <CertificationsManager profile={professionalProfile} isWalker={isWalker} />
+      </div>
 
       {showAdd && <AddPortfolioModal onClose={() => setShowAdd(false)} onAdd={(item) => addMutation.mutate(item)} />}
     </div>

@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
-import { Camera, Save, User, FileText, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Camera, Save, User, FileText, ImageIcon, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
@@ -9,7 +8,8 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
   const [loading, setLoading] = useState(false);
   const avatarInputRef = useRef(null);
   const coverInputRef = useRef(null);
-  
+  const galleryInputRef = useRef(null);
+
   const [formData, setFormData] = useState({
     full_name: user?.full_name || "",
     bio: user?.professional_profile?.bio || "",
@@ -21,17 +21,13 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
     coverFile: null
   });
 
-  const galleryInputRef = useRef(null);
-
   const handleGalleryUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
-
     if (formData.gallery.length + files.length > 4) {
       toast.error("Só podes ter até 4 fotos na galeria.");
       return;
     }
-
     const toastId = toast.loading("A carregar fotos...");
     try {
       const newUrls = [];
@@ -41,29 +37,20 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
       }
       setFormData(prev => ({ ...prev, gallery: [...prev.gallery, ...newUrls] }));
       toast.success("Fotos adicionadas!", { id: toastId });
-    } catch (error) {
+    } catch {
       toast.error("Erro ao carregar fotos.", { id: toastId });
     }
   };
 
   const removeGalleryPhoto = (indexToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      gallery: prev.gallery.filter((_, index) => index !== indexToRemove)
-    }));
+    setFormData(prev => ({ ...prev, gallery: prev.gallery.filter((_, index) => index !== indexToRemove) }));
   };
 
   const handleImageSelect = (e, type) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("A imagem deve ter menos de 5MB");
-      return;
-    }
-
+    if (file.size > 5 * 1024 * 1024) { toast.error("A imagem deve ter menos de 5MB"); return; }
     const previewUrl = URL.createObjectURL(file);
-    
     if (type === 'avatar') {
       setFormData(prev => ({ ...prev, avatarPreview: previewUrl, avatarFile: file }));
     } else {
@@ -74,25 +61,18 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
   const handleSave = async () => {
     setLoading(true);
     const toastId = toast.loading("A guardar alterações...");
-    
     try {
       let finalAvatarUrl = user?.photo_url;
       let finalCoverUrl = user?.professional_profile?.cover_url;
-
-      // Upload Avatar se mudou
       if (formData.avatarFile) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file: formData.avatarFile });
         finalAvatarUrl = file_url;
       }
-
-      // Upload Cover se mudou
       if (formData.coverFile) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file: formData.coverFile });
         finalCoverUrl = file_url;
       }
-
-      // Preparar objeto de atualização (protegendo a estrutura existente)
-      const updates = {
+      await base44.auth.updateMe({
         full_name: formData.full_name,
         photo_url: finalAvatarUrl,
         professional_profile: {
@@ -103,19 +83,10 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
           cover_url: finalCoverUrl,
           gallery: formData.gallery || []
         }
-      };
-
-      await base44.auth.updateMe(updates);
-      
-      if (onUpdate) {
-        onUpdate();
-      }
-      
-      toast.success("Perfil atualizado com sucesso! ✨", { id: toastId });
-      
-      if (onClose) {
-        onClose();
-      }
+      });
+      if (onUpdate) onUpdate();
+      toast.success("Perfil atualizado!", { id: toastId });
+      if (onClose) onClose();
     } catch (e) {
       console.error(e);
       toast.error("Erro ao guardar alterações.", { id: toastId });
@@ -125,158 +96,142 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
   };
 
   return (
-    <div className="space-y-6 pb-32 px-4 max-w-lg mx-auto w-full relative">
-      {/* 1. GESTÃO DE IMAGENS (CAPA E AVATAR) */}
-      <div className="relative h-48 sm:h-64 w-full">
-        {/* Capa */}
-        <div className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden bg-slate-100 shadow-sm group">
-          <img src={formData.coverPreview} className="w-full h-full object-cover transition-opacity duration-500" />
-          <div className="absolute inset-0 bg-black/10"></div>
-          <button 
+    <div className="space-y-5 pb-32 px-4 max-w-lg mx-auto w-full">
+      {/* Capa + Avatar */}
+      <div className="relative h-44 sm:h-52 w-full">
+        <div className="absolute inset-0 rounded-2xl overflow-hidden bg-slate-100 group shadow-sm">
+          <img src={formData.coverPreview} className="w-full h-full object-cover" alt="capa" />
+          <div className="absolute inset-0 bg-black/10" />
+          <button
             onClick={() => coverInputRef.current?.click()}
-            className="absolute bottom-4 right-4 bg-white/90 backdrop-blur p-3 rounded-2xl shadow-xl active:scale-90 transition-all hover:bg-white"
+            className="absolute bottom-3 right-3 bg-white/95 p-2.5 rounded-xl shadow-md hover:bg-white transition-colors"
           >
-            <Camera size={20} className="text-slate-900" />
+            <Camera size={18} className="text-slate-700" />
           </button>
-          <input 
-            type="file" 
-            ref={coverInputRef} 
-            className="hidden" 
-            accept="image/*" 
-            onChange={(e) => handleImageSelect(e, 'cover')} 
-          />
+          <input type="file" ref={coverInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageSelect(e, 'cover')} />
         </div>
 
-        {/* Avatar */}
-        <div className="absolute -bottom-10 left-6 sm:left-8">
-          <div 
-            className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-[2rem] border-4 border-white shadow-xl overflow-hidden bg-white cursor-pointer group"
+        <div className="absolute -bottom-10 left-5">
+          <div
+            className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-4 border-white shadow-lg overflow-hidden bg-white cursor-pointer group"
             onClick={() => avatarInputRef.current?.click()}
           >
-            <img src={formData.avatarPreview} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Camera size={24} className="text-white" />
+            <img src={formData.avatarPreview} className="w-full h-full object-cover" alt="avatar" />
+            <div className="absolute inset-0 bg-black/25 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Camera size={20} className="text-white" />
             </div>
-            <input 
-              type="file" 
-              ref={avatarInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={(e) => handleImageSelect(e, 'avatar')} 
-            />
+            <input type="file" ref={avatarInputRef} className="hidden" accept="image/*" onChange={(e) => handleImageSelect(e, 'avatar')} />
           </div>
         </div>
       </div>
 
-      <div className="mt-14 space-y-4">
-        {/* 2. DADOS BÁSICOS */}
-        <Card className="p-5 sm:p-6 rounded-[2rem] border-slate-100 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 mb-2 text-slate-400">
-            <User size={16} />
-            <span className="text-[10px] font-black uppercase tracking-widest">Informações Pessoais</span>
+      {/* Campos */}
+      <div className="mt-12 space-y-4">
+        {/* Informações Pessoais */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div className="flex items-center gap-2 text-slate-400 mb-1">
+            <User size={15} />
+            <span className="text-[10px] font-semibold uppercase tracking-widest">Informações Pessoais</span>
           </div>
-          
-          <input 
-            type="text"
-            value={formData.full_name}
-            onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-            placeholder="Nome Completo"
-            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-orange-500 transition-all outline-none"
-          />
 
-          <select 
-            value={formData.category}
-            onChange={(e) => setFormData({...formData, category: e.target.value})}
-            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold text-slate-600 appearance-none outline-none focus:ring-2 focus:ring-orange-500"
-          >
-            <option value="Passeador">Passeador</option>
-            <option value="Treinador">Treinador</option>
-            <option value="Pet Sitter">Pet Sitter</option>
-            <option value="Passeador & Treinador">Passeador & Treinador</option>
-          </select>
-        </Card>
-
-        {/* 3. BIO / APRESENTAÇÃO */}
-        <Card className="p-5 sm:p-6 rounded-[2rem] border-slate-100 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 mb-2 text-slate-400">
-            <FileText size={16} />
-            <span className="text-[10px] font-black uppercase tracking-widest">A tua Bio</span>
+          <div>
+            <label className="text-xs font-medium text-slate-500 block mb-1">Nome Completo</label>
+            <input
+              type="text"
+              value={formData.full_name}
+              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+              placeholder="Nome Completo"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 font-medium focus:ring-2 focus:ring-orange-100 focus:border-orange-400 outline-none"
+            />
           </div>
-          <textarea 
-            rows={5}
+
+          <div>
+            <label className="text-xs font-medium text-slate-500 block mb-1">Categoria</label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400"
+            >
+              <option value="Passeador">Passeador</option>
+              <option value="Treinador">Treinador</option>
+              <option value="Pet Sitter">Pet Sitter</option>
+              <option value="Passeador & Treinador">Passeador & Treinador</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Bio */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3">
+          <div className="flex items-center gap-2 text-slate-400 mb-1">
+            <FileText size={15} />
+            <span className="text-[10px] font-semibold uppercase tracking-widest">A tua Bio</span>
+          </div>
+          <textarea
+            rows={4}
             value={formData.bio}
-            onChange={(e) => setFormData({...formData, bio: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
             placeholder="Conta aos tutores por que és a escolha certa para os seus cães..."
-            className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-orange-500 transition-all resize-none outline-none text-slate-700"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 focus:ring-2 focus:ring-orange-100 focus:border-orange-400 outline-none resize-none"
           />
-        </Card>
+          <p className="text-xs text-slate-400 text-right">{formData.bio.length}/500</p>
+        </div>
 
-        {/* 4. GALERIA DE PORTEFÓLIO (NOVO MÓDULO) */}
-        <Card className="p-6 rounded-[2.5rem] border-slate-100 shadow-sm space-y-4">
-          <div className="flex items-center justify-between mb-2">
+        {/* Galeria */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2 text-slate-400">
-              <ImageIcon size={16} />
-              <span className="text-[10px] font-black uppercase tracking-widest">O teu Portefólio</span>
+              <ImageIcon size={15} />
+              <span className="text-[10px] font-semibold uppercase tracking-widest">Galeria</span>
             </div>
-            <span className="text-[9px] font-bold text-slate-300 uppercase">Máx 4 fotos</span>
+            <span className="text-[10px] text-slate-400">Máx 4 fotos</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {/* Slot de Fotos da Galeria */}
             {[0, 1, 2, 3].map((index) => {
               const photo = formData.gallery?.[index];
               return (
-                <div 
+                <div
                   key={index}
-                  className="relative aspect-square rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 overflow-hidden group active:scale-95 transition-all"
+                  className="relative aspect-square rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 overflow-hidden group transition-all hover:border-slate-300"
                 >
                   {photo ? (
                     <>
-                      <img src={photo} className="w-full h-full object-cover" />
-                      <button 
+                      <img src={photo} className="w-full h-full object-cover" alt={`galeria ${index}`} />
+                      <button
                         onClick={() => removeGalleryPhoto(index)}
-                        className="absolute top-2 right-2 bg-red-500/80 backdrop-blur text-white p-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 bg-white/90 text-red-500 p-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                       >
                         <Trash2 size={12} />
                       </button>
                     </>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => galleryInputRef.current?.click()}
-                      className="w-full h-full flex flex-col items-center justify-center gap-1"
+                      className="w-full h-full flex flex-col items-center justify-center gap-1 hover:bg-slate-100 transition-colors"
                     >
-                      <Plus size={20} className="text-slate-300" />
-                      <span className="text-[8px] font-black text-slate-400 uppercase">Adicionar</span>
+                      <Plus size={18} className="text-slate-300" />
+                      <span className="text-[9px] font-medium text-slate-400 uppercase">Adicionar</span>
                     </button>
                   )}
                 </div>
               );
             })}
           </div>
-          <input 
-            type="file" 
-            ref={galleryInputRef} 
-            className="hidden" 
-            accept="image/*" 
-            multiple
-            onChange={handleGalleryUpload} 
-          />
-          <p className="text-[9px] text-slate-400 italic text-center">
-            Dica: Mostra fotos felizes com os teus "clientes" de quatro patas! 🐾
-          </p>
-        </Card>
+          <input type="file" ref={galleryInputRef} className="hidden" accept="image/*" multiple onChange={handleGalleryUpload} />
+          <p className="text-xs text-slate-400 text-center italic">Mostra fotos felizes com os teus clientes! 🐾</p>
+        </div>
 
-        {/* BOTÃO SALVAR FIXO/FLUTUANTE */}
+        {/* Botão Guardar */}
         <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
-          <Button 
+          <Button
             onClick={handleSave}
             disabled={loading}
-            className="w-full max-w-sm bg-slate-900 hover:bg-black text-white rounded-3xl h-14 sm:h-16 shadow-[0_8px_30px_rgb(0,0,0,0.2)] flex items-center justify-center gap-3 active:scale-95 transition-all pointer-events-auto border border-slate-800"
+            className="w-full max-w-sm bg-slate-900 hover:bg-black text-white rounded-2xl h-14 shadow-xl flex items-center justify-center gap-3 pointer-events-auto"
           >
             {loading ? "A guardar..." : (
               <>
-                <Save size={20} />
-                <span className="font-black uppercase tracking-widest text-xs">Guardar Perfil</span>
+                <Save size={18} />
+                <span className="font-semibold text-sm">Guardar Perfil</span>
               </>
             )}
           </Button>

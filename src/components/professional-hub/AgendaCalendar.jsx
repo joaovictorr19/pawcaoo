@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, X, Calendar, BedDouble, Check, ChevronLeft, ChevronRight, Clock, User } from "lucide-react";
 import {
@@ -13,57 +12,54 @@ import { pt } from "date-fns/locale";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-// ─── MODAL DE DIA ────────────────────────────────────────────────────────────
+// ─── MODAL DE DIA ─────────────────────────────────────────────────────────────
 function DayOffModal({ date, existing, onConfirm, onRemove, onClose }) {
   const isOff = existing?.is_day_off;
   const [note, setNote] = useState(existing?.notes || "");
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-slate-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
-        <div className="p-5 border-b border-white/10 flex items-center justify-between">
+    <div className="fixed inset-0 z-[999] flex items-end md:items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h3 className="text-white font-black text-lg capitalize">
+            <h3 className="text-slate-900 font-bold text-base capitalize">
               {format(date, "EEEE, d MMMM", { locale: pt })}
             </h3>
-            <p className="text-slate-400 text-xs mt-0.5">
+            <p className="text-slate-500 text-xs mt-0.5">
               {isOff ? "Este dia está marcado como folga" : "Marcar disponibilidade"}
             </p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
-
         <div className="p-5 space-y-4">
           <div>
-            <label className="text-xs text-slate-400 uppercase tracking-widest mb-2 block">Nota (opcional)</label>
+            <label className="text-xs text-slate-500 uppercase tracking-widest mb-2 block font-medium">Nota (opcional)</label>
             <input
               value={note}
               onChange={e => setNote(e.target.value)}
               placeholder="Ex: Férias, consulta médica..."
-              className="w-full h-10 px-3 bg-slate-800 text-white rounded-xl text-sm border border-slate-700 focus:border-orange-500 outline-none"
+              className="w-full h-10 px-3 bg-slate-50 text-slate-900 rounded-xl text-sm border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none"
             />
           </div>
-          <div className="grid grid-cols-1 gap-2">
-            {!isOff ? (
-              <Button onClick={() => onConfirm({ notes: note })} className="w-full bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold">
-                <BedDouble className="w-4 h-4 mr-2" /> Marcar como Folga
-              </Button>
-            ) : (
-              <Button onClick={onRemove} className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold">
-                <Check className="w-4 h-4 mr-2" /> Remover Folga (Disponível)
-              </Button>
-            )}
-          </div>
+          {!isOff ? (
+            <Button onClick={() => onConfirm({ notes: note })} className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold">
+              <BedDouble className="w-4 h-4 mr-2" /> Marcar como Folga
+            </Button>
+          ) : (
+            <Button onClick={onRemove} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold">
+              <Check className="w-4 h-4 mr-2" /> Remover Folga (Disponível)
+            </Button>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── VISTA SEMANAL ────────────────────────────────────────────────────────────
-const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 07:00 → 20:00
+// ─── VISTA SEMANAL ─────────────────────────────────────────────────────────────
+const HOURS = Array.from({ length: 14 }, (_, i) => i + 7);
 
 function parseHour(timeStr) {
   if (!timeStr) return null;
@@ -72,11 +68,11 @@ function parseHour(timeStr) {
 }
 
 function BookingChip({ booking, index }) {
-  const statusColor = {
-    confirmed: "bg-blue-600 border-blue-400",
-    pending: "bg-orange-600 border-orange-400",
-    in_progress: "bg-green-600 border-green-400",
-  }[booking.status] || "bg-slate-700 border-slate-500";
+  const statusConfig = {
+    confirmed: { bg: "bg-blue-50 border-blue-200 text-blue-700" },
+    pending:   { bg: "bg-orange-50 border-orange-200 text-orange-700" },
+    in_progress: { bg: "bg-emerald-50 border-emerald-200 text-emerald-700" },
+  }[booking.status] || { bg: "bg-slate-100 border-slate-200 text-slate-600" };
 
   return (
     <Draggable draggableId={booking.id} index={index}>
@@ -85,14 +81,14 @@ function BookingChip({ booking, index }) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`px-2 py-1 rounded-lg border text-xs font-bold text-white truncate cursor-grab active:cursor-grabbing shadow-md transition-transform ${statusColor} ${snapshot.isDragging ? "scale-105 shadow-xl" : ""}`}
+          className={`px-2 py-1 rounded-lg border text-xs font-medium truncate cursor-grab active:cursor-grabbing shadow-sm transition-transform ${statusConfig.bg} ${snapshot.isDragging ? "scale-105 shadow-md" : ""}`}
           title={`${booking.owner_name} — ${booking.walk_time || "?"}`}
         >
           <div className="flex items-center gap-1">
             <User className="w-2.5 h-2.5 flex-shrink-0" />
             <span className="truncate">{booking.owner_name?.split(' ')[0] || 'Cliente'}</span>
           </div>
-          <div className="text-[9px] opacity-75">{booking.walk_time}</div>
+          <div className="text-[9px] opacity-60">{booking.walk_time}</div>
         </div>
       )}
     </Draggable>
@@ -122,39 +118,37 @@ function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onDr
 
   return (
     <DragDropContext onDragEnd={onDropBooking}>
-      <div className="overflow-x-auto rounded-2xl border border-white/5">
+      <div className="overflow-x-auto rounded-xl border border-slate-200">
         <div className="min-w-[600px]">
           {/* Header dos dias */}
-          <div className="grid bg-slate-800/60" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
+          <div className="grid bg-slate-50 border-b border-slate-200" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
             <div className="p-2" />
             {days.map(day => (
               <button
                 key={day.toISOString()}
                 onClick={() => !isPast(day) && !isToday(day) && onDayOffClick(day)}
-                className={`p-2 text-center border-l border-white/5 transition-colors ${
-                  isToday(day) ? 'bg-orange-500/20' : ''
-                } ${isDayOff(day) ? 'bg-red-900/40' : 'hover:bg-slate-700/30'}`}
+                className={`p-2 text-center border-l border-slate-100 transition-colors ${
+                  isToday(day) ? 'bg-orange-50' : ''
+                } ${isDayOff(day) ? 'bg-red-50' : 'hover:bg-slate-100'}`}
               >
-                <div className={`text-[10px] font-bold uppercase tracking-widest ${isToday(day) ? 'text-orange-400' : 'text-slate-500'}`}>
+                <div className={`text-[10px] font-semibold uppercase tracking-widest ${isToday(day) ? 'text-orange-500' : 'text-slate-400'}`}>
                   {format(day, 'EEE', { locale: pt })}
                 </div>
-                <div className={`text-lg font-black ${isToday(day) ? 'text-orange-400' : isDayOff(day) ? 'text-red-400' : 'text-white'}`}>
+                <div className={`text-lg font-bold ${isToday(day) ? 'text-orange-500' : isDayOff(day) ? 'text-red-400' : 'text-slate-700'}`}>
                   {format(day, 'd')}
                 </div>
-                {isDayOff(day) && <div className="text-[8px] text-red-400 font-bold">FOLGA</div>}
+                {isDayOff(day) && <div className="text-[8px] text-red-400 font-semibold">FOLGA</div>}
               </button>
             ))}
           </div>
 
           {/* Grelha de horas */}
-          <div className="max-h-[480px] overflow-y-auto">
+          <div className="max-h-[480px] overflow-y-auto bg-white">
             {HOURS.map(hour => (
-              <div key={hour} className="grid border-t border-white/5" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
-                {/* Hora */}
-                <div className="p-1.5 text-right pr-2 text-[10px] text-slate-600 font-mono pt-2">
+              <div key={hour} className="grid border-t border-slate-100" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
+                <div className="p-1.5 text-right pr-2 text-[10px] text-slate-400 font-mono pt-2">
                   {hour}:00
                 </div>
-                {/* Células por dia */}
                 {days.map(day => {
                   const droppableId = `${format(day, 'yyyy-MM-dd')}__${hour}`;
                   const slotBookings = getBookingsForSlot(day, hour);
@@ -165,10 +159,10 @@ function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onDr
                         <div
                           ref={provided.innerRef}
                           {...provided.droppableProps}
-                          className={`border-l border-white/5 min-h-[52px] p-0.5 transition-colors ${
-                            dayIsOff ? 'bg-red-900/10' :
-                            snapshot.isDraggingOver ? 'bg-orange-500/10' :
-                            isToday(day) ? 'bg-orange-500/5' : ''
+                          className={`border-l border-slate-100 min-h-[52px] p-0.5 transition-colors ${
+                            dayIsOff ? 'bg-red-50/50' :
+                            snapshot.isDraggingOver ? 'bg-orange-50' :
+                            isToday(day) ? 'bg-orange-50/30' : ''
                           }`}
                         >
                           <div className="space-y-0.5">
@@ -191,7 +185,7 @@ function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onDr
   );
 }
 
-// ─── VISTA MENSAL (mantida) ───────────────────────────────────────────────────
+// ─── VISTA MENSAL ──────────────────────────────────────────────────────────────
 function MonthlyView({ currentMonth, walkBookings, availability, onDayClick }) {
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -219,18 +213,18 @@ function MonthlyView({ currentMonth, walkBookings, availability, onDayClick }) {
   };
 
   const getStyle = (status) => ({
-    free: "bg-slate-900 border-slate-700 text-slate-300 hover:border-orange-500 hover:text-white cursor-pointer",
-    day_off: "bg-red-600 border-red-700 text-white font-bold cursor-pointer",
-    booked: "bg-blue-600/20 border-blue-500 text-blue-300 cursor-pointer",
-    pending: "bg-orange-500/20 border-orange-500 text-orange-300 cursor-pointer",
-    past: "bg-slate-950 border-slate-800 text-slate-700 cursor-not-allowed opacity-50",
-  }[status] || "bg-slate-900 border-slate-700 text-slate-300");
+    free:    "bg-white border-slate-200 text-slate-700 hover:border-orange-300 hover:bg-orange-50 cursor-pointer",
+    day_off: "bg-red-50 border-red-200 text-red-500 font-semibold cursor-pointer",
+    booked:  "bg-blue-50 border-blue-200 text-blue-600 cursor-pointer",
+    pending: "bg-orange-50 border-orange-200 text-orange-600 cursor-pointer",
+    past:    "bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed opacity-50",
+  }[status] || "bg-white border-slate-200 text-slate-700");
 
   return (
     <>
       <div className="grid grid-cols-7 mb-2">
         {['D','S','T','Q','Q','S','S'].map((d, i) => (
-          <div key={i} className="text-center text-xs font-bold text-slate-600 py-1">{d}</div>
+          <div key={i} className="text-center text-xs font-semibold text-slate-400 py-1">{d}</div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -241,30 +235,30 @@ function MonthlyView({ currentMonth, walkBookings, availability, onDayClick }) {
             <button
               key={date.toISOString()}
               onClick={() => status !== 'past' && onDayClick(date, getDateInfo(date))}
-              className={`relative h-10 w-full rounded-xl border flex flex-col items-center justify-center transition-all text-sm ${getStyle(status)} ${isToday(date) ? 'ring-2 ring-orange-500' : ''}`}
+              className={`relative h-10 w-full rounded-xl border flex flex-col items-center justify-center transition-all text-sm ${getStyle(status)} ${isToday(date) ? 'ring-2 ring-orange-400' : ''}`}
             >
               <span className="font-medium">{format(date, 'd')}</span>
               {dayBkgs.length > 0 && status !== 'day_off' && (
-                <div className="absolute bottom-1 w-1 h-1 rounded-full bg-current opacity-60" />
+                <div className="absolute bottom-1 w-1 h-1 rounded-full bg-current opacity-50" />
               )}
             </button>
           );
         })}
       </div>
-      <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-white/5">
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-slate-900 border border-slate-700" /><span className="text-[10px] text-slate-500">Livre</span></div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-blue-600/20 border border-blue-500" /><span className="text-[10px] text-slate-500">Marcado</span></div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-orange-500/20 border border-orange-500" /><span className="text-[10px] text-slate-500">Pendente</span></div>
-        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-red-600 border border-red-700" /><span className="text-[10px] text-red-400 font-bold">Folga</span></div>
+      <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-slate-100">
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-white border border-slate-200" /><span className="text-[10px] text-slate-400">Livre</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-blue-50 border border-blue-200" /><span className="text-[10px] text-slate-400">Marcado</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-orange-50 border border-orange-200" /><span className="text-[10px] text-slate-400">Pendente</span></div>
+        <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-red-50 border border-red-200" /><span className="text-[10px] text-red-400 font-semibold">Folga</span></div>
       </div>
     </>
   );
 }
 
-// ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
+// ─── COMPONENTE PRINCIPAL ──────────────────────────────────────────────────────
 export function AgendaCalendar({ user, walkerProfile }) {
   const queryClient = useQueryClient();
-  const [viewMode, setViewMode] = useState("week"); // "week" | "month"
+  const [viewMode, setViewMode] = useState("week");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedDate, setSelectedDate] = useState(null);
@@ -286,18 +280,13 @@ export function AgendaCalendar({ user, walkerProfile }) {
 
   const toggleDayOffMutation = useMutation({
     mutationFn: async ({ date, notes, remove }) => {
-      // Garante formato yyyy-MM-dd sem desvio de fuso horário
       const dateStr = format(date, 'yyyy-MM-dd');
-      // Busca registo existente pelo dateStr normalizado
       const existing = availability.find(a => {
         const d = (a.date || '').split('T')[0];
         return d === dateStr && a.professional_email === user.email;
       });
       if (remove) {
-        // Nunca apagar — apenas desmarcar is_day_off
-        if (existing) {
-          await base44.entities.CalendarAvailability.update(existing.id, { is_day_off: false, notes: "" });
-        }
+        if (existing) await base44.entities.CalendarAvailability.update(existing.id, { is_day_off: false, notes: "" });
         return;
       }
       if (existing) {
@@ -326,7 +315,6 @@ export function AgendaCalendar({ user, walkerProfile }) {
     onError: () => toast.error("Erro ao atualizar disponibilidade."),
   });
 
-  // Drag-and-drop: mover reserva para outro dia/hora
   const handleDropBooking = async (result) => {
     if (!result.destination || result.destination.droppableId === result.source.droppableId) return;
     const bookingId = result.draggableId;
@@ -342,7 +330,6 @@ export function AgendaCalendar({ user, walkerProfile }) {
     }
   };
 
-  // Normaliza a data para meio-dia local evitando desvios de fuso horário (UTC+1)
   const normalizeDate = (date) => {
     const str = format(date, 'yyyy-MM-dd');
     return new Date(str + 'T12:00:00');
@@ -353,7 +340,6 @@ export function AgendaCalendar({ user, walkerProfile }) {
     setSelectedDateInfo(info || null);
   };
 
-  // Folgas futuras
   const upcomingDaysOff = availability
     .filter(a => a.is_day_off && a.professional_email === user?.email)
     .filter(a => {
@@ -363,52 +349,50 @@ export function AgendaCalendar({ user, walkerProfile }) {
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5);
 
-  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-slate-500" /></div>;
+  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-slate-300" /></div>;
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-black text-white flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-orange-500" /> Minha Agenda
+        <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-orange-500" /> Minha Agenda
         </h3>
-        {/* Toggle vista */}
-        <div className="flex bg-slate-800 rounded-xl p-1 gap-1">
-          <button
-            onClick={() => setViewMode("week")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === "week" ? "bg-orange-500 text-white" : "text-slate-400 hover:text-white"}`}
-          >
-            Semana
-          </button>
-          <button
-            onClick={() => setViewMode("month")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${viewMode === "month" ? "bg-orange-500 text-white" : "text-slate-400 hover:text-white"}`}
-          >
-            Mês
-          </button>
+        <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+          {["week", "month"].map(v => (
+            <button
+              key={v}
+              onClick={() => setViewMode(v)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === v ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            >
+              {v === "week" ? "Semana" : "Mês"}
+            </button>
+          ))}
         </div>
       </div>
 
-      <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
-        <CardContent className="p-4">
+      {/* Calendário */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-4">
           {/* Navegação */}
           <div className="flex items-center justify-between mb-4">
             {viewMode === "week" ? (
               <>
-                <button onClick={() => setCurrentWeek(w => subWeeks(w, 1))} className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                <button onClick={() => setCurrentWeek(w => subWeeks(w, 1))} className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors">
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <h2 className="text-sm font-bold text-white">
+                <h2 className="text-sm font-semibold text-slate-700">
                   {format(currentWeek, 'd MMM', { locale: pt })} — {format(endOfWeek(currentWeek, { weekStartsOn: 1 }), 'd MMM yyyy', { locale: pt })}
                 </h2>
-                <button onClick={() => setCurrentWeek(w => addWeeks(w, 1))} className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                <button onClick={() => setCurrentWeek(w => addWeeks(w, 1))} className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors">
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </>
             ) : (
               <>
-                <button onClick={() => setCurrentMonth(m => subMonths(m, 1))} className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-lg">‹</button>
-                <h2 className="text-base font-bold text-white capitalize">{format(currentMonth, 'MMMM yyyy', { locale: pt })}</h2>
-                <button onClick={() => setCurrentMonth(m => addMonths(m, 1))} className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center text-lg">›</button>
+                <button onClick={() => setCurrentMonth(m => subMonths(m, 1))} className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors">‹</button>
+                <h2 className="text-sm font-semibold text-slate-700 capitalize">{format(currentMonth, 'MMMM yyyy', { locale: pt })}</h2>
+                <button onClick={() => setCurrentMonth(m => addMonths(m, 1))} className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors">›</button>
               </>
             )}
           </div>
@@ -431,51 +415,48 @@ export function AgendaCalendar({ user, walkerProfile }) {
           )}
 
           {viewMode === "week" && (
-            <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-white/5">
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-blue-600 border border-blue-400" /><span className="text-[10px] text-slate-500">Confirmado</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-orange-600 border border-orange-400" /><span className="text-[10px] text-slate-500">Pendente</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-green-600 border border-green-400" /><span className="text-[10px] text-slate-500">Em curso</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-red-900/40 border border-red-600/30" /><span className="text-[10px] text-red-400 font-bold">Folga</span></div>
+            <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-blue-50 border border-blue-200" /><span className="text-[10px] text-slate-400">Confirmado</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-orange-50 border border-orange-200" /><span className="text-[10px] text-slate-400">Pendente</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-emerald-50 border border-emerald-200" /><span className="text-[10px] text-slate-400">Em curso</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-red-50 border border-red-200" /><span className="text-[10px] text-red-400 font-semibold">Folga</span></div>
             </div>
           )}
 
-          <p className="text-center text-xs text-slate-600 mt-3">
+          <p className="text-center text-xs text-slate-400 mt-3">
             {viewMode === "week"
               ? "Arraste reservas para alterar horário • Toque num dia para gerir folga"
               : "Toque num dia para gerir a sua disponibilidade"}
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Folgas futuras */}
       {upcomingDaysOff.length > 0 && (
-        <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
-          <CardContent className="p-4">
-            <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-              <BedDouble className="w-4 h-4 text-red-400" /> Folgas Marcadas
-            </h4>
-            <div className="space-y-2">
-              {upcomingDaysOff.map(a => {
-                const d = a.date?.includes('T') ? a.date.split('T')[0] : a.date;
-                const dateObj = new Date(d + 'T12:00:00');
-                return (
-                  <div key={a.id} className="flex items-center justify-between p-2.5 bg-red-600/10 border border-red-600/20 rounded-xl">
-                    <div>
-                      <p className="text-white text-sm font-bold capitalize">{format(dateObj, 'EEEE, d MMM', { locale: pt })}</p>
-                      {a.notes && <p className="text-red-300 text-xs">{a.notes}</p>}
-                    </div>
-                    <button onClick={() => toggleDayOffMutation.mutate({ date: dateObj, remove: true })} className="text-red-400 hover:text-red-200 transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+          <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <BedDouble className="w-4 h-4 text-red-400" /> Folgas Marcadas
+          </h4>
+          <div className="space-y-2">
+            {upcomingDaysOff.map(a => {
+              const d = a.date?.includes('T') ? a.date.split('T')[0] : a.date;
+              const dateObj = new Date(d + 'T12:00:00');
+              return (
+                <div key={a.id} className="flex items-center justify-between p-2.5 bg-red-50 border border-red-100 rounded-xl">
+                  <div>
+                    <p className="text-slate-800 text-sm font-semibold capitalize">{format(dateObj, 'EEEE, d MMM', { locale: pt })}</p>
+                    {a.notes && <p className="text-red-500 text-xs">{a.notes}</p>}
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  <button onClick={() => toggleDayOffMutation.mutate({ date: dateObj, remove: true })} className="text-red-300 hover:text-red-500 transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
-      {/* Modal de dia */}
       {selectedDate && (
         <DayOffModal
           date={selectedDate}
