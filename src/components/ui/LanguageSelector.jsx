@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/components/LanguageContext';
 
 const LANGUAGES = [
@@ -12,24 +12,42 @@ export { LANGUAGES };
 
 export default function LanguageSelector({ className = '' }) {
   const { language, setLanguage } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const current = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   return (
-    <div className={`flex items-center rounded-full border border-slate-200 bg-slate-50 p-0.5 gap-0.5 ${className}`}>
-      {LANGUAGES.map((option) => (
-        <button
-          key={option.code}
-          onClick={() => setLanguage(option.code)}
-          aria-label={option.name}
-          title={option.name}
-          className={`h-7 w-7 rounded-full text-sm transition-all ${
-            language === option.code
-              ? 'bg-white shadow-sm ring-1 ring-slate-200 scale-110'
-              : 'opacity-50 hover:opacity-80'
-          }`}
-        >
-          {option.flag}
-        </button>
-      ))}
+    <div className={`relative ${className}`} ref={ref}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="h-8 w-8 rounded-full flex items-center justify-center text-base hover:bg-slate-100 transition-colors border border-slate-200"
+        title={current.name}
+        aria-label="Selecionar idioma"
+      >
+        {current.flag}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-10 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 min-w-[130px]">
+          {LANGUAGES.map(lang => (
+            <button
+              key={lang.code}
+              onClick={() => { setLanguage(lang.code); setOpen(false); }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50 transition-colors ${language === lang.code ? 'font-semibold text-slate-900' : 'text-slate-600'}`}
+            >
+              <span>{lang.flag}</span>
+              <span>{lang.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
