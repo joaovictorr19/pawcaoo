@@ -20,6 +20,7 @@ import HotelPartnersPanel from "@/components/hotel/HotelPartnersPanel";
 import HotelNewBookingModal from "@/components/hotel/HotelNewBookingModal";
 import HotelOccupancyManager from "@/components/hotel/HotelOccupancyManager";
 import HotelCapacityAlert from "@/components/hotel/HotelCapacityAlert";
+import HotelGuestsPanel from "@/components/hotel/HotelGuestsPanel";
 
 const STATUS_CONFIG = {
   pending:    { label: "Pendente",    cls: "bg-orange-100 text-orange-700" },
@@ -43,7 +44,7 @@ const SERVICE_LABELS = {
 export default function HotelDashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("agenda");
+  const [activeTab, setActiveTab] = useState("hospedes");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showNewBooking, setShowNewBooking] = useState(false);
   const [alertDismissed, setAlertDismissed] = useState(false);
@@ -191,10 +192,11 @@ export default function HotelDashboard() {
         {/* Tabs */}
         <div className="relative z-10 max-w-5xl mx-auto px-4 pb-0 flex gap-1 overflow-x-auto scrollbar-none">
           {[
-            { key: "agenda", label: "📅 Agenda", icon: null },
-            { key: "vagas", label: "🐾 Vagas" },
-            { key: "today", label: "Hoje", count: todayCheckins.length + todayCheckouts.length },
+            { key: "hospedes", label: "🐕 Hóspedes", count: activeBookings.length },
+            { key: "agenda", label: "📅 Agenda" },
             { key: "reservas", label: "Reservas", count: pendingBookings.length },
+            { key: "today", label: "Hoje", count: todayCheckins.length + todayCheckouts.length },
+            { key: "vagas", label: "🐾 Vagas" },
             { key: "parceiros", label: "Parceiros", count: partners.length },
             { key: "stats", label: "Estatísticas" },
           ].map(tab => (
@@ -274,6 +276,16 @@ export default function HotelDashboard() {
 
         {/* ── Tab content ── */}
         <AnimatePresence mode="wait">
+
+          {/* HÓSPEDES */}
+          {activeTab === "hospedes" && (
+            <motion.div key="hospedes" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelGuestsPanel
+                bookings={bookings}
+                onUpdateBooking={handleUpdateBooking}
+              />
+            </motion.div>
+          )}
 
           {/* AGENDA: Calendário + painel do dia */}
           {activeTab === "agenda" && (
