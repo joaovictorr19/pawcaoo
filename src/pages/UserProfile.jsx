@@ -19,6 +19,7 @@ import ProfessionalBookingModal from "../components/professional/ProfessionalBoo
 import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 import HotelAvailabilityBadge from "@/components/hotel/HotelAvailabilityBadge";
+import HotelProfileDisplay from "@/components/hotel/HotelProfileDisplay";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -414,6 +415,10 @@ export default function UserProfile() {
              </div>
            )}
 
+          {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details && (
+            <HotelProfileDisplay hotel={walkerProfile} />
+          )}
+
           {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details?.business_hours && (
             <HotelDailyRoutine businessHours={walkerProfile.hotel_details.business_hours} />
           )}
@@ -491,7 +496,7 @@ export default function UserProfile() {
             </div>
           )}
 
-          {(walkerProfile || trainerProfile) && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
+          {(walkerProfile || trainerProfile) && walkerProfile?.professional_type !== 'hotel' && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
             <div>
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">{language === 'pt' ? 'Serviços Oferecidos' : language === 'es' ? 'Servicios Ofrecidos' : language === 'fr' ? 'Services proposés' : 'Services Offered'}</h3>
               <div className="space-y-3">
