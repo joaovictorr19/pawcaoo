@@ -653,7 +653,7 @@ export default function AdminDashboard() {
 
   if (loadingUser) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-slate-950 p-6 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl mx-auto mb-4 animate-pulse" style={{ borderRadius: 0 }}>
             <Shield className="w-8 h-8 text-white" />
@@ -679,7 +679,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white dark:bg-slate-950">
       {emergencyUsers?.length > 0 && (
         <div className="fixed inset-0 z-[9999] bg-red-600/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white text-center pointer-events-none">
           <AlertTriangle className="w-24 h-24 mb-6 animate-bounce text-white" />
@@ -730,8 +730,8 @@ export default function AdminDashboard() {
                 <Shield className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-black text-gray-900">Admin Dashboard</h1>
-                <p className="text-sm md:text-base text-gray-600">Controle total da plataforma</p>
+                <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">Admin Dashboard</h1>
+                <p className="text-sm md:text-base text-slate-600 dark:text-slate-300">Controle total da plataforma</p>
               </div>
             </div>
             <QuickCreateDummy onCreated={() => {
@@ -748,36 +748,37 @@ export default function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-              {dashboardStats.slice(0, 3).map((stat, idx) => (
-                <Card key={idx} className="min-w-[140px] flex-1 bg-white rounded-3xl border-none shadow-sm flex flex-col items-center justify-center p-4">
-                  <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-2 shadow-sm`}>
-                    <stat.icon className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-2xl font-black text-slate-900 leading-none mb-1">{stat.value}</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide text-center">{stat.label.split(' ')[0]}</div>
-                </Card>
-              ))}
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+               {dashboardStats.slice(0, 3).map((stat, idx) => (
+                 <Card key={idx} className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center p-6">
+                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3 shadow-md`}>
+                     <stat.icon className="w-6 h-6 text-white" />
+                   </div>
+                   <div className="text-3xl font-black text-slate-900 dark:text-white leading-none mb-1">{stat.value}</div>
+                   <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide text-center">{stat.label}</div>
+                   <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">{stat.subLabel}</div>
+                 </Card>
+               ))}
+             </div>
           )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="overflow-x-auto pb-2 no-scrollbar">
-            <TabsList className="flex w-max gap-2 bg-transparent p-0 h-auto" style={{ borderRadius: 0 }}>
-              <TabsTrigger value="overview" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📊 Dashboard</TabsTrigger>
-              <TabsTrigger value="godmode" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🌍 God Mode</TabsTrigger>
-              <TabsTrigger value="calendar" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
+          <div className="overflow-x-auto pb-3 no-scrollbar border-b border-slate-200 dark:border-slate-700">
+             <TabsList className="flex w-max gap-2 bg-transparent p-0 h-auto">
+               <TabsTrigger value="overview" className="rounded-full bg-slate-100 dark:bg-slate-800 shadow-none data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📊 Dashboard</TabsTrigger>
+               <TabsTrigger value="godmode" className="rounded-full bg-slate-100 dark:bg-slate-800 shadow-none data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🌍 God Mode</TabsTrigger>
+               <TabsTrigger value="calendar" className="rounded-full bg-slate-100 dark:bg-slate-800 shadow-none data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
 
 
-              <TabsTrigger value="approvals" className="rounded-full bg-orange-50 text-orange-700 shadow-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
-                ✅ Aprovações {(walkerApplications.length + trainerApplications.length) > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{walkerApplications.length + trainerApplications.length}</span>}
-              </TabsTrigger>
-              <TabsTrigger value="users" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
-              <TabsTrigger value="operations" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
-              <TabsTrigger value="gamification" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
-              <TabsTrigger value="professionals" className="rounded-full bg-white shadow-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐾 Profissionais</TabsTrigger>
-              <TabsTrigger value="debug" className="rounded-full bg-red-50 text-red-600 shadow-sm data-[state=active]:bg-red-600 data-[state=active]:text-white px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
+               <TabsTrigger value="approvals" className="rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 shadow-none data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
+                 ✅ Aprovações {(walkerApplications.length + trainerApplications.length) > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{walkerApplications.length + trainerApplications.length}</span>}
+               </TabsTrigger>
+               <TabsTrigger value="users" className="rounded-full bg-slate-100 dark:bg-slate-800 shadow-none data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
+               <TabsTrigger value="operations" className="rounded-full bg-slate-100 dark:bg-slate-800 shadow-none data-[state=active]:bg-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
+               <TabsTrigger value="gamification" className="rounded-full bg-slate-100 dark:bg-slate-800 shadow-none data-[state=active]:bg-yellow-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
+               <TabsTrigger value="professionals" className="rounded-full bg-slate-100 dark:bg-slate-800 shadow-none data-[state=active]:bg-pink-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐾 Profissionais</TabsTrigger>
+               <TabsTrigger value="debug" className="rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 shadow-none data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
             </TabsList>
           </div>
 
