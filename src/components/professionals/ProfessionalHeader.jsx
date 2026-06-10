@@ -6,6 +6,7 @@ import { Dog } from "lucide-react";
 import { EditableAvatar } from "@/components/ui/EditableAvatar";
 import { Camera, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import HotelAvailabilityBadge from "@/components/hotel/HotelAvailabilityBadge";
 
 export function ProfessionalHeader({ user, isOwnProfile, onCoverUpload, onAvatarUpload, isPendingAvatar, onEditProfile }) {
   const [isCoverLoaded, setIsCoverLoaded] = useState(false);
@@ -80,21 +81,30 @@ export function ProfessionalHeader({ user, isOwnProfile, onCoverUpload, onAvatar
         </div>
 
         <div className="text-white pb-1 min-w-0 flex-1">
-          <h1 className="text-2xl font-black tracking-tighter leading-tight truncate">
-            {user?.walker_name || user?.trainer_name || user?.full_name || 'Profissional'}
-          </h1>
-          <div className="flex items-center gap-2 mt-1">
-            {user?.has_pawcao_seal ? (
-              <span className="flex items-center gap-1 text-[10px] font-bold text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest backdrop-blur-sm border border-orange-500/30">
-                <Dog size={10} /> Partner PawCão
-              </span>
-            ) : (
-              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
-                {user?.verification_status === 'verified' ? 'Profissional Verificado' : 'Profissional'}
-              </span>
-            )}
-          </div>
-        </div>
+           <h1 className="text-2xl font-black tracking-tighter leading-tight truncate">
+             {user?.walker_name || user?.trainer_name || user?.full_name || 'Profissional'}
+           </h1>
+           <div className="flex items-center gap-2 mt-1 flex-wrap">
+             {user?.professional_type === 'hotel' && user?.hotel_details ? (
+               <HotelAvailabilityBadge 
+                 capacityTotal={user.hotel_details.capacity_total}
+                 capacityAvailable={user.hotel_details.capacity_available ?? user.hotel_details.capacity_total}
+               />
+             ) : (
+               <>
+                 {user?.has_pawcao_seal ? (
+                   <span className="flex items-center gap-1 text-[10px] font-bold text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest backdrop-blur-sm border border-orange-500/30">
+                     <Dog size={10} /> Partner PawCão
+                   </span>
+                 ) : (
+                   <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                     {user?.verification_status === 'verified' ? 'Profissional Verificado' : 'Profissional'}
+                   </span>
+                 )}
+               </>
+             )}
+           </div>
+         </div>
       </div>
     </div>
   );
