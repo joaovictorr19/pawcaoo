@@ -766,20 +766,20 @@ export default function AdminDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="overflow-x-auto pb-3 no-scrollbar border-b border-slate-200">
-             <TabsList className="flex w-max gap-2 bg-transparent p-0 h-auto">
-               <TabsTrigger value="overview" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📊 Dashboard</TabsTrigger>
-               <TabsTrigger value="godmode" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🌍 God Mode</TabsTrigger>
-               <TabsTrigger value="calendar" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
+             <TabsList className="flex w-max gap-2 bg-white p-0 h-auto">
+               <TabsTrigger value="overview" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">📊 Dashboard</TabsTrigger>
+               <TabsTrigger value="godmode" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">🌍 God Mode</TabsTrigger>
+               <TabsTrigger value="calendar" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">📅 Agenda</TabsTrigger>
 
 
-               <TabsTrigger value="approvals" className="rounded-full bg-orange-100 text-orange-700 shadow-none data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
+               <TabsTrigger value="approvals" className="rounded-full bg-white border border-orange-200 text-orange-700 shadow-none data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
                  ✅ Aprovações {(walkerApplications.length + trainerApplications.length) > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{walkerApplications.length + trainerApplications.length}</span>}
                </TabsTrigger>
-               <TabsTrigger value="users" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
-               <TabsTrigger value="operations" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
-               <TabsTrigger value="gamification" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-yellow-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
-               <TabsTrigger value="professionals" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-pink-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐾 Profissionais</TabsTrigger>
-               <TabsTrigger value="debug" className="rounded-full bg-red-100 text-red-700 shadow-none data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
+               <TabsTrigger value="users" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">🔑 Utilizadores</TabsTrigger>
+               <TabsTrigger value="operations" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">⚡ Operações</TabsTrigger>
+               <TabsTrigger value="gamification" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-yellow-500 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">🏆 Gamificação</TabsTrigger>
+               <TabsTrigger value="professionals" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-pink-500 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">🐾 Profissionais</TabsTrigger>
+               <TabsTrigger value="debug" className="rounded-full bg-white border border-red-200 text-red-700 shadow-none data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
             </TabsList>
           </div>
 

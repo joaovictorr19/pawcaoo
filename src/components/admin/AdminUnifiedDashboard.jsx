@@ -192,7 +192,7 @@ export default function AdminUnifiedDashboard() {
 
       {/* Tabs */}
       <Tabs defaultValue="bookings" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1 rounded-lg">
+        <TabsList className="grid w-full grid-cols-3 bg-white border border-slate-200 p-1 rounded-lg">
           <TabsTrigger value="bookings" className="rounded-md">📋 Reservas</TabsTrigger>
           <TabsTrigger value="calendar" className="rounded-md">📅 Agenda Hotel</TabsTrigger>
           <TabsTrigger value="professionals" className="rounded-md">👥 Profissionais</TabsTrigger>
