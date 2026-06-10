@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Upload, Loader2, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Upload, Loader2, Save, Trash2, Camera } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+
+const sectionCls = "bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4";
+const labelCls = "text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5";
+const inputCls = "w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 transition-colors";
+const textareaCls = "w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 resize-none transition-colors";
+const selectCls = "w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 transition-colors appearance-none";
 
 export default function EditAnimalProfile() {
   const navigate = useNavigate();
@@ -67,7 +67,7 @@ export default function EditAnimalProfile() {
     other_observations: "",
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (animal) {
       setFormData({
         dog_name: animal.dog_name || "",
@@ -101,16 +101,17 @@ export default function EditAnimalProfile() {
     }
   }, [animal, user]);
 
+  const set = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));
+
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData(prev => ({ ...prev, photo_url: file_url }));
+      set('photo_url', file_url);
       toast.success("Foto carregada!");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao carregar foto");
     } finally {
       setUploading(false);
@@ -120,10 +121,7 @@ export default function EditAnimalProfile() {
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (isNewAnimal) {
-        return await base44.entities.DogProfile.create({
-          ...data,
-          owner_email: user.email
-        });
+        return await base44.entities.DogProfile.create({ ...data, owner_email: user.email });
       } else {
         return await base44.entities.DogProfile.update(animalId, data);
       }
@@ -132,11 +130,9 @@ export default function EditAnimalProfile() {
       queryClient.invalidateQueries(['animalProfile']);
       queryClient.invalidateQueries(['myDogs']);
       toast.success(isNewAnimal ? "Animal adicionado!" : "Perfil atualizado!");
-      navigate(createPageUrl('Home'));
+      navigate(-1);
     },
-    onError: (error) => {
-      toast.error("Erro ao salvar: " + error.message);
-    },
+    onError: (error) => toast.error("Erro ao salvar: " + error.message),
   });
 
   const deleteMutation = useMutation({
@@ -146,424 +142,299 @@ export default function EditAnimalProfile() {
       toast.success("Animal removido");
       navigate(createPageUrl('Home'));
     },
-    onError: (error) => {
-      toast.error("Erro ao remover: " + error.message);
-    },
+    onError: (error) => toast.error("Erro ao remover: " + error.message),
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.dog_name) {
-      toast.error("Por favor insira o nome do animal");
-      return;
-    }
+    if (!formData.dog_name) { toast.error("Por favor insira o nome do animal"); return; }
     saveMutation.mutate(formData);
   };
 
   const handleDelete = () => {
-    if (confirm("Tem certeza que deseja remover este animal?")) {
-      deleteMutation.mutate();
-    }
+    if (confirm("Tem certeza que deseja remover este animal?")) deleteMutation.mutate();
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pb-12">
+    <div className="min-h-screen bg-slate-50 pb-12">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-gray-200 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+      <div className="sticky top-0 md:top-16 z-20 bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Voltar
-          </Button>
-          <h1 className="font-bold text-gray-900">
+          </button>
+          <h1 className="font-semibold text-slate-900 text-sm">
             {isNewAnimal ? "Novo Animal" : "Editar Perfil"}
           </h1>
-          <div className="w-20" />
+          <div className="w-16" />
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Photo Upload */}
-          <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gradient-to-br from-orange-100 to-pink-100">
-                  {formData.photo_url ? (
-                    <img src={formData.photo_url} alt="Animal" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-5xl">
-                      🐾
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* Foto */}
+          <div className={sectionCls}>
+            <label className={labelCls}>Foto do Animal</label>
+            <div className="flex items-center gap-5">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex-shrink-0">
+                {formData.photo_url ? (
+                  <img src={formData.photo_url} alt="Animal" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-3xl">🐾</div>
+                )}
+              </div>
+              <label className="cursor-pointer">
+                <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition-colors border border-slate-200">
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                  {uploading ? "A carregar..." : "Alterar Foto"}
+                </div>
+              </label>
+            </div>
+          </div>
+
+          {/* Informações Básicas */}
+          <div className={sectionCls}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base">🐾</span>
+              <span className={labelCls + " mb-0"}>Informações Básicas</span>
+            </div>
+
+            <div>
+              <label className={labelCls}>Nome do Animal *</label>
+              <input value={formData.dog_name} onChange={e => set('dog_name', e.target.value)} placeholder="Ex: Rex" className={inputCls} required />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Tipo</label>
+                <select value={formData.animal_type} onChange={e => set('animal_type', e.target.value)} className={selectCls}>
+                  <option value="dog">🐕 Cão</option>
+                  <option value="cat">🐱 Gato</option>
+                  <option value="reptile">🦎 Réptil</option>
+                  <option value="rodent">🐹 Roedor</option>
+                  <option value="bird">🦜 Ave</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Raça</label>
+                <input value={formData.breed} onChange={e => set('breed', e.target.value)} placeholder="Ex: Labrador" className={inputCls} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Idade (anos)</label>
+                <input type="number" value={formData.age} onChange={e => set('age', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Peso (kg)</label>
+                <input type="number" value={formData.weight} onChange={e => set('weight', e.target.value)} className={inputCls} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Tamanho</label>
+                <select value={formData.size} onChange={e => set('size', e.target.value)} className={selectCls}>
+                  <option value="small">Pequeno</option>
+                  <option value="medium">Médio</option>
+                  <option value="large">Grande</option>
+                  <option value="extra_large">Extra Grande</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Sexo</label>
+                <select value={formData.gender} onChange={e => set('gender', e.target.value)} className={selectCls}>
+                  <option value="male">Macho</option>
+                  <option value="female">Fêmea</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls}>Biografia</label>
+              <textarea value={formData.bio} onChange={e => set('bio', e.target.value)} placeholder="Conta sobre a personalidade do teu animal..." rows={3} className={textareaCls} />
+            </div>
+          </div>
+
+          {/* Endereço & Contato */}
+          <div className={sectionCls}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base">📍</span>
+              <span className={labelCls + " mb-0"}>Endereço & Contato</span>
+            </div>
+
+            <div>
+              <label className={labelCls}>Endereço de Recolha</label>
+              <input value={formData.pickup_address} onChange={e => set('pickup_address', e.target.value)} placeholder="Rua, número, andar" className={inputCls} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Cidade</label>
+                <input value={formData.pickup_city} onChange={e => set('pickup_city', e.target.value)} placeholder="Lisboa" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Código Postal</label>
+                <input value={formData.pickup_postal_code} onChange={e => set('pickup_postal_code', e.target.value)} placeholder="1000-001" className={inputCls} />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls}>Telefone de Contato</label>
+              <input type="tel" value={formData.owner_phone} onChange={e => set('owner_phone', e.target.value)} placeholder="+351 912 345 678" className={inputCls} />
+            </div>
+          </div>
+
+          {/* Saúde */}
+          <div className={sectionCls}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base">🏥</span>
+              <span className={labelCls + " mb-0"}>Saúde</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Vacinado</label>
+                <select value={formData.is_vaccinated.toString()} onChange={e => set('is_vaccinated', e.target.value === 'true')} className={selectCls}>
+                  <option value="true">Sim ✅</option>
+                  <option value="false">Não</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Castrado</label>
+                <select value={formData.is_neutered.toString()} onChange={e => set('is_neutered', e.target.value === 'true')} className={selectCls}>
+                  <option value="true">Sim ✅</option>
+                  <option value="false">Não</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls}>Clínica Veterinária</label>
+              <input value={formData.vet_clinic_name} onChange={e => set('vet_clinic_name', e.target.value)} placeholder="Nome da clínica" className={inputCls} />
+            </div>
+
+            <div>
+              <label className={labelCls}>Telefone do Veterinário</label>
+              <input type="tel" value={formData.vet_phone} onChange={e => set('vet_phone', e.target.value)} placeholder="+351 ..." className={inputCls} />
+            </div>
+
+            <div>
+              <label className={labelCls}>Condições Médicas</label>
+              <textarea value={formData.medical_conditions} onChange={e => set('medical_conditions', e.target.value)} placeholder="Ex: Displasia da anca" rows={2} className={textareaCls} />
+            </div>
+          </div>
+
+          {/* Comportamento */}
+          <div className={sectionCls}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base">🧠</span>
+              <span className={labelCls + " mb-0"}>Comportamento</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Nível de Energia</label>
+                <select value={formData.energy_level} onChange={e => set('energy_level', e.target.value)} className={selectCls}>
+                  <option value="low">Baixa</option>
+                  <option value="normal">Normal</option>
+                  <option value="high">Alta</option>
+                  <option value="very_high">Muito Alta</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Socialização</label>
+                <select value={formData.socialization} onChange={e => set('socialization', e.target.value)} className={selectCls}>
+                  <option value="friendly">Amigável 😊</option>
+                  <option value="neutral">Neutro</option>
+                  <option value="shy">Tímido</option>
+                  <option value="aggressive">Agressivo ⚠️</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls}>Notas de Comportamento</label>
+              <textarea value={formData.behavioral_notes} onChange={e => set('behavioral_notes', e.target.value)} placeholder="Ex: Gosta de brincar com outros cães..." rows={3} className={textareaCls} />
+            </div>
+
+            <div>
+              <label className={labelCls}>Cuidados Especiais</label>
+              <textarea value={formData.special_care_notes} onChange={e => set('special_care_notes', e.target.value)} placeholder="Ex: Precisa de medicação às 18h..." rows={2} className={textareaCls} />
+            </div>
+
+            {/* Reatividades */}
+            <div>
+              <label className={labelCls}>⚠️ Reatividades</label>
+              <p className="text-xs text-slate-400 mb-3">Assinale se o animal reage de forma intensa a algum estímulo</p>
+              <div className="space-y-2">
+                {[
+                  { key: "reactive_to_dogs", label: "🐕 Reativo a outros cães", desc: "Latidos, agressividade ou medo excessivo perto de outros cães" },
+                  { key: "reactive_to_people", label: "👥 Reativo a pessoas", desc: "Desconforto, latidos ou agressividade com estranhos" },
+                  { key: "reactive_to_noises", label: "🔊 Reativo a barulhos", desc: "Medo de trovões, fogos de artifício, carros, etc." },
+                ].map(({ key, label, desc }) => (
+                  <label key={key} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData[key] ? 'border-orange-300 bg-orange-50' : 'border-slate-200 hover:border-orange-200 bg-white'}`}>
+                    <input
+                      type="checkbox"
+                      checked={formData[key]}
+                      onChange={(e) => set(key, e.target.checked)}
+                      className="mt-0.5 w-4 h-4 accent-orange-500"
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">{label}</p>
+                      <p className="text-xs text-slate-400">{desc}</p>
                     </div>
-                  )}
-                </div>
-                <label className="cursor-pointer">
-                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                  <Button type="button" variant="outline" disabled={uploading} className="gap-2" asChild>
-                    <span>
-                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      {uploading ? "A carregar..." : "Alterar Foto"}
-                    </span>
-                  </Button>
-                </label>
+                  </label>
+                ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Basic Info */}
-          <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="font-bold text-lg text-gray-900 mb-4">Informações Básicas</h2>
-              
-              <div>
-                <Label htmlFor="dog_name">Nome do Animal *</Label>
-                <Input
-                  id="dog_name"
-                  value={formData.dog_name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, dog_name: e.target.value }))}
-                  placeholder="Ex: Rex"
-                  required
-                />
-              </div>
+            {/* Outras Observações */}
+            <div>
+              <label className={labelCls}>📝 Outras Observações</label>
+              <p className="text-xs text-slate-400 mb-1.5">Comportamentos específicos que o passeador deve saber</p>
+              <textarea
+                value={formData.other_observations}
+                onChange={e => set('other_observations', e.target.value)}
+                placeholder="Ex: Come tudo o que encontra no chão, não pode soltar a trela, ladra para motos..."
+                rows={3}
+                className={textareaCls}
+              />
+            </div>
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="animal_type">Tipo</Label>
-                  <Select value={formData.animal_type} onValueChange={(val) => setFormData(prev => ({ ...prev, animal_type: val }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="dog">🐕 Cão</SelectItem>
-                      <SelectItem value="cat">🐱 Gato</SelectItem>
-                      <SelectItem value="reptile">🦎 Réptil</SelectItem>
-                      <SelectItem value="rodent">🐹 Roedor</SelectItem>
-                      <SelectItem value="bird">🦜 Ave</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="breed">Raça</Label>
-                  <Input
-                    id="breed"
-                    value={formData.breed}
-                    onChange={(e) => setFormData(prev => ({ ...prev, breed: e.target.value }))}
-                    placeholder="Ex: Labrador"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="age">Idade (anos)</Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    value={formData.age}
-                    onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="weight">Peso (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    value={formData.weight}
-                    onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="size">Tamanho</Label>
-                  <Select value={formData.size} onValueChange={(val) => setFormData(prev => ({ ...prev, size: val }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Pequeno</SelectItem>
-                      <SelectItem value="medium">Médio</SelectItem>
-                      <SelectItem value="large">Grande</SelectItem>
-                      <SelectItem value="extra_large">Extra Grande</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="gender">Sexo</Label>
-                  <Select value={formData.gender} onValueChange={(val) => setFormData(prev => ({ ...prev, gender: val }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Macho</SelectItem>
-                      <SelectItem value="female">Fêmea</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="bio">Biografia</Label>
-                <Textarea
-                  id="bio"
-                  value={formData.bio}
-                  onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                  placeholder="Conte sobre a personalidade do seu animal..."
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Address & Contact */}
-          <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="font-bold text-lg text-gray-900 mb-4">Endereço & Contato</h2>
-              
-              <div>
-                <Label htmlFor="pickup_address">Endereço de Recolha</Label>
-                <Input
-                  id="pickup_address"
-                  value={formData.pickup_address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, pickup_address: e.target.value }))}
-                  placeholder="Rua, número, andar"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="pickup_city">Cidade</Label>
-                  <Input
-                    id="pickup_city"
-                    value={formData.pickup_city}
-                    onChange={(e) => setFormData(prev => ({ ...prev, pickup_city: e.target.value }))}
-                    placeholder="Lisboa"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="pickup_postal_code">Código Postal</Label>
-                  <Input
-                    id="pickup_postal_code"
-                    value={formData.pickup_postal_code}
-                    onChange={(e) => setFormData(prev => ({ ...prev, pickup_postal_code: e.target.value }))}
-                    placeholder="1000-001"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="owner_phone">Telefone de Contato</Label>
-                <Input
-                  id="owner_phone"
-                  type="tel"
-                  value={formData.owner_phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, owner_phone: e.target.value }))}
-                  placeholder="+351 912 345 678"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Health Info */}
-          <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="font-bold text-lg text-gray-900 mb-4">Saúde</h2>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="is_vaccinated">Vacinado</Label>
-                  <Select value={formData.is_vaccinated.toString()} onValueChange={(val) => setFormData(prev => ({ ...prev, is_vaccinated: val === 'true' }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Sim</SelectItem>
-                      <SelectItem value="false">Não</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="is_neutered">Castrado</Label>
-                  <Select value={formData.is_neutered.toString()} onValueChange={(val) => setFormData(prev => ({ ...prev, is_neutered: val === 'true' }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Sim</SelectItem>
-                      <SelectItem value="false">Não</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="vet_clinic_name">Clínica Veterinária</Label>
-                <Input
-                  id="vet_clinic_name"
-                  value={formData.vet_clinic_name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, vet_clinic_name: e.target.value }))}
-                  placeholder="Nome da clínica"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="vet_phone">Telefone do Veterinário</Label>
-                <Input
-                  id="vet_phone"
-                  type="tel"
-                  value={formData.vet_phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, vet_phone: e.target.value }))}
-                  placeholder="+351 ..."
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="medical_conditions">Condições Médicas</Label>
-                <Textarea
-                  id="medical_conditions"
-                  value={formData.medical_conditions}
-                  onChange={(e) => setFormData(prev => ({ ...prev, medical_conditions: e.target.value }))}
-                  placeholder="Ex: Displasia da anca"
-                  rows={2}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Behavior */}
-          <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg rounded-2xl">
-            <CardContent className="p-6 space-y-4">
-              <h2 className="font-bold text-lg text-gray-900 mb-4">Comportamento</h2>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="energy_level">Nível de Energia</Label>
-                  <Select value={formData.energy_level} onValueChange={(val) => setFormData(prev => ({ ...prev, energy_level: val }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Baixa</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
-                      <SelectItem value="very_high">Muito Alta</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="socialization">Socialização</Label>
-                  <Select value={formData.socialization} onValueChange={(val) => setFormData(prev => ({ ...prev, socialization: val }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="friendly">Amigável</SelectItem>
-                      <SelectItem value="neutral">Neutro</SelectItem>
-                      <SelectItem value="shy">Tímido</SelectItem>
-                      <SelectItem value="aggressive">Agressivo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="behavioral_notes">Notas de Comportamento</Label>
-                <Textarea
-                  id="behavioral_notes"
-                  value={formData.behavioral_notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, behavioral_notes: e.target.value }))}
-                  placeholder="Ex: Gosta de brincar com outros cães..."
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="special_care_notes">Cuidados Especiais</Label>
-                <Textarea
-                  id="special_care_notes"
-                  value={formData.special_care_notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, special_care_notes: e.target.value }))}
-                  placeholder="Ex: Precisa de medicação às 18h..."
-                  rows={2}
-                />
-              </div>
-
-              {/* Reatividades */}
-              <div>
-                <Label className="mb-2 block font-semibold text-sm text-slate-700">⚠️ Reatividades</Label>
-                <p className="text-xs text-slate-400 mb-3">Assinale se o animal reage de forma intensa a algum estímulo</p>
-                <div className="space-y-2">
-                  {[
-                    { key: "reactive_to_dogs", label: "🐕 Reativo a outros cães", desc: "Latidos, agressividade ou medo excessivo perto de outros cães" },
-                    { key: "reactive_to_people", label: "👥 Reativo a pessoas", desc: "Desconforto, latidos ou agressividade com estranhos" },
-                    { key: "reactive_to_noises", label: "🔊 Reativo a barulhos", desc: "Medo de trovões, fogos de artifício, carros, etc." },
-                  ].map(({ key, label, desc }) => (
-                    <label key={key} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData[key] ? 'border-orange-300 bg-orange-50' : 'border-slate-200 hover:border-orange-200'}`}>
-                      <input
-                        type="checkbox"
-                        checked={formData[key]}
-                        onChange={(e) => setFormData(prev => ({ ...prev, [key]: e.target.checked }))}
-                        className="mt-0.5 w-4 h-4 accent-orange-500"
-                      />
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{label}</p>
-                        <p className="text-xs text-slate-400">{desc}</p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Outras Observações */}
-              <div>
-                <Label htmlFor="other_observations" className="font-semibold text-slate-700">📝 Outras Observações</Label>
-                <p className="text-xs text-slate-400 mb-1.5">Comportamentos específicos que o passeador deve saber</p>
-                <Textarea
-                  id="other_observations"
-                  value={formData.other_observations}
-                  onChange={(e) => setFormData(prev => ({ ...prev, other_observations: e.target.value }))}
-                  placeholder="Ex: Come tudo o que encontra no chão, não pode soltar a trela, ladra para motos..."
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-          <div className="flex gap-3">
-            <Button
+          {/* Ações */}
+          <div className="flex gap-3 pb-4">
+            <button
               type="submit"
               disabled={saveMutation.isPending}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white gap-2"
+              className="flex-1 h-12 bg-slate-900 hover:bg-black text-white rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm disabled:opacity-50"
             >
-              {saveMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              Guardar
-            </Button>
+              {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saveMutation.isPending ? "A guardar..." : "Guardar"}
+            </button>
             {!isNewAnimal && (
-              <Button
+              <button
                 type="button"
-                variant="destructive"
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
-                className="gap-2"
+                className="px-5 h-12 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
                 Remover
-              </Button>
+              </button>
             )}
           </div>
         </form>
