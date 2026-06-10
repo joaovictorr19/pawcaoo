@@ -19,6 +19,7 @@ import HotelDayPanel from "@/components/hotel/HotelDayPanel";
 import HotelPartnersPanel from "@/components/hotel/HotelPartnersPanel";
 import HotelNewBookingModal from "@/components/hotel/HotelNewBookingModal";
 import HotelOccupancyManager from "@/components/hotel/HotelOccupancyManager";
+import HotelServiceManager from "@/components/hotel/HotelServiceManager";
 import HotelCapacityAlert from "@/components/hotel/HotelCapacityAlert";
 import HotelGuestsPanel from "@/components/hotel/HotelGuestsPanel";
 
@@ -196,6 +197,7 @@ export default function HotelDashboard() {
             { key: "agenda", label: "📅 Agenda" },
             { key: "reservas", label: "Reservas", count: pendingBookings.length },
             { key: "today", label: "Hoje", count: todayCheckins.length + todayCheckouts.length },
+            { key: "servicos", label: "🎯 Serviços" },
             { key: "vagas", label: "🐾 Vagas" },
             { key: "parceiros", label: "Parceiros", count: partners.length },
             { key: "stats", label: "Estatísticas" },
@@ -306,6 +308,16 @@ export default function HotelDashboard() {
                   capacity={{ total: capacityTotal, available: hotelProfile?.hotel_details?.capacity_available }}
                 />
               </div>
+            </motion.div>
+          )}
+
+          {/* SERVIÇOS */}
+          {activeTab === "servicos" && (
+            <motion.div key="servicos" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelServiceManager
+                hotelProfile={hotelProfile}
+                onServiceUpdate={() => queryClient.invalidateQueries(['hotelProfile'])}
+              />
             </motion.div>
           )}
 
