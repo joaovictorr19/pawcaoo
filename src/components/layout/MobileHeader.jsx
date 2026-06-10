@@ -6,6 +6,7 @@ import { base44 } from '@/api/base44Client';
 import PawCaoLogo from '@/components/PawCaoLogo';
 import { LogOut } from 'lucide-react';
 import LanguageSelector from '@/components/ui/LanguageSelector';
+import { useLanguage } from '@/components/LanguageContext';
 
 const ROOT_ROUTES = [
   createPageUrl('Home'),
@@ -47,11 +48,22 @@ const ROUTE_TITLES = {
   [createPageUrl('StripeConnectSetup')]: 'Configurar Pagamentos',
 };
 
+const NAV_LABELS = {
+  professional: { pt: 'Profissional', en: 'Professional', es: 'Profesional', fr: 'Professionnel' },
+  client:       { pt: 'Cliente',       en: 'Client',       es: 'Cliente',      fr: 'Client'        },
+  admin:        { pt: 'Admin',         en: 'Admin',        es: 'Admin',        fr: 'Admin'         },
+  enter:        { pt: 'Entrar',        en: 'Sign In',      es: 'Entrar',       fr: 'Connexion'     },
+  exit:         { pt: 'Sair',          en: 'Sign Out',     es: 'Salir',        fr: 'Déconnecter'   },
+};
+
 export default function MobileHeader() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const [authed, setAuthed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const lbl = (key) => NAV_LABELS[key]?.[language] || NAV_LABELS[key]?.pt || key;
 
   useEffect(() => {
     let mounted = true;
@@ -109,10 +121,10 @@ export default function MobileHeader() {
         <div className="flex items-center justify-center">
           {authed && (
             <div className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
-              <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>Profissional</Button>
-              <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>Cliente</Button>
+              <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>{lbl('professional')}</Button>
+              <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>{lbl('client')}</Button>
               {isAdmin && (
-                <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>Admin</Button>
+                <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>{lbl('admin')}</Button>
               )}
             </div>
           )}
@@ -123,11 +135,11 @@ export default function MobileHeader() {
           <LanguageSelector />
           {authed ? (
             <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.logout()}>
-              <LogOut className="w-4 h-4 mr-1" /> Sair
+              <LogOut className="w-4 h-4 mr-1" /> {lbl('exit')}
             </Button>
           ) : (
             <Button size="sm" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.redirectToLogin()}>
-              Entrar
+              {lbl('enter')}
             </Button>
           )}
         </div>

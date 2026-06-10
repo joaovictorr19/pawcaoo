@@ -26,11 +26,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
-import { getAvailableLanguages, t } from "@/components/translations";
+import { t } from "@/components/translations";
+import LanguageSelector from "@/components/ui/LanguageSelector";
 import { ThemeProvider, useTheme } from "@/components/ThemeContext";
 import { LocalizationProvider, useLocalization } from "@/components/LocalizationContext";
 import CountrySelector from "@/components/ui/CountrySelector";
-import LanguageSelector from "@/components/ui/LanguageSelector";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import GlobalSearch from "@/components/search/GlobalSearch";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
@@ -377,17 +377,17 @@ function LayoutContent({ children, currentPageName }) {
     profileSetupRef.current = { initialized: false, syncedXP: null };
   }, [authUser?.email]);
 
-  const availableLanguages = getAvailableLanguages();
-  
-  const languageFlags = availableLanguages.reduce((acc, lang) => {
-    acc[lang.code] = lang.flag;
-    return acc;
-  }, {});
-
-  const languageNames = availableLanguages.reduce((acc, lang) => {
-    acc[lang.code] = lang.name;
-    return acc;
-  }, {});
+  const NAV_I18N = {
+    professionalHub: { pt: 'Painel Profissional', en: 'Pro Dashboard', es: 'Panel Profesional', fr: 'Tableau Pro' },
+    clientPanel:     { pt: 'Painel Cliente',       en: 'Client Panel',  es: 'Panel Cliente',    fr: 'Panel Client' },
+    bookings:        { pt: 'Reservas',              en: 'Bookings',      es: 'Reservas',         fr: 'Réservations' },
+    myPanel:         { pt: 'Meu Painel',            en: 'My Dashboard',  es: 'Mi Panel',         fr: 'Mon Tableau'  },
+    myHotel:         { pt: 'Meu Hotel',             en: 'My Hotel',      es: 'Mi Hotel',         fr: 'Mon Hôtel'    },
+    signOut:         { pt: 'Sair',                  en: 'Sign Out',      es: 'Salir',            fr: 'Déconnexion'  },
+    signIn:          { pt: 'Entrar',                en: 'Sign In',       es: 'Entrar',           fr: 'Connexion'    },
+    confirmLogout:   { pt: 'Tem certeza que deseja sair?', en: 'Are you sure you want to log out?', es: '¿Estás seguro de que quieres cerrar sesión?', fr: 'Êtes-vous sûr de vouloir vous déconnecter?' },
+  };
+  const nav = (key) => NAV_I18N[key]?.[language] || NAV_I18N[key]?.pt || key;
 
 
 
@@ -413,7 +413,7 @@ function LayoutContent({ children, currentPageName }) {
   }, []);
 
   const handleLogout = () => {
-    if (confirm(language === 'pt' ? 'Tem certeza que deseja sair?' : language === 'es' ? '¿Estás seguro de que quieres cerrar sesión?' : 'Are you sure you want to log out?')) {
+    if (confirm(nav('confirmLogout'))) {
       base44.auth.logout();
     }
   };
@@ -449,12 +449,8 @@ function LayoutContent({ children, currentPageName }) {
 
               if (isAdmin) return (
                 <>
-                  <NavLink to={createPageUrl("ProfessionalHubV2")} className={navCls}>
-                    {language === 'es' ? 'Panel Profesional' : 'Painel Profissional'}
-                  </NavLink>
-                  <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>
-                    {language === 'es' ? 'Panel Cliente' : 'Painel Cliente'}
-                  </NavLink>
+                  <NavLink to={createPageUrl("ProfessionalHubV2")} className={navCls}>{nav('professionalHub')}</NavLink>
+                  <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>{nav('clientPanel')}</NavLink>
                   <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-red-100 text-red-700' : 'hover:bg-red-50 text-red-600'}`}>
                     🛡️ Admin
                   </NavLink>
@@ -463,35 +459,28 @@ function LayoutContent({ children, currentPageName }) {
 
               if (isHotel) return (
                 <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-purple-100 text-purple-700' : 'hover:bg-purple-50 text-purple-600'}`}>
-                  🏨 {language === 'es' ? 'Mi Hotel' : 'Meu Hotel'}
+                  🏨 {nav('myHotel')}
                 </NavLink>
               );
 
               if (isPro) return (
                 <>
-                  <NavLink to={createPageUrl("ProfessionalHubV2")} className={navCls}>
-                    {language === 'es' ? 'Panel Profesional' : 'Painel Profissional'}
-                  </NavLink>
-                  <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>
-                    {language === 'es' ? 'Reservas' : 'Reservas'}
-                  </NavLink>
+                  <NavLink to={createPageUrl("ProfessionalHubV2")} className={navCls}>{nav('professionalHub')}</NavLink>
+                  <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>{nav('bookings')}</NavLink>
                 </>
               );
 
-              // Cliente comum (role === 'user')
               return (
-                <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>
-                  {language === 'es' ? 'Mi Panel' : 'Meu Painel'}
-                </NavLink>
+                <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>{nav('myPanel')}</NavLink>
               );
             })()}
           </nav>
           <div className="flex items-center gap-2">
             <LanguageSelector />
             {stableUser ? (
-              <Button variant="outline" size="sm" onClick={handleLogout}>Sair</Button>
+              <Button variant="outline" size="sm" onClick={handleLogout}>{nav('signOut')}</Button>
             ) : (
-              <Button size="sm" onClick={() => base44.auth.redirectToLogin()}>Entrar</Button>
+              <Button size="sm" onClick={() => base44.auth.redirectToLogin()}>{nav('signIn')}</Button>
             )}
           </div>
         </div>
