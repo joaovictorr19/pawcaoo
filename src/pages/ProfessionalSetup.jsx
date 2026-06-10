@@ -609,6 +609,7 @@ export default function ProfessionalSetup() {
                       </label>
                       )}
                       </div>
+                      </div>
                       </motion.div>
                       )}
 

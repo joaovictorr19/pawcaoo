@@ -601,9 +601,13 @@ export default function Home() {
 
   const handleBecomePro = () => {
     if (user) {
-      navigate(createPageUrl('ProfessionalHubV2'));
+      if (hasProfessionalProfile) {
+        navigate(createPageUrl('ProfessionalHubV2'));
+      } else {
+        navigate(createPageUrl('ProfessionalSetup'));
+      }
     } else {
-      base44.auth.redirectToLogin(createPageUrl('ProfessionalHubV2'));
+      base44.auth.redirectToLogin(createPageUrl('ProfessionalSetup'));
     }
   };
 
@@ -1092,9 +1096,13 @@ export default function Home() {
                   size="default"
                   onClick={() => {
                     if (user) {
-                      navigate(createPageUrl('ProfessionalHubV2'));
+                      if (hasProfessionalProfile) {
+                        navigate(createPageUrl('ProfessionalHubV2'));
+                      } else {
+                        navigate(createPageUrl('ProfessionalSetup'));
+                      }
                     } else {
-                      base44.auth.redirectToLogin(createPageUrl('ProfessionalHubV2'));
+                      base44.auth.redirectToLogin(createPageUrl('ProfessionalSetup'));
                     }
                   }}
                   className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
