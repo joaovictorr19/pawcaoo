@@ -51,7 +51,31 @@ Deno.serve(async (req) => {
             friday: '09:00 - 18:00',
             saturday: '10:00 - 16:00',
             sunday: 'Fechado'
-          }
+          },
+          services: [
+            {
+              service_id: 'alojamento',
+              service_name: 'Alojamento',
+              service_type: 'boarding',
+              description: 'Alojamento noturno e pernoita com supervisão',
+              price_per_day: 40,
+              capacity_total: 5,
+              capacity_available: 0,
+              is_active: true,
+              accepted_dog_sizes: ['small', 'medium', 'large']
+            },
+            {
+              service_id: 'creche',
+              service_name: 'Creche Diária',
+              service_type: 'daycare',
+              description: 'Creche diária das 8h às 18h',
+              price_per_day: 25,
+              capacity_total: 8,
+              capacity_available: 8,
+              is_active: true,
+              accepted_dog_sizes: ['small', 'medium', 'large', 'extra_large']
+            }
+          ]
         }
       });
     }

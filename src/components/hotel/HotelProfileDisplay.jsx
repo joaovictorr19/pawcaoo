@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, AlertTriangle, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const SERVICE_TYPE_LABELS = {
   'boarding': 'Alojamento',
@@ -28,7 +29,7 @@ const CapacityBar = ({ available, total, service_type }) => {
   let statusColor = 'text-gray-500';
   let statusText = '';
 
-  if (available === 0) {
+  if (available <= 0 || total <= 0) {
     statusIcon = <AlertCircle className="w-4 h-4" />;
     statusColor = 'text-red-600';
     statusText = 'Esgotado';
@@ -63,7 +64,9 @@ const CapacityBar = ({ available, total, service_type }) => {
   );
 };
 
-export default function HotelProfileDisplay({ hotel }) {
+export default function HotelProfileDisplay({ hotel, badges = [] }) {
+  const navigate = useNavigate();
+  
   const activeServices = useMemo(
     () => hotel?.hotel_details?.services?.filter(s => s.is_active !== false) || [],
     [hotel?.hotel_details?.services]
@@ -77,14 +80,41 @@ export default function HotelProfileDisplay({ hotel }) {
     );
   }
 
+  const handleBooking = (service) => {
+    const hotelEmail = hotel?.created_by || hotel?.user_id;
+    navigate(`/BookService?hotelEmail=${encodeURIComponent(hotelEmail)}&serviceId=${service.service_id}`);
+  };
+
   return (
     <div className="space-y-4">
+      {/* Badges acima dos serviços */}
+      {badges && badges.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Conquistas & Certificações</h3>
+          <div className="flex flex-wrap gap-3">
+            {badges.map((badge, idx) => (
+              <motion.div
+                key={badge.badge_id || idx}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: idx * 0.05 }}
+                className="flex items-center justify-center w-12 h-12 bg-yellow-100 border-2 border-yellow-300 rounded-full"
+                title={badge.name}
+              >
+                <span className="text-lg">{badge.icon || '🏆'}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Serviços Disponíveis</h3>
       </div>
 
       {activeServices.map((service, idx) => {
         const colors = SERVICE_COLORS[service.service_type] || SERVICE_COLORS.other;
+        const isSoldOut = service.capacity_available <= 0 || service.capacity_total <= 0;
         
         return (
           <motion.div
@@ -93,7 +123,7 @@ export default function HotelProfileDisplay({ hotel }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
           >
-            <Card className={`p-4 border-2 ${colors.border} ${colors.bg}`}>
+            <Card className={`p-4 border-2 ${colors.border} ${colors.bg} cursor-pointer hover:shadow-md transition-shadow ${isSoldOut ? 'opacity-60' : ''}`}>
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
@@ -124,6 +154,19 @@ export default function HotelProfileDisplay({ hotel }) {
                   total={service.capacity_total || 0}
                   service_type={service.service_type}
                 />
+
+                <button
+                  onClick={() => handleBooking(service)}
+                  disabled={isSoldOut}
+                  className={`w-full py-2 px-4 rounded-full font-medium flex items-center justify-center gap-2 transition-all ${
+                    isSoldOut
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : `${colors.bg} ${colors.text} border-2 ${colors.border} hover:opacity-80`
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  {isSoldOut ? 'Esgotado' : 'Reservar'}
+                </button>
               </div>
             </Card>
           </motion.div>

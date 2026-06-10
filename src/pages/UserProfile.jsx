@@ -416,7 +416,7 @@ export default function UserProfile() {
            )}
 
           {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details && (
-            <HotelProfileDisplay hotel={walkerProfile} />
+            <HotelProfileDisplay hotel={walkerProfile} badges={earnedBadges} />
           )}
 
           {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details?.business_hours && (
