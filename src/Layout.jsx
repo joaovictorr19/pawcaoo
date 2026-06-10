@@ -95,10 +95,8 @@ function LayoutContent({ children, currentPageName }) {
   };
 
   React.useEffect(() => {
-    if (location.pathname === '/login' || location.pathname === '/login/') {
-      navigate(createPageUrl('Home'), { replace: true });
-    }
-  }, [location.pathname, navigate]);
+    // Não redirecionar de /login automaticamente — deixar o sistema de auth tratar
+  }, []);
 
   const lastAuthUserRef = React.useRef(null);
 
