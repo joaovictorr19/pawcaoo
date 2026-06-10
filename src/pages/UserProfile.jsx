@@ -16,6 +16,7 @@ import { createPageUrl } from "@/utils";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import ProfileActions from "../components/profile/ProfileActions";
 import ProfessionalBookingModal from "../components/professional/ProfessionalBookingModal";
+import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -394,12 +395,16 @@ export default function UserProfile() {
 
         <div className="space-y-8 pb-6">
           {(walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio) && (
-            <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">{t('aboutMe', language)}</h3>
-              <p className="text-slate-700 text-sm leading-relaxed">
-                {walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio}
-              </p>
-            </div>
+             <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">{t('aboutMe', language)}</h3>
+               <p className="text-slate-700 text-sm leading-relaxed">
+                 {walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio}
+               </p>
+             </div>
+           )}
+
+          {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details?.business_hours && (
+            <HotelDailyRoutine businessHours={walkerProfile.hotel_details.business_hours} />
           )}
 
           {(walkerProfile?.portfolio?.length > 0) && (
