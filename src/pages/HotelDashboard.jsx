@@ -235,6 +235,10 @@ export default function HotelDashboard() {
               {hotelProfile?.is_active ? "● Ativo" : "● Inativo"}
             </Badge>
             <Button size="sm" variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 rounded-xl gap-1 text-xs hidden md:flex"
+              onClick={handleSyncGoogleCalendar} disabled={isSyncing}>
+              <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} /> {isSyncing ? 'Sincronizando' : 'Google Calendar'}
+            </Button>
+            <Button size="sm" variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 rounded-xl gap-1 text-xs hidden md:flex"
               onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}>
               <Settings className="w-3 h-3" /> Configurar
             </Button>
