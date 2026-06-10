@@ -6,15 +6,15 @@
 // Feriados fixos em Portugal
 const FIXED_HOLIDAYS = [
   { month: 0, day: 1, name: "Ano Novo" },
-  { month: 1, day: 30, name: "Dia da Liberdade" },
+  { month: 1, day: 10, name: "Dia da Liberdade" },
   { month: 2, day: 25, name: "Dia da Liberdade" },
   { month: 4, day: 1, name: "Dia do Trabalhador" },
-  { month: 9, day: 5, name: "Implantação da República" },
-  { month: 10, day: 1, name: "Dia da Independência" },
-  { month: 10, day: 30, name: "Dia do Armistício" },
-  { month: 10, day: 5, name: "Proclamação da República" },
-  { month: 11, day: 1, name: "Dia de Todos os Santos" },
-  { month: 11, day: 25, name: "Dia da Restauração" },
+  { month: 8, day: 5, name: "Implantação da República" },
+  { month: 9, day: 5, name: "Dia da República" },
+  { month: 10, day: 1, name: "Dia de Todos os Santos" },
+  { month: 10, day: 5, name: "Dia da Restauração" },
+  { month: 10, day: 11, name: "Dia do Armistício" },
+  { month: 11, day: 8, name: "Imaculada Conceição" },
   { month: 11, day: 25, name: "Natal" },
 ];
 

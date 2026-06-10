@@ -45,11 +45,6 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
   if (!hotel || !selectedService) return null;
 
-  const totalNights = checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
-  const serviceAmount = Math.round(selectedService.price_per_day * totalNights * 100) / 100;
-  const platformFee = Math.round(serviceAmount * 0.1 * 100) / 100;
-  const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
-
   const checkinPolicy = hotel?.hotel_details?.checkin_policy_type || 'all_days';
 
   const availableDates = Array.from({ length: 90 }, (_, i) => {
@@ -60,6 +55,11 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     const dateObj = new Date(dateStr + 'T12:00:00');
     return !isDateBlocked(dateObj, checkinPolicy);
   });
+
+  const totalNights = checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
+  const serviceAmount = Math.round(selectedService.price_per_day * totalNights * 100) / 100;
+  const platformFee = Math.round(serviceAmount * 0.1 * 100) / 100;
+  const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
 
   const handleCreateBooking = async () => {
     if (!currentUser?.email) {
