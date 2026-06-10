@@ -195,24 +195,22 @@ export default function MyWallet() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 md:pb-8">
-      <div className="max-w-3xl mx-auto px-4 pt-6">
-
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center">
-            <Wallet className="w-6 h-6 text-orange-500" />
+      {/* Sticky header bar */}
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center">
+            <Wallet className="w-4 h-4 text-orange-500" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Minha Wallet</h1>
-            <p className="text-slate-400 text-sm">Gerencie o seu saldo e ganhos</p>
-          </div>
-        </motion.div>
+          <h1 className="text-base font-bold text-slate-900">Minha Wallet</h1>
+        </div>
+      </div>
+      <div className="max-w-3xl mx-auto px-4 pt-5">
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full mb-6 h-10 bg-slate-100 rounded-xl" style={{ gridTemplateColumns: isProfessional ? '1fr 1fr' : '1fr' }}>
-            <TabsTrigger value="client" className="rounded-lg text-sm font-medium">Cliente</TabsTrigger>
-            {isProfessional && <TabsTrigger value="pro" className="rounded-lg text-sm font-medium">Profissional</TabsTrigger>}
+          <TabsList className="grid w-full mb-5 h-10 bg-white border border-slate-200 rounded-xl shadow-sm" style={{ gridTemplateColumns: isProfessional ? '1fr 1fr' : '1fr' }}>
+            <TabsTrigger value="client" className="rounded-lg text-sm font-medium data-[state=active]:bg-orange-500 data-[state=active]:text-white">Cliente</TabsTrigger>
+            {isProfessional && <TabsTrigger value="pro" className="rounded-lg text-sm font-medium data-[state=active]:bg-orange-500 data-[state=active]:text-white">Profissional</TabsTrigger>}
           </TabsList>
 
           {/* ── CLIENT TAB ── */}
