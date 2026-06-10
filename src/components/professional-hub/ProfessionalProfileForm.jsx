@@ -207,7 +207,8 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
     if (currentStep === 0) return formData.name.trim() && formData.location.trim() && professionalType;
     if (currentStep === 1 && isHotelType) return (formData.hotel_details?.price_per_night || 0) > 0;
     if (currentStep === 1 && !isHotelType) return parseFloat(formData.hourly_rate) > 0;
-    if (currentStep === 3) {
+    // Step 3: só bloqueia em criação nova (não em edição)
+    if (currentStep === 3 && !isEditing) {
       if (!formData.country_of_operation) return false;
       if (formData.country_of_operation === 'portugal' && !formData.tax_id_portugal) return false;
       if (formData.country_of_operation === 'spain' && !formData.tax_id_spain) return false;
