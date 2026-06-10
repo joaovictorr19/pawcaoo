@@ -1,0 +1,50 @@
+{
+  "name": "SyncState",
+  "type": "object",
+  "properties": {
+    "sync_key": {
+      "type": "string",
+      "description": "Chave de sincronização (ex: googlecalendar_hotel)"
+    },
+    "sync_token": {
+      "type": "string",
+      "description": "Token de sincronização do Google Calendar"
+    },
+    "last_sync": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Última sincronização"
+    },
+    "hotel_profile_id": {
+      "type": "string",
+      "description": "ID do perfil do hotel"
+    }
+  },
+  "required": ["sync_key"],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
