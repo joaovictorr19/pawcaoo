@@ -257,12 +257,13 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="basic">Básico</TabsTrigger>
-            <TabsTrigger value="profile">Perfil</TabsTrigger>
-            <TabsTrigger value="access">Acesso</TabsTrigger>
-            <TabsTrigger value="pawgo">PawGo & Taxas</TabsTrigger>
-          </TabsList>
+          <TabsList className="grid w-full grid-cols-5">
+             <TabsTrigger value="basic">Básico</TabsTrigger>
+             <TabsTrigger value="profile">Perfil</TabsTrigger>
+             <TabsTrigger value="access">Acesso</TabsTrigger>
+             <TabsTrigger value="pawgo">PawGo & Taxas</TabsTrigger>
+             {userToEdit?.account_type === 'hotel' && <TabsTrigger value="partners">Parceiros</TabsTrigger>}
+           </TabsList>
 
           <TabsContent value="basic" className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -473,7 +474,45 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
               </div>
             </div>
           </TabsContent>
-        </Tabs>
+
+          {userToEdit?.account_type === 'hotel' && (
+            <TabsContent value="partners" className="space-y-4 py-4">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-900 font-semibold mb-2">👥 Passeadores Parceiros</p>
+                <p className="text-xs text-blue-700">Os parceiros adicionados aqui aparecem no formulário de nova reserva e no perfil do hotel.</p>
+              </div>
+
+              {profile?.hotel_details?.partner_walkers?.length > 0 ? (
+                <div className="space-y-2">
+                  {profile.hotel_details.partner_walkers.map((p, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-slate-900">{p.walker_name}</p>
+                        <p className="text-xs text-slate-500">{p.walker_email}</p>
+                        {p.services?.length > 0 && (
+                          <div className="flex gap-1 flex-wrap mt-1">
+                            {p.services.map(s => <span key={s} className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded">{s}</span>)}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => {
+                          const updated = profile.hotel_details.partner_walkers.filter((_, idx) => idx !== i);
+                          setFormData({...formData, hotel_partners: updated});
+                        }}
+                        className="text-red-500 text-sm font-bold hover:text-red-700"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic p-4 bg-slate-50 rounded-lg">Nenhum parceiro adicionado</p>
+              )}
+            </TabsContent>
+          )}
+          </Tabs>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
