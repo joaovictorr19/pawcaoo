@@ -24,19 +24,8 @@ export default function UserProfile() {
   const { language } = useLanguage();
 
   useLayoutEffect(() => {
-    const resetProfileScroll = () => {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    };
-
-    resetProfileScroll();
-    const timeoutId = window.setTimeout(resetProfileScroll, 150);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [location.key, location.pathname, location.search]);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.key]);
 
   const urlParams = new URLSearchParams(window.location.search);
   const rawEmail = urlParams.get('email');
@@ -53,21 +42,7 @@ export default function UserProfile() {
   const profileIdParam = urlParams.get('id');
   const profileUsernameParam = urlParams.get('username');
 
-  // Ensure page always opens at top when target profile changes
-  useEffect(() => {
-    const resetProfileScroll = () => {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    };
 
-    resetProfileScroll();
-    const timeoutId = window.setTimeout(resetProfileScroll, 200);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [profileIdParam, profileEmailParam, profileUsernameParam, location.key]);
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
