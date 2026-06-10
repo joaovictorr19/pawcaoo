@@ -544,6 +544,20 @@ export default function AdminDashboard() {
         queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
         toast.success("Treinador aprovado!");
       });
+    } else if (type === 'hotel') {
+      base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true }).then(async () => {
+        // Atualizar role do utilizador para 'hotel' quando hotel é aprovado
+        try {
+          const users = await base44.entities.User.filter({ email: item.created_by });
+          if (users.length > 0) {
+            await base44.entities.User.update(users[0].id, { role: 'hotel' });
+          }
+        } catch (e) {
+          console.warn('Erro ao atualizar role para hotel:', e);
+        }
+        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+        toast.success("Hotel aprovado!");
+      });
     } else if (type === 'shelter') {
       base44.entities.ShelterProfile.update(item.id, { verification_status: 'approved', is_verified: true }).then(() => {
         queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
