@@ -3,7 +3,6 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle2, AlertTriangle, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 
 const SERVICE_TYPE_LABELS = {
   'boarding': 'Alojamento',
@@ -64,9 +63,7 @@ const CapacityBar = ({ available, total, service_type }) => {
   );
 };
 
-export default function HotelProfileDisplay({ hotel }) {
-  const navigate = useNavigate();
-  
+export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick }) {
   const activeServices = useMemo(
     () => hotel?.hotel_details?.services?.filter(s => s.is_active !== false) || [],
     [hotel?.hotel_details?.services]
@@ -81,8 +78,13 @@ export default function HotelProfileDisplay({ hotel }) {
   }
 
   const handleBooking = (service) => {
-    const hotelEmail = hotel?.created_by || hotel?.user_id;
-    navigate(`/BookService?hotelEmail=${encodeURIComponent(hotelEmail)}&serviceId=${service.service_id}`);
+    if (!currentUser?.email) {
+      window.location.href = '/login';
+      return;
+    }
+    if (onBookingClick) {
+      onBookingClick(service);
+    }
   };
 
   return (
@@ -102,27 +104,27 @@ export default function HotelProfileDisplay({ hotel }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
           >
-            <Card className={`p-4 border-2 ${colors.border} ${colors.bg} cursor-pointer hover:shadow-md transition-shadow ${isSoldOut ? 'opacity-60' : ''}`}>
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className={`font-semibold ${colors.text}`}>
+            <Card className={`p-5 border-2 ${colors.border} ${colors.bg} hover:shadow-md transition-shadow ${isSoldOut ? 'opacity-60' : ''}`}>
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <h4 className={`font-bold text-lg ${colors.text}`}>
                       {service.service_name}
                     </h4>
                     {service.description && (
                       <p className="text-sm text-gray-600 mt-1">{service.description}</p>
                     )}
                   </div>
-                  <Badge variant="outline" className="whitespace-nowrap ml-2">
-                    €{service.price_per_day?.toFixed(2) || 'N/A'}/dia
+                  <Badge variant="outline" className="whitespace-nowrap ml-2 text-base font-semibold py-1 px-3">
+                    €{service.price_per_day?.toFixed(2) || 'N/A'}/noite
                   </Badge>
                 </div>
 
                 {service.accepted_dog_sizes && service.accepted_dog_sizes.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-2">
                     {service.accepted_dog_sizes.map(size => (
-                      <Badge key={size} variant="secondary" className="text-xs">
-                        {size}
+                      <Badge key={size} variant="secondary" className="text-xs font-medium">
+                        {size === 'small' ? '🐶 Pequeno' : size === 'medium' ? '🐕 Médio' : size === 'large' ? '🐕‍🦺 Grande' : '🦣 XL'}
                       </Badge>
                     ))}
                   </div>
@@ -137,14 +139,14 @@ export default function HotelProfileDisplay({ hotel }) {
                 <button
                   onClick={() => handleBooking(service)}
                   disabled={isSoldOut}
-                  className={`w-full py-2 px-4 rounded-full font-medium flex items-center justify-center gap-2 transition-all ${
+                  className={`w-full py-3 px-4 rounded-full font-bold flex items-center justify-center gap-2 transition-all text-base ${
                     isSoldOut
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : `${colors.bg} ${colors.text} border-2 ${colors.border} hover:opacity-80`
+                      : `${colors.bg} ${colors.text} border-2 ${colors.border} hover:shadow-md active:scale-95`
                   }`}
                 >
-                  <BookOpen className="w-4 h-4" />
-                  {isSoldOut ? 'Esgotado' : 'Reservar'}
+                  <BookOpen className="w-5 h-5" />
+                  {isSoldOut ? 'Esgotado' : 'Reservar Agora'}
                 </button>
               </div>
             </Card>

@@ -20,6 +20,7 @@ import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 import HotelAvailabilityBadge from "@/components/hotel/HotelAvailabilityBadge";
 import HotelProfileDisplay from "@/components/hotel/HotelProfileDisplay";
+import HotelBookingModal from "@/components/hotel/HotelBookingModal";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -247,6 +248,7 @@ export default function UserProfile() {
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
   const [isAnimalModalOpen, setIsAnimalModalOpen] = useState(false);
   const [bookingModal, setBookingModal] = useState({ isOpen: false, selectedDate: null, selectedService: null });
+  const [hotelBookingModal, setHotelBookingModal] = useState({ isOpen: false, selectedService: null });
 
   const { data: reviews = [], isLoading: loadingReviews } = useQuery({
     queryKey: ['professionalReviews', profileEmail],
@@ -438,7 +440,11 @@ export default function UserProfile() {
           </div>
 
           {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details && (
-            <HotelProfileDisplay hotel={walkerProfile} />
+            <HotelProfileDisplay 
+              hotel={walkerProfile} 
+              currentUser={currentUser}
+              onBookingClick={(service) => setHotelBookingModal({ isOpen: true, selectedService: service })}
+            />
           )}
 
           {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details?.business_hours && (
@@ -587,6 +593,13 @@ export default function UserProfile() {
         walkerProfile={walkerProfile || trainerProfile}
         selectedDate={bookingModal.selectedDate}
         selectedService={bookingModal.selectedService}
+        currentUser={currentUser}
+      />
+      <HotelBookingModal
+        isOpen={hotelBookingModal.isOpen}
+        onClose={() => setHotelBookingModal({ isOpen: false, selectedService: null })}
+        hotel={walkerProfile?.professional_type === 'hotel' ? walkerProfile : null}
+        selectedService={hotelBookingModal.selectedService}
         currentUser={currentUser}
       />
     </div>
