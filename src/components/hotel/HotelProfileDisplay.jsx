@@ -7,7 +7,6 @@ import { motion } from 'framer-motion';
 const SERVICE_TYPE_CONFIG = {
   'boarding': { 
     label: 'Alojamento', 
-    icon: '🏨',
     gradient: 'from-purple-600 to-purple-700',
     bg: 'bg-purple-50', 
     border: 'border-purple-200', 
@@ -16,7 +15,6 @@ const SERVICE_TYPE_CONFIG = {
   },
   'daycare': { 
     label: 'Creche Diária', 
-    icon: '☀️',
     gradient: 'from-blue-600 to-blue-700',
     bg: 'bg-blue-50', 
     border: 'border-blue-200', 
@@ -25,7 +23,6 @@ const SERVICE_TYPE_CONFIG = {
   },
   'grooming': { 
     label: 'Grooming', 
-    icon: '✨',
     gradient: 'from-pink-600 to-pink-700',
     bg: 'bg-pink-50', 
     border: 'border-pink-200', 
@@ -34,7 +31,6 @@ const SERVICE_TYPE_CONFIG = {
   },
   'training': { 
     label: 'Treino', 
-    icon: '🎯',
     gradient: 'from-green-600 to-green-700',
     bg: 'bg-green-50', 
     border: 'border-green-200', 
@@ -43,7 +39,6 @@ const SERVICE_TYPE_CONFIG = {
   },
   'other': { 
     label: 'Serviço', 
-    icon: '📦',
     gradient: 'from-slate-600 to-slate-700',
     bg: 'bg-slate-50', 
     border: 'border-slate-200', 
@@ -126,8 +121,8 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-2xl font-black text-slate-900">Serviços Disponíveis</h3>
-        <p className="text-slate-500 text-sm">Escolha o serviço perfeito para o seu animal de estimação</p>
+        <h3 className="text-xl md:text-2xl font-black text-slate-900">Serviços Disponíveis</h3>
+        <p className="text-slate-500 text-xs md:text-sm">Escolha o serviço perfeito para o seu animal de estimação</p>
       </div>
 
       <div className="grid gap-4">
@@ -147,21 +142,18 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
                 {/* Gradient background corner */}
                 <div className={`absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-b ${config.gradient} opacity-10 rounded-full blur-3xl`} />
                 
-                <div className="relative p-6 space-y-5">
-                  {/* Header com ícone e badge */}
+                <div className="relative p-4 md:p-6 space-y-4 md:space-y-5">
+                  {/* Header com preço */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className={`text-4xl flex-shrink-0`}>{config.icon}</div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className={`font-black text-xl ${config.text} line-clamp-1`}>
-                          {service.service_name}
-                        </h4>
-                        {service.description && (
-                          <p className="text-slate-600 text-sm mt-1 line-clamp-2">{service.description}</p>
-                        )}
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className={`font-black text-lg md:text-xl ${config.text}`}>
+                        {service.service_name}
+                      </h4>
+                      {service.description && (
+                        <p className="text-slate-600 text-sm mt-1 line-clamp-2">{service.description}</p>
+                      )}
                     </div>
-                    <div className={`flex-shrink-0 px-4 py-2 rounded-xl ${config.badge} font-black text-lg whitespace-nowrap`}>
+                    <div className={`flex-shrink-0 px-3 md:px-4 py-2 rounded-xl ${config.badge} font-black text-base md:text-lg whitespace-nowrap`}>
                       €{service.price_per_day?.toFixed(0) || '0'}/noite
                     </div>
                   </div>
@@ -204,13 +196,13 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
                     disabled={isSoldOut}
                     whileHover={!isSoldOut ? { scale: 1.02 } : {}}
                     whileTap={!isSoldOut ? { scale: 0.98 } : {}}
-                    className={`w-full py-4 px-4 rounded-xl font-black flex items-center justify-center gap-2 transition-all text-base duration-300 ${
+                    className={`w-full py-3 md:py-4 px-4 rounded-xl font-black flex items-center justify-center gap-2 transition-all text-sm md:text-base duration-300 ${
                       isSoldOut
                         ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                         : `bg-gradient-to-r ${config.gradient} text-white shadow-lg shadow-opacity-50 hover:shadow-xl active:scale-95`
                     }`}
                   >
-                    <BookOpen className="w-5 h-5" />
+                    <BookOpen className="w-4 md:w-5 h-4 md:h-5" />
                     {isSoldOut ? 'Esgotado' : 'Reservar Agora'}
                   </motion.button>
                 </div>
