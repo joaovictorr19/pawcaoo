@@ -20,6 +20,8 @@ import HotelPartnersPanel from "@/components/hotel/HotelPartnersPanel";
 import HotelNewBookingModal from "@/components/hotel/HotelNewBookingModal";
 import HotelOccupancyManager from "@/components/hotel/HotelOccupancyManager";
 import HotelServiceManager from "@/components/hotel/HotelServiceManager";
+import HotelFinancesPanel from "@/components/hotel/HotelFinancesPanel";
+import HotelDigitalPass from "@/components/hotel/HotelDigitalPass";
 import HotelCapacityAlert from "@/components/hotel/HotelCapacityAlert";
 import HotelGuestsPanel from "@/components/hotel/HotelGuestsPanel";
 
@@ -199,6 +201,8 @@ export default function HotelDashboard() {
             { key: "today", label: "Hoje", count: todayCheckins.length + todayCheckouts.length },
             { key: "servicos", label: "🎯 Serviços" },
             { key: "vagas", label: "🐾 Vagas" },
+            { key: "financas", label: "💰 Finanças" },
+            { key: "cartao", label: "🎫 Cartão" },
             { key: "parceiros", label: "Parceiros", count: partners.length },
             { key: "stats", label: "Estatísticas" },
           ].map(tab => (
@@ -329,6 +333,20 @@ export default function HotelDashboard() {
                 hotelProfile={hotelProfile}
                 onUpdateCapacity={updateCapacity}
               />
+            </motion.div>
+          )}
+
+          {/* FINANÇAS */}
+          {activeTab === "financas" && (
+            <motion.div key="financas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelFinancesPanel bookings={bookings} hotelProfile={hotelProfile} />
+            </motion.div>
+          )}
+
+          {/* CARTÃO DIGITAL */}
+          {activeTab === "cartao" && (
+            <motion.div key="cartao" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelDigitalPass hotelProfile={hotelProfile} />
             </motion.div>
           )}
 
