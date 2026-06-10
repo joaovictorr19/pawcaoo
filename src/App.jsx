@@ -39,6 +39,11 @@ const HotelDashboard = lazy(() => import('./pages/HotelDashboard').catch(e => {
   return { default: () => <div>Erro ao carregar página</div> };
 }));
 
+const PartnerHotelPanel = lazy(() => import('./pages/PartnerHotelPanel').catch(e => {
+  console.error('Error loading PartnerHotelPanel:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
+
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
@@ -146,6 +151,7 @@ const AuthenticatedApp = () => {
             <Route path="/DebugWalkTest" element={<Suspense fallback={<PageLoader />}><DebugWalkTest /></Suspense>} />
             <Route path="/ClientSetup" element={<Suspense fallback={<PageLoader />}><ClientSetup /></Suspense>} />
             <Route path="/HotelDashboard" element={<Suspense fallback={<PageLoader />}><HotelDashboard /></Suspense>} />
+            <Route path="/PartnerHotelPanel" element={<Suspense fallback={<PageLoader />}><PartnerHotelPanel /></Suspense>} />
 
             <Route path="*" element={<PageNotFound />} />
             </Routes>

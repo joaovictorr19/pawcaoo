@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 export default function HotelAddPartnerModal({ isOpen, onClose, hotelProfile }) {
   const [searchEmail, setSearchEmail] = useState('');
   const [selectedPartner, setSelectedPartner] = useState(null);
+  const [selectedRole, setSelectedRole] = useState('limited'); // 'simple', 'limited', 'full'
   const [isAdding, setIsAdding] = useState(false);
 
   // Buscar profissionais por email
@@ -59,6 +60,7 @@ export default function HotelAddPartnerModal({ isOpen, onClose, hotelProfile }) 
         walker_photo_url: selectedPartner.photo_url,
         is_available_today: true,
         services: selectedPartner.services_offered?.map(s => s.service_type) || [],
+        partner_role: selectedRole, // 'simple', 'limited', 'full'
       };
 
       // Adicionar à lista de parceiros do hotel
@@ -79,9 +81,10 @@ export default function HotelAddPartnerModal({ isOpen, onClose, hotelProfile }) 
         },
       });
 
-      toast.success(`${partnerData.walker_name} adicionado como parceiro!`);
+      toast.success(`${partnerData.walker_name} adicionado como ${selectedRole === 'simple' ? 'parceiro' : selectedRole === 'limited' ? 'parceiro com acesso limitado' : 'funcionário'}!`);
       setSearchEmail('');
       setSelectedPartner(null);
+      setSelectedRole('limited');
       onClose();
     } catch (error) {
       toast.error(`Erro ao adicionar parceiro: ${error.message}`);
@@ -98,6 +101,39 @@ export default function HotelAddPartnerModal({ isOpen, onClose, hotelProfile }) 
         </DrawerHeader>
 
         <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
+          {/* Role Selection */}
+          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+            <p className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">Tipo de Acesso</p>
+            <div className="space-y-2">
+              {[
+                { value: 'simple', label: '📋 Simples', desc: 'Vê apenas seus serviços atribuídos' },
+                { value: 'limited', label: '👀 Limitado', desc: 'Painel reduzido (agenda, reservas, ganhos)' },
+                { value: 'full', label: '🔑 Funcionário', desc: 'Acesso completo ao painel do hotel' },
+              ].map(option => (
+                <label
+                  key={option.value}
+                  className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                    selectedRole === option.value
+                      ? 'bg-purple-100 border border-purple-300'
+                      : 'border border-transparent hover:bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="partner_role"
+                    value={option.value}
+                    checked={selectedRole === option.value}
+                    onChange={(e) => setSelectedRole(e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-bold text-slate-900">{option.label}</div>
+                    <div className="text-xs text-slate-600">{option.desc}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
           {/* Search Input */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

@@ -49,6 +49,12 @@ const SERVICE_LABELS = {
 
 export default function HotelDashboard() {
   const navigate = useNavigate();
+  
+  // Check if user is a partner with limited access
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("hospedes");
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -64,7 +70,30 @@ export default function HotelDashboard() {
 
   const { data: hotelProfile, isLoading: loadingProfile } = useQuery({
     queryKey: ["myHotelProfile", user?.email],
-    queryFn: () => base44.entities.WalkerProfile.filter({ created_by: user.email, professional_type: "hotel" }).then(r => r[0] || null),
+    queryFn: async () => {
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email, professional_type: "hotel" });
+      const profile = profiles[0] || null;
+      
+      // If user is a partner with limited access, redirect to partner panel
+      if (!profile && user?.email) {
+        const allHotels = await base44.entities.WalkerProfile.filter(
+          { professional_type: "hotel" },
+          undefined,
+          100
+        );
+        
+        for (const h of allHotels) {
+          const partners = h.hotel_details?.partner_walkers || [];
+          const isPartner = partners.find(p => p.walker_email === user.email && p.partner_role === 'limited');
+          if (isPartner) {
+            navigate(createPageUrl("PartnerHotelPanel"));
+            break;
+          }
+        }
+      }
+      
+      return profile;
+    },
     enabled: !!user?.email,
   });
 
