@@ -58,25 +58,25 @@ function ActiveRequestsList({ user }) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-black text-orange-400 mb-6">Passeios Ativos</h2>
+      <h2 className="text-base font-semibold text-slate-700 mb-4">Passeios Ativos</h2>
       {activeBookings.map((booking) => (
         <div
           key={booking.id}
-          className="bg-slate-900 border border-orange-500/30 rounded-2xl p-4 cursor-pointer hover:border-orange-500/60 transition-colors"
+          className="bg-white border border-slate-100 rounded-2xl p-4 cursor-pointer hover:border-orange-200 hover:shadow-sm transition-all shadow-sm"
           onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
         >
           <div className="flex justify-between items-start mb-2">
-            <h3 className="font-bold text-white">{booking.owner_name}</h3>
-            <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full">Confirmado</span>
+            <h3 className="font-semibold text-slate-900">{booking.owner_name}</h3>
+            <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full border border-orange-100 font-medium">Confirmado</span>
           </div>
-          <p className="text-sm text-slate-400 mb-3">🐕 {booking.dog_name} • {booking.duration_hours}h</p>
-          <p className="text-xs text-slate-500">{new Date(booking.walk_date).toLocaleDateString('pt-PT')} às {booking.walk_time}</p>
+          <p className="text-sm text-slate-500 mb-3">🐕 {booking.dog_name} • {booking.duration_hours}h</p>
+          <p className="text-xs text-slate-400">{new Date(booking.walk_date).toLocaleDateString('pt-PT')} às {booking.walk_time}</p>
           <Button
             onClick={(e) => {
               e.stopPropagation();
               navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
             }}
-            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold"
+            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold"
           >
             Iniciar Passeio
           </Button>
@@ -383,7 +383,7 @@ export default function ProfessionalHubV2() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
       </div>
     );
@@ -418,41 +418,44 @@ export default function ProfessionalHubV2() {
   const isOnline = user?.pawgo_status?.is_online || false;
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans" style={{ paddingBottom: 'calc(130px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" style={{ paddingBottom: 'calc(130px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
       <IncomingRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}
         onDecline={handleDeclineRequest}
       />
       {/* 1. Header com saudação, status e stats rápidas */}
-      <header className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white px-4 pt-20 pb-8 rounded-b-3xl shadow-lg mb-8">
-        <div className="flex justify-between items-start mb-6">
-           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-             <h1 className="text-2xl md:text-3xl font-bold">Olá, {user?.full_name?.split(' ')[0] || 'Pro'}! {isHotelProfile ? '🏨' : '🐾'}</h1>
-             <p className="text-xs font-semibold text-white/70 uppercase tracking-wider mt-1">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
-           </motion.div>
-           <motion.div className="flex items-center gap-3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
-             <button
-               onClick={() => toggleOnlineMutation.mutate(!isOnline)}
-               className={`px-4 py-2 rounded-full border-2 cursor-pointer active:scale-95 transition-all font-semibold text-sm ${
-                 isOnline ? 'border-emerald-400 text-emerald-300 bg-emerald-500/10' : 'border-slate-600 text-slate-400 bg-slate-800'
-               }`}
-             >
-               <span className="flex items-center gap-2">
-                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
-                 {isOnline ? 'Online' : 'Offline'}
-               </span>
-             </button>
-             <Button
-               onClick={() => navigate(createPageUrl('Notifications'))}
-               variant="ghost"
-               className="rounded-xl bg-white/10 border border-white/20 w-10 h-10 p-0 text-white hover:text-white hover:bg-white/20 transition-all"
-             >
-               <Bell size={18} />
-             </Button>
-           </motion.div>
-         </div>
-        <VerificationBanner status={professionalProfile?.verification_status} />
+      <header className="bg-white border-b border-slate-100 px-4 pt-20 pb-6 mb-6 shadow-sm">
+        <div className="max-w-3xl mx-auto flex justify-between items-center">
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}>
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
+            <h1 className="text-xl font-bold text-slate-900">Olá, {user?.full_name?.split(' ')[0] || 'Pro'} {isHotelProfile ? '🏨' : '🐾'}</h1>
+          </motion.div>
+          <motion.div className="flex items-center gap-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
+            <button
+              onClick={() => toggleOnlineMutation.mutate(!isOnline)}
+              className={`px-3 py-1.5 rounded-full border cursor-pointer active:scale-95 transition-all font-semibold text-xs ${
+                isOnline
+                  ? 'border-emerald-300 text-emerald-700 bg-emerald-50'
+                  : 'border-slate-200 text-slate-500 bg-slate-50'
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                {isOnline ? 'Online' : 'Offline'}
+              </span>
+            </button>
+            <button
+              onClick={() => navigate(createPageUrl('Notifications'))}
+              className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+            >
+              <Bell size={16} />
+            </button>
+          </motion.div>
+        </div>
+        <div className="max-w-3xl mx-auto mt-3">
+          <VerificationBanner status={professionalProfile?.verification_status} />
+        </div>
       </header>
 
       <main className="px-4 md:px-6 pb-6 max-w-3xl mx-auto w-full">
@@ -476,27 +479,27 @@ export default function ProfessionalHubV2() {
             >
               <StatsSection user={user} professionalProfile={professionalProfile} />
 
-              <div className="flex gap-2 mb-6">
+              <div className="flex gap-2 mb-4">
                 <Button
                   onClick={() => setActiveTab('portfolio')}
-                  className="flex-1 bg-white text-slate-900 hover:bg-slate-100 font-bold rounded-2xl h-12"
+                  className="flex-1 bg-slate-900 text-white hover:bg-slate-800 font-semibold rounded-2xl h-11"
                 >
-                  Fotos Portfólio
+                  Portfólio
                 </Button>
                 <Button
                   onClick={() => navigate(createPageUrl(`UserProfile?id=${user?.id}`))}
                   variant="outline"
-                  className="flex-1 border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white font-bold rounded-2xl h-12"
+                  className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold rounded-2xl h-11"
                 >
                   Ver Perfil
                 </Button>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-6">
                 <Button
                   onClick={() => base44.auth.logout()}
                   variant="outline"
-                  className="flex-1 border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white font-bold rounded-2xl h-12"
+                  className="flex-1 border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold rounded-2xl h-11"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sair
@@ -504,18 +507,18 @@ export default function ProfessionalHubV2() {
                 <Button
                   onClick={() => setShowDeleteConfirm(true)}
                   variant="outline"
-                  className="flex-1 border-red-800/50 text-red-400 hover:bg-red-900/30 hover:text-red-300 font-bold rounded-2xl h-12"
+                  className="flex-1 border-red-200 text-red-500 hover:bg-red-50 font-semibold rounded-2xl h-11"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Deletar Conta
+                  Eliminar
                 </Button>
               </div>
 
               <div>
-                <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
-                   Radar PawGo
-                 </h3>
+                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></div>
+                  Radar PawGo
+                </h3>
                 <RadarStatusPanel userEmail={user?.email} isOnline={isOnline} city={professionalProfile?.location || user?.city || "Portugal"} />
               </div>
             </motion.div>
@@ -685,34 +688,34 @@ export default function ProfessionalHubV2() {
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
-          <div className="bg-slate-900 rounded-2xl p-6 max-w-sm w-full border border-red-500/30">
-            <h3 className="text-xl font-bold text-red-500 mb-3">⚠️ Eliminar Conta</h3>
-            <p className="text-slate-300 text-sm mb-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-slate-100">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">⚠️ Eliminar Conta</h3>
+            <p className="text-slate-500 text-sm mb-6">
               Tem certeza que deseja eliminar sua conta? Esta ação é irreversível e todos os seus dados serão permanentemente apagados.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isDeleting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Deletando...
+                    A eliminar...
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4" />
-                    Deletar
+                    Eliminar
                   </>
                 )}
               </button>

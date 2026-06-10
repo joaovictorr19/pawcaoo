@@ -82,42 +82,42 @@ export function StatsSection({ user, professionalProfile }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         {stats.map((s, i) => (
-          <Card key={i} className="bg-slate-900 border-white/5 rounded-[1.5rem] overflow-hidden">
+          <Card key={i} className="bg-white border-slate-100 rounded-2xl overflow-hidden shadow-sm">
             <CardContent className="p-4 flex flex-col justify-between h-full">
               <div className={`w-8 h-8 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
                 <s.icon className={`w-4 h-4 ${s.color}`} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-white leading-none mb-1">{s.value}</h3>
-                <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{s.label}</p>
+                <h3 className="text-xl font-bold text-slate-900 leading-none mb-1">{s.value}</h3>
+                <p className="text-[10px] text-slate-400 uppercase font-medium tracking-wider">{s.label}</p>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="bg-slate-900 border-white/5 rounded-[2rem] p-5">
+      <Card className="bg-white border-slate-100 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-black text-white text-sm uppercase tracking-wide">Desempenho</h3>
-          <span className="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded-lg">+12%</span>
+          <h3 className="font-semibold text-slate-700 text-sm">Desempenho Semanal</h3>
+          <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-lg border border-green-100">Esta semana</span>
         </div>
         <div className="h-40 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
+                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.2}/>
                   <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-              <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
               <Tooltip 
-                contentStyle={{backgroundColor: '#0f172a', borderColor: '#1e293b', borderRadius: '12px', color: '#fff'}}
-                itemStyle={{color: '#f97316', fontWeight: 'bold'}}
+                contentStyle={{backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.08)'}}
+                itemStyle={{color: '#f97316', fontWeight: '600'}}
                 formatter={(value) => [`€${value}`, 'Ganhos']}
               />
-              <Area type="monotone" dataKey="v" stroke="#f97316" strokeWidth={3} fillOpacity={1} fill="url(#colorVal)" />
+              <Area type="monotone" dataKey="v" stroke="#f97316" strokeWidth={2.5} fillOpacity={1} fill="url(#colorVal)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
