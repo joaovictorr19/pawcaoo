@@ -66,9 +66,10 @@ export default function HotelCapacityAdjuster({ hotelProfile }) {
 
       <div className="grid gap-3">
         {services.map((service, idx) => {
-          const occupancy = service.capacity_total - (service.capacity_available || 0);
+          const available = service.capacity_available ?? service.capacity_total;
+          const occupancy = service.capacity_total - available;
           const occupancyPct = ((occupancy / service.capacity_total) * 100).toFixed(0);
-          const isFull = (service.capacity_available || 0) === 0;
+          const isFull = available === 0;
 
           return (
             <motion.div
@@ -95,7 +96,7 @@ export default function HotelCapacityAdjuster({ hotelProfile }) {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-black text-slate-900">
-                      {service.capacity_available || 0}
+                      {available}
                     </p>
                     <p className="text-xs text-slate-500">de {service.capacity_total}</p>
                   </div>
@@ -117,11 +118,11 @@ export default function HotelCapacityAdjuster({ hotelProfile }) {
 
                 <div className="flex items-center gap-2">
                   <Button
-                    onClick={() => handleUpdateCapacity(service.service_id, Math.max(0, (service.capacity_available || 0) - 1))}
+                    onClick={() => handleUpdateCapacity(service.service_id, Math.max(0, available - 1))}
                     size="sm"
                     variant="outline"
                     className="h-9 w-9 p-0 rounded-lg"
-                    disabled={(service.capacity_available || 0) === 0}
+                    disabled={available === 0}
                   >
                     <Minus className="w-4 h-4" />
                   </Button>
@@ -130,7 +131,7 @@ export default function HotelCapacityAdjuster({ hotelProfile }) {
                     type="number"
                     min="0"
                     max={service.capacity_total}
-                    value={service.capacity_available || 0}
+                    value={available}
                     onChange={(e) => {
                       const val = Math.min(service.capacity_total, Math.max(0, parseInt(e.target.value) || 0));
                       handleUpdateCapacity(service.service_id, val);
@@ -139,11 +140,11 @@ export default function HotelCapacityAdjuster({ hotelProfile }) {
                   />
 
                   <Button
-                    onClick={() => handleUpdateCapacity(service.service_id, Math.min(service.capacity_total, (service.capacity_available || 0) + 1))}
+                    onClick={() => handleUpdateCapacity(service.service_id, Math.min(service.capacity_total, available + 1))}
                     size="sm"
                     variant="outline"
                     className="h-9 w-9 p-0 rounded-lg"
-                    disabled={(service.capacity_available || 0) >= service.capacity_total}
+                    disabled={available >= service.capacity_total}
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
@@ -165,7 +166,7 @@ export default function HotelCapacityAdjuster({ hotelProfile }) {
                       <span className="w-2 h-2 rounded-full bg-red-500" />
                       <span className="text-red-700">Esgotado</span>
                     </>
-                  ) : (service.capacity_available || 0) <= 2 ? (
+                  ) : available <= 2 ? (
                     <>
                       <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
                       <span className="text-yellow-700">Poucas vagas</span>

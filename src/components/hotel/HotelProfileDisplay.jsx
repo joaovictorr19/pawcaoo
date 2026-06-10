@@ -128,7 +128,9 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
       <div className="grid gap-4">
         {activeServices.map((service, idx) => {
           const config = SERVICE_TYPE_CONFIG[service.service_type] || SERVICE_TYPE_CONFIG.other;
-          const isSoldOut = service.capacity_available <= 0 || service.capacity_total <= 0;
+          const available = service.capacity_available ?? service.capacity_total ?? 0;
+          const total = service.capacity_total ?? 0;
+          const isSoldOut = available <= 0 || total <= 0;
           
           return (
             <motion.div
@@ -185,8 +187,8 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
 
                   {/* Capacity Bar */}
                   <CapacityBar 
-                    available={service.capacity_available || 0}
-                    total={service.capacity_total || 0}
+                    available={available}
+                    total={total}
                     service_type={service.service_type}
                   />
 
