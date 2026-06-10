@@ -21,6 +21,14 @@ Deno.serve(async (req) => {
 
     let hotel = hotelProfiles[0];
 
+    // Always update the name to ensure it's correct
+    if (hotel) {
+      await base44.asServiceRole.entities.WalkerProfile.update(hotel.id, {
+        walker_name: 'PawCão Hotel Demo 🏨'
+      });
+      hotel.walker_name = 'PawCão Hotel Demo 🏨';
+    }
+
     if (!hotel) {
       hotel = await base44.asServiceRole.entities.WalkerProfile.create({
         created_by: DEMO_EMAIL,

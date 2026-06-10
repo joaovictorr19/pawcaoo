@@ -18,6 +18,7 @@ import ProfileActions from "../components/profile/ProfileActions";
 import ProfessionalBookingModal from "../components/professional/ProfessionalBookingModal";
 import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 import HotelTeamSection from "@/components/hotel/HotelTeamSection";
+import HotelAvailabilityBadge from "@/components/hotel/HotelAvailabilityBadge";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -392,6 +393,15 @@ export default function UserProfile() {
           </div>
           <h1 className="text-3xl font-black text-slate-900 mt-6 text-center">{displayName}</h1>
           {displayCity && <p className="text-slate-500 flex items-center gap-1 mt-2"><MapPin size={14} /> {displayCity}</p>}
+          
+          {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details && (
+            <div className="mt-4">
+              <HotelAvailabilityBadge 
+                capacityTotal={walkerProfile.hotel_details.capacity_total} 
+                capacityAvailable={walkerProfile.hotel_details.capacity_available}
+              />
+            </div>
+          )}
         </div>
 
         <div className="space-y-8 pb-6">
