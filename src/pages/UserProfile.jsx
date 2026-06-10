@@ -17,6 +17,7 @@ import AnimalManagerModal from "../components/profile/AnimalManagerModal";
 import ProfileActions from "../components/profile/ProfileActions";
 import ProfessionalBookingModal from "../components/professional/ProfessionalBookingModal";
 import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
+import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -405,6 +406,10 @@ export default function UserProfile() {
 
           {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details?.business_hours && (
             <HotelDailyRoutine businessHours={walkerProfile.hotel_details.business_hours} />
+          )}
+
+          {walkerProfile?.professional_type === 'hotel' && profileEmail && (
+            <HotelTeamSection hotelEmail={profileEmail} />
           )}
 
           {(walkerProfile?.portfolio?.length > 0) && (
