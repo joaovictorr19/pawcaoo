@@ -19,6 +19,7 @@ import HotelDayPanel from "@/components/hotel/HotelDayPanel";
 import HotelPartnersPanel from "@/components/hotel/HotelPartnersPanel";
 import HotelNewBookingModal from "@/components/hotel/HotelNewBookingModal";
 import HotelOccupancyManager from "@/components/hotel/HotelOccupancyManager";
+import HotelCapacityAdjuster from "@/components/hotel/HotelCapacityAdjuster";
 import HotelServiceManager from "@/components/hotel/HotelServiceManager";
 import HotelFinancesPanel from "@/components/hotel/HotelFinancesPanel";
 import HotelDigitalPass from "@/components/hotel/HotelDigitalPass";
@@ -327,7 +328,8 @@ export default function HotelDashboard() {
 
           {/* VAGAS */}
           {activeTab === "vagas" && (
-            <motion.div key="vagas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key="vagas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+              <HotelCapacityAdjuster hotelProfile={hotelProfile} />
               <HotelOccupancyManager
                 bookings={bookings}
                 hotelProfile={hotelProfile}
