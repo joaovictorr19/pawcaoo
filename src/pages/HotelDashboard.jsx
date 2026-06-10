@@ -23,14 +23,14 @@ import HotelCapacityAlert from "@/components/hotel/HotelCapacityAlert";
 import HotelGuestsPanel from "@/components/hotel/HotelGuestsPanel";
 
 const STATUS_CONFIG = {
-  pending:    { label: "Pendente",    cls: "bg-orange-100 text-orange-700" },
-  confirmed:  { label: "Confirmado",  cls: "bg-blue-100 text-blue-700" },
-  checked_in: { label: "Check-in ✓", cls: "bg-green-100 text-green-700" },
-  in_progress:{ label: "Em curso",   cls: "bg-teal-100 text-teal-700" },
-  checked_out:{ label: "Check-out",  cls: "bg-purple-100 text-purple-700" },
-  completed:  { label: "Concluído",  cls: "bg-gray-100 text-gray-600" },
-  cancelled:  { label: "Cancelado",  cls: "bg-red-100 text-red-500" },
-  rejected:   { label: "Rejeitado",  cls: "bg-red-100 text-red-500" },
+  pending:    { label: "Pendente",    cls: "bg-orange-50 text-orange-700 border border-orange-200" },
+  confirmed:  { label: "Confirmado",  cls: "bg-slate-100 text-slate-700 border border-slate-200" },
+  checked_in: { label: "Check-in ✓", cls: "bg-slate-100 text-slate-700 border border-slate-200" },
+  in_progress:{ label: "Em curso",   cls: "bg-slate-100 text-slate-700 border border-slate-200" },
+  checked_out:{ label: "Check-out",  cls: "bg-slate-100 text-slate-700 border border-slate-200" },
+  completed:  { label: "Concluído",  cls: "bg-slate-100 text-slate-600 border border-slate-200" },
+  cancelled:  { label: "Cancelado",  cls: "bg-slate-100 text-slate-600 border border-slate-200" },
+  rejected:   { label: "Rejeitado",  cls: "bg-slate-100 text-slate-600 border border-slate-200" },
 };
 
 const SERVICE_LABELS = {
@@ -229,13 +229,13 @@ export default function HotelDashboard() {
         )}
 
         {/* ── KPI strip ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: "Hóspedes agora", value: occupancyToday, sub: `de ${capacityTotal}`, color: "text-purple-700", bg: "bg-purple-50 border-purple-100", icon: <Dog className="w-4 h-4 text-purple-500" /> },
-            { label: "Pendentes", value: pendingBookings.length, sub: "a responder", color: "text-orange-700", bg: "bg-orange-50 border-orange-100", icon: <Clock className="w-4 h-4 text-orange-500" /> },
-            { label: "Chegadas hoje", value: todayCheckins.length, sub: "check-in", color: "text-green-700", bg: "bg-green-50 border-green-100", icon: <CheckCircle2 className="w-4 h-4 text-green-500" /> },
-            { label: "Receita 30d", value: `${revenue30d.toFixed(0)}€`, sub: "estimada", color: "text-blue-700", bg: "bg-blue-50 border-blue-100", icon: <TrendingUp className="w-4 h-4 text-blue-500" /> },
-          ].map(kpi => (
+         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+           {[
+             { label: "Hóspedes agora", value: occupancyToday, sub: `de ${capacityTotal}`, color: "text-slate-700", bg: "bg-slate-50 border-slate-100", icon: <Dog className="w-4 h-4 text-slate-600" /> },
+             { label: "Pendentes", value: pendingBookings.length, sub: "a responder", color: "text-orange-700", bg: "bg-orange-50 border-orange-100", icon: <Clock className="w-4 h-4 text-orange-500" /> },
+             { label: "Chegadas hoje", value: todayCheckins.length, sub: "check-in", color: "text-slate-700", bg: "bg-slate-50 border-slate-100", icon: <CheckCircle2 className="w-4 h-4 text-slate-600" /> },
+             { label: "Receita 30d", value: `${revenue30d.toFixed(0)}€`, sub: "estimada", color: "text-slate-700", bg: "bg-slate-50 border-slate-100", icon: <TrendingUp className="w-4 h-4 text-slate-600" /> },
+           ].map(kpi => (
             <div key={kpi.label} className={`${kpi.bg} border rounded-2xl p-3.5`}>
               <div className="flex items-center gap-1.5 mb-1">{kpi.icon}<span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{kpi.label}</span></div>
               <p className={`text-2xl font-black ${kpi.color}`}>{kpi.value}</p>
@@ -245,7 +245,7 @@ export default function HotelDashboard() {
         </div>
 
         {/* ── Ocupação + vagas ── */}
-        <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl border border-purple-100 p-4 shadow-sm shadow-purple-100">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="font-bold text-slate-800 text-sm">Ocupação Hoje</p>
@@ -255,16 +255,16 @@ export default function HotelDashboard() {
               <span className="text-xs text-slate-500 font-medium">Vagas:</span>
               <button onClick={() => updateCapacity(Math.max(0, (hotelProfile?.hotel_details?.capacity_available || 0) - 1))}
                 className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">−</button>
-              <span className="font-black text-lg text-purple-600 w-6 text-center">{hotelProfile?.hotel_details?.capacity_available ?? capacityTotal}</span>
+              <span className="font-black text-lg text-slate-700 w-6 text-center">{hotelProfile?.hotel_details?.capacity_available ?? capacityTotal}</span>
               <button onClick={() => updateCapacity(Math.min(capacityTotal || 99, (hotelProfile?.hotel_details?.capacity_available || 0) + 1))}
                 className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">+</button>
             </div>
           </div>
           <div className="h-3 bg-purple-100 rounded-full overflow-hidden shadow-inner">
             <div className={`h-full rounded-full transition-all duration-700 ${
-              occupancyPct >= 90 ? "bg-gradient-to-r from-red-600 to-red-400"
-              : occupancyPct >= 70 ? "bg-gradient-to-r from-orange-500 to-orange-400"
-              : "bg-gradient-to-r from-purple-800 to-purple-400"
+              occupancyPct >= 90 ? "bg-red-600"
+              : occupancyPct >= 70 ? "bg-orange-500"
+              : "bg-slate-700"
             }`}
               style={{ width: `${occupancyPct}%` }} />
           </div>
@@ -546,10 +546,10 @@ function StatsPanel({ bookings }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: "Receita Total", value: `${totalRevenue.toFixed(2)}€`, color: "text-green-700", bg: "bg-green-50 border-green-100" },
-          { label: "Concluídas", value: completedCount, color: "text-blue-700", bg: "bg-blue-50 border-blue-100" },
-          { label: "Canceladas", value: cancelledCount, color: "text-red-600", bg: "bg-red-50 border-red-100" },
-          { label: "Ticket Médio", value: `${avgValue.toFixed(2)}€`, color: "text-purple-700", bg: "bg-purple-50 border-purple-100" },
+          { label: "Receita Total", value: `${totalRevenue.toFixed(2)}€`, color: "text-slate-700", bg: "bg-slate-50 border-slate-100" },
+          { label: "Concluídas", value: completedCount, color: "text-slate-700", bg: "bg-slate-50 border-slate-100" },
+          { label: "Canceladas", value: cancelledCount, color: "text-slate-700", bg: "bg-slate-50 border-slate-100" },
+          { label: "Ticket Médio", value: `${avgValue.toFixed(2)}€`, color: "text-slate-700", bg: "bg-slate-50 border-slate-100" },
         ].map(s => (
           <div key={s.label} className={`${s.bg} border rounded-2xl p-4`}>
             <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{s.label}</p>
@@ -568,7 +568,7 @@ function StatsPanel({ bookings }) {
                 <div key={type} className="flex items-center gap-3">
                   <span className="text-xs text-slate-600 w-28 shrink-0">{SERVICE_LABELS[type] || type}</span>
                   <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500 rounded-full" style={{ width: `${(count / maxCount) * 100}%` }} />
+                    <div className="h-full bg-slate-600 rounded-full" style={{ width: `${(count / maxCount) * 100}%` }} />
                   </div>
                   <span className="text-xs font-bold text-slate-600 w-6 text-right">{count}</span>
                 </div>
