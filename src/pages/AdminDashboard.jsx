@@ -50,6 +50,7 @@ import { t } from "@/components/translations";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
+import AdminUnifiedDashboard from "@/components/admin/AdminUnifiedDashboard";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import AdminDebug from "./AdminDebug";
@@ -785,14 +786,7 @@ export default function AdminDashboard() {
           <TabsContent value="overview">
             {activeTab === 'overview' && (
               <div className="mt-6">
-                <AdminOverviewDashboard 
-                  bookings={allBookings}
-                  users={allUsers}
-                  walkers={activeWalkers}
-                  trainers={allTrainers}
-                  payments={allPayments}
-                  isLoading={loadingStats}
-                />
+                <AdminUnifiedDashboard />
               </div>
             )}
           </TabsContent>
