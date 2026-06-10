@@ -127,14 +127,14 @@ export default function AdminUnifiedDashboard() {
 
   const getStatusColor = (status) => {
     const colors = {
-      pending: "bg-yellow-100 text-yellow-800",
-      confirmed: "bg-blue-100 text-blue-800",
-      completed: "bg-green-100 text-green-800",
-      checked_in: "bg-purple-100 text-purple-800",
-      cancelled: "bg-red-100 text-red-800",
-      rejected: "bg-red-100 text-red-800",
+      pending: "bg-orange-50 text-orange-700 border border-orange-200",
+      confirmed: "bg-slate-100 text-slate-700 border border-slate-200",
+      completed: "bg-slate-100 text-slate-700 border border-slate-200",
+      checked_in: "bg-slate-100 text-slate-700 border border-slate-200",
+      cancelled: "bg-slate-100 text-slate-700 border border-slate-200",
+      rejected: "bg-slate-100 text-slate-700 border border-slate-200",
     };
-    return colors[status] || "bg-gray-100 text-gray-800";
+    return colors[status] || "bg-slate-100 text-slate-700 border border-slate-200";
   };
 
   const getTypeLabel = (type) => {
@@ -158,7 +158,7 @@ export default function AdminUnifiedDashboard() {
                 <p className="text-3xl font-black text-slate-900">{stats.totalBookings}</p>
                 <p className="text-xs text-slate-500 mt-1">{stats.pendingBookings} pendentes</p>
               </div>
-              <BookOpen className="w-10 h-10 text-blue-500" />
+              <BookOpen className="w-10 h-10 text-slate-600" />
             </div>
           </CardContent>
         </Card>
@@ -171,7 +171,7 @@ export default function AdminUnifiedDashboard() {
                 <p className="text-3xl font-black text-slate-900">{stats.totalProfessionals}</p>
                 <p className="text-xs text-slate-500 mt-1">{stats.verifiedProfessionals} verificados</p>
               </div>
-              <Users className="w-10 h-10 text-green-500" />
+              <Users className="w-10 h-10 text-slate-600" />
             </div>
           </CardContent>
         </Card>
@@ -184,7 +184,7 @@ export default function AdminUnifiedDashboard() {
                 <p className="text-3xl font-black text-slate-900">{stats.upcomingStays}</p>
                 <p className="text-xs text-slate-500 mt-1">próximos 30 dias</p>
               </div>
-              <Calendar className="w-10 h-10 text-purple-500" />
+              <Calendar className="w-10 h-10 text-slate-600" />
             </div>
           </CardContent>
         </Card>
@@ -213,7 +213,7 @@ export default function AdminUnifiedDashboard() {
           <Card className="bg-white border border-slate-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <BookOpen className="w-5 h-5 text-blue-600" />
+                <BookOpen className="w-5 h-5 text-slate-600" />
                 Todas as Reservas ({filteredBookings.length})
               </CardTitle>
             </CardHeader>
@@ -260,7 +260,7 @@ export default function AdminUnifiedDashboard() {
                           {booking.status === "pending" && (
                             <Button
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
+                              className="bg-slate-600 hover:bg-slate-700 text-white"
                               onClick={() =>
                                 updateBookingMutation.mutate({
                                   id: booking.id,
@@ -303,7 +303,7 @@ export default function AdminUnifiedDashboard() {
           <Card className="bg-white border border-slate-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Calendar className="w-5 h-5 text-purple-600" />
+                <Calendar className="w-5 h-5 text-slate-600" />
                 Agenda do Hotel ({hotelBookings.length} reservas)
               </CardTitle>
             </CardHeader>
@@ -370,7 +370,7 @@ export default function AdminUnifiedDashboard() {
           <Card className="bg-white border border-slate-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Users className="w-5 h-5 text-green-600" />
+                <Users className="w-5 h-5 text-slate-600" />
                 Gerenciamento de Profissionais ({filteredProfessionals.length})
               </CardTitle>
             </CardHeader>
@@ -401,8 +401,8 @@ export default function AdminUnifiedDashboard() {
                           <Badge
                             className={
                               prof.verification_status === "verified"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
+                                ? "bg-slate-100 text-slate-700 border border-slate-200"
+                                : "bg-orange-50 text-orange-700 border border-orange-200"
                             }
                           >
                             {prof.verification_status || "pendente"}
