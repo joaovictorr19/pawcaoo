@@ -8,89 +8,56 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from "recharts";
-import { 
-  Wallet, Zap, Star, TrendingUp, Clock, ArrowUpRight, ArrowDownLeft, 
-  Gift, Dog, Crown, Sparkles, HelpCircle, CreditCard, DollarSign, Plus, Loader2
+import {
+  Wallet, Zap, Star, TrendingUp, Clock, ArrowUpRight,
+  Gift, Dog, CreditCard, DollarSign, Plus, Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { format, eachMonthOfInterval } from "date-fns";
-import { pt, ptBR } from "date-fns/locale";
-import { useLanguage } from "@/components/LanguageContext";
+import { pt } from "date-fns/locale";
 import { toast } from "sonner";
-
-const ACCENT_COLOR = "#f97316"; // Laranja (PawGo)
 
 export default function MyWallet() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState("client");
   const [showAddCredits, setShowAddCredits] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [credits, setCredits] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
 
-  // Fetch user
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  // Fetch wallet
   const { data: wallet } = useQuery({
     queryKey: ['myWallet', user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
-      const [wallets, ownerSubscriptions] = await Promise.all([
-        base44.entities.UserWallet.filter({ user_email: user.email }),
-        base44.entities.OwnerSubscription.filter({ owner_email: user.email, is_active: true })
-      ]);
-
+      const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
       const savedWallet = wallets[0] || null;
-      const activeSubscription = ownerSubscriptions[0] || null;
-      const subscriptionTokens = activeSubscription
-        ? Math.max((activeSubscription.free_walks_per_month || 0) - (activeSubscription.free_walks_used_this_month || 0), 0)
-        : 0;
-
       return {
         user_email: user.email,
         cashback_balance: savedWallet?.cashback_balance || 0,
-        service_tokens: Math.max(savedWallet?.service_tokens || 0, subscriptionTokens),
+        service_tokens: savedWallet?.service_tokens || 0,
         total_points: savedWallet?.total_points || 0,
         escrow_balance: savedWallet?.escrow_balance || 0,
         pending_walker_payments: savedWallet?.pending_walker_payments || 0,
-        tokens_expiry_date: savedWallet?.tokens_expiry_date || activeSubscription?.current_period_end || null,
+        tokens_expiry_date: savedWallet?.tokens_expiry_date || null,
       };
     },
     enabled: !!user?.email
   });
 
-  // Fetch membership
-  const { data: membership } = useQuery({
-    queryKey: ['myMembership', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const plans = await base44.entities.MembershipPlan.filter({ 
-        user_email: user.email,
-        status: 'active'
-      });
-      return plans[0] || null;
-    },
-    enabled: !!user?.email
-  });
-
-  // Fetch transactions
   const { data: transactions = [] } = useQuery({
     queryKey: ['walletTransactions', user?.email],
-    queryFn: () => base44.entities.WalletTransaction.filter({ 
-      user_email: user.email 
-    }, '-created_date', 50),
+    queryFn: () => base44.entities.WalletTransaction.filter({ user_email: user.email }, '-created_date', 50),
     enabled: !!user?.email
   });
 
-  // Professional profiles
   const { data: walkerProfile } = useQuery({
     queryKey: ['walkerProfile', user?.email],
     queryFn: async () => {
@@ -111,15 +78,11 @@ export default function MyWallet() {
     enabled: !!user?.email
   });
 
-  // Bookings
   const { data: walkerBookings = [] } = useQuery({
     queryKey: ['walkerCompletedBookings', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return await base44.entities.Booking.filter({ 
-        walker_email: user.email, 
-        status: 'completed' 
-      }, '-created_date');
+      return base44.entities.Booking.filter({ walker_email: user.email, status: 'completed' }, '-created_date');
     },
     enabled: !!user?.email,
   });
@@ -128,86 +91,61 @@ export default function MyWallet() {
     queryKey: ['trainerCompletedBookings', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      return await base44.entities.TrainingBooking.filter({ 
-        trainer_email: user.email, 
-        status: 'completed' 
-      }, '-created_date');
+      return base44.entities.TrainingBooking.filter({ trainer_email: user.email, status: 'completed' }, '-created_date');
     },
     enabled: !!user?.email,
   });
 
-  // Reviews
   const { data: reviews = [] } = useQuery({
     queryKey: ['professionalsReviews', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const walkerReviews = await base44.entities.Review.filter({ walker_id: user.id });
-      const trainerReviews = await base44.entities.Review.filter({ trainer_id: user.id });
+      const [walkerReviews, trainerReviews] = await Promise.all([
+        base44.entities.Review.filter({ walker_id: user.id }),
+        base44.entities.Review.filter({ trainer_id: user.id }),
+      ]);
       return [...walkerReviews, ...trainerReviews];
     },
     enabled: !!user?.id,
   });
 
-  // Walk checkpoints
-  const { data: walkCheckpoints = [] } = useQuery({
-    queryKey: ['walkCheckpoints', user?.email],
-    queryFn: async () => {
-      if (!walkerBookings.length) return [];
-      const bookingIds = walkerBookings.map(b => b.id);
-      const allCheckpoints = await base44.entities.WalkCheckpoint.list();
-      return allCheckpoints.filter(cp => bookingIds.includes(cp.booking_id));
-    },
-    enabled: !!walkerBookings.length,
-  });
-
-  // Metrics
   const metrics = useMemo(() => {
     const allBookings = [...walkerBookings, ...trainerBookings];
-    const avgRating = reviews.length > 0 
+    const avgRating = reviews.length > 0
       ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
       : '0.0';
-    
-    const totalKm = walkCheckpoints.reduce((sum, cp) => sum + (cp.distance_km || 0), 0);
-    
+
     const monthlyData = {};
     const now = new Date();
-    const last6Months = eachMonthOfInterval({
+    eachMonthOfInterval({
       start: new Date(now.getFullYear(), now.getMonth() - 5, 1),
       end: now
+    }).forEach(date => {
+      monthlyData[format(date, 'MMM', { locale: pt })] = 0;
     });
-    
-    last6Months.forEach(date => {
-      const monthKey = format(date, 'MMM', { locale: pt });
-      monthlyData[monthKey] = 0;
-    });
-    
+
     allBookings.forEach(booking => {
       if (booking.completed_date) {
-        const monthKey = format(new Date(booking.completed_date), 'MMM', { locale: pt });
-        if (monthlyData.hasOwnProperty(monthKey)) {
-          monthlyData[monthKey] += booking.service_amount || 0;
-        }
+        const key = format(new Date(booking.completed_date), 'MMM', { locale: pt });
+        if (key in monthlyData) monthlyData[key] += booking.service_amount || 0;
       }
     });
-    
+
     const monthlyChartData = Object.entries(monthlyData).map(([month, amount]) => ({
-      month,
-      earnings: parseFloat(amount.toFixed(2))
+      month, earnings: parseFloat(amount.toFixed(2))
     }));
-    
+
     return {
       totalActivities: allBookings.length,
       avgRating,
-      totalKm: totalKm.toFixed(0),
       monthlyChartData,
       totalEarnings: monthlyChartData.reduce((sum, m) => sum + m.earnings, 0).toFixed(2)
     };
-  }, [walkerBookings, trainerBookings, reviews, walkCheckpoints]);
+  }, [walkerBookings, trainerBookings, reviews]);
 
   const clientFunds = wallet?.cashback_balance || 0;
   const professionalPending = wallet?.pending_walker_payments || 0;
 
-  // Mutations
   const addCreditsMutation = useMutation({
     mutationFn: async (amount) => {
       const response = await base44.functions.invoke('createStripeCheckout', {
@@ -229,20 +167,12 @@ export default function MyWallet() {
     mutationFn: async (amount) => {
       const payouts = await base44.entities.WalkerPayout.filter({ walker_email: user.email, status: 'pending' }, '-created_date', 100);
       const totalPending = payouts.reduce((sum, item) => sum + (item.net_amount || 0), 0);
-      if (amount > totalPending) {
-        throw new Error('Saldo insuficiente');
-      }
+      if (amount > totalPending) throw new Error('Saldo insuficiente');
       const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
       const trainerProfiles = await base44.entities.TrainerProfile.filter({ created_by: user.email });
       const iban = profiles[0]?.bank_account_number || trainerProfiles[0]?.bank_account_number;
-      if (!iban) {
-        throw new Error('Adicione o IBAN primeiro nas definições fiscais');
-      }
-      return base44.entities.IbanWithdrawalRequest.create({
-        user_email: user.email,
-        iban,
-        amount
-      });
+      if (!iban) throw new Error('Adicione o IBAN primeiro nas definições fiscais');
+      return base44.entities.IbanWithdrawalRequest.create({ user_email: user.email, iban, amount });
     },
     onSuccess: () => {
       toast.success('Pedido de saque enviado com sucesso');
@@ -257,312 +187,168 @@ export default function MyWallet() {
 
   if (loadingUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: ACCENT_COLOR }} />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white py-8 px-4 pb-24 md:pb-8 selection:bg-orange-500/30">
-      <div className="max-w-6xl mx-auto">
-        
+    <div className="min-h-screen bg-slate-50 pb-24 md:pb-8">
+      <div className="max-w-3xl mx-auto px-4 pt-6">
+
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
-              <Wallet className="w-7 h-7" style={{ color: ACCENT_COLOR }} />
-            </div>
-            <div>
-              <h1 className="text-4xl font-black text-white">Minha Wallet</h1>
-              <p className="text-slate-400 text-sm">Gerencie seu saldo e ganhos</p>
-            </div>
+        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center">
+            <Wallet className="w-6 h-6 text-orange-500" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Minha Wallet</h1>
+            <p className="text-slate-400 text-sm">Gerencie o seu saldo e ganhos</p>
           </div>
         </motion.div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8 h-11">
-            <TabsTrigger value="client">Cliente</TabsTrigger>
-            {isProfessional && <TabsTrigger value="pro">Profissional</TabsTrigger>}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full mb-6 h-10 bg-slate-100 rounded-xl" style={{ gridTemplateColumns: isProfessional ? '1fr 1fr' : '1fr' }}>
+            <TabsTrigger value="client" className="rounded-lg text-sm font-medium">Cliente</TabsTrigger>
+            {isProfessional && <TabsTrigger value="pro" className="rounded-lg text-sm font-medium">Profissional</TabsTrigger>}
           </TabsList>
 
-          {/* CLIENT TAB */}
-          <TabsContent value="client" className="space-y-6">
-            
-            {/* Plan Card */}
-            
+          {/* ── CLIENT TAB ── */}
+          <TabsContent value="client" className="space-y-5">
 
-            {/* Balances Grid */}
-            <div className="grid md:grid-cols-3 gap-4">
-              {/* Tokens */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
-                        <Zap className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-                      </div>
-                      {wallet?.tokens_expiry_date && (
-                        <span className="text-xs font-medium text-slate-500">
-                          {new Date(wallet.tokens_expiry_date) < new Date() 
-                            ? 'Expirado' 
-                            : `Expira ${format(new Date(wallet.tokens_expiry_date), 'dd/MM')}`}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-400 mb-1 font-medium">Passeios Grátis</p>
-                    <p className="text-2xl font-bold text-white">{wallet?.service_tokens || 0}</p>
-                    <p className="text-xs text-slate-500 mt-2">
-                      €{((wallet?.service_tokens || 0) * (membership?.token_value || 12)).toFixed(2)} em valor
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Fundos */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-                <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
-                        <Wallet className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-                      </div>
-                      <Badge className="text-xs" style={{ backgroundColor: ACCENT_COLOR + "20", color: ACCENT_COLOR }}>
-                        Fundos
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-slate-400 mb-1 font-medium">Saldo para Serviços</p>
-                    <p className="text-2xl font-bold text-white">€{clientFunds.toFixed(2)}</p>
-                    <p className="text-xs text-slate-500 mt-2">Adicione saldo e pague sem repetir a transação</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Points */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
-                        <Star className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-                      </div>
-                      <Badge className="text-xs" style={{ backgroundColor: ACCENT_COLOR + "20", color: ACCENT_COLOR }}>
-                        {membership?.points_multiplier || 1}x
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-slate-400 mb-1 font-medium">Pontos</p>
-                    <p className="text-2xl font-bold text-white">{(wallet?.total_points || 0).toLocaleString()}</p>
-                    <p className="text-xs text-slate-500 mt-2">Troque por recompensas</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
+            {/* Balances */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Tokens", value: wallet?.service_tokens || 0, icon: <Zap className="w-4 h-4 text-orange-500" />, bg: "bg-orange-50 border-orange-100", val: null,
+                  sub: wallet?.tokens_expiry_date
+                    ? (new Date(wallet.tokens_expiry_date) < new Date() ? 'Expirado' : `Expira ${format(new Date(wallet.tokens_expiry_date), 'dd/MM')}`)
+                    : 'Passeios grátis' },
+                { label: "Saldo", value: `€${clientFunds.toFixed(2)}`, icon: <Wallet className="w-4 h-4 text-blue-500" />, bg: "bg-blue-50 border-blue-100", sub: "Para serviços" },
+                { label: "Pontos", value: (wallet?.total_points || 0).toLocaleString(), icon: <Star className="w-4 h-4 text-yellow-500" />, bg: "bg-yellow-50 border-yellow-100", sub: "Troque por prémios" },
+              ].map(item => (
+                <div key={item.label} className={`${item.bg} border rounded-2xl p-4`}>
+                  <div className="mb-3">{item.icon}</div>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{item.label}</p>
+                  <p className="text-xl font-bold text-slate-900 mt-0.5">{item.value}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{item.sub}</p>
+                </div>
+              ))}
             </div>
 
-            {/* Quick Actions */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Button
-              variant="outline"
-              className="h-12 font-medium bg-slate-900 border-white/10 text-white hover:bg-slate-800"
-              onClick={() => setShowAddCredits(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Fundos
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 font-medium bg-slate-900 border-white/10 text-white hover:bg-slate-800"
-              onClick={() => navigate(createPageUrl('Home'))}
-            >
-              <Dog className="w-4 h-4 mr-2" />
-              Usar Token
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 font-medium bg-slate-900 border-white/10 text-white hover:bg-slate-800"
-              onClick={() => navigate(createPageUrl('LoyaltyRewards'))}
-            >
-              <Gift className="w-4 h-4 mr-2" />
-              Resgatar
-            </Button>
-            </motion.div>
+            {/* Actions */}
+            <div className="grid grid-cols-3 gap-2">
+              <Button onClick={() => setShowAddCredits(true)} className="h-11 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold text-sm">
+                <Plus className="w-4 h-4 mr-1" /> Carregar
+              </Button>
+              <Button onClick={() => navigate(createPageUrl('Home'))} variant="outline" className="h-11 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-semibold text-sm">
+                <Dog className="w-4 h-4 mr-1" /> Usar Token
+              </Button>
+              <Button onClick={() => navigate(createPageUrl('LoyaltyRewards'))} variant="outline" className="h-11 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-semibold text-sm">
+                <Gift className="w-4 h-4 mr-1" /> Resgatar
+              </Button>
+            </div>
 
             {/* Transactions */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                <CardHeader className="border-b border-white/10 pb-4">
-                  <CardTitle className="text-lg">Transações Recentes</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {transactions.length === 0 ? (
-                    <div className="p-12 text-center text-slate-500">
-                      <Wallet className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                      <p className="text-sm">Nenhuma transação</p>
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-100">
+                <h3 className="font-semibold text-slate-800 text-sm">Transações Recentes</h3>
+              </div>
+              {transactions.length === 0 ? (
+                <div className="p-10 text-center">
+                  <Wallet className="w-10 h-10 mx-auto mb-3 text-slate-200" />
+                  <p className="text-sm text-slate-400">Nenhuma transação ainda</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-50">
+                  {transactions.slice(0, 8).map((tx) => (
+                    <div key={tx.id} className="px-5 py-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">{tx.description}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {format(new Date(tx.created_date), "dd/MM/yyyy HH:mm", { locale: pt })}
+                        </p>
+                      </div>
+                      {tx.amount > 0 && (
+                        <p className={`font-semibold text-sm ${['cashback_earned', 'token_credited', 'points_earned'].includes(tx.transaction_type) ? 'text-emerald-600' : 'text-slate-600'}`}>
+                          {['cashback_earned', 'token_credited', 'points_earned'].includes(tx.transaction_type) ? '+' : '-'}€{tx.amount.toFixed(2)}
+                        </p>
+                      )}
                     </div>
-                  ) : (
-                    <div className="divide-y divide-white/5">
-                      {transactions.slice(0, 5).map((tx) => (
-                        <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-900/40 transition">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-white">{tx.description}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {format(new Date(tx.created_date), "dd/MM/yyyy HH:mm", { locale: pt })}
-                            </p>
-                          </div>
-                          {tx.amount > 0 && (
-                            <p className="font-semibold text-white">
-                              {['cashback_earned', 'token_credited', 'points_earned'].includes(tx.transaction_type) ? '+' : '-'}€{tx.amount.toFixed(2)}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
-          {/* PROFESSIONAL TAB */}
+          {/* ── PRO TAB ── */}
           {isProfessional && (
-            <TabsContent value="pro" className="space-y-6">
-              
-              {/* Stats Grid */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                  <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
-                          <DollarSign className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-400 font-medium mb-1">Saques Disponíveis</p>
-                      <p className="text-xl font-bold text-white">€{professionalPending.toFixed(2)}</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+            <TabsContent value="pro" className="space-y-5">
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-                  <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
-                          <Clock className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-400 font-medium mb-1">Em Cofre</p>
-                      <p className="text-xl font-bold text-white">€{(wallet?.escrow_balance || 0).toFixed(2)}</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                  <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
-                          <TrendingUp className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-400 font-medium mb-1">Total Ganho</p>
-                      <p className="text-xl font-bold text-white">€{metrics.totalEarnings}</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                  <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: ACCENT_COLOR + "15" }}>
-                          <Star className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-400 font-medium mb-1">Avaliação</p>
-                      <p className="text-xl font-bold text-white">⭐ {metrics.avgRating}</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+              {/* Stats */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "Disponível p/ Saque", value: `€${professionalPending.toFixed(2)}`, icon: <DollarSign className="w-4 h-4 text-emerald-500" />, bg: "bg-emerald-50 border-emerald-100" },
+                  { label: "Em Cofre", value: `€${(wallet?.escrow_balance || 0).toFixed(2)}`, icon: <Clock className="w-4 h-4 text-blue-500" />, bg: "bg-blue-50 border-blue-100" },
+                  { label: "Total Ganho", value: `€${metrics.totalEarnings}`, icon: <TrendingUp className="w-4 h-4 text-orange-500" />, bg: "bg-orange-50 border-orange-100" },
+                  { label: "Avaliação Média", value: `⭐ ${metrics.avgRating}`, icon: <Star className="w-4 h-4 text-yellow-500" />, bg: "bg-yellow-50 border-yellow-100" },
+                ].map(item => (
+                  <div key={item.label} className={`${item.bg} border rounded-2xl p-4`}>
+                    <div className="mb-2">{item.icon}</div>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{item.label}</p>
+                    <p className="text-xl font-bold text-slate-900 mt-0.5">{item.value}</p>
+                  </div>
+                ))}
               </div>
 
-              {/* Quick Actions */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid md:grid-cols-2 gap-4">
-                <Button
-                  onClick={() => setShowAddCredits(true)}
-                  className="h-12 font-medium text-white"
-                  style={{ backgroundColor: ACCENT_COLOR }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Créditos
+              {/* Actions */}
+              <div className="grid grid-cols-2 gap-3">
+                <Button onClick={() => setShowAddCredits(true)} className="h-11 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold">
+                  <Plus className="w-4 h-4 mr-2" /> Adicionar Créditos
                 </Button>
-                <Button
-                  onClick={() => setShowWithdraw(true)}
-                  disabled={professionalPending <= 0}
-                  variant="outline"
-                  className="h-12 font-medium bg-slate-900 border-white/10 text-white hover:bg-slate-800"
-                  >
-                  <ArrowUpRight className="w-4 h-4 mr-2" />
-                  Solicitar Saque
+                <Button onClick={() => setShowWithdraw(true)} disabled={professionalPending <= 0} variant="outline"
+                  className="h-11 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-semibold disabled:opacity-40">
+                  <ArrowUpRight className="w-4 h-4 mr-2" /> Solicitar Saque
                 </Button>
-              </motion.div>
+              </div>
 
               {/* Chart */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-                <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                  <CardHeader className="border-b border-white/10 pb-4">
-                    <CardTitle className="text-lg">Ganhos (Últimos 6 Meses)</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <ResponsiveContainer width="100%" height={250}>
-                      <LineChart data={metrics.monthlyChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                        <XAxis dataKey="month" stroke="#999" style={{ fontSize: '12px' }} />
-                        <YAxis stroke="#999" style={{ fontSize: '12px' }} />
-                        <ChartTooltip 
-                          formatter={(value) => `€${value.toFixed(2)}`}
-                          contentStyle={{ backgroundColor: '#fff', border: `1px solid ${ACCENT_COLOR}` }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="earnings" 
-                          stroke={ACCENT_COLOR} 
-                          strokeWidth={2.5}
-                          dot={{ fill: ACCENT_COLOR, r: 4 }}
-                          activeDot={{ r: 6 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </motion.div>
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                <h3 className="font-semibold text-slate-800 text-sm mb-4">Ganhos — Últimos 6 Meses</h3>
+                <ResponsiveContainer width="100%" height={220}>
+                  <LineChart data={metrics.monthlyChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '11px' }} />
+                    <YAxis stroke="#94a3b8" style={{ fontSize: '11px' }} />
+                    <ChartTooltip
+                      formatter={(v) => `€${v.toFixed(2)}`}
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '12px' }}
+                    />
+                    <Line type="monotone" dataKey="earnings" stroke="#f97316" strokeWidth={2.5}
+                      dot={{ fill: '#f97316', r: 4 }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
 
-              {/* Activity */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                <Card className="border border-white/10 bg-slate-900 shadow-sm">
-                  <CardHeader className="border-b border-white/10 pb-4">
-                    <CardTitle className="text-lg">Atividades</CardTitle>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white">{walkerBookings.length}</p>
-                      <p className="text-xs text-slate-400 mt-1">Passeios</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white">{trainerBookings.length}</p>
-                      <p className="text-xs text-slate-400 mt-1">Treinos</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white">{reviews.length}</p>
-                      <p className="text-xs text-slate-400 mt-1">Avaliações</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white">{metrics.totalKm} km</p>
-                      <p className="text-xs text-slate-400 mt-1">Distância</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+              {/* Activity grid */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                <h3 className="font-semibold text-slate-800 text-sm mb-4">Atividade</h3>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{walkerBookings.length}</p>
+                    <p className="text-xs text-slate-400 mt-1">Passeios</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{trainerBookings.length}</p>
+                    <p className="text-xs text-slate-400 mt-1">Treinos</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-900">{reviews.length}</p>
+                    <p className="text-xs text-slate-400 mt-1">Avaliações</p>
+                  </div>
+                </div>
+              </div>
             </TabsContent>
           )}
         </Tabs>
@@ -582,62 +368,32 @@ export default function MyWallet() {
             </DialogHeader>
             <p className="mt-2 text-sm text-white/85">Escolha um valor para carregar a sua carteira.</p>
           </div>
-
           <div className="space-y-5 p-6">
             <div className="grid grid-cols-3 gap-3">
               {[10, 25, 50].map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setCredits(v.toString())}
-                  className={`rounded-2xl border px-4 py-4 text-center transition-all ${credits === v.toString() ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:bg-orange-50/60'}`}
-                >
-                  <div className="text-xs font-medium uppercase tracking-wide text-slate-400">Adicionar</div>
+                <button key={v} type="button" onClick={() => setCredits(v.toString())}
+                  className={`rounded-2xl border px-4 py-4 text-center transition-all ${credits === v.toString() ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300'}`}>
+                  <div className="text-xs font-medium text-slate-400">Adicionar</div>
                   <div className="mt-1 text-lg font-bold">€{v}</div>
                 </button>
               ))}
             </div>
-
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-slate-900">Outro valor</label>
-              <Input
-                type="number"
-                placeholder="Ex: 30"
-                value={credits}
-                onChange={(e) => setCredits(e.target.value)}
-                min="5"
-                step="1"
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:ring-orange-500"
-              />
-              <p className="text-xs text-slate-500">Valor mínimo: €5</p>
+              <Input type="number" placeholder="Ex: 30" value={credits} onChange={(e) => setCredits(e.target.value)}
+                min="5" step="1" className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus-visible:ring-orange-400" />
+              <p className="text-xs text-slate-400">Valor mínimo: €5</p>
             </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200">
-              <div className="flex items-center justify-between text-sm text-slate-500">
-                <span>Total a pagar</span>
-                <span className="text-lg font-bold text-slate-900">€{(parseFloat(credits) || 0).toFixed(2)}</span>
-              </div>
+            <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 flex items-center justify-between">
+              <span className="text-sm text-slate-500">Total a pagar</span>
+              <span className="text-lg font-bold text-slate-900">€{(parseFloat(credits) || 0).toFixed(2)}</span>
             </div>
-
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setShowAddCredits(false)}
-                className="w-full sm:w-auto rounded-2xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-              >
-                Fechar
-              </Button>
-              <Button
-                onClick={() => {
-                  if (!credits || parseFloat(credits) < 5) {
-                    toast.error('Mínimo €5');
-                    return;
-                  }
-                  addCreditsMutation.mutate(parseFloat(credits));
-                }}
-                disabled={addCreditsMutation.isPending}
-                className="w-full sm:w-auto rounded-2xl bg-orange-500 text-white hover:bg-orange-600"
-              >
+              <Button variant="outline" onClick={() => setShowAddCredits(false)} className="rounded-2xl border-slate-200">Fechar</Button>
+              <Button onClick={() => {
+                if (!credits || parseFloat(credits) < 5) { toast.error('Mínimo €5'); return; }
+                addCreditsMutation.mutate(parseFloat(credits));
+              }} disabled={addCreditsMutation.isPending} className="rounded-2xl bg-orange-500 hover:bg-orange-600 text-white">
                 {addCreditsMutation.isPending ? 'A abrir pagamento...' : 'Continuar para pagamento'}
               </Button>
             </div>
@@ -647,49 +403,30 @@ export default function MyWallet() {
 
       {/* Withdraw Modal */}
       <Dialog open={showWithdraw} onOpenChange={setShowWithdraw}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-3xl border border-slate-200 bg-white">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ArrowUpRight className="w-5 h-5" style={{ color: ACCENT_COLOR }} />
-              Solicitar Saque
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
+              <ArrowUpRight className="w-5 h-5 text-orange-500" /> Solicitar Saque
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="p-4 rounded-lg" style={{ backgroundColor: ACCENT_COLOR + "10", border: `1px solid ${ACCENT_COLOR}20` }}>
+          <div className="space-y-4 py-2">
+            <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100">
               <p className="text-xs text-slate-400 font-medium">Saldo Disponível</p>
-              <p className="text-2xl font-bold mt-1" style={{ color: ACCENT_COLOR }}>
-                €{(wallet?.available_balance || 0).toFixed(2)}
-              </p>
+              <p className="text-2xl font-bold text-orange-500 mt-1">€{professionalPending.toFixed(2)}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-white block mb-2">Valor (€)</label>
-              <Input
-                type="number"
-                value={withdrawAmount}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
-                max={professionalPending || 0}
-                step="0.01"
-                className="h-10"
-              />
+              <label className="text-sm font-medium text-slate-700 block mb-2">Valor (€)</label>
+              <Input type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)}
+                max={professionalPending || 0} step="0.01" className="h-11 rounded-xl border-slate-200" />
             </div>
-            <div className="flex gap-2 pt-2">
-              <Button variant="outline" onClick={() => setShowWithdraw(false)} className="flex-1 bg-slate-900 border-white/10 text-white hover:bg-slate-800">
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => {
-                  const amount = parseFloat(withdrawAmount);
-                  if (!amount || amount <= 0) {
-                    toast.error('Valor inválido');
-                    return;
-                  }
-                  withdrawMutation.mutate(amount);
-                }}
-                disabled={withdrawMutation.isPending}
-                className="flex-1 text-white"
-                style={{ backgroundColor: ACCENT_COLOR }}
-              >
-                {withdrawMutation.isPending ? 'Processando...' : 'Sacar'}
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" onClick={() => setShowWithdraw(false)} className="flex-1 rounded-xl border-slate-200">Cancelar</Button>
+              <Button onClick={() => {
+                const amount = parseFloat(withdrawAmount);
+                if (!amount || amount <= 0) { toast.error('Valor inválido'); return; }
+                withdrawMutation.mutate(amount);
+              }} disabled={withdrawMutation.isPending} className="flex-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-white">
+                {withdrawMutation.isPending ? 'A processar...' : 'Sacar'}
               </Button>
             </div>
           </div>
