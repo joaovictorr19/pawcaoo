@@ -87,6 +87,45 @@
     "price_per_night": {
       "type": "number"
     },
+    "add_ons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "service_name": {
+            "type": "string",
+            "enum": [
+              "walk",
+              "training",
+              "grooming",
+              "bathing",
+              "nail_trim"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "description": "N\u00famero de sess\u00f5es/passeios"
+          },
+          "price_per_unit": {
+            "type": "number"
+          },
+          "total_price": {
+            "type": "number"
+          },
+          "assigned_walker_email": {
+            "type": "string",
+            "description": "Email do parceiro respons\u00e1vel (opcional)"
+          }
+        }
+      },
+      "default": [],
+      "description": "Servi\u00e7os adicionais durante a estadia"
+    },
+    "add_ons_total": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor total de add-ons"
+    },
     "total_amount": {
       "type": "number"
     },

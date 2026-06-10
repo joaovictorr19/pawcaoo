@@ -4,6 +4,7 @@ import { X, Plus, Minus, CreditCard, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import HotelServiceAddons from "./HotelServiceAddons";
 
 const SERVICE_OPTIONS = [
   { value: "boarding", label: "🛏️ Alojamento (noites)" },
@@ -22,6 +23,7 @@ const DOG_SIZES = [
 
 export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelProfile, partners = [], defaultDate }) {
   const [payingNow, setPayingNow] = useState(false);
+  const [addOns, setAddOns] = useState([]);
   const [form, setForm] = useState({
     owner_name: "",
     owner_email: "",
@@ -49,10 +51,14 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const addDog = () => setForm(f => ({ ...f, dogs: [...f.dogs, { dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "" }] }));
   const removeDog = (i) => setForm(f => ({ ...f, dogs: f.dogs.filter((_, idx) => idx !== i) }));
 
+  const addOnsTotal = addOns.reduce((sum, addon) => sum + addon.total_price, 0);
+  
   const buildPayload = () => ({
     ...form,
     total_dogs: form.dogs.length,
     total_amount: parseFloat(form.total_amount) || 0,
+    add_ons: addOns,
+    add_ons_total: addOnsTotal,
     hotel_profile_id: hotelProfile?.id,
     hotel_name: hotelProfile?.walker_name || hotelProfile?.hotel_details?.hotel_name,
     hotel_email: hotelProfile?.created_by,
@@ -105,7 +111,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
       toast.error("Preenche o nome do dono e a data de check-in.");
       return;
     }
-    const amount = parseFloat(form.total_amount);
+    const amount = parseFloat(form.total_amount) + addOnsTotal;
     if (!amount || amount <= 0) {
       toast.error("Insere um valor total válido para efectuar o pagamento.");
       return;
@@ -133,6 +139,8 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
         special_requests: form.special_requests,
         assigned_walker_email: form.assigned_walker_email,
         assigned_walker_name: form.assigned_walker_name,
+        add_ons: addOns,
+        add_ons_total: addOnsTotal,
       };
       const res = await base44.functions.invoke("createHotelCheckout", payload);
       const { url, error } = res.data;
@@ -235,33 +243,60 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
           </div>
 
           {/* Parceiro responsável */}
-          {partners.length > 0 && (
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Profissional Responsável</label>
-              <select value={form.assigned_walker_email} onChange={e => {
-                const p = partners.find(p => p.walker_email === e.target.value);
-                set("assigned_walker_email", e.target.value);
-                set("assigned_walker_name", p?.walker_name || "");
-              }} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400 bg-white">
-                <option value="">— Sem atribuição —</option>
-                {partners.map(p => (
-                  <option key={p.walker_email} value={p.walker_email}>{p.walker_name} ({(p.services || []).join(", ")})</option>
-                ))}
-              </select>
-            </div>
-          )}
+           {partners.length > 0 && (
+             <div>
+               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Profissional Responsável</label>
+               <select value={form.assigned_walker_email} onChange={e => {
+                 const p = partners.find(p => p.walker_email === e.target.value);
+                 set("assigned_walker_email", e.target.value);
+                 set("assigned_walker_name", p?.walker_name || "");
+               }} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400 bg-white">
+                 <option value="">— Sem atribuição —</option>
+                 {partners.map(p => (
+                   <option key={p.walker_email} value={p.walker_email}>{p.walker_name} ({(p.services || []).join(", ")})</option>
+                 ))}
+               </select>
+             </div>
+           )}
 
-          {/* Valor + notas */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Valor Total (€)</label>
-              <input type="number" min="0" step="0.01" value={form.total_amount} onChange={e => set("total_amount", e.target.value)} placeholder="0.00" className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400" />
-            </div>
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Pedidos especiais</label>
-              <textarea value={form.special_requests} onChange={e => set("special_requests", e.target.value)} rows={1} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400 resize-none" />
-            </div>
-          </div>
+           {/* Serviços Adicionais */}
+           <HotelServiceAddons 
+             addOns={addOns} 
+             onAddOnsChange={setAddOns}
+             partners={partners}
+           />
+
+           {/* Resumo de preço */}
+           <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-3 rounded-xl border border-slate-200">
+             <div className="space-y-1.5 text-sm">
+               <div className="flex justify-between">
+                 <span className="text-slate-600">Serviço base:</span>
+                 <span className="font-semibold">€{(parseFloat(form.total_amount) || 0).toFixed(2)}</span>
+               </div>
+               {addOnsTotal > 0 && (
+                 <div className="flex justify-between text-blue-600 font-semibold">
+                   <span>Add-ons ({addOns.length}):</span>
+                   <span>€{addOnsTotal.toFixed(2)}</span>
+                 </div>
+               )}
+               <div className="border-t border-slate-300 pt-1.5 flex justify-between font-bold text-slate-900">
+                 <span>TOTAL:</span>
+                 <span className="text-lg">€{(parseFloat(form.total_amount) + addOnsTotal || 0).toFixed(2)}</span>
+               </div>
+             </div>
+           </div>
+
+           {/* Valor + notas */}
+           <div className="grid grid-cols-2 gap-3">
+             <div>
+               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Valor Serviço (€)</label>
+               <input type="number" min="0" step="0.01" value={form.total_amount} onChange={e => set("total_amount", e.target.value)} placeholder="0.00" className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400" />
+             </div>
+             <div>
+               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Pedidos especiais</label>
+               <textarea value={form.special_requests} onChange={e => set("special_requests", e.target.value)} rows={1} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400 resize-none" />
+             </div>
+           </div>
         </div>
 
         {/* Footer */}
@@ -269,11 +304,11 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
            {/* Pay with Stripe */}
            <Button
              onClick={handlePayNow}
-             disabled={payingNow || !form.owner_name.trim() || !form.checkin_date || !parseFloat(form.total_amount)}
+             disabled={payingNow || !form.owner_name.trim() || !form.checkin_date || !(parseFloat(form.total_amount) + addOnsTotal > 0)}
              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-black shadow-lg shadow-indigo-400/30 gap-2 disabled:opacity-40 text-sm"
            >
              {payingNow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-             {payingNow ? "A redirecionar..." : `💳 Pagar ${parseFloat(form.total_amount) > 0 ? `(${parseFloat(form.total_amount).toFixed(2)}€)` : ""}`}
+             {payingNow ? "A redirecionar..." : `💳 Pagar ${(parseFloat(form.total_amount) + addOnsTotal) > 0 ? `(${(parseFloat(form.total_amount) + addOnsTotal).toFixed(2)}€)` : ""}`}
            </Button>
            <div className="grid grid-cols-2 gap-2">
              <Button variant="outline" onClick={onClose} className="rounded-xl border-purple-100 text-purple-600 hover:bg-purple-50 text-sm">Cancelar</Button>
