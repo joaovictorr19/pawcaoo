@@ -5,6 +5,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Home from './pages/Home.jsx'
 import UserProfile from './pages/UserProfile.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
+import ResetPassword from './pages/ResetPassword.jsx'
 const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2').catch(e => {
   console.error('Error loading ProfessionalHubV2:', e);
   return { default: () => <div>Erro ao carregar página</div> };
@@ -122,6 +126,10 @@ const AuthenticatedApp = () => {
             <Route path="/Home" element={<Home />} />
             <Route path="/UserProfile" element={<UserProfile />} />
             <Route path="/AdminDashboard" element={<AdminDashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             {Object.entries(Pages).map(([path, Page]) => {
               try {
                 return <Route key={path} path={`/${path}`} element={<Page />} />;
