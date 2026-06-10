@@ -60,9 +60,43 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     payment_status: "pending",
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) return;
+    const amount = parseFloat(form.total_amount) || 0;
+    
+    // Salvar reserva
     onSave(buildPayload());
+    
+    // Se tem valor, gerar link de pagamento para enviar ao cliente
+    if (amount > 0) {
+      try {
+        const payload = {
+          hotel_profile_id: hotelProfile?.id,
+          hotel_name: hotelProfile?.walker_name || hotelProfile?.hotel_details?.hotel_name,
+          hotel_email: hotelProfile?.created_by,
+          owner_name: form.owner_name,
+          owner_email: form.owner_email,
+          owner_phone: form.owner_phone,
+          dogs: form.dogs,
+          service_type: form.service_type,
+          checkin_date: form.checkin_date,
+          checkout_date: form.checkout_date || form.checkin_date,
+          total_dogs: form.dogs.length,
+          total_amount: amount,
+          platform_fee: parseFloat((amount * 0.10).toFixed(2)),
+          service_amount: parseFloat((amount * 0.90).toFixed(2)),
+        };
+        const res = await base44.functions.invoke("createHotelCheckout", payload);
+        const { url } = res.data;
+        if (url) {
+          toast.success(`Link de pagamento: ${url}`);
+          navigator.clipboard.writeText(url);
+        }
+      } catch (err) {
+        console.error("Erro ao gerar link:", err);
+      }
+    }
+    
     onClose();
   };
 
@@ -116,7 +150,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-lg rounded-t-3xl md:rounded-3xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-purple-900/20">
+      <div className="relative bg-white w-full max-w-lg rounded-t-3xl md:rounded-3xl max-h-[90vh] overflow-y-scroll shadow-2xl shadow-purple-900/20 scrollbar-hide">
         {/* Header */}
         <div className="relative bg-gradient-to-br from-purple-800 via-purple-700 to-purple-500 px-5 py-5 flex items-center justify-between rounded-t-3xl md:rounded-t-3xl overflow-hidden">
           <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full pointer-events-none" />
@@ -231,27 +265,27 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
         </div>
 
         {/* Footer */}
-        <div className="px-5 pb-6 border-t border-purple-50 pt-4 bg-gradient-to-b from-white to-purple-50/30 space-y-2">
-          {/* Pay with Stripe */}
-          <Button
-            onClick={handlePayNow}
-            disabled={payingNow || !form.owner_name.trim() || !form.checkin_date || !parseFloat(form.total_amount)}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-black shadow-lg shadow-indigo-400/30 gap-2 disabled:opacity-40"
-          >
-            {payingNow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-            {payingNow ? "A redirecionar..." : `💳 Criar & Pagar ${parseFloat(form.total_amount) > 0 ? `(${parseFloat(form.total_amount).toFixed(2)}€)` : ""}`}
-          </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose} className="flex-1 rounded-xl border-purple-100 text-purple-600 hover:bg-purple-50">Cancelar</Button>
-            <Button onClick={handleSave} disabled={!form.owner_name.trim() || !form.checkin_date}
-              className="flex-1 bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white rounded-xl font-black shadow-lg shadow-purple-500/30 disabled:opacity-40">
-              🏨 Só Criar
-            </Button>
-          </div>
-          <p className="text-center text-[10px] text-slate-400">
-            "Criar &amp; Pagar" redireciona para checkout seguro Stripe
-          </p>
-        </div>
+         <div className="sticky bottom-0 px-5 py-4 border-t border-purple-50 bg-gradient-to-b from-white to-purple-50/30 space-y-2">
+           {/* Pay with Stripe */}
+           <Button
+             onClick={handlePayNow}
+             disabled={payingNow || !form.owner_name.trim() || !form.checkin_date || !parseFloat(form.total_amount)}
+             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-black shadow-lg shadow-indigo-400/30 gap-2 disabled:opacity-40 text-sm"
+           >
+             {payingNow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+             {payingNow ? "A redirecionar..." : `💳 Pagar ${parseFloat(form.total_amount) > 0 ? `(${parseFloat(form.total_amount).toFixed(2)}€)` : ""}`}
+           </Button>
+           <div className="grid grid-cols-2 gap-2">
+             <Button variant="outline" onClick={onClose} className="rounded-xl border-purple-100 text-purple-600 hover:bg-purple-50 text-sm">Cancelar</Button>
+             <Button onClick={handleSave} disabled={!form.owner_name.trim() || !form.checkin_date}
+               className="bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white rounded-xl font-black shadow-lg shadow-purple-500/30 disabled:opacity-40 text-sm">
+               🏨 Só Criar
+             </Button>
+           </div>
+           <p className="text-center text-[10px] text-slate-400">
+             "Pagar" gera link Stripe • "Só Criar" salva e envia link ao cliente
+           </p>
+         </div>
       </div>
     </div>
   );
