@@ -7,7 +7,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import {
   Hotel, CalendarDays, Dog, Users, Euro, CheckCircle2,
-  XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, ListOrdered, Settings
+  XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, ListOrdered, Settings, RefreshCw, LogOut
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -61,6 +61,7 @@ export default function HotelDashboard() {
   const [showNewBooking, setShowNewBooking] = useState(false);
   const [showAddPartner, setShowAddPartner] = useState(false);
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
@@ -143,6 +144,21 @@ export default function HotelDashboard() {
     });
     queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
     toast.success("Disponibilidade atualizada!");
+  };
+
+  const handleSyncGoogleCalendar = async () => {
+    if (!hotelProfile) return;
+    setIsSyncing(true);
+    try {
+      const response = await base44.functions.invoke('syncHotelBookingsToGoogleCalendar', {
+        hotel_profile_id: hotelProfile.id
+      });
+      toast.success(`✓ ${response.data.message}`);
+    } catch (error) {
+      toast.error(`Erro: ${error.message}`);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleUpdateBooking = (id, data) => updateBookingMutation.mutate({ id, data });
