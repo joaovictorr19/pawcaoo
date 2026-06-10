@@ -398,11 +398,12 @@ export default function ProfessionalSetup() {
       }
 
       // Atualizar User Auth
-      await base44.auth.updateMe({
-        account_type: form.professional_type,
-        profile_photo_url: form.photo_url || user.profile_photo_url,
-        city: form.location,
-      });
+       await base44.auth.updateMe({
+         account_type: form.professional_type,
+         profile_photo_url: form.photo_url || user.profile_photo_url,
+         city: form.location,
+         role: form.professional_type === 'hotel' ? 'hotel' : form.professional_type === 'both' ? 'both' : form.professional_type,
+       });
 
       // Sincronizar UserProfile
       const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
