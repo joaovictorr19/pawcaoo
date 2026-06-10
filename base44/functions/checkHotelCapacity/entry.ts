@@ -25,7 +25,14 @@ Deno.serve(async (req) => {
     const hotel = profiles[0];
     if (!hotel) return Response.json({ ok: true, message: "Hotel profile not found" });
 
-    const capacityTotal = hotel.hotel_details?.capacity_total;
+    const hotelDetails = hotel.hotel_details || {};
+    const services = hotelDetails.services || [];
+    
+    // Use services array if available, else fall back to legacy capacity_total
+    const capacityTotal = services.length > 0 
+      ? services.reduce((acc, s) => acc + s.capacity_total, 0)
+      : hotelDetails.capacity_total;
+    
     if (!capacityTotal || capacityTotal <= 0) {
       return Response.json({ ok: true, message: "No capacity configured" });
     }
@@ -60,16 +67,22 @@ Deno.serve(async (req) => {
     for (const dateStr of datesToCheck) {
       const day = new Date(dateStr + "T12:00:00");
 
-      // Count dogs occupying this day
-      const dayBookings = activeBookings.filter(b => {
+      // Count dogs occupying this day by service type
+      const dayBookingsByService = {};
+      
+      activeBookings.forEach(b => {
         try {
           const cin = new Date(b.checkin_date + "T12:00:00");
           const cout = b.checkout_date ? new Date(b.checkout_date + "T12:00:00") : cin;
-          return day >= cin && day <= cout;
-        } catch { return false; }
+          if (day >= cin && day <= cout) {
+            const serviceType = b.service_type || 'boarding';
+            dayBookingsByService[serviceType] = (dayBookingsByService[serviceType] || 0) + (b.total_dogs || 1);
+          }
+        } catch { }
       });
 
-      const totalDogs = dayBookings.reduce((acc, b) => acc + (b.total_dogs || 1), 0);
+      // Check capacity for each service
+      const totalDogs = Object.values(dayBookingsByService).reduce((a, b) => a + b, 0);
       const pct = Math.round((totalDogs / capacityTotal) * 100);
 
       // Alert if 100% (full) or exactly at threshold
