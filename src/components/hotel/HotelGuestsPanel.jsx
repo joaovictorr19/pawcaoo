@@ -8,6 +8,7 @@ import {
   CheckCircle2, LogOut, User, Star, ShieldAlert, Activity,
   Search, Filter
 } from "lucide-react";
+import GuestsExportButton from "./GuestsExportButton";
 import { differenceInDays, parseISO, format } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -348,6 +349,11 @@ export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
 
   return (
     <div className="space-y-5">
+
+      {/* Toolbar: search + export */}
+      <div className="flex gap-2 items-center">
+        <GuestsExportButton bookings={[...guests, ...confirmedArrivals, ...pendingBookings]} />
+      </div>
 
       {/* Search bar */}
       <div className="relative">
