@@ -661,8 +661,8 @@ function StatsPanel({ bookings }) {
               );
             })}
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
+          </div>
+          )}
+          </div>
+          );
+          }
