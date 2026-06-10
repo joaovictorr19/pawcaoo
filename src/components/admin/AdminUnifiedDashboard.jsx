@@ -272,6 +272,22 @@ export default function AdminUnifiedDashboard() {
                               <CheckCircle className="w-4 h-4" />
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              if (window.confirm(`Apagar reserva de ${booking.owner_name}?`)) {
+                                updateBookingMutation.mutate({
+                                  id: booking.id,
+                                  type: booking.type,
+                                  data: { status: "cancelled" }
+                                });
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

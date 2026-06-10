@@ -20,7 +20,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+const COLORS = ['#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0', '#f1f5f9'];
 
 export default function AdminAnalytics({ 
   users = [], 
@@ -142,18 +142,18 @@ export default function AdminAnalytics({
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-500 shadow-sm">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Reservas (30 dias)</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">{kpis.bookingsLastMonth}</h3>
-              <p className="text-xs text-blue-600 mt-1">Demanda recente</p>
-            </div>
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Calendar className="w-6 h-6 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
+        <Card className="border-l-4 border-l-slate-400 shadow-sm">
+           <CardContent className="p-6 flex items-center justify-between">
+             <div>
+               <p className="text-sm font-medium text-gray-500">Reservas (30 dias)</p>
+               <h3 className="text-3xl font-bold text-gray-900 mt-1">{kpis.bookingsLastMonth}</h3>
+               <p className="text-xs text-slate-600 mt-1">Demanda recente</p>
+             </div>
+             <div className="bg-slate-100 p-3 rounded-full">
+               <Calendar className="w-6 h-6 text-slate-600" />
+             </div>
+           </CardContent>
+         </Card>
 
         <Card className="border-l-4 border-l-purple-500 shadow-sm">
           <CardContent className="p-6 flex items-center justify-between">
@@ -171,7 +171,7 @@ export default function AdminAnalytics({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 2. Gráfico de Desempenho */}
-        <Card className="lg:col-span-2 shadow-lg border-0">
+        <Card className="lg:col-span-2 shadow-sm border border-slate-200 bg-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-blue-600" />
@@ -183,8 +183,8 @@ export default function AdminAnalytics({
               <AreaChart data={bookingsTrendData}>
                 <defs>
                   <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#64748b" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#64748b" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -193,14 +193,14 @@ export default function AdminAnalytics({
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
-                <Area type="monotone" dataKey="Reservas" stroke="#3b82f6" fillOpacity={1} fill="url(#colorBookings)" strokeWidth={3} />
+                <Area type="monotone" dataKey="Reservas" stroke="#64748b" fillOpacity={1} fill="url(#colorBookings)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* 3. Top Walkers Widget */}
-        <Card className="lg:col-span-1 shadow-lg border-0">
+        <Card className="lg:col-span-1 shadow-sm border border-slate-200 bg-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-yellow-500" />
@@ -237,7 +237,7 @@ export default function AdminAnalytics({
       </div>
 
       {/* Map (Optional context) */}
-      <Card className="shadow-lg border-0">
+      <Card className="shadow-sm border border-slate-200 bg-white">
         <CardHeader>
           <CardTitle>Mapa de Cobertura</CardTitle>
         </CardHeader>
