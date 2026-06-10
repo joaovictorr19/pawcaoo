@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
-const COLORS = ['#64748b', '#94a3b8', '#cbd5e1', '#e2e8f0']; // Slate grays only
+const COLORS = ['#3b82f6', '#22c55e', '#ef4444', '#f59e0b']; // Blue, Green, Red, Amber
 
 export default function WalkStatusDonutChart({ bookings = [], isLoading = false }) {
   const { language } = useLanguage();
@@ -35,16 +35,16 @@ export default function WalkStatusDonutChart({ bookings = [], isLoading = false 
 
   if (isLoading) {
     return (
-      <Card className="h-[350px] flex items-center justify-center bg-white border border-slate-200">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <Card className="h-[350px] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
       </Card>
     );
   }
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow h-full bg-white border border-slate-200">
+    <Card className="shadow-sm hover:shadow-md transition-shadow h-full">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-slate-800">
+        <CardTitle className="text-lg font-semibold text-gray-800">
           {language === 'pt' ? 'Status dos Passeios' : 'Walk Status'}
         </CardTitle>
       </CardHeader>
@@ -72,7 +72,7 @@ export default function WalkStatusDonutChart({ bookings = [], isLoading = false 
             </PieChart>
           </ResponsiveContainer>
         ) : (
-           <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+          <div className="h-full flex items-center justify-center text-gray-400 text-sm">
             {language === 'pt' ? 'Sem dados para exibir' : 'No data to display'}
           </div>
         )}

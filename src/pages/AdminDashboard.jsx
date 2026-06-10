@@ -50,7 +50,6 @@ import { t } from "@/components/translations";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
-import AdminUnifiedDashboard from "@/components/admin/AdminUnifiedDashboard";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import AdminDebug from "./AdminDebug";
@@ -417,28 +416,28 @@ export default function AdminDashboard() {
       value: adminStats?.totalUsers || 0,
       label: "Utilizadores Totais",
       subLabel: `${(adminStats?.totalUsers || 0)} contas`,
-      color: "from-slate-600 to-slate-600"
+      color: "from-blue-600 to-cyan-600"
     },
     {
       icon: Shield,
       value: adminStats?.activeWalkers || 0,
       label: "Walkers Ativos",
       subLabel: `${adminStats?.verifiedWalkers || 0} verificados`,
-      color: "from-slate-600 to-slate-600"
+      color: "from-green-600 to-emerald-600"
     },
     {
       icon: Clock,
       value: adminStats?.pendingBookings || 0,
       label: "Reservas Pendentes",
       subLabel: `${adminStats?.completedBookings || 0} concluídas`,
-      color: "from-slate-600 to-slate-600"
+      color: "from-orange-600 to-red-600"
     },
     {
       icon: AlertCircle,
       value: (adminStats?.pendingWalkers || 0) + (adminStats?.pendingTrainers || 0),
       label: "Candidaturas",
       subLabel: `Aguardam verificação`,
-      color: "from-slate-600 to-slate-600"
+      color: "from-purple-600 to-pink-600"
     },
   ], [adminStats]);
 
@@ -656,10 +655,10 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen bg-white p-6 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-white border border-slate-200 flex items-center justify-center shadow-sm mx-auto mb-4 animate-pulse">
-            <Shield className="w-8 h-8 text-slate-900" />
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl mx-auto mb-4 animate-pulse" style={{ borderRadius: 0 }}>
+            <Shield className="w-8 h-8 text-white" />
           </div>
-          <p className="text-slate-600 font-medium">Verificando permissões...</p>
+          <p className="text-gray-600 font-medium">Verificando permissões...</p>
         </div>
       </div>
     );
@@ -667,12 +666,12 @@ export default function AdminDashboard() {
 
   if (!user || user?.role !== 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-white">
-      <Card className="max-w-md border border-slate-200 shadow-sm">
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <Card className="glass-panel max-w-md border-0 shadow-2xl">
           <CardContent className="p-12 text-center">
             <Ban className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Acesso Negado</h2>
-            <p className="text-slate-600">Apenas administradores podem acessar esta página.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Negado</h2>
+            <p className="text-gray-600">Apenas administradores podem acessar esta página.</p>
           </CardContent>
         </Card>
       </div>
@@ -681,8 +680,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-     {emergencyUsers?.length > 0 && (
-      <div className="fixed inset-0 z-[9999] bg-red-500/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white text-center pointer-events-none">
+      {emergencyUsers?.length > 0 && (
+        <div className="fixed inset-0 z-[9999] bg-red-600/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white text-center pointer-events-none">
           <AlertTriangle className="w-24 h-24 mb-6 animate-bounce text-white" />
           <h1 className="text-5xl font-black mb-2">ALERTA DE SEGURANÇA!</h1>
           <p className="text-xl mb-8">Um profissional solicitou ajuda imediata.</p>
@@ -727,8 +726,8 @@ export default function AdminDashboard() {
         <div className="mb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-14 h-14 bg-white border border-slate-200 flex items-center justify-center shadow-sm rounded-2xl">
-                <Shield className="w-7 h-7 text-slate-900" />
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl rounded-2xl">
+                <Shield className="w-7 h-7 text-white" />
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl font-black text-slate-900">Admin Dashboard</h1>
@@ -750,11 +749,11 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {dashboardStats.slice(0, 3).map((stat, idx) => (
-                  <Card key={idx} className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center p-6">
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-3 shadow-sm">
-                      <stat.icon className="w-6 h-6 text-slate-700" />
-                    </div>
+               {dashboardStats.slice(0, 3).map((stat, idx) => (
+                 <Card key={idx} className="bg-gradient-to-br from-white to-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center p-6">
+                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3 shadow-md`}>
+                     <stat.icon className="w-6 h-6 text-white" />
+                   </div>
                    <div className="text-3xl font-black text-slate-900 leading-none mb-1">{stat.value}</div>
                    <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide text-center">{stat.label}</div>
                    <div className="text-xs text-slate-500 mt-1">{stat.subLabel}</div>
@@ -766,27 +765,34 @@ export default function AdminDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="overflow-x-auto pb-3 no-scrollbar border-b border-slate-200">
-             <TabsList className="flex w-max gap-2 bg-white p-0 h-auto">
-               <TabsTrigger value="overview" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">📊 Dashboard</TabsTrigger>
-                <TabsTrigger value="godmode" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">🌍 God Mode</TabsTrigger>
-                <TabsTrigger value="calendar" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-slate-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">📅 Agenda</TabsTrigger>
+             <TabsList className="flex w-max gap-2 bg-transparent p-0 h-auto">
+               <TabsTrigger value="overview" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📊 Dashboard</TabsTrigger>
+               <TabsTrigger value="godmode" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🌍 God Mode</TabsTrigger>
+               <TabsTrigger value="calendar" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
 
 
-                <TabsTrigger value="approvals" className="rounded-full bg-white border border-slate-200 text-slate-700 shadow-none data-[state=active]:bg-slate-800 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
-                  ✅ Aprovações {(walkerApplications.length + trainerApplications.length) > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{walkerApplications.length + trainerApplications.length}</span>}
-                </TabsTrigger>
-                <TabsTrigger value="users" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">🔑 Utilizadores</TabsTrigger>
-                <TabsTrigger value="operations" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-slate-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">⚡ Operações</TabsTrigger>
-                <TabsTrigger value="gamification" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-slate-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">🏆 Gamificação</TabsTrigger>
-                <TabsTrigger value="professionals" className="rounded-full bg-white border border-slate-200 shadow-none data-[state=active]:bg-slate-700 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap text-slate-700">🐾 Profissionais</TabsTrigger>
-                <TabsTrigger value="debug" className="rounded-full bg-white border border-slate-200 text-slate-700 shadow-none data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
+               <TabsTrigger value="approvals" className="rounded-full bg-orange-100 text-orange-700 shadow-none data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
+                 ✅ Aprovações {(walkerApplications.length + trainerApplications.length) > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{walkerApplications.length + trainerApplications.length}</span>}
+               </TabsTrigger>
+               <TabsTrigger value="users" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
+               <TabsTrigger value="operations" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
+               <TabsTrigger value="gamification" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-yellow-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
+               <TabsTrigger value="professionals" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-pink-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐾 Profissionais</TabsTrigger>
+               <TabsTrigger value="debug" className="rounded-full bg-red-100 text-red-700 shadow-none data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="overview">
             {activeTab === 'overview' && (
               <div className="mt-6">
-                <AdminUnifiedDashboard />
+                <AdminOverviewDashboard 
+                  bookings={allBookings}
+                  users={allUsers}
+                  walkers={activeWalkers}
+                  trainers={allTrainers}
+                  payments={allPayments}
+                  isLoading={loadingStats}
+                />
               </div>
             )}
           </TabsContent>
@@ -987,13 +993,13 @@ export default function AdminDashboard() {
           <TabsContent value="operations">
             {activeTab === 'operations' && (
             <div className="mt-6 space-y-6">
-              <Card className="bg-white border border-slate-200 shadow-sm" style={{ borderRadius: '0.5rem' }}>
+              <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-slate-700" />
+                    <Zap className="w-5 h-5 text-blue-600" />
                     Gestão de APIs Externas
                   </CardTitle>
-                  <p className="text-sm text-slate-600">Configure chaves de API para publishers externos publicarem na comunidade</p>
+                  <p className="text-sm text-gray-600">Configure chaves de API para publishers externos publicarem na comunidade</p>
                 </CardHeader>
                 <CardContent>
                   <ExternalPublishersManager />
@@ -1065,10 +1071,10 @@ export default function AdminDashboard() {
             </DialogHeader>
             {selectedBadgeForAll && (
               <div className="space-y-4">
-                <p className="text-sm text-slate-600">Selecione os utilizadores que receberão <strong>{selectedBadgeForAll.name}</strong></p>
-                <div className="border border-slate-200 p-3 max-h-96 overflow-y-auto">
-                   {allUsers.map(u => (
-                     <div key={u.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 cursor-pointer" onClick={() => {
+                <p className="text-sm text-gray-600">Selecione os utilizadores que receberão <strong>{selectedBadgeForAll.name}</strong></p>
+                <div className="border p-3 max-h-96 overflow-y-auto">
+                  {allUsers.map(u => (
+                    <div key={u.id} className="flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer" onClick={() => {
                       if (usersToGrantBadge.includes(u.email)) {
                         setUsersToGrantBadge(usersToGrantBadge.filter(e => e !== u.email));
                       } else {
@@ -1119,8 +1125,8 @@ export default function AdminDashboard() {
                     toast.success(`Emblema concedido a ${usersToGrantBadge.length} utilizadores!`);
                     setShowGrantAllUsersModal(false);
                   }}
-                  className="w-full bg-slate-900 hover:bg-slate-800"
-                   style={{ borderRadius: '0.375rem' }}
+                  className="w-full bg-purple-600"
+                  style={{ borderRadius: 0 }}
                   disabled={usersToGrantBadge.length === 0}
                 >
                   Conceder a {usersToGrantBadge.length} Selecionados

@@ -39,33 +39,33 @@ export default function RevenuePayoutsChart({ payments = [], isLoading = false }
 
   if (isLoading) {
     return (
-      <Card className="h-[350px] flex items-center justify-center bg-white border border-slate-200">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <Card className="h-[350px] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
       </Card>
     );
   }
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow h-full bg-white border border-slate-200">
+    <Card className="shadow-sm hover:shadow-md transition-shadow h-full">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-slate-800">
+        <CardTitle className="text-lg font-semibold text-gray-800">
           {language === 'pt' ? 'Faturamento vs Repasses (6 Meses)' : 'Revenue vs Payouts (6 Months)'}
         </CardTitle>
       </CardHeader>
       <CardContent className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" />
-             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-             <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(value) => `€${value}`} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
+            <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} tickFormatter={(value) => `€${value}`} />
             <Tooltip 
               formatter={(value) => [`€${value}`, '']}
               contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
               cursor={{ fill: '#f3f4f6' }}
             />
             <Legend wrapperStyle={{ paddingTop: '10px' }}/>
-            <Bar dataKey="revenue" name={language === 'pt' ? 'Faturamento Total' : 'Total Revenue'} fill="#64748b" radius={[4, 4, 0, 0]} barSize={30} />
-             <Bar dataKey="payouts" name={language === 'pt' ? 'Repasses (Walkers)' : 'Payouts (Walkers)'} fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={30} />
+            <Bar dataKey="revenue" name={language === 'pt' ? 'Faturamento Total' : 'Total Revenue'} fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={30} />
+            <Bar dataKey="payouts" name={language === 'pt' ? 'Repasses (Walkers)' : 'Payouts (Walkers)'} fill="#22c55e" radius={[4, 4, 0, 0]} barSize={30} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
