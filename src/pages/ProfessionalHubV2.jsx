@@ -16,7 +16,6 @@ import { ServiceEditor } from "../components/professional-hub/ServiceEditor";
 import { ProfessionalEditProfile } from "@/components/professionals/ProfessionalEditProfile";
 import IncomingRequestModal from "@/components/professional/IncomingRequestModal";
 import { VerificationBanner } from "@/components/professional-hub/VerificationBanner";
-import { RadarStatusPanel } from "@/components/professional-hub/RadarStatusPanel";
 import { ToolsSection } from "@/components/professional-hub/ToolsSection";
 import { WalletSection } from "@/components/professional-hub/WalletSection";
 import { FinancesSection } from "@/components/professional-hub/FinancesSection";
@@ -514,13 +513,7 @@ export default function ProfessionalHubV2() {
                 </Button>
               </div>
 
-              <div>
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></div>
-                  Radar PawGo
-                </h3>
-                <RadarStatusPanel userEmail={user?.email} isOnline={isOnline} city={professionalProfile?.location || user?.city || "Portugal"} />
-              </div>
+
             </motion.div>
           )}
 
