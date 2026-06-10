@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
               description: 'Alojamento noturno e pernoita com supervisão',
               price_per_day: 40,
               capacity_total: 5,
-              capacity_available: 0,
+              capacity_available: 5,
               is_active: true,
               accepted_dog_sizes: ['small', 'medium', 'large']
             },
