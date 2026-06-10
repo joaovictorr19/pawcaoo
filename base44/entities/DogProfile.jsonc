@@ -114,6 +114,62 @@
       "type": "string",
       "format": "date"
     },
+    "vaccines": {
+      "type": "array",
+      "description": "Registo individual de cada vacina",
+      "items": {
+        "type": "object",
+        "properties": {
+          "vaccine_name": {
+            "type": "string",
+            "description": "Nome da vacina (ex: Raiva, Tosse do Canil, Polivalente)"
+          },
+          "last_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Data da \u00faltima dose"
+          },
+          "next_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Data da pr\u00f3xima dose (opcional)"
+          }
+        }
+      },
+      "default": []
+    },
+    "deworming_internal": {
+      "type": "object",
+      "description": "Desparasita\u00e7\u00e3o interna",
+      "properties": {
+        "last_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Data da \u00faltima desparasita\u00e7\u00e3o interna"
+        },
+        "product_name": {
+          "type": "string",
+          "description": "Nome do produto/comprimido"
+        }
+      },
+      "default": {}
+    },
+    "deworming_external": {
+      "type": "object",
+      "description": "Desparasita\u00e7\u00e3o externa",
+      "properties": {
+        "last_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Data da \u00faltima desparasita\u00e7\u00e3o externa"
+        },
+        "product_name": {
+          "type": "string",
+          "description": "Nome do produto/coleira/pipeta"
+        }
+      },
+      "default": {}
+    },
     "vaccination_records": {
       "type": "array",
       "items": {

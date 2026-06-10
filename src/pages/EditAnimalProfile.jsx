@@ -37,6 +37,15 @@ export default function EditAnimalProfile() {
     queryFn: () => base44.auth.me(),
   });
 
+  const VACCINE_OPTIONS = [
+    "Raiva",
+    "Tosse do Canil (Bordetella)",
+    "Polivalente (DHPPi / V8 / V10)",
+    "Leishmaniose",
+    "Leptospirose",
+    "Gripe Canina",
+  ];
+
   const [formData, setFormData] = useState({
     dog_name: "",
     animal_type: "dog",
@@ -59,6 +68,9 @@ export default function EditAnimalProfile() {
     reactive_to_noises: false,
     is_vaccinated: true,
     is_neutered: false,
+    vaccines: [],
+    deworming_internal: { last_date: "", product_name: "" },
+    deworming_external: { last_date: "", product_name: "" },
     vet_clinic_name: "",
     vet_phone: "",
     medical_conditions: "",
@@ -88,6 +100,9 @@ export default function EditAnimalProfile() {
         socialization: animal.socialization || "friendly",
         is_vaccinated: animal.is_vaccinated ?? true,
         is_neutered: animal.is_neutered ?? false,
+        vaccines: animal.vaccines || [],
+        deworming_internal: animal.deworming_internal || { last_date: "", product_name: "" },
+        deworming_external: animal.deworming_external || { last_date: "", product_name: "" },
         vet_clinic_name: animal.vet_clinic_name || "",
         vet_phone: animal.vet_phone || "",
         medical_conditions: animal.medical_conditions || "",
@@ -304,20 +319,116 @@ export default function EditAnimalProfile() {
               <span className={labelCls + " mb-0"}>Saúde</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>Vacinado</label>
-                <select value={formData.is_vaccinated.toString()} onChange={e => set('is_vaccinated', e.target.value === 'true')} className={selectCls}>
-                  <option value="true">Sim ✅</option>
-                  <option value="false">Não</option>
-                </select>
+            <div>
+              <label className={labelCls}>Castrado</label>
+              <select value={formData.is_neutered.toString()} onChange={e => set('is_neutered', e.target.value === 'true')} className={selectCls}>
+                <option value="true">Sim ✅</option>
+                <option value="false">Não</option>
+              </select>
+            </div>
+
+            {/* Vacinas */}
+            <div>
+              <label className={labelCls}>💉 Vacinas</label>
+              <p className="text-xs text-slate-400 mb-3">Registe cada vacina individualmente com a data da última dose</p>
+              <div className="space-y-3">
+                {VACCINE_OPTIONS.map((vaccineName) => {
+                  const existing = formData.vaccines.find(v => v.vaccine_name === vaccineName);
+                  const hasVaccine = !!existing;
+                  return (
+                    <div key={vaccineName} className={`rounded-xl border transition-all ${hasVaccine ? 'border-green-300 bg-green-50' : 'border-slate-200 bg-white'}`}>
+                      <label className="flex items-center gap-3 p-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={hasVaccine}
+                          className="w-4 h-4 accent-green-500"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              set('vaccines', [...formData.vaccines, { vaccine_name: vaccineName, last_date: "", next_date: "" }]);
+                            } else {
+                              set('vaccines', formData.vaccines.filter(v => v.vaccine_name !== vaccineName));
+                            }
+                          }}
+                        />
+                        <span className="text-sm font-semibold text-slate-800 flex-1">{vaccineName}</span>
+                        {hasVaccine && <span className="text-xs text-green-600 font-medium">✓ Vacinado</span>}
+                      </label>
+                      {hasVaccine && (
+                        <div className="px-3 pb-3 grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Última dose</label>
+                            <input
+                              type="date"
+                              value={existing.last_date || ""}
+                              onChange={(e) => set('vaccines', formData.vaccines.map(v => v.vaccine_name === vaccineName ? { ...v, last_date: e.target.value } : v))}
+                              className={inputCls + " h-9 text-xs"}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Próxima dose</label>
+                            <input
+                              type="date"
+                              value={existing.next_date || ""}
+                              onChange={(e) => set('vaccines', formData.vaccines.map(v => v.vaccine_name === vaccineName ? { ...v, next_date: e.target.value } : v))}
+                              className={inputCls + " h-9 text-xs"}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <div>
-                <label className={labelCls}>Castrado</label>
-                <select value={formData.is_neutered.toString()} onChange={e => set('is_neutered', e.target.value === 'true')} className={selectCls}>
-                  <option value="true">Sim ✅</option>
-                  <option value="false">Não</option>
-                </select>
+            </div>
+
+            {/* Desparasitação */}
+            <div>
+              <label className={labelCls}>🪱 Desparasitação Interna</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Última data</label>
+                  <input
+                    type="date"
+                    value={formData.deworming_internal.last_date || ""}
+                    onChange={e => set('deworming_internal', { ...formData.deworming_internal, last_date: e.target.value })}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Produto</label>
+                  <input
+                    type="text"
+                    value={formData.deworming_internal.product_name || ""}
+                    onChange={e => set('deworming_internal', { ...formData.deworming_internal, product_name: e.target.value })}
+                    placeholder="Ex: Milbemax"
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className={labelCls}>🦟 Desparasitação Externa</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Última data</label>
+                  <input
+                    type="date"
+                    value={formData.deworming_external.last_date || ""}
+                    onChange={e => set('deworming_external', { ...formData.deworming_external, last_date: e.target.value })}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Produto</label>
+                  <input
+                    type="text"
+                    value={formData.deworming_external.product_name || ""}
+                    onChange={e => set('deworming_external', { ...formData.deworming_external, product_name: e.target.value })}
+                    placeholder="Ex: Frontline, Bravecto"
+                    className={inputCls}
+                  />
+                </div>
               </div>
             </div>
 
