@@ -457,14 +457,14 @@ export default function ProfessionalSetup() {
   }
 
   return (
-    <div className="min-h-screen bg-white px-4 pb-10 pt-6">
+    <div className="min-h-screen bg-slate-950 px-4 pb-10 pt-6">
       <div className="w-full max-w-2xl mx-auto">
         {/* Back button */}
         <motion.button
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => navigate(-1)}
-          className="mb-8 flex items-center gap-2 text-slate-600 hover:text-slate-900 text-sm font-semibold transition-colors"
+          className="mb-8 flex items-center gap-2 text-slate-400 hover:text-white text-sm font-semibold transition-colors"
         >
           <ChevronLeft className="w-4 h-4" /> Voltar
         </motion.button>
@@ -477,10 +477,10 @@ export default function ProfessionalSetup() {
             ))}
           </div>
           <div className="flex justify-between items-center">
-            <p className="text-slate-600 text-sm font-semibold uppercase tracking-wider">
+            <p className="text-slate-400 text-sm font-semibold uppercase tracking-wider">
               Passo {step + 1} de {STEPS.length}
             </p>
-            <p className="text-slate-900 font-bold text-lg">{STEPS[step]}</p>
+            <p className="text-white font-bold text-lg">{STEPS[step]}</p>
           </div>
         </motion.div>
 
@@ -488,8 +488,8 @@ export default function ProfessionalSetup() {
          {step === 0 && (
            <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                <div>
-                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900">O teu perfil público</h2>
-                 <p className="text-slate-600 text-base mt-2 font-light">Como os donos de animais te vão conhecer.</p>
+                 <h2 className="text-3xl md:text-4xl font-bold text-white">O teu perfil público</h2>
+                 <p className="text-slate-400 text-base mt-2 font-light">Como os donos de animais te vão conhecer.</p>
                </div>
 
               {/* Foto */}
@@ -617,8 +617,8 @@ export default function ProfessionalSetup() {
           {step === 1 && (
             <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">O teu papel</h2>
-                <p className="text-slate-600 text-base mt-2 font-light">Que tipo de serviços pretendes oferecer?</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-white">O teu papel</h2>
+                <p className="text-slate-400 text-base mt-2 font-light">Que tipo de serviços pretendes oferecer?</p>
               </div>
               <div className="space-y-3">
                 {[
@@ -651,8 +651,8 @@ export default function ProfessionalSetup() {
           {step === 2 && form.professional_type === 'hotel' && (
             <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Detalhes do Hotel 🏨</h2>
-                <p className="text-slate-600 text-base mt-2 font-light">Informações sobre o teu hotel canino.</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-white">Detalhes do Hotel 🏨</h2>
+                <p className="text-slate-400 text-base mt-2 font-light">Informações sobre o teu hotel canino.</p>
               </div>
 
               <div>
@@ -728,8 +728,8 @@ export default function ProfessionalSetup() {
               {step === 2 && form.professional_type !== 'hotel' && (
             <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Serviços & Preços</h2>
-                <p className="text-slate-600 text-base mt-2 font-light">Define o que ofereces e quanto cobras.</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-white">Serviços & Preços</h2>
+                <p className="text-slate-400 text-base mt-2 font-light">Define o que ofereces e quanto cobras.</p>
               </div>
 
               <div className="p-4 bg-slate-800 rounded-2xl flex items-center justify-between">
@@ -813,8 +813,8 @@ export default function ProfessionalSetup() {
           {step === 3 && (
             <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Preferências</h2>
-                <p className="text-slate-600 text-base mt-2 font-light">Define quem podes ajudar e quando.</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-white">Preferências</h2>
+                <p className="text-slate-400 text-base mt-2 font-light">Define quem podes ajudar e quando.</p>
               </div>
 
               <div>
@@ -1023,8 +1023,8 @@ export default function ProfessionalSetup() {
                 <motion.div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
                   <CheckCircle className="w-10 h-10 text-blue-600" />
                 </motion.div>
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Tudo pronto!</h2>
-                <p className="text-slate-600 text-base mt-2 font-light">Confirma os teus dados e cria o perfil.</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-white">Tudo pronto!</h2>
+                <p className="text-slate-400 text-base mt-2 font-light">Confirma os teus dados e cria o perfil.</p>
               </div>
 
               <div className="bg-slate-800 rounded-2xl p-5 space-y-4">
