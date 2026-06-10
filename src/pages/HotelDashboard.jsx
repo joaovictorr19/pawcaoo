@@ -157,7 +157,7 @@ export default function HotelDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 pb-24 md:pb-8">
       {/* ── Top Header ── */}
-      <div className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-purple-600 sticky top-14 md:top-16 z-20 shadow-xl shadow-purple-900/30 overflow-hidden">
+       <div className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-purple-600 sticky top-0 z-20 shadow-xl shadow-purple-900/30 overflow-hidden">
         {/* Decorative blobs */}
         <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
         <div className="absolute -bottom-10 left-1/3 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
@@ -256,7 +256,7 @@ export default function HotelDashboard() {
               <button onClick={() => updateCapacity(Math.max(0, (hotelProfile?.hotel_details?.capacity_available || 0) - 1))}
                 className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">−</button>
               <span className="font-black text-lg text-purple-600 w-6 text-center">{hotelProfile?.hotel_details?.capacity_available ?? capacityTotal}</span>
-              <button onClick={() => updateCapacity(Math.min(capacityTotal || 99, (hotelProfile?.hotel_details?.capacity_available || 0) + 1))}
+              <button onClick={() => updateCapacity(Math.min(200, (hotelProfile?.hotel_details?.capacity_available || 0) + 1))}
                 className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">+</button>
             </div>
           </div>
