@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Clock, MapPin, CalendarDays, X, ChevronLeft, Phone, LocateFixed } from 'lucide-react';
+import { Clock, MapPin, CalendarDays, X, ChevronLeft, Phone, LocateFixed, PlusCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfile, selectedDate: initialDate, selectedService, currentUser }) {
+  const navigate = useNavigate();
+  // Steps: 0=Animal, 1=Data, 2=Hora&Duração, 3=Recolha, 4=Resumo
   const [step, setStep] = useState(0);
+  const [selectedDogId, setSelectedDogId] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('10:00');
   const [duration, setDuration] = useState('1');
@@ -16,10 +21,11 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
   const [shareWhatsappLocation, setShareWhatsappLocation] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
+      setSelectedDogId('');
       setSelectedDate(initialDate || '');
-      setStep(initialDate ? 1 : 0);
+      setStep(0);
       setSelectedTime('10:00');
       setDuration('1');
       setPickupMethod('walker_pickup');
@@ -35,6 +41,14 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
     },
     enabled: !!currentUser?.email,
   });
+
+  const { data: myDogs = [] } = useQuery({
+    queryKey: ['myDogs', currentUser?.email],
+    queryFn: () => base44.entities.DogProfile.filter({ owner_email: currentUser.email }),
+    enabled: !!currentUser?.email,
+  });
+
+  const selectedDog = myDogs.find(d => d.id === selectedDogId);
 
   if (!walkerProfile) return null;
 
@@ -77,6 +91,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
       base44.auth.redirectToLogin(window.location.href);
       return;
     }
+    if (!selectedDog) { toast.error('Selecione um animal'); return; }
     if (!selectedDate) { toast.error('Escolha uma data'); return; }
 
     setIsCreating(true);
@@ -85,9 +100,11 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
         owner_name: clientProfile?.full_name || currentUser.full_name || currentUser.email,
         owner_email: currentUser.email,
         owner_phone: ownerPhone,
-        dog_name: clientProfile?.owned_dogs?.[0]?.dog_name || 'Cão',
-        dogs: clientProfile?.owned_dogs || [],
-        total_dogs: clientProfile?.owned_dogs?.length || 1,
+        dog_name: selectedDog.dog_name,
+        dog_size: selectedDog.size || selectedDog.dog_size || 'medium',
+        dog_profile_id: selectedDog.id,
+        dogs: [{ dog_id: selectedDog.id, dog_name: selectedDog.dog_name, dog_size: selectedDog.size || 'medium', dog_breed: selectedDog.breed }],
+        total_dogs: 1,
         total_amount: totalAmount,
         service_amount: serviceAmount,
         platform_fee: platformFee,
@@ -129,7 +146,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
     }
   };
 
-  const stepTitles = ['Escolha o dia', 'Hora & Duração', 'Forma de recolha', 'Confirmar'];
+  const stepTitles = ['Selecione o Animal', 'Escolha o dia', 'Hora & Duração', 'Forma de recolha', 'Confirmar'];
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
@@ -156,15 +173,70 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
 
         {/* Progress */}
         <div className="flex gap-1 px-5 pt-3">
-          {[0, 1, 2, 3].map(s => (
+          {[0, 1, 2, 3, 4].map(s => (
             <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-300 ${step >= s ? 'bg-blue-500' : 'bg-slate-200'}`} />
           ))}
         </div>
 
         <div className="overflow-y-auto flex-1 px-5 pt-4 pb-8">
 
-          {/* STEP 0 — Data */}
+          {/* STEP 0 — Animal */}
           {step === 0 && (
+            <div className="space-y-3">
+              {myDogs.length === 0 ? (
+                <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-5 text-center space-y-3">
+                  <p className="text-2xl">🐾</p>
+                  <p className="font-bold text-orange-800">Ainda não tem nenhum animal cadastrado.</p>
+                  <p className="text-xs text-orange-600">Para fazer uma reserva precisa adicionar o seu animal primeiro.</p>
+                  <Button
+                    onClick={() => { onClose(); navigate(createPageUrl('EditAnimalProfile')); }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl w-full"
+                  >
+                    <PlusCircle className="w-4 h-4 mr-2" /> Adicionar Animal
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Qual animal vai ao passeio?</p>
+                  <div className="space-y-2">
+                    {myDogs.map(dog => (
+                      <button
+                        key={dog.id}
+                        onClick={() => { setSelectedDogId(dog.id); setStep(1); }}
+                        className={`w-full p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98] flex items-center gap-3 ${
+                          selectedDogId === dog.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'
+                        }`}
+                      >
+                        {dog.photo_url ? (
+                          <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">🐾</div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-slate-900">{dog.dog_name}</p>
+                          <p className="text-xs text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : dog.size === 'extra_large' ? 'XL' : dog.size}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+                          selectedDogId === dog.id ? 'border-blue-500 bg-blue-500' : 'border-slate-300'
+                        }`}>
+                          {selectedDogId === dog.id && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => { onClose(); navigate(createPageUrl('EditAnimalProfile')); }}
+                    className="w-full py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 text-sm font-medium hover:border-blue-300 hover:text-blue-500 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Adicionar outro animal
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* STEP 1 — Data */}
+          {step === 1 && (
             <div className="space-y-3">
               <div className="grid grid-cols-4 gap-2">
                 {availableDates.map(d => {
@@ -173,7 +245,7 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                   return (
                     <button
                       key={d}
-                      onClick={() => { setSelectedDate(d); setStep(1); }}
+                      onClick={() => { setSelectedDate(d); setStep(2); }}
                       className={`py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
                         isSelected ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-200 bg-white hover:border-blue-300'
                       }`}
@@ -192,8 +264,8 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
             </div>
           )}
 
-          {/* STEP 1 — Hora & Duração */}
-          {step === 1 && (
+          {/* STEP 2 — Hora & Duração */}
+          {step === 2 && (
             <div className="space-y-5">
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1">
@@ -231,14 +303,14 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 </div>
               </div>
 
-              <Button onClick={() => setStep(2)} className="w-full h-13 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base">
+              <Button onClick={() => setStep(3)} className="w-full h-13 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base">
                 Continuar →
               </Button>
             </div>
           )}
 
-          {/* STEP 2 — Recolha */}
-          {step === 2 && (
+          {/* STEP 3 — Recolha */}
+          {step === 3 && (
             <div className="space-y-3">
               {pickupOptions.map(option => (
                 <button
@@ -263,19 +335,23 @@ export default function ProfessionalBookingModal({ isOpen, onClose, walkerProfil
                 </button>
               ))}
 
-              <Button onClick={() => setStep(3)} className="w-full h-13 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base mt-2">
+              <Button onClick={() => setStep(4)} className="w-full h-13 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl text-base mt-2">
                 Ver Resumo →
               </Button>
             </div>
           )}
 
-          {/* STEP 3 — Resumo */}
-          {step === 3 && (
+          {/* STEP 4 — Resumo */}
+          {step === 4 && (
             <div className="space-y-4">
               <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Profissional</span>
                   <span className="font-bold text-slate-900">{walkerProfile.walker_name || walkerProfile.trainer_name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Animal</span>
+                  <span className="font-bold text-slate-900">{selectedDog?.dog_name} {selectedDog?.breed ? `(${selectedDog.breed})` : ''}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Cliente</span>
