@@ -10,7 +10,8 @@ import MobileSelect from "@/components/ui/MobileSelect";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, DollarSign, Clock, AlertCircle, MessageCircle, MapPin, Phone, LocateFixed } from "lucide-react";
+import { CalendarIcon, DollarSign, Clock, AlertCircle, MessageCircle, MapPin, Phone, LocateFixed, PlusCircle } from "lucide-react";
+import QuickAddAnimalModal from "@/components/booking/QuickAddAnimalModal";
 import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -94,6 +95,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   const [selectedDogId, setSelectedDogId] = useState("");
   const [showManualInput, setShowManualInput] = useState(false);
   const [isTestBooking, setIsTestBooking] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
 
   // Update address and phone when user is loaded
   React.useEffect(() => {
@@ -291,23 +293,31 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     console.log('📍 handleNextStep - Step:', step, 'Data:', formData);
     
     if (step === 1) {
-      // Validar cão - FORÇAR input do nome se modo manual
-      const hasDog = selectedDogId || (showManualInput && formData.dog_name?.trim());
-      if (!hasDog) {
-        toast.error('⚠️ Selecione ou adicione um animal', {
-          description: 'É necessário escolher um cão para continuar',
+      // Validar cão — obrigar sempre animal pré-cadastrado
+      if (!selectedDogId) {
+        toast.error('⚠️ Selecione um animal cadastrado', {
+          description: 'É necessário escolher um animal para continuar. Adicione um animal primeiro.',
           duration: 4000
         });
         return;
       }
       
-      // Se modo manual, garantir que nome foi preenchido
-      if (showManualInput && !formData.dog_name?.trim()) {
-        toast.error('⚠️ Digite o nome do animal', {
-          description: 'O nome do animal é obrigatório',
-          duration: 4000
-        });
-        return;
+      // Auto-preencher dados do animal selecionado
+      const dog = myDogs.find(d => d.id === selectedDogId);
+      if (dog) {
+        setFormData(prev => ({
+          ...prev,
+          dog_name: dog.dog_name,
+          dog_size: dog.size || 'medium',
+          owner_phone: dog.owner_phone || prev.owner_phone || '',
+          special_notes: [
+            dog.medical_conditions ? `Condições médicas: ${dog.medical_conditions}` : null,
+            dog.behavioral_notes ? `Comportamento: ${dog.behavioral_notes}` : null,
+            dog.is_vaccinated ? 'Vacinado ✓' : 'Não vacinado',
+            dog.is_neutered ? 'Castrado ✓' : null,
+          ].filter(Boolean).join(' | ') || prev.special_notes,
+        }));
+        if (dog.default_pickup_address) setPickupAddress(dog.default_pickup_address);
       }
       
       // Validar data
@@ -414,8 +424,25 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   };
 
   return (
-    <div>
-      <Card className="glass-panel border-0 shadow-xl rounded-2xl">
+  <div>
+    {/* Modal de cadastro rápido de animal */}
+    <QuickAddAnimalModal
+      open={showQuickAdd}
+      onClose={() => setShowQuickAdd(false)}
+      user={user}
+      onCreated={(newDog) => {
+        setSelectedDogId(newDog.id);
+        setFormData(prev => ({
+          ...prev,
+          dog_name: newDog.dog_name,
+          dog_size: newDog.size || 'medium',
+          owner_phone: newDog.owner_phone || prev.owner_phone || '',
+        }));
+        if (newDog.default_pickup_address) setPickupAddress(newDog.default_pickup_address);
+      }}
+    />
+
+    <Card className="glass-panel border-0 shadow-xl rounded-2xl">
         <CardHeader 
           className="text-white py-2 md:py-3 px-3 md:px-4"
           style={{
@@ -447,132 +474,79 @@ export default function BookingForm({ walker, professional, onClose, initialDate
           {/* STEP 1: Select Dog & Date */}
           {step === 1 && (
             <>
-              {myDogs?.length > 0 ? (
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-gray-700">
-                    Selecione seu animal *
-                  </Label>
-                  <div className="flex gap-2 overflow-x-auto pb-2">
+              {/* Animal selector — sempre mostra animais cadastrados */}
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-gray-700">
+                  Selecione o seu animal *
+                </Label>
+
+                {myDogs?.length === 0 ? (
+                  /* Sem animais — forçar cadastro */
+                  <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 text-center space-y-3">
+                    <p className="text-sm font-semibold text-orange-800">Ainda não tem nenhum animal cadastrado.</p>
+                    <p className="text-xs text-orange-600">Para fazer uma reserva, precisa de adicionar o seu animal primeiro. Os dados serão enviados ao profissional.</p>
+                    <Button
+                      type="button"
+                      onClick={() => setShowQuickAdd(true)}
+                      className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-10 text-sm font-semibold w-full"
+                    >
+                      <PlusCircle className="w-4 h-4 mr-2" /> Adicionar Animal Agora
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-3 overflow-x-auto pb-1">
                     {myDogs.map((dog) => {
                       const isSelected = selectedDogId === dog.id;
                       return (
-                        <div
-                          key={dog.id}
-                          onClick={() => {
-                            console.log('🐕 Cão selecionado:', dog.dog_name);
-                            setOptimisticSelectedDog(dog.id);
-                            setSelectedDogId(dog.id);
-                            setShowManualInput(false);
-                          }}
-                          className={`flex-shrink-0 cursor-pointer transition-all ${
-                            isSelected ? 'scale-110' : 'opacity-70 hover:opacity-100'
-                          }`}
+                        <div key={dog.id}
+                          onClick={() => { setSelectedDogId(dog.id); setShowManualInput(false); }}
+                          className={`flex-shrink-0 cursor-pointer transition-all ${isSelected ? 'scale-105' : 'opacity-60 hover:opacity-90'}`}
                         >
                           <div className="relative">
                             {dog.photo_url ? (
-                              <img 
-                                src={dog.photo_url} 
-                                alt={dog.dog_name} 
-                                className={`w-16 h-16 rounded-full object-cover ${
-                                  isSelected ? 'ring-4 ring-green-500' : 'ring-2 ring-gray-200'
-                                }`} 
-                              />
+                              <img src={dog.photo_url} alt={dog.dog_name}
+                                className={`w-16 h-16 rounded-2xl object-cover ${isSelected ? 'ring-4 ring-orange-500' : 'ring-2 ring-gray-200'}`} />
                             ) : (
-                              <div className={`w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold ${
-                                isSelected ? 'ring-4 ring-green-500' : 'ring-2 ring-gray-200'
-                              }`}>
-                                {dog.dog_name?.charAt(0) || 'A'}
+                              <div className={`w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center text-2xl ${isSelected ? 'ring-4 ring-orange-500' : 'ring-2 ring-gray-200'}`}>
+                                🐾
                               </div>
                             )}
                             {isSelected && (
-                              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
-                                <span className="text-white text-xs">✓</span>
+                              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white">
+                                <span className="text-white text-[9px]">✓</span>
                               </div>
                             )}
-                            <p className="text-[10px] text-center mt-1 font-medium text-gray-700">{dog.dog_name}</p>
+                            <p className="text-[10px] text-center mt-1.5 font-semibold text-gray-700 max-w-[64px] truncate">{dog.dog_name}</p>
                           </div>
                         </div>
                       );
                     })}
-                    <div
-                      onClick={() => {
-                        console.log('➕ Modo manual ativado');
-                        setShowManualInput(true);
-                        setSelectedDogId("");
-                      }}
-                      className={`flex-shrink-0 cursor-pointer transition-all ${
-                        showManualInput ? 'scale-110' : 'opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      <div className={`w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-2xl ${
-                        showManualInput ? 'ring-4 ring-blue-500' : 'ring-2 ring-blue-200'
-                      }`}>
-                        +
+                    {/* Botão para adicionar novo animal */}
+                    <div onClick={() => setShowQuickAdd(true)} className="flex-shrink-0 cursor-pointer">
+                      <div className="w-16 h-16 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-300 flex items-center justify-center hover:border-orange-400 hover:bg-orange-50 transition-colors">
+                        <PlusCircle className="w-6 h-6 text-slate-400" />
                       </div>
-                      <p className="text-[10px] text-center mt-1 font-medium text-gray-700">Adicionar</p>
+                      <p className="text-[10px] text-center mt-1.5 font-medium text-gray-500">Novo</p>
                     </div>
                   </div>
-                  {showManualInput && (
-                   <div className="bg-blue-50 rounded-lg p-3 space-y-2 border-2 border-blue-400 animate-in">
-                     <Label className="text-xs font-semibold text-blue-900">Dados do Animal</Label>
-                     <Input
-                       value={formData.dog_name}
-                       onChange={(e) => {
-                         console.log('📝 Nome do animal:', e.target.value);
-                         setFormData({...formData, dog_name: e.target.value});
-                       }}
-                       placeholder="Nome do animal *"
-                       className="h-9 text-sm border-blue-200"
-                       required
-                       autoFocus
-                     />
-                      <Select
-                        value={formData.dog_size}
-                        onValueChange={(value) => {
-                          console.log('📏 Tamanho:', value);
-                          setFormData({...formData, dog_size: value});
-                        }}
-                      >
-                        <SelectTrigger className="h-9 text-sm border-blue-200">
-                          <SelectValue placeholder="Tamanho *" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="small">Pequeno</SelectItem>
-                          <SelectItem value="medium">Médio</SelectItem>
-                          <SelectItem value="large">Grande</SelectItem>
-                          <SelectItem value="extra_large">XL</SelectItem>
-                        </SelectContent>
-                      </Select>
+                )}
+
+                {/* Info do animal selecionado */}
+                {selectedDogId && (() => {
+                  const dog = myDogs.find(d => d.id === selectedDogId);
+                  if (!dog) return null;
+                  return (
+                    <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-xs text-orange-800 space-y-0.5">
+                      <p className="font-semibold">{dog.dog_name} {dog.breed ? `— ${dog.breed}` : ''}</p>
+                      {dog.size && <p>Tamanho: {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : 'XL'}</p>}
+                      {dog.medical_conditions && <p className="text-orange-700">⚠️ {dog.medical_conditions}</p>}
+                      {!dog.default_pickup_address && (
+                        <p className="text-amber-700 font-medium mt-1">⚠️ Sem endereço de recolha — será pedido no passo seguinte</p>
+                      )}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <Label className="text-sm">Nome do Cão *</Label>
-                    <Input
-                      value={formData.dog_name}
-                      onChange={(e) => setFormData({...formData, dog_name: e.target.value})}
-                      placeholder="Ex: Max"
-                      className="h-9"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm">Tamanho *</Label>
-                    <MobileSelect
-                      value={formData.dog_size}
-                      onValueChange={(value) => setFormData({...formData, dog_size: value})}
-                      options={[
-                        { value: 'small', label: 'Pequeno' },
-                        { value: 'medium', label: 'Médio' },
-                        { value: 'large', label: 'Grande' },
-                        { value: 'extra_large', label: 'XL' }
-                      ]}
-                      placeholder="Selecionar tamanho"
-                    />
-                  </div>
-                  </>
-                  )}
+                  );
+                })()}
+              </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -955,6 +929,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                       owner_email: user.email,
                       dog_name: formData.dog_name,
                       dog_size: formData.dog_size,
+                      dog_profile_id: selectedDogId || undefined,
                       walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
                       walk_time: formData.walk_time,
                       session_date: !isWalker ? format(formData.walk_date, 'yyyy-MM-dd') : undefined,

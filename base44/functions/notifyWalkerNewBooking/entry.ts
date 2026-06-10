@@ -1,13 +1,11 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Read automation payload (entity automation sends { event, data, old_data, ... })
     const body = await req.json().catch(() => ({}));
 
-    // Resolve booking data (handle payload_too_large or manual invocation)
     let booking = body?.data || null;
     const event = body?.event || {};
 
@@ -23,24 +21,56 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, message: 'No booking data' }, { status: 400 });
     }
 
-    // Determine recipient (walker preferred, fallback to trainer)
     const recipient = booking.walker_email || booking.trainer_email;
     if (!recipient) {
       return Response.json({ success: true, skipped: true, message: 'No professional email on booking' });
     }
 
+    // Tentar buscar ficha completa do animal
+    let dogProfile = null;
+    if (booking.dog_profile_id) {
+      try {
+        const profiles = await base44.asServiceRole.entities.DogProfile.filter({ id: booking.dog_profile_id });
+        dogProfile = profiles[0] || null;
+      } catch (e) {
+        console.warn('Could not fetch dog profile:', e?.message);
+      }
+    }
+
     const type = booking.type === 'training' ? 'treino' : 'passeio';
     const owner = booking.owner_name || 'Cliente';
-    const dog = (booking.dog_name || (booking.dogs?.[0]?.dog_name)) || 'Pet';
+    const dogName = dogProfile?.dog_name || booking.dog_name || (booking.dogs?.[0]?.dog_name) || 'Pet';
     const dateStr = booking.walk_date ? new Date(booking.walk_date).toLocaleDateString('pt-PT') : '';
     const timeStr = booking.walk_time || '';
     const duration = booking.duration_hours ? `${booking.duration_hours}h` : '';
     const location = booking.pickup_address || booking.pickup_location || booking.location || '';
-
-    const subject = `Novo pedido de ${type} — estado pendente | PawCão`;
     const dashboardUrl = `${(new URL('/ProfessionalHubV2', req.url)).origin}/ProfessionalHubV2`;
     const total = typeof booking.total_amount === 'number' ? `${booking.total_amount.toFixed(2)}€` : null;
-    const service = booking.special_notes?.replace('Serviço: ', '') || (booking.type === 'training' ? 'Treino' : 'Passeio');
+    const service = booking.type === 'training' ? 'Treino' : 'Passeio';
+
+    // Secção detalhada do animal
+    const animalLines = dogProfile ? [
+      '',
+      '--- FICHA DO ANIMAL ---',
+      `Nome: ${dogProfile.dog_name}`,
+      dogProfile.breed ? `Raça: ${dogProfile.breed}` : null,
+      dogProfile.age ? `Idade: ${dogProfile.age} anos` : null,
+      dogProfile.weight ? `Peso: ${dogProfile.weight} kg` : null,
+      dogProfile.size ? `Tamanho: ${dogProfile.size === 'small' ? 'Pequeno' : dogProfile.size === 'medium' ? 'Médio' : dogProfile.size === 'large' ? 'Grande' : 'XL'}` : null,
+      dogProfile.gender ? `Sexo: ${dogProfile.gender === 'male' ? 'Macho' : 'Fêmea'}` : null,
+      `Vacinado: ${dogProfile.is_vaccinated ? 'Sim ✓' : 'Não'}`,
+      `Castrado: ${dogProfile.is_neutered ? 'Sim ✓' : 'Não'}`,
+      dogProfile.energy_level ? `Nível de energia: ${dogProfile.energy_level === 'very_high' ? 'Muito Alta' : dogProfile.energy_level === 'high' ? 'Alta' : dogProfile.energy_level === 'normal' ? 'Normal' : 'Baixa'}` : null,
+      dogProfile.socialization ? `Socialização: ${dogProfile.socialization === 'friendly' ? 'Amigável' : dogProfile.socialization === 'neutral' ? 'Neutro' : dogProfile.socialization === 'shy' ? 'Tímido' : 'Agressivo'}` : null,
+      dogProfile.medical_conditions ? `⚠️ Condições médicas: ${dogProfile.medical_conditions}` : null,
+      dogProfile.allergies ? `⚠️ Alergias: ${dogProfile.allergies}` : null,
+      dogProfile.behavioral_notes ? `Notas de comportamento: ${dogProfile.behavioral_notes}` : null,
+      dogProfile.special_care_notes ? `Cuidados especiais: ${dogProfile.special_care_notes}` : null,
+      dogProfile.vet_clinic_name ? `Veterinário: ${dogProfile.vet_clinic_name}` : null,
+      dogProfile.vet_phone ? `Tel. veterinário: ${dogProfile.vet_phone}` : null,
+      dogProfile.emergency_contact_name ? `Contacto de emergência: ${dogProfile.emergency_contact_name} (${dogProfile.emergency_contact_phone || ''})` : null,
+      '------------------------',
+    ].filter(Boolean) : [];
 
     const lines = [
       `Olá,`,
@@ -48,29 +78,30 @@ Deno.serve(async (req) => {
       '',
       `Estado da reserva: PENDENTE`,
       '',
-      `Resumo da reserva`,
-      `- Cliente: ${owner}`,
-      `- Animal: ${dog}`,
-      `- Serviço: ${service}`,
-      dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
-      duration ? `- Duração: ${duration}` : null,
-      location ? `- Local de recolha/encontro: ${location}` : null,
-      total ? `- Valor total pago pelo cliente: ${total}` : null,
+      `--- RESUMO DA RESERVA ---`,
+      `Cliente: ${owner}`,
+      `Telefone do cliente: ${booking.owner_phone || 'Não fornecido'}`,
+      `Animal: ${dogName}`,
+      `Serviço: ${service}`,
+      dateStr || timeStr ? `Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
+      duration ? `Duração: ${duration}` : null,
+      location ? `Local de recolha: ${location}` : null,
+      total ? `Valor total: ${total}` : null,
+      booking.special_notes ? `Observações do cliente: ${booking.special_notes}` : null,
+      ...animalLines,
       '',
-      `O pagamento do cliente foi registado e a reserva está à espera da sua decisão.`,
-      `Entre no seu painel para aceitar ou gerir este pedido:`,
+      `O pagamento foi registado e a reserva aguarda a sua decisão.`,
+      `Aceda ao seu painel para aceitar ou recusar:`,
       dashboardUrl,
-      '',
-      `Se aceitar, o cliente seguirá com a reserva agendada para a data indicada.`,
       '',
       `Obrigado,`,
       `Equipa PawCão`
-    ].filter(Boolean).join('\n');
+    ].filter(v => v !== null).join('\n');
 
     await base44.asServiceRole.integrations.Core.SendEmail({
       from_name: 'PawCão',
       to: recipient,
-      subject,
+      subject: `Novo pedido de ${type} — ${dogName} (${owner}) | PawCão`,
       body: lines,
     });
 
