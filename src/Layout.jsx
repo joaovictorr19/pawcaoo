@@ -436,10 +436,6 @@ function LayoutContent({ children, currentPageName }) {
             <span className="sr-only">PawCão</span>
           </Link>
           <nav className="flex items-center gap-2">
-            <NavLink to={createPageUrl("Home")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`}>
-              {language === 'es' ? 'Inicio' : 'Home'}
-            </NavLink>
-
             {/* Links de painel — só para utilizadores autenticados */}
             {authUser && (() => {
               const role = authUser.role || 'user';

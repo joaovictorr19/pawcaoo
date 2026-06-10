@@ -606,12 +606,11 @@ export default function ProfessionalSetup() {
                         Adicionar
                       </div>
                       <input type="file" accept="image/*" multiple onChange={handlePortfolioUpload} className="hidden" disabled={uploading} />
-                    </label>
-                  )}
-                </div>
-                </div>
-                </div>
-                )}
+                      </label>
+                      )}
+                      </div>
+                      </motion.div>
+                      )}
 
           {/* STEP 1 - Tipo */}
           {step === 1 && (
