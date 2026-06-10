@@ -455,6 +455,19 @@ function LayoutContent({ children, currentPageName }) {
                 </>
               );
 
+              // Verifica se o utilizador tem um perfil de hotel (pode estar em WalkerProfile com professional_type="hotel" ou ter role="hotel")
+              const hasHotelProfile = async () => {
+                try {
+                  const profiles = await base44.entities.WalkerProfile.filter({ 
+                    created_by: authUser.email, 
+                    professional_type: 'hotel' 
+                  });
+                  return profiles.length > 0;
+                } catch { 
+                  return false; 
+                }
+              };
+
               if (isHotel) return (
                 <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-purple-100 text-purple-700' : 'hover:bg-purple-50 text-purple-600'}`}>
                   🏨 {nav('myHotel')}
