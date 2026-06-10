@@ -129,24 +129,24 @@ export default function AdminAnalytics({
     <div className="space-y-6">
       {/* 1. KPIs Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-l-4 border-l-green-500 shadow-sm">
+        <Card className="border-l-4 border-l-slate-300 shadow-sm bg-white border border-slate-200">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Walkers Ativos</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">{kpis.activeWalkersCount}</h3>
-              <p className="text-xs text-green-600 mt-1">Profissionais disponíveis</p>
+              <p className="text-sm font-medium text-slate-600">Walkers Ativos</p>
+              <h3 className="text-3xl font-bold text-slate-900 mt-1">{kpis.activeWalkersCount}</h3>
+              <p className="text-xs text-slate-600 mt-1">Profissionais disponíveis</p>
             </div>
-            <div className="bg-green-100 p-3 rounded-full">
-              <Users className="w-6 h-6 text-green-600" />
+            <div className="bg-slate-100 p-3 rounded-full">
+              <Users className="w-6 h-6 text-slate-600" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-slate-400 shadow-sm">
+        <Card className="border-l-4 border-l-slate-300 shadow-sm bg-white border border-slate-200">
            <CardContent className="p-6 flex items-center justify-between">
              <div>
-               <p className="text-sm font-medium text-gray-500">Reservas (30 dias)</p>
-               <h3 className="text-3xl font-bold text-gray-900 mt-1">{kpis.bookingsLastMonth}</h3>
+               <p className="text-sm font-medium text-slate-600">Reservas (30 dias)</p>
+               <h3 className="text-3xl font-bold text-slate-900 mt-1">{kpis.bookingsLastMonth}</h3>
                <p className="text-xs text-slate-600 mt-1">Demanda recente</p>
              </div>
              <div className="bg-slate-100 p-3 rounded-full">
@@ -155,15 +155,15 @@ export default function AdminAnalytics({
            </CardContent>
          </Card>
 
-        <Card className="border-l-4 border-l-purple-500 shadow-sm">
+        <Card className="border-l-4 border-l-slate-300 shadow-sm bg-white border border-slate-200">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Taxa de Conclusão</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">{kpis.completionRate}%</h3>
-              <p className="text-xs text-purple-600 mt-1">Serviços finalizados com sucesso</p>
+              <p className="text-sm font-medium text-slate-600">Taxa de Conclusão</p>
+              <h3 className="text-3xl font-bold text-slate-900 mt-1">{kpis.completionRate}%</h3>
+              <p className="text-xs text-slate-600 mt-1">Serviços finalizados com sucesso</p>
             </div>
-            <div className="bg-purple-100 p-3 rounded-full">
-              <CheckCircle className="w-6 h-6 text-purple-600" />
+            <div className="bg-slate-100 p-3 rounded-full">
+              <CheckCircle className="w-6 h-6 text-slate-600" />
             </div>
           </CardContent>
         </Card>
@@ -174,7 +174,7 @@ export default function AdminAnalytics({
         <Card className="lg:col-span-2 shadow-sm border border-slate-200 bg-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-blue-600" />
+              <TrendingUp className="w-5 h-5 text-slate-600" />
               Tendência de Novas Reservas
             </CardTitle>
           </CardHeader>
@@ -203,29 +203,29 @@ export default function AdminAnalytics({
         <Card className="lg:col-span-1 shadow-sm border border-slate-200 bg-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-500" />
+              <Trophy className="w-5 h-5 text-slate-600" />
               Top 5 Walkers (90d)
             </CardTitle>
           </CardHeader>
           <CardContent>
             {topWalkers.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">Sem dados suficientes recentes.</p>
+              <p className="text-center text-slate-500 py-8">Sem dados suficientes recentes.</p>
             ) : (
               <div className="space-y-4">
                 {topWalkers.map((walker, idx) => (
-                  <div key={walker.id || idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <div key={walker.id || idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${
-                        idx === 0 ? 'bg-yellow-100 text-yellow-700' : 
-                        idx === 1 ? 'bg-gray-200 text-gray-700' :
-                        idx === 2 ? 'bg-orange-100 text-orange-800' :
-                        'bg-blue-50 text-blue-700'
+                        idx === 0 ? 'bg-slate-200 text-slate-700' : 
+                        idx === 1 ? 'bg-slate-200 text-slate-700' :
+                        idx === 2 ? 'bg-slate-200 text-slate-700' :
+                        'bg-slate-200 text-slate-700'
                       }`}>
                         #{idx + 1}
                       </div>
-                      <span className="font-semibold text-gray-800 truncate max-w-[120px]">{walker.name}</span>
+                      <span className="font-semibold text-slate-800 truncate max-w-[120px]">{walker.name}</span>
                     </div>
-                    <Badge variant="secondary" className="bg-white">
+                    <Badge variant="secondary" className="bg-white border border-slate-200">
                       {walker.count} serviços
                     </Badge>
                   </div>
