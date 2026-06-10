@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import HotelCalendar from "@/components/hotel/HotelCalendar";
 import HotelDayPanel from "@/components/hotel/HotelDayPanel";
 import HotelPartnersPanel from "@/components/hotel/HotelPartnersPanel";
+import HotelAddPartnerModal from "@/components/hotel/HotelAddPartnerModal";
 import HotelNewBookingModal from "@/components/hotel/HotelNewBookingModal";
 import HotelOccupancyManager from "@/components/hotel/HotelOccupancyManager";
 import HotelCapacityAdjuster from "@/components/hotel/HotelCapacityAdjuster";
@@ -52,6 +53,7 @@ export default function HotelDashboard() {
   const [activeTab, setActiveTab] = useState("hospedes");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showNewBooking, setShowNewBooking] = useState(false);
+  const [showAddPartner, setShowAddPartner] = useState(false);
   const [alertDismissed, setAlertDismissed] = useState(false);
 
   const { data: user } = useQuery({
@@ -426,7 +428,7 @@ export default function HotelDashboard() {
                 partners={partners}
                 bookings={bookings}
                 onToggleAvailability={togglePartnerAvailability}
-                onAddPartner={() => navigate(createPageUrl("ProfessionalHubV2"))}
+                onAddPartner={() => setShowAddPartner(true)}
               />
             </motion.div>
           )}
@@ -471,6 +473,15 @@ export default function HotelDashboard() {
         hotelProfile={hotelProfile}
         partners={partners}
         defaultDate={selectedDate}
+      />
+
+      <HotelAddPartnerModal
+        isOpen={showAddPartner}
+        onClose={() => {
+          setShowAddPartner(false);
+          queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
+        }}
+        hotelProfile={hotelProfile}
       />
     </div>
   );
