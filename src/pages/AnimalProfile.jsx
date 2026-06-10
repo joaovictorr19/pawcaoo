@@ -228,11 +228,35 @@ export default function AnimalProfile() {
                   {animal.gets_along_with.strangers && <span className="text-xs bg-slate-50 border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full">👥 Estranhos</span>}
                 </div>
               )}
+
+              {/* Reatividades — destaque visual */}
+              {(animal.reactive_to_dogs || animal.reactive_to_people || animal.reactive_to_noises) && (
+                <div className="border-t border-slate-50 pt-2 pb-1 space-y-1.5">
+                  <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">⚠️ Reatividades</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {animal.reactive_to_dogs && <span className="text-xs bg-orange-50 border border-orange-200 text-orange-700 px-2.5 py-1 rounded-full font-medium">⚠️ Reativo a cães</span>}
+                    {animal.reactive_to_people && <span className="text-xs bg-orange-50 border border-orange-200 text-orange-700 px-2.5 py-1 rounded-full font-medium">⚠️ Reativo a pessoas</span>}
+                    {animal.reactive_to_noises && <span className="text-xs bg-orange-50 border border-orange-200 text-orange-700 px-2.5 py-1 rounded-full font-medium">⚠️ Reativo a barulhos</span>}
+                  </div>
+                </div>
+              )}
+
               {animal.behavioral_notes && (
                 <div className="py-2 border-t border-slate-50">
-                  <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">Notas</p>
+                  <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">Notas de Comportamento</p>
                   <p className="text-sm text-slate-700 leading-relaxed">{animal.behavioral_notes}</p>
                 </div>
+              )}
+
+              {animal.other_observations && (
+                <div className="py-2 border-t border-slate-50">
+                  <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">📝 Outras Observações</p>
+                  <p className="text-sm text-slate-700 leading-relaxed">{animal.other_observations}</p>
+                </div>
+              )}
+
+              {isOwner && !animal.reactive_to_dogs && !animal.reactive_to_people && !animal.reactive_to_noises && !animal.behavioral_notes && !animal.other_observations && (
+                <p className="text-xs text-slate-400 py-2 text-center">Sem notas — <button onClick={() => navigate(createPageUrl(`EditAnimalProfile?id=${animal.id}`))} className="text-orange-500 underline">adicionar</button></p>
               )}
             </SectionCard>
 

@@ -9,7 +9,7 @@
     },
     "owner_phone": {
       "type": "string",
-      "description": "Telefone do dono (preenchimento autom\u00e1tico)"
+      "description": "Telefone do dono"
     },
     "pickup_address": {
       "type": "string",
@@ -24,12 +24,10 @@
       "description": "C\u00f3digo postal"
     },
     "pickup_latitude": {
-      "type": "number",
-      "description": "Latitude do endere\u00e7o de recolha"
+      "type": "number"
     },
     "pickup_longitude": {
-      "type": "number",
-      "description": "Longitude do endere\u00e7o de recolha"
+      "type": "number"
     },
     "animal_type": {
       "type": "string",
@@ -41,37 +39,31 @@
         "rodent",
         "bird"
       ],
-      "default": "dog",
-      "description": "Tipo de animal"
+      "default": "dog"
     },
     "dog_name": {
       "type": "string",
       "description": "Nome do pet"
     },
     "photo_url": {
-      "type": "string",
-      "description": "Foto principal do pet"
+      "type": "string"
     },
     "gallery_photos": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Galeria de fotos",
       "default": []
     },
     "breed": {
-      "type": "string",
-      "description": "Ra\u00e7a ou esp\u00e9cie"
+      "type": "string"
     },
     "age": {
-      "type": "number",
-      "description": "Idade em anos"
+      "type": "number"
     },
     "date_of_birth": {
       "type": "string",
-      "format": "date",
-      "description": "Data de nascimento"
+      "format": "date"
     },
     "weight": {
       "type": "number",
@@ -84,38 +76,31 @@
         "medium",
         "large",
         "extra_large"
-      ],
-      "description": "Tamanho"
+      ]
     },
     "gender": {
       "type": "string",
       "enum": [
         "male",
         "female"
-      ],
-      "description": "Sexo"
+      ]
     },
     "color": {
-      "type": "string",
-      "description": "Cor"
+      "type": "string"
     },
     "is_adopted": {
       "type": "boolean",
-      "default": false,
-      "description": "Se foi adotado"
+      "default": false
     },
     "adoption_date": {
       "type": "string",
-      "format": "date",
-      "description": "Data de ado\u00e7\u00e3o"
+      "format": "date"
     },
     "adoption_story": {
-      "type": "string",
-      "description": "Hist\u00f3ria de ado\u00e7\u00e3o"
+      "type": "string"
     },
     "microchip_number": {
-      "type": "string",
-      "description": "N\u00famero do microchip"
+      "type": "string"
     },
     "is_neutered": {
       "type": "boolean",
@@ -143,12 +128,10 @@
       "type": "string"
     },
     "vet_clinic_name": {
-      "type": "string",
-      "description": "Nome da cl\u00ednica veterin\u00e1ria"
+      "type": "string"
     },
     "vet_address": {
-      "type": "string",
-      "description": "Endere\u00e7o da cl\u00ednica"
+      "type": "string"
     },
     "medical_conditions": {
       "type": "string"
@@ -212,51 +195,60 @@
       },
       "default": {}
     },
+    "reactive_to_dogs": {
+      "type": "boolean",
+      "default": false,
+      "description": "Reativo a outros c\u00e3es"
+    },
+    "reactive_to_people": {
+      "type": "boolean",
+      "default": false,
+      "description": "Reativo a pessoas/estranhos"
+    },
+    "reactive_to_noises": {
+      "type": "boolean",
+      "default": false,
+      "description": "Reativo a barulhos (trov\u00f5es, fogos, etc.)"
+    },
     "behavioral_notes": {
       "type": "string"
+    },
+    "other_observations": {
+      "type": "string",
+      "description": "Outras observa\u00e7\u00f5es importantes para o passeador"
     },
     "favorite_toys": {
       "type": "string"
     },
     "favorite_treats": {
-      "type": "string",
-      "description": "Petiscos favoritos"
+      "type": "string"
     },
     "special_care_notes": {
-      "type": "string",
-      "description": "Notas especiais de cuidado"
+      "type": "string"
     },
     "habitat_requirements": {
-      "type": "string",
-      "description": "Requisitos de habitat (terr\u00e1rio, gaiola, etc.)"
+      "type": "string"
     },
     "feeding_instructions": {
-      "type": "string",
-      "description": "Instru\u00e7\u00f5es de alimenta\u00e7\u00e3o"
+      "type": "string"
     },
     "emergency_contact_name": {
-      "type": "string",
-      "description": "Nome do contato de emerg\u00eancia"
+      "type": "string"
     },
     "emergency_contact_phone": {
-      "type": "string",
-      "description": "Telefone do contato de emerg\u00eancia"
+      "type": "string"
     },
     "emergency_contact_relationship": {
-      "type": "string",
-      "description": "Rela\u00e7\u00e3o com o contato de emerg\u00eancia"
+      "type": "string"
     },
     "insurance_provider": {
-      "type": "string",
-      "description": "Nome da seguradora"
+      "type": "string"
     },
     "insurance_policy_number": {
-      "type": "string",
-      "description": "N\u00famero da ap\u00f3lice de seguro"
+      "type": "string"
     },
     "bio": {
-      "type": "string",
-      "description": "Biografia do pet"
+      "type": "string"
     },
     "is_active": {
       "type": "boolean",
@@ -264,82 +256,38 @@
     },
     "total_walks": {
       "type": "number",
-      "default": 0,
-      "description": "Total de passeios realizados"
+      "default": 0
     },
     "total_training_sessions": {
       "type": "number",
-      "default": 0,
-      "description": "Total de sess\u00f5es de treino"
+      "default": 0
     },
     "gamification_level": {
       "type": "number",
-      "default": 1,
-      "description": "N\u00edvel de gamifica\u00e7\u00e3o (1-10)"
+      "default": 1
     },
     "gamification_stars": {
       "type": "number",
-      "default": 0,
-      "description": "Estrelas conquistadas (0-5)"
+      "default": 0
     },
     "gamification_achievements": {
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "achievement_id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "icon": {
-            "type": "string"
-          },
-          "category": {
-            "type": "string",
-            "enum": [
-              "milestone",
-              "behavior",
-              "social",
-              "special"
-            ]
-          },
-          "earned_date": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "rarity": {
-            "type": "string",
-            "enum": [
-              "common",
-              "rare",
-              "epic",
-              "legendary"
-            ]
-          }
-        }
+        "type": "object"
       },
-      "default": [],
-      "description": "Conquistas desbloqueadas"
+      "default": []
     },
     "total_distance_km": {
       "type": "number",
-      "default": 0,
-      "description": "Dist\u00e2ncia total percorrida em passeios (km)"
+      "default": 0
     },
     "perfect_walks_count": {
       "type": "number",
-      "default": 0,
-      "description": "N\u00famero de passeios perfeitos (5 estrelas)"
+      "default": 0
     },
     "socialization_score": {
       "type": "number",
-      "default": 0,
-      "description": "Pontua\u00e7\u00e3o de socializa\u00e7\u00e3o"
+      "default": 0
     }
   },
   "required": [

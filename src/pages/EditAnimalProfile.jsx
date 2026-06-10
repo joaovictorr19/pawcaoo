@@ -54,6 +54,9 @@ export default function EditAnimalProfile() {
     owner_phone: "",
     energy_level: "normal",
     socialization: "friendly",
+    reactive_to_dogs: false,
+    reactive_to_people: false,
+    reactive_to_noises: false,
     is_vaccinated: true,
     is_neutered: false,
     vet_clinic_name: "",
@@ -61,6 +64,7 @@ export default function EditAnimalProfile() {
     medical_conditions: "",
     behavioral_notes: "",
     special_care_notes: "",
+    other_observations: "",
   });
 
   React.useEffect(() => {
@@ -89,6 +93,10 @@ export default function EditAnimalProfile() {
         medical_conditions: animal.medical_conditions || "",
         behavioral_notes: animal.behavioral_notes || "",
         special_care_notes: animal.special_care_notes || "",
+        reactive_to_dogs: animal.reactive_to_dogs ?? false,
+        reactive_to_people: animal.reactive_to_people ?? false,
+        reactive_to_noises: animal.reactive_to_noises ?? false,
+        other_observations: animal.other_observations || "",
       });
     }
   }, [animal, user]);
@@ -486,6 +494,45 @@ export default function EditAnimalProfile() {
                   value={formData.special_care_notes}
                   onChange={(e) => setFormData(prev => ({ ...prev, special_care_notes: e.target.value }))}
                   placeholder="Ex: Precisa de medicação às 18h..."
+                  rows={2}
+                />
+              </div>
+
+              {/* Reatividades */}
+              <div>
+                <Label className="mb-2 block font-semibold text-sm text-slate-700">⚠️ Reatividades</Label>
+                <p className="text-xs text-slate-400 mb-3">Assinale se o animal reage de forma intensa a algum estímulo</p>
+                <div className="space-y-2">
+                  {[
+                    { key: "reactive_to_dogs", label: "🐕 Reativo a outros cães", desc: "Latidos, agressividade ou medo excessivo perto de outros cães" },
+                    { key: "reactive_to_people", label: "👥 Reativo a pessoas", desc: "Desconforto, latidos ou agressividade com estranhos" },
+                    { key: "reactive_to_noises", label: "🔊 Reativo a barulhos", desc: "Medo de trovões, fogos de artifício, carros, etc." },
+                  ].map(({ key, label, desc }) => (
+                    <label key={key} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${formData[key] ? 'border-orange-300 bg-orange-50' : 'border-slate-200 hover:border-orange-200'}`}>
+                      <input
+                        type="checkbox"
+                        checked={formData[key]}
+                        onChange={(e) => setFormData(prev => ({ ...prev, [key]: e.target.checked }))}
+                        className="mt-0.5 w-4 h-4 accent-orange-500"
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">{label}</p>
+                        <p className="text-xs text-slate-400">{desc}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Outras Observações */}
+              <div>
+                <Label htmlFor="other_observations" className="font-semibold text-slate-700">📝 Outras Observações</Label>
+                <p className="text-xs text-slate-400 mb-1.5">Comportamentos específicos que o passeador deve saber</p>
+                <Textarea
+                  id="other_observations"
+                  value={formData.other_observations}
+                  onChange={(e) => setFormData(prev => ({ ...prev, other_observations: e.target.value }))}
+                  placeholder="Ex: Come tudo o que encontra no chão, não pode soltar a trela, ladra para motos..."
                   rows={3}
                 />
               </div>
