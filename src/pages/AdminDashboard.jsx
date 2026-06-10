@@ -656,8 +656,8 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen bg-white p-6 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl mx-auto mb-4 animate-pulse" style={{ borderRadius: 0 }}>
-            <Shield className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 bg-white border border-slate-200 flex items-center justify-center shadow-sm mx-auto mb-4 animate-pulse">
+            <Shield className="w-8 h-8 text-slate-900" />
           </div>
           <p className="text-gray-600 font-medium">Verificando permissões...</p>
         </div>
@@ -667,8 +667,8 @@ export default function AdminDashboard() {
 
   if (!user || user?.role !== 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="glass-panel max-w-md border-0 shadow-2xl">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-white">
+      <Card className="max-w-md border border-slate-200 shadow-sm">
           <CardContent className="p-12 text-center">
             <Ban className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Negado</h2>
@@ -681,8 +681,8 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-white">
-      {emergencyUsers?.length > 0 && (
-        <div className="fixed inset-0 z-[9999] bg-red-600/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white text-center pointer-events-none">
+     {emergencyUsers?.length > 0 && (
+      <div className="fixed inset-0 z-[9999] bg-red-500/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white text-center pointer-events-none">
           <AlertTriangle className="w-24 h-24 mb-6 animate-bounce text-white" />
           <h1 className="text-5xl font-black mb-2">ALERTA DE SEGURANÇA!</h1>
           <p className="text-xl mb-8">Um profissional solicitou ajuda imediata.</p>
@@ -727,8 +727,8 @@ export default function AdminDashboard() {
         <div className="mb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl rounded-2xl">
-                <Shield className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 bg-white border border-slate-200 flex items-center justify-center shadow-sm rounded-2xl">
+                <Shield className="w-7 h-7 text-slate-900" />
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl font-black text-slate-900">Admin Dashboard</h1>
@@ -750,11 +750,11 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-               {dashboardStats.slice(0, 3).map((stat, idx) => (
-                 <Card key={idx} className="bg-gradient-to-br from-white to-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center p-6">
-                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3 shadow-md`}>
-                     <stat.icon className="w-6 h-6 text-white" />
-                   </div>
+                {dashboardStats.slice(0, 3).map((stat, idx) => (
+                  <Card key={idx} className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center p-6">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-3 shadow-sm">
+                      <stat.icon className="w-6 h-6 text-slate-700" />
+                    </div>
                    <div className="text-3xl font-black text-slate-900 leading-none mb-1">{stat.value}</div>
                    <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide text-center">{stat.label}</div>
                    <div className="text-xs text-slate-500 mt-1">{stat.subLabel}</div>
