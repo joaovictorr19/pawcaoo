@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import PawCaoLogo from '@/components/PawCaoLogo';
 import { LogOut } from 'lucide-react';
+import LanguageSelector from '@/components/ui/LanguageSelector';
 
 const ROOT_ROUTES = [
   createPageUrl('Home'),
@@ -118,7 +119,8 @@ export default function MobileHeader() {
         </div>
 
         {/* Ações à direita */}
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-1">
+          <LanguageSelector />
           {authed ? (
             <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.logout()}>
               <LogOut className="w-4 h-4 mr-1" /> Sair

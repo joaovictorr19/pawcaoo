@@ -30,6 +30,7 @@ import { getAvailableLanguages, t } from "@/components/translations";
 import { ThemeProvider, useTheme } from "@/components/ThemeContext";
 import { LocalizationProvider, useLocalization } from "@/components/LocalizationContext";
 import CountrySelector from "@/components/ui/CountrySelector";
+import LanguageSelector from "@/components/ui/LanguageSelector";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import GlobalSearch from "@/components/search/GlobalSearch";
 import Breadcrumbs from "@/components/navigation/Breadcrumbs";
@@ -486,19 +487,7 @@ function LayoutContent({ children, currentPageName }) {
             })()}
           </nav>
           <div className="flex items-center gap-2">
-            <div className="flex items-center rounded-full border border-slate-200 bg-slate-50 p-1">
-              {getAvailableLanguages().map((option) => (
-                <button
-                  key={option.code}
-                  onClick={() => setLanguage(option.code)}
-                  aria-label={option.name}
-                  title={option.name}
-                  className={`h-8 w-8 rounded-full text-sm transition-all ${language === option.code ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'opacity-60 hover:opacity-100'}`}
-                >
-                  {option.flag}
-                </button>
-              ))}
-            </div>
+            <LanguageSelector />
             {stableUser ? (
               <Button variant="outline" size="sm" onClick={handleLogout}>Sair</Button>
             ) : (
