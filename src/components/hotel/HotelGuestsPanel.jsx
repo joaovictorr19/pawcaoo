@@ -6,11 +6,14 @@ import {
   Dog, Phone, Mail, Calendar, Clock, ChevronDown, ChevronUp,
   AlertCircle, FileText, ArrowRight, Heart, Pill, Syringe,
   CheckCircle2, LogOut, User, Star, ShieldAlert, Activity,
-  Search, Filter
+  Search, Filter, BookOpen
 } from "lucide-react";
 import GuestsExportButton from "./GuestsExportButton";
+import GuestDailyReport from "./GuestDailyReport";
 import { differenceInDays, parseISO, format } from "date-fns";
 import { pt } from "date-fns/locale";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
 
 const SIZE_LABELS = { small: "Pequeno", medium: "Médio", large: "Grande", extra_large: "Extra Grande" };
 const SIZE_COLORS = {
@@ -92,8 +95,9 @@ function AnimalStatusBadge({ booking }) {
   );
 }
 
-function GuestCard({ booking, onCheckOut, onCheckIn }) {
+function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
   const [expanded, setExpanded] = useState(false);
+  const [showDiary, setShowDiary] = useState(false);
   const dogs = booking.dogs?.length > 0 ? booking.dogs : [];
   const isCheckedIn = ["checked_in", "in_progress"].includes(booking.status);
   const isExpectedArrival = booking.status === "confirmed";
@@ -291,7 +295,7 @@ function GuestCard({ booking, onCheckOut, onCheckIn }) {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 pt-1">
+              <div className="flex gap-2 pt-1 flex-wrap">
                 {booking.status === "confirmed" && (
                   <Button size="sm"
                     className="flex-1 h-9 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold"
@@ -306,7 +310,21 @@ function GuestCard({ booking, onCheckOut, onCheckIn }) {
                     <LogOut className="w-3.5 h-3.5 mr-1" /> Registar Check-out
                   </Button>
                 )}
+                {["checked_in", "in_progress"].includes(booking.status) && (
+                  <Button size="sm" variant="outline"
+                    className="h-9 border-purple-200 text-purple-600 hover:bg-purple-50 rounded-xl text-xs font-semibold gap-1"
+                    onClick={(e) => { e.stopPropagation(); setShowDiary(true); }}>
+                    <BookOpen className="w-3.5 h-3.5" /> Diário
+                  </Button>
+                )}
               </div>
+              {showDiary && (
+                <GuestDailyReport
+                  booking={booking}
+                  onUpdateBooking={onUpdateBooking}
+                  onClose={() => setShowDiary(false)}
+                />
+              )}
             </div>
           </motion.div>
         )}
@@ -317,20 +335,47 @@ function GuestCard({ booking, onCheckOut, onCheckIn }) {
 
 export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
 
   const guests = bookings.filter(b => ["checked_in", "in_progress"].includes(b.status));
   const confirmedArrivals = bookings.filter(b => b.status === "confirmed");
   const pendingBookings = bookings.filter(b => b.status === "pending");
 
-  const handleCheckOut = (id) => {
-    const time = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
-    onUpdateBooking(id, { status: "checked_out", checkout_time: time });
+  const sendOwnerNotification = async (booking, title, message) => {
+    if (!booking.owner_email) return;
+    try {
+      await base44.entities.Notification.create({
+        recipient_email: booking.owner_email,
+        title,
+        message,
+        type: "booking",
+        related_id: booking.id,
+        icon: "🏨"
+      });
+    } catch (e) {
+      console.warn("Notificação ao dono falhou:", e.message);
+    }
   };
 
-  const handleCheckIn = (id) => {
+  const handleCheckIn = async (id) => {
     const time = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
     onUpdateBooking(id, { status: "checked_in", checkin_time: time });
+    const bk = bookings.find(b => b.id === id);
+    if (bk) {
+      const dogNames = (bk.dogs || []).map(d => d.dog_name).join(" & ") || "o seu animal";
+      await sendOwnerNotification(bk, "✅ Check-in realizado!", `${dogNames} chegou ao hotel às ${time}. Boa estadia! 🐾`);
+      toast.success(`Check-in registado às ${time}`);
+    }
+  };
+
+  const handleCheckOut = async (id) => {
+    const time = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+    onUpdateBooking(id, { status: "checked_out", checkout_time: time });
+    const bk = bookings.find(b => b.id === id);
+    if (bk) {
+      const dogNames = (bk.dogs || []).map(d => d.dog_name).join(" & ") || "o seu animal";
+      await sendOwnerNotification(bk, "🚪 Check-out realizado", `${dogNames} saiu do hotel às ${time}. Foi um prazer tê-lo connosco! 🐾`);
+      toast.success(`Check-out registado às ${time}`);
+    }
   };
 
   // Filter helper
@@ -407,7 +452,7 @@ export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
         ) : (
           <div className="space-y-3">
             {filteredGuests.map(b => (
-              <GuestCard key={b.id} booking={b} onCheckOut={handleCheckOut} onCheckIn={handleCheckIn} />
+              <GuestCard key={b.id} booking={b} onCheckOut={handleCheckOut} onCheckIn={handleCheckIn} onUpdateBooking={onUpdateBooking} />
             ))}
           </div>
         )}
@@ -424,7 +469,7 @@ export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
           </div>
           <div className="space-y-2">
             {filteredArrivals.map(b => (
-              <GuestCard key={b.id} booking={b} onCheckOut={handleCheckOut} onCheckIn={handleCheckIn} />
+              <GuestCard key={b.id} booking={b} onCheckOut={handleCheckOut} onCheckIn={handleCheckIn} onUpdateBooking={onUpdateBooking} />
             ))}
           </div>
         </div>

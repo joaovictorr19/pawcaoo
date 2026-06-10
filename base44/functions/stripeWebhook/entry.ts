@@ -463,6 +463,51 @@ async function handleWalletTopup(base44, session) {
 }
 
 async function handleCheckoutCompleted(base44, session) {
+    // ── HOTEL BOOKING: confirmar automaticamente após pagamento ──
+    if (session.metadata?.type === 'hotel_booking') {
+        const hotelBookingId = session.metadata?.hotel_booking_id;
+        if (hotelBookingId) {
+            try {
+                const hotelBookings = await base44.asServiceRole.entities.HotelBooking.filter({ id: hotelBookingId });
+                if (hotelBookings.length > 0) {
+                    const hb = hotelBookings[0];
+                    await base44.asServiceRole.entities.HotelBooking.update(hotelBookingId, {
+                        status: 'confirmed',
+                        payment_status: 'paid',
+                        stripe_payment_intent_id: session.payment_intent || '',
+                    });
+                    console.log('✅ HotelBooking confirmed after payment:', hotelBookingId);
+
+                    // Notificar hotel
+                    if (hb.hotel_email) {
+                        await base44.asServiceRole.entities.Notification.create({
+                            recipient_email: hb.hotel_email,
+                            title: '💳 Nova Reserva Confirmada!',
+                            message: `${hb.owner_name} pagou a reserva de ${(hb.dogs || []).map(d => d.dog_name).join(', ') || 'animal'}. Check-in: ${hb.checkin_date}.`,
+                            type: 'booking',
+                            related_id: hotelBookingId,
+                            icon: '🏨'
+                        });
+                    }
+                    // Notificar cliente
+                    if (hb.owner_email) {
+                        await base44.asServiceRole.entities.Notification.create({
+                            recipient_email: hb.owner_email,
+                            title: '✅ Reserva de Hotel Confirmada',
+                            message: `A sua reserva no ${hb.hotel_name || 'hotel'} foi confirmada. Check-in: ${hb.checkin_date}.`,
+                            type: 'payment',
+                            related_id: hotelBookingId,
+                            icon: '✅'
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('Error confirming hotel booking:', e);
+            }
+        }
+        return;
+    }
+
     const bookingId = session.metadata?.booking_id;
     const subscriptionType = session.metadata?.subscription_type;
 
