@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { isDateBlocked } from '@/utils/portugueseHolidays';
 
 export default function HotelBookingModal({ isOpen, onClose, hotel, selectedService, currentUser }) {
   const navigate = useNavigate();
@@ -49,10 +50,15 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const platformFee = Math.round(serviceAmount * 0.1 * 100) / 100;
   const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
 
+  const checkinPolicy = hotel?.hotel_details?.checkin_policy_type || 'all_days';
+
   const availableDates = Array.from({ length: 90 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i + 1);
     return d.toISOString().split('T')[0];
+  }).filter(dateStr => {
+    const dateObj = new Date(dateStr + 'T12:00:00');
+    return !isDateBlocked(dateObj, checkinPolicy);
   });
 
   const handleCreateBooking = async () => {
@@ -216,6 +222,14 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
           {/* STEP 1 — Datas */}
           {step === 1 && (
             <div className="space-y-5">
+              {checkinPolicy !== 'all_days' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3">
+                  <p className="text-xs text-blue-700 font-semibold">
+                    ℹ️ {checkinPolicy === 'no_sundays' ? 'Hotel fechado aos Domingos' : 'Hotel fechado aos Domingos e Feriados'}
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase mb-3 block flex items-center gap-1">
                   <CalendarDays className="w-3.5 h-3.5" /> Data de Entrada

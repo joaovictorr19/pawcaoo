@@ -25,6 +25,7 @@ import HotelFinancesPanel from "@/components/hotel/HotelFinancesPanel";
 import HotelDigitalPass from "@/components/hotel/HotelDigitalPass";
 import HotelCapacityAlert from "@/components/hotel/HotelCapacityAlert";
 import HotelGuestsPanel from "@/components/hotel/HotelGuestsPanel";
+import HotelCheckinPolicyConfig from "@/components/hotel/HotelCheckinPolicyConfig";
 
 const STATUS_CONFIG = {
   pending:    { label: "Pendente",    cls: "bg-orange-100 text-orange-700" },
@@ -205,6 +206,7 @@ export default function HotelDashboard() {
             { key: "financas", label: "💰 Finanças" },
             { key: "cartao", label: "🎫 Cartão" },
             { key: "parceiros", label: "Parceiros", count: partners.length },
+            { key: "config", label: "⚙️ Configurações" },
             { key: "stats", label: "Estatísticas" },
           ].map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
@@ -429,6 +431,18 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
+          {/* CONFIGURAÇÕES */}
+          {activeTab === "config" && (
+            <motion.div key="config" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelCheckinPolicyConfig
+                hotelProfile={hotelProfile}
+                onSave={() => {
+                  queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
+                }}
+              />
+            </motion.div>
+          )}
+
           {/* STATS */}
           {activeTab === "stats" && (
             <motion.div key="stats" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -437,7 +451,7 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-        </AnimatePresence>
+          </AnimatePresence>
       </div>
 
       {/* FAB */}
