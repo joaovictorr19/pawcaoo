@@ -31,6 +31,8 @@ import HotelCapacityAlert from "@/components/hotel/HotelCapacityAlert";
 import HotelGuestsPanel from "@/components/hotel/HotelGuestsPanel";
 import HotelCheckinPolicyConfig from "@/components/hotel/HotelCheckinPolicyConfig";
 import HotelProfileSettings from "@/components/hotel/HotelProfileSettings";
+import HotelReservationsPanel from "@/components/hotel/HotelReservationsPanel";
+import HotelSalesInsights from "@/components/hotel/HotelSalesInsights";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -397,6 +399,15 @@ export default function HotelDashboard() {
           </div>
         </div>
 
+        {/* Sales Insights */}
+        {!loadingBookings && hotelProfile && (
+          <HotelSalesInsights
+            bookings={bookings}
+            hotelProfile={hotelProfile}
+            onNewBooking={() => setShowNewBooking(true)}
+          />
+        )}
+
         {/* Tab Content */}
         <AnimatePresence mode="wait">
 
@@ -410,37 +421,18 @@ export default function HotelDashboard() {
           )}
 
           {activeTab === "reservas" && (
-            <motion.div key="reservas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Todas as Reservas ({bookings.length})
-                </p>
-                <Button size="sm"
-                  className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5"
-                  onClick={() => setShowNewBooking(true)}>
-                  <Plus className="w-3.5 h-3.5" /> Nova Reserva
-                </Button>
-              </div>
-              {loadingBookings && (
+            <motion.div key="reservas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              {loadingBookings ? (
                 <div className="bg-white border border-slate-200 rounded-xl py-12 text-center">
                   <p className="text-slate-400 text-sm">A carregar reservas...</p>
                 </div>
+              ) : (
+                <HotelReservationsPanel
+                  bookings={bookings}
+                  onUpdateBooking={handleUpdateBooking}
+                  onNewBooking={() => setShowNewBooking(true)}
+                />
               )}
-              {!loadingBookings && bookings.length === 0 && (
-                <div className="bg-white border border-slate-200 rounded-xl py-12 text-center">
-                  <ClipboardList className="w-10 h-10 mx-auto mb-3 text-slate-200" />
-                  <p className="text-slate-400 text-sm mb-3">Sem reservas registadas</p>
-                  <Button size="sm"
-                    className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5"
-                    onClick={() => setShowNewBooking(true)}>
-                    <Plus className="w-3.5 h-3.5" /> Criar Primeira Reserva
-                  </Button>
-                </div>
-              )}
-              {bookings.map(b => (
-                <BookingRow key={b.id} booking={b} onUpdate={handleUpdateBooking} />
-              ))}
             </motion.div>
           )}
 
