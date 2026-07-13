@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Utensils, Pill, Repeat, Calendar, Sparkles } from 'lucide-react';
+import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Utensils, Pill, Repeat, Calendar, Sparkles, Home, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
@@ -20,6 +20,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [checkoutTime, setCheckoutTime] = useState('17:00');
   const [specialRequests, setSpecialRequests] = useState('');
   const [pickupAddress, setPickupAddress] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState('dropoff');
   const [dogCare, setDogCare] = useState({});
   const [isCreating, setIsCreating] = useState(false);
   const [finalized, setFinalized] = useState(false);
@@ -33,6 +34,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setCheckoutTime(hotel?.hotel_details?.checkout_time || '17:00');
       setSpecialRequests('');
       setPickupAddress('');
+      setDeliveryMethod(hotel?.hotel_details?.offers_pickup ? 'dropoff' : 'dropoff');
       setDogCare({});
       setStep(0);
       setFinalized(false);
@@ -59,6 +61,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   if (!hotel || !selectedService) return null;
 
   const checkinPolicy = hotel?.hotel_details?.checkin_policy_type || 'all_days';
+  const hotelOffersPickup = hotel?.hotel_details?.offers_pickup || false;
+  const hotelAddress = hotel?.hotel_details?.full_address || hotel?.location || '';
+  const finalAddress = deliveryMethod === 'pickup' ? pickupAddress : hotelAddress;
 
   const totalNights = checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
   const perDogPerNight = selectedService.price_per_day || 0;
@@ -75,7 +80,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     if (selectedDogs.length === 0) { toast.error('Selecione pelo menos um animal'); return; }
     if (!checkinDate || !checkoutDate) { toast.error('Escolha as datas no calendário'); return; }
     if (new Date(checkoutDate) <= new Date(checkinDate)) { toast.error('Data de saída deve ser após a de entrada'); return; }
-    if (!pickupAddress.trim()) { toast.error('Indique o endereço de recolha'); return; }
+    if (deliveryMethod === 'pickup' && !pickupAddress.trim()) { toast.error('Indique o endereço de recolha'); return; }
+    if (deliveryMethod === 'dropoff' && !hotelAddress.trim()) { toast.error('O hotel não tem endereço definido. Contacte o hotel.'); return; }
 
     setIsCreating(true);
     try {
@@ -108,7 +114,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         platform_fee: platformFee,
         service_amount: serviceAmount,
         special_requests: specialRequests,
-        pickup_address: pickupAddress,
+        pickup_address: deliveryMethod === 'pickup' ? pickupAddress : '',
+        delivery_method: deliveryMethod,
       });
 
       const ownerName = clientProfile?.full_name || currentUser.full_name || currentUser.email;
@@ -127,7 +134,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         `Check-out: ${formatDate(checkoutDate)} às ${checkoutTime}`,
         `Duração: ${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}`,
         ``,
-        `Endereço de recolha: ${pickupAddress}`,
+        deliveryMethod === 'pickup'
+          ? `Recolha ao domicílio: ${pickupAddress}`
+          : `Entrega no hotel: ${hotelAddress}`,
         ``,
         `Resumo de valores:`,
         `Serviço: ${serviceAmount}€`,
@@ -586,18 +595,67 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       </div>
                     </div>
 
-                    {/* Address */}
+                    {/* Delivery method */}
                     <div className="pt-2.5 border-t border-slate-100">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block flex items-center gap-1 tracking-wider">
-                        <MapPin className="w-2.5 h-2.5" /> Endereço de Recolha
+                      <label className="text-[10px] font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1 tracking-wider">
+                        <MapPin className="w-2.5 h-2.5" /> Entrega do Animal
                       </label>
-                      <input
-                        type="text"
-                        value={pickupAddress}
-                        onChange={(e) => setPickupAddress(e.target.value)}
-                        placeholder="Morada completa de recolha"
-                        className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
-                      />
+                      {hotelOffersPickup ? (
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          <button
+                            type="button"
+                            onClick={() => setDeliveryMethod('dropoff')}
+                            className={`p-2.5 rounded-lg border-2 text-left transition-all ${
+                              deliveryMethod === 'dropoff'
+                                ? 'border-slate-900 bg-slate-50'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            }`}
+                          >
+                            <Home className="w-3.5 h-3.5 text-slate-600 mb-1" />
+                            <p className="text-xs font-bold text-slate-900">Levar ao hotel</p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeliveryMethod('pickup')}
+                            className={`p-2.5 rounded-lg border-2 text-left transition-all ${
+                              deliveryMethod === 'pickup'
+                                ? 'border-slate-900 bg-slate-50'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            }`}
+                          >
+                            <Truck className="w-3.5 h-3.5 text-slate-600 mb-1" />
+                            <p className="text-xs font-bold text-slate-900">Recolha ao domicílio</p>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex items-start gap-2 mb-2">
+                          <Home className="w-3.5 h-3.5 text-slate-500 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-xs font-bold text-slate-700">Entrega no hotel</p>
+                            <p className="text-[11px] text-slate-500">Este hotel não oferece recolha ao domicílio</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {deliveryMethod === 'pickup' && hotelOffersPickup ? (
+                        <input
+                          type="text"
+                          value={pickupAddress}
+                          onChange={(e) => setPickupAddress(e.target.value)}
+                          placeholder="Morada completa de recolha"
+                          className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                        />
+                      ) : (
+                        hotelAddress && (
+                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex items-start gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Endereço do Hotel</p>
+                              <p className="text-xs text-slate-700 mt-0.5">{hotelAddress}</p>
+                            </div>
+                          </div>
+                        )
+                      )}
                     </div>
 
                     {/* Special requests */}

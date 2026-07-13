@@ -35,6 +35,8 @@ Deno.serve(async (req) => {
       assigned_walker_name,
       add_ons,
       add_ons_total,
+      pickup_address,
+      delivery_method,
     } = body;
 
     if (!hotel_profile_id || !total_amount || total_amount <= 0) {
@@ -93,6 +95,8 @@ Deno.serve(async (req) => {
       platform_fee: platform_fee || 0,
       service_amount: service_amount || total_amount,
       special_requests: special_requests || '',
+      pickup_address: pickup_address || '',
+      delivery_method: delivery_method || 'dropoff',
       assigned_walker_email: assigned_walker_email || '',
       assigned_walker_name: assigned_walker_name || '',
       add_ons: add_ons || [],
