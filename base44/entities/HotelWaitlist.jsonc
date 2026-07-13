@@ -1,0 +1,138 @@
+{
+  "name": "HotelWaitlist",
+  "type": "object",
+  "properties": {
+    "hotel_profile_id": {
+      "type": "string",
+      "description": "ID do WalkerProfile do hotel"
+    },
+    "hotel_email": {
+      "type": "string",
+      "description": "Email do hotel"
+    },
+    "owner_name": {
+      "type": "string",
+      "description": "Nome do dono"
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "owner_phone": {
+      "type": "string"
+    },
+    "dog_name": {
+      "type": "string"
+    },
+    "dog_breed": {
+      "type": "string"
+    },
+    "dog_size": {
+      "type": "string",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "extra_large"
+      ]
+    },
+    "requested_checkin_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "requested_checkout_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "boarding",
+        "daycare",
+        "grooming",
+        "walk_with_partner",
+        "training"
+      ]
+    },
+    "num_dogs": {
+      "type": "number",
+      "default": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "waiting",
+        "notified",
+        "converted",
+        "cancelled"
+      ],
+      "default": "waiting",
+      "description": "waiting=na lista, notified=cliente avisado, converted=virou reserva, cancelled=cancelado"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas internas do hotel"
+    },
+    "notified_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "hotel_profile_id",
+    "owner_name",
+    "requested_checkin_date"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Plus, Minus, CreditCard, Loader2, Link2, Copy, Check, Send,
   BedDouble, Sun, Scissors, PawPrint, GraduationCap, User, CalendarDays,
-  Dog, ClipboardList, Banknote, LogIn } from "lucide-react";
+  Dog, ClipboardList, Banknote, LogIn, Syringe } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import HotelServiceAddons from "./HotelServiceAddons";
+import EmergencyContactFields from "./EmergencyContactFields";
 import { calculateAddOnsTotal, buildBookingPayload } from "@/hooks/useHotelCapacity";
 
 const SERVICE_OPTIONS = [
@@ -43,11 +44,15 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     checkout_date: "",
     checkin_time: hotelProfile?.hotel_details?.checkin_time || "09:00",
     checkout_time: hotelProfile?.hotel_details?.checkout_time || "18:00",
-    dogs: [{ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "" }],
+    dogs: [{ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "", vaccine_expiry: "", vaccine_document_url: "" }],
     special_requests: "",
     assigned_walker_email: "",
     assigned_walker_name: "",
     total_amount: "",
+    emergency_contact_name: "",
+    emergency_contact_phone: "",
+    veterinarian_name: "",
+    veterinarian_phone: "",
   });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -58,7 +63,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     setForm(f => ({ ...f, dogs }));
   };
 
-  const addDog = () => setForm(f => ({ ...f, dogs: [...f.dogs, { dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "" }] }));
+  const addDog = () => setForm(f => ({ ...f, dogs: [...f.dogs, { dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "", vaccine_expiry: "", vaccine_document_url: "" }] }));
   const removeDog = (i) => setForm(f => ({ ...f, dogs: f.dogs.filter((_, idx) => idx !== i) }));
 
   const addOnsTotal = calculateAddOnsTotal(addOns);
@@ -301,6 +306,9 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                 </div>
               </div>
 
+              {/* Emergency & Vet */}
+              <EmergencyContactFields form={form} set={set} />
+
               {/* Dates */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
@@ -368,6 +376,12 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                       <input value={dog.routine || ""} onChange={e => updateDog(i, "routine", e.target.value)}
                         placeholder="Rotina (passeios, sonecas, hábitos)"
                         className="w-full h-9 px-2.5 mt-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        <Syringe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <input type="date" value={dog.vaccine_expiry || ""} onChange={e => updateDog(i, "vaccine_expiry", e.target.value)}
+                          title="Validade da vacina da raiva"
+                          className="flex-1 h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                      </div>
                     </div>
                   ))}
                 </div>

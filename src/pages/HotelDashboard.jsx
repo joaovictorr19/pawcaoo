@@ -33,6 +33,8 @@ import HotelCheckinPolicyConfig from "@/components/hotel/HotelCheckinPolicyConfi
 import HotelProfileSettings from "@/components/hotel/HotelProfileSettings";
 import HotelReservationsPanel from "@/components/hotel/HotelReservationsPanel";
 import HotelSalesInsights from "@/components/hotel/HotelSalesInsights";
+import HotelWaitlistPanel from "@/components/hotel/HotelWaitlistPanel";
+import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -65,6 +67,8 @@ const TABS = [
   { key: "hospedes",  label: "Hóspedes",          icon: Users },
   { key: "reservas",  label: "Reservas",          icon: ClipboardList },
   { key: "agenda",    label: "Agenda",            icon: CalendarDays },
+  { key: "espera",    label: "Lista Espera",      icon: Clock },
+  { key: "clientes",  label: "Clientes",          icon: UserCheck },
   { key: "servicos",  label: "Serviços e Vagas",  icon: LayoutGrid },
   { key: "financas",  label: "Finanças",          icon: Wallet },
   { key: "parceiros", label: "Parceiros",         icon: UserCheck },
@@ -457,6 +461,18 @@ export default function HotelDashboard() {
                   capacity={{ total: capacityTotal, available: hotelProfile?.hotel_details?.capacity_available }}
                 />
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === "espera" && (
+            <motion.div key="espera" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelWaitlistPanel hotelProfile={hotelProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "clientes" && (
+            <motion.div key="clientes" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelGuestProfilesPanel hotelProfile={hotelProfile} />
             </motion.div>
           )}
 

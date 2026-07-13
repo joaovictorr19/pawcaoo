@@ -21,6 +21,20 @@
     "owner_phone": {
       "type": "string"
     },
+    "emergency_contact_name": {
+      "type": "string",
+      "description": "Contacto de emergencia (alternativo ao dono)"
+    },
+    "emergency_contact_phone": {
+      "type": "string"
+    },
+    "veterinarian_name": {
+      "type": "string",
+      "description": "Veterinario habitual do animal"
+    },
+    "veterinarian_phone": {
+      "type": "string"
+    },
     "dogs": {
       "type": "array",
       "items": {
@@ -58,6 +72,20 @@
           "routine": {
             "type": "string",
             "description": "Rotina diaria do animal"
+          },
+          "vaccine_expiry": {
+            "type": "string",
+            "format": "date",
+            "description": "Data de validade da vacina da raiva"
+          },
+          "vaccine_document_url": {
+            "type": "string",
+            "description": "Comprovativo de vacinacao (PDF/imagem)"
+          },
+          "vaccine_verified": {
+            "type": "boolean",
+            "default": false,
+            "description": "Vacina verificada pelo hotel"
           }
         }
       },
@@ -201,6 +229,10 @@
     },
     "internal_notes": {
       "type": "string"
+    },
+    "behavioral_notes": {
+      "type": "string",
+      "description": "Notas comportamentais do animal durante a estadia"
     },
     "checkin_photo_url": {
       "type": "string"

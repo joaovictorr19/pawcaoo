@@ -6,11 +6,15 @@ import {
   Dog, Phone, Mail, Calendar, Clock, ChevronDown, ChevronUp,
   AlertCircle, FileText, ArrowRight, Heart, Pill, Syringe,
   CheckCircle2, LogOut, User, Star, ShieldAlert, Activity, ShieldCheck,
-  Search, Filter, BookOpen, Utensils, Repeat, ListChecks, Scissors
+  Search, Filter, BookOpen, Utensils, Repeat, ListChecks, Scissors,
+  Stethoscope
 } from "lucide-react";
 import GuestsExportButton from "./GuestsExportButton";
 import GuestDailyReport from "./GuestDailyReport";
 import CheckinChecklist from "./CheckinChecklist";
+import VaccinationBadge from "./VaccinationBadge";
+import BehavioralNotes from "./BehavioralNotes";
+import HotelReceiptButton from "./HotelReceiptButton";
 import { differenceInDays, parseISO, format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { base44 } from "@/api/base44Client";
@@ -256,6 +260,41 @@ function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
                 </div>
               </div>
 
+              {/* Emergency & Vet */}
+              {(booking.emergency_contact_name || booking.veterinarian_name) && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Emergência e Veterinário</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {booking.emergency_contact_name && (
+                      <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-xs text-orange-700">
+                        <ShieldAlert className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-semibold truncate">{booking.emergency_contact_name}</p>
+                          {booking.emergency_contact_phone && <p className="text-[10px]">{booking.emergency_contact_phone}</p>}
+                        </div>
+                      </div>
+                    )}
+                    {booking.veterinarian_name && (
+                      <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 text-xs text-blue-700">
+                        <Stethoscope className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-semibold truncate">{booking.veterinarian_name}</p>
+                          {booking.veterinarian_phone && <p className="text-[10px]">{booking.veterinarian_phone}</p>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Vaccination */}
+              {dogs.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Vacinação</p>
+                  <VaccinationBadge dogs={dogs} />
+                </div>
+              )}
+
               {/* Per-dog details */}
               {dogs.length > 0 && (
                 <div>
@@ -416,8 +455,14 @@ function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
                 )}
               </div>
 
+              {/* Behavioral Notes */}
+              {["checked_in", "in_progress", "checked_out", "completed"].includes(booking.status) && (
+                <BehavioralNotes booking={booking} onUpdateBooking={onUpdateBooking} />
+              )}
+
               {/* Actions */}
               <div className="flex gap-2 pt-1 flex-wrap">
+                <HotelReceiptButton booking={booking} />
                 {booking.status === "confirmed" && (
                   <Button size="sm"
                     className="flex-1 h-9 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold"

@@ -1,0 +1,165 @@
+{
+  "name": "HotelGuestProfile",
+  "type": "object",
+  "properties": {
+    "hotel_profile_id": {
+      "type": "string",
+      "description": "ID do WalkerProfile do hotel"
+    },
+    "hotel_email": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "owner_phone": {
+      "type": "string"
+    },
+    "emergency_contact_name": {
+      "type": "string"
+    },
+    "emergency_contact_phone": {
+      "type": "string"
+    },
+    "veterinarian_name": {
+      "type": "string"
+    },
+    "veterinarian_phone": {
+      "type": "string"
+    },
+    "dogs": {
+      "type": "array",
+      "description": "C\u00e3es recorrentes do h\u00f3spede com info persistente",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dog_name": {
+            "type": "string"
+          },
+          "dog_breed": {
+            "type": "string"
+          },
+          "dog_size": {
+            "type": "string",
+            "enum": [
+              "small",
+              "medium",
+              "large",
+              "extra_large"
+            ]
+          },
+          "dog_age": {
+            "type": "number"
+          },
+          "photo_url": {
+            "type": "string"
+          },
+          "persistent_medical_notes": {
+            "type": "string",
+            "description": "Notas m\u00e9dicas persistentes (alergias, condi\u00e7\u00f5es)"
+          },
+          "behavioral_profile": {
+            "type": "string",
+            "description": "Perfil comportamental acumulado de estadias anteriores"
+          },
+          "vaccine_expiry": {
+            "type": "string",
+            "format": "date"
+          },
+          "vaccine_document_url": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "total_stays": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de estadias realizadas"
+    },
+    "total_spent": {
+      "type": "number",
+      "default": 0,
+      "description": "Total gasto em todas as estadias"
+    },
+    "first_stay_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "last_stay_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "general_notes": {
+      "type": "string",
+      "description": "Notas gerais do h\u00f3spede (prefer\u00eancias, alertas)"
+    },
+    "is_vip": {
+      "type": "boolean",
+      "default": false,
+      "description": "Cliente VIP (frequente ou de valor)"
+    }
+  },
+  "required": [
+    "hotel_profile_id",
+    "owner_name",
+    "owner_email"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
