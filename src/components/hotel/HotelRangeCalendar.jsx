@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { isDateBlocked } from '@/utils/portugueseHolidays';
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
@@ -123,13 +123,13 @@ export default function HotelRangeCalendar({
     let cellClass = '';
 
     if (isUnavailable) {
-      cellClass = 'text-red-400 bg-red-50 cursor-not-allowed line-through';
+      cellClass = 'text-red-300 bg-red-50/60 cursor-not-allowed line-through';
     } else if (isStart || isEnd) {
-      cellClass = 'bg-slate-900 text-white font-black';
+      cellClass = 'bg-gradient-to-b from-sky-300 to-sky-400 text-slate-700 font-black shadow-sm shadow-sky-300/50';
     } else if (inRange) {
-      cellClass = 'bg-slate-200 text-slate-700';
+      cellClass = 'bg-gradient-to-b from-sky-200 to-sky-300 text-slate-600';
     } else {
-      cellClass = 'text-slate-700 hover:bg-slate-100';
+      cellClass = 'bg-white text-slate-600 border border-slate-100 shadow-sm hover:bg-sky-50';
     }
 
     cells.push(
@@ -139,49 +139,60 @@ export default function HotelRangeCalendar({
         onMouseEnter={() => setHoverDate(dateStr)}
         onMouseLeave={() => setHoverDate('')}
         disabled={isUnavailable}
-        className={`h-7 rounded-md text-[10px] font-bold transition-all flex items-center justify-center relative ${cellClass} ${isStart ? 'rounded-r-none' : ''} ${isEnd ? 'rounded-l-none' : ''} ${inRange ? 'rounded-none' : ''} ${!isUnavailable ? 'active:scale-90' : ''}`}
+        className={`h-8 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center relative ${cellClass} ${!isUnavailable ? 'active:scale-90' : ''}`}
       >
         {day}
       </button>
     );
   }
 
+  const fmtDate = (str) => {
+    if (!str) return '—';
+    const [y, m, d] = str.split('-');
+    return `${d}/${m}/${y}`;
+  };
+
   return (
-    <div className={`w-full max-w-[280px] mx-auto ${className}`}>
-      <div className="flex items-center justify-between mb-1.5">
-        <button onClick={handlePrevMonth} className="w-5 h-5 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors">
-          <ChevronLeft className="w-3 h-3 text-slate-500" />
+    <div className={`w-full max-w-[300px] mx-auto ${className}`}>
+      {/* Check-in / Check-out pills */}
+      <div className="flex items-end gap-2 mb-4">
+        <div className="flex-1">
+          <p className="text-xs font-semibold text-slate-500 mb-1.5">Check-in</p>
+          <div className="h-9 rounded-lg bg-gradient-to-b from-sky-100 to-sky-200 border border-sky-200 flex items-center justify-center text-xs font-bold text-slate-600">
+            {fmtDate(checkinDate)}
+          </div>
+        </div>
+        <ArrowRight className="w-4 h-4 text-slate-500 mb-2.5 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-xs font-semibold text-slate-500 mb-1.5">Check-out</p>
+          <div className="h-9 rounded-lg bg-gradient-to-b from-sky-100 to-sky-200 border border-sky-200 flex items-center justify-center text-xs font-bold text-slate-600">
+            {fmtDate(checkoutDate)}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-2">
+        <button onClick={handlePrevMonth} className="w-6 h-6 rounded-lg hover:bg-sky-50 flex items-center justify-center transition-colors">
+          <ChevronLeft className="w-3.5 h-3.5 text-slate-500" />
         </button>
-        <span className="text-[11px] font-bold text-slate-800 capitalize">
+        <span className="text-xs font-bold text-slate-700 capitalize">
           {currentMonth.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })}
         </span>
-        <button onClick={handleNextMonth} className="w-5 h-5 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors">
-          <ChevronRight className="w-3 h-3 text-slate-500" />
+        <button onClick={handleNextMonth} className="w-6 h-6 rounded-lg hover:bg-sky-50 flex items-center justify-center transition-colors">
+          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-0.5 mb-0.5">
+      <div className="grid grid-cols-7 gap-1 mb-1">
         {WEEKDAYS.map(d => (
-          <div key={d} className="text-center text-[7px] font-black uppercase text-slate-300">
+          <div key={d} className="text-center text-[9px] font-bold text-slate-400">
             {d}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-0.5">
+      <div className="grid grid-cols-7 gap-1">
         {cells}
-      </div>
-
-      <div className="flex items-center gap-2.5 mt-2 text-[8px] text-slate-400 flex-wrap">
-        <span className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded bg-slate-900" /> Selecionado
-        </span>
-        <span className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded bg-slate-200" /> Intervalo
-        </span>
-        <span className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded bg-red-50 border border-red-200" /> Fechado
-        </span>
       </div>
     </div>
   );
