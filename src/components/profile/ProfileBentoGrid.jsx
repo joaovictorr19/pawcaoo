@@ -85,19 +85,17 @@ export default function ProfileBentoGrid({
 
           {/* HOTEL CALENDAR - replaces PawGo active card */}
           {isHotel && (
-            <div className="md:col-span-3 lg:col-span-2 bg-gradient-to-b from-sky-200 via-sky-100 to-sky-50/60 rounded-3xl p-5 md:p-6 shadow-sm border border-sky-100">
-              <h3 className="text-2xl font-black text-slate-700 text-center mb-4 tracking-tight">
+            <div className="md:col-span-3 lg:col-span-2 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">
                 Disponibilidade
               </h3>
-              <div className="bg-white rounded-2xl p-4 shadow-lg shadow-sky-200/40 max-w-[340px] mx-auto">
-                <HotelRangeCalendar
-                  daysOff={daysOff}
-                  checkinPolicy={walkerProfile?.hotel_details?.checkin_policy_type || 'all_days'}
-                  onRangeSelect={(checkin, checkout) => {
-                    if (checkin && checkout) onHotelDateSelect?.(checkin, checkout);
-                  }}
-                />
-              </div>
+              <HotelRangeCalendar
+                daysOff={daysOff}
+                checkinPolicy={walkerProfile?.hotel_details?.checkin_policy_type || 'all_days'}
+                onRangeSelect={(checkin, checkout) => {
+                  if (checkin && checkout) onHotelDateSelect?.(checkin, checkout);
+                }}
+              />
             </div>
           )}
 
