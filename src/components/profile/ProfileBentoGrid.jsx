@@ -97,29 +97,40 @@ export default function ProfileBentoGrid({
             </div>
           )}
 
-          {/* OWN PROFILE - Stats summary (Neo-Retro Memphis) */}
+          {/* OWN PROFILE - Stats summary (Accent Border Pills) */}
           {isOwnProfile && (
-            <div className="md:col-span-1 lg:col-span-2 bg-white flex items-stretch gap-4 p-2">
-              <div
-                className="flex-1 flex flex-col items-center justify-center py-4"
-                style={{ backgroundColor: '#0055FF', border: '3px solid #000', boxShadow: '5px 5px 0 #000' }}
-              >
-                <p className="text-3xl font-black text-white leading-none" style={{ fontFamily: 'Georgia, serif' }}>{earnedBadges.length}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white mt-2">{language === 'pt' ? 'Emblemas' : language === 'es' ? 'Insignias' : 'Badges'}</p>
+            <div className="md:col-span-1 lg:col-span-2 flex flex-col gap-3 p-2">
+              {/* Emblemas - emerald */}
+              <div className="flex items-stretch overflow-hidden" style={{ borderRadius: '9999px', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
+                <div className="flex items-center justify-center px-5 py-3 min-w-[72px]" style={{ backgroundColor: '#27ae60' }}>
+                  <span className="text-2xl font-black text-white leading-none">{earnedBadges.length}</span>
+                </div>
+                <div className="flex items-center px-5 py-3 bg-white flex-1">
+                  <span className="text-sm font-semibold text-slate-800">{language === 'pt' ? 'Emblemas' : language === 'es' ? 'Insignias' : 'Badges'}</span>
+                </div>
               </div>
-              <div
-                className="flex-1 flex flex-col items-center justify-center py-4"
-                style={{ backgroundColor: '#FFD700', border: '3px solid #000', boxShadow: '5px 5px 0 #000' }}
-              >
-                <p className="text-3xl font-black text-black leading-none" style={{ fontFamily: 'Georgia, serif' }}>{reviews.length}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-black mt-2">{t('reviews', language)}</p>
+              {/* Reviews - amber */}
+              <div className="flex items-stretch overflow-hidden" style={{ borderRadius: '9999px', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
+                <div className="flex items-center justify-center px-5 py-3 min-w-[72px]" style={{ backgroundColor: '#f39c12' }}>
+                  <span className="text-2xl font-black text-white leading-none">{reviews.length}</span>
+                </div>
+                <div className="flex items-center px-5 py-3 bg-white flex-1">
+                  <span className="text-sm font-semibold text-slate-800">{t('reviews', language)}</span>
+                </div>
               </div>
-              <div
-                className="flex-1 flex flex-col items-center justify-center py-4"
-                style={{ backgroundColor: '#0055FF', border: '3px solid #000', boxShadow: '5px 5px 0 #000' }}
-              >
-                <p className="text-3xl font-black text-white leading-none" style={{ fontFamily: 'Georgia, serif' }}>{walkerProfile?.rating?.toFixed(1) || trainerProfile?.rating?.toFixed(1) || '—'}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white mt-2">{language === 'pt' ? 'Avaliação' : language === 'es' ? 'Valoración' : 'Rating'}</p>
+              {/* Avaliação - red */}
+              <div className="flex items-stretch overflow-hidden" style={{ borderRadius: '9999px', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
+                <div className="flex flex-col items-center justify-center px-5 py-2.5 min-w-[72px]" style={{ backgroundColor: '#e74c3c' }}>
+                  <span className="text-2xl font-black text-white leading-none">{walkerProfile?.rating?.toFixed(1) || trainerProfile?.rating?.toFixed(1) || '—'}</span>
+                  <div className="flex gap-0.5 mt-1">
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <Star key={i} className="w-2.5 h-2.5" style={{ color: '#f1c40f' }} fill="#f1c40f" />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center px-5 py-3 bg-white flex-1">
+                  <span className="text-sm font-semibold text-slate-800">{language === 'pt' ? 'Avaliação' : language === 'es' ? 'Valoración' : 'Rating'}</span>
+                </div>
               </div>
             </div>
           )}
