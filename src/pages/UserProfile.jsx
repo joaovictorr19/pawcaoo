@@ -53,6 +53,9 @@ export default function UserProfile() {
   const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 2,
   });
 
   const targetId = profileIdParam;
@@ -169,7 +172,11 @@ export default function UserProfile() {
       return userProfile;
     },
     enabled: !!targetId || !!targetEmail || (isSelfView && !!currentUser),
-    retry: false,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    retryDelay: 1000,
   });
 
   const profileEmail = profileUser?.user_email || profileUser?.email;
