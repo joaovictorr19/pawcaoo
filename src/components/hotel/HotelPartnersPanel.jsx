@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, ToggleLeft, ToggleRight, Plus, Dog, Star, Phone, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Users, ToggleLeft, ToggleRight, Plus, ChevronDown, ChevronUp,
+  Shield, ShieldCheck, ShieldAlert
+} from "lucide-react";
 
 const SERVICE_LABELS = {
   walk: "Passeio",
@@ -13,10 +16,33 @@ const SERVICE_LABELS = {
   other: "Outro",
 };
 
-export default function HotelPartnersPanel({ partners = [], bookings = [], onToggleAvailability, onAddPartner }) {
+const ROLE_CONFIG = {
+  simple: {
+    label: "Acesso Simples",
+    desc: "Vê apenas reservas atribuídas a si",
+    icon: Shield,
+    iconCls: "text-slate-400",
+    badgeCls: "bg-slate-100 text-slate-500 border-slate-200",
+  },
+  limited: {
+    label: "Acesso Limitado",
+    desc: "Vê todas as reservas do hotel",
+    icon: ShieldAlert,
+    iconCls: "text-amber-500",
+    badgeCls: "bg-amber-50 text-amber-600 border-amber-200",
+  },
+  full: {
+    label: "Acesso Total",
+    desc: "Pode criar passeios, gerir reservas e aceder a funções do hotel",
+    icon: ShieldCheck,
+    iconCls: "text-emerald-600",
+    badgeCls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+};
+
+export default function HotelPartnersPanel({ partners = [], bookings = [], onToggleAvailability, onAddPartner, onUpdatePartnerRole }) {
   const [expandedPartner, setExpandedPartner] = useState(null);
 
-  // Calcular reservas atribuídas a cada parceiro
   const partnerBookingCount = (email) =>
     bookings.filter(b => b.assigned_walker_email === email && !["cancelled", "rejected", "completed"].includes(b.status)).length;
 
@@ -49,6 +75,9 @@ export default function HotelPartnersPanel({ partners = [], bookings = [], onTog
           {partners.map(partner => {
             const activeJobs = partnerBookingCount(partner.walker_email);
             const isExpanded = expandedPartner === partner.walker_email;
+            const role = partner.partner_role || "simple";
+            const roleCfg = ROLE_CONFIG[role] || ROLE_CONFIG.simple;
+            const RoleIcon = roleCfg.icon;
 
             return (
               <div key={partner.walker_email}
@@ -59,7 +88,9 @@ export default function HotelPartnersPanel({ partners = [], bookings = [], onTog
                     {partner.walker_photo_url ? (
                       <img src={partner.walker_photo_url} className="w-full h-full object-cover" alt="" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl">🐕</div>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-purple-400" />
+                      </div>
                     )}
                   </div>
 
@@ -72,18 +103,13 @@ export default function HotelPartnersPanel({ partners = [], bookings = [], onTog
                       )}
                     </div>
                     <p className="text-xs text-slate-400 truncate">{partner.walker_email}</p>
-                    {(partner.services || []).length > 0 && (
-                      <div className="flex gap-1 mt-1 flex-wrap">
-                        {partner.services.slice(0, 3).map(s => (
-                          <span key={s} className="text-[9px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full font-medium border border-purple-100">
-                            {SERVICE_LABELS[s] || s}
-                          </span>
-                        ))}
-                        {partner.services.length > 3 && (
-                          <span className="text-[9px] text-slate-400">+{partner.services.length - 3}</span>
-                        )}
-                      </div>
-                    )}
+                    {/* Role badge */}
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <RoleIcon className={`w-3 h-3 ${roleCfg.iconCls}`} />
+                      <Badge variant="outline" className={`text-[9px] ${roleCfg.badgeCls}`}>
+                        {roleCfg.label}
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* Toggle + expand */}
@@ -103,27 +129,63 @@ export default function HotelPartnersPanel({ partners = [], bookings = [], onTog
                   </div>
                 </div>
 
-                {/* Expanded: bookings assigned */}
+                {/* Expanded: role management + bookings assigned */}
                 {isExpanded && (
-                  <div className="border-t border-slate-50 bg-slate-50 px-4 pb-3 pt-2">
-                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">Reservas atribuídas</p>
-                    {bookings.filter(b => b.assigned_walker_email === partner.walker_email && !["cancelled", "rejected"].includes(b.status)).length === 0 ? (
-                      <p className="text-xs text-slate-400 italic">Nenhuma reserva atribuída</p>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {bookings.filter(b => b.assigned_walker_email === partner.walker_email && !["cancelled", "rejected"].includes(b.status)).map(b => (
-                          <div key={b.id} className="bg-white rounded-lg px-3 py-2 flex items-center justify-between border border-slate-100">
-                            <div>
-                              <p className="text-xs font-bold text-slate-800">{b.owner_name}</p>
-                              <p className="text-[10px] text-slate-400">{b.checkin_date} · {b.total_dogs || 1} cão(ões)</p>
-                            </div>
-                            <Badge className={`text-[9px] border-0 ${b.status === "confirmed" ? "bg-blue-100 text-blue-700" : b.status === "checked_in" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
-                              {b.status === "confirmed" ? "Confirmado" : b.status === "checked_in" ? "Check-in" : b.status}
-                            </Badge>
-                          </div>
-                        ))}
+                  <div className="border-t border-slate-50 bg-slate-50 px-4 pb-3 pt-3 space-y-3">
+                    {/* Role Selector */}
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2 flex items-center gap-1.5">
+                        <Shield className="w-3 h-3" /> Nível de Acesso
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {Object.entries(ROLE_CONFIG).map(([key, cfg]) => {
+                          const Icon = cfg.icon;
+                          const isActive = role === key;
+                          return (
+                            <button key={key}
+                              onClick={() => onUpdatePartnerRole?.(partner.walker_email, key)}
+                              className={`text-left p-2.5 rounded-xl border-2 transition-all ${
+                                isActive
+                                  ? "border-slate-900 bg-white shadow-sm"
+                                  : "border-slate-100 bg-white/50 hover:border-slate-200"
+                              }`}>
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <Icon className={`w-3.5 h-3.5 ${isActive ? cfg.iconCls : "text-slate-300"}`} />
+                                <span className={`text-[11px] font-bold ${isActive ? "text-slate-900" : "text-slate-400"}`}>
+                                  {cfg.label}
+                                </span>
+                                {isActive && (
+                                  <span className="ml-auto w-2 h-2 rounded-full bg-slate-900" />
+                                )}
+                              </div>
+                              <p className="text-[9px] text-slate-400 leading-tight">{cfg.desc}</p>
+                            </button>
+                          );
+                        })}
                       </div>
-                    )}
+                    </div>
+
+                    {/* Bookings assigned */}
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2">Reservas atribuídas</p>
+                      {bookings.filter(b => b.assigned_walker_email === partner.walker_email && !["cancelled", "rejected"].includes(b.status)).length === 0 ? (
+                        <p className="text-xs text-slate-400 italic">Nenhuma reserva atribuída</p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {bookings.filter(b => b.assigned_walker_email === partner.walker_email && !["cancelled", "rejected"].includes(b.status)).map(b => (
+                            <div key={b.id} className="bg-white rounded-lg px-3 py-2 flex items-center justify-between border border-slate-100">
+                              <div>
+                                <p className="text-xs font-bold text-slate-800">{b.owner_name}</p>
+                                <p className="text-[10px] text-slate-400">{b.checkin_date} · {b.total_dogs || 1} cão(ões)</p>
+                              </div>
+                              <Badge className={`text-[9px] border-0 ${b.status === "confirmed" ? "bg-blue-100 text-blue-700" : b.status === "checked_in" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                                {b.status === "confirmed" ? "Confirmado" : b.status === "checked_in" ? "Check-in" : b.status}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
