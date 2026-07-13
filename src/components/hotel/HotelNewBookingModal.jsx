@@ -40,7 +40,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     checkout_date: "",
     checkin_time: hotelProfile?.hotel_details?.checkin_time || "09:00",
     checkout_time: hotelProfile?.hotel_details?.checkout_time || "18:00",
-    dogs: [{ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", routine: "" }],
+    dogs: [{ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "" }],
     special_requests: "",
     assigned_walker_email: "",
     assigned_walker_name: "",
@@ -55,7 +55,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     setForm(f => ({ ...f, dogs }));
   };
 
-  const addDog = () => setForm(f => ({ ...f, dogs: [...f.dogs, { dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", routine: "" }] }));
+  const addDog = () => setForm(f => ({ ...f, dogs: [...f.dogs, { dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "" }] }));
   const removeDog = (i) => setForm(f => ({ ...f, dogs: f.dogs.filter((_, idx) => idx !== i) }));
 
   const addOnsTotal = calculateAddOnsTotal(addOns);
@@ -336,6 +336,9 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                         className="w-full h-9 px-2.5 mt-2 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
                       <input value={dog.diet || ""} onChange={e => updateDog(i, "diet", e.target.value)}
                         placeholder="Dieta (ração, quantidade, horários)"
+                        className="w-full h-9 px-2.5 mt-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                      <input value={dog.medications || ""} onChange={e => updateDog(i, "medications", e.target.value)}
+                        placeholder="Medicamentos (nome, dosagem, horários)"
                         className="w-full h-9 px-2.5 mt-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
                       <input value={dog.routine || ""} onChange={e => updateDog(i, "routine", e.target.value)}
                         placeholder="Rotina (passeios, sonecas, hábitos)"

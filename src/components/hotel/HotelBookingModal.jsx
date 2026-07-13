@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2 } from 'lucide-react';
+import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Utensils, Pill, Repeat } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
@@ -20,6 +20,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [checkoutTime, setCheckoutTime] = useState('17:00');
   const [specialRequests, setSpecialRequests] = useState('');
   const [pickupAddress, setPickupAddress] = useState('');
+  const [dogCare, setDogCare] = useState({});
   const [isCreating, setIsCreating] = useState(false);
   const [finalized, setFinalized] = useState(false);
 
@@ -32,6 +33,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setCheckoutTime(hotel?.hotel_details?.checkout_time || '17:00');
       setSpecialRequests('');
       setPickupAddress('');
+      setDogCare({});
       setStep(0);
       setFinalized(false);
     }
@@ -89,7 +91,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
           dog_breed: d.breed || 'SRD',
           dog_size: d.size || 'medium',
           dog_age: d.age || 0,
-          special_notes: d.behavioral_notes || ''
+          special_notes: d.behavioral_notes || '',
+          diet: dogCare[d.id]?.diet || '',
+          medications: dogCare[d.id]?.medications || '',
+          routine: dogCare[d.id]?.routine || ''
         })),
         service_type: selectedService.service_type,
         checkin_date: checkinDate,
@@ -163,7 +168,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     }
   };
 
-  const stepTitles = ['Animais', 'Datas', 'Confirmar'];
+  const stepTitles = ['Animais', 'Cuidados', 'Datas', 'Confirmar'];
 
   const formatDate = (dateStr) => {
     return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
@@ -192,7 +197,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         </div>
 
         <div className="flex gap-1 px-5 pt-3">
-          {[0, 1, 2].map(s => (
+          {[0, 1, 2, 3].map(s => (
             <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-300 ${step >= s ? 'bg-slate-900' : 'bg-slate-200'}`} />
           ))}
         </div>
@@ -263,8 +268,84 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             </div>
           )}
 
-          {/* STEP 1 — Calendário de intervalo */}
+          {/* STEP 1 — Cuidados do Animal */}
           {step === 1 && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">
+                  Cuidados do Animal
+                </p>
+                <p className="text-xs text-slate-400">
+                  Informe a equipa do hotel sobre dieta, medicamentos e rotina
+                </p>
+              </div>
+              {selectedDogs.map(dog => {
+                const care = dogCare[dog.id] || {};
+                const updateCare = (field, val) => setDogCare(prev => ({
+                  ...prev,
+                  [dog.id]: { ...prev[dog.id], [field]: val }
+                }));
+                return (
+                  <div key={dog.id} className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                      {dog.photo_url ? (
+                        <img src={dog.photo_url} className="w-9 h-9 rounded-lg object-cover" alt={dog.dog_name} />
+                      ) : (
+                        <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center text-lg">🐾</div>
+                      )}
+                      <p className="font-bold text-slate-900 text-sm">{dog.dog_name}</p>
+                      <span className="text-[10px] text-slate-400">{dog.breed || 'SRD'}</span>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1">
+                        <Utensils className="w-3.5 h-3.5" /> Dieta
+                      </label>
+                      <textarea
+                        value={care.diet || ''}
+                        onChange={e => updateCare('diet', e.target.value)}
+                        placeholder="Ração, marca, quantidade, horários de alimentação..."
+                        rows={2}
+                        className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1">
+                        <Pill className="w-3.5 h-3.5" /> Medicamentos
+                      </label>
+                      <textarea
+                        value={care.medications || ''}
+                        onChange={e => updateCare('medications', e.target.value)}
+                        placeholder="Nome do medicamento, dosagem, frequência e horários..."
+                        rows={2}
+                        className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1">
+                        <Repeat className="w-3.5 h-3.5" /> Rotina Diária
+                      </label>
+                      <textarea
+                        value={care.routine || ''}
+                        onChange={e => updateCare('routine', e.target.value)}
+                        placeholder="Passeios, sestas, brincadeiras, hábitos da casa..."
+                        rows={2}
+                        className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              <Button
+                onClick={() => setStep(2)}
+                className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base"
+              >
+                Continuar →
+              </Button>
+            </div>
+          )}
+
+          {/* STEP 2 — Calendário de intervalo */}
+          {step === 2 && (
             <div className="space-y-4">
               {/* Selected dates display */}
               <div className="flex items-center gap-3">
@@ -332,7 +413,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
               {checkinDate && checkoutDate && (
                 <Button
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(3)}
                   className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base"
                 >
                   Continuar →
@@ -341,8 +422,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             </div>
           )}
 
-          {/* STEP 2 — Resumo e Pagamento */}
-          {step === 2 && finalized && (
+          {/* STEP 3 — Resumo e Pagamento */}
+          {step === 3 && finalized && (
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -364,7 +445,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             </motion.div>
           )}
 
-          {step === 2 && !finalized && (
+          {step === 3 && !finalized && (
             <div className="space-y-4">
               <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-200">

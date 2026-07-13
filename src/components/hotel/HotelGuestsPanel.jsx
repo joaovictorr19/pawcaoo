@@ -285,6 +285,15 @@ function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
                                 </div>
                               </div>
                             )}
+                            {dog.medications && (
+                              <div className="bg-rose-50 border border-rose-100 rounded-lg px-2.5 py-1.5 flex gap-1.5">
+                                <Pill className="w-3 h-3 text-rose-500 shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="text-[9px] font-bold text-rose-600 uppercase tracking-wide">Medicamentos</p>
+                                  <p className="text-xs text-rose-800">{dog.medications}</p>
+                                </div>
+                              </div>
+                            )}
                             {dog.routine && (
                               <div className="bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1.5 flex gap-1.5">
                                 <Repeat className="w-3 h-3 text-blue-500 shrink-0 mt-0.5" />

@@ -51,6 +51,10 @@
             "type": "string",
             "description": "Dieta e alimenta\u00e7\u00e3o do animal"
           },
+          "medications": {
+            "type": "string",
+            "description": "Medicamentos, dosagem, frequ\u00eancia e hor\u00e1rios"
+          },
           "routine": {
             "type": "string",
             "description": "Rotina di\u00e1ria do animal (hor\u00e1rios, h\u00e1bitos)"
