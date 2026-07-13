@@ -97,31 +97,29 @@ export default function ProfileBentoGrid({
             </div>
           )}
 
-          {/* OWN PROFILE - Stats summary (Glass Neon) */}
+          {/* OWN PROFILE - Stats summary (Neo-Retro Memphis) */}
           {isOwnProfile && (
-            <div
-              className="md:col-span-1 lg:col-span-2 rounded-2xl p-5 shadow-sm border border-white/10 flex items-center gap-4 relative overflow-hidden"
-              style={{
-                backgroundImage: "url('https://media.base44.com/images/public/6907b3be1ec43db5676a2085/0635b34d7_generated_image.png')",
-                backgroundSize: '100% 100%',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: '#1a1d28',
-              }}
-            >
-              <div className="flex-1 text-center relative z-10">
-                <p className="text-2xl font-black text-white">{earnedBadges.length}</p>
-                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: '#a8d3e6' }}>{language === 'pt' ? 'Emblemas' : language === 'es' ? 'Insignias' : 'Badges'}</p>
+            <div className="md:col-span-1 lg:col-span-2 bg-white flex items-stretch gap-4 p-2">
+              <div
+                className="flex-1 flex flex-col items-center justify-center py-4"
+                style={{ backgroundColor: '#0055FF', border: '3px solid #000', boxShadow: '5px 5px 0 #000' }}
+              >
+                <p className="text-3xl font-black text-white leading-none" style={{ fontFamily: 'Georgia, serif' }}>{earnedBadges.length}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white mt-2">{language === 'pt' ? 'Emblemas' : language === 'es' ? 'Insignias' : 'Badges'}</p>
               </div>
-              <div className="w-px h-10 bg-white/20" />
-              <div className="flex-1 text-center relative z-10">
-                <p className="text-2xl font-black text-white">{reviews.length}</p>
-                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: '#a8d3e6' }}>{t('reviews', language)}</p>
+              <div
+                className="flex-1 flex flex-col items-center justify-center py-4"
+                style={{ backgroundColor: '#FFD700', border: '3px solid #000', boxShadow: '5px 5px 0 #000' }}
+              >
+                <p className="text-3xl font-black text-black leading-none" style={{ fontFamily: 'Georgia, serif' }}>{reviews.length}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-black mt-2">{t('reviews', language)}</p>
               </div>
-              <div className="w-px h-10 bg-white/20" />
-              <div className="flex-1 text-center relative z-10">
-                <p className="text-2xl font-black text-white">{walkerProfile?.rating?.toFixed(1) || trainerProfile?.rating?.toFixed(1) || '—'}</p>
-                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: '#a8d3e6' }}>{language === 'pt' ? 'Avaliação' : language === 'es' ? 'Valoración' : 'Rating'}</p>
+              <div
+                className="flex-1 flex flex-col items-center justify-center py-4"
+                style={{ backgroundColor: '#0055FF', border: '3px solid #000', boxShadow: '5px 5px 0 #000' }}
+              >
+                <p className="text-3xl font-black text-white leading-none" style={{ fontFamily: 'Georgia, serif' }}>{walkerProfile?.rating?.toFixed(1) || trainerProfile?.rating?.toFixed(1) || '—'}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white mt-2">{language === 'pt' ? 'Avaliação' : language === 'es' ? 'Valoración' : 'Rating'}</p>
               </div>
             </div>
           )}
