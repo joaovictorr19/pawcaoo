@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint } from 'lucide-react';
+import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +19,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [checkinTime, setCheckinTime] = useState('10:00');
   const [checkoutTime, setCheckoutTime] = useState('17:00');
   const [specialRequests, setSpecialRequests] = useState('');
+  const [pickupAddress, setPickupAddress] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [finalized, setFinalized] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -28,7 +31,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setCheckinTime(hotel?.hotel_details?.checkin_time || '10:00');
       setCheckoutTime(hotel?.hotel_details?.checkout_time || '17:00');
       setSpecialRequests('');
+      setPickupAddress('');
       setStep(0);
+      setFinalized(false);
     }
   }, [isOpen, hotel, initialDate, initialCheckout]);
 
@@ -68,6 +73,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     if (selectedDogs.length === 0) { toast.error('Selecione pelo menos um animal'); return; }
     if (!checkinDate || !checkoutDate) { toast.error('Escolha as datas no calendário'); return; }
     if (new Date(checkoutDate) <= new Date(checkinDate)) { toast.error('Data de saída deve ser após a de entrada'); return; }
+    if (!pickupAddress.trim()) { toast.error('Indique o endereço de recolha'); return; }
 
     setIsCreating(true);
     try {
@@ -97,14 +103,59 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         platform_fee: platformFee,
         service_amount: serviceAmount,
         special_requests: specialRequests,
+        pickup_address: pickupAddress,
       });
+
+      // Enviar email com os dados da reserva
+      const ownerName = clientProfile?.full_name || currentUser.full_name || currentUser.email;
+      const dogList = selectedDogs.map(d => `• ${d.dog_name} (${d.breed || 'SRD'}, ${d.size || 'médio'})`).join('\n');
+      const emailBody = [
+        `Olá ${ownerName},`,
+        ``,
+        `A sua reserva no ${hotel.walker_name} foi registada com sucesso!`,
+        ``,
+        `Detalhes da Reserva:`,
+        `Serviço: ${selectedService.service_name}`,
+        `Animais: ${selectedDogs.length} ${selectedDogs.length === 1 ? 'animal' : 'animais'}`,
+        `${dogList}`,
+        ``,
+        `Check-in: ${formatDate(checkinDate)} às ${checkinTime}`,
+        `Check-out: ${formatDate(checkoutDate)} às ${checkoutTime}`,
+        `Duração: ${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}`,
+        ``,
+        `Endereço de recolha: ${pickupAddress}`,
+        ``,
+        `Resumo de valores:`,
+        `Serviço: ${serviceAmount}€`,
+        `Taxa de plataforma: ${platformFee}€`,
+        `Total: ${totalAmount}€`,
+        ``,
+        specialRequests ? `Pedidos especiais: ${specialRequests}` : '',
+        ``,
+        `Para concluir o pagamento, será redirecionado para o Stripe.`,
+        ``,
+        `Obrigado por escolher a PawCão!`,
+      ].filter(Boolean).join('\n');
+
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: currentUser.email,
+          subject: `Reserva confirmada — ${hotel.walker_name} (${formatDate(checkinDate)} → ${formatDate(checkoutDate)})`,
+          body: emailBody,
+        });
+      } catch (emailErr) {
+        console.error('Email send error:', emailErr);
+      }
+
+      setFinalized(true);
 
       const checkoutUrl = response?.data?.url;
       if (checkoutUrl) {
-        window.location.href = checkoutUrl;
+        setTimeout(() => { window.location.href = checkoutUrl; }, 1800);
       } else {
         toast.error('Erro ao gerar link de pagamento. Tente novamente.');
         setIsCreating(false);
+        setFinalized(false);
       }
     } catch (error) {
       toast.error(`Erro: ${error.message}`);
@@ -291,7 +342,29 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
           )}
 
           {/* STEP 2 — Resumo e Pagamento */}
-          {step === 2 && (
+          {step === 2 && finalized && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center justify-center text-center py-8 space-y-4"
+            >
+              <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center">
+                <CheckCircle2 className="w-9 h-9 text-emerald-500" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-slate-900">Reserva registada!</h3>
+                <p className="text-sm text-slate-500 max-w-xs">
+                  Enviámos os detalhes da reserva para <span className="font-bold text-slate-700">{currentUser.email}</span>
+                </p>
+              </div>
+              <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-center gap-2 text-xs text-slate-500">
+                <Mail className="w-4 h-4 text-slate-400" />
+                <span>A redirecionar para o pagamento seguro...</span>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 2 && !finalized && (
             <div className="space-y-4">
               <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
@@ -322,6 +395,19 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Duração</span>
                   <span className="font-bold text-slate-900">{totalNights} {totalNights === 1 ? 'noite' : 'noites'}</span>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200">
+                  <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" /> Endereço de Recolha
+                  </label>
+                  <input
+                    type="text"
+                    value={pickupAddress}
+                    onChange={(e) => setPickupAddress(e.target.value)}
+                    placeholder="Morada completa onde iremos buscar o(s) animal(is)"
+                    className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none"
+                  />
                 </div>
 
                 <div className="pt-2 border-t border-slate-200">
@@ -359,7 +445,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                 className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-green-200 flex items-center justify-center gap-2"
               >
                 {isCreating ? (
-                  <>⏳ A redirecionar para pagamento...</>
+                  <>A confirmar reserva e enviar email...</>
                 ) : (
                   <><CreditCard className="w-5 h-5" /> Confirmar e Pagar {totalAmount}€</>
                 )}
