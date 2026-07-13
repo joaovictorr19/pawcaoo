@@ -99,7 +99,7 @@ export default function ProfileBentoGrid({
 
           {/* OWN PROFILE - Stats summary */}
           {isOwnProfile && (
-            <div className="md:col-span-1 lg:col-span-2 bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
+            <div className="md:col-span-1 lg:col-span-2 bg-white/40 backdrop-blur-xl rounded-3xl p-5 shadow-sm border border-white/60 flex items-center gap-4">
               <div className="flex-1 text-center">
                 <p className="text-2xl font-black text-slate-900">{earnedBadges.length}</p>
                 <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">{language === 'pt' ? 'Emblemas' : language === 'es' ? 'Insignias' : 'Badges'}</p>
