@@ -195,9 +195,9 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const inputCls = "w-full h-10 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:border-slate-400 transition-colors bg-white";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center md:p-4 justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={resetAndClose} />
-      <div className="relative bg-white w-full max-w-lg rounded-t-2xl md:rounded-2xl max-h-[92vh] overflow-y-auto shadow-xl scrollbar-hide">
+      <div className="relative bg-white w-full max-w-2xl rounded-t-2xl md:rounded-2xl max-h-[92vh] overflow-y-auto shadow-xl scrollbar-hide">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
