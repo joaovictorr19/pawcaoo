@@ -182,10 +182,28 @@ function LayoutContent({ children, currentPageName }) {
       if (!authUser?.email) return [];
       try {
         const profiles = await base44.entities.WalkerProfile.filter({ created_by: authUser.email });
-        if (profiles.length > 0 && profiles[0].hotel_partnerships) {
+        if (profiles.length > 0 && profiles[0].hotel_partnerships?.length > 0) {
           return profiles[0].hotel_partnerships;
         }
-        return [];
+        const hotels = await base44.entities.WalkerProfile.filter(
+          { professional_type: 'hotel' },
+          undefined,
+          100
+        );
+        const partnerships = [];
+        for (const h of hotels) {
+          const partners = h.hotel_details?.partner_walkers || [];
+          const found = partners.find(p => p.walker_email?.toLowerCase() === authUser.email.toLowerCase());
+          if (found) {
+            partnerships.push({
+              hotel_profile_id: h.id,
+              hotel_name: h.hotel_details?.hotel_name || h.walker_name || 'Hotel',
+              hotel_photo_url: h.photo_url || '',
+              partner_role: found.partner_role || 'simple',
+            });
+          }
+        }
+        return partnerships;
       } catch {
         return [];
       }
@@ -468,7 +486,7 @@ function LayoutContent({ children, currentPageName }) {
                   <NavLink to={createPageUrl("ProfessionalHubV2")} className={navCls}>{nav('professionalHub')}</NavLink>
                   <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>{nav('clientPanel')}</NavLink>
                   <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-red-100 text-red-700' : 'hover:bg-red-50 text-red-600'}`}>
-                    🛡️ Admin
+                    Admin
                   </NavLink>
                 </>
               );
@@ -487,8 +505,8 @@ function LayoutContent({ children, currentPageName }) {
               };
 
               if (isHotel) return (
-                <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-purple-100 text-purple-700' : 'hover:bg-purple-50 text-purple-600'}`}>
-                  🏨 {nav('myHotel')}
+                <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-slate-100 text-slate-900' : 'hover:bg-slate-50 text-slate-600'}`}>
+                  {nav('myHotel')}
                 </NavLink>
               );
 
@@ -504,8 +522,8 @@ function LayoutContent({ children, currentPageName }) {
               );
             })()}
             {hotelPartnerships && hotelPartnerships.length > 0 && (
-              <NavLink to={createPageUrl("PartnerHotelPanel")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-purple-100 text-purple-700' : 'hover:bg-purple-50 text-purple-600'}`}>
-                🏨 Painel Parceiro
+              <NavLink to={createPageUrl("PartnerHotelPanel")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-slate-100 text-slate-900' : 'hover:bg-slate-50 text-slate-600'}`}>
+                Painel Parceiro
               </NavLink>
             )}
           </nav>

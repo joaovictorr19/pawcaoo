@@ -138,26 +138,26 @@ export default function PartnerHotelPanel() {
   }
 
   const roleLabels = {
-    simple: '📋 Parceiro Simples',
-    limited: '👀 Acesso Limitado',
-    full: '🔑 Funcionário',
+    simple: 'Parceiro Simples',
+    limited: 'Acesso Limitado',
+    full: 'Funcionário',
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between"
         >
           <div>
-            <h1 className="text-4xl font-black text-slate-900">
+            <h1 className="text-2xl font-bold text-slate-900">
               {hotel.walker_name || 'Hotel'}
             </h1>
-            <p className="text-slate-600 flex items-center gap-2 mt-2">
-              <Badge className="bg-purple-100 text-purple-700 border-0">
+            <p className="text-slate-500 flex items-center gap-2 mt-1.5">
+              <Badge variant="outline" className="border-slate-200 text-slate-600 bg-slate-50">
                 {roleLabels[hotel.partnerRole] || 'Parceiro'}
               </Badge>
             </p>
@@ -167,7 +167,7 @@ export default function PartnerHotelPanel() {
               await base44.auth.logout('/');
             }}
             variant="outline"
-            className="gap-2"
+            className="gap-2 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50"
           >
             <LogOut className="w-4 h-4" />
             Sair
@@ -262,7 +262,7 @@ export default function PartnerHotelPanel() {
                         <div className="font-bold text-green-600">
                           €{booking.service_amount?.toFixed(2) || '0.00'}
                         </div>
-                        <Badge className="mt-2 bg-blue-100 text-blue-700 border-0 text-[9px]">
+                        <Badge variant="outline" className="mt-2 border-slate-200 text-slate-500 bg-slate-50 text-[9px] capitalize">
                           {booking.status}
                         </Badge>
                       </div>
