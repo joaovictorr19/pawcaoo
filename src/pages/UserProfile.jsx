@@ -317,6 +317,12 @@ export default function UserProfile() {
     }
   });
 
+  useEffect(() => {
+    if (!loadingUser && profileUser) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [loadingUser, profileUser?.id]);
+
   if (loadingUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
