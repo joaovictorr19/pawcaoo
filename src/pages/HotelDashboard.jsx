@@ -37,6 +37,7 @@ import HotelWaitlistPanel from "@/components/hotel/HotelWaitlistPanel";
 import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel";
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
 import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
+import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -263,30 +264,7 @@ export default function HotelDashboard() {
   } = useHotelCapacity(hotelProfile, bookings);
 
   if (!loadingProfile && !hotelProfile && user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
-        <div className="text-center max-w-md w-full">
-          <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-            <Hotel className="w-10 h-10 text-slate-400" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Painel do Hotel</h2>
-          <p className="text-slate-500 mb-6 text-sm leading-relaxed">
-            Ainda não tens um perfil profissional criado. Escolhe o tipo de conta que queres criar para começar.
-          </p>
-          <div className="flex flex-col gap-3">
-            <Button onClick={() => navigate(createPageUrl("HotelOnboarding"))}
-              className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg px-6 h-12">
-              <Hotel className="w-4 h-4 mr-2" /> Criar Conta de Hotel
-            </Button>
-            <Button onClick={() => navigate(createPageUrl("WalkerOnboarding"))}
-              variant="outline"
-              className="border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg px-6 h-12">
-              <Dog className="w-4 h-4 mr-2" /> Criar Conta de Passeador
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <HotelOnboardingEmpty userName={user?.full_name} />;
   }
 
   return (
