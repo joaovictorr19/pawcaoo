@@ -168,7 +168,7 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "data.trainer_email": "{{user.email}}"
+          "data.trainer_id": "{{user.id}}"
         },
         {
           "data.owner_email": "{{user.email}}"
@@ -186,7 +186,7 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "data.trainer_email": "{{user.email}}"
+          "data.trainer_id": "{{user.id}}"
         },
         {
           "user_condition": {

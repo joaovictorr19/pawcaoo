@@ -115,10 +115,7 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "data.walker_email": "{{user.email}}"
-        },
-        {
-          "data.owner_email": "{{user.email}}"
+          "data.walker_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -133,7 +130,7 @@
           "created_by_id": "{{user.id}}"
         },
         {
-          "data.walker_email": "{{user.email}}"
+          "data.walker_id": "{{user.id}}"
         },
         {
           "user_condition": {
