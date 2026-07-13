@@ -610,7 +610,7 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           {user ? (
-            <div className="max-w-4xl mx-auto bg-gradient-to-br from-blue-100 to-blue-200 rounded-3xl shadow-2xl p-4 md:p-6 mb-6 space-y-3">
+            <div className="max-w-4xl mx-auto bg-transparent rounded-3xl p-4 md:p-6 mb-6 space-y-3">
               {/* Embedded Owner Dashboard - Split Hero Layout */}
               {(() => {
                 const currentTier = calculateTier(currentXP);
