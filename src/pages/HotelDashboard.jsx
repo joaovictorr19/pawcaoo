@@ -10,7 +10,7 @@ import {
   XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, Settings, RefreshCw,
   ClipboardList, Wallet, UserCheck, Phone, Mail, StickyNote, FileText, DoorOpen,
   BedDouble, Sun, Scissors, GraduationCap, PawPrint, ArrowRight, ArrowLeft,
-  CircleDot, X, ChevronDown, Stethoscope
+  CircleDot, X, ChevronDown, Stethoscope, ListChecks
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +36,7 @@ import HotelSalesInsights from "@/components/hotel/HotelSalesInsights";
 import HotelWaitlistPanel from "@/components/hotel/HotelWaitlistPanel";
 import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel";
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
+import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -65,6 +66,7 @@ const SERVICE_LABELS = {
 };
 
 const TABS = [
+  { key: "tarefas",   label: "Tarefas",           icon: ListChecks },
   { key: "hospedes",  label: "Hóspedes",          icon: Users },
   { key: "reservas",  label: "Reservas",          icon: ClipboardList },
   { key: "agenda",    label: "Agenda",            icon: CalendarDays },
@@ -87,7 +89,7 @@ export default function HotelDashboard() {
     window.scrollTo(0, 0);
   }, []);
 
-  const [activeTab, setActiveTab] = useState("hospedes");
+  const [activeTab, setActiveTab] = useState("tarefas");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showNewBooking, setShowNewBooking] = useState(false);
   const [showAddPartner, setShowAddPartner] = useState(false);
@@ -419,6 +421,15 @@ export default function HotelDashboard() {
 
         {/* Tab Content */}
         <AnimatePresence mode="wait">
+
+          {activeTab === "tarefas" && (
+            <motion.div key="tarefas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelTasksPanel
+                bookings={bookings}
+                onUpdateBooking={handleUpdateBooking}
+              />
+            </motion.div>
+          )}
 
           {activeTab === "hospedes" && (
             <motion.div key="hospedes" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
