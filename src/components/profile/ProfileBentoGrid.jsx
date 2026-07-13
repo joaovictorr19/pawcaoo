@@ -1,3 +1,4 @@
+// ProfileBentoGrid - bento layout for user profile
 import React from "react";
 import { ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, PawPrint, Zap } from "lucide-react";
 import ReviewCard from "@/components/reviews/ReviewCard";
