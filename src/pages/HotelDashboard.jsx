@@ -50,6 +50,14 @@ const SERVICE_LABELS = {
 export default function HotelDashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Scroll to top on mount — single motor, no duplicates
+  React.useEffect(() => {
+    const el = document.scrollingElement || document.documentElement;
+    if (el) el.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }, []);
+
   const [activeTab, setActiveTab] = useState("hospedes");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showNewBooking, setShowNewBooking] = useState(false);
