@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery, useQueryClient, useMutation, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -171,7 +171,7 @@ export default function Home() {
       queryClient.invalidateQueries(['profileUser']);
       queryClient.invalidateQueries(['walkerProfile']);
       queryClient.invalidateQueries(['trainerProfile']);
-      queryClient.invalidateQueries(['walkersPage']);
+      queryClient.invalidateQueries(['allWalkers']);
       queryClient.invalidateQueries(['allTrainers']);
       queryClient.invalidateQueries(['myProfessionalProfile']);
       toast.success('Estado online atualizado.');
@@ -315,44 +315,14 @@ export default function Home() {
     refetchInterval: false
   });
 
-  // Server-side query built from active filters
-  const serverQuery = React.useMemo(() => {
-    const q = { is_active: true, verification_status: 'verified' };
-
-    if (searchLocation?.trim()) {
-      const term = searchLocation.trim();
-      q.$or = [
-        { location: { $regex: term, $options: 'i' } },
-        { walker_name: { $regex: term, $options: 'i' } }
-      ];
-    }
-
-    if (filterSize !== 'all') {
-      q.dog_sizes = filterSize;
-    }
-
-    if (filterTime !== 'all') {
-      q.availability = filterTime;
-    }
-
-    if (filterAnimalType !== 'all') {
-      q.accepted_animals = filterAnimalType;
-    }
-
-    return q;
-  }, [searchLocation, filterSize, filterTime, filterAnimalType]);
-
-  // Paginated server query — fetches only the current page
-  const { data: walkersPage = [], isLoading: loadingWalkers, isFetching: fetchingPage } = useQuery({
-    queryKey: ['walkersPage', serverQuery, currentPage],
+  const { data: walkers = [], isLoading: loadingWalkers } = useQuery({
+    queryKey: ['allWalkers'],
     queryFn: async () => {
       try {
-        const skip = (currentPage - 1) * itemsPerPage;
         const result = await base44.entities.WalkerProfile.filter(
-          serverQuery,
-          '-is_featured,-rating,-created_date',
-          itemsPerPage,
-          skip
+          { is_active: true, verification_status: 'verified' },
+          '-created_date',
+          50
         );
         return Array.isArray(result) ? result : [];
       } catch (error) {
@@ -360,7 +330,6 @@ export default function Home() {
         return [];
       }
     },
-    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     cacheTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -465,14 +434,35 @@ export default function Home() {
     });
   };
 
-  // Client-side post-processing on the current page only
-  const displayProfessionals = React.useMemo(() => {
-    const processed = walkersPage.map(w => ({
+  const filteredProfessionals = React.useMemo(() => {
+    const validWalkers = walkers.filter(w => w?.id && w?.walker_name && w?.verification_status === 'verified' && w?.is_active !== false);
+    
+    const processed = validWalkers.map(w => ({
       ...w,
       matchScore: calculateMatchScore(w)
     }));
 
     let result = processed;
+
+    if (searchLocation?.trim()) {
+      const term = searchLocation.toLowerCase();
+      result = result.filter(w => 
+        w.location?.toLowerCase().includes(term) || 
+        w.walker_name?.toLowerCase().includes(term)
+      );
+    }
+
+    if (filterSize !== "all") {
+      result = result.filter(w => w.dog_sizes?.includes(filterSize));
+    }
+
+    if (filterTime !== "all") {
+      result = result.filter(w => w.availability?.includes(filterTime));
+    }
+
+    if (filterAnimalType !== "all") {
+      result = result.filter(w => (w.accepted_animals || ['dogs']).includes(filterAnimalType));
+    }
 
     if (filterDogSitting !== "all") {
       result = result.filter(w => {
@@ -489,9 +479,7 @@ export default function Home() {
       if (b.matchScore !== a.matchScore && a.matchScore > 0 && b.matchScore > 0) return b.matchScore - a.matchScore;
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkersPage, filterDogSitting, myDogs, favorites, activeBookings]);
-
-  const hasMorePages = walkersPage.length === itemsPerPage;
+  }, [walkers, searchLocation, filterSize, filterTime, filterAnimalType, filterDogSitting, myDogs, favorites, activeBookings]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
@@ -511,6 +499,12 @@ export default function Home() {
         return dateB - dateA;
       });
   }, [emergencyWalks, searchLocation, filterSize]);
+
+  const totalPages = Math.ceil(filteredProfessionals.length / itemsPerPage);
+  const paginatedProfessionals = filteredProfessionals.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   useEffect(() => {
     if (dogSittingServiceFilter) {
@@ -999,7 +993,7 @@ export default function Home() {
                         </div>
                       ))}
                     </div>
-                  ) : displayProfessionals.length === 0 ? (
+                  ) : filteredProfessionals.length === 0 ? (
                     <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden bg-white/90">
                       <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
                         <Search className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
@@ -1020,48 +1014,11 @@ export default function Home() {
                       </Button>
                     </Card>
                   ) : (
-                    <>
-                      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8 transition-opacity ${fetchingPage ? 'opacity-60' : 'opacity-100'}`}>
-                        {displayProfessionals.map((pro) => (
-                          <ProfessionalCard key={pro.id} walker={pro} />
-                        ))}
-                      </div>
-
-                      {/* Server-side pagination controls */}
-                      <div className="flex items-center justify-center gap-4 mb-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={currentPage === 1 || fetchingPage}
-                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                          className="bg-white/80 backdrop-blur"
-                        >
-                          <ChevronLeft className="w-4 h-4 mr-1" />
-                          {language === 'pt' ? 'Anterior' : 'Previous'}
-                        </Button>
-
-                        <span className="text-sm font-semibold text-gray-700 px-3">
-                          {currentPage}
-                        </span>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={!hasMorePages || fetchingPage}
-                          onClick={() => setCurrentPage(p => p + 1)}
-                          className="bg-white/80 backdrop-blur"
-                        >
-                          {language === 'pt' ? 'Próximo' : 'Next'}
-                          <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
-                      </div>
-
-                      {fetchingPage && (
-                        <div className="flex justify-center mb-4">
-                          <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
-                        </div>
-                      )}
-                    </>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                      {paginatedProfessionals.map((pro) => (
+                        <ProfessionalCard key={pro.id} walker={pro} />
+                      ))}
+                    </div>
                   )}
                 </div>
               </TabsContent>
