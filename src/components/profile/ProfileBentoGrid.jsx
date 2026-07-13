@@ -102,12 +102,11 @@ export default function ProfileBentoGrid({
             <div
               className="md:col-span-1 lg:col-span-2 rounded-2xl p-5 shadow-sm border border-white/10 flex items-center gap-4 relative overflow-hidden"
               style={{
-                backgroundImage: "url('https://media.base44.com/images/public/6907b3be1ec43db5676a2085/55f8f0821_generated_image.png')",
-                backgroundSize: 'cover',
+                backgroundImage: "url('https://media.base44.com/images/public/6907b3be1ec43db5676a2085/0635b34d7_generated_image.png')",
+                backgroundSize: '100% 100%',
                 backgroundPosition: 'center',
-                backgroundColor: '#252a36',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: '#1a1d28',
               }}
             >
               <div className="flex-1 text-center relative z-10">
