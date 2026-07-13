@@ -1,18 +1,18 @@
 import React from 'react';
-import { Award } from 'lucide-react';
+import { Award, Pin } from 'lucide-react';
 
-const RARITY_GLOW = {
-  legendary: 'ring-2 ring-yellow-400/60 shadow-yellow-200',
-  epic:      'ring-2 ring-purple-400/60 shadow-purple-200',
-  rare:      'ring-2 ring-blue-400/60 shadow-blue-200',
-  common:    'ring-1 ring-gray-200',
+const RARITY_RING = {
+  legendary: 'ring-2 ring-amber-400/70 shadow-amber-200/40',
+  epic:      'ring-2 ring-purple-400/70 shadow-purple-200/40',
+  rare:      'ring-2 ring-sky-400/70 shadow-sky-200/40',
+  common:    'ring-1 ring-slate-200 shadow-slate-100',
 };
 
-const RARITY_BG = {
-  legendary: 'bg-gradient-to-br from-yellow-50 to-orange-50',
-  epic:      'bg-gradient-to-br from-purple-50 to-pink-50',
-  rare:      'bg-gradient-to-br from-blue-50 to-cyan-50',
-  common:    'bg-white',
+const RARITY_DOT = {
+  legendary: 'bg-amber-400',
+  epic:      'bg-purple-400',
+  rare:      'bg-sky-400',
+  common:    'bg-slate-300',
 };
 
 export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, size = 'md' }) {
@@ -23,7 +23,7 @@ export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, s
   const imageUrl = badge.image_png_file || badge.image_url;
 
   return (
-    <div className={`relative ${sizeClass} rounded-2xl flex items-center justify-center shadow-md overflow-hidden group cursor-default ${RARITY_GLOW[rarity]} ${RARITY_BG[rarity]}`}>
+    <div className={`relative ${sizeClass} rounded-2xl flex items-center justify-center overflow-hidden group cursor-default backdrop-blur-xl bg-sky-50/80 border border-white/50 shadow-md ${RARITY_RING[rarity]} ${!isEarned ? 'opacity-40 grayscale' : ''}`}>
 
       {imageUrl ? (
         <img
@@ -41,7 +41,10 @@ export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, s
       )}
 
       {/* Shine */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30 pointer-events-none" />
+
+      {/* Rarity dot */}
+      <div className={`absolute bottom-1 left-1 w-2 h-2 rounded-full ${RARITY_DOT[rarity]} z-20`} />
 
       {/* Pin button */}
       {isOwner && isEarned && onPin && (
@@ -49,12 +52,12 @@ export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, s
           onClick={(e) => { e.stopPropagation(); onPin(); }}
           className={`absolute -top-1 -right-1 p-1 rounded-full transition-all z-20 ${
             isPinned
-              ? 'bg-yellow-400 text-white scale-110 shadow-md'
-              : 'bg-gray-300 text-gray-500 opacity-0 group-hover:opacity-100'
+              ? 'bg-amber-400 text-white scale-110 shadow-md'
+              : 'bg-slate-200 text-slate-500 opacity-0 group-hover:opacity-100 hover:bg-slate-300'
           }`}
           title={isPinned ? "Desafixar" : "Fixar"}
         >
-          <span className="text-[10px] font-black">📌</span>
+          <Pin className="w-3 h-3" fill={isPinned ? 'currentColor' : 'none'} />
         </button>
       )}
     </div>
