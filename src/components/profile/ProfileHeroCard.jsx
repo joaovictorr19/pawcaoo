@@ -217,7 +217,7 @@ export default function ProfileHeroCard({
 
         {/* Bio */}
         {hasBio && (
-          <p className="text-slate-600 text-sm leading-relaxed mt-3 line-clamp-2 max-w-xs">
+          <p className="text-slate-600 text-sm leading-relaxed mt-3 max-w-md">
             {hasBio}
           </p>
         )}
@@ -280,16 +280,18 @@ export default function ProfileHeroCard({
 
         {/* Availability pills (walkers/trainers) */}
         {!isHotel && availability.length > 0 && (
-          <div className="flex items-center justify-center gap-1.5 mt-3 flex-wrap">
+          <div className="flex flex-col items-center gap-1.5 mt-3 w-full">
             <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
               <Calendar className="w-3 h-3 inline mr-1" />
               {language === 'pt' ? 'Disponibilidade' : 'Availability'}
             </span>
-            {availability.map((slot) => (
-              <span key={slot} className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                {AVAILABILITY_LABELS[slot]?.[language] || AVAILABILITY_LABELS[slot]?.pt || slot}
-              </span>
-            ))}
+            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+              {availability.map((slot) => (
+                <span key={slot} className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                  {AVAILABILITY_LABELS[slot]?.[language] || AVAILABILITY_LABELS[slot]?.pt || slot}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 
