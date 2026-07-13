@@ -10,7 +10,7 @@ import {
   XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, Settings, RefreshCw,
   ClipboardList, Wallet, UserCheck, Phone, Mail, StickyNote, FileText, DoorOpen,
   BedDouble, Sun, Scissors, GraduationCap, PawPrint, ArrowRight, ArrowLeft,
-  CircleDot, X, ChevronDown
+  CircleDot, X, ChevronDown, Stethoscope
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +35,7 @@ import HotelReservationsPanel from "@/components/hotel/HotelReservationsPanel";
 import HotelSalesInsights from "@/components/hotel/HotelSalesInsights";
 import HotelWaitlistPanel from "@/components/hotel/HotelWaitlistPanel";
 import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel";
+import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -69,6 +70,7 @@ const TABS = [
   { key: "agenda",    label: "Agenda",            icon: CalendarDays },
   { key: "espera",    label: "Lista Espera",      icon: Clock },
   { key: "clientes",  label: "Clientes",          icon: UserCheck },
+  { key: "prontuario",label: "Prontuário",        icon: Stethoscope },
   { key: "servicos",  label: "Serviços e Vagas",  icon: LayoutGrid },
   { key: "financas",  label: "Finanças",          icon: Wallet },
   { key: "parceiros", label: "Parceiros",         icon: UserCheck },
@@ -461,6 +463,12 @@ export default function HotelDashboard() {
                   capacity={{ total: capacityTotal, available: hotelProfile?.hotel_details?.capacity_available }}
                 />
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === "prontuario" && (
+            <motion.div key="prontuario" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelPetRecordsPanel hotelProfile={hotelProfile} />
             </motion.div>
           )}
 

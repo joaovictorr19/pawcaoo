@@ -1,0 +1,178 @@
+{
+  "name": "HotelPetRecord",
+  "type": "object",
+  "properties": {
+    "hotel_profile_id": {
+      "type": "string",
+      "description": "ID do WalkerProfile do hotel"
+    },
+    "hotel_email": {
+      "type": "string"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "ID da reserva associada"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "dog_name": {
+      "type": "string",
+      "description": "Nome do animal"
+    },
+    "dog_breed": {
+      "type": "string"
+    },
+    "dog_size": {
+      "type": "string",
+      "enum": [
+        "small",
+        "medium",
+        "large",
+        "extra_large"
+      ]
+    },
+    "record_type": {
+      "type": "string",
+      "enum": [
+        "health",
+        "behavior",
+        "feeding",
+        "medication",
+        "incident",
+        "observation"
+      ],
+      "description": "Tipo de registo: saude, comportamento, alimentacao, medicamento, incidente, observacao"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titulo curto do registo"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descricao detalhada"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "low",
+      "description": "Gravidade (para saude/incidentes)"
+    },
+    "temperature": {
+      "type": "number",
+      "description": "Temperatura corporal (\u00b0C) se aplicavel"
+    },
+    "weight_kg": {
+      "type": "number",
+      "description": "Peso registado (kg)"
+    },
+    "appetite": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "reduced",
+        "none",
+        "increased"
+      ],
+      "description": "Apetite observado"
+    },
+    "energy_level": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "lethargic",
+        "hyperactive",
+        "calm"
+      ],
+      "description": "Nivel de energia observado"
+    },
+    "recorded_by": {
+      "type": "string",
+      "description": "Email do membro da equipa que registou"
+    },
+    "recorded_by_name": {
+      "type": "string"
+    },
+    "follow_up_needed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Necessita acompanhamento"
+    },
+    "follow_up_notes": {
+      "type": "string",
+      "description": "Notas de acompanhamento"
+    },
+    "follow_up_resolved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Acompanhamento resolvido"
+    }
+  },
+  "required": [
+    "hotel_profile_id",
+    "dog_name",
+    "record_type",
+    "title",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
