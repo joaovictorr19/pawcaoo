@@ -57,23 +57,17 @@ export default function PawCaoLogo({ size = "default", showText = true, classNam
     <div className={`flex items-center gap-2 md:gap-3 ${className}`}>
       <LogoIcon 
         {...iconProps}
-        className={`${currentSize.container} bg-gradient-to-br from-green-500 via-green-600 to-blue-600 dark:from-green-400 dark:via-green-500 dark:to-blue-500 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group cursor-pointer flex-shrink-0`}
+        className={`${currentSize.container} rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group cursor-pointer flex-shrink-0`}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-        
         <img
           src={PAWCAO_LOGO_URL}
           alt="PawCão"
-          className={`${currentSize.icon} relative z-10 drop-shadow-lg object-contain`}
+          className="w-full h-full object-cover relative z-10"
         />
         
-        <div className="absolute bottom-0.5 md:bottom-1 right-0.5 md:right-1 opacity-40 group-hover:opacity-60 transition-opacity">
-          <svg className={`${currentSize.paw} text-white`} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M14.5 10.5c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm5-4c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-10 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm10 8c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-10 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"/>
-          </svg>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 z-20 pointer-events-none" />
         
-        <div className="absolute inset-0 rounded-xl md:rounded-2xl ring-2 ring-white/20 group-hover:ring-white/40 transition-all" />
+        <div className="absolute inset-0 rounded-xl md:rounded-2xl ring-2 ring-white/20 group-hover:ring-white/40 transition-all z-20 pointer-events-none" />
       </LogoIcon>
 
       {showText && (
