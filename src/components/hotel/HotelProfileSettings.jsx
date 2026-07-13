@@ -1,0 +1,238 @@
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import {
+  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe
+} from "lucide-react";
+
+export default function HotelProfileSettings({ hotelProfile, onSave }) {
+  const [form, setForm] = useState({
+    walker_name: hotelProfile?.walker_name || "",
+    location: hotelProfile?.location || "",
+    phone: hotelProfile?.phone || "",
+    bio: hotelProfile?.bio || "",
+    photo_url: hotelProfile?.photo_url || "",
+    cover_photo_url: hotelProfile?.cover_photo_url || "",
+    hotel_name: hotelProfile?.hotel_details?.hotel_name || "",
+    hotel_description: hotelProfile?.hotel_details?.hotel_description || "",
+    full_address: hotelProfile?.hotel_details?.full_address || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+
+  const uploadImage = async (file) => {
+    const reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file: reader.result });
+          resolve(file_url);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = () => reject(new Error("Erro ao ler ficheiro"));
+    });
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    const toastId = toast.loading("A carregar foto de perfil...");
+    try {
+      const file_url = await uploadImage(file);
+      setForm(prev => ({ ...prev, photo_url: file_url }));
+      toast.success("Foto de perfil atualizada", { id: toastId });
+    } catch (err) {
+      toast.error("Erro ao carregar imagem", { id: toastId });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingCover(true);
+    const toastId = toast.loading("A carregar foto de capa...");
+    try {
+      const file_url = await uploadImage(file);
+      setForm(prev => ({ ...prev, cover_photo_url: file_url }));
+      toast.success("Foto de capa atualizada", { id: toastId });
+    } catch (err) {
+      toast.error("Erro ao carregar imagem", { id: toastId });
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await base44.entities.WalkerProfile.update(hotelProfile.id, {
+        walker_name: form.walker_name,
+        location: form.location,
+        phone: form.phone,
+        bio: form.bio,
+        photo_url: form.photo_url,
+        cover_photo_url: form.cover_photo_url,
+        hotel_details: {
+          ...hotelProfile.hotel_details,
+          hotel_name: form.hotel_name,
+          hotel_description: form.hotel_description,
+          full_address: form.full_address,
+        },
+      });
+      toast.success("Perfil do hotel atualizado");
+      onSave?.();
+    } catch (err) {
+      toast.error("Erro ao guardar perfil");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleChange = (field) => (e) => {
+    setForm(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      {/* Cover Photo */}
+      <div className="relative h-40 md:h-48 bg-slate-100">
+        {form.cover_photo_url ? (
+          <img src={form.cover_photo_url} alt="Capa" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ImageIcon className="w-10 h-10 text-slate-300" />
+          </div>
+        )}
+        <label className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+          {uploadingCover ? (
+            <Loader2 className="w-7 h-7 text-white animate-spin" />
+          ) : (
+            <>
+              <Camera className="w-7 h-7 text-white" />
+              <input type="file" className="hidden" onChange={handleCoverUpload} accept="image/*" />
+            </>
+          )}
+        </label>
+        <span className="absolute bottom-2 right-2 text-[10px] text-white/80 bg-black/40 px-2 py-0.5 rounded">
+          Foto de Capa
+        </span>
+      </div>
+
+      {/* Profile Photo + Name */}
+      <div className="px-4 md:px-6 pb-4 -mt-10 relative">
+        <div className="flex items-end gap-4">
+          <div className="relative group shrink-0">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-4 border-white shadow-lg bg-slate-100">
+              {uploadingPhoto ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                </div>
+              ) : form.photo_url ? (
+                <img src={form.photo_url} alt="Perfil" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Hotel className="w-8 h-8 text-slate-300" />
+                </div>
+              )}
+            </div>
+            <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl cursor-pointer">
+              <Camera className="w-6 h-6 text-white" />
+              <input type="file" className="hidden" onChange={handlePhotoUpload} accept="image/*" />
+            </label>
+          </div>
+          <div className="flex-1 pb-1">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Foto de Perfil</p>
+            <p className="text-xs text-slate-400">Clique para alterar a imagem do hotel</p>
+          </div>
+        </div>
+
+        {/* Form Fields */}
+        <div className="mt-5 space-y-4">
+          <div>
+            <Label className="text-xs font-semibold text-slate-600">Nome do Hotel</Label>
+            <Input
+              value={form.hotel_name || form.walker_name}
+              onChange={handleChange("hotel_name")}
+              placeholder="Nome visível para clientes"
+              className="mt-1 rounded-lg"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs font-semibold text-slate-600">Localização (Cidade)</Label>
+              <div className="relative mt-1">
+                <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  value={form.location}
+                  onChange={handleChange("location")}
+                  placeholder="Lisboa"
+                  className="rounded-lg pl-9"
+                />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-slate-600">Telefone</Label>
+              <div className="relative mt-1">
+                <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  value={form.phone}
+                  onChange={handleChange("phone")}
+                  placeholder="+351 9XX XXX XXX"
+                  className="rounded-lg pl-9"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs font-semibold text-slate-600">Morada Completa</Label>
+            <Input
+              value={form.full_address}
+              onChange={handleChange("full_address")}
+              placeholder="Rua, número, código postal"
+              className="mt-1 rounded-lg"
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs font-semibold text-slate-600">Descrição do Hotel</Label>
+            <Textarea
+              value={form.hotel_description || form.bio}
+              onChange={handleChange("hotel_description")}
+              placeholder="Descreva o seu hotel: instalações, ambiente, experiência..."
+              className="mt-1 rounded-lg min-h-[80px] resize-none"
+              rows={3}
+            />
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5"
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              Guardar Alterações
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

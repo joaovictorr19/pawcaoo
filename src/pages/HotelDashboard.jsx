@@ -30,6 +30,7 @@ import HotelDigitalPass from "@/components/hotel/HotelDigitalPass";
 import HotelCapacityAlert from "@/components/hotel/HotelCapacityAlert";
 import HotelGuestsPanel from "@/components/hotel/HotelGuestsPanel";
 import HotelCheckinPolicyConfig from "@/components/hotel/HotelCheckinPolicyConfig";
+import HotelProfileSettings from "@/components/hotel/HotelProfileSettings";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -500,12 +501,22 @@ export default function HotelDashboard() {
 
           {activeTab === "config" && (
             <motion.div key="config" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
-              <HotelCheckinPolicyConfig
-                hotelProfile={hotelProfile}
-                onSave={() => {
-                  queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
-                }}
-              />
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Perfil e Imagem</p>
+                <HotelProfileSettings
+                  hotelProfile={hotelProfile}
+                  onSave={() => queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] })}
+                />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Política de Check-in/out</p>
+                <HotelCheckinPolicyConfig
+                  hotelProfile={hotelProfile}
+                  onSave={() => {
+                    queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
+                  }}
+                />
+              </div>
               <HotelDigitalPass hotelProfile={hotelProfile} />
             </motion.div>
           )}
