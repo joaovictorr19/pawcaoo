@@ -44,6 +44,21 @@ const PartnerHotelPanel = lazy(() => import('./pages/PartnerHotelPanel').catch(e
   return { default: () => <div>Erro ao carregar página</div> };
 }));
 
+const ProfessionalTypeSelect = lazy(() => import('./pages/ProfessionalTypeSelect').catch(e => {
+  console.error('Error loading ProfessionalTypeSelect:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
+
+const HotelOnboarding = lazy(() => import('./pages/HotelOnboarding').catch(e => {
+  console.error('Error loading HotelOnboarding:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
+
+const WalkerOnboarding = lazy(() => import('./pages/WalkerOnboarding').catch(e => {
+  console.error('Error loading WalkerOnboarding:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
+
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
@@ -152,6 +167,9 @@ const AuthenticatedApp = () => {
             <Route path="/ClientSetup" element={<Suspense fallback={<PageLoader />}><ClientSetup /></Suspense>} />
             <Route path="/HotelDashboard" element={<Suspense fallback={<PageLoader />}><HotelDashboard /></Suspense>} />
             <Route path="/PartnerHotelPanel" element={<Suspense fallback={<PageLoader />}><PartnerHotelPanel /></Suspense>} />
+            <Route path="/ProfessionalTypeSelect" element={<Suspense fallback={<PageLoader />}><ProfessionalTypeSelect /></Suspense>} />
+            <Route path="/HotelOnboarding" element={<Suspense fallback={<PageLoader />}><HotelOnboarding /></Suspense>} />
+            <Route path="/WalkerOnboarding" element={<Suspense fallback={<PageLoader />}><WalkerOnboarding /></Suspense>} />
 
             <Route path="*" element={<PageNotFound />} />
             </Routes>
