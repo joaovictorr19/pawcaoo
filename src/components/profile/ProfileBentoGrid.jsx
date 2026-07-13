@@ -52,7 +52,7 @@ export default function ProfileBentoGrid({
   return (
     <div className="min-h-screen bg-slate-50 pb-32 pt-2">
       {/* Back button */}
-      <button onClick={onBack} className="fixed top-20 left-4 md:left-6 p-3 bg-white/80 backdrop-blur-md rounded-full text-slate-700 hover:bg-white shadow-sm transition-all z-20 border border-slate-100">
+      <button onClick={onBack} className="fixed top-20 left-4 md:left-6 p-3 bg-white/80 backdrop-blur-md rounded-full text-slate-700 hover:bg-white shadow-sm transition-all z-[10001] border border-slate-100">
         <ArrowLeft size={20} />
       </button>
 
