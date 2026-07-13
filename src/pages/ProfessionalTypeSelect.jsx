@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Building2, Dog, ChevronRight, Sparkles } from "lucide-react";
+import { Building2, Dog, User, ChevronRight, Sparkles } from "lucide-react";
 
 export default function ProfessionalTypeSelect() {
   const navigate = useNavigate();
@@ -22,6 +22,14 @@ export default function ProfessionalTypeSelect() {
       icon: Building2,
       color: "purple",
       route: "/HotelOnboarding",
+    },
+    {
+      type: "client",
+      title: "Cliente",
+      desc: "Regista os teus animais e reserva serviços",
+      icon: User,
+      color: "blue",
+      route: "/ClientSetup",
     },
   ];
 
@@ -59,21 +67,23 @@ export default function ProfessionalTypeSelect() {
                 className={`w-full p-6 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${
                   opt.color === "orange"
                     ? "border-slate-800 bg-slate-900 hover:border-orange-500/50 hover:bg-orange-500/5"
+                    : opt.color === "blue"
+                    ? "border-slate-800 bg-slate-900 hover:border-blue-500/50 hover:bg-blue-500/5"
                     : "border-slate-800 bg-slate-900 hover:border-purple-500/50 hover:bg-purple-500/5"
                 }`}
               >
                 <div className="flex items-center gap-5">
                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                    opt.color === "orange" ? "bg-orange-500/10" : "bg-purple-500/10"
+                    opt.color === "orange" ? "bg-orange-500/10" : opt.color === "blue" ? "bg-blue-500/10" : "bg-purple-500/10"
                   }`}>
-                    <Icon className={`w-8 h-8 ${opt.color === "orange" ? "text-orange-400" : "text-purple-400"}`} />
+                    <Icon className={`w-8 h-8 ${opt.color === "orange" ? "text-orange-400" : opt.color === "blue" ? "text-blue-400" : "text-purple-400"}`} />
                   </div>
                   <div className="flex-1">
                     <p className="text-white font-bold text-lg">{opt.title}</p>
                     <p className="text-slate-400 text-sm mt-0.5">{opt.desc}</p>
                   </div>
                   <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${
-                    opt.color === "orange" ? "text-orange-400" : "text-purple-400"
+                    opt.color === "orange" ? "text-orange-400" : opt.color === "blue" ? "text-blue-400" : "text-purple-400"
                   }`} />
                 </div>
               </motion.button>

@@ -1095,14 +1095,10 @@ export default function Home() {
                 <Button
                   size="default"
                   onClick={() => {
-                    if (user) {
-                      if (hasProfessionalProfile) {
-                        navigate(createPageUrl('ProfessionalHubV2'));
-                      } else {
-                        navigate(createPageUrl('ProfessionalSetup'));
-                      }
+                    if (user && hasProfessionalProfile) {
+                      navigate(createPageUrl('ProfessionalHubV2'));
                     } else {
-                      base44.auth.redirectToLogin(createPageUrl('ProfessionalSetup'));
+                      navigate(createPageUrl('ProfessionalTypeSelect'));
                     }
                   }}
                   className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
