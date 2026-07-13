@@ -372,13 +372,7 @@ export default function UserProfile() {
       displayCity={displayCity}
       isOwnProfile={isOwnProfile}
       isHotel={walkerProfile?.professional_type === 'hotel'}
-      onBack={() => {
-        if (window.history.length > 1) {
-          navigate(-1);
-        } else {
-          window.location.href = '/';
-        }
-      }}
+      onBack={() => navigate('/')}
       onServiceClick={(service) => setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
       onHotelBookingClick={(service) => setHotelBookingModal({ isOpen: true, selectedService: service, selectedDate: null })}
       onHotelDateSelect={(checkin, checkout) => {
