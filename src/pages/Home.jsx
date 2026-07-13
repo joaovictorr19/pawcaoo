@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, PawPrint, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
@@ -610,140 +610,143 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           {user ? (
-            <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
-              {/* Embedded Owner Dashboard */}
+            <div className="max-w-4xl mx-auto bg-gradient-to-br from-blue-100 to-blue-200 rounded-3xl shadow-2xl p-4 md:p-6 mb-6 space-y-3">
+              {/* Embedded Owner Dashboard - Split Hero Layout */}
               {(() => {
                 const currentTier = calculateTier(currentXP);
                 const currentLevel = currentTier.level;
                 const tierProgressPercentage = currentTier.progress || 0;
                 const xpRemainingForNextTier = currentTier.max !== Infinity ? currentTier.max - currentXP : 0;
-                
+
                 return (
-                  <div className="space-y-3 mb-6 relative">
-                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-green-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
-                    
-                    <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
-                      
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-4 mb-4">
-                          <motion.div 
+                  <>
+                    {/* Upper Split: Left (user info + XP) | Right (achievements + quick actions) */}
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {/* Left: User Info + XP Progress */}
+                      <div className="bg-white rounded-2xl p-4 shadow-sm">
+                        <div className="flex items-center gap-3 mb-3">
+                          <motion.div
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`))}
-                            className="w-16 h-16 rounded-xl border-2 border-white/50 shadow-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm aspect-square"
+                            className="w-14 h-14 rounded-full border-2 border-slate-200 shadow-sm overflow-hidden cursor-pointer bg-slate-100 flex-shrink-0"
                           >
                             {user.profile_photo_url ? (
-                              <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover aspect-square" />
+                              <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
+                              <div className="w-full h-full flex items-center justify-center text-slate-400 text-xl font-bold">
                                 {user.full_name?.charAt(0) || 'U'}
                               </div>
                             )}
                           </motion.div>
-                          <div>
-                            <h2 className="text-2xl font-bold text-white mb-0.5">
+                          <div className="min-w-0">
+                            <h2 className="text-xl font-bold text-slate-800 mb-0.5 truncate">
                               Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
                             </h2>
-                            <p className="text-sm text-white/80 flex items-center gap-2 cursor-pointer hover:underline" onClick={() => navigate(createPageUrl('Gamification'))}>
+                            <p className="text-xs text-slate-500 flex items-center gap-1.5 cursor-pointer hover:underline" onClick={() => navigate(createPageUrl('Gamification'))}>
                               <span>Nível {currentLevel}</span>
-                              <span className="w-1 h-1 bg-white/50 rounded-full"></span>
+                              <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                               <span>{displayedXP.toLocaleString('pt-PT')} XP</span>
-                              <span className="w-1 h-1 bg-white/50 rounded-full"></span>
+                              <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                               <span>{currentTier.icon} {currentTier.name}</span>
                             </p>
                           </div>
                         </div>
-                        
-                        <div className="mb-3">
+
+                        <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-white/70">
+                            <span className="text-[11px] font-medium text-slate-500">
                               Progresso para {currentTier.max !== Infinity ? currentTier.next : 'Máximo'}
                             </span>
-                            <span className="text-xs text-white/90 font-semibold">{Math.round(tierProgressPercentage)}%</span>
+                            <span className="text-[11px] text-slate-700 font-semibold">{Math.round(tierProgressPercentage)}%</span>
                           </div>
-                          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-white/90 transition-all duration-1000 ease-out rounded-full"
+                          <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-500 transition-all duration-1000 ease-out rounded-full"
                               style={{ width: `${tierProgressPercentage}%` }}
                             />
                           </div>
                           {xpRemainingForNextTier > 0 && (
-                            <p className="text-[10px] text-white/70 mt-1">
+                            <p className="text-[10px] text-slate-400 mt-1">
                               Faltam {xpRemainingForNextTier.toLocaleString('pt-PT')} XP
                             </p>
                           )}
                         </div>
-                        
+                      </div>
+
+                      {/* Right: Achievements + Quick Actions */}
+                      <div className="bg-white/80 backdrop-blur rounded-2xl p-4 shadow-sm">
                         {earnedBadgesData.length > 0 && (
-                          <div className="mb-3 pt-3">
-                            <p className="text-xs text-white/70 uppercase font-semibold tracking-wide mb-3">
-                              Conquistas Recentes
-                            </p>
-                            <div className="flex flex-row gap-3 overflow-x-auto pb-2 pt-1 px-2">
-                              {earnedBadgesData.slice(0, 5).map((badge, i) => (
+                          <div className="mb-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                                Conquistas Recentes
+                              </p>
+                              <button onClick={() => navigate(createPageUrl('Gamification'))} className="text-slate-400 hover:text-slate-600">
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
+                              {earnedBadgesData.slice(0, 4).map((badge, i) => (
                                 <div key={`badge-${badge._uniqueId || badge.id || i}`} className="relative group flex-shrink-0">
-                                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl ring-2 ring-white/30 hover:ring-white/60 transition-all cursor-pointer overflow-hidden hover:scale-110">
+                                  <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-xl ring-2 ring-slate-200 hover:ring-emerald-300 transition-all cursor-pointer overflow-hidden hover:scale-110">
                                     {badge.image_png_file || badge.image_url ? (
                                       <img src={badge.image_png_file || badge.image_url} alt={badge.name} className="w-full h-full object-cover" />
                                     ) : (
                                       <span className="text-xl">{badge.icon || '🏅'}</span>
                                     )}
                                   </div>
-                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-2 bg-gray-900 text-white rounded-lg shadow-xl border border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] min-w-[140px] max-w-[200px] pointer-events-none">
+                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-2 bg-slate-800 text-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] min-w-[140px] max-w-[200px] pointer-events-none">
                                     <p className="font-bold text-xs mb-1 leading-tight text-center">{badge.name}</p>
                                     {badge.description && (
-                                      <p className="text-[10px] text-gray-300 leading-snug text-center">{badge.description}</p>
+                                      <p className="text-[10px] text-slate-300 leading-snug text-center">{badge.description}</p>
                                     )}
-                                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-900"></div>
                                   </div>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <button onClick={() => navigate(createPageUrl('Favorites'))} className="flex items-center gap-2 p-2.5 bg-white rounded-xl shadow-sm ring-1 ring-slate-100 hover:ring-emerald-200 hover:bg-emerald-50 transition-all active:scale-95">
+                            <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
+                            <span className="text-[11px] font-semibold text-slate-700">Favoritos</span>
+                          </button>
+                          <button onClick={() => navigate(createPageUrl('MyWallet'))} className="flex items-center gap-2 p-2.5 bg-white rounded-xl shadow-sm ring-1 ring-slate-100 hover:ring-emerald-200 hover:bg-emerald-50 transition-all active:scale-95">
+                            <Wallet className="w-4 h-4 text-emerald-600" strokeWidth={2} />
+                            <span className="text-[11px] font-semibold text-slate-700">Wallet</span>
+                          </button>
+                          <button onClick={() => navigate(createPageUrl('Gamification'))} className="flex items-center gap-2 p-2.5 bg-white rounded-xl shadow-sm ring-1 ring-slate-100 hover:ring-emerald-200 hover:bg-emerald-50 transition-all active:scale-95">
+                            <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
+                            <span className="text-[11px] font-semibold text-slate-700">Legado</span>
+                          </button>
+                          <button onClick={() => navigate(createPageUrl('MyBookings'))} className="flex items-center gap-2 p-2.5 bg-white rounded-xl shadow-sm ring-1 ring-slate-100 hover:ring-emerald-200 hover:bg-emerald-50 transition-all active:scale-95">
+                            <Calendar className="w-4 h-4 text-blue-600" strokeWidth={2} />
+                            <span className="text-[11px] font-semibold text-slate-700">Histórico</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Mode Toggle & Quick Actions */}
-                    <div className="grid grid-cols-4 gap-2 w-full">
-                      <button onClick={() => navigate(createPageUrl('Favorites'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
-                        <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Favoritos</span>
-                      </button>
-                      <button onClick={() => navigate(createPageUrl('MyWallet'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
-                        <Wallet className="w-4 h-4 text-green-600" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Wallet</span>
-                      </button>
-                      <button onClick={() => navigate(createPageUrl('Gamification'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
-                        <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Legado</span>
-                      </button>
-                      <button onClick={() => navigate(createPageUrl('MyBookings'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
-                        <Calendar className="w-4 h-4 text-blue-600" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Histórico</span>
-                      </button>
-                    </div>
-
+                    {/* Lower: Full-width alert rows */}
                     {['walker', 'trainer', 'both'].includes(user?.account_type) && pendingBookingsCount > 0 && (
                       <motion.button
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         onClick={() => navigate(createPageUrl('Dashboard'))}
-                        className="mt-3 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-between group"
+                        className="w-full bg-white rounded-2xl p-3 shadow-sm flex items-center justify-between hover:shadow-md transition-all"
                       >
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                            <Calendar className="w-4 h-4" />
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
+                            <Calendar className="w-4 h-4 text-blue-600" />
                           </div>
                           <div className="text-left">
-                            <p className="text-xs font-bold">Agendamentos Pendentes</p>
-                            <p className="text-[10px] opacity-90">Clique para responder</p>
+                            <p className="text-xs font-bold text-slate-800">Agendamentos Pendentes</p>
+                            <p className="text-[10px] text-slate-400">Clique para responder</p>
                           </div>
                         </div>
-                        <div className="bg-white text-blue-600 font-bold text-sm px-3 py-1 rounded-full group-hover:scale-110 transition-transform">
+                        <div className="bg-blue-600 text-white font-bold text-sm px-3 py-1 rounded-full">
                           {pendingBookingsCount}
                         </div>
                       </motion.button>
@@ -759,98 +762,101 @@ export default function Home() {
                             document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
                           }, 100);
                         }}
-                        className="mt-3 w-full bg-gradient-to-r from-orange-500 to-red-600 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-between group"
+                        className="w-full bg-white rounded-2xl p-3 shadow-sm flex items-center justify-between hover:shadow-md transition-all"
                       >
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center relative">
-                            <MapPin className="w-4 h-4 z-10" />
-                            <div className="absolute inset-0 border-2 border-white rounded-full animate-ping opacity-50"></div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center">
+                            <MapPin className="w-4 h-4 text-orange-500" />
                           </div>
                           <div className="text-left">
-                            <p className="text-xs font-bold">Pedidos PawGo Ativos</p>
-                            <p className="text-[10px] opacity-90">Cães precisam de si agora mesmo!</p>
+                            <p className="text-xs font-bold text-slate-800">Pedidos PawGo Ativos</p>
+                            <p className="text-[10px] text-slate-400">Cães precisam de si agora mesmo!</p>
                           </div>
                         </div>
-                        <div className="bg-white text-red-600 font-bold text-sm px-3 py-1 rounded-full group-hover:scale-110 transition-transform">
+                        <div className="bg-orange-500 text-white font-bold text-sm px-3 py-1 rounded-full">
                           {filteredEmergencyWalks.length}
                         </div>
                       </motion.button>
                     )}
-                  </div>
+
+                    {/* Animals Row */}
+                    {myDogs && myDogs.length > 0 && (
+                      <div className="bg-white rounded-2xl p-3 shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                            <PawPrint className="w-4 h-4 text-emerald-600" />
+                            Meus Animais ({myDogs.length})
+                          </h3>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => navigate(createPageUrl('EditAnimalProfile'))}
+                            className="text-xs h-7 px-3 text-emerald-600 hover:bg-emerald-50"
+                          >
+                            + Adicionar
+                          </Button>
+                        </div>
+                        <div className="flex gap-2 overflow-x-auto pb-1">
+                          {myDogs?.map((dog) => (
+                            <motion.div
+                              key={dog.id}
+                              whileHover={{ scale: 1.05 }}
+                              className="cursor-pointer flex-shrink-0"
+                              onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
+                            >
+                              <div className="w-12 h-12 rounded-full border-2 border-slate-200 shadow-sm overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
+                                {dog.photo_url ? (
+                                  <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                                    <PawPrint className="w-5 h-5 text-slate-300" />
+                                  </div>
+                                )}
+                              </div>
+                              <p className="font-bold text-[9px] text-slate-600 text-center mt-1 truncate w-12">{dog.dog_name}</p>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Online Toggle */}
+                    {hasProfessionalProfile && (
+                      <div className="bg-white rounded-2xl p-3 shadow-sm flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <span className={`relative flex h-3 w-3 ${isProfileOnline ? '' : 'opacity-70'}`}>
+                            <span className={`absolute inline-flex h-full w-full rounded-full ${isProfileOnline ? 'animate-ping bg-emerald-400' : 'bg-slate-300'}`}></span>
+                            <span className={`relative inline-flex h-3 w-3 rounded-full ${isProfileOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                          </span>
+                          <span className="text-xs font-semibold text-slate-700">
+                            {toggleOnlineMutation.isPending
+                              ? 'A atualizar estado...'
+                              : isProfileOnline
+                                ? 'Perfil online'
+                                : 'Colocar perfil online'}
+                          </span>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            isProfileOnline ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            {isProfileOnline ? 'Ativo' : 'Offline'}
+                          </span>
+                        </span>
+                        <button
+                          onClick={() => toggleOnlineMutation.mutate(!isProfileOnline)}
+                          disabled={toggleOnlineMutation.isPending}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+                            isProfileOnline ? 'bg-emerald-500' : 'bg-slate-300'
+                          }`}
+                        >
+                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                            isProfileOnline ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </button>
+                      </div>
+                    )}
+                  </>
                 );
               })()}
-
-              {/* Animals Section */}
-              {myDogs && myDogs.length > 0 && (
-                <div className="bg-white/30 backdrop-blur-lg border border-white/40 shadow-xl rounded-3xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
-                      <Heart className="w-4 h-4 text-pink-500" />
-                      Meus Animais ({myDogs.length})
-                    </h3>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => navigate(createPageUrl('EditAnimalProfile'))}
-                      className="text-xs h-7 px-3 hover:bg-white/50"
-                    >
-                      + Adicionar
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
-                    {myDogs?.map((dog) => (
-                      <motion.div
-                        key={dog.id}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        className="cursor-pointer"
-                        onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
-                      >
-                        <div className="bg-white/20 backdrop-blur-md rounded-xl p-2 text-center border border-white/30 hover:border-blue-300 hover:bg-white/40 transition-all shadow-md hover:shadow-lg aspect-square flex flex-col items-center justify-center">
-                          <div className="w-12 h-12 mx-auto mb-1 rounded-full border-2 border-white shadow-md overflow-hidden bg-gradient-to-br from-orange-100 to-pink-100">
-                            {dog.photo_url ? (
-                              <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-slate-200"></div>
-                            )}
-                          </div>
-                          <p className="font-bold text-[10px] text-gray-900 truncate w-full px-1">{dog.dog_name}</p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {hasProfessionalProfile && (
-                    <button
-                      onClick={() => toggleOnlineMutation.mutate(!isProfileOnline)}
-                      disabled={toggleOnlineMutation.isPending}
-                      className={`mt-4 w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl font-semibold text-sm transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed ${
-                        isProfileOnline
-                          ? 'bg-emerald-500/95 text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-500'
-                          : 'bg-white/60 backdrop-blur-md border border-white/50 text-slate-800 hover:bg-white/80'
-                      }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className={`relative flex h-3 w-3 ${isProfileOnline ? '' : 'opacity-70'}`}>
-                          <span className={`absolute inline-flex h-full w-full rounded-full ${isProfileOnline ? 'animate-ping bg-white/70' : 'bg-slate-400/40'}`}></span>
-                          <span className={`relative inline-flex h-3 w-3 rounded-full ${isProfileOnline ? 'bg-white' : 'bg-slate-500'}`}></span>
-                        </span>
-                        <span>
-                          {toggleOnlineMutation.isPending
-                            ? 'A atualizar estado...'
-                            : isProfileOnline
-                              ? 'Perfil online'
-                              : 'Colocar perfil online'}
-                        </span>
-                      </span>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                        isProfileOnline ? 'bg-white/20 text-white' : 'bg-slate-900/10 text-slate-700'
-                      }`}>
-                        {isProfileOnline ? 'Ativo' : 'Offline'}
-                      </span>
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           ) : (
             /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS --- */
