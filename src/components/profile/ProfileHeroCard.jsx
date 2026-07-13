@@ -224,14 +224,6 @@ export default function ProfileHeroCard({
 
         {/* Stats row */}
         <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
-          {rating > 0 && (
-            <StatPill
-              icon={Star}
-              value={rating.toFixed(1)}
-              label={`(${reviews.length})`}
-              color="amber"
-            />
-          )}
           {totalWalks > 0 && (
             <StatPill
               icon={PawPrint}
