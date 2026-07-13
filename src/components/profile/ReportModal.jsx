@@ -3,18 +3,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Flag, Loader2 } from "lucide-react";
+import { Flag, Loader2, AlertCircle, UserX, ShieldAlert, Ban, PawPrint, MoreHorizontal, Check } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 const REASONS = [
-  { value: "inappropriate_content", label: "Conteúdo inapropriado" },
-  { value: "fake_profile", label: "Perfil falso" },
-  { value: "harassment", label: "Assédio" },
-  { value: "spam", label: "Spam" },
-  { value: "animal_safety", label: "Segurança animal" },
-  { value: "other", label: "Outro" },
+  { value: "inappropriate_content", label: "Conteúdo inapropriado", icon: AlertCircle },
+  { value: "fake_profile", label: "Perfil falso", icon: UserX },
+  { value: "harassment", label: "Assédio", icon: ShieldAlert },
+  { value: "spam", label: "Spam", icon: Ban },
+  { value: "animal_safety", label: "Segurança animal", icon: PawPrint },
+  { value: "other", label: "Outro", icon: MoreHorizontal },
 ];
 
 export default function ReportModal({ open, onOpenChange, reportedUser, reporterEmail, reporterName }) {
@@ -54,64 +54,82 @@ export default function ReportModal({ open, onOpenChange, reportedUser, reporter
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-slate-900">
-            <Flag className="w-5 h-5 text-rose-500" />
-            Denunciar Utilizador
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label>Motivo *</Label>
-            <div className="grid grid-cols-1 gap-2">
-              {REASONS.map((r) => (
-                <button
-                  key={r.value}
-                  type="button"
-                  onClick={() => setReason(r.value)}
-                  className={`text-left px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                    reason === r.value
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  {r.label}
-                </button>
-              ))}
+      <DialogContent className="max-w-md bg-[#F4F7FB] border-0 p-0 overflow-hidden rounded-3xl">
+        <div className="bg-white m-3 rounded-2xl p-6 space-y-5">
+          <DialogHeader className="space-y-0">
+            <DialogTitle className="flex items-center gap-2 text-[#1A202C] text-lg font-bold p-0">
+              <Flag className="w-5 h-5 text-rose-500" />
+              Denunciar Utilizador
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label className="text-[#1A202C] font-bold text-sm">
+              Motivo <span className="text-[#718096]">*</span>
+            </Label>
+            <div className="space-y-2">
+              {REASONS.map((r) => {
+                const Icon = r.icon;
+                const isSelected = reason === r.value;
+                return (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => setReason(r.value)}
+                    className={`w-full flex items-center gap-3 text-left px-4 py-3 rounded-xl text-sm font-medium transition-all border ${
+                      isSelected
+                        ? "bg-[#E0F2FE] border-[#BBE1FA] text-[#1A202C]"
+                        : "bg-white border-[#CBD5E0] text-[#1A202C] hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      isSelected ? "bg-[#BBE1FA]" : "bg-slate-100"
+                    }`}>
+                      <Icon className={`w-4 h-4 ${isSelected ? "text-[#1A202C]" : "text-[#718096]"}`} />
+                    </div>
+                    <span className="flex-1">{r.label}</span>
+                    {isSelected && <Check className="w-4 h-4 text-[#1A202C] flex-shrink-0" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="report-desc">Descrição (opcional)</Label>
+            <Label htmlFor="report-desc" className="text-[#1A202C] font-bold text-sm">
+              Descrição (opcional)
+            </Label>
             <Textarea
               id="report-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Adicione detalhes sobre a denúncia..."
               rows={4}
-              className="resize-none"
+              className="resize-none bg-white border-[#CBD5E0] text-[#1A202C] placeholder:text-[#718096] rounded-xl"
             />
           </div>
+          <div className="flex gap-3 pt-1">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="flex-1 bg-white border-[#CBD5E0] text-[#1A202C] hover:bg-slate-50 rounded-xl"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={reportMutation.isPending || !reason}
+              className="flex-1 bg-[#E0F2FE] border border-[#BBE1FA] text-[#1A202C] hover:bg-[#BAE6FD] rounded-xl"
+            >
+              {reportMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  A enviar...
+                </>
+              ) : (
+                "Enviar Denúncia"
+              )}
+            </Button>
+          </div>
         </div>
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={reportMutation.isPending || !reason}
-            className="flex-1 bg-rose-500 hover:bg-rose-600 text-white"
-          >
-            {reportMutation.isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                A enviar...
-              </>
-            ) : (
-              "Enviar Denúncia"
-            )}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
