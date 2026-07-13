@@ -478,6 +478,9 @@ async function handleCheckoutCompleted(base44, session) {
                     });
                     console.log('✅ HotelBooking confirmed after payment:', hotelBookingId);
 
+                    // ── Decrementar vagas disponíveis no serviço do hotel ──
+                    await adjustHotelCapacity(base44, hb.hotel_profile_id, hb.service_type, -(hb.total_dogs || 1));
+
                     // Notificar hotel
                     if (hb.hotel_email) {
                         await base44.asServiceRole.entities.Notification.create({
@@ -859,8 +862,61 @@ async function handleAccountUpdated(base44, account) {
     }
 }
 
+async function adjustHotelCapacity(base44, hotelProfileId, serviceType, delta) {
+    if (!hotelProfileId || !serviceType) return;
+    try {
+        const profiles = await base44.asServiceRole.entities.WalkerProfile.filter({ id: hotelProfileId });
+        if (profiles.length === 0) return;
+
+        const profile = profiles[0];
+        const hd = profile.hotel_details || {};
+        const services = (hd.services || []).map(s => {
+            if (s.service_type === serviceType) {
+                const current = s.capacity_available ?? 0;
+                const updated = Math.max(0, Math.min(s.capacity_total ?? current, current + delta));
+                return { ...s, capacity_available: updated };
+            }
+            return s;
+        });
+
+        const topCurrent = hd.capacity_available ?? 0;
+        const topUpdated = Math.max(0, Math.min(hd.capacity_total ?? topCurrent, topCurrent + delta));
+
+        await base44.asServiceRole.entities.WalkerProfile.update(profile.id, {
+            hotel_details: { ...hd, capacity_available: topUpdated, services }
+        });
+        console.log(`🏨 Hotel capacity adjusted: ${serviceType} ${delta > 0 ? '+' : ''}${delta} (profile ${hotelProfileId})`);
+    } catch (e) {
+        console.error('Error adjusting hotel capacity:', e);
+    }
+}
+
 async function handleChargeRefunded(base44, charge) {
     const paymentIntentId = charge.payment_intent;
+
+    // ── Hotel booking refund: restaurar vagas ──
+    const hotelBookings = await base44.asServiceRole.entities.HotelBooking.filter({
+        stripe_payment_intent_id: paymentIntentId
+    });
+    if (hotelBookings.length > 0) {
+        const hb = hotelBookings[0];
+        await base44.asServiceRole.entities.HotelBooking.update(hb.id, {
+            status: 'cancelled',
+            payment_status: 'refunded'
+        });
+        await adjustHotelCapacity(base44, hb.hotel_profile_id, hb.service_type, (hb.total_dogs || 1));
+
+        if (hb.owner_email) {
+            await base44.asServiceRole.entities.Notification.create({
+                recipient_email: hb.owner_email,
+                title: 'Reembolso Processado',
+                message: `O reembolso da sua reserva no ${hb.hotel_name || 'hotel'} foi processado.`,
+                type: 'payment',
+                related_id: hb.id
+            });
+        }
+        return;
+    }
 
     // Find payment and update status
     const payments = await base44.asServiceRole.entities.Payment.filter({
