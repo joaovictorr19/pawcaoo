@@ -54,9 +54,9 @@ export default function HotelRangeCalendar({
       return;
     }
 
-    // If clicking same date as checkin → reset
+    // If clicking same date as checkin → single-day booking (checkout = checkin)
     if (dateStr === checkinDate) {
-      onRangeSelect?.('', '');
+      onRangeSelect?.(checkinDate, dateStr);
       return;
     }
 

@@ -178,7 +178,9 @@ export default function ProfileBentoGrid({
               <HotelRangeCalendar
                 daysOff={daysOff}
                 checkinPolicy={walkerProfile?.hotel_details?.checkin_policy_type || 'all_days'}
-                onRangeSelect={(checkin, checkout) => onHotelDateSelect?.(checkin, checkout)}
+                onRangeSelect={(checkin, checkout) => {
+                  if (checkin && checkout) onHotelDateSelect?.(checkin, checkout);
+                }}
               />
             </div>
           )}
