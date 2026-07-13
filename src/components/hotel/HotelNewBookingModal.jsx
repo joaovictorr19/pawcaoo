@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Plus, Minus, CreditCard, Loader2 } from "lucide-react";
+import { X, Plus, Minus, CreditCard, Loader2, Link2, Copy, Check, Send,
+  BedDouble, Sun, Scissors, PawPrint, GraduationCap, User, CalendarDays,
+  Dog, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -8,11 +10,11 @@ import HotelServiceAddons from "./HotelServiceAddons";
 import { calculateAddOnsTotal, buildBookingPayload } from "@/hooks/useHotelCapacity";
 
 const SERVICE_OPTIONS = [
-  { value: "boarding", label: "🛏️ Alojamento (noites)" },
-  { value: "daycare", label: "☀️ Creche (dia)" },
-  { value: "grooming", label: "✂️ Grooming" },
-  { value: "walk_with_partner", label: "🐕 Passeio com parceiro" },
-  { value: "training", label: "🎓 Treino" },
+  { value: "boarding", label: "Alojamento", sub: "por noite", icon: BedDouble },
+  { value: "daycare", label: "Creche", sub: "por dia", icon: Sun },
+  { value: "grooming", label: "Grooming", sub: "sessão", icon: Scissors },
+  { value: "walk_with_partner", label: "Passeio", sub: "com parceiro", icon: PawPrint },
+  { value: "training", label: "Treino", sub: "sessão", icon: GraduationCap },
 ];
 
 const DOG_SIZES = [
@@ -24,7 +26,11 @@ const DOG_SIZES = [
 
 export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelProfile, partners = [], defaultDate }) {
   const [payingNow, setPayingNow] = useState(false);
+  const [generatingLink, setGeneratingLink] = useState(false);
+  const [paymentLink, setPaymentLink] = useState(null);
+  const [copied, setCopied] = useState(false);
   const [addOns, setAddOns] = useState([]);
+
   const [form, setForm] = useState({
     owner_name: "",
     owner_email: "",
@@ -34,7 +40,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     checkout_date: "",
     checkin_time: hotelProfile?.hotel_details?.checkin_time || "09:00",
     checkout_time: hotelProfile?.hotel_details?.checkout_time || "18:00",
-    dogs: [{ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "" }],
+    dogs: [{ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "" }],
     special_requests: "",
     assigned_walker_email: "",
     assigned_walker_name: "",
@@ -49,10 +55,12 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     setForm(f => ({ ...f, dogs }));
   };
 
-  const addDog = () => setForm(f => ({ ...f, dogs: [...f.dogs, { dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "" }] }));
+  const addDog = () => setForm(f => ({ ...f, dogs: [...f.dogs, { dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "" }] }));
   const removeDog = (i) => setForm(f => ({ ...f, dogs: f.dogs.filter((_, idx) => idx !== i) }));
 
   const addOnsTotal = calculateAddOnsTotal(addOns);
+  const baseAmount = parseFloat(form.total_amount) || 0;
+  const grandTotal = baseAmount + addOnsTotal;
 
   const buildPayload = () => ({
     ...buildBookingPayload(form, hotelProfile, addOns),
@@ -60,41 +68,58 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     payment_status: "pending",
   });
 
-  const handleSave = async () => {
-    if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) return;
-    const amount = parseFloat(form.total_amount) || 0;
-
-    // Se tem valor, criar reserva + gerar link de pagamento via backend (1 única reserva)
-    if (amount > 0) {
-      try {
-        const payload = buildBookingPayload(form, hotelProfile, addOns);
-        const res = await base44.functions.invoke("createHotelCheckout", payload);
-        const { url, error } = res.data;
-        if (error) { toast.error(error); return; }
-        if (url) {
-          toast.success("Reserva criada! Link de pagamento copiado.");
-          navigator.clipboard.writeText(url);
-        }
-      } catch (err) {
-        toast.error("Erro ao criar reserva: " + err.message);
-        return;
-      }
-    } else {
-      // Sem valor: criar reserva diretamente (sem pagamento)
-      onSave(buildPayload());
-    }
-
+  const resetAndClose = () => {
+    setPaymentLink(null);
+    setCopied(false);
+    setAddOns([]);
     onClose();
   };
 
-  const handlePayNow = async () => {
+  // Guardar reserva sem pagamento (cliente paga presencialmente)
+  const handleSaveOnly = () => {
     if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) {
-      toast.error("Preenche o nome do dono e a data de check-in.");
+      toast.error("Preenche o nome do dono, data de check-in e tipo de serviço.");
       return;
     }
-    const amount = parseFloat(form.total_amount) + addOnsTotal;
-    if (!amount || amount <= 0) {
-      toast.error("Insere um valor total válido para efectuar o pagamento.");
+    onSave(buildPayload());
+    resetAndClose();
+  };
+
+  // Gerar link de pagamento para enviar ao cliente
+  const handleGenerateLink = async () => {
+    if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) {
+      toast.error("Preenche os dados obrigatórios antes de gerar o link.");
+      return;
+    }
+    if (grandTotal <= 0) {
+      toast.error("Insere um valor total para gerar o link de pagamento.");
+      return;
+    }
+    setGeneratingLink(true);
+    try {
+      const payload = buildBookingPayload(form, hotelProfile, addOns);
+      const res = await base44.functions.invoke("createHotelCheckout", payload);
+      const { url, error } = res.data;
+      if (error) { toast.error(error); return; }
+      if (url) {
+        setPaymentLink(url);
+        toast.success("Reserva criada e link de pagamento gerado.");
+      }
+    } catch (err) {
+      toast.error("Erro ao gerar link: " + err.message);
+    } finally {
+      setGeneratingLink(false);
+    }
+  };
+
+  // Pagar agora via Stripe (redireciona)
+  const handlePayNow = async () => {
+    if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) {
+      toast.error("Preenche os dados obrigatórios.");
+      return;
+    }
+    if (grandTotal <= 0) {
+      toast.error("Insere um valor total válido.");
       return;
     }
     setPayingNow(true);
@@ -111,174 +136,313 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     }
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(paymentLink);
+    setCopied(true);
+    toast.success("Link copiado para a área de transferência");
+    setTimeout(() => setCopied(false), 3000);
+  };
+
+  const handleSendLinkByEmail = async () => {
+    if (!form.owner_email) {
+      toast.error("Adiciona o email do cliente para enviar o link.");
+      return;
+    }
+    try {
+      await base44.integrations.Core.SendEmail({
+        to: form.owner_email,
+        subject: `Link de Pagamento - Reserva ${hotelProfile?.hotel_details?.hotel_name || hotelProfile?.walker_name || "Hotel"}`,
+        body: `<p>Olá ${form.owner_name},</p><p>Aqui está o link de pagamento para a sua reserva:</p><p><a href="${paymentLink}">Pagar Agora</a></p><p>Valor: €${grandTotal.toFixed(2)}</p><p>Obrigado!</p>`,
+      });
+      toast.success("Email enviado com sucesso");
+    } catch (err) {
+      toast.error("Erro ao enviar email: " + err.message);
+    }
+  };
+
   if (!isOpen) return null;
+
+  const inputCls = "w-full h-10 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:border-slate-400 transition-colors bg-white";
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-lg rounded-t-3xl md:rounded-3xl max-h-[90vh] overflow-y-scroll shadow-2xl shadow-purple-900/20 scrollbar-hide">
+      <div className="absolute inset-0 bg-black/40" onClick={resetAndClose} />
+      <div className="relative bg-white w-full max-w-lg rounded-t-2xl md:rounded-2xl max-h-[92vh] overflow-y-auto shadow-xl scrollbar-hide">
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-purple-800 via-purple-700 to-purple-500 px-5 py-5 flex items-center justify-between rounded-t-3xl md:rounded-t-3xl overflow-hidden">
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full pointer-events-none" />
-          <div className="absolute bottom-0 left-12 w-20 h-20 bg-white/5 rounded-full pointer-events-none" />
-          <div className="relative z-10">
-            <h2 className="text-white font-black text-base tracking-tight">Nova Reserva 🏨</h2>
-            <p className="text-purple-200 text-[11px] mt-0.5">Preenche os dados da estadia</p>
+        <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center">
+              <ClipboardList className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-900 text-sm">Nova Reserva</h2>
+              <p className="text-slate-400 text-[11px]">Registo presencial de hóspede</p>
+            </div>
           </div>
-          <button onClick={onClose} className="relative z-10 w-8 h-8 flex items-center justify-center bg-white/15 hover:bg-white/25 rounded-xl text-white transition-all">
+          <button onClick={resetAndClose}
+            className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-500 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
-          {/* Service type */}
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Tipo de Serviço</label>
+        {/* Payment Link Success State */}
+        {paymentLink ? (
+          <div className="p-5 space-y-4">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+              <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Check className="w-6 h-6 text-emerald-600" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm">Reserva Criada</h3>
+              <p className="text-slate-500 text-xs mt-1">
+                A reserva foi registada e o link de pagamento foi gerado.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Link2 className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-semibold text-slate-600">Link de Pagamento</span>
+                <span className="ml-auto text-sm font-bold text-slate-900">€{grandTotal.toFixed(2)}</span>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-lg p-2.5 break-all">
+                <p className="text-[11px] text-slate-500 font-mono">{paymentLink}</p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
-              {SERVICE_OPTIONS.map(s => (
-                <button key={s.value} onClick={() => set("service_type", s.value)}
-                  className={`p-2.5 rounded-xl text-xs font-bold text-left border-2 transition-all ${form.service_type === s.value ? "border-purple-500 bg-purple-50 text-purple-700" : "border-slate-100 text-slate-600 hover:border-slate-200"}`}>
-                  {s.label}
-                </button>
-              ))}
+              <Button onClick={handleCopyLink}
+                className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-2 text-sm">
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied ? "Copiado" : "Copiar Link"}
+              </Button>
+              <Button onClick={handleSendLinkByEmail}
+                variant="outline"
+                className="border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg gap-2 text-sm"
+                disabled={!form.owner_email}>
+                <Send className="w-4 h-4" />
+                Enviar por Email
+              </Button>
             </div>
-          </div>
 
-          {/* Dono */}
-          <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Dados do Dono</label>
-            <div className="space-y-2">
-              <input value={form.owner_name} onChange={e => set("owner_name", e.target.value)} placeholder="Nome completo *" className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400" />
-              <input value={form.owner_email} onChange={e => set("owner_email", e.target.value)} placeholder="Email" className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400" />
-              <input value={form.owner_phone} onChange={e => set("owner_phone", e.target.value)} placeholder="Telefone" className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400" />
-            </div>
+            <Button onClick={resetAndClose} variant="outline"
+              className="w-full border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-sm">
+              Fechar
+            </Button>
           </div>
-
-          {/* Datas */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Check-in *</label>
-              <input type="date" value={form.checkin_date} onChange={e => set("checkin_date", e.target.value)} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400" />
-              <input type="time" value={form.checkin_time} onChange={e => set("checkin_time", e.target.value)} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400 mt-1.5" />
-            </div>
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Check-out</label>
-              <input type="date" value={form.checkout_date} onChange={e => set("checkout_date", e.target.value)} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400" />
-              <input type="time" value={form.checkout_time} onChange={e => set("checkout_time", e.target.value)} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400 mt-1.5" />
-            </div>
-          </div>
-
-          {/* Cães */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Cães</label>
-              <button onClick={addDog} className="flex items-center gap-1 text-xs text-purple-600 font-bold hover:text-purple-700">
-                <Plus className="w-3.5 h-3.5" /> Adicionar
-              </button>
-            </div>
-            <div className="space-y-2">
-              {form.dogs.map((dog, i) => (
-                <div key={i} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-purple-600">🐕 Cão {i + 1}</span>
-                    {form.dogs.length > 1 && (
-                      <button onClick={() => removeDog(i)} className="text-red-400 hover:text-red-600">
-                        <Minus className="w-3.5 h-3.5" />
+        ) : (
+          <>
+            <div className="p-5 space-y-5">
+              {/* Service Type */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                  Tipo de Serviço
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {SERVICE_OPTIONS.map(s => {
+                    const Icon = s.icon;
+                    const active = form.service_type === s.value;
+                    return (
+                      <button key={s.value} onClick={() => set("service_type", s.value)}
+                        className={`flex items-center gap-2.5 p-2.5 rounded-lg text-left border transition-all ${
+                          active
+                            ? "border-slate-900 bg-slate-50"
+                            : "border-slate-200 hover:border-slate-300"
+                        }`}>
+                        <Icon className={`w-4 h-4 shrink-0 ${active ? "text-slate-900" : "text-slate-400"}`} />
+                        <div className="min-w-0">
+                          <p className={`text-xs font-semibold ${active ? "text-slate-900" : "text-slate-600"}`}>{s.label}</p>
+                          <p className="text-[10px] text-slate-400">{s.sub}</p>
+                        </div>
                       </button>
-                    )}
-                  </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Owner Data */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                  <User className="w-3 h-3" /> Dados do Cliente
+                </label>
+                <div className="space-y-2">
+                  <input value={form.owner_name} onChange={e => set("owner_name", e.target.value)}
+                    placeholder="Nome completo *" className={inputCls} />
                   <div className="grid grid-cols-2 gap-2">
-                    <input value={dog.dog_name} onChange={e => updateDog(i, "dog_name", e.target.value)} placeholder="Nome" className="h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-purple-400" />
-                    <input value={dog.dog_breed} onChange={e => updateDog(i, "dog_breed", e.target.value)} placeholder="Raça" className="h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-purple-400" />
-                    <select value={dog.dog_size} onChange={e => updateDog(i, "dog_size", e.target.value)} className="h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-purple-400 bg-white">
-                      {DOG_SIZES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                    </select>
-                    <input type="number" value={dog.dog_age} onChange={e => updateDog(i, "dog_age", e.target.value)} placeholder="Idade (anos)" className="h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-purple-400" />
+                    <input value={form.owner_phone} onChange={e => set("owner_phone", e.target.value)}
+                      placeholder="Telefone" className={inputCls} />
+                    <input value={form.owner_email} onChange={e => set("owner_email", e.target.value)}
+                      placeholder="Email" className={inputCls} />
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Dates */}
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                  <CalendarDays className="w-3 h-3" /> Datas de Estadia
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1.5">
+                    <input type="date" value={form.checkin_date} onChange={e => set("checkin_date", e.target.value)}
+                      className={inputCls} />
+                    <input type="time" value={form.checkin_time} onChange={e => set("checkin_time", e.target.value)}
+                      className={inputCls} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <input type="date" value={form.checkout_date} onChange={e => set("checkout_date", e.target.value)}
+                      className={inputCls} />
+                    <input type="time" value={form.checkout_time} onChange={e => set("checkout_time", e.target.value)}
+                      className={inputCls} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Dogs */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Dog className="w-3 h-3" /> Cães ({form.dogs.length})
+                  </label>
+                  <button onClick={addDog}
+                    className="flex items-center gap-1 text-xs text-slate-700 font-semibold hover:text-slate-900">
+                    <Plus className="w-3.5 h-3.5" /> Adicionar Cão
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {form.dogs.map((dog, i) => (
+                    <div key={i} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-slate-700">Cão {i + 1}</span>
+                        {form.dogs.length > 1 && (
+                          <button onClick={() => removeDog(i)} className="text-slate-400 hover:text-red-500 transition-colors">
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input value={dog.dog_name} onChange={e => updateDog(i, "dog_name", e.target.value)}
+                          placeholder="Nome" className="h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                        <input value={dog.dog_breed} onChange={e => updateDog(i, "dog_breed", e.target.value)}
+                          placeholder="Raça" className="h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                        <select value={dog.dog_size} onChange={e => updateDog(i, "dog_size", e.target.value)}
+                          className="h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white">
+                          {DOG_SIZES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                        </select>
+                        <input type="number" value={dog.dog_age} onChange={e => updateDog(i, "dog_age", e.target.value)}
+                          placeholder="Idade (anos)" className="h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                      </div>
+                      <input value={dog.special_notes || ""} onChange={e => updateDog(i, "special_notes", e.target.value)}
+                        placeholder="Notas especiais (alergias, medicação, comportamento)"
+                        className="w-full h-9 px-2.5 mt-2 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Assigned Partner */}
+              {partners.length > 0 && (
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                    Profissional Responsável
+                  </label>
+                  <select value={form.assigned_walker_email} onChange={e => {
+                    const p = partners.find(p => p.walker_email === e.target.value);
+                    set("assigned_walker_email", e.target.value);
+                    set("assigned_walker_name", p?.walker_name || "");
+                  }} className={`${inputCls} cursor-pointer`}>
+                    <option value="">Sem atribuição</option>
+                    {partners.map(p => (
+                      <option key={p.walker_email} value={p.walker_email}>
+                        {p.walker_name} {(p.services || []).length > 0 ? `(${p.services.join(", ")})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Add-ons */}
+              <HotelServiceAddons
+                addOns={addOns}
+                onAddOnsChange={setAddOns}
+                partners={partners}
+              />
+
+              {/* Price Summary */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Serviço base</span>
+                    <span className="font-semibold text-slate-700">€{baseAmount.toFixed(2)}</span>
+                  </div>
+                  {addOnsTotal > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Serviços adicionais ({addOns.length})</span>
+                      <span className="font-semibold text-slate-700">€{addOnsTotal.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="border-t border-slate-200 pt-1.5 flex justify-between">
+                    <span className="font-bold text-slate-900">Total</span>
+                    <span className="font-bold text-slate-900 text-lg">€{grandTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Amount + Notes */}
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    Valor do Serviço (€)
+                  </label>
+                  <input type="number" min="0" step="0.01" value={form.total_amount}
+                    onChange={e => set("total_amount", e.target.value)} placeholder="0.00" className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    Pedidos Especiais
+                  </label>
+                  <textarea value={form.special_requests} onChange={e => set("special_requests", e.target.value)}
+                    rows={2} placeholder="Instruções do cliente, necessidades especiais..."
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-slate-400 resize-none bg-white" />
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Parceiro responsável */}
-           {partners.length > 0 && (
-             <div>
-               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Profissional Responsável</label>
-               <select value={form.assigned_walker_email} onChange={e => {
-                 const p = partners.find(p => p.walker_email === e.target.value);
-                 set("assigned_walker_email", e.target.value);
-                 set("assigned_walker_name", p?.walker_name || "");
-               }} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400 bg-white">
-                 <option value="">— Sem atribuição —</option>
-                 {partners.map(p => (
-                   <option key={p.walker_email} value={p.walker_email}>{p.walker_name} ({(p.services || []).join(", ")})</option>
-                 ))}
-               </select>
-             </div>
-           )}
-
-           {/* Serviços Adicionais */}
-           <HotelServiceAddons 
-             addOns={addOns} 
-             onAddOnsChange={setAddOns}
-             partners={partners}
-           />
-
-           {/* Resumo de preço */}
-           <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-3 rounded-xl border border-slate-200">
-             <div className="space-y-1.5 text-sm">
-               <div className="flex justify-between">
-                 <span className="text-slate-600">Serviço base:</span>
-                 <span className="font-semibold">€{(parseFloat(form.total_amount) || 0).toFixed(2)}</span>
-               </div>
-               {addOnsTotal > 0 && (
-                 <div className="flex justify-between text-blue-600 font-semibold">
-                   <span>Add-ons ({addOns.length}):</span>
-                   <span>€{addOnsTotal.toFixed(2)}</span>
-                 </div>
-               )}
-               <div className="border-t border-slate-300 pt-1.5 flex justify-between font-bold text-slate-900">
-                 <span>TOTAL:</span>
-                 <span className="text-lg">€{(parseFloat(form.total_amount) + addOnsTotal || 0).toFixed(2)}</span>
-               </div>
-             </div>
-           </div>
-
-           {/* Valor + notas */}
-           <div className="grid grid-cols-2 gap-3">
-             <div>
-               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Valor Serviço (€)</label>
-               <input type="number" min="0" step="0.01" value={form.total_amount} onChange={e => set("total_amount", e.target.value)} placeholder="0.00" className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400" />
-             </div>
-             <div>
-               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Pedidos especiais</label>
-               <textarea value={form.special_requests} onChange={e => set("special_requests", e.target.value)} rows={1} className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-purple-400 resize-none" />
-             </div>
-           </div>
-        </div>
-
-        {/* Footer */}
-         <div className="sticky bottom-0 px-5 py-4 border-t border-purple-50 bg-gradient-to-b from-white to-purple-50/30 space-y-2">
-           {/* Pay with Stripe */}
-           <Button
-             onClick={handlePayNow}
-             disabled={payingNow || !form.owner_name.trim() || !form.checkin_date || !(parseFloat(form.total_amount) + addOnsTotal > 0)}
-             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-black shadow-lg shadow-indigo-400/30 gap-2 disabled:opacity-40 text-sm"
-           >
-             {payingNow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-             {payingNow ? "A redirecionar..." : `💳 Pagar ${(parseFloat(form.total_amount) + addOnsTotal) > 0 ? `(${(parseFloat(form.total_amount) + addOnsTotal).toFixed(2)}€)` : ""}`}
-           </Button>
-           <div className="grid grid-cols-2 gap-2">
-             <Button variant="outline" onClick={onClose} className="rounded-xl border-purple-100 text-purple-600 hover:bg-purple-50 text-sm">Cancelar</Button>
-             <Button onClick={handleSave} disabled={!form.owner_name.trim() || !form.checkin_date}
-               className="bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white rounded-xl font-black shadow-lg shadow-purple-500/30 disabled:opacity-40 text-sm">
-               🏨 Só Criar
-             </Button>
-           </div>
-           <p className="text-center text-[10px] text-slate-400">
-             "Pagar" gera link Stripe • "Só Criar" salva e envia link ao cliente
-           </p>
-         </div>
+            {/* Footer Actions */}
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 px-5 py-4 space-y-2">
+              {grandTotal > 0 && (
+                <Button onClick={handlePayNow} disabled={payingNow || !form.owner_name.trim()}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold gap-2 disabled:opacity-40 text-sm">
+                  {payingNow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                  {payingNow ? "A redirecionar..." : `Pagar Agora · €${grandTotal.toFixed(2)}`}
+                </Button>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" onClick={resetAndClose}
+                  className="rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 text-sm">
+                  Cancelar
+                </Button>
+                {grandTotal > 0 ? (
+                  <Button onClick={handleGenerateLink} disabled={generatingLink || !form.owner_name.trim()}
+                    className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg font-semibold gap-2 disabled:opacity-40 text-sm">
+                    {generatingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+                    {generatingLink ? "A gerar..." : "Gerar Link"}
+                  </Button>
+                ) : (
+                  <Button onClick={handleSaveOnly} disabled={!form.owner_name.trim()}
+                    className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold gap-2 disabled:opacity-40 text-sm">
+                    <Check className="w-4 h-4" /> Guardar Reserva
+                  </Button>
+                )}
+              </div>
+              <p className="text-center text-[10px] text-slate-400 leading-relaxed">
+                {grandTotal > 0
+                  ? "Pagar Agora: processa pagamento imediato · Gerar Link: cria reserva e link para enviar ao cliente"
+                  : "Sem valor definido: a reserva fica pendente de pagamento presencial"
+                }
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
