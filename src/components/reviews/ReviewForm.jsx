@@ -91,7 +91,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
   const StarRating = ({ value, onChange, label }) => (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <div className="flex gap-1">
+      <div className="flex gap-1.5">
         {Array.from({ length: 5 }, (_, i) => (
           <button
             key={i}
@@ -101,7 +101,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
           >
             <Star
               className={`w-8 h-8 ${
-                i < value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                i < value ? 'fill-amber-400 text-amber-400' : 'text-slate-200'
               }`}
             />
           </button>
@@ -123,7 +123,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
           >
             <Star
               className={`w-5 h-5 ${
-                i < value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                i < value ? 'fill-amber-400 text-amber-400' : 'text-slate-200'
               }`}
             />
           </button>
@@ -139,9 +139,9 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
       exit={{ opacity: 0, y: -20 }}
     >
       <Card className="border-0 shadow-2xl">
-        <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50">
+        <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50">
           <CardTitle className="flex items-center gap-2 text-2xl">
-            <Star className="w-6 h-6 text-yellow-600" />
+            <Star className="w-6 h-6 text-amber-500 fill-amber-400" />
             {isClientReview ? "Rate Client & Dog" : `Leave a Review for ${targetName}`}
           </CardTitle>
         </CardHeader>
@@ -311,7 +311,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
               <Button
                 type="submit"
                 disabled={isProcessing}
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white"
+                className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
               >
                 {isProcessing ? "Submitting..." : "Submit Review"}
               </Button>
