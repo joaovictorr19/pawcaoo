@@ -232,11 +232,11 @@ export default function ProfileBentoGrid({
               </h3>
             </div>
             {loadingBadges ? (
-              <div className="flex gap-3 overflow-x-auto pb-2">
+              <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-2 px-1">
                 {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-20 bg-slate-100 rounded-2xl flex-shrink-0 animate-pulse" />)}
               </div>
             ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto pb-2">
+              <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-2 px-1">
                 {earnedBadges.slice(0, 10).map((badge) => (
                   <div key={badge._uniqueId} className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20">
                     <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
