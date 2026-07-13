@@ -21,6 +21,7 @@ import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 
 import HotelProfileDisplay from "@/components/hotel/HotelProfileDisplay";
 import HotelBookingModal from "@/components/hotel/HotelBookingModal";
+import ProfileBentoGrid from "@/components/profile/ProfileBentoGrid";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -341,228 +342,29 @@ export default function UserProfile() {
   }
 
   return (
-    <div id="profile-page" className="min-h-screen bg-slate-50 pb-32 pt-2">
-      <div id="profile-top" className="relative h-64 md:h-80 w-full overflow-hidden">
-        <img
-          src={displayCoverUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=400&fit=crop"}
-          className="w-full h-full object-cover"
-          alt="Capa"
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=400&fit=crop";
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-transparent to-black/20" />
-        <button onClick={() => navigate(-1)} className="absolute top-24 left-6 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all">
-          <ArrowLeft size={20} />
-        </button>
-      </div>
-
-      <div className="relative -mt-20 px-6">
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative">
-            {/* Anel colorido: roxo para hotel, âmbar para PawCão, branco padrão */}
-            <Avatar className={`w-32 h-32 shadow-2xl rounded-[2.5rem] border-4 ${
-              walkerProfile?.professional_type === 'hotel'
-                ? 'border-purple-400 ring-4 ring-purple-300/50'
-                : (walkerProfile?.has_pawcao_seal || walkerProfile?.is_pawcao_employee)
-                  ? 'border-amber-400 ring-4 ring-amber-300/50'
-                  : 'border-white'
-            }`}>
-              <AvatarImage
-                src={displayPhotoUrl}
-                className="object-cover w-full h-full"
-                style={{ objectFit: 'cover' }}
-                loading="lazy"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=256&h=256&fit=crop';
-                }}
-              />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-3xl font-black">
-                {displayName[0]?.toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-
-            {(walkerProfile || trainerProfile) && (
-              <div className={`absolute -bottom-1 -right-1 px-3 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1.5 transition-all ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-500' : 'bg-slate-300'}`}>
-                <div className={`w-2 h-2 rounded-full bg-white ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'animate-ping' : ''}`} />
-                <span className="text-[8px] font-black text-white uppercase tracking-tighter">
-                  {(walkerProfile?.is_online || trainerProfile?.is_online) ? t('available', language) : t('offline', language)}
-                </span>
-              </div>
-            )}
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 mt-6 text-center">{displayName}</h1>
-          {displayCity && <p className="text-slate-500 flex items-center gap-1 mt-2"><MapPin size={14} /> {displayCity}</p>}
-          
-
-        </div>
-
-        <div className="space-y-8 pb-6">
-          {(walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio) && (
-             <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">{t('aboutMe', language)}</h3>
-               <p className="text-slate-700 text-sm leading-relaxed">
-                 {walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio}
-               </p>
-             </div>
-          )}
-
-          <div>
-            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">Conquistas ({earnedBadges.length})</h3>
-            {loadingBadges ? (
-              <div className="flex gap-3 overflow-x-auto pb-4">
-                {[1, 2, 3].map(i => <div key={i} className="w-20 h-20 bg-slate-200 rounded-2xl flex-shrink-0 animate-pulse" />)}
-              </div>
-            ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto pb-4">
-                {earnedBadges.map((badge) => (
-                  <div key={badge._uniqueId} className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20 bg-slate-50 rounded-2xl p-2 border border-slate-100">
-                    <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
-                    <p className="text-[10px] font-bold text-slate-700 text-center leading-tight w-full">
-                      {badge.name || badge.badge_id}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[10px] text-slate-300 font-bold italic">{language === 'pt' ? 'Sem emblemas atribuídos ainda.' : language === 'es' ? 'Aún no hay insignias asignadas.' : language === 'fr' ? 'Aucun badge attribué pour le moment.' : 'No badges assigned yet.'}</p>
-            )}
-          </div>
-
-          {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details && (
-            <HotelProfileDisplay 
-              hotel={walkerProfile} 
-              currentUser={currentUser}
-              onBookingClick={(service) => setHotelBookingModal({ isOpen: true, selectedService: service })}
-            />
-          )}
-
-          {walkerProfile?.professional_type === 'hotel' && walkerProfile?.hotel_details?.business_hours && (
-            <HotelDailyRoutine businessHours={walkerProfile.hotel_details.business_hours} />
-          )}
-
-          {walkerProfile?.professional_type === 'hotel' && profileEmail && (
-            <HotelTeamSection hotelEmail={profileEmail} />
-          )}
-
-          {(walkerProfile?.portfolio?.length > 0) && (
-            <div>
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">{language === 'pt' ? 'Portefólio' : language === 'es' ? 'Portafolio' : language === 'fr' ? 'Portfolio' : 'Portfolio'}</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl">
-                {walkerProfile.portfolio.filter(p => p.media_url).slice(0, 4).map((item, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100">
-                    <img
-                      src={item.media_url}
-                      alt={item.title || 'foto'}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1558944351-c3ad969c1a63?w=600&h=600&fit=crop';
-                      }}
-                    />
-                    {item.title && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                        <p className="text-white text-[10px] font-bold truncate">{item.title}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {(walkerProfile || trainerProfile) && (
-            <div>
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">{language === 'pt' ? 'Folgas Agendadas' : language === 'es' ? 'Días Libres Programados' : language === 'fr' ? 'Jours de repos planifiés' : 'Scheduled Days Off'}</h3>
-              {daysOff.length === 0 ? (
-                <p className="text-[12px] text-slate-500">{language === 'pt' ? 'Sem folgas futuras.' : language === 'es' ? 'No hay días libres futuros.' : language === 'fr' ? 'Aucun jour de repos à venir.' : 'No upcoming days off.'}</p>
-              ) : (
-                <div className="flex gap-2 flex-wrap">
-                  {daysOff.slice(0, 6).map((d) => (
-                    <div key={d.id} className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-1.5">
-                      <Moon className="w-3.5 h-3.5 text-red-500" />
-                      <span className="text-xs font-semibold text-slate-700">
-                        {new Date(d.date).toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {(walkerProfile || trainerProfile) && walkerProfile?.professional_type !== 'hotel' && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
-            <div>
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic">{language === 'pt' ? 'Serviços Oferecidos' : language === 'es' ? 'Servicios Ofrecidos' : language === 'fr' ? 'Services proposés' : 'Services Offered'}</h3>
-              <div className="space-y-3">
-                {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).map((service, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => !isOwnProfile && setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
-                    className={`w-full bg-white border-2 rounded-2xl overflow-hidden transition-all ${
-                      !isOwnProfile ? 'border-slate-200 hover:border-blue-400 hover:shadow-md active:scale-[0.98] cursor-pointer' : 'border-slate-200'
-                    }`}
-                  >
-                    <div className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <h4 className="font-black text-sm text-slate-900">{service.service_name}</h4>
-                          {service.description && <p className="text-xs text-slate-500 mt-1">{service.description}</p>}
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-lg font-black text-blue-600">{service.price}€</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!isOwnProfile && (walkerProfile || trainerProfile) && (
-            <div className="mb-6">
-              <ProfileActions 
-                walker={walkerProfile || trainerProfile}
-                currentUser={currentUser}
-              />
-            </div>
-          )}
-
-          {(walkerProfile || trainerProfile) && (
-            <div>
-              <h3 className="text-sm font-black uppercase italic mb-4 text-slate-900 tracking-widest">{language === 'pt' ? 'Feedback' : language === 'es' ? 'Opiniones' : language === 'fr' ? 'Avis' : 'Feedback'}</h3>
-              {loadingReviews ? (
-                <div className="space-y-3">
-                  {[1, 2].map(i => <div key={i} className="h-20 bg-slate-200 rounded-2xl animate-pulse" />)}
-                </div>
-              ) : reviews.length > 0 ? (
-                reviews.slice(0, 3).map(r => <ReviewCard key={r.id} review={r} />)
-              ) : (
-                <div className="text-center py-8">
-                  <Star className="w-10 h-10 mx-auto mb-3 opacity-30 text-slate-400" />
-                  <p className="text-slate-500 text-sm">{language === 'pt' ? 'Sem avaliações' : language === 'es' ? 'Sin reseñas' : language === 'fr' ? 'Sans avis' : 'No reviews'}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-
-      {currentUser?.role === 'admin' && (
-        <div className="bg-red-600 text-white p-2 text-xs font-bold flex justify-center gap-4 z-40 relative shadow-md">
-          <span className="flex items-center gap-2"><Shield className="w-4 h-4" /> ADMIN</span>
-          <button onClick={() => banUserMutation.mutate(profileUser.id)} className="underline hover:text-red-200">Banir</button>
-          <button onClick={() => toggleVerificationMutation.mutate(profileUser.id)} className="underline hover:text-red-200">
-            {profileUser.is_verified ? 'Remover' : 'Verificar'}
-          </button>
-        </div>
-      )}
+    <>
+    <ProfileBentoGrid
+      profileUser={profileUser}
+      walkerProfile={walkerProfile}
+      trainerProfile={trainerProfile}
+      currentUser={currentUser}
+      earnedBadges={earnedBadges}
+      loadingBadges={loadingBadges}
+      reviews={reviews}
+      loadingReviews={loadingReviews}
+      daysOff={daysOff}
+      displayPhotoUrl={displayPhotoUrl}
+      displayCoverUrl={displayCoverUrl}
+      displayName={displayName}
+      displayCity={displayCity}
+      isOwnProfile={isOwnProfile}
+      isHotel={walkerProfile?.professional_type === 'hotel'}
+      onBack={() => navigate(-1)}
+      onServiceClick={(service) => setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
+      onHotelBookingClick={(service) => setHotelBookingModal({ isOpen: true, selectedService: service })}
+      onBan={() => banUserMutation.mutate(profileUser.id)}
+      onToggleVerify={() => toggleVerificationMutation.mutate(profileUser.id)}
+    />
 
       <BadgeSelectionModal
         isOpen={isBadgeModalOpen}
@@ -595,6 +397,6 @@ export default function UserProfile() {
         selectedService={hotelBookingModal.selectedService}
         currentUser={currentUser}
       />
-    </div>
+    </>
   );
 }
