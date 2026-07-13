@@ -481,6 +481,63 @@ async function handleCheckoutCompleted(base44, session) {
                     // ── Decrementar vagas disponíveis no serviço do hotel ──
                     await adjustHotelCapacity(base44, hb.hotel_profile_id, hb.service_type, -(hb.total_dogs || 1));
 
+                    // ── Creditar carteira do hotel com service_amount (pendente) ──
+                    if (hb.hotel_email && (hb.service_amount || 0) > 0) {
+                        try {
+                            const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: hb.hotel_email });
+                            let wallet = wallets[0];
+                            if (!wallet) {
+                                wallet = await base44.asServiceRole.entities.UserWallet.create({
+                                    user_email: hb.hotel_email,
+                                    cashback_balance: 0,
+                                    service_tokens: 0,
+                                    total_points: 0,
+                                    available_balance: 0,
+                                    pending_balance: 0,
+                                    total_earnings: 0
+                                });
+                            }
+                            const newPending = (wallet.pending_balance || 0) + (hb.service_amount || 0);
+                            const newTotalEarnings = (wallet.total_earnings || 0) + (hb.service_amount || 0);
+                            await base44.asServiceRole.entities.UserWallet.update(wallet.id, {
+                                pending_balance: newPending,
+                                total_earnings: newTotalEarnings
+                            });
+
+                            await base44.asServiceRole.entities.WalletTransaction.create({
+                                user_email: hb.hotel_email,
+                                transaction_type: 'walker_payment_pending',
+                                amount: hb.service_amount,
+                                description: `Reserva de hotel — ${hb.hotel_name || 'hotel'} (${hb.checkin_date})`,
+                                related_booking_id: hotelBookingId,
+                                balance_after: newPending
+                            });
+                            console.log('✅ Hotel wallet credited (pending): €' + hb.service_amount);
+                        } catch (e) {
+                            console.error('Error crediting hotel wallet:', e);
+                        }
+                    }
+
+                    // ── Registar comissão no cofre da plataforma (PlatformRevenue) ──
+                    if ((hb.platform_fee || 0) > 0) {
+                        try {
+                            const periodMonth = new Date().toISOString().slice(0, 7);
+                            await base44.asServiceRole.entities.PlatformRevenue.create({
+                                revenue_type: 'commission',
+                                source_id: hotelBookingId,
+                                user_email: hb.hotel_email || '',
+                                gross_amount: hb.total_amount || 0,
+                                cost_amount: hb.service_amount || 0,
+                                net_profit: hb.platform_fee,
+                                description: `Comissão reserva hotel — ${hb.hotel_name || ''} (${hb.checkin_date})`,
+                                period_month: periodMonth
+                            });
+                            console.log('✅ Platform revenue recorded: €' + hb.platform_fee);
+                        } catch (e) {
+                            console.error('Error recording platform revenue:', e);
+                        }
+                    }
+
                     // Notificar hotel
                     if (hb.hotel_email) {
                         await base44.asServiceRole.entities.Notification.create({

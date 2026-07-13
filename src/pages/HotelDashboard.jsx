@@ -175,6 +175,14 @@ export default function HotelDashboard() {
             if (newStatus === "cancelled" && ["confirmed", "checked_in", "in_progress", "pending"].includes(oldStatus)) {
               await adjustServiceCapacity(booking.service_type, dogs);
             }
+            // Release pending wallet balance when booking is completed
+            if (newStatus === "completed" && oldStatus !== "completed") {
+              try {
+                await base44.functions.invoke('releaseHotelPayout', { bookingId: id });
+              } catch (e) {
+                console.error('Payout release error:', e);
+              }
+            }
           }
         }
       toast.success("Reserva atualizada com sucesso");
