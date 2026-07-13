@@ -270,19 +270,34 @@ export default function ProfileHeroCard({
           </div>
         )}
 
-        {/* Availability pills (walkers/trainers) */}
+        {/* Availability timeline (walkers/trainers) */}
         {!isHotel && availability.length > 0 && (
-          <div className="flex flex-col items-center gap-1.5 mt-3 w-full">
-            <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-              <Calendar className="w-3 h-3 inline mr-1" />
+          <div className="flex flex-col items-center gap-3 mt-4 w-full">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900 tracking-tight">
+              <Calendar className="w-3.5 h-3.5 text-slate-900" />
               {language === 'pt' ? 'Disponibilidade' : 'Availability'}
             </span>
-            <div className="flex items-center justify-center gap-1.5 flex-wrap">
-              {availability.map((slot) => (
-                <span key={slot} className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                  {AVAILABILITY_LABELS[slot]?.[language] || AVAILABILITY_LABELS[slot]?.pt || slot}
-                </span>
-              ))}
+            <div className="relative flex items-start justify-between w-full max-w-[280px] px-2">
+              {/* Timeline line */}
+              <div className="absolute top-[7px] left-2 right-2 h-px bg-slate-900" />
+              {['morning', 'afternoon', 'evening', 'night'].map((slot) => {
+                const isActive = availability.includes(slot);
+                const label = AVAILABILITY_LABELS[slot]?.[language] || AVAILABILITY_LABELS[slot]?.pt || slot;
+                return (
+                  <div key={slot} className="relative z-10 flex flex-col items-center gap-1.5 flex-1">
+                    <div
+                      className={`w-3.5 h-3.5 rounded-full border-2 border-slate-900 ${
+                        isActive ? 'bg-slate-900' : 'bg-white'
+                      }`}
+                    />
+                    <span className={`text-[10px] font-medium leading-tight text-center ${
+                      isActive ? 'text-slate-900' : 'text-slate-400'
+                    }`}>
+                      {label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
