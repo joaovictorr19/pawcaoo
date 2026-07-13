@@ -82,89 +82,97 @@ export default function ProfileBentoGrid({
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-min">
 
           {/* HERO CARD - Identity */}
-          <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
-            <div className="relative">
-              <Avatar className={`w-24 h-24 md:w-28 md:h-28 shadow-xl rounded-[2rem] border-4 ${
-                isHotel
-                  ? "border-purple-400 ring-4 ring-purple-300/50"
-                  : (walkerProfile?.has_pawcao_seal || walkerProfile?.is_pawcao_employee)
-                    ? "border-amber-400 ring-4 ring-amber-300/50"
-                    : "border-white"
-              }`}>
-                <AvatarImage
-                  src={displayPhotoUrl}
-                  className="object-cover w-full h-full"
-                  style={{ objectFit: 'cover' }}
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=256&h=256&fit=crop';
-                  }}
-                />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-black">
-                  {displayName[0]?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              {/* Status badge - different for hotels vs walkers */}
-              {isProfessional && (
-                <div className={`absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full border-2 border-white shadow-lg flex items-center gap-1 ${
+          <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-6 md:p-7 shadow-sm border border-slate-100 flex flex-col items-center text-center relative overflow-hidden">
+            {/* Subtle decorative gradient */}
+            {isHotel && (
+              <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-purple-50/60 to-transparent pointer-events-none" />
+            )}
+            <div className="relative z-10 flex flex-col items-center w-full">
+              <div className="relative">
+                <Avatar className={`w-24 h-24 md:w-28 md:h-28 shadow-xl rounded-[2rem] border-4 ${
                   isHotel
-                    ? 'bg-purple-500'
-                    : (walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-500' : 'bg-slate-300'
+                    ? "border-purple-400 ring-4 ring-purple-300/50"
+                    : (walkerProfile?.has_pawcao_seal || walkerProfile?.is_pawcao_employee)
+                      ? "border-amber-400 ring-4 ring-amber-300/50"
+                      : "border-white"
                 }`}>
-                  {isHotel ? (
-                    <>
-                      <BedDouble className="w-2.5 h-2.5 text-white" />
-                      <span className="text-[7px] font-black text-white uppercase">
-                        {availableCapacity > 0 ? `${availableCapacity} vagas` : 'Lotado'}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className={`w-1.5 h-1.5 rounded-full bg-white ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'animate-ping' : ''}`} />
-                      <span className="text-[7px] font-black text-white uppercase">
-                        {(walkerProfile?.is_online || trainerProfile?.is_online) ? t('available', language) : t('offline', language)}
-                      </span>
-                    </>
+                  <AvatarImage
+                    src={displayPhotoUrl}
+                    className="object-cover w-full h-full"
+                    style={{ objectFit: 'cover' }}
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=256&h=256&fit=crop';
+                    }}
+                  />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-black">
+                    {displayName[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Status badge - different for hotels vs walkers */}
+                {isProfessional && (
+                  <div className={`absolute -bottom-1 -right-1 px-2.5 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1 ${
+                    isHotel
+                      ? 'bg-purple-500'
+                      : (walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-500' : 'bg-slate-300'
+                  }`}>
+                    {isHotel ? (
+                      <>
+                        <BedDouble className="w-3 h-3 text-white" />
+                        <span className="text-[9px] font-black text-white uppercase tracking-wide">
+                          {availableCapacity > 0
+                            ? `${availableCapacity} ${language === 'pt' ? 'vagas' : language === 'es' ? 'plazas' : 'spots'}`
+                            : (language === 'pt' ? 'Lotado' : language === 'es' ? 'Lleno' : 'Full')}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <div className={`w-1.5 h-1.5 rounded-full bg-white ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'animate-ping' : ''}`} />
+                        <span className="text-[9px] font-black text-white uppercase tracking-wide">
+                          {(walkerProfile?.is_online || trainerProfile?.is_online) ? t('available', language) : t('offline', language)}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-4 tracking-tight">{displayName}</h1>
+              {displayCity && (
+                <p className="text-slate-500 flex items-center gap-1 mt-1 text-sm font-medium">
+                  <MapPin size={14} /> {displayCity}
+                </p>
+              )}
+              {hasBio && (
+                <p className="text-slate-600 text-sm leading-relaxed mt-3 line-clamp-3 max-w-xs">
+                  {hasBio}
+                </p>
+              )}
+              {/* Hotel collaborator badge */}
+              {walkerProfile && !isHotel && (
+                <HotelCollaboratorBadge walkerProfile={walkerProfile} />
+              )}
+              {/* Hotel quick info pills */}
+              {isHotel && (checkinTime || checkoutTime || totalCapacity > 0) && (
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+                  {totalCapacity > 0 && (
+                    <span className="flex items-center gap-1.5 bg-purple-50 text-purple-700 text-[11px] font-bold px-3 py-1.5 rounded-full border border-purple-100">
+                      <BedDouble className="w-3.5 h-3.5" /> {totalCapacity} {language === 'pt' ? 'lugares' : language === 'es' ? 'plazas' : 'spots'}
+                    </span>
+                  )}
+                  {checkinTime && (
+                    <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[11px] font-bold px-3 py-1.5 rounded-full border border-emerald-100">
+                      <Clock className="w-3.5 h-3.5" /> {language === 'pt' ? 'Entrada' : language === 'es' ? 'Entrada' : 'Check-in'} {checkinTime}
+                    </span>
+                  )}
+                  {checkoutTime && (
+                    <span className="flex items-center gap-1.5 bg-blue-50 text-blue-700 text-[11px] font-bold px-3 py-1.5 rounded-full border border-blue-100">
+                      <Clock className="w-3.5 h-3.5" /> {language === 'pt' ? 'Saída' : language === 'es' ? 'Salida' : 'Check-out'} {checkoutTime}
+                    </span>
                   )}
                 </div>
               )}
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-4">{displayName}</h1>
-            {displayCity && (
-              <p className="text-slate-500 flex items-center gap-1 mt-1 text-sm">
-                <MapPin size={14} /> {displayCity}
-              </p>
-            )}
-            {hasBio && (
-              <p className="text-slate-600 text-sm leading-relaxed mt-3 line-clamp-3">
-                {hasBio}
-              </p>
-            )}
-            {/* Hotel collaborator badge */}
-            {walkerProfile && !isHotel && (
-              <HotelCollaboratorBadge walkerProfile={walkerProfile} />
-            )}
-            {/* Hotel quick info pills */}
-            {isHotel && (checkinTime || checkoutTime || totalCapacity > 0) && (
-              <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
-                {totalCapacity > 0 && (
-                  <span className="flex items-center gap-1 bg-purple-50 text-purple-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                    <BedDouble className="w-3 h-3" /> {totalCapacity} locais
-                  </span>
-                )}
-                {checkinTime && (
-                  <span className="flex items-center gap-1 bg-green-50 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                    <Clock className="w-3 h-3" /> Entry {checkinTime}
-                  </span>
-                )}
-                {checkoutTime && (
-                  <span className="flex items-center gap-1 bg-blue-50 text-blue-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                    <Clock className="w-3 h-3" /> Exit {checkoutTime}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
 
           {/* BOOKING / ACTIONS CARD (walkers/trainers) */}
@@ -195,7 +203,7 @@ export default function ProfileBentoGrid({
             <div className="md:col-span-1 lg:col-span-2 bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
               <div className="flex-1 text-center">
                 <p className="text-2xl font-black text-slate-900">{earnedBadges.length}</p>
-                <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Badges</p>
+                <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">{language === 'pt' ? 'Emblemas' : language === 'es' ? 'Insignias' : 'Badges'}</p>
               </div>
               <div className="w-px h-10 bg-slate-200" />
               <div className="flex-1 text-center">
@@ -205,7 +213,7 @@ export default function ProfileBentoGrid({
               <div className="w-px h-10 bg-slate-200" />
               <div className="flex-1 text-center">
                 <p className="text-2xl font-black text-slate-900">{walkerProfile?.rating?.toFixed(1) || trainerProfile?.rating?.toFixed(1) || '—'}</p>
-                <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">Rating</p>
+                <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">{language === 'pt' ? 'Avaliação' : language === 'es' ? 'Valoración' : 'Rating'}</p>
               </div>
             </div>
           )}
