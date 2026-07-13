@@ -305,7 +305,11 @@
           },
           "partner_role": {
             "type": "string",
-            "enum": ["simple", "limited", "full"],
+            "enum": [
+              "simple",
+              "limited",
+              "full"
+            ],
             "default": "simple"
           }
         }
@@ -464,6 +468,15 @@
         },
         "checkout_time": {
           "type": "string"
+        },
+        "hide_checkin_times": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ocultar hor\u00e1rios de check-in/out no perfil p\u00fablico"
+        },
+        "checkin_description": {
+          "type": "string",
+          "description": "Descri\u00e7\u00e3o exibida abaixo dos hor\u00e1rios de check-in/out"
         },
         "checkin_policy_type": {
           "type": "string",

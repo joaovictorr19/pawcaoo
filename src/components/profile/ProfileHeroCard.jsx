@@ -77,6 +77,8 @@ export default function ProfileHeroCard({
   );
   const checkinTime = walkerProfile?.hotel_details?.checkin_time;
   const checkoutTime = walkerProfile?.hotel_details?.checkout_time;
+  const hideCheckinTimes = walkerProfile?.hotel_details?.hide_checkin_times;
+  const checkinDescription = walkerProfile?.hotel_details?.checkin_description;
 
   const rating = walkerProfile?.rating || trainerProfile?.rating;
   const totalWalks = walkerProfile?.total_walks || trainerProfile?.total_walks;
@@ -303,16 +305,23 @@ export default function ProfileHeroCard({
         )}
 
         {/* Hotel quick info pills */}
-        {isHotel && (checkinTime || checkoutTime || totalCapacity > 0) && (
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-            {totalCapacity > 0 && (
-              <StatPill icon={BedDouble} value={totalCapacity} label={language === 'pt' ? 'lugares' : 'spots'} color="purple" />
-            )}
-            {checkinTime && (
-              <StatPill icon={Clock} value={`${language === 'pt' ? 'Entrada' : 'In'} ${checkinTime}`} color="emerald" />
-            )}
-            {checkoutTime && (
-              <StatPill icon={Clock} value={`${language === 'pt' ? 'Saída' : 'Out'} ${checkoutTime}`} color="blue" />
+        {isHotel && (totalCapacity > 0 || (!hideCheckinTimes && (checkinTime || checkoutTime))) && (
+          <div className="flex flex-col items-center gap-2 mt-4 w-full">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {totalCapacity > 0 && (
+                <StatPill icon={BedDouble} value={totalCapacity} label={language === 'pt' ? 'lugares' : 'spots'} color="purple" />
+              )}
+              {!hideCheckinTimes && checkinTime && (
+                <StatPill icon={Clock} value={`${language === 'pt' ? 'Entrada' : 'In'} ${checkinTime}`} color="emerald" />
+              )}
+              {!hideCheckinTimes && checkoutTime && (
+                <StatPill icon={Clock} value={`${language === 'pt' ? 'Saída' : 'Out'} ${checkoutTime}`} color="blue" />
+              )}
+            </div>
+            {!hideCheckinTimes && checkinDescription && (
+              <p className="text-xs text-slate-500 text-center max-w-sm leading-relaxed">
+                {checkinDescription}
+              </p>
             )}
           </div>
         )}
