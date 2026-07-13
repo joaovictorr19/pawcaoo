@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Plus, Minus, CreditCard, Loader2, Link2, Copy, Check, Send,
   BedDouble, Sun, Scissors, PawPrint, GraduationCap, User, CalendarDays,
-  Dog, ClipboardList } from "lucide-react";
+  Dog, ClipboardList, Banknote, LogIn } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,6 +32,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const [paymentLink, setPaymentLink] = useState(null);
   const [copied, setCopied] = useState(false);
   const [addOns, setAddOns] = useState([]);
+  const [directCheckin, setDirectCheckin] = useState(false);
 
   const [form, setForm] = useState({
     owner_name: "",
@@ -64,16 +65,19 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const baseAmount = parseFloat(form.total_amount) || 0;
   const grandTotal = baseAmount + addOnsTotal;
 
-  const buildPayload = () => ({
+  const buildPayload = (overrides = {}) => ({
     ...buildBookingPayload(form, hotelProfile, addOns),
-    status: "confirmed",
+    status: directCheckin ? "checked_in" : "confirmed",
     payment_status: "pending",
+    ...(directCheckin ? { checkin_time: format(new Date(), "HH:mm") } : {}),
+    ...overrides,
   });
 
   const resetAndClose = () => {
     setPaymentLink(null);
     setCopied(false);
     setAddOns([]);
+    setDirectCheckin(false);
     onClose();
   };
 
@@ -84,6 +88,21 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
       return;
     }
     onSave(buildPayload());
+    resetAndClose();
+  };
+
+  // Registar pagamento presencial (dinheiro, MBWay, multibanco)
+  const handlePaidOffline = () => {
+    if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) {
+      toast.error("Preenche o nome do dono, data de check-in e tipo de serviço.");
+      return;
+    }
+    if (grandTotal <= 0) {
+      toast.error("Insere um valor total para registar pagamento.");
+      return;
+    }
+    onSave(buildPayload({ payment_status: "paid" }));
+    toast.success(`Reserva criada e pagamento de €${grandTotal.toFixed(2)} registado (presencial)`);
     resetAndClose();
   };
 
@@ -423,36 +442,70 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
             </div>
 
             {/* Footer Actions */}
-            <div className="sticky bottom-0 bg-white border-t border-slate-200 px-5 py-4 space-y-2">
-              {grandTotal > 0 && (
-                <Button onClick={handlePayNow} disabled={payingNow || !form.owner_name.trim()}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold gap-2 disabled:opacity-40 text-sm">
-                  {payingNow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-                  {payingNow ? "A redirecionar..." : `Pagar Agora · €${grandTotal.toFixed(2)}`}
-                </Button>
-              )}
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={resetAndClose}
-                  className="rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 text-sm">
-                  Cancelar
-                </Button>
-                {grandTotal > 0 ? (
-                  <Button onClick={handleGenerateLink} disabled={generatingLink || !form.owner_name.trim()}
-                    className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg font-semibold gap-2 disabled:opacity-40 text-sm">
-                    {generatingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
-                    {generatingLink ? "A gerar..." : "Gerar Link"}
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 px-5 py-4 space-y-3">
+              {/* Direct check-in toggle */}
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={directCheckin}
+                    onChange={e => setDirectCheckin(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 rounded-full peer-checked:bg-emerald-500 transition-colors" />
+                  <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm" />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <LogIn className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-xs font-semibold text-slate-700">
+                    Check-in imediato {directCheckin && <span className="text-emerald-600">(animal já no hotel)</span>}
+                  </span>
+                </div>
+              </label>
+
+              {/* Payment buttons */}
+              {grandTotal > 0 ? (
+                <>
+                  <Button onClick={handlePayNow} disabled={payingNow || !form.owner_name.trim()}
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold gap-2 disabled:opacity-40 text-sm">
+                    {payingNow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                    {payingNow ? "A redirecionar..." : `Pagar Online · €${grandTotal.toFixed(2)}`}
                   </Button>
-                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button variant="outline" onClick={resetAndClose}
+                      className="rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 text-xs">
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleGenerateLink} disabled={generatingLink || !form.owner_name.trim()}
+                      className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg font-semibold gap-1.5 disabled:opacity-40 text-xs">
+                      {generatingLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
+                      {generatingLink ? "..." : "Gerar Link"}
+                    </Button>
+                    <Button onClick={handlePaidOffline} disabled={!form.owner_name.trim()}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold gap-1.5 disabled:opacity-40 text-xs">
+                      <Banknote className="w-3.5 h-3.5" />
+                      Pago Presencial
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" onClick={resetAndClose}
+                    className="rounded-lg border-slate-200 text-slate-600 hover:bg-slate-50 text-sm">
+                    Cancelar
+                  </Button>
                   <Button onClick={handleSaveOnly} disabled={!form.owner_name.trim()}
                     className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold gap-2 disabled:opacity-40 text-sm">
-                    <Check className="w-4 h-4" /> Guardar Reserva
+                    <Check className="w-4 h-4" /> {directCheckin ? "Check-in + Guardar" : "Guardar Reserva"}
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
               <p className="text-center text-[10px] text-slate-400 leading-relaxed">
                 {grandTotal > 0
-                  ? "Pagar Agora: processa pagamento imediato · Gerar Link: cria reserva e link para enviar ao cliente"
-                  : "Sem valor definido: a reserva fica pendente de pagamento presencial"
+                  ? "Online: Stripe · Link: enviar ao cliente · Presencial: dinheiro/MBWay"
+                  : directCheckin
+                    ? "Reserva criada diretamente como check-in (animal já presente)"
+                    : "Sem valor: reserva fica pendente de pagamento presencial"
                 }
               </p>
             </div>

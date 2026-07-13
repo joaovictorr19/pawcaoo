@@ -154,18 +154,21 @@ export default function HotelDashboard() {
     onSuccess: async (_response, { id, data: updates }) => {
       queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
       if (updates.status) {
-        const booking = bookings.find(b => b.id === id);
-        if (booking) {
-          const oldStatus = booking.status;
-          const newStatus = updates.status;
-          const dogs = booking.total_dogs || 1;
-          if (oldStatus === "pending" && newStatus === "confirmed") {
-            await adjustServiceCapacity(booking.service_type, -dogs);
-          } else if (newStatus === "cancelled" && ["confirmed", "checked_in", "in_progress"].includes(oldStatus)) {
-            await adjustServiceCapacity(booking.service_type, dogs);
+          const booking = bookings.find(b => b.id === id);
+          if (booking) {
+            const oldStatus = booking.status;
+            const newStatus = updates.status;
+            const dogs = booking.total_dogs || 1;
+            // Decrement capacity when booking becomes confirmed or checked_in (from pending)
+            if (oldStatus === "pending" && ["confirmed", "checked_in"].includes(newStatus)) {
+              await adjustServiceCapacity(booking.service_type, -dogs);
+            }
+            // Restore capacity when cancelling from an active/confirmed state
+            if (newStatus === "cancelled" && ["confirmed", "checked_in", "in_progress", "pending"].includes(oldStatus)) {
+              await adjustServiceCapacity(booking.service_type, dogs);
+            }
           }
         }
-      }
       toast.success("Reserva atualizada com sucesso");
     },
     onError: () => toast.error("Erro ao atualizar reserva"),
@@ -175,10 +178,10 @@ export default function HotelDashboard() {
     mutationFn: (data) => base44.entities.HotelBooking.create(data),
     onSuccess: async (newBooking) => {
       queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
-      if (newBooking.status === "confirmed" && newBooking.service_type) {
+      if (["confirmed", "checked_in"].includes(newBooking.status) && newBooking.service_type) {
         await adjustServiceCapacity(newBooking.service_type, -(newBooking.total_dogs || 1));
       }
-      toast.success("Reserva criada com sucesso");
+      toast.success(newBooking.status === "checked_in" ? "Check-in registado" : "Reserva criada com sucesso");
     },
     onError: () => toast.error("Erro ao criar reserva"),
   });
