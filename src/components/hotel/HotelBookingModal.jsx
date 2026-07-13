@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, PlusCircle, CalendarDays } from 'lucide-react';
+import { X, ChevronLeft, PlusCircle, CalendarDays, Clock, CreditCard, ShieldCheck, PawPrint } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -15,16 +15,23 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [selectedDogIds, setSelectedDogIds] = useState([]);
   const [checkinDate, setCheckinDate] = useState('');
   const [checkoutDate, setCheckoutDate] = useState('');
+  const [checkinTime, setCheckinTime] = useState('10:00');
+  const [checkoutTime, setCheckoutTime] = useState('17:00');
+  const [specialRequests, setSpecialRequests] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const datesScrollRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedDogIds([]);
       setCheckinDate('');
       setCheckoutDate('');
+      setCheckinTime(hotel?.hotel_details?.checkin_time || '10:00');
+      setCheckoutTime(hotel?.hotel_details?.checkout_time || '17:00');
+      setSpecialRequests('');
       setStep(0);
     }
-  }, [isOpen]);
+  }, [isOpen, hotel]);
 
   const { data: clientProfile } = useQuery({
     queryKey: ['bookingClientProfile', currentUser?.email],
@@ -57,7 +64,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   });
 
   const totalNights = checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
-  const serviceAmount = Math.round(selectedService.price_per_day * totalNights * 100) / 100;
+  const perDogPerNight = selectedService.price_per_day || 0;
+  const serviceAmount = Math.round(perDogPerNight * totalNights * selectedDogs.length * 100) / 100;
   const platformFee = Math.round(serviceAmount * 0.1 * 100) / 100;
   const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
 
@@ -73,16 +81,17 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
     setIsCreating(true);
     try {
-      const booking = await base44.entities.HotelBooking.create({
+      // Pass flat data to createHotelCheckout — it creates the booking AND the Stripe session
+      const response = await base44.functions.invoke('createHotelCheckout', {
         hotel_profile_id: hotel.id,
         hotel_name: hotel.walker_name,
         hotel_email: hotel.created_by,
         owner_name: clientProfile?.full_name || currentUser.full_name || currentUser.email,
         owner_email: currentUser.email,
         owner_phone: currentUser.phone || '',
-        dogs: selectedDogs.map(d => ({ 
-          dog_name: d.dog_name, 
-          dog_breed: d.breed || 'SRD', 
+        dogs: selectedDogs.map(d => ({
+          dog_name: d.dog_name,
+          dog_breed: d.breed || 'SRD',
           dog_size: d.size || 'medium',
           dog_age: d.age || 0,
           special_notes: d.behavioral_notes || ''
@@ -90,24 +99,15 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         service_type: selectedService.service_type,
         checkin_date: checkinDate,
         checkout_date: checkoutDate,
-        checkin_time: '10:00',
-        checkout_time: '17:00',
+        checkin_time: checkinTime,
+        checkout_time: checkoutTime,
         total_nights: totalNights,
         total_dogs: selectedDogs.length,
-        price_per_night: selectedService.price_per_day,
+        price_per_night: perDogPerNight,
         total_amount: totalAmount,
         platform_fee: platformFee,
         service_amount: serviceAmount,
-        status: 'pending',
-        payment_status: 'pending',
-        special_requests: selectedDogs.map(d => d.dog_name).join(', ')
-      });
-
-      const response = await base44.functions.invoke('createHotelCheckout', {
-        bookingId: booking.id,
-        bookingData: booking,
-        successUrl: `${window.location.origin}/CheckoutSuccess?booking_id=${booking.id}`,
-        cancelUrl: `${window.location.origin}/UserProfile?email=${encodeURIComponent(hotel.created_by)}`,
+        special_requests: specialRequests,
       });
 
       const checkoutUrl = response?.data?.url;
@@ -123,7 +123,11 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     }
   };
 
-  const stepTitles = ['Selecione o Animal', 'Datas de Estadia', 'Confirmar'];
+  const stepTitles = ['Animais', 'Datas e Horários', 'Confirmar'];
+
+  const formatDate = (dateStr) => {
+    return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
+  };
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
@@ -137,7 +141,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             )}
             <div>
               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-                {hotel.walker_name}
+                {hotel.walker_name} · {selectedService.service_name}
               </p>
               <h2 className="text-base font-black text-slate-900">{stepTitles[step]}</h2>
             </div>
@@ -219,7 +223,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             </div>
           )}
 
-          {/* STEP 1 — Datas */}
+          {/* STEP 1 — Datas e Horários */}
           {step === 1 && (
             <div className="space-y-5">
               {checkinPolicy !== 'all_days' && (
@@ -230,19 +234,20 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                 </div>
               )}
 
+              {/* Data de Entrada */}
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase mb-3 block flex items-center gap-1">
                   <CalendarDays className="w-3.5 h-3.5" /> Data de Entrada
                 </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {availableDates.slice(0, 20).map(d => {
+                <div ref={datesScrollRef} className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                  {availableDates.map(d => {
                     const dateObj = new Date(d + 'T12:00:00');
                     const isSelected = checkinDate === d;
                     return (
                       <button
                         key={d}
-                        onClick={() => setCheckinDate(d)}
-                        className={`py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
+                        onClick={() => { setCheckinDate(d); if (checkoutDate && new Date(d) >= new Date(checkoutDate)) setCheckoutDate(''); }}
+                        className={`flex-shrink-0 w-16 py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
                           isSelected ? 'border-purple-500 bg-purple-500 text-white' : 'border-slate-200 bg-white hover:border-purple-300'
                         }`}
                       >
@@ -250,21 +255,52 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           {dateObj.toLocaleDateString('pt-PT', { weekday: 'short' })}
                         </p>
                         <p className={`text-lg font-black ${isSelected ? 'text-white' : 'text-slate-900'}`}>{dateObj.getDate()}</p>
+                        <p className={`text-[9px] font-medium ${isSelected ? 'text-purple-100' : 'text-slate-400'}`}>
+                          {dateObj.toLocaleDateString('pt-PT', { month: 'short' })}
+                        </p>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
+              {/* Horários */}
+              {checkinDate && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" /> Hora Entrada
+                    </label>
+                    <input
+                      type="time"
+                      value={checkinTime}
+                      onChange={(e) => setCheckinTime(e.target.value)}
+                      className="w-full p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-900 font-bold text-sm focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" /> Hora Saída
+                    </label>
+                    <input
+                      type="time"
+                      value={checkoutTime}
+                      onChange={(e) => setCheckoutTime(e.target.value)}
+                      className="w-full p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-900 font-bold text-sm focus:border-purple-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Data de Saída */}
               {checkinDate && (
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase mb-3 block flex items-center gap-1">
                     <CalendarDays className="w-3.5 h-3.5" /> Data de Saída
                   </label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
                     {availableDates
                       .filter(d => new Date(d) > new Date(checkinDate))
-                      .slice(0, 20)
                       .map(d => {
                         const dateObj = new Date(d + 'T12:00:00');
                         const isSelected = checkoutDate === d;
@@ -272,7 +308,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           <button
                             key={d}
                             onClick={() => { setCheckoutDate(d); setStep(2); }}
-                            className={`py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
+                            className={`flex-shrink-0 w-16 py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
                               isSelected ? 'border-purple-500 bg-purple-500 text-white' : 'border-slate-200 bg-white hover:border-purple-300'
                             }`}
                           >
@@ -280,27 +316,36 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                               {dateObj.toLocaleDateString('pt-PT', { weekday: 'short' })}
                             </p>
                             <p className={`text-lg font-black ${isSelected ? 'text-white' : 'text-slate-900'}`}>{dateObj.getDate()}</p>
+                            <p className={`text-[9px] font-medium ${isSelected ? 'text-purple-100' : 'text-slate-400'}`}>
+                              {dateObj.toLocaleDateString('pt-PT', { month: 'short' })}
+                            </p>
                           </button>
                         );
                       })}
                   </div>
                 </div>
               )}
+
+              {checkinDate && !checkoutDate && (
+                <p className="text-center text-xs text-slate-400 italic">Selecione a data de saída para continuar</p>
+              )}
             </div>
           )}
 
-          {/* STEP 2 — Resumo */}
+          {/* STEP 2 — Resumo e Pagamento */}
           {step === 2 && (
             <div className="space-y-4">
               <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Hotel</span>
-                  <span className="font-bold text-slate-900">{hotel.walker_name}</span>
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <PawPrint className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-900 text-sm">{hotel.walker_name}</p>
+                    <p className="text-[10px] text-slate-500">{selectedService.service_name}</p>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Serviço</span>
-                  <span className="font-bold text-slate-900">{selectedService.service_name}</span>
-                </div>
+
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">{selectedDogs.length > 1 ? 'Animais' : 'Animal'}</span>
                   <span className="font-bold text-slate-900 text-right">
@@ -310,33 +355,44 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Entrada</span>
-                  <span className="font-bold text-slate-900">
-                    {new Date(checkinDate + 'T12:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}
-                  </span>
+                  <span className="font-bold text-slate-900">{formatDate(checkinDate)} · {checkinTime}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">Saída</span>
-                  <span className="font-bold text-slate-900">
-                    {new Date(checkoutDate + 'T12:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}
-                  </span>
+                  <span className="font-bold text-slate-900">{formatDate(checkoutDate)} · {checkoutTime}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Noites</span>
-                  <span className="font-bold text-slate-900">{totalNights}</span>
+                  <span className="text-slate-500">Duração</span>
+                  <span className="font-bold text-slate-900">{totalNights} {totalNights === 1 ? 'noite' : 'noites'}</span>
                 </div>
 
+                {/* Notas especiais */}
+                <div className="pt-2 border-t border-slate-200">
+                  <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Pedidos especiais (opcional)</label>
+                  <textarea
+                    value={specialRequests}
+                    onChange={(e) => setSpecialRequests(e.target.value)}
+                    placeholder="Restrições alimentares, medicamentos, etc."
+                    rows={2}
+                    className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-purple-400 focus:outline-none resize-none"
+                  />
+                </div>
+
+                {/* Price breakdown */}
                 <div className="pt-2 border-t border-slate-200 space-y-1.5">
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Serviço ({totalNights} noites)</span>
+                    <span className="text-slate-500">
+                      {perDogPerNight}€ × {totalNights} {totalNights === 1 ? 'noite' : 'noites'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
+                    </span>
                     <span className="font-bold">{serviceAmount}€</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Taxa plataforma (10%)</span>
+                    <span className="text-slate-500">Taxa de plataforma (10%)</span>
                     <span className="font-bold text-orange-600">{platformFee}€</span>
                   </div>
                 </div>
                 <div className="bg-purple-600 rounded-xl px-4 py-3 flex justify-between items-center">
-                  <span className="text-sm font-bold text-purple-100">Total</span>
+                  <span className="text-sm font-bold text-purple-100">Total a pagar</span>
                   <span className="text-2xl font-black text-white">{totalAmount}€</span>
                 </div>
               </div>
@@ -344,14 +400,19 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
               <Button
                 onClick={handleCreateBooking}
                 disabled={isCreating}
-                className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-green-200"
+                className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-green-200 flex items-center justify-center gap-2"
               >
-                {isCreating ? '⏳ A redirecionar para pagamento...' : '💳 Confirmar e Pagar'}
+                {isCreating ? (
+                  <>⏳ A redirecionar para pagamento...</>
+                ) : (
+                  <><CreditCard className="w-5 h-5" /> Confirmar e Pagar {totalAmount}€</>
+                )}
               </Button>
 
-              <p className="text-center text-xs text-slate-400">
-                Será redirecionado para o Stripe para pagamento seguro.
-              </p>
+              <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Pagamento seguro via Stripe</span>
+              </div>
             </div>
           )}
         </div>

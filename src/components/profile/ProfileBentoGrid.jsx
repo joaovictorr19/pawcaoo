@@ -1,6 +1,6 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles } from "lucide-react";
+import { MapPin, ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, CheckCircle2, PawPrint, Zap } from "lucide-react";
 import ReviewCard from "@/components/reviews/ReviewCard";
 import BadgeItem from "@/components/gamification/BadgeItem";
 import ProfileActions from "@/components/profile/ProfileActions";
@@ -9,6 +9,16 @@ import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+
+const SERVICE_ICONS = {
+  walk: PawPrint,
+  training: Award,
+  boarding: BedDouble,
+  daycare: Calendar,
+  grooming: Sparkles,
+  dropin: Clock,
+  other: Zap,
+};
 
 export default function ProfileBentoGrid({
   profileUser,
@@ -36,6 +46,13 @@ export default function ProfileBentoGrid({
   const { language } = useLanguage();
   const isProfessional = walkerProfile || trainerProfile;
   const hasBio = walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio;
+
+  const hotelServices = walkerProfile?.hotel_details?.services || [];
+  const totalCapacity = hotelServices.reduce((sum, s) => sum + (s.capacity_total || 0), 0);
+  const availableCapacity = hotelServices.reduce((sum, s) => sum + (s.capacity_available ?? s.capacity_total ?? 0), 0);
+  const hotelAmenities = walkerProfile?.hotel_details?.amenities || [];
+  const checkinTime = walkerProfile?.hotel_details?.checkin_time;
+  const checkoutTime = walkerProfile?.hotel_details?.checkout_time;
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32 pt-2">
@@ -85,12 +102,28 @@ export default function ProfileBentoGrid({
                   {displayName[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+              {/* Status badge - different for hotels vs walkers */}
               {isProfessional && (
-                <div className={`absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full border-2 border-white shadow-lg flex items-center gap-1 ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-500' : 'bg-slate-300'}`}>
-                  <div className={`w-1.5 h-1.5 rounded-full bg-white ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'animate-ping' : ''}`} />
-                  <span className="text-[7px] font-black text-white uppercase">
-                    {(walkerProfile?.is_online || trainerProfile?.is_online) ? t('available', language) : t('offline', language)}
-                  </span>
+                <div className={`absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full border-2 border-white shadow-lg flex items-center gap-1 ${
+                  isHotel
+                    ? 'bg-purple-500'
+                    : (walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-500' : 'bg-slate-300'
+                }`}>
+                  {isHotel ? (
+                    <>
+                      <BedDouble className="w-2.5 h-2.5 text-white" />
+                      <span className="text-[7px] font-black text-white uppercase">
+                        {availableCapacity > 0 ? `${availableCapacity} vagas` : 'Lotado'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className={`w-1.5 h-1.5 rounded-full bg-white ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'animate-ping' : ''}`} />
+                      <span className="text-[7px] font-black text-white uppercase">
+                        {(walkerProfile?.is_online || trainerProfile?.is_online) ? t('available', language) : t('offline', language)}
+                      </span>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -104,6 +137,26 @@ export default function ProfileBentoGrid({
               <p className="text-slate-600 text-sm leading-relaxed mt-3 line-clamp-3">
                 {hasBio}
               </p>
+            )}
+            {/* Hotel quick info pills */}
+            {isHotel && (checkinTime || checkoutTime || totalCapacity > 0) && (
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+                {totalCapacity > 0 && (
+                  <span className="flex items-center gap-1 bg-purple-50 text-purple-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                    <BedDouble className="w-3 h-3" /> {totalCapacity} locais
+                  </span>
+                )}
+                {checkinTime && (
+                  <span className="flex items-center gap-1 bg-green-50 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                    <Clock className="w-3 h-3" /> Entry {checkinTime}
+                  </span>
+                )}
+                {checkoutTime && (
+                  <span className="flex items-center gap-1 bg-blue-50 text-blue-700 text-[10px] font-bold px-2.5 py-1 rounded-full">
+                    <Clock className="w-3 h-3" /> Exit {checkoutTime}
+                  </span>
+                )}
+              </div>
             )}
           </div>
 
@@ -134,6 +187,49 @@ export default function ProfileBentoGrid({
             </div>
           )}
 
+          {/* BADGES / ACHIEVEMENTS - MOVED UP for prominence */}
+          <div className="md:col-span-2 lg:col-span-4 bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-5 md:p-6 shadow-sm border border-amber-100">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
+                <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center shadow-sm">
+                  <Award className="w-4 h-4 text-white" />
+                </div>
+                {language === 'pt' ? 'Conquistas' : 'Achievements'}
+                <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                  {earnedBadges.length}
+                </span>
+              </h3>
+            </div>
+            {loadingBadges ? (
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-20 bg-slate-100 rounded-2xl flex-shrink-0 animate-pulse" />)}
+              </div>
+            ) : earnedBadges.length > 0 ? (
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {earnedBadges.slice(0, 10).map((badge) => (
+                  <div key={badge._uniqueId} className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20">
+                    <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
+                    <p className="text-[9px] font-bold text-slate-600 text-center leading-tight w-full truncate">
+                      {badge.name || badge.badge_id}
+                    </p>
+                  </div>
+                ))}
+                {earnedBadges.length > 10 && (
+                  <div className="flex flex-col items-center justify-center gap-1.5 flex-shrink-0 w-20">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center">
+                      <span className="text-amber-600 font-black text-sm">+{earnedBadges.length - 10}</span>
+                    </div>
+                    <p className="text-[9px] font-bold text-amber-600">ver mais</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 font-bold italic py-4 text-center">
+                {language === 'pt' ? 'Ainda sem conquistas. Complete serviços para ganhar emblemas!' : 'No badges yet. Complete services to earn badges!'}
+              </p>
+            )}
+          </div>
+
           {/* HOTEL DETAILS - Large card */}
           {isHotel && walkerProfile?.hotel_details && (
             <div className="md:col-span-3 lg:col-span-4 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
@@ -145,58 +241,42 @@ export default function ProfileBentoGrid({
             </div>
           )}
 
-          {/* SERVICES - Medium card */}
+          {/* SERVICES - Improved professional card */}
           {isProfessional && !isHotel && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
             <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic flex items-center gap-1.5">
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3" /> {language === 'pt' ? 'Serviços' : 'Services'}
               </h3>
-              <div className="space-y-2">
-                {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).filter(s => s.is_active !== false).map((service, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => !isOwnProfile && onServiceClick(service)}
-                    className={`flex items-center justify-between p-3 rounded-xl transition-all ${
-                      !isOwnProfile ? 'hover:bg-slate-50 cursor-pointer active:scale-[0.98]' : ''
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm text-slate-900 truncate">{service.service_name}</h4>
-                      {service.description && <p className="text-xs text-slate-400 truncate">{service.description}</p>}
+              <div className="space-y-2.5">
+                {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).filter(s => s.is_active !== false).map((service, idx) => {
+                  const Icon = SERVICE_ICONS[service.service_type] || SERVICE_ICONS.other;
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => !isOwnProfile && onServiceClick(service)}
+                      className={`group flex items-center gap-3 p-3 rounded-2xl border border-slate-100 transition-all ${
+                        !isOwnProfile ? 'hover:border-blue-200 hover:bg-blue-50/50 hover:shadow-sm cursor-pointer active:scale-[0.98]' : ''
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center flex-shrink-0 border border-slate-100">
+                        <Icon className="w-5 h-5 text-slate-500 group-hover:text-blue-500 transition-colors" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-sm text-slate-900 truncate">{service.service_name}</h4>
+                        {service.description && <p className="text-xs text-slate-400 truncate">{service.description}</p>}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-base font-black text-slate-900">{service.price}€</p>
+                        {service.duration_options?.length > 0 && (
+                          <p className="text-[9px] text-slate-400 font-medium">{service.duration_options[0]}</p>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-base font-black text-blue-600 ml-2 flex-shrink-0">{service.price}€</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
-
-          {/* BADGES - Small card */}
-          <div className="md:col-span-1 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-            <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic flex items-center gap-1.5">
-              <Award className="w-3 h-3" /> {language === 'pt' ? 'Conquistas' : 'Achievements'} ({earnedBadges.length})
-            </h3>
-            {loadingBadges ? (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {[1, 2, 3].map(i => <div key={i} className="w-16 h-16 bg-slate-100 rounded-xl flex-shrink-0 animate-pulse" />)}
-              </div>
-            ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {earnedBadges.slice(0, 8).map((badge) => (
-                  <div key={badge._uniqueId} className="flex flex-col items-center gap-1 flex-shrink-0 w-16">
-                    <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
-                    <p className="text-[8px] font-bold text-slate-600 text-center leading-tight w-full truncate">
-                      {badge.name || badge.badge_id}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[10px] text-slate-300 font-bold italic">
-                {language === 'pt' ? 'Sem emblemas ainda.' : 'No badges yet.'}
-              </p>
-            )}
-          </div>
 
           {/* PORTFOLIO - Medium card */}
           {walkerProfile?.portfolio?.length > 0 && (

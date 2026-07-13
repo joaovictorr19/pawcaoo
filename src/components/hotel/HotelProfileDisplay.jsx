@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Users, Zap, Heart, AlertCircle, CheckCircle2, AlertTriangle, BookOpen } from 'lucide-react';
+import { Users, Zap, Heart, AlertCircle, CheckCircle2, AlertTriangle, BookOpen, BedDouble, Scissors, GraduationCap, Sun } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const SERVICE_TYPE_CONFIG = {
@@ -11,7 +11,8 @@ const SERVICE_TYPE_CONFIG = {
     bg: 'bg-purple-50', 
     border: 'border-purple-200', 
     text: 'text-purple-900',
-    badge: 'bg-purple-100 text-purple-700'
+    badge: 'bg-purple-100 text-purple-700',
+    icon: BedDouble,
   },
   'daycare': { 
     label: 'Creche Diária', 
@@ -19,7 +20,8 @@ const SERVICE_TYPE_CONFIG = {
     bg: 'bg-blue-50', 
     border: 'border-blue-200', 
     text: 'text-blue-900',
-    badge: 'bg-blue-100 text-blue-700'
+    badge: 'bg-blue-100 text-blue-700',
+    icon: Sun,
   },
   'grooming': { 
     label: 'Grooming', 
@@ -27,7 +29,8 @@ const SERVICE_TYPE_CONFIG = {
     bg: 'bg-pink-50', 
     border: 'border-pink-200', 
     text: 'text-pink-900',
-    badge: 'bg-pink-100 text-pink-700'
+    badge: 'bg-pink-100 text-pink-700',
+    icon: Scissors,
   },
   'training': { 
     label: 'Treino', 
@@ -35,7 +38,8 @@ const SERVICE_TYPE_CONFIG = {
     bg: 'bg-green-50', 
     border: 'border-green-200', 
     text: 'text-green-900',
-    badge: 'bg-green-100 text-green-700'
+    badge: 'bg-green-100 text-green-700',
+    icon: GraduationCap,
   },
   'other': { 
     label: 'Serviço', 
@@ -43,8 +47,16 @@ const SERVICE_TYPE_CONFIG = {
     bg: 'bg-slate-50', 
     border: 'border-slate-200', 
     text: 'text-slate-900',
-    badge: 'bg-slate-100 text-slate-700'
+    badge: 'bg-slate-100 text-slate-700',
+    icon: Zap,
   }
+};
+
+const SIZE_LABELS = {
+  'small': 'Pequeno',
+  'medium': 'Médio',
+  'large': 'Grande',
+  'extra_large': 'XL',
 };
 
 const CapacityBar = ({ available, total, service_type }) => {
@@ -145,43 +157,39 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
                 <div className={`absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-b ${config.gradient} opacity-10 rounded-full blur-3xl`} />
                 
                 <div className="relative p-4 md:p-6 space-y-4 md:space-y-5">
-                  {/* Header com preço */}
+                  {/* Header com ícone e preço */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h4 className={`font-black text-lg md:text-xl ${config.text}`}>
-                        {service.service_name}
-                      </h4>
-                      {service.description && (
-                        <p className="text-slate-600 text-sm mt-1 line-clamp-2">{service.description}</p>
-                      )}
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      {(() => {
+                        const Icon = config.icon;
+                        return (
+                          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center flex-shrink-0 shadow-md`}>
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                        );
+                      })()}
+                      <div className="flex-1 min-w-0">
+                        <h4 className={`font-black text-lg md:text-xl ${config.text}`}>
+                          {service.service_name}
+                        </h4>
+                        {service.description && (
+                          <p className="text-slate-600 text-sm mt-1 line-clamp-2">{service.description}</p>
+                        )}
+                      </div>
                     </div>
                     <div className={`flex-shrink-0 px-3 md:px-4 py-2 rounded-xl ${config.badge} font-black text-base md:text-lg whitespace-nowrap`}>
-                      €{service.price_per_day?.toFixed(0) || '0'}/noite
+                      €{service.price_per_day?.toFixed(0) || '0'}<span className="text-xs font-bold opacity-70">/noite</span>
                     </div>
                   </div>
 
                   {/* Tamanhos aceites */}
                   {service.accepted_dog_sizes && service.accepted_dog_sizes.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {service.accepted_dog_sizes.map(size => {
-                        const sizeEmoji = {
-                          'small': '🐶',
-                          'medium': '🐕',
-                          'large': '🐕‍🦺',
-                          'extra_large': '🦣'
-                        }[size];
-                        const sizeLabel = {
-                          'small': 'Pequeno',
-                          'medium': 'Médio',
-                          'large': 'Grande',
-                          'extra_large': 'XL'
-                        }[size];
-                        return (
-                          <Badge key={size} className={`${config.badge} font-semibold text-xs`}>
-                            {sizeEmoji} {sizeLabel}
-                          </Badge>
-                        );
-                      })}
+                    <div className="flex flex-wrap gap-1.5">
+                      {service.accepted_dog_sizes.map(size => (
+                        <Badge key={size} className={`${config.badge} font-semibold text-xs border-0`}>
+                          {SIZE_LABELS[size] || size}
+                        </Badge>
+                      ))}
                     </div>
                   )}
 
