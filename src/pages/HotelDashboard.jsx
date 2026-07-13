@@ -49,12 +49,6 @@ const SERVICE_LABELS = {
 
 export default function HotelDashboard() {
   const navigate = useNavigate();
-  
-  // Check if user is a partner with limited access
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
-  });
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("hospedes");
   const [selectedDate, setSelectedDate] = useState(new Date());

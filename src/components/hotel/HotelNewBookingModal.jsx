@@ -69,11 +69,8 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const handleSave = async () => {
     if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) return;
     const amount = parseFloat(form.total_amount) || 0;
-    
-    // Salvar reserva
-    onSave(buildPayload());
-    
-    // Se tem valor, gerar link de pagamento para enviar ao cliente
+
+    // Se tem valor, criar reserva + gerar link de pagamento via backend (1 única reserva)
     if (amount > 0) {
       try {
         const payload = {
@@ -87,22 +84,35 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
           service_type: form.service_type,
           checkin_date: form.checkin_date,
           checkout_date: form.checkout_date || form.checkin_date,
+          checkin_time: form.checkin_time,
+          checkout_time: form.checkout_time,
+          total_nights: form.checkout_date ? Math.max(1, Math.ceil((new Date(form.checkout_date) - new Date(form.checkin_date)) / 86400000)) : 1,
           total_dogs: form.dogs.length,
           total_amount: amount,
           platform_fee: parseFloat((amount * 0.10).toFixed(2)),
           service_amount: parseFloat((amount * 0.90).toFixed(2)),
+          special_requests: form.special_requests,
+          assigned_walker_email: form.assigned_walker_email,
+          assigned_walker_name: form.assigned_walker_name,
+          add_ons: addOns,
+          add_ons_total: addOnsTotal,
         };
         const res = await base44.functions.invoke("createHotelCheckout", payload);
-        const { url } = res.data;
+        const { url, error } = res.data;
+        if (error) { toast.error(error); return; }
         if (url) {
-          toast.success(`Link de pagamento: ${url}`);
+          toast.success("Reserva criada! Link de pagamento copiado.");
           navigator.clipboard.writeText(url);
         }
       } catch (err) {
-        console.error("Erro ao gerar link:", err);
+        toast.error("Erro ao criar reserva: " + err.message);
+        return;
       }
+    } else {
+      // Sem valor: criar reserva diretamente (sem pagamento)
+      onSave(buildPayload());
     }
-    
+
     onClose();
   };
 
