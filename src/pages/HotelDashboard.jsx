@@ -7,7 +7,10 @@ import { format } from "date-fns";
 import { useHotelCapacity } from "@/hooks/useHotelCapacity";
 import {
   Hotel, CalendarDays, Dog, Users, Euro, CheckCircle2,
-  XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, ListOrdered, Settings, RefreshCw, LogOut
+  XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, Settings, RefreshCw,
+  ClipboardList, Wallet, UserCheck, Phone, Mail, StickyNote, FileText, DoorOpen,
+  BedDouble, Sun, Scissors, GraduationCap, PawPrint, ArrowRight, ArrowLeft,
+  CircleDot, X, ChevronDown
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -29,29 +32,46 @@ import HotelGuestsPanel from "@/components/hotel/HotelGuestsPanel";
 import HotelCheckinPolicyConfig from "@/components/hotel/HotelCheckinPolicyConfig";
 
 const STATUS_CONFIG = {
-  pending:    { label: "Pendente",    cls: "bg-orange-100 text-orange-700" },
-  confirmed:  { label: "Confirmado",  cls: "bg-blue-100 text-blue-700" },
-  checked_in: { label: "Check-in ✓", cls: "bg-green-100 text-green-700" },
-  in_progress:{ label: "Em curso",   cls: "bg-teal-100 text-teal-700" },
-  checked_out:{ label: "Check-out",  cls: "bg-purple-100 text-purple-700" },
-  completed:  { label: "Concluído",  cls: "bg-gray-100 text-gray-600" },
-  cancelled:  { label: "Cancelado",  cls: "bg-red-100 text-red-500" },
-  rejected:   { label: "Rejeitado",  cls: "bg-red-100 text-red-500" },
+  pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  confirmed:   { label: "Confirmado",  dot: "bg-blue-500",  cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  checked_in:  { label: "Check-in",    dot: "bg-emerald-500", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  in_progress: { label: "Em curso",    dot: "bg-teal-500",  cls: "bg-teal-50 text-teal-700 border-teal-200" },
+  checked_out: { label: "Check-out",   dot: "bg-violet-500", cls: "bg-violet-50 text-violet-700 border-violet-200" },
+  completed:   { label: "Concluído",   dot: "bg-slate-400", cls: "bg-slate-50 text-slate-600 border-slate-200" },
+  cancelled:   { label: "Cancelado",   dot: "bg-red-500",   cls: "bg-red-50 text-red-600 border-red-200" },
+  rejected:    { label: "Rejeitado",   dot: "bg-red-500",   cls: "bg-red-50 text-red-600 border-red-200" },
+};
+
+const SERVICE_ICONS = {
+  boarding: BedDouble,
+  daycare: Sun,
+  grooming: Scissors,
+  walk_with_partner: PawPrint,
+  training: GraduationCap,
 };
 
 const SERVICE_LABELS = {
-  boarding: "🛏️ Alojamento",
-  daycare: "☀️ Creche",
-  grooming: "✂️ Grooming",
-  walk_with_partner: "🐕 Passeio",
-  training: "🎓 Treino",
+  boarding: "Alojamento",
+  daycare: "Creche",
+  grooming: "Grooming",
+  walk_with_partner: "Passeio",
+  training: "Treino",
 };
+
+const TABS = [
+  { key: "hospedes",  label: "Hóspedes",          icon: Users },
+  { key: "reservas",  label: "Reservas",          icon: ClipboardList },
+  { key: "agenda",    label: "Agenda",            icon: CalendarDays },
+  { key: "servicos",  label: "Serviços e Vagas",  icon: LayoutGrid },
+  { key: "financas",  label: "Finanças",          icon: Wallet },
+  { key: "parceiros", label: "Parceiros",         icon: UserCheck },
+  { key: "config",    label: "Configurações",     icon: Settings },
+];
 
 export default function HotelDashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Scroll to top on mount — single motor, no duplicates
   React.useEffect(() => {
     const el = document.scrollingElement || document.documentElement;
     if (el) el.scrollTop = 0;
@@ -76,15 +96,14 @@ export default function HotelDashboard() {
     queryFn: async () => {
       const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email, professional_type: "hotel" });
       const profile = profiles[0] || null;
-      
-      // If user is a partner with limited access, redirect to partner panel
+
       if (!profile && user?.email) {
         const allHotels = await base44.entities.WalkerProfile.filter(
           { professional_type: "hotel" },
           undefined,
           100
         );
-        
+
         for (const h of allHotels) {
           const partners = h.hotel_details?.partner_walkers || [];
           const isPartner = partners.find(p => p.walker_email === user.email && p.partner_role === 'limited');
@@ -94,7 +113,7 @@ export default function HotelDashboard() {
           }
         }
       }
-      
+
       return profile;
     },
     enabled: !!user?.email,
@@ -131,7 +150,6 @@ export default function HotelDashboard() {
     mutationFn: ({ id, data }) => base44.entities.HotelBooking.update(id, data),
     onSuccess: async (_response, { id, data: updates }) => {
       queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
-      // Ajustar vagas conforme mudança de estado manual
       if (updates.status) {
         const booking = bookings.find(b => b.id === id);
         if (booking) {
@@ -145,22 +163,21 @@ export default function HotelDashboard() {
           }
         }
       }
-      toast.success("Reserva atualizada!");
+      toast.success("Reserva atualizada com sucesso");
     },
-    onError: () => toast.error("Erro ao atualizar reserva."),
+    onError: () => toast.error("Erro ao atualizar reserva"),
   });
 
   const createBookingMutation = useMutation({
     mutationFn: (data) => base44.entities.HotelBooking.create(data),
     onSuccess: async (newBooking) => {
       queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
-      // Reserva manual confirmada: decrementar vagas imediatamente
       if (newBooking.status === "confirmed" && newBooking.service_type) {
         await adjustServiceCapacity(newBooking.service_type, -(newBooking.total_dogs || 1));
       }
-      toast.success("Reserva criada com sucesso!");
+      toast.success("Reserva criada com sucesso");
     },
-    onError: () => toast.error("Erro ao criar reserva."),
+    onError: () => toast.error("Erro ao criar reserva"),
   });
 
   const updateCapacity = async (value) => {
@@ -169,7 +186,7 @@ export default function HotelDashboard() {
       hotel_details: { ...hotelProfile.hotel_details, capacity_available: parseInt(value) },
     });
     queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
-    toast.success("Vagas atualizadas!");
+    toast.success("Vagas atualizadas");
   };
 
   const togglePartnerAvailability = async (partnerEmail) => {
@@ -182,7 +199,7 @@ export default function HotelDashboard() {
       hotel_details: { ...hotelProfile.hotel_details, partner_walkers: updated },
     });
     queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
-    toast.success("Disponibilidade atualizada!");
+    toast.success("Disponibilidade do parceiro atualizada");
   };
 
   const handleSyncGoogleCalendar = async () => {
@@ -192,9 +209,9 @@ export default function HotelDashboard() {
       const response = await base44.functions.invoke('syncHotelBookingsToGoogleCalendar', {
         hotel_profile_id: hotelProfile.id
       });
-      toast.success(`✓ ${response.data.message}`);
+      toast.success(response.data?.message || "Sincronização concluída");
     } catch (error) {
-      toast.error(`Erro: ${error.message}`);
+      toast.error(`Erro na sincronização: ${error.message}`);
     } finally {
       setIsSyncing(false);
     }
@@ -209,17 +226,19 @@ export default function HotelDashboard() {
     pendingBookings, activeBookings, todayCheckins, todayCheckouts,
   } = useHotelCapacity(hotelProfile, bookings);
 
-  // Empty state
   if (!loadingProfile && !hotelProfile && user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-purple-50 to-white">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
         <div className="text-center max-w-sm">
-          <div className="w-20 h-20 bg-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
-            <Hotel className="w-10 h-10 text-purple-500" />
+          <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <Hotel className="w-10 h-10 text-slate-400" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 mb-2">Painel do Hotel</h2>
-          <p className="text-slate-500 mb-6 text-sm">Ainda não tens um perfil de hotel criado. Cria o teu perfil para começar a gerir as reservas.</p>
-          <Button onClick={() => navigate(createPageUrl("ProfessionalSetup"))} className="bg-purple-600 hover:bg-purple-700 text-white rounded-2xl px-6">
+          <h2 className="text-xl font-bold text-slate-900 mb-2">Painel do Hotel</h2>
+          <p className="text-slate-500 mb-6 text-sm leading-relaxed">
+            Ainda não tens um perfil de hotel criado. Cria o teu perfil para começar a gerir reservas, hóspedes e capacidades.
+          </p>
+          <Button onClick={() => navigate(createPageUrl("ProfessionalSetup"))}
+            className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg px-6">
             <Plus className="w-4 h-4 mr-2" /> Criar Perfil de Hotel
           </Button>
         </div>
@@ -229,74 +248,76 @@ export default function HotelDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 md:pb-8">
-      {/* ── Top Header ── */}
-       <div className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-purple-600 sticky top-0 z-20 shadow-xl shadow-purple-900/30 overflow-hidden">
-        {/* Decorative blobs */}
-        <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/5 rounded-full pointer-events-none" />
-        <div className="absolute -bottom-10 left-1/3 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
-        <div className="relative z-10 max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
+            <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0">
               <Hotel className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-black text-white text-sm leading-tight">
+              <h1 className="font-bold text-slate-900 text-sm leading-tight">
                 {hotelProfile?.hotel_details?.hotel_name || hotelProfile?.walker_name || "Hotel"}
               </h1>
-              <p className="text-purple-200 text-xs truncate max-w-[180px]">{hotelProfile?.location}</p>
+              <p className="text-slate-400 text-xs truncate max-w-[180px]">{hotelProfile?.location}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {pendingBookings.length > 0 && (
-              <Badge className="bg-orange-500 text-white border-0 text-xs animate-pulse">
+              <Badge className="bg-amber-50 text-amber-700 border border-amber-200 text-xs">
                 {pendingBookings.length} pendente{pendingBookings.length > 1 ? "s" : ""}
               </Badge>
             )}
-            <Badge className={`text-xs border-0 ${hotelProfile?.is_active ? "bg-green-400/30 text-green-100" : "bg-red-400/30 text-red-100"}`}>
-              {hotelProfile?.is_active ? "● Ativo" : "● Inativo"}
-            </Badge>
-            <Button size="sm" variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 rounded-xl gap-1 text-xs hidden md:flex"
+            <div className="flex items-center gap-1.5">
+              <CircleDot className={`w-3 h-3 ${hotelProfile?.is_active ? "text-emerald-500" : "text-slate-300"}`} />
+              <span className="text-xs font-medium text-slate-600 hidden sm:inline">
+                {hotelProfile?.is_active ? "Ativo" : "Inativo"}
+              </span>
+            </div>
+            <Button size="sm" variant="outline"
+              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs hidden md:flex"
               onClick={handleSyncGoogleCalendar} disabled={isSyncing}>
-              <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} /> {isSyncing ? 'Sincronizando' : 'Google Calendar'}
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? "A sincronizar" : "Google Calendar"}
             </Button>
-            <Button size="sm" variant="outline" className="border-white/30 text-white bg-white/10 hover:bg-white/20 rounded-xl gap-1 text-xs hidden md:flex"
+            <Button size="sm" variant="outline"
+              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs hidden md:flex"
               onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}>
-              <Settings className="w-3 h-3" /> Configurar
+              <Settings className="w-3.5 h-3.5" /> Configurar
             </Button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="relative z-10 max-w-5xl mx-auto px-4 pb-0 flex gap-1 overflow-x-auto scrollbar-none">
-          {[
-            { key: "hospedes", label: "🐕 Hóspedes", count: activeBookings.length + pendingBookings.length },
-            { key: "reservas", label: "📋 Reservas" },
-            { key: "agenda", label: "📅 Agenda" },
-            { key: "servicos", label: "🎯 Serviços & Vagas" },
-            { key: "financas", label: "💰 Finanças" },
-            { key: "parceiros", label: "👥 Parceiros", count: partners.length },
-            { key: "config", label: "⚙️ Config" },
-          ].map(tab => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-2 transition-all ${
-                activeTab === tab.key
-                  ? "border-white text-white"
-                  : "border-transparent text-purple-200 hover:text-white"
-              }`}>
-              {tab.label}
-              {tab.count > 0 && (
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${activeTab === tab.key ? "bg-white/20 text-white" : "bg-orange-500/80 text-white"}`}>
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="max-w-5xl mx-auto px-4 flex gap-0.5 overflow-x-auto scrollbar-none">
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const count = tab.key === "hospedes" ? activeBookings.length + pendingBookings.length
+                         : tab.key === "parceiros" ? partners.length : 0;
+            return (
+              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-all rounded-t-md ${
+                  activeTab === tab.key
+                    ? "border-slate-900 text-slate-900"
+                    : "border-transparent text-slate-400 hover:text-slate-600"
+                }`}>
+                <Icon className="w-3.5 h-3.5" />
+                {tab.label}
+                {count > 0 && (
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                    activeTab === tab.key ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500"
+                  }`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </header>
 
       <div className="max-w-5xl mx-auto px-4 pt-4 space-y-4">
-
-        {/* ── Capacity Alert Banner ── */}
+        {/* Capacity Alert */}
         {!alertDismissed && (
           <HotelCapacityAlert
             bookings={bookings}
@@ -305,58 +326,67 @@ export default function HotelDashboard() {
           />
         )}
 
-        {/* ── KPI strip ── */}
+        {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: "Hóspedes agora", value: occupancyToday, sub: `de ${capacityTotal}`, color: "text-purple-700", bg: "bg-purple-50 border-purple-100", icon: <Dog className="w-4 h-4 text-purple-500" /> },
-            { label: "Pendentes", value: pendingBookings.length, sub: "a responder", color: "text-orange-700", bg: "bg-orange-50 border-orange-100", icon: <Clock className="w-4 h-4 text-orange-500" /> },
-            { label: "Chegadas hoje", value: todayCheckins.length, sub: "check-in", color: "text-green-700", bg: "bg-green-50 border-green-100", icon: <CheckCircle2 className="w-4 h-4 text-green-500" /> },
-            { label: "Receita 30d", value: `${revenue30d.toFixed(0)}€`, sub: "estimada", color: "text-blue-700", bg: "bg-blue-50 border-blue-100", icon: <TrendingUp className="w-4 h-4 text-blue-500" /> },
-          ].map(kpi => (
-            <div key={kpi.label} className={`${kpi.bg} border rounded-2xl p-3.5`}>
-              <div className="flex items-center gap-1.5 mb-1">{kpi.icon}<span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{kpi.label}</span></div>
-              <p className={`text-2xl font-black ${kpi.color}`}>{kpi.value}</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">{kpi.sub}</p>
-            </div>
-          ))}
+            { label: "Hóspedes agora", value: occupancyToday, sub: `de ${capacityTotal} vagas`, icon: Dog, iconCls: "text-slate-500" },
+            { label: "Pendentes", value: pendingBookings.length, sub: "a responder", icon: Clock, iconCls: "text-amber-500" },
+            { label: "Chegadas hoje", value: todayCheckins.length, sub: "check-in", icon: ArrowRight, iconCls: "text-emerald-500" },
+            { label: "Receita 30d", value: `${revenue30d.toFixed(0)}€`, sub: "estimada", icon: TrendingUp, iconCls: "text-blue-500" },
+          ].map(kpi => {
+            const Icon = kpi.icon;
+            return (
+              <div key={kpi.label} className="bg-white border border-slate-200 rounded-xl p-3.5">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Icon className={`w-3.5 h-3.5 ${kpi.iconCls}`} />
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{kpi.label}</span>
+                </div>
+                <p className="text-2xl font-bold text-slate-900">{kpi.value}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">{kpi.sub}</p>
+              </div>
+            );
+          })}
         </div>
 
-        {/* ── Ocupação + vagas ── */}
-        <div className="bg-gradient-to-br from-white to-purple-50/30 rounded-2xl border border-purple-100 p-4 shadow-sm shadow-purple-100">
+        {/* Occupancy Card */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="font-bold text-slate-800 text-sm">Ocupação Hoje</p>
-              <p className="text-xs text-slate-400">{occupancyToday} cães alojados · {(capacityTotal - occupancyToday)} vagas livres</p>
+              <p className="font-semibold text-slate-900 text-sm">Ocupação de Hoje</p>
+              <p className="text-xs text-slate-400">{occupancyToday} cães alojados · {capacityTotal - occupancyToday} vagas livres</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium">Vagas:</span>
+              <span className="text-xs text-slate-500 font-medium hidden sm:inline">Vagas:</span>
               <button onClick={() => updateCapacity(Math.max(0, (hotelProfile?.hotel_details?.capacity_available || 0) - 1))}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">−</button>
-              <span className="font-black text-lg text-purple-600 w-6 text-center">{hotelProfile?.hotel_details?.capacity_available ?? capacityTotal}</span>
+                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors">
+                <ArrowLeft className="w-3.5 h-3.5" />
+              </button>
+              <span className="font-bold text-lg text-slate-900 w-6 text-center">{hotelProfile?.hotel_details?.capacity_available ?? capacityTotal}</span>
               <button onClick={() => updateCapacity(Math.min(200, (hotelProfile?.hotel_details?.capacity_available || 0) + 1))}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">+</button>
+                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors">
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
-          <div className="h-3 bg-purple-100 rounded-full overflow-hidden shadow-inner">
+          <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all duration-700 ${
-              occupancyPct >= 90 ? "bg-gradient-to-r from-red-600 to-red-400"
-              : occupancyPct >= 70 ? "bg-gradient-to-r from-orange-500 to-orange-400"
-              : "bg-gradient-to-r from-purple-800 to-purple-400"
+              occupancyPct >= 90 ? "bg-red-500"
+              : occupancyPct >= 70 ? "bg-amber-500"
+              : "bg-slate-900"
             }`}
               style={{ width: `${occupancyPct}%` }} />
           </div>
-          <div className="flex justify-between mt-1 text-[10px] text-slate-400">
+          <div className="flex justify-between mt-1.5 text-[10px] text-slate-400">
             <span>{occupancyPct}% ocupado</span>
-            <span>Máx: {capacityTotal} cães</span>
+            <span>Capacidade máxima: {capacityTotal} cães</span>
           </div>
         </div>
 
-        {/* ── Tab content ── */}
+        {/* Tab Content */}
         <AnimatePresence mode="wait">
 
-          {/* HÓSPEDES — operação diária: animais no hotel, chegadas, pendentes */}
           {activeTab === "hospedes" && (
-            <motion.div key="hospedes" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key="hospedes" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <HotelGuestsPanel
                 bookings={bookings}
                 onUpdateBooking={handleUpdateBooking}
@@ -364,33 +394,43 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-          {/* RESERVAS — histórico completo de todas as reservas */}
           {activeTab === "reservas" && (
-            <motion.div key="reservas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            <motion.div key="reservas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4">
-              <div>
-                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Todas as reservas ({bookings.length})</p>
-                {loadingBookings && <p className="text-center text-slate-400 py-8 text-sm">A carregar...</p>}
-                {!loadingBookings && bookings.length === 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-100 py-12 text-center">
-                    <CalendarDays className="w-10 h-10 mx-auto mb-3 text-slate-200" />
-                    <p className="text-slate-400 text-sm">Sem reservas ainda</p>
-                    <Button size="sm" className="mt-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-1.5"
-                      onClick={() => setShowNewBooking(true)}>
-                      <Plus className="w-3.5 h-3.5" /> Nova Reserva
-                    </Button>
-                  </div>
-                )}
-                {bookings.map(b => (
-                  <BookingRow key={b.id} booking={b} onUpdate={handleUpdateBooking} />
-                ))}
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  Todas as Reservas ({bookings.length})
+                </p>
+                <Button size="sm"
+                  className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5"
+                  onClick={() => setShowNewBooking(true)}>
+                  <Plus className="w-3.5 h-3.5" /> Nova Reserva
+                </Button>
               </div>
+              {loadingBookings && (
+                <div className="bg-white border border-slate-200 rounded-xl py-12 text-center">
+                  <p className="text-slate-400 text-sm">A carregar reservas...</p>
+                </div>
+              )}
+              {!loadingBookings && bookings.length === 0 && (
+                <div className="bg-white border border-slate-200 rounded-xl py-12 text-center">
+                  <ClipboardList className="w-10 h-10 mx-auto mb-3 text-slate-200" />
+                  <p className="text-slate-400 text-sm mb-3">Sem reservas registadas</p>
+                  <Button size="sm"
+                    className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5"
+                    onClick={() => setShowNewBooking(true)}>
+                    <Plus className="w-3.5 h-3.5" /> Criar Primeira Reserva
+                  </Button>
+                </div>
+              )}
+              {bookings.map(b => (
+                <BookingRow key={b.id} booking={b} onUpdate={handleUpdateBooking} />
+              ))}
             </motion.div>
           )}
 
-          {/* AGENDA — calendário + painel do dia */}
           {activeTab === "agenda" && (
-            <motion.div key="agenda" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            <motion.div key="agenda" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <HotelCalendar
@@ -410,9 +450,8 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-          {/* SERVIÇOS & VAGAS — gestão de serviços + capacidades + ocupação */}
           {activeTab === "servicos" && (
-            <motion.div key="servicos" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+            <motion.div key="servicos" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
               <HotelServiceManager
                 hotelProfile={hotelProfile}
                 onServiceUpdate={() => queryClient.invalidateQueries(['hotelProfile'])}
@@ -426,18 +465,16 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-          {/* FINANÇAS — receitas, saques + estatísticas */}
           {activeTab === "financas" && (
-            <motion.div key="financas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            <motion.div key="financas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4">
               <HotelFinancesPanel bookings={bookings} hotelProfile={hotelProfile} />
               <StatsPanel bookings={bookings} />
             </motion.div>
           )}
 
-          {/* PARCEIROS */}
           {activeTab === "parceiros" && (
-            <motion.div key="parceiros" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key="parceiros" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <HotelPartnersPanel
                 partners={partners}
                 bookings={bookings}
@@ -447,9 +484,8 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-          {/* CONFIGURAÇÕES — políticas + cartão digital */}
           {activeTab === "config" && (
-            <motion.div key="config" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+            <motion.div key="config" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
               <HotelCheckinPolicyConfig
                 hotelProfile={hotelProfile}
                 onSave={() => {
@@ -460,19 +496,18 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-          </AnimatePresence>
+        </AnimatePresence>
       </div>
 
-      {/* FAB */}
+      {/* Floating Action Button */}
       <button
         onClick={() => setShowNewBooking(true)}
-        className="fixed bottom-24 md:bottom-8 right-5 z-30 w-14 h-14 bg-gradient-to-br from-purple-800 to-purple-500 rounded-2xl shadow-2xl shadow-purple-900/40 flex items-center justify-center hover:scale-110 hover:shadow-purple-700/50 active:scale-95 transition-all border border-purple-400/30"
+        className="fixed bottom-24 md:bottom-8 right-5 z-30 w-14 h-14 bg-slate-900 hover:bg-slate-800 rounded-2xl shadow-lg shadow-slate-900/20 flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
         title="Nova Reserva"
       >
-        <Plus className="w-6 h-6 text-white drop-shadow" />
+        <Plus className="w-6 h-6 text-white" />
       </button>
 
-      {/* New booking modal */}
       <HotelNewBookingModal
         isOpen={showNewBooking}
         onClose={() => setShowNewBooking(false)}
@@ -494,92 +529,137 @@ export default function HotelDashboard() {
   );
 }
 
-// ── Reutilizável: linha de reserva ──
+// Booking Row Component
 function BookingRow({ booking, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const cfg = STATUS_CONFIG[booking.status] || STATUS_CONFIG.completed;
+  const ServiceIcon = SERVICE_ICONS[booking.service_type] || ClipboardList;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl border border-slate-100 overflow-hidden mb-2">
+    <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+      className="bg-white border border-slate-200 rounded-xl overflow-hidden mb-2">
       <button className="w-full text-left p-4" onClick={() => setExpanded(e => !e)}>
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-bold text-slate-900 text-sm">{booking.owner_name}</p>
+              <p className="font-semibold text-slate-900 text-sm">{booking.owner_name}</p>
               {booking.dogs?.length > 0 && (
-                <span className="text-[10px] text-purple-600 font-medium">🐕 {booking.dogs.map(d => d.dog_name).join(", ")}</span>
+                <span className="flex items-center gap-1 text-[10px] text-slate-500 font-medium">
+                  <PawPrint className="w-3 h-3" />
+                  {booking.dogs.map(d => d.dog_name).join(", ")}
+                </span>
               )}
             </div>
-            <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1 flex-wrap">
-              <span>{SERVICE_LABELS[booking.service_type] || booking.service_type}</span>
-              <span>📅 {booking.checkin_date}{booking.checkout_date ? ` → ${booking.checkout_date}` : ""}</span>
-              {booking.checkin_time && <span>🕐 {booking.checkin_time}</span>}
-              <span>🐶 {booking.total_dogs || 1}</span>
-              {booking.total_amount > 0 && <span className="text-green-600 font-bold">{booking.total_amount.toFixed(2)}€</span>}
+            <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1.5 flex-wrap">
+              <span className="flex items-center gap-1">
+                <ServiceIcon className="w-3 h-3" />
+                {SERVICE_LABELS[booking.service_type] || booking.service_type}
+              </span>
+              <span className="flex items-center gap-1">
+                <CalendarDays className="w-3 h-3" />
+                {booking.checkin_date}{booking.checkout_date ? ` → ${booking.checkout_date}` : ""}
+              </span>
+              {booking.checkin_time && (
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {booking.checkin_time}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <Dog className="w-3 h-3" />
+                {booking.total_dogs || 1}
+              </span>
+              {booking.total_amount > 0 && (
+                <span className="text-emerald-600 font-semibold">{booking.total_amount.toFixed(2)}€</span>
+              )}
             </div>
           </div>
-          <Badge className={`text-[10px] border-0 shrink-0 ${cfg.cls}`}>{cfg.label}</Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="outline" className={`text-[10px] border ${cfg.cls}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1`} />
+              {cfg.label}
+            </Badge>
+            <ChevronDown className={`w-4 h-4 text-slate-300 transition-transform ${expanded ? "rotate-180" : ""}`} />
+          </div>
         </div>
       </button>
 
       <AnimatePresence>
         {expanded && (
           <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }}
-            className="overflow-hidden border-t border-slate-50">
-            <div className="p-4 pt-3 space-y-2">
-              {booking.owner_phone && <p className="text-xs text-slate-500">📞 {booking.owner_phone}</p>}
-              {booking.owner_email && <p className="text-xs text-slate-500">✉️ {booking.owner_email}</p>}
+            className="overflow-hidden border-t border-slate-100">
+            <div className="p-4 pt-3 space-y-2.5">
+              {booking.owner_phone && (
+                <p className="text-xs text-slate-500 flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5 text-slate-400" /> {booking.owner_phone}
+                </p>
+              )}
+              {booking.owner_email && (
+                <p className="text-xs text-slate-500 flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5 text-slate-400" /> {booking.owner_email}
+                </p>
+              )}
               {booking.special_requests && (
-                <div className="bg-orange-50 border border-orange-100 rounded-xl px-3 py-2">
-                  <p className="text-xs text-orange-700">📝 {booking.special_requests}</p>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  <p className="text-xs text-amber-700 flex items-start gap-2">
+                    <StickyNote className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                    <span>{booking.special_requests}</span>
+                  </p>
                 </div>
               )}
               {booking.assigned_walker_name && (
-                <p className="text-xs text-purple-600 font-medium">👤 Parceiro: {booking.assigned_walker_name}</p>
+                <p className="text-xs text-slate-600 font-medium flex items-center gap-2">
+                  <UserCheck className="w-3.5 h-3.5 text-slate-400" />
+                  Parceiro: {booking.assigned_walker_name}
+                </p>
               )}
               {booking.internal_notes && (
-                <div className="bg-slate-50 rounded-xl px-3 py-2">
-                  <p className="text-xs text-slate-500">🗒 {booking.internal_notes}</p>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                  <p className="text-xs text-slate-500 flex items-start gap-2">
+                    <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
+                    <span>{booking.internal_notes}</span>
+                  </p>
                 </div>
               )}
 
-              {/* Action buttons */}
-              <div className="flex gap-2 pt-1">
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-1 flex-wrap">
                 {booking.status === "pending" && (
                   <>
-                    <Button size="sm" className="flex-1 h-8 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs"
+                    <Button size="sm" className="flex-1 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs min-w-[120px]"
                       onClick={() => onUpdate(booking.id, { status: "confirmed" })}>
-                      <CheckCircle2 className="w-3 h-3 mr-1" /> Confirmar
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Confirmar
                     </Button>
-                    <Button size="sm" variant="outline" className="flex-1 h-8 border-red-200 text-red-500 hover:bg-red-50 rounded-xl text-xs"
+                    <Button size="sm" variant="outline"
+                      className="flex-1 h-8 border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs min-w-[120px]"
                       onClick={() => onUpdate(booking.id, { status: "rejected" })}>
-                      <XCircle className="w-3 h-3 mr-1" /> Rejeitar
+                      <X className="w-3.5 h-3.5 mr-1" /> Rejeitar
                     </Button>
                   </>
                 )}
                 {booking.status === "confirmed" && (
-                  <Button size="sm" className="flex-1 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs"
+                  <Button size="sm" className="flex-1 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs"
                     onClick={() => onUpdate(booking.id, { status: "checked_in", checkin_time: new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) })}>
-                    ✅ Registar Check-in
+                    <DoorOpen className="w-3.5 h-3.5 mr-1" /> Registar Check-in
                   </Button>
                 )}
                 {booking.status === "checked_in" && (
-                  <Button size="sm" className="flex-1 h-8 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs"
+                  <Button size="sm" className="flex-1 h-8 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs"
                     onClick={() => onUpdate(booking.id, { status: "checked_out", checkout_time: new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) })}>
-                    🚪 Registar Check-out
+                    <DoorOpen className="w-3.5 h-3.5 mr-1" /> Registar Check-out
                   </Button>
                 )}
                 {booking.status === "checked_out" && (
-                  <Button size="sm" className="flex-1 h-8 bg-gray-600 hover:bg-gray-700 text-white rounded-xl text-xs"
+                  <Button size="sm" className="flex-1 h-8 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs"
                     onClick={() => onUpdate(booking.id, { status: "completed" })}>
-                    ✔️ Concluir
+                    <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Concluir Estadia
                   </Button>
                 )}
                 {["confirmed", "pending"].includes(booking.status) && (
-                  <Button size="sm" variant="outline" className="h-8 border-red-200 text-red-400 hover:bg-red-50 rounded-xl text-xs"
+                  <Button size="sm" variant="outline"
+                    className="h-8 border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-xs"
                     onClick={() => onUpdate(booking.id, { status: "cancelled" })}>
-                    Cancelar
+                    <XCircle className="w-3.5 h-3.5 mr-1" /> Cancelar
                   </Button>
                 )}
               </div>
@@ -591,12 +671,14 @@ function BookingRow({ booking, onUpdate }) {
   );
 }
 
-// ── Stats panel ──
+// Stats Panel Component
 function StatsPanel({ bookings }) {
   const totalRevenue = bookings.filter(b => !["cancelled", "rejected"].includes(b.status)).reduce((acc, b) => acc + (b.total_amount || 0), 0);
   const completedCount = bookings.filter(b => b.status === "completed").length;
   const cancelledCount = bookings.filter(b => ["cancelled", "rejected"].includes(b.status)).length;
-  const avgValue = completedCount > 0 ? (bookings.filter(b => b.status === "completed").reduce((acc, b) => acc + (b.total_amount || 0), 0) / completedCount) : 0;
+  const avgValue = completedCount > 0
+    ? (bookings.filter(b => b.status === "completed").reduce((acc, b) => acc + (b.total_amount || 0), 0) / completedCount)
+    : 0;
 
   const serviceBreakdown = Object.entries(
     bookings.reduce((acc, b) => {
@@ -606,41 +688,48 @@ function StatsPanel({ bookings }) {
     }, {})
   ).sort((a, b) => b[1] - a[1]);
 
+  const stats = [
+    { label: "Receita Total", value: `${totalRevenue.toFixed(2)}€`, color: "text-emerald-700" },
+    { label: "Concluídas", value: completedCount, color: "text-blue-700" },
+    { label: "Canceladas", value: cancelledCount, color: "text-red-600" },
+    { label: "Ticket Médio", value: `${avgValue.toFixed(2)}€`, color: "text-slate-700" },
+  ];
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: "Receita Total", value: `${totalRevenue.toFixed(2)}€`, color: "text-green-700", bg: "bg-green-50 border-green-100" },
-          { label: "Concluídas", value: completedCount, color: "text-blue-700", bg: "bg-blue-50 border-blue-100" },
-          { label: "Canceladas", value: cancelledCount, color: "text-red-600", bg: "bg-red-50 border-red-100" },
-          { label: "Ticket Médio", value: `${avgValue.toFixed(2)}€`, color: "text-purple-700", bg: "bg-purple-50 border-purple-100" },
-        ].map(s => (
-          <div key={s.label} className={`${s.bg} border rounded-2xl p-4`}>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{s.label}</p>
-            <p className={`text-2xl font-black mt-1 ${s.color}`}>{s.value}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {stats.map(s => (
+          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{s.label}</p>
+            <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
       {serviceBreakdown.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-100 p-4">
-          <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Por tipo de serviço</p>
-          <div className="space-y-2">
+        <div className="bg-white border border-slate-200 rounded-xl p-4">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Reservas por Tipo de Serviço</p>
+          <div className="space-y-2.5">
             {serviceBreakdown.map(([type, count]) => {
               const maxCount = serviceBreakdown[0][1];
+              const Icon = SERVICE_ICONS[type] || ClipboardList;
               return (
                 <div key={type} className="flex items-center gap-3">
-                  <span className="text-xs text-slate-600 w-28 shrink-0">{SERVICE_LABELS[type] || type}</span>
-                  <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-purple-500 rounded-full" style={{ width: `${(count / maxCount) * 100}%` }} />
+                  <span className="flex items-center gap-1.5 text-xs text-slate-600 w-32 shrink-0">
+                    <Icon className="w-3.5 h-3.5 text-slate-400" />
+                    {SERVICE_LABELS[type] || type}
+                  </span>
+                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-slate-900 rounded-full transition-all duration-500"
+                      style={{ width: `${(count / maxCount) * 100}%` }} />
                   </div>
                   <span className="text-xs font-bold text-slate-600 w-6 text-right">{count}</span>
                 </div>
               );
             })}
           </div>
-          </div>
-          )}
-          </div>
-          );
-          }
+        </div>
+      )}
+    </div>
+  );
+}
