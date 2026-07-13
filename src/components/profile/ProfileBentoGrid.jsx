@@ -263,13 +263,6 @@ export default function ProfileBentoGrid({
             </div>
           )}
 
-          {/* HOTEL TEAM */}
-          {isHotel && (
-            <div className="md:col-span-3 lg:col-span-4 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-              <HotelTeamSection hotelEmail={profileUser?.user_email || walkerProfile?.created_by} />
-            </div>
-          )}
-
           {/* REVIEWS - Large card */}
           {isProfessional && (
             <div className="md:col-span-3 lg:col-span-4 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
