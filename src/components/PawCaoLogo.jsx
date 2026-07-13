@@ -1,6 +1,7 @@
 import React from "react";
-import { Dog } from "lucide-react";
 import { motion } from "framer-motion";
+
+const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/7e749ee69_Pawcao_Logo-1.png";
 
 export default function PawCaoLogo({ size = "default", showText = true, className = "", animated = false }) {
   // Validate size prop
@@ -60,7 +61,11 @@ export default function PawCaoLogo({ size = "default", showText = true, classNam
       >
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
         
-        <Dog className={`${currentSize.icon} text-white relative z-10 drop-shadow-lg`} />
+        <img
+          src={PAWCAO_LOGO_URL}
+          alt="PawCão"
+          className={`${currentSize.icon} relative z-10 drop-shadow-lg object-contain`}
+        />
         
         <div className="absolute bottom-0.5 md:bottom-1 right-0.5 md:right-1 opacity-40 group-hover:opacity-60 transition-opacity">
           <svg className={`${currentSize.paw} text-white`} viewBox="0 0 24 24" fill="currentColor">
