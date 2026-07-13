@@ -30,6 +30,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // 0. Verificar propriedade da reserva (prevenir IDOR)
+    let booking;
+    try {
+      booking = await base44.asServiceRole.entities.Booking.get(booking_id);
+    } catch {
+      return Response.json({ error: 'Booking not found' }, { status: 404 });
+    }
+    const bookingOwnerEmail = booking.owner_email || booking.created_by;
+    if (bookingOwnerEmail !== user.email) {
+      return Response.json({ error: 'Forbidden: you do not own this booking' }, { status: 403 });
+    }
+
     // 1. Verificar subscrição do utilizador
     const subscriptions = await base44.entities.OwnerSubscription.filter({
       owner_email: user.email,
