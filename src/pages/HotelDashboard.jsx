@@ -108,10 +108,43 @@ export default function HotelDashboard() {
     refetchInterval: 60 * 1000,
   });
 
+  const adjustServiceCapacity = async (serviceType, delta) => {
+    if (!hotelProfile || !serviceType || !delta) return;
+    const hd = hotelProfile.hotel_details || {};
+    const services = (hd.services || []).map(s => {
+      if (s.service_type === serviceType) {
+        const current = s.capacity_available ?? 0;
+        const updated = Math.max(0, Math.min(s.capacity_total ?? current, current + delta));
+        return { ...s, capacity_available: updated };
+      }
+      return s;
+    });
+    const topCurrent = hd.capacity_available ?? 0;
+    const topUpdated = Math.max(0, Math.min(hd.capacity_total ?? topCurrent, topCurrent + delta));
+    await base44.entities.WalkerProfile.update(hotelProfile.id, {
+      hotel_details: { ...hd, capacity_available: topUpdated, services },
+    });
+    queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
+  };
+
   const updateBookingMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.HotelBooking.update(id, data),
-    onSuccess: () => {
+    onSuccess: async (_response, { id, data: updates }) => {
       queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
+      // Ajustar vagas conforme mudança de estado manual
+      if (updates.status) {
+        const booking = bookings.find(b => b.id === id);
+        if (booking) {
+          const oldStatus = booking.status;
+          const newStatus = updates.status;
+          const dogs = booking.total_dogs || 1;
+          if (oldStatus === "pending" && newStatus === "confirmed") {
+            await adjustServiceCapacity(booking.service_type, -dogs);
+          } else if (newStatus === "cancelled" && ["confirmed", "checked_in", "in_progress"].includes(oldStatus)) {
+            await adjustServiceCapacity(booking.service_type, dogs);
+          }
+        }
+      }
       toast.success("Reserva atualizada!");
     },
     onError: () => toast.error("Erro ao atualizar reserva."),
@@ -119,8 +152,12 @@ export default function HotelDashboard() {
 
   const createBookingMutation = useMutation({
     mutationFn: (data) => base44.entities.HotelBooking.create(data),
-    onSuccess: () => {
+    onSuccess: async (newBooking) => {
       queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
+      // Reserva manual confirmada: decrementar vagas imediatamente
+      if (newBooking.status === "confirmed" && newBooking.service_type) {
+        await adjustServiceCapacity(newBooking.service_type, -(newBooking.total_dogs || 1));
+      }
       toast.success("Reserva criada com sucesso!");
     },
     onError: () => toast.error("Erro ao criar reserva."),
