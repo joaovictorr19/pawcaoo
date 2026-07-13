@@ -1,6 +1,5 @@
 import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, CheckCircle2, PawPrint, Zap } from "lucide-react";
+import { ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, PawPrint, Zap } from "lucide-react";
 import ReviewCard from "@/components/reviews/ReviewCard";
 import BadgeItem from "@/components/gamification/BadgeItem";
 import ProfileActions from "@/components/profile/ProfileActions";
@@ -8,7 +7,7 @@ import HotelProfileDisplay from "@/components/hotel/HotelProfileDisplay";
 import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 import HotelRangeCalendar from "@/components/hotel/HotelRangeCalendar";
-import HotelCollaboratorBadge from "@/components/profile/HotelCollaboratorBadge";
+import ProfileHeroCard from "@/components/profile/ProfileHeroCard";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
@@ -48,132 +47,31 @@ export default function ProfileBentoGrid({
 }) {
   const { language } = useLanguage();
   const isProfessional = walkerProfile || trainerProfile;
-  const hasBio = walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio;
-
-  const hotelServices = walkerProfile?.hotel_details?.services || [];
-  const totalCapacity = hotelServices.reduce((sum, s) => sum + (s.capacity_total || 0), 0);
-  const availableCapacity = hotelServices.reduce((sum, s) => sum + (s.capacity_available ?? s.capacity_total ?? 0), 0);
-  const hotelAmenities = walkerProfile?.hotel_details?.amenities || [];
-  const checkinTime = walkerProfile?.hotel_details?.checkin_time;
-  const checkoutTime = walkerProfile?.hotel_details?.checkout_time;
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32 pt-2">
-      {/* Cover */}
-      <div className="relative h-48 md:h-64 w-full overflow-hidden">
-        <img
-          src={displayCoverUrl || "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=400&fit=crop"}
-          className="w-full h-full object-cover"
-          alt="Capa"
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=400&fit=crop";
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-transparent to-black/20" />
-        <button onClick={onBack} className="absolute top-24 left-6 p-3 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/30 transition-all z-10">
-          <ArrowLeft size={20} />
-        </button>
-      </div>
+      {/* Back button */}
+      <button onClick={onBack} className="fixed top-20 left-4 md:left-6 p-3 bg-white/80 backdrop-blur-md rounded-full text-slate-700 hover:bg-white shadow-sm transition-all z-20 border border-slate-100">
+        <ArrowLeft size={20} />
+      </button>
 
       {/* Bento Grid */}
-      <div className="relative -mt-16 px-4 md:px-6 max-w-6xl mx-auto">
+      <div className="relative px-4 md:px-6 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-min">
 
-          {/* HERO CARD - Identity */}
-          <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-6 md:p-7 shadow-sm border border-slate-100 flex flex-col items-center text-center relative overflow-hidden">
-            {/* Subtle decorative gradient */}
-            {isHotel && (
-              <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-purple-50/60 to-transparent pointer-events-none" />
-            )}
-            <div className="relative z-10 flex flex-col items-center w-full">
-              <div className="relative">
-                <Avatar className={`w-24 h-24 md:w-28 md:h-28 shadow-xl rounded-[2rem] border-4 ${
-                  isHotel
-                    ? "border-purple-400 ring-4 ring-purple-300/50"
-                    : (walkerProfile?.has_pawcao_seal || walkerProfile?.is_pawcao_employee)
-                      ? "border-amber-400 ring-4 ring-amber-300/50"
-                      : "border-white"
-                }`}>
-                  <AvatarImage
-                    src={displayPhotoUrl}
-                    className="object-cover w-full h-full"
-                    style={{ objectFit: 'cover' }}
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=256&h=256&fit=crop';
-                    }}
-                  />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-black">
-                    {displayName[0]?.toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                {/* Status badge - different for hotels vs walkers */}
-                {isProfessional && (
-                  <div className={`absolute -bottom-1 -right-1 px-2.5 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-1 ${
-                    isHotel
-                      ? 'bg-purple-500'
-                      : (walkerProfile?.is_online || trainerProfile?.is_online) ? 'bg-green-500' : 'bg-slate-300'
-                  }`}>
-                    {isHotel ? (
-                      <>
-                        <BedDouble className="w-3 h-3 text-white" />
-                        <span className="text-[9px] font-black text-white uppercase tracking-wide">
-                          {availableCapacity > 0
-                            ? `${availableCapacity} ${language === 'pt' ? 'vagas' : language === 'es' ? 'plazas' : 'spots'}`
-                            : (language === 'pt' ? 'Lotado' : language === 'es' ? 'Lleno' : 'Full')}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <div className={`w-1.5 h-1.5 rounded-full bg-white ${(walkerProfile?.is_online || trainerProfile?.is_online) ? 'animate-ping' : ''}`} />
-                        <span className="text-[9px] font-black text-white uppercase tracking-wide">
-                          {(walkerProfile?.is_online || trainerProfile?.is_online) ? t('available', language) : t('offline', language)}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-              <h1 className="text-2xl md:text-3xl font-black text-slate-900 mt-4 tracking-tight">{displayName}</h1>
-              {displayCity && (
-                <p className="text-slate-500 flex items-center gap-1 mt-1 text-sm font-medium">
-                  <MapPin size={14} /> {displayCity}
-                </p>
-              )}
-              {hasBio && (
-                <p className="text-slate-600 text-sm leading-relaxed mt-3 line-clamp-3 max-w-xs">
-                  {hasBio}
-                </p>
-              )}
-              {/* Hotel collaborator badge */}
-              {walkerProfile && !isHotel && (
-                <HotelCollaboratorBadge walkerProfile={walkerProfile} />
-              )}
-              {/* Hotel quick info pills */}
-              {isHotel && (checkinTime || checkoutTime || totalCapacity > 0) && (
-                <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-                  {totalCapacity > 0 && (
-                    <span className="flex items-center gap-1.5 bg-purple-50 text-purple-700 text-[11px] font-bold px-3 py-1.5 rounded-full border border-purple-100">
-                      <BedDouble className="w-3.5 h-3.5" /> {totalCapacity} {language === 'pt' ? 'lugares' : language === 'es' ? 'plazas' : 'spots'}
-                    </span>
-                  )}
-                  {checkinTime && (
-                    <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[11px] font-bold px-3 py-1.5 rounded-full border border-emerald-100">
-                      <Clock className="w-3.5 h-3.5" /> {language === 'pt' ? 'Entrada' : language === 'es' ? 'Entrada' : 'Check-in'} {checkinTime}
-                    </span>
-                  )}
-                  {checkoutTime && (
-                    <span className="flex items-center gap-1.5 bg-blue-50 text-blue-700 text-[11px] font-bold px-3 py-1.5 rounded-full border border-blue-100">
-                      <Clock className="w-3.5 h-3.5" /> {language === 'pt' ? 'Saída' : language === 'es' ? 'Salida' : 'Check-out'} {checkoutTime}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+          {/* HERO CARD - Identity with integrated cover */}
+          <ProfileHeroCard
+            profileUser={profileUser}
+            walkerProfile={walkerProfile}
+            trainerProfile={trainerProfile}
+            displayPhotoUrl={displayPhotoUrl}
+            displayCoverUrl={displayCoverUrl}
+            displayName={displayName}
+            displayCity={displayCity}
+            isOwnProfile={isOwnProfile}
+            isHotel={isHotel}
+            reviews={reviews}
+          />
 
           {/* BOOKING / ACTIONS CARD (walkers/trainers) */}
           {!isOwnProfile && isProfessional && !isHotel && (
