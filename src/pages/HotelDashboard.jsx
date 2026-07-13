@@ -469,7 +469,6 @@ export default function HotelDashboard() {
             <motion.div key="financas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4">
               <HotelFinancesPanel bookings={bookings} hotelProfile={hotelProfile} />
-              <StatsPanel bookings={bookings} />
             </motion.div>
           )}
 
