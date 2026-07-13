@@ -33,6 +33,8 @@ Deno.serve(async (req) => {
       special_requests,
       assigned_walker_email,
       assigned_walker_name,
+      add_ons,
+      add_ons_total,
     } = body;
 
     if (!hotel_profile_id || !total_amount || total_amount <= 0) {
@@ -93,6 +95,8 @@ Deno.serve(async (req) => {
       special_requests: special_requests || '',
       assigned_walker_email: assigned_walker_email || '',
       assigned_walker_name: assigned_walker_name || '',
+      add_ons: add_ons || [],
+      add_ons_total: add_ons_total || 0,
       status: 'pending',
       payment_status: 'pending',
     });

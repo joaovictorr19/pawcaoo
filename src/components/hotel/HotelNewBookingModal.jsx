@@ -5,6 +5,7 @@ import { X, Plus, Minus, CreditCard, Loader2, Link2, Copy, Check, Send,
   Dog, ClipboardList } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import HotelServiceAddons from "./HotelServiceAddons";
 import { calculateAddOnsTotal, buildBookingPayload } from "@/hooks/useHotelCapacity";
@@ -25,6 +26,7 @@ const DOG_SIZES = [
 ];
 
 export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelProfile, partners = [], defaultDate }) {
+  const queryClient = useQueryClient();
   const [payingNow, setPayingNow] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [paymentLink, setPaymentLink] = useState(null);
@@ -103,6 +105,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
       if (error) { toast.error(error); return; }
       if (url) {
         setPaymentLink(url);
+        queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
         toast.success("Reserva criada e link de pagamento gerado.");
       }
     } catch (err) {
@@ -128,7 +131,10 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
       const res = await base44.functions.invoke("createHotelCheckout", payload);
       const { url, error } = res.data;
       if (error) { toast.error(error); return; }
-      if (url) window.location.href = url;
+      if (url) {
+        queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
+        window.location.href = url;
+      }
     } catch (err) {
       toast.error("Erro ao iniciar pagamento: " + err.message);
     } finally {
