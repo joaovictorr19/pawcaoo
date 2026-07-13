@@ -49,15 +49,15 @@
           },
           "diet": {
             "type": "string",
-            "description": "Dieta e alimenta\u00e7\u00e3o do animal"
+            "description": "Dieta e alimentacao do animal"
           },
           "medications": {
             "type": "string",
-            "description": "Medicamentos, dosagem, frequ\u00eancia e hor\u00e1rios"
+            "description": "Medicamentos, dosagem, frequencia e horarios"
           },
           "routine": {
             "type": "string",
-            "description": "Rotina di\u00e1ria do animal (hor\u00e1rios, h\u00e1bitos)"
+            "description": "Rotina diaria do animal"
           }
         }
       },
@@ -72,7 +72,7 @@
         "walk_with_partner",
         "training"
       ],
-      "description": "Tipo de servi\u00e7o reservado"
+      "description": "Tipo de servico reservado"
     },
     "checkin_date": {
       "type": "string",
@@ -116,7 +116,7 @@
           },
           "quantity": {
             "type": "number",
-            "description": "N\u00famero de sess\u00f5es/passeios"
+            "description": "Numero de sessoes/passeios"
           },
           "price_per_unit": {
             "type": "number"
@@ -126,17 +126,33 @@
           },
           "assigned_walker_email": {
             "type": "string",
-            "description": "Email do parceiro respons\u00e1vel (opcional)"
+            "description": "Email do parceiro responsavel"
+          },
+          "assigned_walker_name": {
+            "type": "string"
+          },
+          "completed": {
+            "type": "boolean",
+            "default": false,
+            "description": "Se a tarefa foi concluida"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Quando a tarefa foi concluida"
+          },
+          "task_notes": {
+            "type": "string",
+            "description": "Notas do parceiro ao concluir a tarefa"
           }
         }
       },
       "default": [],
-      "description": "Servi\u00e7os adicionais durante a estadia"
+      "description": "Servicos adicionais durante a estadia"
     },
     "add_ons_total": {
       "type": "number",
-      "default": 0,
-      "description": "Valor total de add-ons"
+      "default": 0
     },
     "total_amount": {
       "type": "number"
@@ -151,8 +167,7 @@
       "type": "string"
     },
     "assigned_walker_email": {
-      "type": "string",
-      "description": "Passeador parceiro atribu\u00eddo (se servi\u00e7o de passeio)"
+      "type": "string"
     },
     "assigned_walker_name": {
       "type": "string"
@@ -185,8 +200,7 @@
       "type": "string"
     },
     "internal_notes": {
-      "type": "string",
-      "description": "Notas internas do hotel (n\u00e3o vis\u00edveis ao cliente)"
+      "type": "string"
     },
     "checkin_photo_url": {
       "type": "string"
@@ -199,8 +213,7 @@
       "items": {
         "type": "string"
       },
-      "default": [],
-      "description": "Fotos/relat\u00f3rios di\u00e1rios enviados ao dono"
+      "default": []
     },
     "cancellation_reason": {
       "type": "string"
