@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { isDateBlocked } from '@/utils/portugueseHolidays';
 
@@ -18,18 +18,24 @@ export default function HotelRangeCalendar({
 }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [hoverDate, setHoverDate] = useState('');
-  const [internalCheckin, setInternalCheckin] = useState('');
-  const [internalCheckout, setInternalCheckout] = useState('');
+  const [internalCheckin, setInternalCheckin] = useState(controlledCheckin);
+  const [internalCheckout, setInternalCheckout] = useState(controlledCheckout);
 
-  const isControlled = controlledCheckin !== '' || controlledCheckout !== '';
-  const checkinDate = isControlled ? controlledCheckin : internalCheckin;
-  const checkoutDate = isControlled ? controlledCheckout : internalCheckout;
+  // Sync internal state when controlled props change externally (e.g. parent reset)
+  useEffect(() => {
+    setInternalCheckin(controlledCheckin);
+  }, [controlledCheckin]);
+
+  useEffect(() => {
+    setInternalCheckout(controlledCheckout);
+  }, [controlledCheckout]);
+
+  const checkinDate = internalCheckin;
+  const checkoutDate = internalCheckout;
 
   const updateRange = (ci, co) => {
-    if (!isControlled) {
-      setInternalCheckin(ci);
-      setInternalCheckout(co);
-    }
+    setInternalCheckin(ci);
+    setInternalCheckout(co);
     onRangeSelect?.(ci, co);
   };
 
@@ -68,14 +74,14 @@ export default function HotelRangeCalendar({
       return;
     }
 
-    // If clicking same date as checkin → single-day booking (checkout = checkin)
+    // If clicking same date as checkin → reset and start over with new checkin
     if (dateStr === checkinDate) {
-      updateRange(checkinDate, dateStr);
+      updateRange(dateStr, '');
       return;
     }
 
     // If clicking a date before checkin → make it the new checkin
-    if (new Date(dateStr) < new Date(checkinDate)) {
+    if (dateStr < checkinDate) {
       updateRange(dateStr, '');
       return;
     }
