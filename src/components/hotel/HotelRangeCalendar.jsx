@@ -139,7 +139,7 @@ export default function HotelRangeCalendar({
         onMouseEnter={() => setHoverDate(dateStr)}
         onMouseLeave={() => setHoverDate('')}
         disabled={isUnavailable}
-        className={`aspect-square rounded-lg text-xs font-bold transition-all flex items-center justify-center relative ${cellClass} ${isStart ? 'rounded-r-none' : ''} ${isEnd ? 'rounded-l-none' : ''} ${inRange ? 'rounded-none' : ''} ${!isUnavailable ? 'active:scale-90' : ''}`}
+        className={`aspect-square rounded-md text-[11px] font-bold transition-all flex items-center justify-center relative ${cellClass} ${isStart ? 'rounded-r-none' : ''} ${isEnd ? 'rounded-l-none' : ''} ${inRange ? 'rounded-none' : ''} ${!isUnavailable ? 'active:scale-90' : ''}`}
       >
         {day}
       </button>
@@ -148,39 +148,39 @@ export default function HotelRangeCalendar({
 
   return (
     <div className={`w-full ${className}`}>
-      <div className="flex items-center justify-between mb-3">
-        <button onClick={handlePrevMonth} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors">
-          <ChevronLeft className="w-4 h-4 text-slate-500" />
+      <div className="flex items-center justify-between mb-2">
+        <button onClick={handlePrevMonth} className="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors">
+          <ChevronLeft className="w-3.5 h-3.5 text-slate-500" />
         </button>
-        <span className="text-sm font-bold text-slate-800 capitalize">
+        <span className="text-xs font-bold text-slate-800 capitalize">
           {currentMonth.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })}
         </span>
-        <button onClick={handleNextMonth} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors">
-          <ChevronRight className="w-4 h-4 text-slate-500" />
+        <button onClick={handleNextMonth} className="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors">
+          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 mb-1">
+      <div className="grid grid-cols-7 gap-0.5 mb-0.5">
         {WEEKDAYS.map(d => (
-          <div key={d} className="text-center text-[9px] font-black uppercase text-slate-300">
+          <div key={d} className="text-center text-[8px] font-black uppercase text-slate-300">
             {d}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5">
         {cells}
       </div>
 
-      <div className="flex items-center gap-3 mt-3 text-[9px] text-slate-500 flex-wrap">
+      <div className="flex items-center gap-2.5 mt-2 text-[8px] text-slate-400 flex-wrap">
         <span className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded bg-slate-900" /> Selecionado
+          <div className="w-2 h-2 rounded bg-slate-900" /> Selecionado
         </span>
         <span className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded bg-slate-200" /> Intervalo
+          <div className="w-2 h-2 rounded bg-slate-200" /> Intervalo
         </span>
         <span className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded bg-red-50 border border-red-200" /> Folga/Fechado
+          <div className="w-2 h-2 rounded bg-red-50 border border-red-200" /> Fechado
         </span>
       </div>
     </div>

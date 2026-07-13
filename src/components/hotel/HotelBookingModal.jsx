@@ -186,9 +186,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="max-h-[94vh] rounded-t-[2rem] focus:outline-none border-t border-slate-200/80">
+      <DrawerContent className="max-h-[88vh] rounded-t-[1.5rem] focus:outline-none border-t border-slate-200/80">
         {/* Header */}
-        <div className="relative px-5 pt-5 pb-4 bg-gradient-to-b from-slate-50 to-white border-b border-slate-100">
+        <div className="relative px-4 pt-4 pb-3 bg-gradient-to-b from-slate-50 to-white border-b border-slate-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {step > 0 && !finalized && (
@@ -205,7 +205,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   <Sparkles className="w-2.5 h-2.5" />
                   {hotel.walker_name} · {selectedService.service_name}
                 </p>
-                <h2 className="text-lg font-black text-slate-900 tracking-tight">{steps[step].title}</h2>
+                <h2 className="text-base font-black text-slate-900 tracking-tight">{steps[step].title}</h2>
               </div>
             </div>
             <motion.button
@@ -219,10 +219,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
           {/* Progress indicator */}
           {!finalized && (
-            <div className="flex items-center gap-1.5 mt-4">
+            <div className="flex items-center gap-1.5 mt-3">
               {steps.map((s, idx) => (
                 <div key={idx} className="flex items-center gap-1.5 flex-1">
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black transition-all duration-300 ${
+                  <div className={`flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-black transition-all duration-300 ${
                     step >= idx
                       ? 'bg-slate-900 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-400'
@@ -230,7 +230,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     {step > idx ? '✓' : idx + 1}
                   </div>
                   {idx < steps.length - 1 && (
-                    <div className={`h-0.5 flex-1 rounded-full transition-all duration-500 ${step > idx ? 'bg-slate-900' : 'bg-slate-150 bg-slate-200'}`} />
+                    <div className={`h-0.5 flex-1 rounded-full transition-all duration-500 ${step > idx ? 'bg-slate-900' : 'bg-slate-200'}`} />
                   )}
                 </div>
               ))}
@@ -239,7 +239,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto flex-1 px-5 pt-5 pb-8">
+        <div className="overflow-y-auto flex-1 px-4 pt-4 pb-6">
           <AnimatePresence mode="wait" custom={step}>
             <motion.div
               key={step + (finalized ? '-final' : '')}
@@ -270,14 +270,14 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       </Button>
                     </div>
                   ) : (
-                    <>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
-                            Selecione os animais
-                          </p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">Pode escolher mais do que um</p>
-                        </div>
+                   <>
+                     <div className="flex items-center justify-between">
+                       <div>
+                         <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                           Selecione os animais
+                         </p>
+                         <p className="text-[10px] text-slate-400 mt-0.5">Pode escolher mais do que um</p>
+                       </div>
                         {selectedDogIds.length > 0 && (
                           <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">
                             {selectedDogIds.length} selecionado{selectedDogIds.length > 1 ? 's' : ''}
@@ -296,22 +296,22 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                   isSelected ? prev.filter(id => id !== dog.id) : [...prev, dog.id]
                                 );
                               }}
-                              className={`w-full p-3.5 rounded-2xl border-2 text-left transition-all flex items-center gap-3 ${
+                              className={`w-full p-2.5 rounded-xl border-2 text-left transition-all flex items-center gap-2.5 ${
                                 isSelected
-                                  ? 'border-slate-900 bg-slate-50 shadow-sm'
-                                  : 'border-slate-150 border-slate-200 bg-white hover:border-slate-300'
+                                  ? 'border-slate-900 bg-slate-50'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
                               }`}
                             >
                               {dog.photo_url ? (
-                                <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                                <img src={dog.photo_url} alt={dog.dog_name} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                               ) : (
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center flex-shrink-0">
-                                  <PawPrint className="w-5 h-5 text-orange-400" />
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center flex-shrink-0">
+                                  <PawPrint className="w-4 h-4 text-orange-400" />
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
                                 <p className="font-bold text-slate-900 text-sm">{dog.dog_name}</p>
-                                <p className="text-xs text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : 'XL'}</p>
+                                <p className="text-[11px] text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : 'XL'}</p>
                               </div>
                               <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all ${
                                 isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-300'
@@ -331,7 +331,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           >
                             <Button
                               onClick={() => setStep(1)}
-                              className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base shadow-md shadow-slate-200"
+                              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
                             >
                               Continuar com {selectedDogIds.length} {selectedDogIds.length === 1 ? 'animal' : 'animais'}
                             </Button>
@@ -345,7 +345,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
               {/* STEP 1 — Cuidados do Animal */}
               {step === 1 && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
                       Cuidados do Animal
@@ -361,8 +361,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       [dog.id]: { ...prev[dog.id], [field]: val }
                     }));
                     return (
-                      <div key={dog.id} className="bg-white rounded-2xl p-4 space-y-3 border border-slate-200 shadow-sm">
-                        <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                      <div key={dog.id} className="bg-white rounded-xl p-3 space-y-2.5 border border-slate-200">
+                        <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
                           {dog.photo_url ? (
                             <img src={dog.photo_url} className="w-9 h-9 rounded-lg object-cover" alt={dog.dog_name} />
                           ) : (
@@ -416,7 +416,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   })}
                   <Button
                     onClick={() => setStep(2)}
-                    className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base shadow-md shadow-slate-200"
+                    className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
                   >
                     Continuar
                   </Button>
@@ -425,37 +425,35 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
               {/* STEP 2 — Calendário de intervalo */}
               {step === 2 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className={`flex-1 rounded-2xl border-2 p-3.5 text-center transition-all ${checkinDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkinDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
                       <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Entrada</p>
-                      <p className="text-sm font-black text-slate-900 mt-1">
+                      <p className="text-xs font-black text-slate-900 mt-0.5">
                         {checkinDate ? formatDate(checkinDate) : '—'}
                       </p>
                     </div>
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                        <ChevronLeft className="w-3.5 h-3.5 text-slate-400 rotate-180" />
-                      </div>
+                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                      <ChevronLeft className="w-3 h-3 text-slate-400 rotate-180" />
                     </div>
-                    <div className={`flex-1 rounded-2xl border-2 p-3.5 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
+                    <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
                       <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Saída</p>
-                      <p className="text-sm font-black text-slate-900 mt-1">
+                      <p className="text-xs font-black text-slate-900 mt-0.5">
                         {checkoutDate ? formatDate(checkoutDate) : '—'}
                       </p>
                     </div>
                   </div>
 
                   {checkinPolicy !== 'all_days' && (
-                    <div className="bg-blue-50/80 border border-blue-200/60 rounded-xl p-2.5 flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                      <p className="text-xs text-blue-700 font-semibold">
+                    <div className="bg-blue-50/80 border border-blue-200/60 rounded-lg p-2 flex items-center gap-1.5">
+                      <Clock className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                      <p className="text-[11px] text-blue-700 font-semibold">
                         {checkinPolicy === 'no_sundays' ? 'Hotel fechado aos Domingos' : 'Hotel fechado aos Domingos e Feriados'}
                       </p>
                     </div>
                   )}
 
-                  <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm">
+                  <div className="bg-white rounded-xl border border-slate-200 p-2.5">
                     <HotelRangeCalendar
                       daysOff={[]}
                       checkinPolicy={checkinPolicy}
@@ -469,27 +467,27 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   </div>
 
                   {checkinDate && (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2.5">
                       <div>
-                        <label className="text-[11px] font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1.5 tracking-wider">
-                          <Clock className="w-3 h-3" /> Hora Entrada
+                        <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block flex items-center gap-1 tracking-wider">
+                          <Clock className="w-2.5 h-2.5" /> Entrada
                         </label>
                         <input
                           type="time"
                           value={checkinTime}
                           onChange={(e) => setCheckinTime(e.target.value)}
-                          className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 font-bold text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                          className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 font-bold text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1.5 tracking-wider">
-                          <Clock className="w-3 h-3" /> Hora Saída
+                        <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block flex items-center gap-1 tracking-wider">
+                          <Clock className="w-2.5 h-2.5" /> Saída
                         </label>
                         <input
                           type="time"
                           value={checkoutTime}
                           onChange={(e) => setCheckoutTime(e.target.value)}
-                          className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 font-bold text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                          className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 font-bold text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
                         />
                       </div>
                     </div>
@@ -504,7 +502,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       >
                         <Button
                           onClick={() => setStep(3)}
-                          className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base shadow-md shadow-slate-200"
+                          className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
                         >
                           Ver Resumo
                         </Button>
@@ -552,8 +550,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
               {/* STEP 3 — Resumo e Pagamento */}
               {step === 3 && !finalized && (
-                <div className="space-y-4">
-                  <div className="bg-white rounded-3xl p-5 space-y-4 border border-slate-200 shadow-sm">
+                <div className="space-y-3">
+                  <div className="bg-white rounded-xl p-4 space-y-3 border border-slate-200">
                     {/* Hotel header */}
                     <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center border border-slate-200">
@@ -589,59 +587,59 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     </div>
 
                     {/* Address */}
-                    <div className="pt-3 border-t border-slate-100">
-                      <label className="text-[11px] font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1.5 tracking-wider">
-                        <MapPin className="w-3 h-3" /> Endereço de Recolha
+                    <div className="pt-2.5 border-t border-slate-100">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block flex items-center gap-1 tracking-wider">
+                        <MapPin className="w-2.5 h-2.5" /> Endereço de Recolha
                       </label>
                       <input
                         type="text"
                         value={pickupAddress}
                         onChange={(e) => setPickupAddress(e.target.value)}
                         placeholder="Morada completa de recolha"
-                        className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                        className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
                       />
                     </div>
 
                     {/* Special requests */}
-                    <div className="pt-3 border-t border-slate-100">
-                      <label className="text-[11px] font-bold text-slate-500 uppercase mb-2 block tracking-wider">Pedidos especiais (opcional)</label>
+                    <div className="pt-2.5 border-t border-slate-100">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block tracking-wider">Pedidos especiais (opcional)</label>
                       <textarea
                         value={specialRequests}
                         onChange={(e) => setSpecialRequests(e.target.value)}
                         placeholder="Restrições, preferências, etc."
                         rows={2}
-                        className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none resize-none transition-colors"
+                        className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none resize-none transition-colors"
                       />
                     </div>
 
                     {/* Price breakdown */}
-                    <div className="pt-3 border-t border-slate-100 space-y-2">
-                      <div className="flex justify-between text-sm">
+                    <div className="pt-2.5 border-t border-slate-100 space-y-1.5">
+                      <div className="flex justify-between text-xs">
                         <span className="text-slate-500">
                           {perDogPerNight}€ × {totalNights} {totalNights === 1 ? 'noite' : 'noites'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
                         </span>
                         <span className="font-bold text-slate-700">{serviceAmount}€</span>
                       </div>
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs">
                         <span className="text-slate-500">Taxa de plataforma (10%)</span>
                         <span className="font-bold text-amber-600">{platformFee}€</span>
                       </div>
                     </div>
 
                     {/* Total */}
-                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl px-4 py-3.5 flex justify-between items-center">
+                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl px-4 py-3 flex justify-between items-center">
                       <div>
                         <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Total</p>
-                        <p className="text-xs text-slate-300">Pagamento único</p>
+                        <p className="text-[11px] text-slate-300">Pagamento único</p>
                       </div>
-                      <span className="text-2xl font-black text-white">{totalAmount}€</span>
+                      <span className="text-xl font-black text-white">{totalAmount}€</span>
                     </div>
                   </div>
 
                   <Button
                     onClick={handleCreateBooking}
                     disabled={isCreating}
-                    className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition-all"
+                    className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl text-base flex items-center justify-center gap-2 transition-all"
                   >
                     {isCreating ? (
                       <motion.div
@@ -650,7 +648,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                       />
                     ) : (
-                      <><CreditCard className="w-5 h-5" /> Confirmar e Pagar {totalAmount}€</>
+                      <><CreditCard className="w-4 h-4" /> Confirmar e Pagar {totalAmount}€</>
                     )}
                   </Button>
 
