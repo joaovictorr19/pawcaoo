@@ -38,6 +38,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AchievementModal from "../components/gamification/AchievementModal";
 import CheckoutModal from "../components/payments/CheckoutModal";
 import WalkSecurityPass from "../components/booking/WalkSecurityPass";
+import BookingReceiptButton from "../components/booking/BookingReceiptButton";
 import { CreditCard } from "lucide-react";
 
 export default function MyBookings() {
@@ -701,6 +702,10 @@ export default function MyBookings() {
                 <CreditCard className="w-3.5 h-3.5" />
                 Pagar
               </button>
+            )}
+
+            {booking.status === 'completed' && (
+              <BookingReceiptButton booking={booking} />
             )}
 
             {booking.status === 'completed' && !isProfessional && !hasReview && (
