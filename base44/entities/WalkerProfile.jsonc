@@ -289,6 +289,30 @@
       },
       "default": []
     },
+    "hotel_partnerships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hotel_profile_id": {
+            "type": "string"
+          },
+          "hotel_name": {
+            "type": "string"
+          },
+          "hotel_photo_url": {
+            "type": "string"
+          },
+          "partner_role": {
+            "type": "string",
+            "enum": ["simple", "limited", "full"],
+            "default": "simple"
+          }
+        }
+      },
+      "default": [],
+      "description": "Hoteis onde este profissional e parceiro/colaborador"
+    },
     "faq": {
       "type": "array",
       "items": {

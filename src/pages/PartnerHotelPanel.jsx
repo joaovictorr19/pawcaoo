@@ -30,7 +30,25 @@ export default function PartnerHotelPanel() {
       if (!authUser?.email) return null;
 
       try {
-        // Buscar todos os hotels e verificar se o utilizador é parceiro
+        // 1. Tentar via hotel_partnerships no perfil do próprio utilizador
+        const myProfiles = await base44.entities.WalkerProfile.filter(
+          { created_by: authUser.email }
+        );
+
+        if (myProfiles.length > 0) {
+          const partnerships = myProfiles[0].hotel_partnerships || [];
+          if (partnerships.length > 0) {
+            const p = partnerships[0];
+            try {
+              const hotelProfile = await base44.entities.WalkerProfile.get(p.hotel_profile_id);
+              if (hotelProfile) {
+                return { ...hotelProfile, partnerRole: p.partner_role };
+              }
+            } catch {}
+          }
+        }
+
+        // 2. Fallback: procurar em todos os hotels
         const hotels = await base44.entities.WalkerProfile.filter(
           { professional_type: 'hotel' },
           undefined,
@@ -39,8 +57,10 @@ export default function PartnerHotelPanel() {
 
         for (const h of hotels) {
           const partners = h.hotel_details?.partner_walkers || [];
-          const isPartner = partners.find(p => p.walker_email === authUser.email);
-          
+          const isPartner = partners.find(
+            p => p.walker_email?.toLowerCase() === authUser.email.toLowerCase()
+          );
+
           if (isPartner) {
             return { ...h, partnerRole: isPartner.partner_role };
           }
@@ -57,22 +77,25 @@ export default function PartnerHotelPanel() {
 
   // Fetch bookings for this partner
   const { data: bookings = [] } = useQuery({
-    queryKey: ['partnerBookings', hotel?.id, authUser?.email],
+    queryKey: ['partnerBookings', hotel?.id, authUser?.email, hotel?.partnerRole],
     queryFn: async () => {
       if (!hotel?.id || !authUser?.email) return [];
 
       try {
         const allBookings = await base44.entities.HotelBooking.filter(
-          { 
-            hotel_profile_id: hotel.id,
-            $or: [
-              { assigned_walker_email: authUser.email },
-              { assigned_trainer_email: authUser.email }
-            ]
-          },
+          { hotel_profile_id: hotel.id },
           '-checkin_date',
           100
         );
+
+        // Parceiros "simple" só veem reservas atribuídas a eles
+        if (hotel.partnerRole === 'simple') {
+          return (allBookings || []).filter(
+            b => b.assigned_walker_email?.toLowerCase() === authUser.email.toLowerCase()
+          );
+        }
+
+        // "limited" e "full" veem todas as reservas do hotel
         return allBookings || [];
       } catch (error) {
         console.error('Erro ao buscar reservas:', error);

@@ -8,6 +8,7 @@ import HotelProfileDisplay from "@/components/hotel/HotelProfileDisplay";
 import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 import HotelRangeCalendar from "@/components/hotel/HotelRangeCalendar";
+import HotelCollaboratorBadge from "@/components/profile/HotelCollaboratorBadge";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
@@ -139,6 +140,10 @@ export default function ProfileBentoGrid({
               <p className="text-slate-600 text-sm leading-relaxed mt-3 line-clamp-3">
                 {hasBio}
               </p>
+            )}
+            {/* Hotel collaborator badge */}
+            {walkerProfile && !isHotel && (
+              <HotelCollaboratorBadge walkerProfile={walkerProfile} />
             )}
             {/* Hotel quick info pills */}
             {isHotel && (checkinTime || checkoutTime || totalCapacity > 0) && (

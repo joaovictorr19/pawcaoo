@@ -21,34 +21,19 @@ export default function HotelAddPartnerModal({ isOpen, onClose, hotelProfile }) 
 
     setIsAdding(true);
     try {
-      const partnerData = {
-        walker_email: partnerEmail.toLowerCase().trim(),
-        walker_name: partnerEmail.split('@')[0],
-        walker_photo_url: '',
-        is_available_today: true,
-        services: [],
-        partner_role: selectedRole, // 'simple', 'limited', 'full'
-      };
+      const res = await base44.functions.invoke('addHotelPartner', {
+        hotel_profile_id: hotelProfile.id,
+        partner_email: partnerEmail,
+        partner_role: selectedRole,
+        partner_name: partnerEmail.split('@')[0],
+      });
 
-      // Adicionar à lista de parceiros do hotel
-      const currentPartners = hotelProfile.hotel_details?.partner_walkers || [];
-      const alreadyExists = currentPartners.some(p => p.walker_email === partnerData.walker_email);
-
-      if (alreadyExists) {
-        toast.error('Este email já é parceiro');
+      if (res.data?.error) {
+        toast.error(res.data.error);
         return;
       }
 
-      const updatedPartners = [...currentPartners, partnerData];
-
-      await base44.entities.WalkerProfile.update(hotelProfile.id, {
-        hotel_details: {
-          ...hotelProfile.hotel_details,
-          partner_walkers: updatedPartners,
-        },
-      });
-
-      toast.success(`Parceiro ${partnerData.walker_email} adicionado!`);
+      toast.success(`Parceiro ${partnerEmail} adicionado!`);
       setPartnerEmail('');
       setSelectedRole('limited');
       onClose();

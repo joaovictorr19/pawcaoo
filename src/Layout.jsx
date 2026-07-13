@@ -176,6 +176,24 @@ function LayoutContent({ children, currentPageName }) {
 
   const unreadCount = notifications?.length || 0;
 
+  const { data: hotelPartnerships } = useQuery({
+    queryKey: ['hotelPartnerships', authUser?.email],
+    queryFn: async () => {
+      if (!authUser?.email) return [];
+      try {
+        const profiles = await base44.entities.WalkerProfile.filter({ created_by: authUser.email });
+        if (profiles.length > 0 && profiles[0].hotel_partnerships) {
+          return profiles[0].hotel_partnerships;
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!authUser?.email,
+    staleTime: 10 * 60 * 1000,
+  });
+
   React.useEffect(() => {
     setIsNotificationPanelOpen(false);
     setIsSearchOpen(false);
@@ -485,6 +503,11 @@ function LayoutContent({ children, currentPageName }) {
                 <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>{nav('myPanel')}</NavLink>
               );
             })()}
+            {hotelPartnerships && hotelPartnerships.length > 0 && (
+              <NavLink to={createPageUrl("PartnerHotelPanel")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-purple-100 text-purple-700' : 'hover:bg-purple-50 text-purple-600'}`}>
+                🏨 Painel Parceiro
+              </NavLink>
+            )}
           </nav>
           <div className="flex items-center gap-2">
             <LanguageSelector />
