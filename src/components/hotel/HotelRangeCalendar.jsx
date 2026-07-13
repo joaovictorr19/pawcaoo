@@ -11,13 +11,27 @@ const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 export default function HotelRangeCalendar({
   daysOff = [],
   checkinPolicy = 'all_days',
-  checkinDate = '',
-  checkoutDate = '',
+  checkinDate: controlledCheckin = '',
+  checkoutDate: controlledCheckout = '',
   onRangeSelect,
   className = '',
 }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [hoverDate, setHoverDate] = useState('');
+  const [internalCheckin, setInternalCheckin] = useState('');
+  const [internalCheckout, setInternalCheckout] = useState('');
+
+  const isControlled = controlledCheckin !== '' || controlledCheckout !== '';
+  const checkinDate = isControlled ? controlledCheckin : internalCheckin;
+  const checkoutDate = isControlled ? controlledCheckout : internalCheckout;
+
+  const updateRange = (ci, co) => {
+    if (!isControlled) {
+      setInternalCheckin(ci);
+      setInternalCheckout(co);
+    }
+    onRangeSelect?.(ci, co);
+  };
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -50,24 +64,24 @@ export default function HotelRangeCalendar({
 
     // If no checkin yet, or both dates set → start fresh with checkin
     if (!checkinDate || (checkinDate && checkoutDate)) {
-      onRangeSelect?.(dateStr, '');
+      updateRange(dateStr, '');
       return;
     }
 
     // If clicking same date as checkin → single-day booking (checkout = checkin)
     if (dateStr === checkinDate) {
-      onRangeSelect?.(checkinDate, dateStr);
+      updateRange(checkinDate, dateStr);
       return;
     }
 
     // If clicking a date before checkin → make it the new checkin
     if (new Date(dateStr) < new Date(checkinDate)) {
-      onRangeSelect?.(dateStr, '');
+      updateRange(dateStr, '');
       return;
     }
 
     // Valid checkout date
-    onRangeSelect?.(checkinDate, dateStr);
+    updateRange(checkinDate, dateStr);
   };
 
   // Check if a date is within the selected range (for highlighting)
