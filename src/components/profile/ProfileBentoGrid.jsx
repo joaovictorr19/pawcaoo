@@ -139,9 +139,8 @@ export default function ProfileBentoGrid({
                 {earnedBadges.slice(0, 10).map((badge) => (
                   <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 w-14">
                     <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-slate-900 text-white text-[10px] font-bold rounded-lg whitespace-nowrap opacity-0 group-hover/badge:opacity-100 pointer-events-none transition-opacity duration-200 z-30 shadow-lg">
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90 text-white text-[9px] font-bold text-center leading-tight rounded-xl px-1 opacity-0 group-hover/badge:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
                       {badge.name || badge.badge_id}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
                     </div>
                   </div>
                 ))}
