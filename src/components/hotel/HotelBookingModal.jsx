@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Utensils, Pill, Repeat } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Utensils, Pill, Repeat, Calendar, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -111,7 +111,6 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         pickup_address: pickupAddress,
       });
 
-      // Enviar email com os dados da reserva
       const ownerName = clientProfile?.full_name || currentUser.full_name || currentUser.email;
       const dogList = selectedDogs.map(d => `• ${d.dog_name} (${d.breed || 'SRD'}, ${d.size || 'médio'})`).join('\n');
       const emailBody = [
@@ -168,376 +167,501 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     }
   };
 
-  const stepTitles = ['Animais', 'Cuidados', 'Datas', 'Confirmar'];
+  const steps = [
+    { title: 'Animais', icon: PawPrint },
+    { title: 'Cuidados', icon: Utensils },
+    { title: 'Datas', icon: Calendar },
+    { title: 'Resumo', icon: CheckCircle2 },
+  ];
 
   const formatDate = (dateStr) => {
     return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
   };
 
+  const slideVariants = {
+    enter: (direction) => ({ opacity: 0, x: direction > 0 ? 30 : -30 }),
+    center: { opacity: 1, x: 0 },
+    exit: (direction) => ({ opacity: 0, x: direction > 0 ? -30 : 30 }),
+  };
+
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="max-h-[92vh] rounded-t-3xl focus:outline-none">
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            {step > 0 && (
-              <button onClick={() => setStep(s => s - 1)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                <ChevronLeft className="w-4 h-4 text-slate-600" />
-              </button>
-            )}
-            <div>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-                {hotel.walker_name} · {selectedService.service_name}
-              </p>
-              <h2 className="text-base font-black text-slate-900">{stepTitles[step]}</h2>
+      <DrawerContent className="max-h-[94vh] rounded-t-[2rem] focus:outline-none border-t border-slate-200/80">
+        {/* Header */}
+        <div className="relative px-5 pt-5 pb-4 bg-gradient-to-b from-slate-50 to-white border-b border-slate-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {step > 0 && !finalized && (
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setStep(s => s - 1)}
+                  className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm"
+                >
+                  <ChevronLeft className="w-4 h-4 text-slate-600" />
+                </motion.button>
+              )}
+              <div>
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold flex items-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  {hotel.walker_name} · {selectedService.service_name}
+                </p>
+                <h2 className="text-lg font-black text-slate-900 tracking-tight">{steps[step].title}</h2>
+              </div>
             </div>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm"
+            >
+              <X className="w-4 h-4 text-slate-600" />
+            </motion.button>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-            <X className="w-4 h-4 text-slate-600" />
-          </button>
+
+          {/* Progress indicator */}
+          {!finalized && (
+            <div className="flex items-center gap-1.5 mt-4">
+              {steps.map((s, idx) => (
+                <div key={idx} className="flex items-center gap-1.5 flex-1">
+                  <div className={`flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black transition-all duration-300 ${
+                    step >= idx
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-400'
+                  }`}>
+                    {step > idx ? '✓' : idx + 1}
+                  </div>
+                  {idx < steps.length - 1 && (
+                    <div className={`h-0.5 flex-1 rounded-full transition-all duration-500 ${step > idx ? 'bg-slate-900' : 'bg-slate-150 bg-slate-200'}`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="flex gap-1 px-5 pt-3">
-          {[0, 1, 2, 3].map(s => (
-            <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-300 ${step >= s ? 'bg-slate-900' : 'bg-slate-200'}`} />
-          ))}
-        </div>
+        {/* Content */}
+        <div className="overflow-y-auto flex-1 px-5 pt-5 pb-8">
+          <AnimatePresence mode="wait" custom={step}>
+            <motion.div
+              key={step + (finalized ? '-final' : '')}
+              custom={step}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            >
+              {/* STEP 0 — Animais */}
+              {step === 0 && (
+                <div className="space-y-3">
+                  {myDogs.length === 0 ? (
+                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/60 rounded-3xl p-8 text-center space-y-4">
+                      <div className="w-16 h-16 mx-auto rounded-2xl bg-white shadow-sm flex items-center justify-center">
+                        <PawPrint className="w-8 h-8 text-orange-400" />
+                      </div>
+                      <div>
+                        <p className="font-black text-slate-800 text-lg">Sem animais registados</p>
+                        <p className="text-sm text-slate-500 mt-1">Adicione o seu companheiro para continuar</p>
+                      </div>
+                      <Button
+                        onClick={() => { onClose(); navigate(createPageUrl('EditAnimalProfile')); }}
+                        className="bg-slate-900 hover:bg-slate-800 text-white rounded-2xl w-full h-12 font-bold"
+                      >
+                        <PlusCircle className="w-4 h-4 mr-2" /> Adicionar Animal
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                            Selecione os animais
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Pode escolher mais do que um</p>
+                        </div>
+                        {selectedDogIds.length > 0 && (
+                          <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">
+                            {selectedDogIds.length} selecionado{selectedDogIds.length > 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-2.5">
+                        {myDogs.map(dog => {
+                          const isSelected = selectedDogIds.includes(dog.id);
+                          return (
+                            <motion.button
+                              key={dog.id}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => {
+                                setSelectedDogIds(prev =>
+                                  isSelected ? prev.filter(id => id !== dog.id) : [...prev, dog.id]
+                                );
+                              }}
+                              className={`w-full p-3.5 rounded-2xl border-2 text-left transition-all flex items-center gap-3 ${
+                                isSelected
+                                  ? 'border-slate-900 bg-slate-50 shadow-sm'
+                                  : 'border-slate-150 border-slate-200 bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              {dog.photo_url ? (
+                                <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                              ) : (
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center flex-shrink-0">
+                                  <PawPrint className="w-5 h-5 text-orange-400" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-slate-900 text-sm">{dog.dog_name}</p>
+                                <p className="text-xs text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : 'XL'}</p>
+                              </div>
+                              <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                                isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-300'
+                              }`}>
+                                {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                              </div>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                      <AnimatePresence>
+                        {selectedDogIds.length > 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                          >
+                            <Button
+                              onClick={() => setStep(1)}
+                              className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base shadow-md shadow-slate-200"
+                            >
+                              Continuar com {selectedDogIds.length} {selectedDogIds.length === 1 ? 'animal' : 'animais'}
+                            </Button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </>
+                  )}
+                </div>
+              )}
 
-        <div className="overflow-y-auto flex-1 px-5 pt-4 pb-8">
-          {/* STEP 0 — Animais */}
-          {step === 0 && (
-            <div className="space-y-3">
-              {myDogs.length === 0 ? (
-                <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-5 text-center space-y-3">
-                  <p className="text-2xl">🐾</p>
-                  <p className="font-bold text-orange-800">Ainda não tem nenhum animal cadastrado.</p>
+              {/* STEP 1 — Cuidados do Animal */}
+              {step === 1 && (
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                      Cuidados do Animal
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Informe a equipa do hotel sobre dieta, medicamentos e rotina
+                    </p>
+                  </div>
+                  {selectedDogs.map(dog => {
+                    const care = dogCare[dog.id] || {};
+                    const updateCare = (field, val) => setDogCare(prev => ({
+                      ...prev,
+                      [dog.id]: { ...prev[dog.id], [field]: val }
+                    }));
+                    return (
+                      <div key={dog.id} className="bg-white rounded-2xl p-4 space-y-3 border border-slate-200 shadow-sm">
+                        <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
+                          {dog.photo_url ? (
+                            <img src={dog.photo_url} className="w-9 h-9 rounded-lg object-cover" alt={dog.dog_name} />
+                          ) : (
+                            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center">
+                              <PawPrint className="w-4 h-4 text-orange-400" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-slate-900 text-sm">{dog.dog_name}</p>
+                            <span className="text-[10px] text-slate-400">{dog.breed || 'SRD'}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1.5 tracking-wider">
+                            <Utensils className="w-3 h-3" /> Dieta
+                          </label>
+                          <textarea
+                            value={care.diet || ''}
+                            onChange={e => updateCare('diet', e.target.value)}
+                            placeholder="Ração, marca, quantidade, horários..."
+                            rows={2}
+                            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none resize-none transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1.5 tracking-wider">
+                            <Pill className="w-3 h-3" /> Medicamentos
+                          </label>
+                          <textarea
+                            value={care.medications || ''}
+                            onChange={e => updateCare('medications', e.target.value)}
+                            placeholder="Nome, dosagem, frequência e horários..."
+                            rows={2}
+                            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none resize-none transition-colors"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1.5 tracking-wider">
+                            <Repeat className="w-3 h-3" /> Rotina Diária
+                          </label>
+                          <textarea
+                            value={care.routine || ''}
+                            onChange={e => updateCare('routine', e.target.value)}
+                            placeholder="Passeios, sestas, brincadeiras, hábitos..."
+                            rows={2}
+                            className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none resize-none transition-colors"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                   <Button
-                    onClick={() => { onClose(); navigate(createPageUrl('EditAnimalProfile')); }}
-                    className="bg-orange-500 hover:bg-orange-600 text-white rounded-2xl w-full"
+                    onClick={() => setStep(2)}
+                    className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base shadow-md shadow-slate-200"
                   >
-                    <PlusCircle className="w-4 h-4 mr-2" /> Adicionar Animal
+                    Continuar
                   </Button>
                 </div>
-              ) : (
-                <>
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">
-                    Quais animais vão? <span className="text-slate-400 normal-case font-normal">(pode selecionar mais de um)</span>
-                  </p>
-                  <div className="space-y-2">
-                    {myDogs.map(dog => {
-                      const isSelected = selectedDogIds.includes(dog.id);
-                      return (
-                        <button
-                          key={dog.id}
-                          onClick={() => {
-                            setSelectedDogIds(prev =>
-                              isSelected ? prev.filter(id => id !== dog.id) : [...prev, dog.id]
-                            );
-                          }}
-                          className={`w-full p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98] flex items-center gap-3 ${
-                            isSelected ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white hover:border-slate-300'
-                          }`}
-                        >
-                          {dog.photo_url ? (
-                            <img src={dog.photo_url} alt={dog.dog_name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
-                          ) : (
-                            <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">🐾</div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-slate-900">{dog.dog_name}</p>
-                            <p className="text-xs text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : 'XL'}</p>
-                          </div>
-                          <div className={`w-5 h-5 rounded-lg border-2 flex-shrink-0 flex items-center justify-center transition-all ${
-                            isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-300'
-                          }`}>
-                            {isSelected && <span className="text-white text-xs font-black">✓</span>}
-                          </div>
-                        </button>
-                      );
-                    })}
+              )}
+
+              {/* STEP 2 — Calendário de intervalo */}
+              {step === 2 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`flex-1 rounded-2xl border-2 p-3.5 text-center transition-all ${checkinDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Entrada</p>
+                      <p className="text-sm font-black text-slate-900 mt-1">
+                        {checkinDate ? formatDate(checkinDate) : '—'}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                        <ChevronLeft className="w-3.5 h-3.5 text-slate-400 rotate-180" />
+                      </div>
+                    </div>
+                    <div className={`flex-1 rounded-2xl border-2 p-3.5 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
+                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Saída</p>
+                      <p className="text-sm font-black text-slate-900 mt-1">
+                        {checkoutDate ? formatDate(checkoutDate) : '—'}
+                      </p>
+                    </div>
                   </div>
-                  {selectedDogIds.length > 0 && (
-                    <Button
-                      onClick={() => setStep(1)}
-                      className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base mt-2"
-                    >
-                      Continuar com {selectedDogIds.length} {selectedDogIds.length === 1 ? 'animal' : 'animais'} →
-                    </Button>
+
+                  {checkinPolicy !== 'all_days' && (
+                    <div className="bg-blue-50/80 border border-blue-200/60 rounded-xl p-2.5 flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                      <p className="text-xs text-blue-700 font-semibold">
+                        {checkinPolicy === 'no_sundays' ? 'Hotel fechado aos Domingos' : 'Hotel fechado aos Domingos e Feriados'}
+                      </p>
+                    </div>
                   )}
-                </>
-              )}
-            </div>
-          )}
 
-          {/* STEP 1 — Cuidados do Animal */}
-          {step === 1 && (
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">
-                  Cuidados do Animal
-                </p>
-                <p className="text-xs text-slate-400">
-                  Informe a equipa do hotel sobre dieta, medicamentos e rotina
-                </p>
-              </div>
-              {selectedDogs.map(dog => {
-                const care = dogCare[dog.id] || {};
-                const updateCare = (field, val) => setDogCare(prev => ({
-                  ...prev,
-                  [dog.id]: { ...prev[dog.id], [field]: val }
-                }));
-                return (
-                  <div key={dog.id} className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
-                    <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
-                      {dog.photo_url ? (
-                        <img src={dog.photo_url} className="w-9 h-9 rounded-lg object-cover" alt={dog.dog_name} />
-                      ) : (
-                        <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center text-lg">🐾</div>
-                      )}
-                      <p className="font-bold text-slate-900 text-sm">{dog.dog_name}</p>
-                      <span className="text-[10px] text-slate-400">{dog.breed || 'SRD'}</span>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1">
-                        <Utensils className="w-3.5 h-3.5" /> Dieta
-                      </label>
-                      <textarea
-                        value={care.diet || ''}
-                        onChange={e => updateCare('diet', e.target.value)}
-                        placeholder="Ração, marca, quantidade, horários de alimentação..."
-                        rows={2}
-                        className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none resize-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1">
-                        <Pill className="w-3.5 h-3.5" /> Medicamentos
-                      </label>
-                      <textarea
-                        value={care.medications || ''}
-                        onChange={e => updateCare('medications', e.target.value)}
-                        placeholder="Nome do medicamento, dosagem, frequência e horários..."
-                        rows={2}
-                        className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none resize-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1">
-                        <Repeat className="w-3.5 h-3.5" /> Rotina Diária
-                      </label>
-                      <textarea
-                        value={care.routine || ''}
-                        onChange={e => updateCare('routine', e.target.value)}
-                        placeholder="Passeios, sestas, brincadeiras, hábitos da casa..."
-                        rows={2}
-                        className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none resize-none"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              <Button
-                onClick={() => setStep(2)}
-                className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base"
-              >
-                Continuar →
-              </Button>
-            </div>
-          )}
-
-          {/* STEP 2 — Calendário de intervalo */}
-          {step === 2 && (
-            <div className="space-y-4">
-              {/* Selected dates display */}
-              <div className="flex items-center gap-3">
-                <div className={`flex-1 rounded-2xl border-2 p-3 text-center transition-all ${checkinDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200'}`}>
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Entrada</p>
-                  <p className="text-sm font-black text-slate-900 mt-0.5">
-                    {checkinDate ? formatDate(checkinDate) : '—'}
-                  </p>
-                </div>
-                <div className="text-slate-300 font-bold">→</div>
-                <div className={`flex-1 rounded-2xl border-2 p-3 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200'}`}>
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Saída</p>
-                  <p className="text-sm font-black text-slate-900 mt-0.5">
-                    {checkoutDate ? formatDate(checkoutDate) : '—'}
-                  </p>
-                </div>
-              </div>
-
-              {checkinPolicy !== 'all_days' && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5">
-                  <p className="text-xs text-blue-700 font-semibold">
-                    {checkinPolicy === 'no_sundays' ? 'Hotel fechado aos Domingos' : 'Hotel fechado aos Domingos e Feriados'}
-                  </p>
-                </div>
-              )}
-
-              <HotelRangeCalendar
-                daysOff={[]}
-                checkinPolicy={checkinPolicy}
-                checkinDate={checkinDate}
-                checkoutDate={checkoutDate}
-                onRangeSelect={(ci, co) => {
-                  setCheckinDate(ci);
-                  setCheckoutDate(co);
-                }}
-              />
-
-              {/* Horários */}
-              {checkinDate && (
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> Hora Entrada
-                    </label>
-                    <input
-                      type="time"
-                      value={checkinTime}
-                      onChange={(e) => setCheckinTime(e.target.value)}
-                      className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 font-bold text-sm focus:border-slate-400 focus:outline-none"
+                  <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm">
+                    <HotelRangeCalendar
+                      daysOff={[]}
+                      checkinPolicy={checkinPolicy}
+                      checkinDate={checkinDate}
+                      checkoutDate={checkoutDate}
+                      onRangeSelect={(ci, co) => {
+                        setCheckinDate(ci);
+                        setCheckoutDate(co);
+                      }}
                     />
                   </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> Hora Saída
-                    </label>
-                    <input
-                      type="time"
-                      value={checkoutTime}
-                      onChange={(e) => setCheckoutTime(e.target.value)}
-                      className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 font-bold text-sm focus:border-slate-400 focus:outline-none"
-                    />
-                  </div>
+
+                  {checkinDate && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1.5 tracking-wider">
+                          <Clock className="w-3 h-3" /> Hora Entrada
+                        </label>
+                        <input
+                          type="time"
+                          value={checkinTime}
+                          onChange={(e) => setCheckinTime(e.target.value)}
+                          className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 font-bold text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1.5 tracking-wider">
+                          <Clock className="w-3 h-3" /> Hora Saída
+                        </label>
+                        <input
+                          type="time"
+                          value={checkoutTime}
+                          onChange={(e) => setCheckoutTime(e.target.value)}
+                          className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 font-bold text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <AnimatePresence>
+                    {checkinDate && checkoutDate && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                      >
+                        <Button
+                          onClick={() => setStep(3)}
+                          className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base shadow-md shadow-slate-200"
+                        >
+                          Ver Resumo
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
 
-              {checkinDate && checkoutDate && (
-                <Button
-                  onClick={() => setStep(3)}
-                  className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base"
+              {/* STEP 3 — Sucesso */}
+              {step === 3 && finalized && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center justify-center text-center py-10 space-y-5"
                 >
-                  Continuar →
-                </Button>
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-emerald-200 blur-2xl opacity-50 rounded-full" />
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+                      className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-200"
+                    >
+                      <CheckCircle2 className="w-10 h-10 text-white" />
+                    </motion.div>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-black text-slate-900">Reserva registada!</h3>
+                    <p className="text-sm text-slate-500 max-w-xs">
+                      Enviámos os detalhes para <span className="font-bold text-slate-700">{currentUser.email}</span>
+                    </p>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-center gap-2 text-xs text-slate-500">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    >
+                      <CreditCard className="w-4 h-4 text-slate-400" />
+                    </motion.div>
+                    <span>A redirecionar para o pagamento seguro...</span>
+                  </div>
+                </motion.div>
               )}
-            </div>
-          )}
 
-          {/* STEP 3 — Resumo e Pagamento */}
-          {step === 3 && finalized && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center text-center py-8 space-y-4"
-            >
-              <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center">
-                <CheckCircle2 className="w-9 h-9 text-emerald-500" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-black text-slate-900">Reserva registada!</h3>
-                <p className="text-sm text-slate-500 max-w-xs">
-                  Enviámos os detalhes da reserva para <span className="font-bold text-slate-700">{currentUser.email}</span>
-                </p>
-              </div>
-              <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-center gap-2 text-xs text-slate-500">
-                <Mail className="w-4 h-4 text-slate-400" />
-                <span>A redirecionar para o pagamento seguro...</span>
-              </div>
+              {/* STEP 3 — Resumo e Pagamento */}
+              {step === 3 && !finalized && (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-3xl p-5 space-y-4 border border-slate-200 shadow-sm">
+                    {/* Hotel header */}
+                    <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center border border-slate-200">
+                        <PawPrint className="w-5 h-5 text-slate-600" />
+                      </div>
+                      <div>
+                        <p className="font-black text-slate-900 text-sm">{hotel.walker_name}</p>
+                        <p className="text-[11px] text-slate-500">{selectedService.service_name}</p>
+                      </div>
+                    </div>
+
+                    {/* Summary rows */}
+                    <div className="space-y-2.5">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-500">{selectedDogs.length > 1 ? 'Animais' : 'Animal'}</span>
+                        <span className="font-bold text-slate-900 text-right">
+                          {selectedDogs.map(d => d.dog_name).join(', ')}
+                          {selectedDogs.length > 1 && <span className="block text-xs text-slate-500 font-semibold">({selectedDogs.length} animais)</span>}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-500">Entrada</span>
+                        <span className="font-bold text-slate-900">{formatDate(checkinDate)} · {checkinTime}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-500">Saída</span>
+                        <span className="font-bold text-slate-900">{formatDate(checkoutDate)} · {checkoutTime}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-500">Duração</span>
+                        <span className="font-bold text-slate-900">{totalNights} {totalNights === 1 ? 'noite' : 'noites'}</span>
+                      </div>
+                    </div>
+
+                    {/* Address */}
+                    <div className="pt-3 border-t border-slate-100">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1.5 tracking-wider">
+                        <MapPin className="w-3 h-3" /> Endereço de Recolha
+                      </label>
+                      <input
+                        type="text"
+                        value={pickupAddress}
+                        onChange={(e) => setPickupAddress(e.target.value)}
+                        placeholder="Morada completa de recolha"
+                        className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                      />
+                    </div>
+
+                    {/* Special requests */}
+                    <div className="pt-3 border-t border-slate-100">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase mb-2 block tracking-wider">Pedidos especiais (opcional)</label>
+                      <textarea
+                        value={specialRequests}
+                        onChange={(e) => setSpecialRequests(e.target.value)}
+                        placeholder="Restrições, preferências, etc."
+                        rows={2}
+                        className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none resize-none transition-colors"
+                      />
+                    </div>
+
+                    {/* Price breakdown */}
+                    <div className="pt-3 border-t border-slate-100 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">
+                          {perDogPerNight}€ × {totalNights} {totalNights === 1 ? 'noite' : 'noites'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
+                        </span>
+                        <span className="font-bold text-slate-700">{serviceAmount}€</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">Taxa de plataforma (10%)</span>
+                        <span className="font-bold text-amber-600">{platformFee}€</span>
+                      </div>
+                    </div>
+
+                    {/* Total */}
+                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl px-4 py-3.5 flex justify-between items-center">
+                      <div>
+                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Total</p>
+                        <p className="text-xs text-slate-300">Pagamento único</p>
+                      </div>
+                      <span className="text-2xl font-black text-white">{totalAmount}€</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleCreateBooking}
+                    disabled={isCreating}
+                    className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-green-200 flex items-center justify-center gap-2 transition-all"
+                  >
+                    {isCreating ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                      />
+                    ) : (
+                      <><CreditCard className="w-5 h-5" /> Confirmar e Pagar {totalAmount}€</>
+                    )}
+                  </Button>
+
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Pagamento seguro via Stripe</span>
+                  </div>
+                </div>
+              )}
             </motion.div>
-          )}
-
-          {step === 3 && !finalized && (
-            <div className="space-y-4">
-              <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
-                  <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <PawPrint className="w-4 h-4 text-slate-600" />
-                  </div>
-                  <div>
-                    <p className="font-black text-slate-900 text-sm">{hotel.walker_name}</p>
-                    <p className="text-[10px] text-slate-500">{selectedService.service_name}</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">{selectedDogs.length > 1 ? 'Animais' : 'Animal'}</span>
-                  <span className="font-bold text-slate-900 text-right">
-                    {selectedDogs.map(d => d.dog_name).join(', ')}
-                    {selectedDogs.length > 1 && <span className="block text-xs text-slate-500 font-semibold">({selectedDogs.length} animais)</span>}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Entrada</span>
-                  <span className="font-bold text-slate-900">{formatDate(checkinDate)} · {checkinTime}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Saída</span>
-                  <span className="font-bold text-slate-900">{formatDate(checkoutDate)} · {checkoutTime}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Duração</span>
-                  <span className="font-bold text-slate-900">{totalNights} {totalNights === 1 ? 'noite' : 'noites'}</span>
-                </div>
-
-                <div className="pt-2 border-t border-slate-200">
-                  <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" /> Endereço de Recolha
-                  </label>
-                  <input
-                    type="text"
-                    value={pickupAddress}
-                    onChange={(e) => setPickupAddress(e.target.value)}
-                    placeholder="Morada completa onde iremos buscar o(s) animal(is)"
-                    className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none"
-                  />
-                </div>
-
-                <div className="pt-2 border-t border-slate-200">
-                  <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Pedidos especiais (opcional)</label>
-                  <textarea
-                    value={specialRequests}
-                    onChange={(e) => setSpecialRequests(e.target.value)}
-                    placeholder="Restrições alimentares, medicamentos, etc."
-                    rows={2}
-                    className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none resize-none"
-                  />
-                </div>
-
-                <div className="pt-2 border-t border-slate-200 space-y-1.5">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">
-                      {perDogPerNight}€ × {totalNights} {totalNights === 1 ? 'noite' : 'noites'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
-                    </span>
-                    <span className="font-bold">{serviceAmount}€</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Taxa de plataforma (10%)</span>
-                    <span className="font-bold text-amber-600">{platformFee}€</span>
-                  </div>
-                </div>
-                <div className="bg-slate-900 rounded-xl px-4 py-3 flex justify-between items-center">
-                  <span className="text-sm font-bold text-slate-200">Total a pagar</span>
-                  <span className="text-2xl font-black text-white">{totalAmount}€</span>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleCreateBooking}
-                disabled={isCreating}
-                className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-black rounded-2xl text-lg shadow-lg shadow-green-200 flex items-center justify-center gap-2"
-              >
-                {isCreating ? (
-                  <>A confirmar reserva e enviar email...</>
-                ) : (
-                  <><CreditCard className="w-5 h-5" /> Confirmar e Pagar {totalAmount}€</>
-                )}
-              </Button>
-
-              <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Pagamento seguro via Stripe</span>
-              </div>
-            </div>
-          )}
+          </AnimatePresence>
         </div>
       </DrawerContent>
     </Drawer>
