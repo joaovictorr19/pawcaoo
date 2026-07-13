@@ -275,21 +275,22 @@ export default function Home() {
       return;
     }
     const dur = 1500;
-    const steps = 60;
-    const increment = currentXP / steps;
-    let current = 0;
+    const startTime = performance.now();
+    let rafId;
 
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= currentXP) {
-        setDisplayedXP(currentXP);
-        clearInterval(timer);
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / dur, 1);
+      setDisplayedXP(Math.floor(progress * currentXP));
+      if (progress < 1) {
+        rafId = requestAnimationFrame(tick);
       } else {
-        setDisplayedXP(Math.floor(current));
+        setDisplayedXP(currentXP);
       }
-    }, dur / steps);
+    };
+    rafId = requestAnimationFrame(tick);
 
-    return () => clearInterval(timer);
+    return () => cancelAnimationFrame(rafId);
   }, [currentXP]);
 
   const { data: earnedBadgesData = [] } = useQuery({
@@ -321,7 +322,7 @@ export default function Home() {
         const result = await base44.entities.WalkerProfile.filter(
           { is_active: true, verification_status: 'verified' },
           '-created_date',
-          500
+          50
         );
         return Array.isArray(result) ? result : [];
       } catch (error) {
@@ -420,30 +421,7 @@ export default function Home() {
 
   const featuredAdoptions = [];
 
-  const { data: stats } = useQuery({
-    queryKey: ['platformStats'],
-    queryFn: async () => {
-      try {
-        const [activeWalkers, activeTrainers] = await Promise.all([
-          base44.entities.WalkerProfile.filter({ is_active: true }, '-created_date', 200),
-          base44.entities.TrainerProfile.filter({ is_active: true }, '-created_date', 200),
-        ]);
-
-        return {
-          totalWalkers: activeWalkers?.length || 0,
-          totalTrainers: activeTrainers?.length || 0,
-          happyDogs: 0,
-          adoptedDogs: 0
-        };
-      } catch (error) {
-        return { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 };
-      }
-    },
-    initialData: { totalWalkers: 0, totalTrainers: 0, happyDogs: 0, adoptedDogs: 0 },
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  // platformStats query removida — descarregava 400 entidades completas só para .length
 
 
 
