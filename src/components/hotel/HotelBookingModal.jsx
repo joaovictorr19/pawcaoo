@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { isDateBlocked } from '@/utils/portugueseHolidays';
 
-export default function HotelBookingModal({ isOpen, onClose, hotel, selectedService, currentUser }) {
+export default function HotelBookingModal({ isOpen, onClose, hotel, selectedService, currentUser, initialDate }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [selectedDogIds, setSelectedDogIds] = useState([]);
@@ -24,14 +24,14 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   useEffect(() => {
     if (isOpen) {
       setSelectedDogIds([]);
-      setCheckinDate('');
+      setCheckinDate(initialDate || '');
       setCheckoutDate('');
       setCheckinTime(hotel?.hotel_details?.checkin_time || '10:00');
       setCheckoutTime(hotel?.hotel_details?.checkout_time || '17:00');
       setSpecialRequests('');
-      setStep(0);
+      setStep(initialDate ? 0 : 0);
     }
-  }, [isOpen, hotel]);
+  }, [isOpen, hotel, initialDate]);
 
   const { data: clientProfile } = useQuery({
     queryKey: ['bookingClientProfile', currentUser?.email],
