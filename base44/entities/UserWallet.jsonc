@@ -36,6 +36,21 @@
       "default": 0,
       "description": "Pagamentos pendentes a walkers (tokens usados aguardando transfer\u00eancia)"
     },
+    "available_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Saldo dispon\u00edvel para saque (ganhos de hotel liberados ap\u00f3s conclus\u00e3o do servi\u00e7o)"
+    },
+    "pending_balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Saldo pendente (ganhos de hotel aguardando conclus\u00e3o do servi\u00e7o para libera\u00e7\u00e3o)"
+    },
+    "total_earnings": {
+      "type": "number",
+      "default": 0,
+      "description": "Total acumulado de ganhos (hist\u00f3rico)"
+    },
     "tokens_expiry_date": {
       "type": "string",
       "format": "date",

@@ -46,6 +46,9 @@ export default function MyWallet() {
         total_points: savedWallet?.total_points || 0,
         escrow_balance: savedWallet?.escrow_balance || 0,
         pending_walker_payments: savedWallet?.pending_walker_payments || 0,
+        available_balance: savedWallet?.available_balance || 0,
+        pending_balance: savedWallet?.pending_balance || 0,
+        total_earnings: savedWallet?.total_earnings || 0,
         tokens_expiry_date: savedWallet?.tokens_expiry_date || null,
       };
     },
@@ -144,7 +147,8 @@ export default function MyWallet() {
   }, [walkerBookings, trainerBookings, reviews]);
 
   const clientFunds = wallet?.cashback_balance || 0;
-  const professionalPending = wallet?.pending_walker_payments || 0;
+  const professionalPending = (wallet?.available_balance || 0) + (wallet?.pending_walker_payments || 0);
+  const professionalPendingHotel = wallet?.pending_balance || 0;
 
   const addCreditsMutation = useMutation({
     mutationFn: async (amount) => {
@@ -165,9 +169,10 @@ export default function MyWallet() {
 
   const withdrawMutation = useMutation({
     mutationFn: async (amount) => {
-      const payouts = await base44.entities.WalkerPayout.filter({ walker_email: user.email, status: 'pending' }, '-created_date', 100);
-      const totalPending = payouts.reduce((sum, item) => sum + (item.net_amount || 0), 0);
-      if (amount > totalPending) throw new Error('Saldo insuficiente');
+      const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
+      const w = wallets[0];
+      const walletAvailable = (w?.available_balance || 0) + (w?.pending_walker_payments || 0);
+      if (amount > walletAvailable) throw new Error('Saldo insuficiente');
       const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
       const trainerProfiles = await base44.entities.TrainerProfile.filter({ created_by: user.email });
       const iban = profiles[0]?.bank_account_number || trainerProfiles[0]?.bank_account_number;
@@ -288,8 +293,8 @@ export default function MyWallet() {
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { label: "Disponível p/ Saque", value: `€${professionalPending.toFixed(2)}`, icon: <DollarSign className="w-4 h-4 text-emerald-500" />, bg: "bg-emerald-50 border-emerald-100" },
-                  { label: "Em Cofre", value: `€${(wallet?.escrow_balance || 0).toFixed(2)}`, icon: <Clock className="w-4 h-4 text-blue-500" />, bg: "bg-blue-50 border-blue-100" },
-                  { label: "Total Ganho", value: `€${metrics.totalEarnings}`, icon: <TrendingUp className="w-4 h-4 text-orange-500" />, bg: "bg-orange-50 border-orange-100" },
+                  { label: "Pendente (Hotel)", value: `€${professionalPendingHotel.toFixed(2)}`, icon: <Clock className="w-4 h-4 text-amber-500" />, bg: "bg-amber-50 border-amber-100" },
+                  { label: "Total Ganho", value: `€${(wallet?.total_earnings || 0).toFixed(2)}`, icon: <TrendingUp className="w-4 h-4 text-orange-500" />, bg: "bg-orange-50 border-orange-100" },
                   { label: "Avaliação Média", value: `⭐ ${metrics.avgRating}`, icon: <Star className="w-4 h-4 text-yellow-500" />, bg: "bg-yellow-50 border-yellow-100" },
                 ].map(item => (
                   <div key={item.label} className={`${item.bg} border rounded-2xl p-4`}>

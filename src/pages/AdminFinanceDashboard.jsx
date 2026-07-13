@@ -85,6 +85,8 @@ export default function AdminFinanceDashboard() {
     // Escrow and pending
     totalEscrow: wallets.reduce((sum, w) => sum + (w.escrow_balance || 0), 0),
     totalPendingPayouts: wallets.reduce((sum, w) => sum + (w.pending_walker_payments || 0), 0),
+    totalAvailableBalance: wallets.reduce((sum, w) => sum + (w.available_balance || 0), 0),
+    totalPendingBalance: wallets.reduce((sum, w) => sum + (w.pending_balance || 0), 0),
     totalCashbackLiability: wallets.reduce((sum, w) => sum + (w.cashback_balance || 0), 0),
     
     // Potential breakage (unused tokens value)
@@ -290,6 +292,14 @@ export default function AdminFinanceDashboard() {
               <div className="flex justify-between items-center p-3 bg-yellow-500/20 rounded-lg">
                 <span className="text-slate-300">Pagamentos Pendentes</span>
                 <span className="text-xl font-bold text-yellow-400">€{metrics.totalPendingPayouts.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-emerald-500/20 rounded-lg">
+                <span className="text-slate-300">Saldo Disponível (Hotéis/Pros)</span>
+                <span className="text-xl font-bold text-emerald-400">€{metrics.totalAvailableBalance.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-amber-500/20 rounded-lg">
+                <span className="text-slate-300">Saldo Pendente (Hotéis/Pros)</span>
+                <span className="text-xl font-bold text-amber-400">€{metrics.totalPendingBalance.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-green-500/20 rounded-lg">
                 <span className="text-slate-300">Breakage Potencial</span>
