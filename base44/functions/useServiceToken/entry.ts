@@ -20,6 +20,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Booking ID required' }, { status: 400 });
     }
 
+    // ── SECURITY: Validate that the booking belongs to the authenticated user (IDOR fix) ──
+    const bookings = await base44.asServiceRole.entities.Booking.filter({ id: booking_id });
+    if (!bookings || bookings.length === 0) {
+      return Response.json({ error: 'Booking not found' }, { status: 404 });
+    }
+    const bookingRecord = bookings[0];
+    const bookingOwnerEmail = bookingRecord.owner_email || bookingRecord.created_by;
+    if (bookingOwnerEmail !== user.email) {
+      return Response.json({ error: 'You do not have access to this booking' }, { status: 403 });
+    }
+
     // Get user wallet
     const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
 
