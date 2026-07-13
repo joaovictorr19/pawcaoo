@@ -6,7 +6,7 @@ import {
   Dog, Phone, Mail, Calendar, Clock, ChevronDown, ChevronUp,
   AlertCircle, FileText, ArrowRight, Heart, Pill, Syringe,
   CheckCircle2, LogOut, User, Star, ShieldAlert, Activity,
-  Search, Filter, BookOpen
+  Search, Filter, BookOpen, Utensils, Repeat, ListChecks, Scissors
 } from "lucide-react";
 import GuestsExportButton from "./GuestsExportButton";
 import GuestDailyReport from "./GuestDailyReport";
@@ -37,6 +37,44 @@ const SERVICE_COLORS = {
   grooming: "bg-pink-50 text-pink-700",
   walk_with_partner: "bg-teal-50 text-teal-700",
   training: "bg-blue-50 text-blue-700",
+};
+
+const ADDON_LABELS = {
+  walk: "Passeio",
+  training: "Treino",
+  grooming: "Grooming",
+  bathing: "Banho",
+  nail_trim: "Corte de Unhas",
+};
+
+const ADDON_ICONS = {
+  walk: Dog,
+  training: Star,
+  grooming: Scissors,
+  bathing: Heart,
+  nail_trim: Scissors,
+};
+
+// Validation helper: is today within the booking date range?
+const isDateWithinBooking = (checkinDate, checkoutDate) => {
+  if (!checkinDate) return { valid: true, reason: null };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(checkinDate);
+  start.setHours(0, 0, 0, 0);
+  if (today < start) {
+    const diffDays = Math.round((start - today) / (1000 * 60 * 60 * 24));
+    return { valid: false, reason: `Check-in previsto para ${format(start, "dd/MM/yyyy")} (daqui a ${diffDays} dia${diffDays > 1 ? "s" : ""})` };
+  }
+  if (checkoutDate) {
+    const end = new Date(checkoutDate);
+    end.setHours(0, 0, 0, 0);
+    if (today > end) {
+      const diffDays = Math.round((today - end) / (1000 * 60 * 60 * 24));
+      return { valid: false, reason: `Check-out era ${format(end, "dd/MM/yyyy")} (há ${diffDays} dia${diffDays > 1 ? "s" : ""})` };
+    }
+  }
+  return { valid: true, reason: null };
 };
 
 function StayProgress({ checkinDate, checkoutDate }) {
@@ -235,6 +273,29 @@ function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
                           {dog.dog_breed && <p>Raça: <span className="font-medium text-slate-800">{dog.dog_breed}</span></p>}
                           {dog.dog_age && <p>Idade: <span className="font-medium text-slate-800">{dog.dog_age} anos</span></p>}
                         </div>
+                        {/* Diet & Routine */}
+                        {(dog.diet || dog.routine) && (
+                          <div className="mt-2 space-y-1.5">
+                            {dog.diet && (
+                              <div className="bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-1.5 flex gap-1.5">
+                                <Utensils className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-wide">Dieta</p>
+                                  <p className="text-xs text-emerald-800">{dog.diet}</p>
+                                </div>
+                              </div>
+                            )}
+                            {dog.routine && (
+                              <div className="bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-1.5 flex gap-1.5">
+                                <Repeat className="w-3 h-3 text-blue-500 shrink-0 mt-0.5" />
+                                <div>
+                                  <p className="text-[9px] font-bold text-blue-600 uppercase tracking-wide">Rotina</p>
+                                  <p className="text-xs text-blue-800">{dog.routine}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         {dog.special_notes && (
                           <div className="mt-2 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5 flex gap-1.5">
                             <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
@@ -276,6 +337,55 @@ function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
                   <p className="text-xs text-purple-700 font-medium">Parceiro: {booking.assigned_walker_name}</p>
                 </div>
               )}
+
+              {/* Assigned services (add_ons) */}
+              {booking.add_ons && booking.add_ons.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <ListChecks className="w-3 h-3" /> Serviços Atribuídos ({booking.add_ons.length})
+                  </p>
+                  <div className="space-y-1.5">
+                    {booking.add_ons.map((addon, i) => {
+                      const AddonIcon = ADDON_ICONS[addon.service_name] || Activity;
+                      return (
+                        <div key={i} className="bg-white border border-slate-200 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <AddonIcon className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-slate-800">
+                                {ADDON_LABELS[addon.service_name] || addon.service_name}
+                              </p>
+                              {addon.quantity > 1 && (
+                                <p className="text-[10px] text-slate-400">{addon.quantity} sessões</p>
+                              )}
+                            </div>
+                          </div>
+                          {addon.total_price > 0 && (
+                            <span className="text-xs font-semibold text-slate-600 shrink-0">
+                              {addon.total_price.toFixed(2)}€
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Date validation warning */}
+              {(() => {
+                const dateCheck = isDateWithinBooking(booking.checkin_date, booking.checkout_date);
+                if (dateCheck.valid) return null;
+                return (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex gap-2 items-start">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide mb-0.5">Fora do período</p>
+                      <p className="text-xs text-amber-800">{dateCheck.reason}</p>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Date info */}
               <div className="flex flex-wrap gap-2 text-xs text-slate-500">
@@ -357,25 +467,44 @@ export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
   };
 
   const handleCheckIn = async (id) => {
+    const bk = bookings.find(b => b.id === id);
+    if (!bk) return;
+
+    // Date validation
+    const dateCheck = isDateWithinBooking(bk.checkin_date, bk.checkout_date);
+    if (!dateCheck.valid) {
+      const proceed = window.confirm(
+        `Atenção: ${dateCheck.reason}.\n\nQueres mesmo assim fazer o check-in agora?`
+      );
+      if (!proceed) return;
+    }
+
     const time = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
     onUpdateBooking(id, { status: "checked_in", checkin_time: time });
-    const bk = bookings.find(b => b.id === id);
-    if (bk) {
-      const dogNames = (bk.dogs || []).map(d => d.dog_name).join(" & ") || "o seu animal";
-      await sendOwnerNotification(bk, "✅ Check-in realizado!", `${dogNames} chegou ao hotel às ${time}. Boa estadia! 🐾`);
-      toast.success(`Check-in registado às ${time}`);
-    }
+    const dogNames = (bk.dogs || []).map(d => d.dog_name).join(" & ") || "o seu animal";
+    await sendOwnerNotification(bk, "Check-in realizado!", `${dogNames} chegou ao hotel às ${time}. Boa estadia!`);
+    toast.success(`Check-in registado às ${time}`);
   };
 
   const handleCheckOut = async (id) => {
-    const time = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
-    onUpdateBooking(id, { status: "checked_out", checkout_time: time });
     const bk = bookings.find(b => b.id === id);
-    if (bk) {
-      const dogNames = (bk.dogs || []).map(d => d.dog_name).join(" & ") || "o seu animal";
-      await sendOwnerNotification(bk, "🚪 Check-out realizado", `${dogNames} saiu do hotel às ${time}. Foi um prazer tê-lo connosco! 🐾`);
-      toast.success(`Check-out registado às ${time}`);
+    if (!bk) return;
+
+    // Date validation
+    const dateCheck = isDateWithinBooking(bk.checkin_date, bk.checkout_date);
+    if (!dateCheck.valid && dateCheck.reason?.includes("Check-out era")) {
+      const proceed = window.confirm(
+        `Atenção: ${dateCheck.reason}.\n\nQueres confirmar o check-out mesmo assim?`
+      );
+      if (!proceed) return;
     }
+
+    const time = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+    const today = new Date().toISOString().split("T")[0];
+    onUpdateBooking(id, { status: "checked_out", checkout_time: time, checkout_date: today });
+    const dogNames = (bk.dogs || []).map(d => d.dog_name).join(" & ") || "o seu animal";
+    await sendOwnerNotification(bk, "Check-out realizado", `${dogNames} saiu do hotel às ${time}. Foi um prazer tê-lo connosco!`);
+    toast.success(`Check-out registado às ${time}`);
   };
 
   // Filter helper
