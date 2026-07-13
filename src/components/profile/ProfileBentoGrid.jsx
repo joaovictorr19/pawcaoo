@@ -124,46 +124,66 @@ export default function ProfileBentoGrid({
             </div>
           )}
 
-          {/* BADGES / ACHIEVEMENTS - MOVED UP for prominence */}
-          <div className="md:col-span-2 lg:col-span-4 bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-5 md:p-6 shadow-sm border border-amber-100">
+          {/* BADGES / ACHIEVEMENTS - Scrapbook Craft */}
+          <div
+            className="md:col-span-2 lg:col-span-4 p-5 md:p-6"
+            style={{ backgroundColor: '#FBF7F0', border: '2px dashed #6E533F', borderRadius: '16px' }}
+          >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center shadow-sm">
-                  <Award className="w-4 h-4 text-white" />
-                </div>
+              <h3 className="text-base font-bold flex items-center gap-2" style={{ color: '#3D2C1F', fontFamily: 'Georgia, serif' }}>
                 {language === 'pt' ? 'Conquistas' : 'Achievements'}
-                <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full">
-                  {earnedBadges.length}
-                </span>
               </h3>
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+                style={{ backgroundColor: '#D6CFC3', border: '1.5px solid #6E533F' }}
+              >
+                <Award className="w-3.5 h-3.5" style={{ color: '#FFCC4D' }} strokeWidth={2.5} />
+                <span className="text-xs font-black" style={{ color: '#3D2C1F' }}>{earnedBadges.length}</span>
+              </div>
             </div>
             {loadingBadges ? (
-              <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-2 px-1">
-                {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-20 bg-slate-100 rounded-2xl flex-shrink-0 animate-pulse" />)}
+              <div className="flex gap-4 overflow-x-auto overflow-y-hidden py-3 px-1">
+                {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-20 flex-shrink-0 animate-pulse" style={{ backgroundColor: '#D6CFC3', border: '2px solid #6E533F', borderRadius: '8px' }} />)}
               </div>
             ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-2 px-1">
-                {earnedBadges.slice(0, 10).map((badge) => (
-                  <div key={badge._uniqueId} className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20">
-                    <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
-                    <p className="text-[9px] font-bold text-slate-600 text-center leading-tight w-full truncate">
-                      {badge.name || badge.badge_id}
-                    </p>
-                  </div>
-                ))}
-                {earnedBadges.length > 10 && (
-                  <div className="flex flex-col items-center justify-center gap-1.5 flex-shrink-0 w-20">
-                    <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center">
-                      <span className="text-amber-600 font-black text-sm">+{earnedBadges.length - 10}</span>
+              <div className="flex gap-4 overflow-x-auto overflow-y-hidden py-3 px-1">
+                {earnedBadges.slice(0, 10).map((badge, idx) => {
+                  const tapeColors = ['#C6D8C6', '#C19A73', '#D0E8EC', '#E8C8C0'];
+                  const rotations = [-3, 2, -2, 3, -1, 2];
+                  const rot = rotations[idx % rotations.length];
+                  const tapeColor = tapeColors[idx % tapeColors.length];
+                  return (
+                    <div key={badge._uniqueId} className="flex flex-col items-center gap-2 flex-shrink-0 w-20 relative" style={{ transform: `rotate(${rot}deg)` }}>
+                      <div className="relative w-full" style={{ backgroundColor: '#FFFFFF', border: '2px solid #6E533F', borderRadius: '8px', padding: '10px 6px 6px' }}>
+                        <div
+                          className="absolute left-1/2 -top-2 -translate-x-1/2 w-8 h-4"
+                          style={{ backgroundColor: tapeColor, opacity: 0.85 }}
+                        />
+                        <div className="flex justify-center">
+                          <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
+                        </div>
+                      </div>
+                      <p className="text-[9px] font-bold text-center leading-tight w-full truncate" style={{ color: '#3D2C1F' }}>
+                        {badge.name || badge.badge_id}
+                      </p>
                     </div>
-                    <p className="text-[9px] font-bold text-amber-600">ver mais</p>
+                  );
+                })}
+                {earnedBadges.length > 10 && (
+                  <div className="flex flex-col items-center justify-center gap-2 flex-shrink-0 w-20" style={{ transform: 'rotate(2deg)' }}>
+                    <div className="w-14 h-14 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#D6CFC3', border: '2px solid #6E533F' }}>
+                      <span className="font-black text-sm" style={{ color: '#6E533F' }}>+{earnedBadges.length - 10}</span>
+                    </div>
+                    <p className="text-[9px] font-bold" style={{ color: '#6E533F' }}>ver mais</p>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-xs text-slate-400 font-bold italic py-4 text-center">
-                {language === 'pt' ? 'Ainda sem conquistas. Complete serviços para ganhar emblemas!' : 'No badges yet. Complete services to earn badges!'}
-              </p>
+              <div className="text-center py-6">
+                <p className="text-xs font-bold italic" style={{ color: '#6E533F' }}>
+                  {language === 'pt' ? 'Ainda sem conquistas. Complete serviços para ganhar emblemas!' : 'No badges yet. Complete services to earn badges!'}
+                </p>
+              </div>
             )}
           </div>
 
