@@ -135,13 +135,14 @@ const AuthenticatedApp = () => {
     <LayoutWrapper currentPageName={mainPageKey}>
       <AnimatePresence mode="wait">
       <motion.div
+        key={location.pathname}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
       >
         <Suspense fallback={<PageLoader />}>
-          <Routes>
+          <Routes location={location}>
             <Route path="/" element={<Home />} />
             <Route path="/Home" element={<Home />} />
             <Route path="/UserProfile" element={<UserProfile />} />
