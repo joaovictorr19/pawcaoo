@@ -70,8 +70,19 @@ export function ProfessionalCard({ walker }) {
 
       {/* Seta de ação para indicar que é clicável */}
       <div className="shrink-0 flex flex-col items-end gap-1">
-        {walker.hourly_rate && (
+        {profileData.isHotel ? (
+          (() => {
+            const services = walker?.hotel_details?.services || [];
+            const prices = services.map(s => s.price_per_day).filter(p => p > 0);
+            const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+            return minPrice ? (
+              <span className="text-xs font-black text-purple-600">{minPrice}€<span className="text-[9px] text-slate-400">/noite</span></span>
+            ) : null;
+          })()
+        ) : (
+          walker.hourly_rate ? (
             <span className="text-xs font-black text-green-600">{walker.hourly_rate}€<span className="text-[9px] text-slate-400">/h</span></span>
+          ) : null
         )}
         <ArrowUpRight size={16} className="text-slate-300" />
       </div>
