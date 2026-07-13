@@ -303,15 +303,15 @@ export default function HotelDashboard() {
               </span>
             </div>
             <Button size="sm" variant="outline"
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs hidden md:flex"
+              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs"
               onClick={handleSyncGoogleCalendar} disabled={isSyncing}>
               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? "A sincronizar" : "Google Calendar"}
+              <span className="hidden md:inline">{isSyncing ? "A sincronizar" : "Google Calendar"}</span>
             </Button>
             <Button size="sm" variant="outline"
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs hidden md:flex"
+              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs"
               onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}>
-              <Settings className="w-3.5 h-3.5" /> Configurar
+              <Settings className="w-3.5 h-3.5" /> <span className="hidden md:inline">Configurar</span>
             </Button>
           </div>
         </div>

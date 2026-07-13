@@ -46,12 +46,15 @@ const ROUTE_TITLES = {
   [createPageUrl('EditAnimalProfile')]: 'Editar Animal',
   [createPageUrl('FiscalSettings')]: 'Configurações Fiscais',
   [createPageUrl('StripeConnectSetup')]: 'Configurar Pagamentos',
+  [createPageUrl('HotelDashboard')]: 'Painel do Hotel',
+  [createPageUrl('PartnerHotelPanel')]: 'Painel do Parceiro',
 };
 
 const NAV_LABELS = {
   professional: { pt: 'Profissional', en: 'Professional', es: 'Profesional', fr: 'Professionnel' },
   client:       { pt: 'Cliente',       en: 'Client',       es: 'Cliente',      fr: 'Client'        },
   admin:        { pt: 'Admin',         en: 'Admin',        es: 'Admin',        fr: 'Admin'         },
+  hotel:        { pt: 'Hotel',         en: 'Hotel',        es: 'Hotel',        fr: 'Hôtel'         },
   enter:        { pt: 'Entrar',        en: 'Sign In',      es: 'Entrar',       fr: 'Connexion'     },
   exit:         { pt: 'Sair',          en: 'Sign Out',     es: 'Salir',        fr: 'Déconnecter'   },
 };
@@ -62,6 +65,7 @@ export default function MobileHeader() {
   const { language } = useLanguage();
   const [authed, setAuthed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isHotel, setIsHotel] = useState(false);
 
   const lbl = (key) => NAV_LABELS[key]?.[language] || NAV_LABELS[key]?.pt || key;
 
@@ -73,13 +77,16 @@ export default function MobileHeader() {
         if (ok) {
           try {
             const me = await base44.auth.me();
-            if (mounted) setIsAdmin(me?.role === 'admin');
+            if (mounted) {
+              setIsAdmin(me?.role === 'admin');
+              setIsHotel(me?.role === 'hotel' || me?.role === 'hotel_admin');
+            }
           } catch {}
         } else {
-          if (mounted) setIsAdmin(false);
+          if (mounted) { setIsAdmin(false); setIsHotel(false); }
         }
       })
-      .catch(() => { if (mounted) { setAuthed(false); setIsAdmin(false); } });
+      .catch(() => { if (mounted) { setAuthed(false); setIsAdmin(false); setIsHotel(false); } });
     return () => { mounted = false; };
   }, []);
 
@@ -121,6 +128,9 @@ export default function MobileHeader() {
         <div className="flex items-center justify-center">
           {authed && (
             <div className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+              {isHotel && (
+                <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0 bg-slate-900 text-white hover:bg-slate-800" onClick={() => navigate(createPageUrl('HotelDashboard'))}>{lbl('hotel')}</Button>
+              )}
               <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>{lbl('professional')}</Button>
               <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>{lbl('client')}</Button>
               {isAdmin && (
