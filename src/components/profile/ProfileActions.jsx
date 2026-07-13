@@ -1,73 +1,68 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Calendar, Zap, Award } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
-
+import { Star, Award, PawPrint, Clock, MapPin } from 'lucide-react';
 
 export default function ProfileActions({ walker, currentUser }) {
-  const navigate = useNavigate();
+  const profile = walker;
+  const rating = profile?.rating?.toFixed(1) || '—';
+  const totalWalks = profile?.total_walks || 0;
+  const experienceYears = profile?.experience_years || 0;
+  const specialization = profile?.specializations?.[0];
+  const location = profile?.location;
 
-
-  const handlePawGoClick = () => {
-    const params = new URLSearchParams({
-      immediate: '1',
-      walkerId: walker?.id || '',
-      walkerName: encodeURIComponent(walker?.walker_name || ''),
-      walkerEmail: encodeURIComponent(walker?.created_by || '')
-    });
-
-    const targetUrl = `${createPageUrl('RequestWalk')}?${params.toString()}`;
-
-    if (!currentUser) {
-      base44.auth.redirectToLogin(targetUrl);
-      return;
-    }
-    navigate(targetUrl);
+  const specializationLabels = {
+    puppies: 'Cães filhotes',
+    senior_dogs: 'Cães séniores',
+    special_needs: 'Necessidades especiais',
+    behavioral_issues: 'Problemas comportamentais',
+    multiple_dogs: 'Múltiplos cães',
+    large_breeds: 'Raças grandes',
+    small_breeds: 'Raças pequenas',
+    anxious_dogs: 'Cães ansiosos',
+    high_energy: 'Alta energia',
   };
 
-  return (
-    <div className="flex flex-col gap-6 mt-6 pb-20">
-      
-      {/* 🟢 BLOCO 1: PAWGO (ESTILO UBER - CHAMADA DIRETA) */}
-      {walker?.is_online ? (
-        <div className="bg-orange-50 rounded-[2.5rem] p-6 border-2 border-orange-100 shadow-lg shadow-orange-500/10 animate-in fade-in zoom-in duration-500">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="bg-orange-500 p-2 rounded-xl text-white animate-pulse">
-                <Zap size={18} fill="currentColor" />
-              </div>
-              <h4 className="font-black uppercase text-[11px] tracking-widest text-orange-600 italic">PawGo Ativo</h4>
-            </div>
-            <span className="text-[9px] font-black bg-white px-3 py-1 rounded-full text-orange-500 border border-orange-200">PEDIDO IMEDIATO</span>
-          </div>
-          
-          <p className="text-[11px] text-slate-500 mb-4 leading-tight font-medium">
-            O profissional está na rua agora! Podes pedir um passeio que começa nos próximos 15-30 min.
-          </p>
+  const stats = [
+    { icon: Star, label: 'Avaliação', value: rating, color: 'text-amber-400' },
+    { icon: PawPrint, label: 'Serviços', value: totalWalks, color: 'text-sky-400' },
+    { icon: Clock, label: 'Experiência', value: `${experienceYears}a`, color: 'text-emerald-400' },
+  ];
 
-          <Button 
-            onClick={handlePawGoClick}
-            className="w-full h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.1em] shadow-xl active:scale-95 transition-transform"
-          >
-            <Zap size={16} className="mr-2" fill="currentColor" />
-            Chamar {walker?.walker_name?.split(' ')[0] || 'Profissional'} Agora
-          </Button>
+  return (
+    <div className="flex flex-col gap-4 py-1">
+      <div className="flex items-center gap-2">
+        <div className="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center">
+          <Award className="w-4 h-4 text-white/80" />
         </div>
-      ) : (
-        /* ⚪️ AVISO SE ESTIVER OFFLINE */
-        <div className="bg-slate-50 rounded-[2.5rem] p-4 border border-slate-200 flex items-center gap-3">
-          <div className="bg-slate-200 p-2 rounded-xl text-slate-400">
-            <Zap size={16} />
+        <h4 className="font-black uppercase text-[10px] tracking-widest text-white/60 italic">
+          Informação do Profissional
+        </h4>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        {stats.map((stat, i) => (
+          <div key={i} className="text-center">
+            <stat.icon className={`w-4 h-4 mx-auto mb-1 ${stat.color}`} />
+            <p className="text-xl font-black text-white">{stat.value}</p>
+            <p className="text-[9px] font-bold uppercase text-white/40 tracking-wide">{stat.label}</p>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-            PawGo Offline • Use a agenda para amanhã
+        ))}
+      </div>
+
+      {specialization && (
+        <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-2">
+          <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <p className="text-[11px] font-semibold text-white/80">
+            {specializationLabels[specialization] || specialization}
           </p>
         </div>
       )}
 
-
+      {location && (
+        <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-2">
+          <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+          <p className="text-[11px] font-semibold text-white/80">{location}</p>
+        </div>
+      )}
     </div>
   );
 }
