@@ -1,6 +1,6 @@
 // ProfileBentoGrid - bento layout for user profile
 import React from "react";
-import { ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, PawPrint, Zap } from "lucide-react";
+import { ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, PawPrint, Zap, Flag } from "lucide-react";
 import ReviewCard from "@/components/reviews/ReviewCard";
 import BadgeItem from "@/components/gamification/BadgeItem";
 import ProfileActions from "@/components/profile/ProfileActions";
@@ -9,6 +9,7 @@ import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 import HotelRangeCalendar from "@/components/hotel/HotelRangeCalendar";
 import ProfileHeroCard from "@/components/profile/ProfileHeroCard";
+import ReportModal from "@/components/profile/ReportModal";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
@@ -48,6 +49,7 @@ export default function ProfileBentoGrid({
 }) {
   const { language } = useLanguage();
   const isProfessional = walkerProfile || trainerProfile;
+  const [reportOpen, setReportOpen] = React.useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32 pt-2">
@@ -299,7 +301,28 @@ export default function ProfileBentoGrid({
             </div>
           )}
         </div>
+
+        {/* REPORT BUTTON - only for other users' profiles */}
+        {!isOwnProfile && currentUser && (
+          <div className="flex justify-center mt-6 mb-2">
+            <button
+              onClick={() => setReportOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all"
+            >
+              <Flag className="w-4 h-4" />
+              {language === 'pt' ? 'Denunciar utilizador' : language === 'es' ? 'Reportar usuario' : 'Report user'}
+            </button>
+          </div>
+        )}
       </div>
+
+      <ReportModal
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        reportedUser={profileUser}
+        reporterEmail={currentUser?.email}
+        reporterName={currentUser?.full_name}
+      />
     </div>
   );
 }
