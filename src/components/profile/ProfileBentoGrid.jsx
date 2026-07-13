@@ -83,7 +83,7 @@ export default function ProfileBentoGrid({
 
           {/* HOTEL CALENDAR - replaces PawGo active card */}
           {isHotel && (
-            <div className="md:col-span-1 lg:col-span-2 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
+            <div className="md:col-span-3 lg:col-span-2 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">
                 Disponibilidade
               </h3>
