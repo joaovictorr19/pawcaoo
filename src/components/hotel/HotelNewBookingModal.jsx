@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import HotelServiceAddons from "./HotelServiceAddons";
+import { calculateAddOnsTotal, buildBookingPayload } from "@/hooks/useHotelCapacity";
 
 const SERVICE_OPTIONS = [
   { value: "boarding", label: "🛏️ Alojamento (noites)" },
@@ -51,17 +52,10 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const addDog = () => setForm(f => ({ ...f, dogs: [...f.dogs, { dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "" }] }));
   const removeDog = (i) => setForm(f => ({ ...f, dogs: f.dogs.filter((_, idx) => idx !== i) }));
 
-  const addOnsTotal = addOns.reduce((sum, addon) => sum + addon.total_price, 0);
-  
+  const addOnsTotal = calculateAddOnsTotal(addOns);
+
   const buildPayload = () => ({
-    ...form,
-    total_dogs: form.dogs.length,
-    total_amount: parseFloat(form.total_amount) || 0,
-    add_ons: addOns,
-    add_ons_total: addOnsTotal,
-    hotel_profile_id: hotelProfile?.id,
-    hotel_name: hotelProfile?.walker_name || hotelProfile?.hotel_details?.hotel_name,
-    hotel_email: hotelProfile?.created_by,
+    ...buildBookingPayload(form, hotelProfile, addOns),
     status: "confirmed",
     payment_status: "pending",
   });
@@ -73,30 +67,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     // Se tem valor, criar reserva + gerar link de pagamento via backend (1 única reserva)
     if (amount > 0) {
       try {
-        const payload = {
-          hotel_profile_id: hotelProfile?.id,
-          hotel_name: hotelProfile?.walker_name || hotelProfile?.hotel_details?.hotel_name,
-          hotel_email: hotelProfile?.created_by,
-          owner_name: form.owner_name,
-          owner_email: form.owner_email,
-          owner_phone: form.owner_phone,
-          dogs: form.dogs,
-          service_type: form.service_type,
-          checkin_date: form.checkin_date,
-          checkout_date: form.checkout_date || form.checkin_date,
-          checkin_time: form.checkin_time,
-          checkout_time: form.checkout_time,
-          total_nights: form.checkout_date ? Math.max(1, Math.ceil((new Date(form.checkout_date) - new Date(form.checkin_date)) / 86400000)) : 1,
-          total_dogs: form.dogs.length,
-          total_amount: amount,
-          platform_fee: parseFloat((amount * 0.10).toFixed(2)),
-          service_amount: parseFloat((amount * 0.90).toFixed(2)),
-          special_requests: form.special_requests,
-          assigned_walker_email: form.assigned_walker_email,
-          assigned_walker_name: form.assigned_walker_name,
-          add_ons: addOns,
-          add_ons_total: addOnsTotal,
-        };
+        const payload = buildBookingPayload(form, hotelProfile, addOns);
         const res = await base44.functions.invoke("createHotelCheckout", payload);
         const { url, error } = res.data;
         if (error) { toast.error(error); return; }
@@ -128,30 +99,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     }
     setPayingNow(true);
     try {
-      const payload = {
-        hotel_profile_id: hotelProfile?.id,
-        hotel_name: hotelProfile?.walker_name || hotelProfile?.hotel_details?.hotel_name,
-        hotel_email: hotelProfile?.created_by,
-        owner_name: form.owner_name,
-        owner_email: form.owner_email,
-        owner_phone: form.owner_phone,
-        dogs: form.dogs,
-        service_type: form.service_type,
-        checkin_date: form.checkin_date,
-        checkout_date: form.checkout_date || form.checkin_date,
-        checkin_time: form.checkin_time,
-        checkout_time: form.checkout_time,
-        total_nights: form.checkout_date ? Math.max(1, Math.ceil((new Date(form.checkout_date) - new Date(form.checkin_date)) / 86400000)) : 1,
-        total_dogs: form.dogs.length,
-        total_amount: amount,
-        platform_fee: parseFloat((amount * 0.10).toFixed(2)),
-        service_amount: parseFloat((amount * 0.90).toFixed(2)),
-        special_requests: form.special_requests,
-        assigned_walker_email: form.assigned_walker_email,
-        assigned_walker_name: form.assigned_walker_name,
-        add_ons: addOns,
-        add_ons_total: addOnsTotal,
-      };
+      const payload = buildBookingPayload(form, hotelProfile, addOns);
       const res = await base44.functions.invoke("createHotelCheckout", payload);
       const { url, error } = res.data;
       if (error) { toast.error(error); return; }

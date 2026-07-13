@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Minus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { calculateServiceCapacity } from '@/hooks/useHotelCapacity';
 
 const SERVICE_LABELS = {
   boarding: 'Alojamento',
@@ -66,10 +67,7 @@ export default function HotelCapacityAdjuster({ hotelProfile }) {
 
       <div className="grid gap-3">
         {services.map((service, idx) => {
-          const available = service.capacity_available ?? service.capacity_total;
-          const occupancy = service.capacity_total - available;
-          const occupancyPct = ((occupancy / service.capacity_total) * 100).toFixed(0);
-          const isFull = available === 0;
+          const { available, occupancyPct, isFull } = calculateServiceCapacity(service);
 
           return (
             <motion.div

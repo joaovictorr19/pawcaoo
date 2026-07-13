@@ -3,8 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { format, isToday, parseISO } from "date-fns";
-import { pt } from "date-fns/locale";
+import { format } from "date-fns";
+import { useHotelCapacity } from "@/hooks/useHotelCapacity";
 import {
   Hotel, CalendarDays, Dog, Users, Euro, CheckCircle2,
   XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, ListOrdered, Settings, RefreshCw, LogOut
@@ -167,28 +167,10 @@ export default function HotelDashboard() {
   const handleCreateBooking = (data) => createBookingMutation.mutate(data);
 
   const partners = hotelProfile?.hotel_details?.partner_walkers || [];
-  const pendingBookings = bookings.filter(b => b.status === "pending");
-  const activeBookings = bookings.filter(b => ["confirmed", "checked_in", "in_progress"].includes(b.status));
-  const todayCheckins = bookings.filter(b => {
-    try { return b.checkin_date && isToday(parseISO(b.checkin_date)); } catch { return false; }
-  });
-  const todayCheckouts = bookings.filter(b => {
-    try { return b.checkout_date && isToday(parseISO(b.checkout_date)); } catch { return false; }
-  });
-
-  const occupancyToday = activeBookings.reduce((acc, b) => acc + (b.total_dogs || 1), 0);
-  const capacityTotal = hotelProfile?.hotel_details?.capacity_total || 0;
-  const occupancyPct = capacityTotal ? Math.min(100, Math.round((occupancyToday / capacityTotal) * 100)) : 0;
-
-  const revenue30d = bookings
-    .filter(b => {
-      try {
-        const d = parseISO(b.checkin_date);
-        const diff = (new Date() - d) / (1000 * 60 * 60 * 24);
-        return diff <= 30 && !["cancelled", "rejected"].includes(b.status);
-      } catch { return false; }
-    })
-    .reduce((acc, b) => acc + (b.total_amount || 0), 0);
+  const {
+    capacityTotal, occupancyToday, occupancyPct, revenue30d,
+    pendingBookings, activeBookings, todayCheckins, todayCheckouts,
+  } = useHotelCapacity(hotelProfile, bookings);
 
   // Empty state
   if (!loadingProfile && !hotelProfile && user) {
