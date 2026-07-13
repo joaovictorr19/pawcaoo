@@ -441,6 +441,16 @@
         "checkout_time": {
           "type": "string"
         },
+        "checkin_policy_type": {
+          "type": "string",
+          "enum": [
+            "all_days",
+            "no_sundays",
+            "no_sundays_holidays"
+          ],
+          "default": "all_days",
+          "description": "Pol\u00edtica de check-in/out: all_days, no_sundays, no_sundays_holidays"
+        },
         "amenities": {
           "type": "array",
           "items": {
@@ -477,6 +487,15 @@
               },
               "walker_profile_id": {
                 "type": "string"
+              },
+              "partner_role": {
+                "type": "string",
+                "enum": [
+                  "simple",
+                  "limited",
+                  "full"
+                ],
+                "default": "simple"
               },
               "is_available_today": {
                 "type": "boolean",
@@ -595,6 +614,74 @@
               }
             }
           }
+        },
+        "services": {
+          "type": "array",
+          "description": "Servi\u00e7os oferecidos pelo hotel com capacidades individuais",
+          "items": {
+            "type": "object",
+            "properties": {
+              "service_id": {
+                "type": "string",
+                "description": "ID \u00fanico do servi\u00e7o"
+              },
+              "service_name": {
+                "type": "string",
+                "description": "Nome do servi\u00e7o"
+              },
+              "service_type": {
+                "type": "string",
+                "enum": [
+                  "daycare",
+                  "boarding",
+                  "grooming",
+                  "training",
+                  "other"
+                ],
+                "description": "Tipo de servi\u00e7o"
+              },
+              "capacity_total": {
+                "type": "number",
+                "description": "Capacidade m\u00e1xima para este servi\u00e7o"
+              },
+              "capacity_available": {
+                "type": "number",
+                "description": "Vagas dispon\u00edveis hoje para este servi\u00e7o"
+              },
+              "price_per_day": {
+                "type": "number",
+                "description": "Pre\u00e7o por dia/noite"
+              },
+              "is_active": {
+                "type": "boolean",
+                "default": true,
+                "description": "Se o servi\u00e7o est\u00e1 ativo"
+              },
+              "description": {
+                "type": "string"
+              },
+              "accepted_dog_sizes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "small",
+                    "medium",
+                    "large",
+                    "extra_large"
+                  ]
+                },
+                "default": []
+              }
+            },
+            "required": [
+              "service_id",
+              "service_name",
+              "service_type",
+              "capacity_total"
+            ]
+          },
+          "default": []
         }
       }
     }

@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, PlusCircle, CalendarDays, Clock, CreditCard, ShieldCheck, PawPrint } from 'lucide-react';
+import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { isDateBlocked } from '@/utils/portugueseHolidays';
+import HotelRangeCalendar from '@/components/hotel/HotelRangeCalendar';
 
-export default function HotelBookingModal({ isOpen, onClose, hotel, selectedService, currentUser, initialDate }) {
+export default function HotelBookingModal({ isOpen, onClose, hotel, selectedService, currentUser, initialDate, initialCheckout }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [selectedDogIds, setSelectedDogIds] = useState([]);
@@ -19,19 +19,18 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [checkoutTime, setCheckoutTime] = useState('17:00');
   const [specialRequests, setSpecialRequests] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const datesScrollRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedDogIds([]);
       setCheckinDate(initialDate || '');
-      setCheckoutDate('');
+      setCheckoutDate(initialCheckout || '');
       setCheckinTime(hotel?.hotel_details?.checkin_time || '10:00');
       setCheckoutTime(hotel?.hotel_details?.checkout_time || '17:00');
       setSpecialRequests('');
-      setStep(initialDate ? 0 : 0);
+      setStep(0);
     }
-  }, [isOpen, hotel, initialDate]);
+  }, [isOpen, hotel, initialDate, initialCheckout]);
 
   const { data: clientProfile } = useQuery({
     queryKey: ['bookingClientProfile', currentUser?.email],
@@ -54,15 +53,6 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
   const checkinPolicy = hotel?.hotel_details?.checkin_policy_type || 'all_days';
 
-  const availableDates = Array.from({ length: 90 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i + 1);
-    return d.toISOString().split('T')[0];
-  }).filter(dateStr => {
-    const dateObj = new Date(dateStr + 'T12:00:00');
-    return !isDateBlocked(dateObj, checkinPolicy);
-  });
-
   const totalNights = checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
   const perDogPerNight = selectedService.price_per_day || 0;
   const serviceAmount = Math.round(perDogPerNight * totalNights * selectedDogs.length * 100) / 100;
@@ -76,12 +66,11 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       return;
     }
     if (selectedDogs.length === 0) { toast.error('Selecione pelo menos um animal'); return; }
-    if (!checkinDate || !checkoutDate) { toast.error('Escolha as datas'); return; }
+    if (!checkinDate || !checkoutDate) { toast.error('Escolha as datas no calendário'); return; }
     if (new Date(checkoutDate) <= new Date(checkinDate)) { toast.error('Data de saída deve ser após a de entrada'); return; }
 
     setIsCreating(true);
     try {
-      // Pass flat data to createHotelCheckout — it creates the booking AND the Stripe session
       const response = await base44.functions.invoke('createHotelCheckout', {
         hotel_profile_id: hotel.id,
         hotel_name: hotel.walker_name,
@@ -123,7 +112,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     }
   };
 
-  const stepTitles = ['Animais', 'Datas e Horários', 'Confirmar'];
+  const stepTitles = ['Animais', 'Datas', 'Confirmar'];
 
   const formatDate = (dateStr) => {
     return new Date(dateStr + 'T12:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' });
@@ -153,12 +142,12 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
         <div className="flex gap-1 px-5 pt-3">
           {[0, 1, 2].map(s => (
-            <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-300 ${step >= s ? 'bg-purple-500' : 'bg-slate-200'}`} />
+            <div key={s} className={`h-1 flex-1 rounded-full transition-all duration-300 ${step >= s ? 'bg-slate-900' : 'bg-slate-200'}`} />
           ))}
         </div>
 
         <div className="overflow-y-auto flex-1 px-5 pt-4 pb-8">
-          {/* STEP 0 — Animal(is) */}
+          {/* STEP 0 — Animais */}
           {step === 0 && (
             <div className="space-y-3">
               {myDogs.length === 0 ? (
@@ -175,7 +164,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
               ) : (
                 <>
                   <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">
-                    Quais animais vão? <span className="text-purple-500 normal-case font-normal">(pode selecionar mais de um)</span>
+                    Quais animais vão? <span className="text-slate-400 normal-case font-normal">(pode selecionar mais de um)</span>
                   </p>
                   <div className="space-y-2">
                     {myDogs.map(dog => {
@@ -189,7 +178,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             );
                           }}
                           className={`w-full p-4 rounded-2xl border-2 text-left transition-all active:scale-[0.98] flex items-center gap-3 ${
-                            isSelected ? 'border-purple-500 bg-purple-50' : 'border-slate-200 bg-white hover:border-purple-300'
+                            isSelected ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white hover:border-slate-300'
                           }`}
                         >
                           {dog.photo_url ? (
@@ -202,7 +191,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             <p className="text-xs text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : 'XL'}</p>
                           </div>
                           <div className={`w-5 h-5 rounded-lg border-2 flex-shrink-0 flex items-center justify-center transition-all ${
-                            isSelected ? 'border-purple-500 bg-purple-500' : 'border-slate-300'
+                            isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-300'
                           }`}>
                             {isSelected && <span className="text-white text-xs font-black">✓</span>}
                           </div>
@@ -213,7 +202,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   {selectedDogIds.length > 0 && (
                     <Button
                       onClick={() => setStep(1)}
-                      className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl text-base mt-2"
+                      className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base mt-2"
                     >
                       Continuar com {selectedDogIds.length} {selectedDogIds.length === 1 ? 'animal' : 'animais'} →
                     </Button>
@@ -223,50 +212,48 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             </div>
           )}
 
-          {/* STEP 1 — Datas e Horários */}
+          {/* STEP 1 — Calendário de intervalo */}
           {step === 1 && (
-            <div className="space-y-5">
+            <div className="space-y-4">
+              {/* Selected dates display */}
+              <div className="flex items-center gap-3">
+                <div className={`flex-1 rounded-2xl border-2 p-3 text-center transition-all ${checkinDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200'}`}>
+                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Entrada</p>
+                  <p className="text-sm font-black text-slate-900 mt-0.5">
+                    {checkinDate ? formatDate(checkinDate) : '—'}
+                  </p>
+                </div>
+                <div className="text-slate-300 font-bold">→</div>
+                <div className={`flex-1 rounded-2xl border-2 p-3 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200'}`}>
+                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Saída</p>
+                  <p className="text-sm font-black text-slate-900 mt-0.5">
+                    {checkoutDate ? formatDate(checkoutDate) : '—'}
+                  </p>
+                </div>
+              </div>
+
               {checkinPolicy !== 'all_days' && (
-                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5">
                   <p className="text-xs text-blue-700 font-semibold">
-                    ℹ️ {checkinPolicy === 'no_sundays' ? 'Hotel fechado aos Domingos' : 'Hotel fechado aos Domingos e Feriados'}
+                    {checkinPolicy === 'no_sundays' ? 'Hotel fechado aos Domingos' : 'Hotel fechado aos Domingos e Feriados'}
                   </p>
                 </div>
               )}
 
-              {/* Data de Entrada */}
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase mb-3 block flex items-center gap-1">
-                  <CalendarDays className="w-3.5 h-3.5" /> Data de Entrada
-                </label>
-                <div ref={datesScrollRef} className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                  {availableDates.map(d => {
-                    const dateObj = new Date(d + 'T12:00:00');
-                    const isSelected = checkinDate === d;
-                    return (
-                      <button
-                        key={d}
-                        onClick={() => { setCheckinDate(d); if (checkoutDate && new Date(d) >= new Date(checkoutDate)) setCheckoutDate(''); }}
-                        className={`flex-shrink-0 w-16 py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
-                          isSelected ? 'border-purple-500 bg-purple-500 text-white' : 'border-slate-200 bg-white hover:border-purple-300'
-                        }`}
-                      >
-                        <p className={`text-[9px] uppercase font-bold ${isSelected ? 'text-purple-100' : 'text-slate-400'}`}>
-                          {dateObj.toLocaleDateString('pt-PT', { weekday: 'short' })}
-                        </p>
-                        <p className={`text-lg font-black ${isSelected ? 'text-white' : 'text-slate-900'}`}>{dateObj.getDate()}</p>
-                        <p className={`text-[9px] font-medium ${isSelected ? 'text-purple-100' : 'text-slate-400'}`}>
-                          {dateObj.toLocaleDateString('pt-PT', { month: 'short' })}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <HotelRangeCalendar
+                daysOff={[]}
+                checkinPolicy={checkinPolicy}
+                checkinDate={checkinDate}
+                checkoutDate={checkoutDate}
+                onRangeSelect={(ci, co) => {
+                  setCheckinDate(ci);
+                  setCheckoutDate(co);
+                }}
+              />
 
               {/* Horários */}
               {checkinDate && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 pt-2">
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" /> Hora Entrada
@@ -275,7 +262,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       type="time"
                       value={checkinTime}
                       onChange={(e) => setCheckinTime(e.target.value)}
-                      className="w-full p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-900 font-bold text-sm focus:border-purple-400 focus:outline-none"
+                      className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 font-bold text-sm focus:border-slate-400 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -286,48 +273,19 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       type="time"
                       value={checkoutTime}
                       onChange={(e) => setCheckoutTime(e.target.value)}
-                      className="w-full p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-900 font-bold text-sm focus:border-purple-400 focus:outline-none"
+                      className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 font-bold text-sm focus:border-slate-400 focus:outline-none"
                     />
                   </div>
                 </div>
               )}
 
-              {/* Data de Saída */}
-              {checkinDate && (
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase mb-3 block flex items-center gap-1">
-                    <CalendarDays className="w-3.5 h-3.5" /> Data de Saída
-                  </label>
-                  <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-                    {availableDates
-                      .filter(d => new Date(d) > new Date(checkinDate))
-                      .map(d => {
-                        const dateObj = new Date(d + 'T12:00:00');
-                        const isSelected = checkoutDate === d;
-                        return (
-                          <button
-                            key={d}
-                            onClick={() => { setCheckoutDate(d); setStep(2); }}
-                            className={`flex-shrink-0 w-16 py-3 rounded-2xl border-2 text-center transition-all active:scale-95 ${
-                              isSelected ? 'border-purple-500 bg-purple-500 text-white' : 'border-slate-200 bg-white hover:border-purple-300'
-                            }`}
-                          >
-                            <p className={`text-[9px] uppercase font-bold ${isSelected ? 'text-purple-100' : 'text-slate-400'}`}>
-                              {dateObj.toLocaleDateString('pt-PT', { weekday: 'short' })}
-                            </p>
-                            <p className={`text-lg font-black ${isSelected ? 'text-white' : 'text-slate-900'}`}>{dateObj.getDate()}</p>
-                            <p className={`text-[9px] font-medium ${isSelected ? 'text-purple-100' : 'text-slate-400'}`}>
-                              {dateObj.toLocaleDateString('pt-PT', { month: 'short' })}
-                            </p>
-                          </button>
-                        );
-                      })}
-                  </div>
-                </div>
-              )}
-
-              {checkinDate && !checkoutDate && (
-                <p className="text-center text-xs text-slate-400 italic">Selecione a data de saída para continuar</p>
+              {checkinDate && checkoutDate && (
+                <Button
+                  onClick={() => setStep(2)}
+                  className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-base"
+                >
+                  Continuar →
+                </Button>
               )}
             </div>
           )}
@@ -337,8 +295,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             <div className="space-y-4">
               <div className="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-100">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <PawPrint className="w-4 h-4 text-purple-600" />
+                  <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                    <PawPrint className="w-4 h-4 text-slate-600" />
                   </div>
                   <div>
                     <p className="font-black text-slate-900 text-sm">{hotel.walker_name}</p>
@@ -350,7 +308,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   <span className="text-slate-500">{selectedDogs.length > 1 ? 'Animais' : 'Animal'}</span>
                   <span className="font-bold text-slate-900 text-right">
                     {selectedDogs.map(d => d.dog_name).join(', ')}
-                    {selectedDogs.length > 1 && <span className="block text-xs text-purple-600 font-semibold">({selectedDogs.length} animais)</span>}
+                    {selectedDogs.length > 1 && <span className="block text-xs text-slate-500 font-semibold">({selectedDogs.length} animais)</span>}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -366,7 +324,6 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   <span className="font-bold text-slate-900">{totalNights} {totalNights === 1 ? 'noite' : 'noites'}</span>
                 </div>
 
-                {/* Notas especiais */}
                 <div className="pt-2 border-t border-slate-200">
                   <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">Pedidos especiais (opcional)</label>
                   <textarea
@@ -374,11 +331,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     onChange={(e) => setSpecialRequests(e.target.value)}
                     placeholder="Restrições alimentares, medicamentos, etc."
                     rows={2}
-                    className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-purple-400 focus:outline-none resize-none"
+                    className="w-full p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-900 text-sm focus:border-slate-400 focus:outline-none resize-none"
                   />
                 </div>
 
-                {/* Price breakdown */}
                 <div className="pt-2 border-t border-slate-200 space-y-1.5">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">
@@ -388,11 +344,11 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">Taxa de plataforma (10%)</span>
-                    <span className="font-bold text-orange-600">{platformFee}€</span>
+                    <span className="font-bold text-amber-600">{platformFee}€</span>
                   </div>
                 </div>
-                <div className="bg-purple-600 rounded-xl px-4 py-3 flex justify-between items-center">
-                  <span className="text-sm font-bold text-purple-100">Total a pagar</span>
+                <div className="bg-slate-900 rounded-xl px-4 py-3 flex justify-between items-center">
+                  <span className="text-sm font-bold text-slate-200">Total a pagar</span>
                   <span className="text-2xl font-black text-white">{totalAmount}€</span>
                 </div>
               </div>

@@ -7,7 +7,7 @@ import ProfileActions from "@/components/profile/ProfileActions";
 import HotelProfileDisplay from "@/components/hotel/HotelProfileDisplay";
 import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 import HotelTeamSection from "@/components/hotel/HotelTeamSection";
-import HotelMiniCalendar from "@/components/hotel/HotelMiniCalendar";
+import HotelRangeCalendar from "@/components/hotel/HotelRangeCalendar";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
@@ -172,10 +172,13 @@ export default function ProfileBentoGrid({
           {/* HOTEL CALENDAR - replaces PawGo active card */}
           {isHotel && (
             <div className="md:col-span-1 lg:col-span-2 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
-              <HotelMiniCalendar
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">
+                Disponibilidade
+              </h3>
+              <HotelRangeCalendar
                 daysOff={daysOff}
                 checkinPolicy={walkerProfile?.hotel_details?.checkin_policy_type || 'all_days'}
-                onDateSelect={onHotelDateSelect}
+                onRangeSelect={(checkin, checkout) => onHotelDateSelect?.(checkin, checkout)}
               />
             </div>
           )}

@@ -362,9 +362,9 @@ export default function UserProfile() {
       onBack={() => navigate(-1)}
       onServiceClick={(service) => setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
       onHotelBookingClick={(service) => setHotelBookingModal({ isOpen: true, selectedService: service, selectedDate: null })}
-      onHotelDateSelect={(dateStr) => {
+      onHotelDateSelect={(checkin, checkout) => {
         const firstService = walkerProfile?.hotel_details?.services?.find(s => s.is_active !== false);
-        setHotelBookingModal({ isOpen: true, selectedService: firstService || null, selectedDate: dateStr });
+        setHotelBookingModal({ isOpen: true, selectedService: firstService || null, selectedDate: checkin || null, selectedCheckout: checkout || null });
       }}
       onBan={() => banUserMutation.mutate(profileUser.id)}
       onToggleVerify={() => toggleVerificationMutation.mutate(profileUser.id)}
@@ -396,10 +396,11 @@ export default function UserProfile() {
       />
       <HotelBookingModal
         isOpen={hotelBookingModal.isOpen}
-        onClose={() => setHotelBookingModal({ isOpen: false, selectedService: null, selectedDate: null })}
+        onClose={() => setHotelBookingModal({ isOpen: false, selectedService: null, selectedDate: null, selectedCheckout: null })}
         hotel={walkerProfile?.professional_type === 'hotel' ? walkerProfile : null}
         selectedService={hotelBookingModal.selectedService}
         initialDate={hotelBookingModal.selectedDate}
+        initialCheckout={hotelBookingModal.selectedCheckout}
         currentUser={currentUser}
       />
     </>
