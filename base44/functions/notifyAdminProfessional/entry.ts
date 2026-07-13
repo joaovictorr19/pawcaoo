@@ -13,7 +13,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid automation payload' }, { status: 400 });
     }
 
-    const professional_name = data.walker_name || data.trainer_name || 'Unknown';
+    // Sanitize user-supplied fields to prevent XSS in admin notifications
+    const sanitize = (str) => String(str || '').replace(/[<>"'&]/g, '').trim().slice(0, 100);
+    const professional_name = sanitize(data.walker_name || data.trainer_name) || 'Unknown';
     const professional_type = event.entity_name === 'WalkerProfile' ? 'Walker' : 'Trainer';
     const professional_email = data.created_by || data.walker_email || data.trainer_email;
 
@@ -23,10 +25,9 @@ Deno.serve(async (req) => {
       try {
         await base44.asServiceRole.entities.Notification.create({
           recipient_email: admin.email,
-          title: '🆕 Novo Profissional Pendente',
-          message: `${professional_name} (${professional_type}) se registrou e aguarda verificação.`,
+          title: 'Novo Profissional Pendente',
+          message: `${professional_name} (${professional_type}) se registrou e aguarda verificacao.`,
           type: 'system',
-          icon: '🐾',
           link: '/AdminProfessionalApprovals',
           related_id: data.id,
         });

@@ -60,13 +60,29 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { bookingId, successUrl, cancelUrl, voucherCode, discountAmount, bookingData } = payload;
+    const { bookingId, successUrl, cancelUrl, voucherCode, discountAmount } = payload;
 
-    // Use bookingData passed from frontend (avoids SDK filter-by-id limitation)
-    const booking = bookingData || null;
+    if (!bookingId) {
+      return Response.json({ error: 'Missing bookingId' }, { status: 400 });
+    }
 
-    if (!booking || !bookingId) {
-      return Response.json({ error: 'Missing bookingId or bookingData' }, { status: 400 });
+    // Fetch the booking from the database (user-scoped) to verify ownership.
+    // Never trust bookingData sent from the client — it can be forged.
+    const bookings = await base44.entities.Booking.filter({ id: bookingId });
+    const booking = bookings[0];
+
+    if (!booking) {
+      return Response.json({ error: 'Booking not found or access denied' }, { status: 404 });
+    }
+
+    // Verify the authenticated user owns this booking
+    const isOwner = booking.created_by_id === user.id ||
+      booking.owner_email === user.email ||
+      booking.walker_email === user.email ||
+      booking.trainer_email === user.email;
+
+    if (!isOwner) {
+      return Response.json({ error: 'You do not have access to this booking' }, { status: 403 });
     }
 
     // Calculate final amount

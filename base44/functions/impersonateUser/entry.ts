@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized - Admin only' }, { status: 403 });
     }
 
-    const { targetUserId, reason, confirm_admin_impersonation } = await req.json();
+    const { targetUserId, reason } = await req.json();
 
     if (!targetUserId) {
       return Response.json({ error: 'targetUserId is required' }, { status: 400 });
@@ -32,11 +32,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Require explicit confirmation when impersonating another admin
-    if (targetUser.role === 'admin' && !confirm_admin_impersonation) {
+    // Block privilege escalation: admins may never impersonate other admins
+    if (targetUser.role === 'admin') {
       return Response.json({
-        error: 'Impersonating an admin requires confirm_admin_impersonation: true'
-      }, { status: 400 });
+        error: 'Impersonating another administrator is not permitted'
+      }, { status: 403 });
     }
 
     const now = new Date();
