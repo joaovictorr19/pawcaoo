@@ -23,13 +23,25 @@ Deno.serve(async (req) => {
     });
 
     let deleted = 0;
+    const deletedIds = [];
     for (const rec of toDelete) {
       try {
         await base44.asServiceRole.entities.CalendarAvailability.delete(rec.id);
+        deletedIds.push(rec.id);
         deleted += 1;
       } catch (_e) {
         // continue on per-record errors
       }
+    }
+
+    // ── SECURITY: Audit log for batch deletion ──
+    try {
+      await base44.asServiceRole.entities.AdminLog.create({
+        action_type: 'cleanup_old_availability',
+        reason: `Deleted ${deleted} day-off records older than ${cutoffStr} (IDs: ${deletedIds.join(', ')})`,
+      });
+    } catch (_logErr) {
+      // audit log failure should not block the operation
     }
 
     return Response.json({ success: true, cutoff: cutoffStr, scanned: all?.length || 0, deleted });

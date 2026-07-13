@@ -136,6 +136,22 @@ async function handlePaymentSuccess(base44, paymentIntent) {
         const bookings = await base44.asServiceRole.entities.Booking.filter({ id: bookingId });
         if (bookings.length > 0) {
             const booking = bookings[0];
+
+            // ── SECURITY: Verify paid amount matches booking total before processing ──
+            const expectedAmountCents = Math.round((booking.total_amount || 0) * 100);
+            if (paymentIntent.amount < expectedAmountCents) {
+                console.error(`❌ Amount mismatch: paid ${paymentIntent.amount} cents, expected ${expectedAmountCents} cents for booking ${bookingId}. Aborting.`);
+                await base44.asServiceRole.entities.Notification.create({
+                    recipient_email: booking.owner_email || booking.created_by,
+                    title: 'Pagamento com valor incorreto',
+                    message: 'O valor pago não corresponde ao valor da reserva. Contacte o suporte.',
+                    type: 'payment',
+                    related_id: bookingId,
+                    priority: 'urgent'
+                });
+                return;
+            }
+
             console.log('📋 Found booking:', booking.dog_name);
             console.log('   Walker Email:', booking.walker_email);
             console.log('   Walker ID:', booking.walker_id);
@@ -471,6 +487,14 @@ async function handleCheckoutCompleted(base44, session) {
                 const hotelBookings = await base44.asServiceRole.entities.HotelBooking.filter({ id: hotelBookingId });
                 if (hotelBookings.length > 0) {
                     const hb = hotelBookings[0];
+
+                    // ── SECURITY: Verify paid amount matches hotel booking total before confirming ──
+                    const expectedHotelAmountCents = Math.round((hb.total_amount || 0) * 100);
+                    if ((session.amount_total || 0) < expectedHotelAmountCents) {
+                        console.error(`❌ Hotel booking amount mismatch: paid ${session.amount_total} cents, expected ${expectedHotelAmountCents} cents for booking ${hotelBookingId}. Aborting.`);
+                        return;
+                    }
+
                     await base44.asServiceRole.entities.HotelBooking.update(hotelBookingId, {
                         status: 'confirmed',
                         payment_status: 'paid',

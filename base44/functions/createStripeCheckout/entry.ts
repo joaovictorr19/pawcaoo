@@ -168,9 +168,10 @@ Deno.serve(async (req) => {
     console.error('❌ Erro completo:', error);
     console.error('Stack trace:', error.stack);
     
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      details: error.stack,
+    console.error('❌ Erro completo:', error);
+
+    return new Response(JSON.stringify({
+      error: 'Ocorreu um erro ao processar o pagamento. Tente novamente.',
       type: error.type || 'unknown'
     }), {
       status: 500,

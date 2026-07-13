@@ -39,9 +39,54 @@ Deno.serve(async (req) => {
       delivery_method,
     } = body;
 
-    if (!hotel_profile_id || !total_amount || total_amount <= 0) {
+    if (!hotel_profile_id) {
       return Response.json({ error: 'Dados inválidos para o pagamento.' }, { status: 400 });
     }
+
+    // ── SECURITY: Fetch hotel profile from server (source of truth for pricing) ──
+    // Never trust financial values (total_amount, platform_fee, service_amount) from the client.
+    const hotelProfiles = await base44.entities.WalkerProfile.filter({ id: hotel_profile_id });
+    if (!hotelProfiles || hotelProfiles.length === 0) {
+      return Response.json({ error: 'Hotel não encontrado.' }, { status: 404 });
+    }
+    const hotelProfile = hotelProfiles[0];
+    const hotelDetails = hotelProfile.hotel_details || {};
+
+    // Server-side price recalculation
+    const PLATFORM_FEE_RATE = 0.10;
+    let serverPricePerUnit = 0;
+
+    if (service_type === 'boarding') {
+      serverPricePerUnit = hotelDetails.price_per_night || 0;
+    } else if (service_type === 'daycare') {
+      serverPricePerUnit = hotelDetails.price_daycare || 0;
+    } else {
+      const svc = (hotelDetails.services || []).find(s => s.service_type === service_type);
+      serverPricePerUnit = svc?.price_per_day || 0;
+    }
+
+    const serverNights = total_nights || 1;
+    const serverDogs = total_dogs || (dogs?.length || 1);
+    const serverBaseAmount = serverPricePerUnit * serverNights * serverDogs;
+
+    // Recompute add_ons total from the array (don't trust client-supplied add_ons_total)
+    const serverAddOnsTotal = (add_ons || []).reduce((sum, a) => {
+      return sum + ((a.total_price || 0) > 0 ? (a.total_price || 0) : (a.price_per_unit || 0) * (a.quantity || 1));
+    }, 0);
+
+    const serverTotalAmount = serverBaseAmount + serverAddOnsTotal;
+    const serverPlatformFee = Math.round(serverTotalAmount * PLATFORM_FEE_RATE * 100) / 100;
+    const serverServiceAmount = Math.round((serverTotalAmount - serverPlatformFee) * 100) / 100;
+
+    if (serverTotalAmount <= 0) {
+      return Response.json({ error: 'Não foi possível calcular o preço do serviço.' }, { status: 400 });
+    }
+
+    // Use server-calculated values — ignore client-supplied financial fields
+    const safeTotalAmount = serverTotalAmount;
+    const safePlatformFee = serverPlatformFee;
+    const safeServiceAmount = serverServiceAmount;
+    const safePricePerNight = serverPricePerUnit;
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 
@@ -90,17 +135,17 @@ Deno.serve(async (req) => {
       checkout_time: checkout_time || '',
       total_nights: total_nights || 1,
       total_dogs: total_dogs || (dogs?.length || 1),
-      price_per_night: price_per_night || 0,
-      total_amount,
-      platform_fee: platform_fee || 0,
-      service_amount: service_amount || total_amount,
+      price_per_night: safePricePerNight,
+      total_amount: safeTotalAmount,
+      platform_fee: safePlatformFee,
+      service_amount: safeServiceAmount,
       special_requests: special_requests || '',
       pickup_address: pickup_address || '',
       delivery_method: delivery_method || 'dropoff',
       assigned_walker_email: assigned_walker_email || '',
       assigned_walker_name: assigned_walker_name || '',
       add_ons: add_ons || [],
-      add_ons_total: add_ons_total || 0,
+      add_ons_total: serverAddOnsTotal,
       status: 'pending',
       payment_status: 'pending',
     });
@@ -118,7 +163,7 @@ Deno.serve(async (req) => {
               name: `${serviceLabel} — ${hotel_name}`,
               description: `${dogNames} · ${dateRange}${total_nights > 1 ? ` (${total_nights} noites)` : ''}`,
             },
-            unit_amount: Math.round(total_amount * 100),
+            unit_amount: Math.round(safeTotalAmount * 100),
           },
           quantity: 1,
         },
@@ -130,9 +175,9 @@ Deno.serve(async (req) => {
         hotel_email: hotel_email || '',
         owner_email: user.email,
         service_type,
-        total_amount: total_amount.toString(),
-        platform_fee: (platform_fee || 0).toString(),
-        service_amount: (service_amount || total_amount).toString(),
+        total_amount: safeTotalAmount.toString(),
+        platform_fee: safePlatformFee.toString(),
+        service_amount: safeServiceAmount.toString(),
       },
       payment_intent_data: {
         capture_method: 'automatic',
