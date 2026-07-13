@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   MapPin, Star, Award, Clock, BedDouble, Shield, CheckCircle2,
   PawPrint, Globe, Calendar, Zap, Heart, TrendingUp,
+  Sun, Moon, Sunrise, Sunset,
 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
@@ -25,6 +26,13 @@ const SPECIALIZATION_LABELS = {
   small_breeds:      { pt: "Raças pequenas",  en: "Small breeds" },
   anxious_dogs:      { pt: "Cães ansiosos",   en: "Anxious dogs" },
   high_energy:       { pt: "Alta energia",    en: "High energy" },
+};
+
+const SLOT_ICONS = {
+  morning: Sunrise,
+  afternoon: Sun,
+  evening: Sunset,
+  night: Moon,
 };
 
 const ANIMAL_ICONS = {
@@ -279,21 +287,26 @@ export default function ProfileHeroCard({
               <Calendar className="w-3.5 h-3.5 text-slate-900" />
               {language === 'pt' ? 'Disponibilidade' : 'Availability'}
             </span>
-            <div className="relative flex items-start justify-between w-full max-w-[280px] px-2">
-              {/* Timeline line */}
-              <div className="absolute top-[7px] left-2 right-2 h-px bg-slate-900" />
+            <div className="relative flex items-start justify-between w-full max-w-[280px] px-4">
+              {/* Dashed connector line */}
+              <div className="absolute top-4 left-6 right-6 border-t-2 border-dashed border-slate-300" />
               {['morning', 'afternoon', 'evening', 'night'].map((slot) => {
                 const isActive = availability.includes(slot);
                 const label = AVAILABILITY_LABELS[slot]?.[language] || AVAILABILITY_LABELS[slot]?.pt || slot;
+                const Icon = SLOT_ICONS[slot] || Clock;
                 return (
                   <div key={slot} className="relative z-10 flex flex-col items-center gap-1.5 flex-1">
                     <div
-                      className={`w-3.5 h-3.5 rounded-full border-2 border-slate-900 ${
-                        isActive ? 'bg-slate-900' : 'bg-white'
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        isActive
+                          ? 'bg-gradient-to-br from-sky-400 to-sky-500 shadow-md shadow-sky-300/50'
+                          : 'bg-slate-100'
                       }`}
-                    />
-                    <span className={`text-[10px] font-medium leading-tight text-center ${
-                      isActive ? 'text-slate-900' : 'text-slate-400'
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                    </div>
+                    <span className={`text-[10px] leading-tight text-center ${
+                      isActive ? 'font-bold text-slate-900' : 'font-medium text-slate-400'
                     }`}>
                       {label}
                     </span>
