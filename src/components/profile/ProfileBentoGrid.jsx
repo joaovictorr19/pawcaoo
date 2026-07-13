@@ -137,11 +137,12 @@ export default function ProfileBentoGrid({
             ) : earnedBadges.length > 0 ? (
               <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-2 px-1">
                 {earnedBadges.slice(0, 10).map((badge) => (
-                  <div key={badge._uniqueId} className="flex flex-col items-center gap-1.5 flex-shrink-0 w-20">
+                  <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 w-14">
                     <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
-                    <p className="text-[9px] font-bold text-slate-600 text-center leading-tight w-full truncate">
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-slate-900 text-white text-[10px] font-bold rounded-lg whitespace-nowrap opacity-0 group-hover/badge:opacity-100 pointer-events-none transition-opacity duration-200 z-30 shadow-lg">
                       {badge.name || badge.badge_id}
-                    </p>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-slate-900 rotate-45" />
+                    </div>
                   </div>
                 ))}
                 {earnedBadges.length > 10 && (
