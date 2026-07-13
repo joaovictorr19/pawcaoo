@@ -139,7 +139,7 @@ export default function HotelRangeCalendar({
         onMouseEnter={() => setHoverDate(dateStr)}
         onMouseLeave={() => setHoverDate('')}
         disabled={isUnavailable}
-        className={`aspect-square rounded-md text-[11px] font-bold transition-all flex items-center justify-center relative ${cellClass} ${isStart ? 'rounded-r-none' : ''} ${isEnd ? 'rounded-l-none' : ''} ${inRange ? 'rounded-none' : ''} ${!isUnavailable ? 'active:scale-90' : ''}`}
+        className={`h-7 rounded-md text-[10px] font-bold transition-all flex items-center justify-center relative ${cellClass} ${isStart ? 'rounded-r-none' : ''} ${isEnd ? 'rounded-l-none' : ''} ${inRange ? 'rounded-none' : ''} ${!isUnavailable ? 'active:scale-90' : ''}`}
       >
         {day}
       </button>
@@ -147,22 +147,22 @@ export default function HotelRangeCalendar({
   }
 
   return (
-    <div className={`w-full ${className}`}>
-      <div className="flex items-center justify-between mb-2">
-        <button onClick={handlePrevMonth} className="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors">
-          <ChevronLeft className="w-3.5 h-3.5 text-slate-500" />
+    <div className={`w-full max-w-[280px] mx-auto ${className}`}>
+      <div className="flex items-center justify-between mb-1.5">
+        <button onClick={handlePrevMonth} className="w-5 h-5 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors">
+          <ChevronLeft className="w-3 h-3 text-slate-500" />
         </button>
-        <span className="text-xs font-bold text-slate-800 capitalize">
+        <span className="text-[11px] font-bold text-slate-800 capitalize">
           {currentMonth.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })}
         </span>
-        <button onClick={handleNextMonth} className="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors">
-          <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+        <button onClick={handleNextMonth} className="w-5 h-5 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors">
+          <ChevronRight className="w-3 h-3 text-slate-500" />
         </button>
       </div>
 
       <div className="grid grid-cols-7 gap-0.5 mb-0.5">
         {WEEKDAYS.map(d => (
-          <div key={d} className="text-center text-[8px] font-black uppercase text-slate-300">
+          <div key={d} className="text-center text-[7px] font-black uppercase text-slate-300">
             {d}
           </div>
         ))}
