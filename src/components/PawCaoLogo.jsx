@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/7e749ee69_Pawcao_Logo-1.png";
+const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/5475b1e4a_IconPawcao_1.png";
 
 export default function PawCaoLogo({ size = "default", showText = true, className = "", animated = false }) {
   // Validate size prop
@@ -57,7 +57,7 @@ export default function PawCaoLogo({ size = "default", showText = true, classNam
     <div className={`flex items-center gap-2 md:gap-3 ${className}`}>
       <LogoIcon 
         {...iconProps}
-        className={`${currentSize.container} rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group cursor-pointer flex-shrink-0`}
+        className={`${currentSize.container} rounded-xl md:rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden group cursor-pointer flex-shrink-0 ring-1 ring-black/5`}
       >
         <img
           src={PAWCAO_LOGO_URL}
@@ -72,11 +72,11 @@ export default function PawCaoLogo({ size = "default", showText = true, classNam
 
       {showText && (
         <div className="min-w-0">
-          <h2 className={`font-bold ${currentSize.text} text-gray-900 dark:text-gray-100 leading-none tracking-tight truncate`}>
-            Paw<span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600 dark:from-green-400 dark:to-blue-400">Cão</span>
+          <h2 className={`font-heading font-extrabold ${currentSize.text} text-slate-900 leading-none tracking-tight truncate`}>
+            Paw<span className="text-[#1D8A82]">Cão</span>
           </h2>
           {size !== "small" && (
-            <p className={`${currentSize.subtitle} text-gray-500 dark:text-gray-400 leading-tight font-medium truncate`}>
+            <p className={`${currentSize.subtitle} text-slate-400 leading-tight font-semibold truncate`}>
               Dog Care Platform
             </p>
           )}
