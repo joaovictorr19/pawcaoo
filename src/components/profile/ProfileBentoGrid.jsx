@@ -97,22 +97,32 @@ export default function ProfileBentoGrid({
             </div>
           )}
 
-          {/* OWN PROFILE - Stats summary */}
+          {/* OWN PROFILE - Stats summary (Glass Neon) */}
           {isOwnProfile && (
-            <div className="md:col-span-1 lg:col-span-2 bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
-              <div className="flex-1 text-center">
-                <p className="text-2xl font-black text-slate-900">{earnedBadges.length}</p>
-                <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">{language === 'pt' ? 'Emblemas' : language === 'es' ? 'Insignias' : 'Badges'}</p>
+            <div
+              className="md:col-span-1 lg:col-span-2 rounded-2xl p-5 shadow-sm border border-white/10 flex items-center gap-4 relative overflow-hidden"
+              style={{
+                backgroundImage: "url('https://media.base44.com/images/public/6907b3be1ec43db5676a2085/55f8f0821_generated_image.png')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundColor: '#252a36',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+              }}
+            >
+              <div className="flex-1 text-center relative z-10">
+                <p className="text-2xl font-black text-white">{earnedBadges.length}</p>
+                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: '#a8d3e6' }}>{language === 'pt' ? 'Emblemas' : language === 'es' ? 'Insignias' : 'Badges'}</p>
               </div>
-              <div className="w-px h-10 bg-slate-200" />
-              <div className="flex-1 text-center">
-                <p className="text-2xl font-black text-slate-900">{reviews.length}</p>
-                <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">{t('reviews', language)}</p>
+              <div className="w-px h-10 bg-white/20" />
+              <div className="flex-1 text-center relative z-10">
+                <p className="text-2xl font-black text-white">{reviews.length}</p>
+                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: '#a8d3e6' }}>{t('reviews', language)}</p>
               </div>
-              <div className="w-px h-10 bg-slate-200" />
-              <div className="flex-1 text-center">
-                <p className="text-2xl font-black text-slate-900">{walkerProfile?.rating?.toFixed(1) || trainerProfile?.rating?.toFixed(1) || '—'}</p>
-                <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">{language === 'pt' ? 'Avaliação' : language === 'es' ? 'Valoración' : 'Rating'}</p>
+              <div className="w-px h-10 bg-white/20" />
+              <div className="flex-1 text-center relative z-10">
+                <p className="text-2xl font-black text-white">{walkerProfile?.rating?.toFixed(1) || trainerProfile?.rating?.toFixed(1) || '—'}</p>
+                <p className="text-[10px] font-medium uppercase tracking-wider" style={{ color: '#a8d3e6' }}>{language === 'pt' ? 'Avaliação' : language === 'es' ? 'Valoración' : 'Rating'}</p>
               </div>
             </div>
           )}
