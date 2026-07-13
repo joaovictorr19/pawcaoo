@@ -269,17 +269,13 @@ export default function HotelDashboard() {
         {/* Tabs */}
         <div className="relative z-10 max-w-5xl mx-auto px-4 pb-0 flex gap-1 overflow-x-auto scrollbar-none">
           {[
-            { key: "hospedes", label: "🐕 Hóspedes", count: activeBookings.length },
+            { key: "hospedes", label: "🐕 Hóspedes", count: activeBookings.length + pendingBookings.length },
+            { key: "reservas", label: "📋 Reservas" },
             { key: "agenda", label: "📅 Agenda" },
-            { key: "reservas", label: "Reservas", count: pendingBookings.length },
-            { key: "today", label: "Hoje", count: todayCheckins.length + todayCheckouts.length },
-            { key: "servicos", label: "🎯 Serviços" },
-            { key: "vagas", label: "🐾 Vagas" },
+            { key: "servicos", label: "🎯 Serviços & Vagas" },
             { key: "financas", label: "💰 Finanças" },
-            { key: "cartao", label: "🎫 Cartão" },
-            { key: "parceiros", label: "Parceiros", count: partners.length },
-            { key: "config", label: "⚙️ Configurações" },
-            { key: "stats", label: "Estatísticas" },
+            { key: "parceiros", label: "👥 Parceiros", count: partners.length },
+            { key: "config", label: "⚙️ Config" },
           ].map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold whitespace-nowrap border-b-2 transition-all ${
@@ -358,7 +354,7 @@ export default function HotelDashboard() {
         {/* ── Tab content ── */}
         <AnimatePresence mode="wait">
 
-          {/* HÓSPEDES */}
+          {/* HÓSPEDES — operação diária: animais no hotel, chegadas, pendentes */}
           {activeTab === "hospedes" && (
             <motion.div key="hospedes" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <HotelGuestsPanel
@@ -368,7 +364,31 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-          {/* AGENDA: Calendário + painel do dia */}
+          {/* RESERVAS — histórico completo de todas as reservas */}
+          {activeTab === "reservas" && (
+            <motion.div key="reservas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="space-y-4">
+              <div>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Todas as reservas ({bookings.length})</p>
+                {loadingBookings && <p className="text-center text-slate-400 py-8 text-sm">A carregar...</p>}
+                {!loadingBookings && bookings.length === 0 && (
+                  <div className="bg-white rounded-2xl border border-slate-100 py-12 text-center">
+                    <CalendarDays className="w-10 h-10 mx-auto mb-3 text-slate-200" />
+                    <p className="text-slate-400 text-sm">Sem reservas ainda</p>
+                    <Button size="sm" className="mt-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-1.5"
+                      onClick={() => setShowNewBooking(true)}>
+                      <Plus className="w-3.5 h-3.5" /> Nova Reserva
+                    </Button>
+                  </div>
+                )}
+                {bookings.map(b => (
+                  <BookingRow key={b.id} booking={b} onUpdate={handleUpdateBooking} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* AGENDA — calendário + painel do dia */}
           {activeTab === "agenda" && (
             <motion.div key="agenda" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -390,19 +410,13 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-          {/* SERVIÇOS */}
+          {/* SERVIÇOS & VAGAS — gestão de serviços + capacidades + ocupação */}
           {activeTab === "servicos" && (
-            <motion.div key="servicos" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key="servicos" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
               <HotelServiceManager
                 hotelProfile={hotelProfile}
                 onServiceUpdate={() => queryClient.invalidateQueries(['hotelProfile'])}
               />
-            </motion.div>
-          )}
-
-          {/* VAGAS */}
-          {activeTab === "vagas" && (
-            <motion.div key="vagas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
               <HotelCapacityAdjuster hotelProfile={hotelProfile} />
               <HotelOccupancyManager
                 bookings={bookings}
@@ -412,82 +426,12 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-          {/* FINANÇAS */}
+          {/* FINANÇAS — receitas, saques + estatísticas */}
           {activeTab === "financas" && (
-            <motion.div key="financas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key="financas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              className="space-y-4">
               <HotelFinancesPanel bookings={bookings} hotelProfile={hotelProfile} />
-            </motion.div>
-          )}
-
-          {/* CARTÃO DIGITAL */}
-          {activeTab === "cartao" && (
-            <motion.div key="cartao" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              <HotelDigitalPass hotelProfile={hotelProfile} />
-            </motion.div>
-          )}
-
-          {/* HOJE */}
-          {activeTab === "today" && (
-            <motion.div key="today" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="space-y-4">
-
-              {/* Check-ins */}
-              <div>
-                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> Chegadas hoje ({todayCheckins.length})
-                </p>
-                {todayCheckins.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-100 py-6 text-center text-slate-400 text-sm">Sem chegadas hoje</div>
-                ) : todayCheckins.map(b => (
-                  <BookingRow key={b.id} booking={b} onUpdate={handleUpdateBooking} />
-                ))}
-              </div>
-
-              {/* Check-outs */}
-              <div>
-                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-purple-500 inline-block" /> Saídas hoje ({todayCheckouts.length})
-                </p>
-                {todayCheckouts.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-100 py-6 text-center text-slate-400 text-sm">Sem saídas hoje</div>
-                ) : todayCheckouts.map(b => (
-                  <BookingRow key={b.id} booking={b} onUpdate={handleUpdateBooking} />
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* RESERVAS */}
-          {activeTab === "reservas" && (
-            <motion.div key="reservas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="space-y-4">
-              {/* Pendentes primeiro */}
-              {pendingBookings.length > 0 && (
-                <div>
-                  <p className="text-xs font-black text-orange-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                    <AlertCircle className="w-3.5 h-3.5" /> Aguardam resposta ({pendingBookings.length})
-                  </p>
-                  {pendingBookings.map(b => <BookingRow key={b.id} booking={b} onUpdate={handleUpdateBooking} />)}
-                </div>
-              )}
-              {/* Todas */}
-              <div>
-                <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Todas as reservas ({bookings.length})</p>
-                {loadingBookings && <p className="text-center text-slate-400 py-8 text-sm">A carregar...</p>}
-                {!loadingBookings && bookings.length === 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-100 py-12 text-center">
-                    <CalendarDays className="w-10 h-10 mx-auto mb-3 text-slate-200" />
-                    <p className="text-slate-400 text-sm">Sem reservas ainda</p>
-                    <Button size="sm" className="mt-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-1.5"
-                      onClick={() => setShowNewBooking(true)}>
-                      <Plus className="w-3.5 h-3.5" /> Nova Reserva
-                    </Button>
-                  </div>
-                )}
-                {bookings.filter(b => b.status !== "pending").map(b => (
-                  <BookingRow key={b.id} booking={b} onUpdate={handleUpdateBooking} />
-                ))}
-              </div>
+              <StatsPanel bookings={bookings} />
             </motion.div>
           )}
 
@@ -503,23 +447,16 @@ export default function HotelDashboard() {
             </motion.div>
           )}
 
-          {/* CONFIGURAÇÕES */}
+          {/* CONFIGURAÇÕES — políticas + cartão digital */}
           {activeTab === "config" && (
-            <motion.div key="config" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key="config" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
               <HotelCheckinPolicyConfig
                 hotelProfile={hotelProfile}
                 onSave={() => {
                   queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
                 }}
               />
-            </motion.div>
-          )}
-
-          {/* STATS */}
-          {activeTab === "stats" && (
-            <motion.div key="stats" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="space-y-4">
-              <StatsPanel bookings={bookings} />
+              <HotelDigitalPass hotelProfile={hotelProfile} />
             </motion.div>
           )}
 
