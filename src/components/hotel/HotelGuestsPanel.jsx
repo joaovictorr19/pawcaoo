@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dog, Phone, Mail, Calendar, Clock, ChevronDown, ChevronUp,
   AlertCircle, FileText, ArrowRight, Heart, Pill, Syringe,
-  CheckCircle2, LogOut, User, Star, ShieldAlert, Activity,
+  CheckCircle2, LogOut, User, Star, ShieldAlert, Activity, ShieldCheck,
   Search, Filter, BookOpen, Utensils, Repeat, ListChecks, Scissors
 } from "lucide-react";
 import GuestsExportButton from "./GuestsExportButton";
 import GuestDailyReport from "./GuestDailyReport";
+import CheckinChecklist from "./CheckinChecklist";
 import { differenceInDays, parseISO, format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { base44 } from "@/api/base44Client";
@@ -136,9 +137,11 @@ function AnimalStatusBadge({ booking }) {
 function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
   const [expanded, setExpanded] = useState(false);
   const [showDiary, setShowDiary] = useState(false);
+  const [showChecklist, setShowChecklist] = useState(false);
   const dogs = booking.dogs?.length > 0 ? booking.dogs : [];
   const isCheckedIn = ["checked_in", "in_progress"].includes(booking.status);
   const isExpectedArrival = booking.status === "confirmed";
+  const checklistDone = booking.checkin_checklist?.length > 0;
 
   return (
     <motion.div
@@ -418,9 +421,15 @@ function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
                 {booking.status === "confirmed" && (
                   <Button size="sm"
                     className="flex-1 h-9 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold"
-                    onClick={() => onCheckIn && onCheckIn(booking.id)}>
+                    onClick={() => setShowChecklist(true)}>
                     <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Fazer Check-in
                   </Button>
+                )}
+                {isCheckedIn && checklistDone && (
+                  <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                    <span className="text-[10px] font-semibold text-emerald-700">Cuidados conferidos</span>
+                  </div>
                 )}
                 {booking.status === "checked_in" && (
                   <Button size="sm"
@@ -442,6 +451,16 @@ function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
                   booking={booking}
                   onUpdateBooking={onUpdateBooking}
                   onClose={() => setShowDiary(false)}
+                />
+              )}
+              {showChecklist && (
+                <CheckinChecklist
+                  booking={booking}
+                  onClose={() => setShowChecklist(false)}
+                  onConfirm={(finalChecklist) => {
+                    setShowChecklist(false);
+                    onCheckIn(booking.id, finalChecklist);
+                  }}
                 />
               )}
             </div>
@@ -475,7 +494,7 @@ export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
     }
   };
 
-  const handleCheckIn = async (id) => {
+  const handleCheckIn = async (id, checklist) => {
     const bk = bookings.find(b => b.id === id);
     if (!bk) return;
 
@@ -489,7 +508,9 @@ export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
     }
 
     const time = new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
-    onUpdateBooking(id, { status: "checked_in", checkin_time: time });
+    const updateData = { status: "checked_in", checkin_time: time };
+    if (checklist) updateData.checkin_checklist = checklist;
+    onUpdateBooking(id, updateData);
     const dogNames = (bk.dogs || []).map(d => d.dog_name).join(" & ") || "o seu animal";
     await sendOwnerNotification(bk, "Check-in realizado!", `${dogNames} chegou ao hotel às ${time}. Boa estadia!`);
     toast.success(`Check-in registado às ${time}`);

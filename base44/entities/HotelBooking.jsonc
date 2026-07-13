@@ -207,6 +207,38 @@
     },
     "review_id": {
       "type": "string"
+    },
+    "checkin_checklist": {
+      "type": "array",
+      "description": "Checklist de verificacao de cuidados no check-in",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dog_name": {
+            "type": "string"
+          },
+          "diet_verified": {
+            "type": "boolean",
+            "default": false
+          },
+          "medications_verified": {
+            "type": "boolean",
+            "default": false
+          },
+          "routine_verified": {
+            "type": "boolean",
+            "default": false
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verified_by": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
     }
   },
   "required": [
