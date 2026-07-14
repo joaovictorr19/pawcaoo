@@ -936,29 +936,36 @@ export default function Home() {
 
           <div className={showAdvancedFilters ? "lg:col-span-3" : "lg:col-span-4"}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="flex items-center justify-center gap-2 max-w-2xl mx-auto bg-white md:bg-white/80 md:backdrop-blur-lg p-2 rounded-xl mb-6 border border-white/50 shadow-lg">
+              <div
+                className="flex items-center max-w-2xl mx-auto p-1.5 rounded-full mb-6 border border-[#e0f2ef]"
+                style={{
+                  background: "rgba(255,255,255,0.6)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,166,153,0.06)",
+                }}
+              >
                 <button
                   onClick={() => setActiveTab('professionals')}
-                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all flex-1 font-heading ${
                     activeTab === 'professionals'
-                      ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-md'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-[#0e9485] text-white shadow-[0_4px_14px_rgba(14,148,133,0.35)]'
+                      : 'text-[#597670] hover:bg-white/40'
                   }`}
                 >
                   <Users className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate hidden sm:inline">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
-                  <span className="truncate sm:hidden">Pro</span>
+                  <span className="truncate">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('emergency')}
-                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-all flex-1 ${
+                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all flex-1 font-heading ${
                     activeTab === 'emergency'
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-[#0e9485] text-white shadow-[0_4px_14px_rgba(14,148,133,0.35)]'
+                      : 'text-[#597670] hover:bg-white/40'
                   }`}
                 >
                   <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate font-bold">PawGo</span>
+                  <span className="truncate">PawGo</span>
                 </button>
               </div>
 
