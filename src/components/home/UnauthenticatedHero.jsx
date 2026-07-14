@@ -1,7 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { PawPrint } from "lucide-react";
-import PawCaoLogo from "@/components/PawCaoLogo";
 import { useLanguage } from "@/components/LanguageContext";
 
 const TEAL = "#009b93";
@@ -83,31 +82,12 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="relative w-full bg-black overflow-hidden rounded-b-[2rem] md:rounded-b-[3rem]"
+      className="relative w-full overflow-hidden"
     >
       <OrganicShapes />
 
-      {/* Top nav */}
-      <div className="relative z-20 flex items-center justify-between px-5 md:px-10 pt-6">
-        <div className="flex items-center gap-2">
-          <PawCaoLogo size="small" showText={false} />
-          <span className="text-2xl md:text-3xl font-black tracking-tight" style={{ color: TEAL }}>
-            PAWCÃO
-          </span>
-        </div>
-        <motion.button
-          variants={itemVariants}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onEntrar}
-          className="rounded-full px-5 py-2 text-xs font-bold text-white border border-white/30 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors"
-        >
-          ENTRAR
-        </motion.button>
-      </div>
-
       {/* Main content grid */}
-      <div className="relative z-10 px-5 md:px-10 pt-8 md:pt-14 pb-10 md:pb-16 max-w-7xl mx-auto">
+      <div className="relative z-10 px-4 md:px-6 pt-8 md:pt-12 pb-10 md:pb-16 max-w-7xl mx-auto">
         <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-center">
           {/* Left: heading + dog */}
           <div className="flex flex-col gap-6">

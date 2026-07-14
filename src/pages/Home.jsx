@@ -14,7 +14,6 @@ const AdvancedTrainerFilters = React.lazy(() => import("../components/search/Adv
 
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import UnauthenticatedHero from "../components/home/UnauthenticatedHero";
-import CloudyBackground from "../components/home/CloudyBackground";
 import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
@@ -604,10 +603,9 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen relative w-full">
-      {!user && <CloudyBackground />}
+    <div className="min-h-screen relative w-full" style={!user ? { background: "linear-gradient(160deg, #060606 0%, #0a1a18 45%, #060606 100%)" } : {}}>
 
-      <div className="relative z-10 overflow-visible md:overflow-hidden">
+      <div className="relative z-10">
             
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
@@ -901,7 +899,7 @@ export default function Home() {
 
 
 
-      <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6">
         {/* Tabs Section */}
         <div id="results-section" className="grid lg:grid-cols-4 gap-6 mb-6">
           <AnimatePresence>
@@ -968,8 +966,7 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-80px" }}
                   transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative rounded-2xl p-6 md:p-8 shadow-2xl overflow-hidden"
-                  style={{ background: "linear-gradient(160deg, #0a0a0a 0%, #0d1f1e 55%, #0a0a0a 100%)" }}
+                  className="relative rounded-2xl p-6 md:p-8 overflow-hidden"
                 >
                   <div className="absolute -top-16 -right-10 w-48 h-48 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ background: "#009b93" }} />
                   <div className="absolute -bottom-16 -left-10 w-48 h-48 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "#ff6622" }} />
@@ -1038,10 +1035,10 @@ export default function Home() {
 
               <TabsContent value="emergency">
                 <div className="p-3 sm:p-6 animate-in fade-in duration-500">
-                  <div className="bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100 p-6 text-center">
+                  <div className={`rounded-3xl shadow-sm border p-6 text-center ${!user ? 'bg-white/5 backdrop-blur-md border-white/10' : 'bg-white/60 backdrop-blur-md border-gray-100'}`}>
                     <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-                    <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4">PawGo em Manutenção</h3>
-                    <p className="text-sm text-gray-600 mb-4">Estamos a refazer o PawGo do zero!</p>
+                    <h3 className={`text-lg md:text-xl font-bold mb-4 ${!user ? 'text-white' : 'text-gray-800'}`}>PawGo em Manutenção</h3>
+                    <p className={`text-sm mb-4 ${!user ? 'text-white/70' : 'text-gray-600'}`}>Estamos a refazer o PawGo do zero!</p>
                   </div>
                   {!user && (
                     <div className="text-center py-12 md:py-16 bg-white/60 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100 mt-4">
@@ -1067,7 +1064,7 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden"
+            className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden border border-white/10"
           >
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
@@ -1112,14 +1109,14 @@ export default function Home() {
               <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-emerald-600 rounded-full flex items-center justify-center shadow-md">
                 <Award className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-semibold text-gray-900 drop-shadow-sm">{t('verifiedProfessionals', language)}</span>
+              <span className={`text-xs font-semibold drop-shadow-sm ${!user ? 'text-white' : 'text-gray-900'}`}>{t('verifiedProfessionals', language)}</span>
             </motion.div>
 
             <motion.div whileHover={{ scale: 1.02 }} className="flex items-center gap-2 cursor-default group">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
                 <ShieldCheck className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-semibold text-gray-900 drop-shadow-sm">{t('securePayment', language)}</span>
+              <span className={`text-xs font-semibold drop-shadow-sm ${!user ? 'text-white' : 'text-gray-900'}`}>{t('securePayment', language)}</span>
             </motion.div>
           </div>
         </div>
