@@ -60,6 +60,10 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
   const [form, setForm] = useState(null);
   const [requestFields, setRequestFields] = useState([]);
   const [requestMessage, setRequestMessage] = useState("");
+  const [commissionMode, setCommissionMode] = useState("default");
+  const [customRate, setCustomRate] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [zeroMonths, setZeroMonths] = useState(3);
 
   const { data: linked, isLoading } = useQuery({
     queryKey: ["adminAccountEditor", userToEdit?.id],
@@ -87,6 +91,10 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
     setForm(buildForm(userToEdit, linked.userProfile, linked.professionalProfile));
     setRequestFields([]);
     setRequestMessage("");
+    const pro = linked.professionalProfile;
+    setCommissionMode(pro?.commission_rate_mode || "default");
+    setCustomRate(pro?.custom_commission_rate != null ? String(pro.custom_commission_rate) : "");
+    setExpiryDate(pro?.commission_rate_expiry || "");
   }, [userToEdit, linked]);
 
   const isProfessional = !!linked?.professionalProfile;
@@ -150,6 +158,11 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
           tax_id_france: form.tax_id_france,
           ...(linked.professionalType === "walker" ? { walker_name: form.full_name } : { trainer_name: form.full_name })
         };
+        payload.commission_rate_mode = commissionMode;
+        payload.custom_commission_rate = commissionMode === "custom_percent" ? Number(customRate) : null;
+        payload.commission_rate_expiry = commissionMode === "zero_temporary" ? expiryDate : null;
+        payload.exempt_from_platform_fees = (commissionMode === "zero" || commissionMode === "zero_temporary");
+
         if (linked.professionalType === "walker") {
           await base44.entities.WalkerProfile.update(linked.professionalProfile.id, payload);
         } else {
@@ -337,8 +350,14 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                 <TabsContent value="commission" className="mt-0">
                   <AdminCommissionManager
                     professionalProfile={linked.professionalProfile}
-                    professionalType={linked.professionalType}
-                    userToEdit={userToEdit}
+                    mode={commissionMode}
+                    setMode={setCommissionMode}
+                    customRate={customRate}
+                    setCustomRate={setCustomRate}
+                    expiryDate={expiryDate}
+                    setExpiryDate={setExpiryDate}
+                    zeroMonths={zeroMonths}
+                    setZeroMonths={setZeroMonths}
                   />
                 </TabsContent>
               )}

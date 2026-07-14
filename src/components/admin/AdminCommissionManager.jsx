@@ -1,65 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Percent, Gift, Calendar, Save, Info } from "lucide-react";
-import { toast } from "sonner";
+import { Percent, Gift, Calendar, Info } from "lucide-react";
 
 const DEFAULT_RATE = 10;
 
-export default function AdminCommissionManager({ professionalProfile, professionalType, userToEdit }) {
-  const queryClient = useQueryClient();
-  const [mode, setMode] = useState("default");
-  const [customRate, setCustomRate] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [zeroMonths, setZeroMonths] = useState(3);
-
-  useEffect(() => {
-    if (!professionalProfile) return;
-    setMode(professionalProfile.commission_rate_mode || "default");
-    setCustomRate(
-      professionalProfile.custom_commission_rate != null
-        ? String(professionalProfile.custom_commission_rate)
-        : ""
-    );
-    setExpiryDate(professionalProfile.commission_rate_expiry || "");
-  }, [professionalProfile]);
-
+export default function AdminCommissionManager({
+  professionalProfile,
+  mode,
+  setMode,
+  customRate,
+  setCustomRate,
+  expiryDate,
+  setExpiryDate,
+  zeroMonths,
+  setZeroMonths
+}) {
   const effectiveRate = (() => {
     if (mode === "zero" || mode === "zero_temporary") return 0;
     if (mode === "custom_percent" && customRate) return Number(customRate);
     if (professionalProfile?.exempt_from_platform_fees) return 0;
     return DEFAULT_RATE;
   })();
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (!professionalProfile?.id) return;
-      const payload = {
-        commission_rate_mode: mode,
-        custom_commission_rate: mode === "custom_percent" ? Number(customRate) : null,
-        commission_rate_expiry: mode === "zero_temporary" ? expiryDate : null,
-      };
-
-      if (mode === "zero" || mode === "zero_temporary") {
-        payload.exempt_from_platform_fees = true;
-      } else {
-        payload.exempt_from_platform_fees = false;
-      }
-
-      await base44.entities.WalkerProfile.update(professionalProfile.id, payload);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminAccountEditor", userToEdit?.id] });
-      queryClient.invalidateQueries({ queryKey: ["allWalkersAdmin"] });
-      toast.success("Taxa de comissão atualizada com sucesso.");
-    },
-    onError: (error) => toast.error(error.message || "Erro ao atualizar taxa."),
-  });
 
   const applyZeroMonths = () => {
     const d = new Date();
@@ -69,10 +33,10 @@ export default function AdminCommissionManager({ professionalProfile, profession
   };
 
   const modes = [
-    { value: "default", label: "Padrão", desc: `${DEFAULT_RATE}% por transação`, icon: Percent, color: "bg-slate-100 text-slate-700 border-slate-300" },
+    { value: "default", label: "Padrão", desc: DEFAULT_RATE + "% por transação", icon: Percent, color: "bg-slate-100 text-slate-700 border-slate-300" },
     { value: "custom_percent", label: "Personalizada", desc: "Escolher % por transação", icon: Percent, color: "bg-blue-50 text-blue-700 border-blue-300" },
     { value: "zero", label: "Taxa Zero", desc: "Sem comissão (permanente)", icon: Gift, color: "bg-emerald-50 text-emerald-700 border-emerald-300" },
-    { value: "zero_temporary", label: "Zero Temporário", desc: "Taxa zero por X meses", icon: Calendar, color: "bg-amber-50 text-amber-700 border-amber-300" },
+    { value: "zero_temporary", label: "Zero Temporário", desc: "Taxa zero por X meses", icon: Calendar, color: "bg-amber-50 text-amber-700 border-amber-300" }
   ];
 
   return (
@@ -82,7 +46,7 @@ export default function AdminCommissionManager({ professionalProfile, profession
         <div>
           <p className="text-sm font-bold text-teal-900">Taxa de Comissão da Plataforma</p>
           <p className="text-xs text-teal-700 mt-1">
-            Define quanto a plataforma retém de cada transação deste profissional. Pode aplicar taxa zero temporária para ofertas promocionais.
+            Define quanto a plataforma retém de cada transação deste profissional. A taxa é guardada juntamente com as outras alterações.
           </p>
         </div>
       </div>
@@ -91,11 +55,12 @@ export default function AdminCommissionManager({ professionalProfile, profession
         {modes.map((m) => {
           const Icon = m.icon;
           const isActive = mode === m.value;
+          const cls = isActive ? "border-teal-500 bg-teal-50 shadow-sm" : "border-slate-200 " + m.color + " hover:border-slate-300";
           return (
             <button
               key={m.value}
               onClick={() => setMode(m.value)}
-              className={`rounded-xl border-2 p-4 text-left transition-all ${isActive ? "border-teal-500 bg-teal-50 shadow-sm" : `border-slate-200 ${m.color} hover:border-slate-300`}`}
+              className={"rounded-xl border-2 p-4 text-left transition-all " + cls}
             >
               <div className="flex items-center gap-2 mb-1">
                 <Icon className="w-4 h-4" />
@@ -124,9 +89,10 @@ export default function AdminCommissionManager({ professionalProfile, profession
             <span className="text-sm font-bold text-slate-600">%</span>
             <div className="flex gap-1 ml-2">
               {[0, 5, 10, 15].map((r) => (
-                <Button key={r} size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => setCustomRate(String(r))}>
+                <button key={r} onClick={() => setCustomRate(String(r))}
+                  className="h-8 px-2 text-xs rounded-lg border border-slate-200 bg-white hover:bg-slate-50">
                   {r}%
-                </Button>
+                </button>
               ))}
             </div>
           </div>
@@ -147,9 +113,10 @@ export default function AdminCommissionManager({ professionalProfile, profession
                 className="max-w-[80px]"
               />
               <span className="text-sm font-bold text-slate-600">meses</span>
-              <Button size="sm" variant="outline" className="ml-2" onClick={applyZeroMonths}>
+              <button onClick={applyZeroMonths}
+                className="ml-2 h-8 px-3 text-xs rounded-lg border border-slate-200 bg-white hover:bg-slate-50">
                 Aplicar
-              </Button>
+              </button>
             </div>
           </div>
           <div className="space-y-2">
@@ -177,13 +144,6 @@ export default function AdminCommissionManager({ professionalProfile, profession
             <Badge className="bg-emerald-100 text-emerald-700 mt-1">Isento (legacy)</Badge>
           )}
         </div>
-      </div>
-
-      <div className="flex justify-end">
-        <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || (mode === "custom_percent" && !customRate)} className="bg-teal-600 hover:bg-teal-700">
-          {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-          Guardar taxa de comissão
-        </Button>
       </div>
     </div>
   );
