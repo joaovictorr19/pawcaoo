@@ -187,7 +187,10 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
               style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(0,0,0,0.06)" }}
             >
               <div className="p-6 md:p-7">
-                <span className="inline-block rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#1a1a1a] mb-3 shadow-sm">Cliente</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-3.5 py-1.5 text-[13px] font-extrabold uppercase tracking-wide mb-3" style={{ color: TEAL }}>
+                  <Search className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  Cliente
+                </span>
                 <p className="text-[13px] md:text-sm leading-relaxed text-[#1a1a1a] mb-5">{card1Body}</p>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -210,16 +213,20 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
               style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(0,0,0,0.06)" }}
             >
               <div className="p-6 md:p-7">
-                <span className="inline-block rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#1a1a1a] mb-3 shadow-sm">Profissional</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-3.5 py-1.5 text-[13px] font-extrabold uppercase tracking-wide mb-3" style={{ color: ORANGE }}>
+                  <Euro className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  Profissional
+                </span>
                 <p className="text-[13px] md:text-sm leading-relaxed text-[#1a1a1a] mb-5">{card2Body}</p>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onRegistar}
-                  className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold text-[#1a1a1a] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] transition-shadow"
+                  className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-extrabold text-white shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] transition-shadow"
+                  style={{ background: `linear-gradient(135deg, ${ORANGE}, #ff8855)` }}
                 >
                   Registar
-                  <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
                 </motion.button>
               </div>
             </motion.div>

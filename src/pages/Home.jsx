@@ -586,6 +586,13 @@ export default function Home() {
     }
   };
 
+  const handleScrollToProfessionals = () => {
+    const el = document.getElementById('results-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
 
 
 
@@ -872,7 +879,7 @@ export default function Home() {
             /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS (HERO PREMIUM) --- */
             <UnauthenticatedHero
               onEntrar={handleLogin}
-              onEncontrar={handleClientRegister}
+              onEncontrar={handleScrollToProfessionals}
               onRegistar={handleBecomePro}
               dogImageUrl="https://media.base44.com/images/public/6907b3be1ec43db5676a2085/6f5a681b3_generated_image.png"
             />
