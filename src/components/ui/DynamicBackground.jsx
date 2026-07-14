@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "../ThemeContext";
 import { motion } from "framer-motion";
-import { PawPrint, Heart } from "lucide-react";
+
 
 export default function DynamicBackground() {
   const [weather, setWeather] = useState('sunny');
@@ -74,19 +74,24 @@ export default function DynamicBackground() {
   const isLoggedIn = !!user;
 
   if (!isLoggedIn) {
+    const ASSET_BALL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/5ec20bca0_Bola.png";
+    const ASSET_BONE = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/2d3368286_osso.png";
+    const ASSET_PAW_TEAL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/d327623b8_generated_image.png";
+    const ASSET_PAW_CORAL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/4ca979d5f_generated_image.png";
+
     const floatItems = [
-      { Icon: PawPrint, pos: "top-[6%] left-[4%]", color: "#00a699", size: 44, delay: 0, dur: 7 },
-      { Icon: Heart, pos: "top-[10%] right-[6%]", color: "#ff6633", size: 30, delay: 1.5, dur: 6 },
-      { Icon: PawPrint, pos: "top-[28%] left-[9%]", color: "#ff6633", size: 36, delay: 0.8, dur: 8 },
-      { Icon: Heart, pos: "top-[38%] right-[4%]", color: "#00a699", size: 26, delay: 2, dur: 7 },
-      { Icon: PawPrint, pos: "bottom-[18%] left-[5%]", color: "#00a699", size: 40, delay: 1.2, dur: 6.5 },
-      { Icon: Heart, pos: "bottom-[12%] right-[7%]", color: "#ff6633", size: 34, delay: 2.5, dur: 7.5 },
-      { Icon: PawPrint, pos: "bottom-[42%] right-[14%]", color: "#ff6633", size: 28, delay: 3, dur: 6 },
-      { Icon: Heart, pos: "top-[52%] left-[16%]", color: "#00a699", size: 22, delay: 1.8, dur: 5.5 },
-      { Icon: PawPrint, pos: "top-[68%] right-[22%]", color: "#00a699", size: 34, delay: 0.4, dur: 7 },
-      { Icon: Heart, pos: "top-[18%] left-[32%]", color: "#ff6633", size: 24, delay: 3.2, dur: 6.8 },
-      { Icon: PawPrint, pos: "bottom-[55%] left-[28%]", color: "#ff6633", size: 30, delay: 2.2, dur: 7.2 },
-      { Icon: Heart, pos: "bottom-[30%] right-[30%]", color: "#00a699", size: 28, delay: 0.6, dur: 6.3 },
+      { src: ASSET_PAW_TEAL, pos: "top-[6%] left-[4%]", size: 48, delay: 0, dur: 7, blend: "normal" },
+      { src: ASSET_BALL, pos: "top-[10%] right-[6%]", size: 38, delay: 1.5, dur: 6, blend: "screen" },
+      { src: ASSET_PAW_CORAL, pos: "top-[28%] left-[9%]", size: 40, delay: 0.8, dur: 8, blend: "normal" },
+      { src: ASSET_BONE, pos: "top-[38%] right-[4%]", size: 46, delay: 2, dur: 7, blend: "normal", rotate: 35 },
+      { src: ASSET_PAW_TEAL, pos: "bottom-[18%] left-[5%]", size: 44, delay: 1.2, dur: 6.5, blend: "normal" },
+      { src: ASSET_BALL, pos: "bottom-[12%] right-[7%]", size: 42, delay: 2.5, dur: 7.5, blend: "screen" },
+      { src: ASSET_PAW_CORAL, pos: "bottom-[42%] right-[14%]", size: 32, delay: 3, dur: 6, blend: "normal" },
+      { src: ASSET_BONE, pos: "top-[52%] left-[16%]", size: 38, delay: 1.8, dur: 5.5, blend: "normal", rotate: -20 },
+      { src: ASSET_PAW_TEAL, pos: "top-[68%] right-[22%]", size: 36, delay: 0.4, dur: 7, blend: "normal" },
+      { src: ASSET_BALL, pos: "top-[18%] left-[32%]", size: 30, delay: 3.2, dur: 6.8, blend: "screen" },
+      { src: ASSET_PAW_CORAL, pos: "bottom-[55%] left-[28%]", size: 34, delay: 2.2, dur: 7.2, blend: "normal" },
+      { src: ASSET_BONE, pos: "bottom-[30%] right-[30%]", size: 40, delay: 0.6, dur: 6.3, blend: "normal", rotate: 50 },
     ];
 
     return (
@@ -95,14 +100,23 @@ export default function DynamicBackground() {
           <motion.div
             key={i}
             className={`absolute ${item.pos}`}
-            animate={{ y: [0, -18, 0], rotate: [0, 8, -4, 0] }}
+            animate={{ y: [0, -18, 0], rotate: [item.rotate || 0, (item.rotate || 0) + 10, (item.rotate || 0) - 6, item.rotate || 0] }}
             transition={{ duration: item.dur, repeat: Infinity, delay: item.delay, ease: "easeInOut" }}
           >
-            <item.Icon
-              size={item.size}
-              style={{ color: item.color, opacity: 0.2, filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.06))" }}
-              strokeWidth={2}
-              fill="currentColor"
+            <img
+              src={item.src}
+              alt=""
+              aria-hidden="true"
+              width={item.size}
+              height={item.size}
+              style={{
+                width: item.size,
+                height: item.size,
+                objectFit: "contain",
+                opacity: 0.28,
+                mixBlendMode: item.blend,
+                filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.06))",
+              }}
             />
           </motion.div>
         ))}
