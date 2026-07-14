@@ -972,7 +972,7 @@ export default function Home() {
                   <div className="absolute -bottom-16 -left-10 w-48 h-48 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "#ff6622" }} />
 
                   <div className="relative z-10 flex items-center justify-between gap-3 mb-6">
-                    <h2 className="font-display text-xl md:text-3xl font-black drop-shadow-lg flex items-center gap-2 tracking-tight" style={{ color: "#009b93" }}>
+                    <h2 className="font-heading text-xl md:text-3xl font-bold drop-shadow-lg flex items-center gap-2 tracking-tight" style={{ color: "#009b93" }}>
                       <PawPrint className="w-5 h-5 md:w-6 md:h-6" />
                       {language === 'pt' ? 'Profissionais Disponíveis' : 
                        language === 'es' ? 'Profesionales Disponibles' : 
