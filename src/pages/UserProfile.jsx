@@ -1,28 +1,21 @@
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useEffect, useLayoutEffect, Suspense, lazy } from "react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, ArrowLeft, Shield, User, Star, Calendar, Moon } from "lucide-react";
-import ReviewCard from "../components/reviews/ReviewCard";
+import { ArrowLeft, User } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
-import BadgeSelectionModal from "@/components/gamification/BadgeSelectionModal";
-import BadgeItem from "@/components/gamification/BadgeItem";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import AnimalManagerModal from "../components/profile/AnimalManagerModal";
-import ProfileActions from "../components/profile/ProfileActions";
-import ProfessionalBookingModal from "../components/professional/ProfessionalBookingModal";
-import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
-import HotelTeamSection from "@/components/hotel/HotelTeamSection";
-
-import HotelProfileDisplay from "@/components/hotel/HotelProfileDisplay";
-import HotelBookingModal from "@/components/hotel/HotelBookingModal";
 import ProfileBentoGrid from "@/components/profile/ProfileBentoGrid";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
+
+const BadgeSelectionModal = lazy(() => import("@/components/gamification/BadgeSelectionModal"));
+const AnimalManagerModal = lazy(() => import("../components/profile/AnimalManagerModal"));
+const ProfessionalBookingModal = lazy(() => import("../components/professional/ProfessionalBookingModal"));
+const HotelBookingModal = lazy(() => import("@/components/hotel/HotelBookingModal"));
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -385,39 +378,55 @@ export default function UserProfile() {
       onToggleVerify={() => toggleVerificationMutation.mutate(profileUser.id)}
     />
 
-      <BadgeSelectionModal
-        isOpen={isBadgeModalOpen}
-        onClose={() => setIsBadgeModalOpen(false)}
-        earnedBadges={earnedBadges}
-        onSelectBadge={(badgeId) => {
-          if (activeSlotIndex !== null) updatePinnedBadgesMutation.mutate({ slotIndex: activeSlotIndex, badgeId });
-        }}
-        currentlyPinnedIds={profileUser?.pinned_badge_ids || []}
-        maxSlots={4}
-        currentSlotIndex={activeSlotIndex}
-      />
-      <AnimalManagerModal
-        isOpen={isAnimalModalOpen}
-        onClose={() => setIsAnimalModalOpen(false)}
-        userEmail={profileEmail}
-      />
-      <ProfessionalBookingModal
-        isOpen={bookingModal.isOpen}
-        onClose={() => setBookingModal({ isOpen: false, selectedDate: null, selectedService: null })}
-        walkerProfile={walkerProfile || trainerProfile}
-        selectedDate={bookingModal.selectedDate}
-        selectedService={bookingModal.selectedService}
-        currentUser={currentUser}
-      />
-      <HotelBookingModal
-        isOpen={hotelBookingModal.isOpen}
-        onClose={() => setHotelBookingModal({ isOpen: false, selectedService: null, selectedDate: null, selectedCheckout: null })}
-        hotel={walkerProfile?.professional_type === 'hotel' ? walkerProfile : null}
-        selectedService={hotelBookingModal.selectedService}
-        initialDate={hotelBookingModal.selectedDate}
-        initialCheckout={hotelBookingModal.selectedCheckout}
-        currentUser={currentUser}
-      />
+      {isBadgeModalOpen && (
+        <Suspense fallback={null}>
+          <BadgeSelectionModal
+            isOpen={true}
+            onClose={() => setIsBadgeModalOpen(false)}
+            earnedBadges={earnedBadges}
+            onSelectBadge={(badgeId) => {
+              if (activeSlotIndex !== null) updatePinnedBadgesMutation.mutate({ slotIndex: activeSlotIndex, badgeId });
+            }}
+            currentlyPinnedIds={profileUser?.pinned_badge_ids || []}
+            maxSlots={4}
+            currentSlotIndex={activeSlotIndex}
+          />
+        </Suspense>
+      )}
+      {isAnimalModalOpen && (
+        <Suspense fallback={null}>
+          <AnimalManagerModal
+            isOpen={true}
+            onClose={() => setIsAnimalModalOpen(false)}
+            userEmail={profileEmail}
+          />
+        </Suspense>
+      )}
+      {bookingModal.isOpen && (
+        <Suspense fallback={null}>
+          <ProfessionalBookingModal
+            isOpen={true}
+            onClose={() => setBookingModal({ isOpen: false, selectedDate: null, selectedService: null })}
+            walkerProfile={walkerProfile || trainerProfile}
+            selectedDate={bookingModal.selectedDate}
+            selectedService={bookingModal.selectedService}
+            currentUser={currentUser}
+          />
+        </Suspense>
+      )}
+      {hotelBookingModal.isOpen && (
+        <Suspense fallback={null}>
+          <HotelBookingModal
+            isOpen={true}
+            onClose={() => setHotelBookingModal({ isOpen: false, selectedService: null, selectedDate: null, selectedCheckout: null })}
+            hotel={walkerProfile?.professional_type === 'hotel' ? walkerProfile : null}
+            selectedService={hotelBookingModal.selectedService}
+            initialDate={hotelBookingModal.selectedDate}
+            initialCheckout={hotelBookingModal.selectedCheckout}
+            currentUser={currentUser}
+          />
+        </Suspense>
+      )}
     </>
   );
 }
