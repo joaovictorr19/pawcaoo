@@ -200,26 +200,27 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: pendingBookingsCount = 0 } = useQuery({
+  const { data: pendingBookings = [] } = useQuery({
     queryKey: ['pendingBookingsCount', user?.email],
     queryFn: async () => {
-      if (!user?.email || !['walker', 'trainer', 'both'].includes(user?.account_type)) return 0;
+      if (!user?.email || !['walker', 'trainer', 'both'].includes(user?.account_type)) return [];
       try {
         const res = await base44.entities.Booking.filter({
           $or: [
             { walker_email: user.email, status: 'pending' },
             { trainer_email: user.email, status: 'pending' }
           ]
-        });
-        return Array.isArray(res) ? res.length : 0;
+        }, '-created_date', 20);
+        return Array.isArray(res) ? res : [];
       } catch (error) {
-        return 0;
+        return [];
       }
     },
     enabled: !!user?.email && ['walker', 'trainer', 'both'].includes(user?.account_type),
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+  const pendingBookingsCount = pendingBookings.length;
 
   const priorityData = React.useMemo(() => {
       const live = activeBookings.find(b => b.status === 'in_progress');
@@ -731,7 +732,7 @@ export default function Home() {
                       <motion.button
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        onClick={() => navigate(createPageUrl('ProfessionalHubV2?tab=active'))}
+                        onClick={() => navigate(createPageUrl('ProfessionalHubV2?tab=requests'))}
                         className="mt-3 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-between group"
                       >
                         <div className="flex items-center gap-2">

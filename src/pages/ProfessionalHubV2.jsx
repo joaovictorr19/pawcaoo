@@ -27,6 +27,7 @@ import DocumentsVerificationSection from "@/components/professional-hub/Document
 import PendingApproval from "@/components/professional-hub/PendingApproval";
 import ProfessionalProfileForm from "@/components/professional-hub/ProfessionalProfileForm";
 import HotelManagementPanel from "@/components/professional-hub/HotelManagementPanel";
+import PendingRequestsList from "@/components/professional-hub/PendingRequestsList";
 
 function ActiveRequestsList({ user }) {
   const { data: activeBookings = [] } = useQuery({
@@ -92,7 +93,7 @@ export default function ProfessionalHubV2() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
-  const initialTab = tabParam === 'agenda' ? 'calendar' : tabParam === 'active' ? 'active' : tabParam === 'documents' ? 'documents' : 'overview';
+  const initialTab = tabParam === 'agenda' ? 'calendar' : tabParam === 'active' ? 'active' : tabParam === 'documents' ? 'documents' : tabParam === 'requests' ? 'requests' : 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -408,7 +409,7 @@ export default function ProfessionalHubV2() {
 
   // Hotéis têm painel próprio — sem pending approval screen
   const verificationStatus = professionalProfile?.verification_status;
-  const showRestrictedPendingScreen = !isHotelProfile && verificationStatus !== 'verified' && !['documents', 'portfolio'].includes(activeTab);
+  const showRestrictedPendingScreen = !isHotelProfile && verificationStatus !== 'verified' && !['documents', 'portfolio', 'requests'].includes(activeTab);
 
   if (showRestrictedPendingScreen) {
     return <PendingApproval profile={professionalProfile} activeTab={activeTab} onChangeTab={setActiveTab} />;
@@ -573,6 +574,18 @@ export default function ProfessionalHubV2() {
             >
               <AgendaCalendar user={user} walkerProfile={professionalProfile} />
               <DayOffManager userEmail={user?.email} />
+            </motion.div>
+          )}
+
+          {activeTab === "requests" && (
+            <motion.div
+              key="requests"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PendingRequestsList user={user} professionalProfile={professionalProfile} />
             </motion.div>
           )}
 
