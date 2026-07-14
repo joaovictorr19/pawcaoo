@@ -317,9 +317,9 @@ function LayoutContent({ children, currentPageName }) {
       // Derive a friendly display name from email if full_name is missing
       const emailPart = (authUser.email || '').split('@')[0] || '';
       const cleaned = emailPart.replace(/[._-]+/g, ' ').trim();
-      const emailDerivedName = cleaned
-        ? cleaned.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')
-        : 'Utilizador';
+      const deriveName = (authUser.full_name && authUser.full_name.trim())
+        ? authUser.full_name
+        : (cleaned ? cleaned.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : 'Utilizador');
 
       if (authUser.profile_stats === undefined || authUser.profile_stats === null) {
         try {
@@ -351,31 +351,13 @@ function LayoutContent({ children, currentPageName }) {
       try {
         const profiles = await base44.entities.UserProfile.filter({ user_email: authUser.email });
         let userProfile = profiles[0];
-
-        // Fetch professional profiles to use their official names for backfill
-        let walkerProfile = null;
-        let trainerProfile = null;
-        try {
-          const walkers = await base44.entities.WalkerProfile.filter({ created_by: authUser.email });
-          if (walkers?.length) walkerProfile = walkers[0];
-        } catch (e) {}
-        try {
-          const trainers = await base44.entities.TrainerProfile.filter({ created_by: authUser.email });
-          if (trainers?.length) trainerProfile = trainers[0];
-        } catch (e) {}
-
-        // Best available name: auth full_name > walker_name > trainer_name > email-derived
-        const authFullName = (authUser.full_name && String(authUser.full_name).trim()) ? authUser.full_name.trim() : null;
-        const proWalkerName = (walkerProfile?.walker_name && String(walkerProfile.walker_name).trim()) ? walkerProfile.walker_name.trim() : null;
-        const proTrainerName = (trainerProfile?.trainer_name && String(trainerProfile.trainer_name).trim()) ? trainerProfile.trainer_name.trim() : null;
-        const bestName = authFullName || proWalkerName || proTrainerName || emailDerivedName;
-
+        
         if (!profiles || profiles.length === 0) {
           userProfile = await base44.entities.UserProfile.create({
             user_email: authUser.email,
             user_id: authUser.id,
             username: authUser.username,
-            full_name: bestName,
+            full_name: deriveName,
             profile_photo_url: authUser.profile_photo_url,
             cover_photo_url: authUser.cover_photo_url,
             bio: authUser.bio || '',
@@ -390,22 +372,30 @@ function LayoutContent({ children, currentPageName }) {
           });
         }
 
-        // Backfill missing names ONLY when empty — prefer auth full_name, never email-derived if an official pro name exists
+        // Backfill missing names on existing profiles (user + professional)
         try {
           if (userProfile && (!userProfile.full_name || String(userProfile.full_name).trim() === '' || userProfile.full_name === 'Utilizador')) {
-            await base44.entities.UserProfile.update(userProfile.id, { full_name: bestName });
+            await base44.entities.UserProfile.update(userProfile.id, { full_name: deriveName });
           }
         } catch (e) { console.warn('UserProfile name backfill skipped:', e?.message); }
 
         try {
-          if (walkerProfile && (!walkerProfile.walker_name || String(walkerProfile.walker_name).trim() === '')) {
-            await base44.entities.WalkerProfile.update(walkerProfile.id, { walker_name: authFullName || emailDerivedName });
+          const walkers = await base44.entities.WalkerProfile.filter({ created_by: authUser.email });
+          if (walkers?.length) {
+            const w = walkers[0];
+            if (!w.walker_name || String(w.walker_name).trim() === '') {
+              await base44.entities.WalkerProfile.update(w.id, { walker_name: deriveName });
+            }
           }
         } catch (e) { console.warn('WalkerProfile name backfill skipped:', e?.message); }
 
         try {
-          if (trainerProfile && (!trainerProfile.trainer_name || String(trainerProfile.trainer_name).trim() === '')) {
-            await base44.entities.TrainerProfile.update(trainerProfile.id, { trainer_name: authFullName || emailDerivedName });
+          const trainers = await base44.entities.TrainerProfile.filter({ created_by: authUser.email });
+          if (trainers?.length) {
+            const t = trainers[0];
+            if (!t.trainer_name || String(t.trainer_name).trim() === '') {
+              await base44.entities.TrainerProfile.update(t.id, { trainer_name: deriveName });
+            }
           }
         } catch (e) { console.warn('TrainerProfile name backfill skipped:', e?.message); }
 

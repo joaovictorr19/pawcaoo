@@ -255,7 +255,7 @@ export default function UserProfile() {
   const emailBase = (profileEmail || walkerProfile?.created_by || trainerProfile?.created_by || '');
   const emailPart = (emailBase.split('@')[0] || '').replace(/[._-]+/g, ' ').trim();
   const derivedName = emailPart ? emailPart.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : null;
-  const displayName = walkerProfile?.walker_name || trainerProfile?.trainer_name || profileUser?.full_name || derivedName || "Utilizador";
+  const displayName = profileUser?.full_name || walkerProfile?.walker_name || trainerProfile?.trainer_name || derivedName || "Utilizador";
   const displayCity = profileUser?.city || walkerProfile?.location || trainerProfile?.location || "";
 
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
