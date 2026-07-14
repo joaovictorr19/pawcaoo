@@ -1,0 +1,23 @@
+{
+  "name": "PawCão — Dog Care Platform",
+  "short_name": "PawCão",
+  "description": "Plataforma de cuidados caninos: passeios, hotel, treino e mais.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#1D8A82",
+  "icons": [
+    {
+      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/5475b1e4a_IconPawcao_1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/5475b1e4a_IconPawcao_1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -26,6 +26,28 @@
     --radius: 0.5rem;
   }
 
+  .dark {
+    --background: 0 0% 6%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 176 64% 45%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 72%;
+    --accent: 176 64% 20%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 40%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 22%;
+    --input: 0 0% 18%;
+    --ring: 176 64% 45%;
+  }
+
   * {
     @apply border-border;
   }
@@ -92,6 +114,12 @@
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
   }
 
+  .dark .glass-panel {
+    background: rgba(15, 15, 15, 0.92) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  }
+
   [data-sidebar="sidebar"],
   [data-sidebar="sidebar"] > div,
   [data-sidebar="sidebar"] > div > div,
@@ -106,6 +134,20 @@
     -webkit-backdrop-filter: blur(20px) !important;
     --sidebar-background: rgba(255, 255, 255, 0.95) !important;
     --sidebar-background-mobile: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .dark [data-sidebar="sidebar"],
+  .dark [data-sidebar="sidebar"] > div,
+  .dark [data-sidebar="sidebar"] > div > div,
+  .dark aside[data-sidebar="sidebar"],
+  .dark [data-state="open"] aside,
+  .dark [data-state="open"] [data-sidebar="sidebar"],
+  .dark [role="dialog"] aside,
+  .dark [data-radix-scroll-area-viewport],
+  .dark [data-sidebar] {
+    background: rgba(15, 15, 15, 0.95) !important;
+    --sidebar-background: rgba(15, 15, 15, 0.95) !important;
+    --sidebar-background-mobile: rgba(15, 15, 15, 0.95) !important;
   }
 
   [data-sidebar="sidebar"] *,
