@@ -611,7 +611,7 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
           {user ? (
-            <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-xl shadow-2xl p-4 md:p-6 mb-6 border border-teal-700/20" style={{ boxShadow: '0 8px 32px rgba(15,23,42,0.12), inset 0 1px 0 rgba(29,138,130,0.08)' }}>
+            <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
               {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentTier = calculateTier(currentXP);
@@ -623,7 +623,7 @@ export default function Home() {
                   <div className="space-y-3 mb-6 relative">
                     <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-green-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
                     
-                    <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-lg shadow-2xl p-4 md:p-5 relative overflow-hidden border border-teal-400/15`}>
+                    <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                       <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
@@ -634,8 +634,7 @@ export default function Home() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => navigate(user?.username ? createPageUrl(`UserProfile?username=${user.username}`) : createPageUrl(`UserProfile?id=${user.id}`))}
-                            className="w-16 h-16 overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm aspect-square"
-                            style={{ borderRadius: '8px', border: '2px solid rgba(94,234,212,0.4)' }}
+                            className="w-16 h-16 rounded-xl border-2 border-white/50 shadow-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-sm aspect-square"
                           >
                             {user.profile_photo_url ? (
                               <img src={user.profile_photo_url} alt="Profile" className="w-full h-full object-cover aspect-square" />
@@ -646,30 +645,30 @@ export default function Home() {
                             )}
                           </motion.div>
                           <div>
-                            <h2 className="text-2xl font-extrabold tracking-tight text-white mb-0.5">
+                            <h2 className="text-2xl font-bold text-white mb-0.5">
                               Olá, {user.full_name?.split(' ')[0] || 'Utilizador'}
                             </h2>
-                            <p className="text-sm text-white/80 flex items-center gap-2 cursor-pointer hover:underline" onClick={() => navigate(createPageUrl('Gamification'))} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', letterSpacing: '0.02em' }}>
-                              <span className="font-semibold">NÍVEL {String(currentLevel).padStart(2,'0')}</span>
-                              <span className="w-1 h-1 bg-teal-300/70 rounded-full"></span>
+                            <p className="text-sm text-white/80 flex items-center gap-2 cursor-pointer hover:underline" onClick={() => navigate(createPageUrl('Gamification'))}>
+                              <span>Nível {currentLevel}</span>
+                              <span className="w-1 h-1 bg-white/50 rounded-full"></span>
                               <span>{displayedXP.toLocaleString('pt-PT')} XP</span>
-                              <span className="w-1 h-1 bg-teal-300/70 rounded-full"></span>
-                              <span className="uppercase tracking-wide">{currentTier.icon} {currentTier.name}</span>
+                              <span className="w-1 h-1 bg-white/50 rounded-full"></span>
+                              <span>{currentTier.icon} {currentTier.name}</span>
                             </p>
                           </div>
                         </div>
                         
                         <div className="mb-3">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-white/70">
+                            <span className="text-xs font-medium text-white/70">
                               Progresso para {currentTier.max !== Infinity ? currentTier.next : 'Máximo'}
                             </span>
-                            <span className="text-xs text-teal-200 font-bold" style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>{Math.round(tierProgressPercentage)}%</span>
+                            <span className="text-xs text-white/90 font-semibold">{Math.round(tierProgressPercentage)}%</span>
                           </div>
-                          <div className="h-2 bg-white/15 overflow-hidden" style={{ borderRadius: '2px' }}>
+                          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                             <div 
-                              className="h-full transition-all duration-1000 ease-out"
-                              style={{ width: `${tierProgressPercentage}%`, background: 'linear-gradient(to right, #5eead4, #ffffff)', borderRadius: '2px' }}
+                              className="h-full bg-white/90 transition-all duration-1000 ease-out rounded-full"
+                              style={{ width: `${tierProgressPercentage}%` }}
                             />
                           </div>
                           {xpRemainingForNextTier > 0 && (
