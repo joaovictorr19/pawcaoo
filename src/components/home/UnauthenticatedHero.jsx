@@ -86,9 +86,9 @@ function HeroDecorations() {
         >
           <item.Icon
             size={item.size}
-            style={{ color: item.color, opacity: 0.35, filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.06))" }}
+            style={{ color: item.color, opacity: 0.4, filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.06))" }}
             strokeWidth={2}
-            fill="currentColor"
+            fill="none"
           />
         </motion.div>
       ))}
