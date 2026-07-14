@@ -227,6 +227,11 @@
     "stripe_payment_intent_id": {
       "type": "string"
     },
+    "payment_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora limite para pagamento (5 min apos criacao). Se nao pago, reserva e cancelada automaticamente."
+    },
     "internal_notes": {
       "type": "string"
     },

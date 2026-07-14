@@ -181,6 +181,7 @@ Deno.serve(async (req) => {
       add_ons_total: serverAddOnsTotal,
       status: 'pending',
       payment_status: 'pending',
+      payment_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
     });
 
     const session = await stripe.checkout.sessions.create({
