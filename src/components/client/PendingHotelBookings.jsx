@@ -1,0 +1,113 @@
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CreditCard, Loader2, AlertCircle, Hotel } from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+export default function PendingHotelBookings({ user }) {
+  const [payingId, setPayingId] = useState(null);
+  const queryClient = useQueryClient();
+
+  const { data: pendingBookings = [] } = useQuery({
+    queryKey: ['pendingHotelBookings', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return await base44.entities.HotelBooking.filter({
+        owner_email: user.email,
+        payment_status: 'pending',
+        status: 'pending'
+      }, '-created_date', 10);
+    },
+    enabled: !!user?.email,
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+
+  const handlePay = async (bookingId) => {
+    setPayingId(bookingId);
+    try {
+      const response = await base44.functions.invoke('retryHotelPayment', {
+        hotel_booking_id: bookingId,
+      });
+      const { url, error } = response.data;
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (err) {
+      toast.error("Erro ao iniciar pagamento: " + err.message);
+    } finally {
+      setPayingId(null);
+    }
+  };
+
+  const handleCancel = async (bookingId) => {
+    if (!confirm("Cancelar esta reserva pendente?")) return;
+    try {
+      await base44.entities.HotelBooking.update(bookingId, {
+        status: 'cancelled',
+        cancellation_reason: 'Cancelada pelo cliente (pagamento não concluído)',
+      });
+      queryClient.invalidateQueries(['pendingHotelBookings']);
+      toast.success("Reserva cancelada.");
+    } catch (err) {
+      toast.error("Erro ao cancelar: " + err.message);
+    }
+  };
+
+  if (!pendingBookings || pendingBookings.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      {pendingBookings.map((booking) => {
+        const dogNames = (booking.dogs || []).map(d => d.dog_name).filter(Boolean).join(', ') || 'animal';
+        return (
+          <div
+            key={booking.id}
+            className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-center gap-3"
+          >
+            <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Hotel className="w-5 h-5 text-amber-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">
+                {booking.hotel_name || 'Hotel'}
+              </p>
+              <p className="text-xs text-slate-400 truncate">
+                {dogNames} · Check-in: {booking.checkin_date ? format(new Date(booking.checkin_date + 'T12:00:00'), "dd MMM", { locale: ptBR }) : '—'}
+              </p>
+              <p className="text-xs text-amber-400 font-semibold mt-0.5">
+                ⚠️ Pagamento pendente · {booking.total_amount}€
+              </p>
+            </div>
+            <div className="flex flex-col gap-1.5 flex-shrink-0">
+              <button
+                onClick={() => handlePay(booking.id)}
+                disabled={payingId === booking.id}
+                className="h-8 px-3 rounded-lg bg-green-500 hover:bg-green-400 text-white text-xs font-bold flex items-center justify-center gap-1 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {payingId === booking.id ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <CreditCard className="w-3.5 h-3.5" />
+                )}
+                Pagar
+              </button>
+              <button
+                onClick={() => handleCancel(booking.id)}
+                className="h-7 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 text-[10px] font-semibold transition-all active:scale-95"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

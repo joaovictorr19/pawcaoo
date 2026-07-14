@@ -8,18 +8,20 @@ import { toast } from "sonner";
  * Botão de checkout Stripe para reservas de hotel.
  * Recebe os dados da reserva e redireciona para o Stripe Checkout.
  */
-export default function HotelCheckoutButton({ bookingData, className = "", size = "default", children }) {
+export default function HotelCheckoutButton({ bookingData, existingBookingId, className = "", size = "default", children }) {
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async () => {
-    if (!bookingData?.total_amount || bookingData.total_amount <= 0) {
+    if (!existingBookingId && (!bookingData?.total_amount || bookingData.total_amount <= 0)) {
       toast.error("Valor inválido para pagamento.");
       return;
     }
 
     setLoading(true);
     try {
-      const response = await base44.functions.invoke("createHotelCheckout", bookingData);
+      const functionName = existingBookingId ? "retryHotelPayment" : "createHotelCheckout";
+      const payload = existingBookingId ? { hotel_booking_id: existingBookingId } : bookingData;
+      const response = await base44.functions.invoke(functionName, payload);
       const { url, error } = response.data;
 
       if (error) {

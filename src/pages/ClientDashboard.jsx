@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ClientTabBar } from "@/components/client/ClientTabBar";
 import { Button } from "@/components/ui/button";
 import WalkReport from "@/components/client/WalkReport";
+import PendingHotelBookings from "@/components/client/PendingHotelBookings";
 import MyDogsManager from "@/components/profile/MyDogsManager";
 import ClientDataSettings from "@/components/client/ClientDataSettings";
 import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
@@ -152,6 +153,9 @@ export default function ClientDashboard() {
           {/* ─── OVERVIEW ─── */}
           {activeTab === 'overview' && (
             <motion.div key="ov" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+              {/* Reservas de hotel com pagamento pendente */}
+              <PendingHotelBookings user={user} />
+
               {/* Passeio ativo */}
               {stats.activeWalk && (
                 <Card className="bg-gradient-to-r from-green-600 to-emerald-600 border-0">

@@ -622,6 +622,34 @@ async function handleCheckoutCompleted(base44, session) {
                         } catch (e) {
                             console.error('Error sending hotel confirmation email:', e);
                         }
+
+                        // ── Enviar email de confirmação ao hotel (só após pagamento) ──
+                        if (hb.hotel_email) {
+                            try {
+                                const hotelEmailBody = [
+                                    `Nova reserva confirmada e paga!`,
+                                    ``,
+                                    `Cliente: ${hb.owner_name || ''} (${hb.owner_email || ''})`,
+                                    `Animais: ${dogNames}`,
+                                    `Serviço: ${svcLabel}`,
+                                    `Check-in: ${hb.checkin_date}${hb.checkin_time ? ' às ' + hb.checkin_time : ''}`,
+                                    `Check-out: ${hb.checkout_date}${hb.checkout_time ? ' às ' + hb.checkout_time : ''}`,
+                                    `Duração: ${hb.total_nights} ${hb.total_nights === 1 ? 'noite' : 'noites'}`,
+                                    `Total pago: ${hb.total_amount}€`,
+                                    ``,
+                                    `Aceda ao seu painel para gerir esta reserva.`,
+                                ].join('\n');
+
+                                await base44.asServiceRole.integrations.Core.SendEmail({
+                                    to: hb.hotel_email,
+                                    subject: `Nova reserva confirmada — ${hb.owner_name || 'Cliente'} (${hb.checkin_date})`,
+                                    body: hotelEmailBody,
+                                });
+                                console.log('✅ Hotel notification email sent to:', hb.hotel_email);
+                            } catch (e) {
+                                console.error('Error sending hotel notification email:', e);
+                            }
+                        }
                     }
                 }
             } catch (e) {
