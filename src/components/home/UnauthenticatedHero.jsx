@@ -165,9 +165,9 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
             <div className="absolute inset-0 rounded-[2.5rem] blur-3xl opacity-25" style={{ background: `radial-gradient(circle at 50% 40%, ${TEAL}, transparent 70%)` }} />
 
             {/* Transparent glass frame */}
-            <div className="relative overflow-hidden rounded-[1.75rem] md:rounded-[2.5rem] aspect-[4/3] md:aspect-[5/4] w-full max-w-md mx-auto border border-white/50 backdrop-blur-md" style={{ background: "rgba(255, 255, 255, 0.12)", boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+            <div className="relative overflow-hidden rounded-[1.75rem] md:rounded-[2.5rem] aspect-[4/3] md:aspect-[5/4] w-full max-w-md mx-auto border border-white/40 backdrop-blur-sm" style={{ background: "rgba(255, 255, 255, 0.06)", boxShadow: "0 6px 24px rgba(0,0,0,0.06)" }}>
               {dogImageUrl ? (
-                <img src={dogImageUrl} alt="Cão cool PawCão" className="w-full h-full object-cover" />
+                <img src={dogImageUrl} alt="Cão cool PawCão" className="w-full h-full object-cover mix-blend-multiply" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <PawPrint className="w-16 h-16" style={{ color: TEAL, opacity: 0.4 }} />
@@ -175,8 +175,6 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
               )}
             </div>
 
-            {/* Collar decoration floating at bottom */}
-            <CollarDecoration className="-bottom-5 left-1/2 -translate-x-1/2 z-20" />
           </motion.div>
 
           {/* Right: glass CTA cards */}

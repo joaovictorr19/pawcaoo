@@ -882,7 +882,7 @@ export default function Home() {
               onEntrar={handleLogin}
               onEncontrar={handleClientRegister}
               onRegistar={handleBecomePro}
-              dogImageUrl="https://media.base44.com/images/public/6907b3be1ec43db5676a2085/13c3f4393_generated_image.png"
+              dogImageUrl="https://media.base44.com/images/public/6907b3be1ec43db5676a2085/4da0333a3_generated_image.png"
             />
           )}
         </div>
