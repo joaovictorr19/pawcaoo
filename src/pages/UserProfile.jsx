@@ -70,7 +70,7 @@ export default function UserProfile() {
     }
   }, [isSelfView, currentUser, authLoading]);
 
-  const { data: profileUser, isLoading: loadingUser } = useQuery({
+  const { data: profileUser, isPending: loadingUser } = useQuery({
     queryKey: ['profileUser', targetId, targetEmail, targetUsername, isSelfView, currentUser?.id],
     queryFn: async () => {
       let userProfile = null;
