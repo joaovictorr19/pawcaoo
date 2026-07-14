@@ -151,9 +151,7 @@ export default function AdminDebug() {
     const results = {};
     for (const ent of ENTITIES_TO_CHECK) {
       try {
-        const records = await base44.entities[ent.name].list("-created_date", 1);
-        // list returns array; we need total count - use filter with empty query
-        const all = await base44.entities[ent.name].filter({});
+        const all = await base44.entities[ent.name].filter({}, "-created_date", 200);
         results[ent.name] = { label: ent.label, count: all.length, status: "ok" };
         addLog(`  ${ent.label}: ${all.length} registos`);
       } catch (e) {
@@ -172,7 +170,7 @@ export default function AdminDebug() {
       "pending",
       async () =>
         await base44.entities.Booking.create({
-          owner_email: "cliente-teste@debug.com",
+          owner_email: currentUserEmail,
           owner_name: "Cliente Fictício",
           dog_name: "Rex Teste",
           dog_size: "medium",
@@ -199,7 +197,7 @@ export default function AdminDebug() {
       "active",
       async () =>
         await base44.entities.Booking.create({
-          owner_email: "cliente-teste@debug.com",
+          owner_email: currentUserEmail,
           owner_name: "Cliente Fictício",
           dog_name: "Max Ativo",
           dog_size: "large",
@@ -228,7 +226,7 @@ export default function AdminDebug() {
       "completed",
       async () =>
         await base44.entities.Booking.create({
-          owner_email: "client-test@debug.com",
+          owner_email: currentUserEmail,
           owner_name: "Cliente Fictício",
           dog_name: "Luna Paga",
           dog_size: "small",
@@ -257,7 +255,7 @@ export default function AdminDebug() {
         await base44.entities.EmergencyWalk.create({
           owner_name: "Cliente SOS Teste",
           owner_phone: "999999999",
-          owner_email: "sos-teste@debug.com",
+          owner_email: currentUserEmail,
           location: "Rossio, Lisboa",
           needed_time: "AGORA",
           duration_hours: 1,
@@ -287,7 +285,7 @@ export default function AdminDebug() {
           hotel_name: hotel.walker_name,
           hotel_email: hotel.created_by,
           owner_name: "Cliente Hotel Teste",
-          owner_email: "hotel-teste@debug.com",
+          owner_email: currentUserEmail,
           owner_phone: "912345678",
           service_type: "boarding",
           checkin_date: today.toISOString().split("T")[0],
@@ -389,7 +387,7 @@ export default function AdminDebug() {
 
       // Hotel bookings with debug flag
       try {
-        const hotelBookings = await base44.entities.HotelBooking.filter({ owner_email: "hotel-teste@debug.com" });
+        const hotelBookings = await base44.entities.HotelBooking.filter({ owner_email: currentUserEmail });
         for (const hb of hotelBookings) {
           await base44.entities.HotelBooking.delete(hb.id);
           deletedCount++;
