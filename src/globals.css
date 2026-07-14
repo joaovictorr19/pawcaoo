@@ -315,6 +315,14 @@
   .hero-cta-orange:hover {
     box-shadow: 0 6px 24px rgba(255, 102, 51, 0.4);
   }
+  .hero-cta-glass-premium {
+    background: #ffffff !important;
+    color: #0f8674;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  }
+  .hero-cta-glass-premium:hover {
+    box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  }
 
   [role="tabpanel"] {
     background: transparent;

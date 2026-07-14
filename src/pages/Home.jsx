@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle, RefreshCw, PawPrint } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle, RefreshCw, PawPrint, Bone } from "lucide-react";
 import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
@@ -1056,43 +1056,70 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Professional Call-to-Action Section */}
+        {/* Professional Call-to-Action Section — Glass Premium */}
         <div className="mt-16 mb-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 rounded-2xl shadow-lg p-5 md:p-7 text-white relative overflow-hidden"
+            className="relative rounded-[2rem] overflow-hidden"
+            style={{ background: "#0f8674", boxShadow: "0 24px 64px rgba(15,134,116,0.35), 0 4px 16px rgba(0,0,0,0.08)" }}
           >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
-            
-            <div className="relative z-10 text-center">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3">
-                {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
-              </h2>
-              <p className="text-sm md:text-base text-white/80 mb-6 max-w-2xl mx-auto">
-                {language === 'pt' 
-                  ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.' 
-                  : 'Earn money doing what you love. Become a certified walker or trainer.'}
-              </p>
-              
-              <div className="flex justify-center">
-                <Button
-                  size="default"
-                  onClick={() => {
-                    if (user && hasProfessionalProfile) {
-                      navigate(createPageUrl('ProfessionalHubV2'));
-                    } else {
-                      navigate(createPageUrl('ProfessionalTypeSelect'));
-                    }
-                  }}
-                  className="bg-white text-slate-700 hover:bg-gray-100 shadow-md font-semibold h-11 px-6 rounded-lg"
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  {language === 'pt' ? 'Tornar-me Profissional' : 'Become a Professional'}
-                </Button>
+            {/* Glass card overlay */}
+            <div
+              className="relative rounded-[2rem] border border-white/30 m-0"
+              style={{
+                background: "rgba(23,147,129,0.55)",
+                backdropFilter: "blur(24px)",
+                WebkitBackdropFilter: "blur(24px)",
+              }}
+            >
+              {/* Faint paw/bone pattern */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+                {[
+                  { Icon: PawPrint, pos: "top-[12%] left-[8%]", size: 36, rot: -15 },
+                  { Icon: Bone, pos: "top-[22%] right-[10%]", size: 30, rot: 20 },
+                  { Icon: PawPrint, pos: "bottom-[18%] left-[12%]", size: 28, rot: 10 },
+                  { Icon: Bone, pos: "bottom-[12%] right-[14%]", size: 32, rot: -25 },
+                  { Icon: PawPrint, pos: "top-[45%] left-[4%]", size: 22, rot: 5 },
+                  { Icon: Bone, pos: "top-[8%] left-[40%]", size: 24, rot: -10 },
+                  { Icon: PawPrint, pos: "bottom-[35%] right-[6%]", size: 26, rot: 15 },
+                ].map((item, i) => (
+                  <div key={i} className={`absolute ${item.pos}`} style={{ transform: `rotate(${item.rot}deg)`, opacity: 0.08 }}>
+                    <item.Icon size={item.size} color="#ffffff" strokeWidth={1.5} fill="none" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Radial glow */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[80%] rounded-full pointer-events-none" style={{ background: "radial-gradient(ellipse, rgba(255,255,255,0.12), transparent 70%)" }} />
+
+              <div className="relative z-10 text-center px-6 py-10 md:py-14">
+                <h2 className="font-heading text-2xl md:text-4xl font-bold mb-3 text-white tracking-tight">
+                  {language === 'pt' ? 'Junte-se aos Melhores Profissionais' : 'Join the Best Professionals'}
+                </h2>
+                <p className="text-sm md:text-base text-white/85 mb-7 max-w-2xl mx-auto leading-relaxed">
+                  {language === 'pt'
+                    ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.'
+                    : 'Earn money doing what you love. Become a certified walker or trainer.'}
+                </p>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => {
+                      if (user && hasProfessionalProfile) {
+                        navigate(createPageUrl('ProfessionalHubV2'));
+                      } else {
+                        navigate(createPageUrl('ProfessionalTypeSelect'));
+                      }
+                    }}
+                    className="hero-cta-glass-premium inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-bold transition-all"
+                  >
+                    <Users className="w-4 h-4" strokeWidth={2.5} />
+                    {language === 'pt' ? 'Tornar-me Profissional' : 'Become a Professional'}
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
