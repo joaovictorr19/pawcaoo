@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 import PawCaoLogo from '@/components/PawCaoLogo';
 import { LogOut } from 'lucide-react';
@@ -113,43 +112,83 @@ export default function MobileHeader() {
   ];
 
 
+  const isActive = (page) => location.pathname === createPageUrl(page);
+
+  const navBtnClass = (page) =>
+    `h-7 px-2.5 text-[10px] font-bold rounded-full shrink-0 transition-all duration-200 ${
+      isActive(page) ? 'text-white' : 'text-[#1a1a1a] hover:bg-slate-100/60'
+    }`;
+  const navBtnStyle = (page) => (isActive(page) ? { background: '#207373' } : {});
+
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white border-b border-slate-200 px-2 py-1 flex items-center justify-center gap-1" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
-      <div className="flex items-center w-full gap-1">
+    <div
+      className="md:hidden fixed top-0 left-0 right-0 z-[11000] flex items-center justify-center px-2"
+      style={{ paddingTop: 'calc(0.375rem + env(safe-area-inset-top))', paddingBottom: '0.375rem' }}
+    >
+      <div
+        className="flex items-center w-full gap-2 rounded-full px-3 py-1.5"
+        style={{
+          background: 'rgba(255, 255, 255, 0.72)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.5)',
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+        }}
+      >
         {/* Logo à esquerda */}
         <div className="flex items-center shrink-0">
-          <button onClick={() => navigate(createPageUrl('Home'))} aria-label="Ir para a página inicial" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
-            <PawCaoLogo size="small" showText={false} />
+          <button onClick={() => navigate(createPageUrl('Home'))} aria-label="Ir para a página inicial" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+            <PawCaoLogo size="small" showText={true} />
           </button>
         </div>
 
-        {/* Botões centralizados - scrollable */}
+        {/* Botões centralizados - pill wrapper com separadores */}
         <div className="flex-1 flex items-center justify-center overflow-x-auto flex-nowrap min-w-0" style={{ scrollbarWidth: 'none' }}>
           {authed && (
-            <div className="flex items-center gap-1 whitespace-nowrap">
+            <div
+              className="flex items-center whitespace-nowrap rounded-full p-0.5"
+              style={{ background: 'rgba(255, 255, 255, 0.5)' }}
+            >
               {isHotel && (
-                <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px] shrink-0 bg-slate-900 text-white hover:bg-slate-800" onClick={() => navigate(createPageUrl('HotelDashboard'))}>{lbl('hotel')}</Button>
+                <>
+                  <button onClick={() => navigate(createPageUrl('HotelDashboard'))} className={navBtnClass('HotelDashboard')} style={navBtnStyle('HotelDashboard')}>
+                    {lbl('hotel')}
+                  </button>
+                  <div className="w-px h-3.5 bg-slate-300/50 shrink-0" />
+                </>
               )}
-              <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>{lbl('professional')}</Button>
-              <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>{lbl('client')}</Button>
+              <button onClick={() => navigate(createPageUrl('ProfessionalHubV2'))} className={navBtnClass('ProfessionalHubV2')} style={navBtnStyle('ProfessionalHubV2')}>
+                {lbl('professional')}
+              </button>
+              <div className="w-px h-3.5 bg-slate-300/50 shrink-0" />
+              <button onClick={() => navigate(createPageUrl('ClientDashboard'))} className={navBtnClass('ClientDashboard')} style={navBtnStyle('ClientDashboard')}>
+                {lbl('client')}
+              </button>
               {isAdmin && (
-                <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>{lbl('admin')}</Button>
+                <>
+                  <div className="w-px h-3.5 bg-slate-300/50 shrink-0" />
+                  <button onClick={() => navigate(createPageUrl('AdminDashboard'))} className={navBtnClass('AdminDashboard')} style={navBtnStyle('AdminDashboard')}>
+                    {lbl('admin')}
+                  </button>
+                </>
               )}
             </div>
           )}
         </div>
 
         {/* Ações à direita */}
-        <div className="flex items-center justify-end gap-1 shrink-0">
+        <div className="flex items-center justify-end gap-1.5 shrink-0">
           <LanguageSelector />
+          <div className="w-px h-3.5 bg-slate-300/50" />
           {authed ? (
-            <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px]" onClick={() => base44.auth.logout()}>
-              <LogOut className="w-3.5 h-3.5" />
-            </Button>
+            <button onClick={() => base44.auth.logout()} className="h-7 px-2 text-[10px] font-bold text-[#1a1a1a] flex items-center gap-1 rounded-full hover:bg-slate-100/60 transition-colors">
+              <LogOut className="w-3 h-3" />
+              <span>{lbl('exit')}</span>
+            </button>
           ) : (
-            <Button size="sm" className="h-7 px-2.5 text-[10px]" onClick={() => base44.auth.redirectToLogin()}>
+            <button onClick={() => base44.auth.redirectToLogin()} className="h-7 px-3 text-[10px] font-bold text-white rounded-full transition-transform active:scale-95" style={{ background: '#207373' }}>
               {lbl('enter')}
-            </Button>
+            </button>
           )}
         </div>
       </div>
