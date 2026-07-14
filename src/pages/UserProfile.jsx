@@ -30,7 +30,10 @@ export default function UserProfile() {
   const { language } = useLanguage();
 
   useLayoutEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    const el = document.scrollingElement || document.documentElement;
+    if (el) el.scrollTop = 0;
+    window.scrollTo(0, 0);
+    if (document.body) document.body.scrollTop = 0;
   }, [location.key]);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -318,7 +321,10 @@ export default function UserProfile() {
 
   useEffect(() => {
     if (!loadingUser && profileUser) {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      const el = document.scrollingElement || document.documentElement;
+      if (el) el.scrollTop = 0;
+      window.scrollTo(0, 0);
+      if (document.body) document.body.scrollTop = 0;
     }
   }, [loadingUser, profileUser?.id]);
 
