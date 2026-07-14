@@ -731,7 +731,7 @@ export default function Home() {
                       <motion.button
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        onClick={() => navigate(createPageUrl('Dashboard'))}
+                        onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}
                         className="mt-3 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-between group"
                       >
                         <div className="flex items-center gap-2">
