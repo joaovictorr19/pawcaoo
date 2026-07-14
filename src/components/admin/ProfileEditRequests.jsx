@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, Eye, ArrowRight, AlertCircle, Clock } from "lucide-react";
+import { Check, X, Eye, ArrowRight, AlertCircle, Clock, SlidersHorizontal, Tag, ListChecks, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -141,28 +141,48 @@ export default function ProfileEditRequests() {
 
   const renderChanges = (changes) => {
     if (!changes) return null;
+    const items = [];
+    if (changes.hourly_rate) {
+      items.push({
+        icon: CreditCard,
+        label: 'Tarifa base',
+        value: formatCurrency(changes.hourly_rate),
+      });
+    }
+    if (changes.services_offered) {
+      changes.services_offered.forEach((s) => {
+        items.push({
+          icon: SlidersHorizontal,
+          label: s.service_name || 'Serviço',
+          value: formatCurrency(s.price),
+          sub: s.description,
+        });
+      });
+    }
+    if (changes.bio) {
+      items.push({ icon: ListChecks, label: 'Descrição', value: changes.bio });
+    }
+    if (changes.location) {
+      items.push({ icon: Tag, label: 'Localização', value: changes.location });
+    }
+    if (items.length === 0) return <p className="text-sm text-slate-400">Sem detalhes disponíveis.</p>;
     return (
-      <div className="space-y-4">
-        {changes.hourly_rate && (
-          <div className="flex justify-between p-2 bg-gray-50 rounded">
-            <span className="font-medium">Preço Base:</span>
-            <span className="text-green-600 font-bold">{formatCurrency(changes.hourly_rate)}</span>
-          </div>
-        )}
-        {changes.services_offered && (
-          <div className="space-y-2">
-            <span className="font-medium block mb-1">Serviços:</span>
-            {changes.services_offered.map((s, idx) => (
-              <div key={idx} className="p-2 bg-blue-50 rounded border border-blue-100 text-sm">
-                <div className="flex justify-between font-semibold">
-                  <span>{s.service_name}</span>
-                  <span>{formatCurrency(s.price)}</span>
-                </div>
-                <p className="text-xs text-gray-600 mt-1">{s.description}</p>
+      <div className="space-y-2.5">
+        {items.map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <div key={idx} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200">
+              <div className="w-9 h-9 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
+                <Icon className="w-4 h-4 text-teal-600" />
               </div>
-            ))}
-          </div>
-        )}
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide truncate">{item.label}</p>
+                <p className="text-sm font-bold text-slate-900 truncate">{item.value}</p>
+                {item.sub && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{item.sub}</p>}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -193,35 +213,40 @@ export default function ProfileEditRequests() {
                   <Eye className="w-4 h-4 mr-2" /> Rever
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Rever Alterações</DialogTitle>
-                  <DialogDescription>
-                    O profissional solicitou as seguintes mudanças no perfil.
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="py-4">
-                  <h5 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Novos Dados</h5>
+              <DialogContent className="max-w-md p-0 overflow-hidden bg-white/95 backdrop-blur-xl border border-white/60 shadow-2xl" style={{ borderRadius: '1.5rem' }}>
+                <div className="bg-gradient-to-r from-[#1D8A82] to-[#2DB0A6] px-6 py-5 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-white text-lg font-extrabold leading-tight">Rever Alterações</DialogTitle>
+                    <p className="text-white/80 text-xs mt-0.5">{request.professional_name || request.walker_name}</p>
+                  </div>
+                </div>
+
+                <div className="px-6 pt-5 pb-4">
+                  <p className="text-sm text-slate-500 mb-4">O profissional solicitou as seguintes mudanças no perfil.</p>
+                  <h5 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3">Novos Dados</h5>
                   {renderChanges(request.requested_changes)}
                 </div>
 
-                <DialogFooter className="gap-2 sm:gap-0">
-                  <Button 
-                    variant="destructive" 
+                <div className="border-t border-slate-100 px-6 py-4 flex gap-3">
+                  <Button
+                    variant="outline"
                     onClick={() => rejectMutation.mutate(request)}
                     disabled={rejectMutation.isPending}
+                    className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                   >
                     <X className="w-4 h-4 mr-2" /> Rejeitar
                   </Button>
-                  <Button 
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                  <Button
                     onClick={() => approveMutation.mutate(request)}
                     disabled={approveMutation.isPending}
+                    className="flex-1 bg-gradient-to-r from-[#1D8A82] to-[#2DB0A6] hover:opacity-90 text-white border-0"
                   >
                     <Check className="w-4 h-4 mr-2" /> Aprovar e Publicar
                   </Button>
-                </DialogFooter>
+                </div>
               </DialogContent>
             </Dialog>
           </CardContent>
