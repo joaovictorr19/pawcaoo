@@ -12,7 +12,7 @@ import ReviewModal from "../components/reviews/ReviewModal";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
-import TestimonialsSection from "../components/home/TestimonialsSection";
+const TestimonialsSection = React.lazy(() => import("../components/home/TestimonialsSection"));
 import UnauthenticatedHero from "../components/home/UnauthenticatedHero";
 import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -321,7 +321,7 @@ export default function Home() {
     queryFn: async () => {
       try {
         const result = await base44.entities.WalkerProfile.filter(
-          { is_active: true, verification_status: 'verified' },
+          { is_active: true },
           '-created_date',
           50
         );
@@ -397,8 +397,7 @@ export default function Home() {
     queryKey: ['featuredWalkers'],
     queryFn: async () => {
       const walkers = await base44.entities.WalkerProfile.filter({ 
-        is_active: true, 
-        verification_status: 'verified' 
+        is_active: true
       }, '-rating', 6);
       return walkers.filter(w => w.photo_url);
     },
@@ -436,7 +435,7 @@ export default function Home() {
   };
 
   const filteredProfessionals = React.useMemo(() => {
-    const validWalkers = walkers.filter(w => w?.id && w?.walker_name && w?.verification_status === 'verified' && w?.is_active !== false);
+    const validWalkers = walkers.filter(w => w?.id && w?.walker_name && w?.is_active !== false);
     
     const processed = validWalkers.map(w => ({
       ...w,
@@ -516,17 +515,6 @@ export default function Home() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, filterAnimalType, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
-
-  if (userLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div>
-          <PawCaoLogo size="large" animated={true} />
-          <p className="text-gray-600 text-center mt-4">A carregar...</p>
-        </div>
-      </div>
-    );
-  }
 
   const resetAdvancedFilters = () => {
     setAdvancedFilters({
@@ -609,7 +597,11 @@ export default function Home() {
             
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
-          {user ? (
+          {userLoading ? (
+            <div className="max-w-4xl mx-auto mb-6">
+              <div className="h-32 md:h-40 bg-slate-200/50 rounded-3xl animate-pulse" />
+            </div>
+          ) : user ? (
             <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
               {/* Embedded Owner Dashboard */}
               {(() => {
@@ -1100,7 +1092,11 @@ export default function Home() {
         </div>
 
         {/* Testimonials Section */}
-        {!user && <TestimonialsSection />}
+        {!userLoading && !user && (
+          <Suspense fallback={null}>
+            <TestimonialsSection />
+          </Suspense>
+        )}
 
         {/* Trust Badges Section */}
         <div className="mt-12 mb-8">

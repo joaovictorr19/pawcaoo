@@ -87,6 +87,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não foi possível calcular o preço do serviço.' }, { status: 400 });
     }
 
+    // ── Validate blocked dates ──
+    const blockedDates = hotelDetails.blocked_dates || [];
+    if (blockedDates.length > 0 && checkin_date) {
+      const blockedSet = new Set(blockedDates.map(d => d.split('T')[0]));
+      const start = new Date(checkin_date + 'T00:00:00');
+      const end = checkout_date ? new Date(checkout_date + 'T00:00:00') : start;
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const ds = d.toISOString().split('T')[0];
+        if (blockedSet.has(ds)) {
+          return Response.json({ error: 'O hotel está fechado numa das datas selecionadas. Escolha outras datas.' }, { status: 400 });
+        }
+      }
+    }
+
     // Use server-calculated values — ignore client-supplied financial fields
     const safeTotalAmount = serverTotalAmount;
     const safePlatformFee = serverPlatformFee;

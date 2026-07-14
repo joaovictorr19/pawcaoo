@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck
 } from "lucide-react";
+import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
 
 export default function HotelProfileSettings({ hotelProfile, onSave }) {
   const [form, setForm] = useState({
@@ -25,6 +26,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     checkin_description: hotelProfile?.hotel_details?.checkin_description || "",
     hide_checkin_times: hotelProfile?.hotel_details?.hide_checkin_times || false,
     offers_pickup: hotelProfile?.hotel_details?.offers_pickup || false,
+    blocked_dates: hotelProfile?.hotel_details?.blocked_dates || [],
   });
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -98,6 +100,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
           checkin_description: form.checkin_description,
           hide_checkin_times: form.hide_checkin_times,
           offers_pickup: form.offers_pickup,
+          blocked_dates: form.blocked_dates,
         },
       });
       toast.success("Perfil do hotel atualizado");
@@ -302,6 +305,14 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
                 </div>
               </button>
             </div>
+          </div>
+
+          {/* Blocked dates / Folgas */}
+          <div className="border-t border-slate-100 pt-4">
+            <HotelBlockedDatesManager
+              blockedDates={form.blocked_dates}
+              onChange={(dates) => setForm(prev => ({ ...prev, blocked_dates: dates }))}
+            />
           </div>
 
           <div className="flex justify-end pt-1">

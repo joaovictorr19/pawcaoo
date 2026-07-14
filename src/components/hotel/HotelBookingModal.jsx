@@ -427,7 +427,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
                   <div className="bg-white rounded-xl border border-slate-200 p-2.5">
                     <HotelRangeCalendar
-                      daysOff={[]}
+                      daysOff={(hotel?.hotel_details?.blocked_dates || []).map(d => ({ date: d }))}
                       checkinPolicy={checkinPolicy}
                       checkinDate={checkinDate}
                       checkoutDate={checkoutDate}
