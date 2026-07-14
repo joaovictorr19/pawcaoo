@@ -139,35 +139,54 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
 
   if (!user || isOnProfHub) return null;
 
+  // Active checks per tab
+  const isTab1Active = (isProf && isActive(createPageUrl("Dashboard"))) ||
+    (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
+    (!isProf && !isTutor && isActive(createPageUrl("Home")));
+  const isTab2Active = (isProf && isActive(createPageUrl("ProfessionalCalendar"))) ||
+    (!isProf && isActive(createPageUrl("MyBookings")));
+  const isTab4Active = isActive(createPageUrl("UserProfile"));
+
+  const tabBase = "flex flex-col items-center justify-center gap-1 transition-all duration-200 flex-1 min-w-0 py-2 rounded-full";
+  const activeCls = "text-white";
+  const inactiveCls = "text-slate-500";
+
   return (
     <div
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] w-full px-3 pt-3 bg-white  border-t border-slate-200 shadow-[0_-15px_50px_rgba(0,0,0,0.08)] rounded-t-2xl pointer-events-auto"
-      style={{ pointerEvents: 'auto', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] w-full pointer-events-none"
+      style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
     >
-      <div className="max-w-3xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-        
-        {/* ABA 1: EXPLORAR / PAINEL PROFISSIONAL / CLIENTE */}
-        <button 
+      <div
+        className="mx-auto flex items-center justify-between gap-1 max-w-md pointer-events-auto"
+        style={{
+          marginLeft: '12px',
+          marginRight: '12px',
+          background: 'rgba(255, 255, 255, 0.82)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255, 255, 255, 0.6)',
+          borderRadius: '9999px',
+          boxShadow: '0 8px 40px rgba(0, 0, 0, 0.12)',
+          padding: '6px',
+        }}
+      >
+        {/* ABA 1: EXPLORAR / PAINEL / CLIENTE */}
+        <button
           onClick={() => {
             const targetPath = isProf ? createPageUrl("Dashboard") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
             handleTabClick(targetPath);
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl border border-slate-200 ${
-            (isProf && isActive(createPageUrl("Dashboard"))) ||
-            (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
-            (!isProf && !isTutor && isActive(createPageUrl("Home")))
-              ? "text-orange-500 bg-orange-50" 
-              : "text-slate-500 hover:bg-slate-50"
-          }`}
+          className={`${tabBase} ${isTab1Active ? activeCls : inactiveCls}`}
+          style={isTab1Active ? { background: '#207373', boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
         >
           {isProf ? <LayoutDashboard size={18} /> : isTutor ? <LayoutDashboard size={18} /> : <Map size={18} />}
-          <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">
+          <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">
             {isProf ? labelDashboard : isTutor ? labelClient : labelExplore}
           </span>
         </button>
 
         {/* ABA 2: AGENDA / RESERVAS */}
-        <button 
+        <button
           onClick={() => {
             if (isProf) {
               handleTabClick(createPageUrl("ProfessionalCalendar"));
@@ -175,46 +194,39 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
               handleTabClick(createPageUrl("MyBookings"));
             }
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl border border-slate-200 ${
-            (isProf && isActive(createPageUrl("ProfessionalCalendar"))) ||
-            (!isProf && isActive(createPageUrl("MyBookings")))
-              ? "text-orange-500 bg-orange-50" 
-              : "text-slate-500 hover:bg-slate-50"
-          }`}
+          className={`${tabBase} ${isTab2Active ? activeCls : inactiveCls}`}
+          style={isTab2Active ? { background: '#207373', boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
         >
           <Calendar size={18} />
-          <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">{isProf ? (language === 'pt' ? 'Agenda' : language === 'es' ? 'Calendario' : 'Calendar') : labelSchedule}</span>
+          <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">{isProf ? (language === 'pt' ? 'Agenda' : language === 'es' ? 'Calendario' : 'Calendar') : labelSchedule}</span>
         </button>
 
-
         {/* ABA 3: NOTIFICAÇÕES */}
-        <button 
+        <button
           onClick={onNotificationsClick}
-          className="flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl relative border border-slate-200 text-slate-500 hover:bg-slate-50"
+          className={`${tabBase} relative ${inactiveCls}`}
         >
           <Bell size={18} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+            <span className="absolute top-1 right-2 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center border border-white">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
-          <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">{labelNotifications}</span>
+          <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">{labelNotifications}</span>
         </button>
 
-
-
         {/* ABA 4: PERFIL */}
-        <button 
+        <button
           onClick={() => {
             const profilePath = createPageUrl("UserProfile");
             handleTabClick(profilePath);
           }}
-          className={`flex flex-col items-center gap-0.5 transition-all flex-1 min-w-0 px-1 py-2 overflow-hidden rounded-xl border border-slate-200 ${isActive(createPageUrl("UserProfile")) ? "text-orange-500 bg-orange-50" : "text-slate-500 hover:bg-slate-50"}`}
+          className={`${tabBase} ${isTab4Active ? activeCls : inactiveCls}`}
+          style={isTab4Active ? { background: '#207373', boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
         >
           <User size={18} />
-          <span className="text-[9px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[68px] text-center">{labelProfile}</span>
+          <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">{labelProfile}</span>
         </button>
-
       </div>
     </div>
   );
