@@ -401,6 +401,16 @@ export default function AdminDashboard() {
     return isPro && (status === 'pending' || status === 'requires_documents' || !status);
   });
 
+  const { data: pendingEditRequestsCount = 0 } = useQuery({
+    queryKey: ['profileEditRequestsCount'],
+    queryFn: async () => {
+      const res = await base44.entities.ProfileEditRequest.filter({ status: 'pending' });
+      return Array.isArray(res) ? res.length : 0;
+    },
+    enabled: isAdmin && activeTab === 'approvals',
+    staleTime: 30 * 1000,
+  });
+
   useEffect(() => {
     if (activeTab === 'approvals') {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
@@ -408,6 +418,7 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
       queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
       queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['profileEditRequestsCount'] });
     }
   }, [activeTab, queryClient]);
 
@@ -841,21 +852,47 @@ export default function AdminDashboard() {
 
           <TabsContent value="approvals">
             {activeTab === 'approvals' && (
-              <div className="mt-6 space-y-8">
-                <AdminVerificationQueue
-                  walkers={walkerApplications}
-                  trainers={trainerApplications}
-                  shelters={shelterApplications}
-                  onApprove={handleApproveApplication}
-                  onReject={handleRejectApplication}
-                  onViewDetails={handleViewApplicationDetails}
-                  onRefresh={handleRefreshApplications}
-                />
-                <div className="mt-6">
-                  <h3 className="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-yellow-600" /> Edições de Perfil Pendentes
-                  </h3>
-                  <ProfileEditRequests />
+              <div className="mt-6 space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-[#1D8A82] to-[#2DB0A6] rounded-2xl p-5 shadow-lg">
+                    <p className="text-white/80 text-sm font-bold">Verificações Pendentes</p>
+                    <p className="text-white text-4xl font-extrabold mt-1">{walkerApplications.length + trainerApplications.length + shelterApplications.length}</p>
+                    <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold">Walkers, Trainers, Abrigos</span>
+                  </div>
+                  <div className="bg-gradient-to-br from-[#1D8A82] to-[#2DB0A6] rounded-2xl p-5 shadow-lg">
+                    <p className="text-white/80 text-sm font-bold">Edições de Perfil</p>
+                    <p className="text-white text-4xl font-extrabold mt-1">{pendingEditRequestsCount}</p>
+                    <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold">Aguardam aprovação</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#1D8A82]" />
+                      <h3 className="text-sm font-extrabold text-slate-900">Fila de Verificação</h3>
+                    </div>
+                    <div className="p-4">
+                      <AdminVerificationQueue
+                        walkers={walkerApplications}
+                        trainers={trainerApplications}
+                        shelters={shelterApplications}
+                        onApprove={handleApproveApplication}
+                        onReject={handleRejectApplication}
+                        onViewDetails={handleViewApplicationDetails}
+                        onRefresh={handleRefreshApplications}
+                      />
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#1D8A82]" />
+                      <h3 className="text-sm font-extrabold text-slate-900">Edições de Perfil Pendentes</h3>
+                    </div>
+                    <div className="p-4">
+                      <ProfileEditRequests />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
