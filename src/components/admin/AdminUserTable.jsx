@@ -241,51 +241,113 @@ export default function AdminUserTable({
   };
 
   return (
-    <div className="glass-panel rounded-xl border border-white/40 shadow-xl bg-white/70 backdrop-blur-md mt-6">
-      <div className="p-4 md:p-6 border-b border-white/30">
-        <div className="flex flex-col gap-4">
+    <div
+      className="mt-6 rounded-2xl shadow-[0_8px_32px_rgba(13,148,136,0.10)] overflow-hidden"
+      style={{
+        background: "rgba(224, 244, 244, 0.55)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        border: "1px solid rgba(255,255,255,0.7)",
+      }}
+    >
+      <div
+        className="px-6 md:px-8 py-6 md:py-7"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.55)" }}
+      >
+        <div className="flex flex-col gap-5">
+          {/* Header + Sync */}
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-xl md:text-2xl">{t('accountManagement', language)}</CardTitle>
-              <p className="text-sm text-gray-600 mt-1">
+              <CardTitle className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900">
+                {t('accountManagement', language)}
+              </CardTitle>
+              <p className="text-sm text-slate-500 mt-1 font-medium">
                 {filteredUsers.length} {language === 'pt' ? 'de' : 'of'} {users.length} {language === 'pt' ? 'contas' : 'accounts'}
               </p>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={handleSync} 
+            <Button
+              variant="outline"
+              onClick={handleSync}
               disabled={isSyncing}
               size="sm"
               title="Sincronizar Perfis Públicos"
-              className="bg-white/50 hover:bg-white flex-shrink-0"
+              className="flex-shrink-0 border-none text-white rounded-full px-4"
+              style={{ background: "#1c7c7f" }}
             >
               {isSyncing ? (
-                <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Sync...</>
+                <><Loader2 className="w-4 h-4 animate-spin mr-1.5" /> Sync...</>
               ) : (
-                <><RefreshCw className="w-4 h-4 mr-2" /> Sync</>
+                <><RefreshCw className="w-4 h-4 mr-1.5" /> Sync</>
               )}
             </Button>
           </div>
-          
-          {/* Quick Filters (Pílulas Mobile) */}
-          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-            <Button size="sm" variant={quickFilter === 'all' ? 'default' : 'outline'} className={`rounded-full shrink-0 ${quickFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-white'}`} onClick={() => setQuickFilter('all')}>
+
+          {/* Quick Filters — Glass pills */}
+          <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+            <Button
+              size="sm"
+              variant={quickFilter === 'all' ? 'default' : 'outline'}
+              className="rounded-full shrink-0 px-4 py-2 text-sm font-semibold border-none transition-all"
+              style={
+                quickFilter === 'all'
+                  ? { background: "rgba(28,124,127,0.12)", border: "2px solid #1c7c7f", color: "#1c7c7f" }
+                  : { background: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.6)", color: "#374151" }
+              }
+              onClick={() => setQuickFilter('all')}
+            >
               Todos ({users.length})
             </Button>
-            <Button size="sm" variant={quickFilter === 'pending' ? 'default' : 'outline'} className={`rounded-full shrink-0 ${quickFilter === 'pending' ? 'bg-orange-500 text-white' : 'bg-orange-50 text-orange-700 border-none'}`} onClick={() => setQuickFilter('pending')}>
+            <Button
+              size="sm"
+              variant={quickFilter === 'pending' ? 'default' : 'outline'}
+              className="rounded-full shrink-0 px-4 py-2 text-sm font-semibold border-none transition-all"
+              style={
+                quickFilter === 'pending'
+                  ? { background: "rgba(249,115,22,0.12)", border: "2px solid #f97316", color: "#c2410c" }
+                  : { background: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.6)", color: "#374151" }
+              }
+              onClick={() => setQuickFilter('pending')}
+            >
               Pendentes ({stats.pending})
             </Button>
-            <Button size="sm" variant={quickFilter === 'active' ? 'default' : 'outline'} className={`rounded-full shrink-0 ${quickFilter === 'active' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-700 border-none'}`} onClick={() => setQuickFilter('active')}>
+            <Button
+              size="sm"
+              variant={quickFilter === 'active' ? 'default' : 'outline'}
+              className="rounded-full shrink-0 px-4 py-2 text-sm font-semibold border-none transition-all"
+              style={
+                quickFilter === 'active'
+                  ? { background: "rgba(22,163,74,0.12)", border: "2px solid #16a34a", color: "#15803d" }
+                  : { background: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.6)", color: "#374151" }
+              }
+              onClick={() => setQuickFilter('active')}
+            >
               Ativos ({stats.active})
             </Button>
-            <Button size="sm" variant={quickFilter === 'reports' ? 'default' : 'outline'} className={`rounded-full shrink-0 ${quickFilter === 'reports' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-700 border-none'}`} onClick={() => setQuickFilter('reports')}>
+            <Button
+              size="sm"
+              variant={quickFilter === 'reports' ? 'default' : 'outline'}
+              className="rounded-full shrink-0 px-4 py-2 text-sm font-semibold border-none transition-all"
+              style={
+                quickFilter === 'reports'
+                  ? { background: "rgba(220,38,38,0.12)", border: "2px solid #dc2626", color: "#b91c1c" }
+                  : { background: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.6)", color: "#374151" }
+              }
+              onClick={() => setQuickFilter('reports')}
+            >
               Denúncias ({stats.reports})
             </Button>
           </div>
 
-          <div className="w-full">
-            <UserSearchAdvanced 
-              onSearch={handleSearch} 
+          {/* Search bar — frosted inner panel */}
+          <div
+            className="w-full rounded-xl"
+            style={{
+              background: "rgba(245,253,253,0.7)",
+              border: "1px solid rgba(255,255,255,0.65)",
+            }}
+          >
+            <UserSearchAdvanced
+              onSearch={handleSearch}
               usersSource={users}
             />
           </div>
