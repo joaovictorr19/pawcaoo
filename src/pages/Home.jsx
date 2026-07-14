@@ -609,7 +609,9 @@ export default function Home() {
               <div className="h-32 md:h-40 bg-slate-200/50 rounded-3xl animate-pulse" />
             </div>
           ) : user ? (
-            <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
+            <div className="max-w-4xl mx-auto relative mb-6">
+              <div className={`absolute -inset-1 bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} opacity-10 blur-xl rounded-3xl pointer-events-none`} />
+              <div className="relative bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6">
               {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentTier = calculateTier(currentXP);
@@ -874,6 +876,7 @@ export default function Home() {
                   )}
                 </div>
               )}
+              </div>
             </div>
           ) : (
             /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS (HERO PREMIUM) --- */
