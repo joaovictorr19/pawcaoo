@@ -321,7 +321,7 @@ export default function Home() {
     queryFn: async () => {
       try {
         const result = await base44.entities.WalkerProfile.filter(
-          { is_active: true, verification_status: 'verified' },
+          { is_active: true },
           '-created_date',
           50
         );
@@ -397,8 +397,7 @@ export default function Home() {
     queryKey: ['featuredWalkers'],
     queryFn: async () => {
       const walkers = await base44.entities.WalkerProfile.filter({ 
-        is_active: true, 
-        verification_status: 'verified' 
+        is_active: true
       }, '-rating', 6);
       return walkers.filter(w => w.photo_url);
     },
@@ -436,7 +435,7 @@ export default function Home() {
   };
 
   const filteredProfessionals = React.useMemo(() => {
-    const validWalkers = walkers.filter(w => w?.id && w?.walker_name && w?.verification_status === 'verified' && w?.is_active !== false);
+    const validWalkers = walkers.filter(w => w?.id && w?.walker_name && w?.is_active !== false);
     
     const processed = validWalkers.map(w => ({
       ...w,

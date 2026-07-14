@@ -91,20 +91,30 @@ export default function UserProfile() {
 
       if (!userProfile && targetId) {
         try {
-          // Paralelizar todas as buscas independentes por ID em vez de sequenciais
+          // Buscar UserProfile por id ou user_id em paralelo com WalkerProfile.get(id)
           const [r1, r2, wm] = await Promise.allSettled([
             base44.entities.UserProfile.filter({ id: targetId }),
             base44.entities.UserProfile.filter({ user_id: targetId }),
-            base44.entities.WalkerProfile.filter({ id: targetId }),
+            base44.entities.WalkerProfile.get(targetId),
           ]);
 
           if (r1.status === 'fulfilled' && r1.value?.length > 0) {
             userProfile = r1.value[0];
           } else if (r2.status === 'fulfilled' && r2.value?.length > 0) {
             userProfile = r2.value[0];
-          } else if (wm.status === 'fulfilled' && wm.value?.length > 0) {
-            const w = wm.value[0];
-            userProfile = { id: w.id, user_id: w.user_id || targetId, user_email: w.created_by, full_name: w.walker_name, profile_photo_url: w.photo_url, bio: w.bio, city: w.location, role: 'walker', is_verified: w.verification_status === 'verified', is_virtual_profile: true };
+          } else if (wm.status === 'fulfilled' && wm.value?.id) {
+            const w = wm.value;
+            userProfile = { id: w.id, user_id: w.user_id || targetId, user_email: w.created_by, full_name: w.walker_name, profile_photo_url: w.photo_url, bio: w.bio, city: w.location, role: w.professional_type || 'walker', is_verified: w.verification_status === 'verified', is_virtual_profile: true };
+          }
+
+          // Tentar TrainerProfile.get se ainda não encontramos
+          if (!userProfile) {
+            try {
+              const tp = await base44.entities.TrainerProfile.get(targetId);
+              if (tp?.id) {
+                userProfile = { id: tp.id, user_id: tp.user_id || targetId, user_email: tp.created_by, full_name: tp.trainer_name, profile_photo_url: tp.photo_url, bio: tp.bio, city: tp.location, role: 'trainer', is_verified: tp.verification_status === 'verified', is_virtual_profile: true };
+              }
+            } catch (e) {}
           }
 
           if (!userProfile && currentUser?.role === 'admin') {
