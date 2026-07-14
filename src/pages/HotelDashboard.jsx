@@ -310,14 +310,15 @@ export default function HotelDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="max-w-5xl mx-auto px-4 flex gap-0.5 overflow-x-auto scrollbar-none -webkit-overflow-scrolling-touch">
+        <div className="max-w-5xl mx-auto px-4 flex gap-1 overflow-x-auto flex-nowrap" style={{ scrollbarWidth: "none" }}>
+          <style>{`div::-webkit-scrollbar{display:none}`}</style>
           {TABS.map(tab => {
             const Icon = tab.icon;
             const count = tab.key === "hospedes" ? activeBookings.length + pendingBookings.length
                          : tab.key === "parceiros" ? partners.length : 0;
             return (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-3.5 py-3 text-xs font-semibold whitespace-nowrap border-b-2 transition-all rounded-t-md min-h-[40px] ${
+                className={`flex items-center gap-1.5 px-3 py-3 text-xs font-semibold whitespace-nowrap border-b-2 transition-all shrink-0 min-h-[40px] ${
                   activeTab === tab.key
                     ? "border-slate-900 text-slate-900"
                     : "border-transparent text-slate-400 hover:text-slate-600"
