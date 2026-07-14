@@ -582,10 +582,10 @@ export default function Home() {
       if (hasProfessionalProfile) {
         navigate(createPageUrl('ProfessionalHubV2'));
       } else {
-        navigate(createPageUrl('ProfessionalSetup'));
+        navigate(createPageUrl('ProfessionalTypeSelect'));
       }
     } else {
-      base44.auth.redirectToLogin(createPageUrl('ProfessionalSetup'));
+      base44.auth.redirectToLogin(createPageUrl('ProfessionalTypeSelect'));
     }
   };
 
