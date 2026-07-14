@@ -72,6 +72,7 @@ import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
 import AdminProfessionalsPanel from "../components/admin/AdminProfessionalsPanel";
 import AdminReportsPanel from "../components/admin/AdminReportsPanel";
 import AdminFinancePanel from "../components/admin/AdminFinancePanel";
+import ImpersonateDialog from "../components/admin/ImpersonateDialog";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -128,6 +129,10 @@ export default function AdminDashboard() {
   const [badgeSearchTerm, setBadgeSearchTerm] = useState("");
   const [showProfessionalManager, setShowProfessionalManager] = useState(false);
   const [showGrantBadgeModal, setShowGrantBadgeModal] = useState(false);
+  const [showImpersonateDialog, setShowImpersonateDialog] = useState(false);
+  const [impersonateTarget, setImpersonateTarget] = useState(null);
+  const [impersonateReason, setImpersonateReason] = useState("");
+  const [impersonateLoading, setImpersonateLoading] = useState(false);
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -1020,22 +1025,9 @@ export default function AdminDashboard() {
                       toast.error("Erro ao rejeitar");
                     }
                   }}
-                  onImpersonate={async (user) => {
-                    if (!confirm(`Login como ${user.full_name}?`)) return;
-                    toast.info('Redirecionando...');
-                    try {
-                      const response = await base44.functions.invoke('impersonateUser', {
-                        targetUserId: user.id
-                      });
-                      if (response.data?.success) {
-                        localStorage.setItem('impersonation', JSON.stringify(response.data.impersonationData));
-                        window.location.href = createPageUrl('Home');
-                      } else {
-                        toast.error('Erro ao iniciar');
-                      }
-                    } catch (error) {
-                      toast.error('Erro: ' + error.message);
-                    }
+                  onImpersonate={(user) => {
+                    setSelectedUser(user);
+                    setShowImpersonateDialog(true);
                   }}
                 />
                 <div className="mt-6">
@@ -1230,6 +1222,15 @@ export default function AdminDashboard() {
           isOpen={showProfessionalManager}
           onClose={() => setShowProfessionalManager(false)}
           userToEdit={selectedUser}
+        />
+
+        <ImpersonateDialog
+          user={selectedUser}
+          isOpen={showImpersonateDialog}
+          onClose={() => {
+            setShowImpersonateDialog(false);
+            setSelectedUser(null);
+          }}
         />
 
         </ErrorBoundary>

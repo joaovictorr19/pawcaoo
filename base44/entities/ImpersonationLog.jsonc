@@ -1,0 +1,89 @@
+{
+  "name": "ImpersonationLog",
+  "type": "object",
+  "properties": {
+    "admin_id": {
+      "type": "string",
+      "description": "ID do admin que iniciou a impersona\u00e7\u00e3o"
+    },
+    "admin_email": {
+      "type": "string",
+      "description": "Email do admin"
+    },
+    "target_user_id": {
+      "type": "string",
+      "description": "ID do utilizador alvo"
+    },
+    "target_user_email": {
+      "type": "string",
+      "description": "Email do utilizador alvo"
+    },
+    "target_user_name": {
+      "type": "string",
+      "description": "Nome do utilizador alvo"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Motivo da impersona\u00e7\u00e3o (auditoria)"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando a impersona\u00e7\u00e3o terminou (manualmente ou por expira\u00e7\u00e3o)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "ended",
+        "expired"
+      ],
+      "default": "active"
+    },
+    "target_is_admin": {
+      "type": "boolean",
+      "default": false
+    },
+    "destination_page": {
+      "type": "string",
+      "description": "P\u00e1gina de destino escolhida pelo admin"
+    }
+  },
+  "required": [
+    "admin_id",
+    "admin_email",
+    "target_user_id",
+    "target_user_email",
+    "reason"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

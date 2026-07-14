@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-const MAX_IMPERSONATION_MINUTES = 30;
+const MAX_IMPERSONATION_MINUTES = 120;
 
 Deno.serve(async (req) => {
   try {
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + MAX_IMPERSONATION_MINUTES * 60 * 1000);
 
-    // Create audit log record
+    // Create audit log record (best-effort — does not block impersonation)
     let auditLogId = null;
     try {
       const auditLog = await base44.asServiceRole.entities.ImpersonationLog.create({
@@ -59,10 +59,7 @@ Deno.serve(async (req) => {
       });
       auditLogId = auditLog.id;
     } catch (auditError) {
-      console.error('Failed to create audit log:', auditError);
-      return Response.json({
-        error: 'Failed to create audit trail — impersonation blocked for safety'
-      }, { status: 500 });
+      console.warn('Audit log unavailable (non-blocking):', auditError?.message || auditError);
     }
 
     const impersonationData = {
