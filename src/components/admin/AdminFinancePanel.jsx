@@ -7,6 +7,7 @@ import { DollarSign, TrendingUp, Wallet, Percent, Euro, RefreshCw, Users } from 
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import CompanyVaultPanel from "./CompanyVaultPanel";
 
 const euro = (v) => (v || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR", minimumFractionDigits: 2 });
 
@@ -82,8 +83,11 @@ export default function AdminFinancePanel() {
   const maxRevenue = Math.max(...stats.monthly.map((m) => m.revenue), 1);
 
   return (
-    <div className="mt-6 space-y-6">
-      {/* Header */}
+    <div className="mt-6 space-y-8">
+      {/* Company Vault */}
+      <CompanyVaultPanel />
+
+      {/* Finance Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-900">Faturação & Ganho dos Profissionais</h2>

@@ -11,8 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Mail, MapPin, Phone, Save, Send, ShieldCheck, UserCircle2, Briefcase, FileText } from "lucide-react";
+import { Loader2, Mail, MapPin, Phone, Save, Send, ShieldCheck, UserCircle2, Briefcase, FileText, Percent } from "lucide-react";
 import { toast } from "sonner";
+import AdminCommissionManager from "./AdminCommissionManager";
 
 const EMPTY_REQUEST_FIELDS = [
   { key: "id_document_url", label: "Documento de Identificação" },
@@ -256,9 +257,10 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
         ) : (
           <div className="px-4 sm:px-5 py-4 overflow-y-auto max-h-[calc(88vh-148px)] sm:max-h-[calc(84vh-150px)]">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className={`grid w-full h-auto ${isProfessional ? 'grid-cols-3' : 'grid-cols-2'}`}>
+              <TabsList className={`grid w-full h-auto ${isProfessional ? 'grid-cols-4' : 'grid-cols-2'}`}>
                 <TabsTrigger value="profile">Perfil</TabsTrigger>
                 <TabsTrigger value="account">Conta</TabsTrigger>
+                {isProfessional && <TabsTrigger value="commission"><Percent className="w-3.5 h-3.5 mr-1 inline" />Comissão</TabsTrigger>}
                 {isProfessional && <TabsTrigger value="documents">Dados em falta</TabsTrigger>}
               </TabsList>
 
@@ -342,6 +344,16 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                   )}
                 </div>
               </TabsContent>
+
+              {isProfessional && (
+                <TabsContent value="commission" className="space-y-4 pt-4 mt-0">
+                  <AdminCommissionManager
+                    professionalProfile={linkedData.professionalProfile}
+                    professionalType={linkedData.professionalType}
+                    userToEdit={userToEdit}
+                  />
+                </TabsContent>
+              )}
 
               {isProfessional && (
                 <TabsContent value="documents" className="space-y-4 pt-4 mt-0">

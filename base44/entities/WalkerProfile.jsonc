@@ -237,6 +237,26 @@
       "type": "boolean",
       "default": false
     },
+    "commission_rate_mode": {
+      "type": "string",
+      "enum": [
+        "default",
+        "custom_percent",
+        "zero",
+        "zero_temporary"
+      ],
+      "default": "default",
+      "description": "Modo de taxa: default=padrao plataforma, custom_percent=percentual personalizado, zero=isento permanente, zero_temporary=isento ate data de expiracao"
+    },
+    "custom_commission_rate": {
+      "type": "number",
+      "description": "Percentual personalizado de comissao (ex: 5 = 5%). Usado quando commission_rate_mode=custom_percent"
+    },
+    "commission_rate_expiry": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de expiracao da taxa zero temporaria. Quando expira, reverte para o padrao da plataforma"
+    },
     "is_featured": {
       "type": "boolean",
       "default": false
@@ -437,7 +457,7 @@
     },
     "hotel_details": {
       "type": "object",
-      "description": "Campos espec\u00edficos para perfis de hotel canino",
+      "description": "Campos especificos para perfis de hotel canino",
       "properties": {
         "hotel_name": {
           "type": "string"
@@ -450,18 +470,18 @@
         },
         "capacity_total": {
           "type": "number",
-          "description": "Capacidade m\u00e1xima de c\u00e3es simult\u00e2neos"
+          "description": "Capacidade maxima de caes simultaneos"
         },
         "capacity_available": {
           "type": "number",
-          "description": "Vagas dispon\u00edveis hoje"
+          "description": "Vagas disponiveis hoje"
         },
         "price_per_night": {
           "type": "number"
         },
         "price_daycare": {
           "type": "number",
-          "description": "Pre\u00e7o por dia de creche"
+          "description": "Preco por dia de creche"
         },
         "checkin_time": {
           "type": "string"
@@ -472,11 +492,11 @@
         "hide_checkin_times": {
           "type": "boolean",
           "default": false,
-          "description": "Ocultar hor\u00e1rios de check-in/out no perfil p\u00fablico"
+          "description": "Ocultar horarios de check-in/out no perfil publico"
         },
         "checkin_description": {
           "type": "string",
-          "description": "Descri\u00e7\u00e3o exibida abaixo dos hor\u00e1rios de check-in/out"
+          "description": "Descricao exibida abaixo dos horarios de check-in/out"
         },
         "checkin_policy_type": {
           "type": "string",
@@ -486,7 +506,7 @@
             "no_sundays_holidays"
           ],
           "default": "all_days",
-          "description": "Pol\u00edtica de check-in/out: all_days, no_sundays, no_sundays_holidays"
+          "description": "Politica de check-in/out: all_days, no_sundays, no_sundays_holidays"
         },
         "blocked_dates": {
           "type": "array",
@@ -495,7 +515,7 @@
             "format": "date"
           },
           "default": [],
-          "description": "Datas bloqueadas pelo hotel (folgas) \u2014 n\u00e3o aceita reservas nestes dias"
+          "description": "Datas bloqueadas pelo hotel (folgas) - nao aceita reservas nestes dias"
         },
         "amenities": {
           "type": "array",
@@ -559,7 +579,7 @@
         },
         "weekly_schedule": {
           "type": "object",
-          "description": "Hor\u00e1rios por dia da semana",
+          "description": "Horarios por dia da semana",
           "properties": {
             "monday": {
               "type": "object",
@@ -663,17 +683,17 @@
         },
         "services": {
           "type": "array",
-          "description": "Servi\u00e7os oferecidos pelo hotel com capacidades individuais",
+          "description": "Servicos oferecidos pelo hotel com capacidades individuais",
           "items": {
             "type": "object",
             "properties": {
               "service_id": {
                 "type": "string",
-                "description": "ID \u00fanico do servi\u00e7o"
+                "description": "ID unico do servico"
               },
               "service_name": {
                 "type": "string",
-                "description": "Nome do servi\u00e7o"
+                "description": "Nome do servico"
               },
               "service_type": {
                 "type": "string",
@@ -684,24 +704,24 @@
                   "training",
                   "other"
                 ],
-                "description": "Tipo de servi\u00e7o"
+                "description": "Tipo de servico"
               },
               "capacity_total": {
                 "type": "number",
-                "description": "Capacidade m\u00e1xima para este servi\u00e7o"
+                "description": "Capacidade maxima para este servico"
               },
               "capacity_available": {
                 "type": "number",
-                "description": "Vagas dispon\u00edveis hoje para este servi\u00e7o"
+                "description": "Vagas disponiveis hoje para este servico"
               },
               "price_per_day": {
                 "type": "number",
-                "description": "Pre\u00e7o por dia/noite"
+                "description": "Preco por dia/noite"
               },
               "is_active": {
                 "type": "boolean",
                 "default": true,
-                "description": "Se o servi\u00e7o est\u00e1 ativo"
+                "description": "Se o servico esta ativo"
               },
               "description": {
                 "type": "string"
