@@ -148,10 +148,10 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
       {/* Hero text - centered */}
       <motion.div variants={itemVariants} className="relative z-10 px-4 md:px-6 pt-2 md:pt-14 max-w-5xl mx-auto text-center">
-        <h1 className="font-heading font-bold tracking-tight leading-[1.08] text-2xl sm:text-3xl md:text-4xl lg:text-5xl" style={{ color: TEAL }}>
+        <h1 className="font-display font-bold tracking-wide leading-[1.05] text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-sm" style={{ color: TEAL, textShadow: "0 2px 12px rgba(0,166,153,0.15)" }}>
           {line1}
         </h1>
-        <h2 className="font-heading font-bold tracking-tight leading-[1.15] text-lg sm:text-xl md:text-2xl lg:text-3xl mt-3 text-slate-700">
+        <h2 className="font-display font-semibold tracking-wide leading-[1.15] text-xl sm:text-2xl md:text-3xl lg:text-4xl mt-3 text-slate-700">
           {line2}
         </h2>
       </motion.div>
