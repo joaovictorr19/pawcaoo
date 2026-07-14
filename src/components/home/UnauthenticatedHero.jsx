@@ -181,45 +181,63 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
           {/* Right: glass CTA cards */}
           <div className="flex flex-col gap-4 md:gap-6">
+            {/* Card 1 - ENCONTRAR */}
             <motion.div
               variants={itemVariants}
-              whileHover={{ y: -6, scale: 1.02 }}
+              whileHover={{ y: -4 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="rounded-[1.75rem] p-6 md:p-8 border border-white/60 relative overflow-hidden"
-              style={{ background: "rgba(255, 255, 255, 0.38)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}
+              className="rounded-[1.5rem] p-5 md:p-6 border border-white/70 relative overflow-hidden group"
+              style={{ background: "rgba(255, 255, 255, 0.55)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", boxShadow: "0 10px 40px rgba(0,0,0,0.08)" }}
             >
-              <div className="relative z-10 flex flex-col gap-4">
-                <p className="font-semibold text-sm md:text-base leading-relaxed text-slate-700">{card1Body}</p>
-                <motion.button
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={onEncontrar}
-                  className="self-start rounded-full px-7 py-3 font-black uppercase tracking-wider text-sm text-white shadow-lg transition-colors"
-                  style={{ background: TEAL }}
-                >
-                  ENCONTRAR
-                </motion.button>
+              {/* Accent bar top */}
+              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: TEAL }} />
+              {/* Icon + content row */}
+              <div className="relative z-10 flex items-start gap-4">
+                <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: `${TEAL}15` }}>
+                  <PawPrint className="w-5 h-5" style={{ color: TEAL }} strokeWidth={2.5} />
+                </div>
+                <div className="flex flex-col gap-3 flex-1 min-w-0">
+                  <p className="font-semibold text-sm md:text-[15px] leading-snug text-slate-700">{card1Body}</p>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={onEncontrar}
+                    className="self-start rounded-full px-6 py-2.5 font-black uppercase tracking-wide text-xs md:text-sm text-white shadow-md flex items-center gap-2"
+                    style={{ background: TEAL, boxShadow: `0 4px 14px ${TEAL}40` }}
+                  >
+                    ENCONTRAR
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
 
+            {/* Card 2 - REGISTA-TE */}
             <motion.div
               variants={itemVariants}
-              whileHover={{ y: -6, scale: 1.02 }}
+              whileHover={{ y: -4 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="rounded-[1.75rem] p-6 md:p-8 border border-white/60 relative overflow-hidden"
-              style={{ background: "rgba(255, 255, 255, 0.38)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}
+              className="rounded-[1.5rem] p-5 md:p-6 border border-white/70 relative overflow-hidden group"
+              style={{ background: "rgba(255, 255, 255, 0.55)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", boxShadow: "0 10px 40px rgba(0,0,0,0.08)" }}
             >
-              <div className="relative z-10 flex flex-col gap-4">
-                <p className="font-semibold text-sm md:text-base leading-relaxed text-slate-700">{card2Body}</p>
-                <motion.button
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={onRegistar}
-                  className="self-start rounded-full px-7 py-3 font-black uppercase tracking-wider text-sm text-white shadow-lg transition-colors"
-                  style={{ background: ORANGE }}
-                >
-                  REGISTA-TE
-                </motion.button>
+              {/* Accent bar top */}
+              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: ORANGE }} />
+              {/* Icon + content row */}
+              <div className="relative z-10 flex items-start gap-4">
+                <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: `${ORANGE}15` }}>
+                  <Heart className="w-5 h-5" style={{ color: ORANGE }} strokeWidth={2.5} fill="currentColor" />
+                </div>
+                <div className="flex flex-col gap-3 flex-1 min-w-0">
+                  <p className="font-semibold text-sm md:text-[15px] leading-snug text-slate-700">{card2Body}</p>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={onRegistar}
+                    className="self-start rounded-full px-6 py-2.5 font-black uppercase tracking-wide text-xs md:text-sm text-white shadow-md flex items-center gap-2"
+                    style={{ background: ORANGE, boxShadow: `0 4px 14px ${ORANGE}40` }}
+                  >
+                    REGISTA-TE
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           </div>
