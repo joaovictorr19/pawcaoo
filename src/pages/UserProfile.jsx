@@ -272,8 +272,8 @@ export default function UserProfile() {
       const tId = trainerProfile?.id;
       if (!wId && !tId) return [];
       let allReviews = [];
-      if (wId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ walker_id: wId }, '-created_date', 10)];
-      if (tId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ trainer_id: tId }, '-created_date', 10)];
+      if (wId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ walker_id: wId }, '-created_date', 50)];
+      if (tId) allReviews = [...allReviews, ...await base44.entities.Review.filter({ trainer_id: tId }, '-created_date', 50)];
       return allReviews;
     },
     enabled: !!profileEmail && (!!walkerProfile || !!trainerProfile),
@@ -386,6 +386,7 @@ export default function UserProfile() {
       }}
       onBan={() => banUserMutation.mutate(profileUser.id)}
       onToggleVerify={() => toggleVerificationMutation.mutate(profileUser.id)}
+      profileEmail={profileEmail}
     />
 
       {isBadgeModalOpen && (

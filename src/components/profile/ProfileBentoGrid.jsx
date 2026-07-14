@@ -2,6 +2,7 @@
 import React from "react";
 import { ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, PawPrint, Zap, Flag } from "lucide-react";
 import ReviewCard from "@/components/reviews/ReviewCard";
+import ProfessionalReviewsSection from "@/components/reviews/ProfessionalReviewsSection";
 import BadgeItem from "@/components/gamification/BadgeItem";
 import ProfileActions from "@/components/profile/ProfileActions";
 import HotelProfileDisplay from "@/components/hotel/HotelProfileDisplay";
@@ -48,6 +49,7 @@ export default function ProfileBentoGrid({
   onBadgeSlotClick,
   onBan,
   onToggleVerify,
+  profileEmail,
 }) {
   const { language } = useLanguage();
   const isProfessional = walkerProfile || trainerProfile;
@@ -277,26 +279,18 @@ export default function ProfileBentoGrid({
             </ProfileSection>
           )}
 
-          {/* REVIEWS - Large card */}
+          {/* REVIEWS - Full section */}
           {isProfessional && (
-            <ProfileSection delay={0.32} className="md:col-span-3 lg:col-span-4 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic flex items-center gap-1.5">
-                <Star className="w-3 h-3" /> {language === 'pt' ? 'Feedback' : 'Feedback'}
-              </h3>
-              {loadingReviews ? (
-                <div className="space-y-3">
-                  {[1, 2].map(i => <div key={i} className="h-20 bg-slate-100 rounded-2xl animate-pulse" />)}
-                </div>
-              ) : reviews.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {reviews.slice(0, 3).map(r => <ReviewCard key={r.id} review={r} />)}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <Star className="w-8 h-8 mx-auto mb-2 opacity-20 text-slate-400" />
-                  <p className="text-slate-400 text-sm">{language === 'pt' ? 'Sem avaliações' : 'No reviews'}</p>
-                </div>
-              )}
+            <ProfileSection delay={0.32} className="md:col-span-3 lg:col-span-4">
+              <ProfessionalReviewsSection
+                reviews={reviews}
+                loadingReviews={loadingReviews}
+                walkerProfile={walkerProfile}
+                trainerProfile={trainerProfile}
+                currentUser={currentUser}
+                profileEmail={profileEmail}
+                isOwnProfile={isOwnProfile}
+              />
             </ProfileSection>
           )}
 
