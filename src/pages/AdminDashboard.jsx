@@ -1069,6 +1069,10 @@ export default function AdminDashboard() {
             {activeTab === 'professionals' && (
               <AdminProfessionalsPanel
                 walkers={allWalkers}
+                onRefresh={async () => {
+                  await queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                  await queryClient.refetchQueries({ queryKey: ['allWalkersAdmin'] });
+                }}
                 onDelete={(walker) => {
                   if (window.confirm(`Eliminar perfil de "${walker.walker_name}"?`)) {
                     deleteWalkerMutation.mutate(walker.id);

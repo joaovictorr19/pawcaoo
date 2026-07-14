@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Eye, Search, ToggleLeft, ToggleRight } from "lucide-react";
+import { Trash2, Eye, Search, ToggleLeft, ToggleRight, RefreshCw } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 const TYPE_LABELS = {
@@ -19,8 +19,19 @@ const VERIFICATION_COLORS = {
   requires_documents: "bg-yellow-100 text-yellow-700 border-yellow-200",
 };
 
-export default function AdminProfessionalsPanel({ walkers = [], onDelete, onToggleActive }) {
+export default function AdminProfessionalsPanel({ walkers = [], onDelete, onToggleActive, onRefresh }) {
   const [search, setSearch] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!onRefresh) return;
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const filtered = walkers.filter((w) => {
     const q = search.toLowerCase();
@@ -46,6 +57,16 @@ export default function AdminProfessionalsPanel({ walkers = [], onDelete, onTogg
           />
         </div>
         <span className="text-sm text-slate-500 font-medium">{filtered.length} perfis</span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="ml-auto gap-2 rounded-xl border-slate-200"
+        >
+          <RefreshCw className={`w-4 h-4 text-slate-500 ${isRefreshing ? "animate-spin" : ""}`} />
+          {isRefreshing ? "A carregar..." : "Forçar carregamento"}
+        </Button>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
