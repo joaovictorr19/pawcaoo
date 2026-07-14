@@ -709,22 +709,46 @@ export default function Home() {
                     </div>
 
                     {/* Mode Toggle & Quick Actions */}
-                    <div className="grid grid-cols-4 gap-2 w-full">
-                      <button onClick={() => navigate(createPageUrl('Favorites'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
-                        <Heart className="w-4 h-4 text-pink-500" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Favoritos</span>
+                    <div className="grid grid-cols-2 gap-2 w-full">
+                      <button
+                        onClick={() => navigate(createPageUrl('Favorites'))}
+                        className="flex items-center gap-2 p-2 rounded-2xl transition-all active:scale-95 touch-manipulation"
+                        style={{ background: 'linear-gradient(to right, #34827d, #e8f3f2)', boxShadow: '0 4px 16px rgba(52,130,125,0.18)' }}
+                      >
+                        <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(52,130,125,0.18)' }}>
+                          <Heart className="w-4 h-4" style={{ color: '#ff6b8a' }} strokeWidth={2} />
+                        </span>
+                        <span className="text-[11px] font-bold" style={{ color: '#33414a' }}>Favoritos</span>
                       </button>
-                      <button onClick={() => navigate(createPageUrl('MyWallet'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
-                        <Wallet className="w-4 h-4 text-green-600" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Wallet</span>
+                      <button
+                        onClick={() => navigate(createPageUrl('MyWallet'))}
+                        className="flex items-center gap-2 p-2 rounded-2xl transition-all active:scale-95 touch-manipulation"
+                        style={{ background: 'linear-gradient(to right, #34827d, #e8f3f2)', boxShadow: '0 4px 16px rgba(52,130,125,0.18)' }}
+                      >
+                        <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(52,130,125,0.18)' }}>
+                          <Wallet className="w-4 h-4" style={{ color: '#59d68c' }} strokeWidth={2} />
+                        </span>
+                        <span className="text-[11px] font-bold" style={{ color: '#33414a' }}>Wallet</span>
                       </button>
-                      <button onClick={() => navigate(createPageUrl('Gamification'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
-                        <Trophy className="w-4 h-4 text-amber-500" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Legado</span>
+                      <button
+                        onClick={() => navigate(createPageUrl('Gamification'))}
+                        className="flex items-center gap-2 p-2 rounded-2xl transition-all active:scale-95 touch-manipulation"
+                        style={{ background: 'linear-gradient(to right, #34827d, #e8f3f2)', boxShadow: '0 4px 16px rgba(52,130,125,0.18)' }}
+                      >
+                        <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(52,130,125,0.18)' }}>
+                          <Trophy className="w-4 h-4" style={{ color: '#f5b74b' }} strokeWidth={2} />
+                        </span>
+                        <span className="text-[11px] font-bold" style={{ color: '#33414a' }}>Legado</span>
                       </button>
-                      <button onClick={() => navigate(createPageUrl('MyBookings'))} className="flex flex-col items-center gap-1 p-2 bg-white md:bg-white/70 md:backdrop-blur-lg rounded-xl shadow-md active:shadow-sm ring-1 ring-white/50 active:ring-white/80 transition-all active:scale-95 touch-manipulation">
-                        <Calendar className="w-4 h-4 text-blue-600" strokeWidth={2} />
-                        <span className="text-[9px] font-semibold text-slate-700">Histórico</span>
+                      <button
+                        onClick={() => navigate(createPageUrl('MyBookings'))}
+                        className="flex items-center gap-2 p-2 rounded-2xl transition-all active:scale-95 touch-manipulation"
+                        style={{ background: 'linear-gradient(to right, #34827d, #e8f3f2)', boxShadow: '0 4px 16px rgba(52,130,125,0.18)' }}
+                      >
+                        <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(52,130,125,0.18)' }}>
+                          <Calendar className="w-4 h-4" style={{ color: '#5887e8' }} strokeWidth={2} />
+                        </span>
+                        <span className="text-[11px] font-bold" style={{ color: '#33414a' }}>Histórico</span>
                       </button>
                     </div>
 
