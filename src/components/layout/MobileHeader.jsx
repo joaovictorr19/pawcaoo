@@ -115,47 +115,45 @@ export default function MobileHeader() {
 
 
   return (
-    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white border-b border-slate-200 px-3 py-1 flex items-center justify-center gap-2" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
-      <div className="grid grid-cols-[auto,1fr,auto] items-center w-full">
+    <div className="md:hidden fixed top-0 left-0 right-0 z-[11000] bg-white border-b border-slate-200 px-2 py-1 flex items-center justify-center gap-1" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}>
+      <div className="flex items-center w-full gap-1">
         {/* Logo à esquerda */}
-        <div className="flex items-center">
+        <div className="flex items-center shrink-0">
           <button onClick={() => navigate(createPageUrl('Home'))} aria-label="Ir para a página inicial" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
             <PawCaoLogo size="small" showText={false} />
           </button>
         </div>
 
-        {/* Botões centralizados */}
-        <div className="flex items-center justify-center">
+        {/* Botões centralizados - scrollable */}
+        <div className="flex-1 flex items-center justify-center overflow-x-auto flex-nowrap min-w-0" style={{ scrollbarWidth: 'none' }}>
           {authed && (
-            <div className="flex items-center gap-1 sm:gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-1 whitespace-nowrap">
               {isHotel && (
-                <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0 bg-slate-900 text-white hover:bg-slate-800" onClick={() => navigate(createPageUrl('HotelDashboard'))}>{lbl('hotel')}</Button>
+                <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px] shrink-0 bg-slate-900 text-white hover:bg-slate-800" onClick={() => navigate(createPageUrl('HotelDashboard'))}>{lbl('hotel')}</Button>
               )}
-              <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>{lbl('professional')}</Button>
-              <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>{lbl('client')}</Button>
+              <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px] shrink-0" onClick={() => navigate(createPageUrl('ProfessionalHubV2'))}>{lbl('professional')}</Button>
+              <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px] shrink-0" onClick={() => navigate(createPageUrl('ClientDashboard'))}>{lbl('client')}</Button>
               {isAdmin && (
-                <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>{lbl('admin')}</Button>
+                <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px] shrink-0" onClick={() => navigate(createPageUrl('AdminDashboard'))}>{lbl('admin')}</Button>
               )}
             </div>
           )}
         </div>
 
         {/* Ações à direita */}
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1 shrink-0">
           <LanguageSelector />
           {authed ? (
-            <Button size="sm" variant="secondary" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.logout()}>
-              <LogOut className="w-4 h-4 mr-1" /> {lbl('exit')}
+            <Button size="sm" variant="secondary" className="h-7 px-2.5 text-[10px]" onClick={() => base44.auth.logout()}>
+              <LogOut className="w-3.5 h-3.5" />
             </Button>
           ) : (
-            <Button size="sm" className="h-8 px-3 text-[10px] sm:text-[11px]" onClick={() => base44.auth.redirectToLogin()}>
+            <Button size="sm" className="h-7 px-2.5 text-[10px]" onClick={() => base44.auth.redirectToLogin()}>
               {lbl('enter')}
             </Button>
           )}
         </div>
       </div>
-
-
     </div>
   );
 }
