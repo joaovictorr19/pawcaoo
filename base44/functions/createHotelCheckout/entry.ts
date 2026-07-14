@@ -52,8 +52,22 @@ Deno.serve(async (req) => {
     const hotelProfile = hotelProfiles[0];
     const hotelDetails = hotelProfile.hotel_details || {};
 
-    // Server-side price recalculation
-    const PLATFORM_FEE_RATE = 0.10;
+    // ── Determine commission rate from hotel profile (same logic as createBookingCheckout) ──
+    const DEFAULT_RATE = 10; // 10%
+    let commissionRate = DEFAULT_RATE;
+    const commissionMode = hotelProfile.commission_rate_mode || 'default';
+    if (hotelProfile.exempt_from_platform_fees === true || commissionMode === 'zero') {
+      commissionRate = 0;
+    } else if (commissionMode === 'zero_temporary') {
+      if (hotelProfile.commission_rate_expiry && new Date() > new Date(hotelProfile.commission_rate_expiry)) {
+        commissionRate = DEFAULT_RATE; // expired, revert to default
+      } else {
+        commissionRate = 0;
+      }
+    } else if (commissionMode === 'custom_percent') {
+      commissionRate = hotelProfile.custom_commission_rate != null ? Number(hotelProfile.custom_commission_rate) : DEFAULT_RATE;
+    }
+    const PLATFORM_FEE_RATE = commissionRate / 100;
     let serverPricePerUnit = 0;
 
     // Helper: find price in services array as fallback

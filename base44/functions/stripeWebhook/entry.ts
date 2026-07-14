@@ -105,11 +105,15 @@ Deno.serve(async (req) => {
 async function handlePaymentSuccess(base44, paymentIntent) {
     const bookingId = paymentIntent.metadata?.booking_id;
     const emergencyWalkId = paymentIntent.metadata?.emergency_walk_id;
-    const PLATFORM_FEE = 1.5; // €1.5 fixed commission
+
+    // Get actual platform fee from metadata (set by checkout function) — NOT a fixed value
+    let metadataFee = parseFloat(paymentIntent.metadata?.platform_fee);
+    if (isNaN(metadataFee)) metadataFee = null;
 
     console.log('💰 ========== PAYMENT SUCCESS WEBHOOK ==========');
     console.log('   Booking ID:', bookingId);
     console.log('   Amount:', paymentIntent.amount / 100);
+    console.log('   Platform fee from metadata:', metadataFee);
 
     if (!bookingId && !emergencyWalkId) {
         console.log('❌ No booking or emergency walk ID in payment metadata');
@@ -123,12 +127,14 @@ async function handlePaymentSuccess(base44, paymentIntent) {
 
     if (payments.length > 0) {
         const payment = payments[0];
+        // Use the correct platform fee: from metadata, or keep existing payment value
+        const feeToApply = metadataFee !== null ? metadataFee : (payment.platform_fee || 0);
         await base44.asServiceRole.entities.Payment.update(payment.id, {
             status: 'held',
             held_date: new Date().toISOString(),
-            platform_fee: PLATFORM_FEE
+            platform_fee: feeToApply
         });
-        console.log('✅ Payment record updated with platform fee €' + PLATFORM_FEE);
+        console.log('✅ Payment record updated with platform fee €' + feeToApply);
     }
 
     // Update booking if exists
@@ -157,16 +163,30 @@ async function handlePaymentSuccess(base44, paymentIntent) {
             console.log('   Walker ID:', booking.walker_id);
             console.log('   Owner Email:', booking.owner_email || booking.created_by);
             
-            // CHECK IF WALKER IS EXEMPT FROM PLATFORM FEE
+            // CHECK WALKER COMMISSION SETTINGS (full check, not just exempt flag)
             const walkerProfiles = await base44.asServiceRole.entities.WalkerProfile.filter({
                 id: booking.walker_id
             });
-            const isWalkerExempt = walkerProfiles.length > 0 && walkerProfiles[0].exempt_from_platform_fees === true;
-            const actualPlatformFee = isWalkerExempt ? 0 : PLATFORM_FEE;
-            const actualServiceAmount = booking.service_amount + (isWalkerExempt ? PLATFORM_FEE : 0);
-            
-            console.log('   Walker exempt from fees:', isWalkerExempt);
-            console.log('   Platform fee charged:', actualPlatformFee);
+            const walkerProfile = walkerProfiles[0];
+            let actualPlatformFee = metadataFee !== null ? metadataFee : (booking.platform_fee || 0);
+            let actualServiceAmount = booking.service_amount || 0;
+
+            if (walkerProfile) {
+                const mode = walkerProfile.commission_rate_mode || 'default';
+                const isExempt = walkerProfile.exempt_from_platform_fees === true || mode === 'zero';
+                const isTempExempt = mode === 'zero_temporary' && walkerProfile.commission_rate_expiry &&
+                    new Date() <= new Date(walkerProfile.commission_rate_expiry);
+
+                if (isExempt || isTempExempt) {
+                    actualPlatformFee = 0;
+                    actualServiceAmount = booking.total_amount || actualServiceAmount;
+                } else if (mode === 'custom_percent' && walkerProfile.custom_commission_rate != null) {
+                    actualPlatformFee = Math.round((actualServiceAmount * Number(walkerProfile.custom_commission_rate) / 100) * 100) / 100;
+                }
+            }
+
+            console.log('   Walker commission mode:', walkerProfile?.commission_rate_mode || 'default');
+            console.log('   Platform fee applied:', actualPlatformFee);
             
             // Platform fee handling is processed at release time (after service completion).
             // No money movement here on payment success to avoid early/incorrect transfers.
