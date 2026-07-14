@@ -177,71 +177,54 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
           </motion.div>
 
-          {/* Right: premium glass CTA cards */}
-          <div className="flex flex-col gap-4 md:gap-5">
-            {/* Card 1 - ENCONTRAR PROFISSIONAL */}
+          {/* Right: soft gradient horizon CTA cards */}
+          <div className="relative flex flex-col gap-4 md:gap-5">
+            {/* Soft gradient backdrop */}
+            <div className="absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl" style={{ background: "radial-gradient(circle at 25% 15%, #e0c3fc 0%, transparent 55%), radial-gradient(circle at 75% 85%, #c6f9f9 0%, transparent 55%)" }} />
+
+            {/* Card 1 - CLIENTE */}
             <motion.div
               variants={itemVariants}
               whileHover={{ y: -3 }}
               transition={{ type: "spring", stiffness: 300, damping: 22 }}
-              className="rounded-2xl relative overflow-hidden border border-white/60 group"
-              style={{ background: "rgba(255, 255, 255, 0.65)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", boxShadow: "0 12px 40px rgba(0,0,0,0.07)" }}
+              className="rounded-[20px] relative overflow-hidden border border-white/80"
+              style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(0,0,0,0.06)" }}
             >
-              <div className="flex">
-                {/* Vertical accent bar */}
-                <div className="w-1.5 shrink-0 bg-[#00a699]" />
-                {/* Content */}
-                <div className="flex-1 p-5 md:p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-[#00a699]/10 border border-[#00a699]/15">
-                      <Search className="w-4.5 h-4.5 text-[#00a699]" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#00a699]">Cliente</span>
-                  </div>
-                  <p className="text-[13px] md:text-sm leading-relaxed text-slate-600 mb-4">{card1Body}</p>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={onEncontrar}
-                    className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white bg-[#00a699] shadow-[0_4px_14px_rgba(0,166,153,0.3)] hover:shadow-[0_6px_20px_rgba(0,166,153,0.4)] transition-shadow"
-                  >
-                    Encontrar
-                    <ArrowRight className="w-3.5 h-3.5" strokeWidth={3} />
-                  </motion.button>
-                </div>
+              <div className="p-6 md:p-7">
+                <span className="inline-block rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#1a1a1a] mb-3 shadow-sm">Cliente</span>
+                <p className="text-[13px] md:text-sm leading-relaxed text-[#1a1a1a] mb-5">{card1Body}</p>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={onEncontrar}
+                  className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold text-[#1a1a1a] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] transition-shadow"
+                >
+                  Encontrar
+                  <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+                </motion.button>
               </div>
             </motion.div>
 
-            {/* Card 2 - REGISTA-TE COMO PROFISSIONAL */}
+            {/* Card 2 - PROFISSIONAL */}
             <motion.div
               variants={itemVariants}
               whileHover={{ y: -3 }}
               transition={{ type: "spring", stiffness: 300, damping: 22 }}
-              className="rounded-2xl relative overflow-hidden border border-white/60 group"
-              style={{ background: "rgba(255, 255, 255, 0.65)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", boxShadow: "0 12px 40px rgba(0,0,0,0.07)" }}
+              className="rounded-[20px] relative overflow-hidden border border-white/80"
+              style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(0,0,0,0.06)" }}
             >
-              <div className="flex">
-                {/* Vertical accent bar */}
-                <div className="w-1.5 shrink-0 bg-[#ff6633]" />
-                {/* Content */}
-                <div className="flex-1 p-5 md:p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-[#ff6633]/10 border border-[#ff6633]/15">
-                      <Euro className="w-4.5 h-4.5 text-[#ff6633]" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#ff6633]">Profissional</span>
-                  </div>
-                  <p className="text-[13px] md:text-sm leading-relaxed text-slate-600 mb-4">{card2Body}</p>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={onRegistar}
-                    className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white bg-[#ff6633] shadow-[0_4px_14px_rgba(255,102,51,0.3)] hover:shadow-[0_6px_20px_rgba(255,102,51,0.4)] transition-shadow"
-                  >
-                    Registar
-                    <ArrowRight className="w-3.5 h-3.5" strokeWidth={3} />
-                  </motion.button>
-                </div>
+              <div className="p-6 md:p-7">
+                <span className="inline-block rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[#1a1a1a] mb-3 shadow-sm">Profissional</span>
+                <p className="text-[13px] md:text-sm leading-relaxed text-[#1a1a1a] mb-5">{card2Body}</p>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={onRegistar}
+                  className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold text-[#1a1a1a] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] transition-shadow"
+                >
+                  Registar
+                  <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+                </motion.button>
               </div>
             </motion.div>
           </div>
