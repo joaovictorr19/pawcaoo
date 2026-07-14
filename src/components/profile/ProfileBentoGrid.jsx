@@ -9,7 +9,9 @@ import HotelDailyRoutine from "@/components/hotel/HotelDailyRoutine";
 import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 import HotelRangeCalendar from "@/components/hotel/HotelRangeCalendar";
 import ProfileHeroCard from "@/components/profile/ProfileHeroCard";
+import ProfileSection from "@/components/profile/ProfileSection";
 import ReportModal from "@/components/profile/ReportModal";
+import { motion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 
@@ -54,38 +56,46 @@ export default function ProfileBentoGrid({
   return (
     <div className="min-h-screen bg-slate-50 pb-32 pt-2">
       {/* Back button */}
-      <button onClick={onBack} className="fixed top-20 left-4 md:left-6 p-3 bg-white/80 backdrop-blur-md rounded-full text-slate-700 hover:bg-white shadow-sm transition-all z-[10001] border border-slate-100">
+      <motion.button
+        initial={{ opacity: 0, x: -16 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        onClick={onBack}
+        className="fixed top-20 left-4 md:left-6 p-3 bg-white/80 backdrop-blur-md rounded-full text-slate-700 hover:bg-white shadow-sm transition-all z-[10001] border border-slate-100"
+      >
         <ArrowLeft size={20} />
-      </button>
+      </motion.button>
 
       {/* Bento Grid */}
       <div className="relative px-4 md:px-6 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-min">
 
           {/* HERO CARD - Identity with integrated cover */}
-          <ProfileHeroCard
-            profileUser={profileUser}
-            walkerProfile={walkerProfile}
-            trainerProfile={trainerProfile}
-            displayPhotoUrl={displayPhotoUrl}
-            displayCoverUrl={displayCoverUrl}
-            displayName={displayName}
-            displayCity={displayCity}
-            isOwnProfile={isOwnProfile}
-            isHotel={isHotel}
-            reviews={reviews}
-          />
+          <ProfileSection delay={0} className="md:col-span-3 lg:col-span-4">
+            <ProfileHeroCard
+              profileUser={profileUser}
+              walkerProfile={walkerProfile}
+              trainerProfile={trainerProfile}
+              displayPhotoUrl={displayPhotoUrl}
+              displayCoverUrl={displayCoverUrl}
+              displayName={displayName}
+              displayCity={displayCity}
+              isOwnProfile={isOwnProfile}
+              isHotel={isHotel}
+              reviews={reviews}
+            />
+          </ProfileSection>
 
           {/* BOOKING / ACTIONS CARD (walkers/trainers) */}
           {!isOwnProfile && isProfessional && !isHotel && (
-            <div className="md:col-span-1 lg:col-span-2 bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-5 md:p-6 shadow-sm border border-slate-200 flex flex-col justify-center">
+            <ProfileSection delay={0.08} className="md:col-span-1 lg:col-span-2 bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-5 md:p-6 shadow-sm border border-slate-200 flex flex-col justify-center">
               <ProfileActions walker={walkerProfile || trainerProfile} currentUser={currentUser} />
-            </div>
+            </ProfileSection>
           )}
 
           {/* HOTEL CALENDAR - replaces PawGo active card */}
           {isHotel && (
-            <div className="md:col-span-3 lg:col-span-2 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
+            <ProfileSection delay={0.08} className="md:col-span-3 lg:col-span-2 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">
                 Disponibilidade
               </h3>
@@ -98,12 +108,12 @@ export default function ProfileBentoGrid({
                   }}
                 />
               </div>
-            </div>
+            </ProfileSection>
           )}
 
           {/* OWN PROFILE - Stats summary */}
           {isOwnProfile && (
-            <div className="md:col-span-1 lg:col-span-2 bg-gradient-to-br from-sky-100/70 to-blue-50/60 backdrop-blur-2xl rounded-3xl p-5 shadow-md border border-sky-200/50 flex items-center gap-4">
+            <ProfileSection delay={0.08} className="md:col-span-1 lg:col-span-2 bg-gradient-to-br from-sky-100/70 to-blue-50/60 backdrop-blur-2xl rounded-3xl p-5 shadow-md border border-sky-200/50 flex items-center gap-4">
               <div className="flex-1 text-center">
                 <p className="text-2xl font-black text-slate-900">{earnedBadges.length}</p>
                 <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">{language === 'pt' ? 'Emblemas' : language === 'es' ? 'Insignias' : 'Badges'}</p>
@@ -118,11 +128,11 @@ export default function ProfileBentoGrid({
                 <p className="text-2xl font-black text-slate-900">{walkerProfile?.rating?.toFixed(1) || trainerProfile?.rating?.toFixed(1) || '—'}</p>
                 <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">{language === 'pt' ? 'Avaliação' : language === 'es' ? 'Valoración' : 'Rating'}</p>
               </div>
-            </div>
+            </ProfileSection>
           )}
 
           {/* BADGES / ACHIEVEMENTS - MOVED UP for prominence */}
-          <div className="md:col-span-2 lg:col-span-4 bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-5 md:p-6 shadow-sm border border-amber-100">
+          <ProfileSection delay={0.14} className="md:col-span-2 lg:col-span-4 bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-5 md:p-6 shadow-sm border border-amber-100">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
                 <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center shadow-sm">
@@ -162,22 +172,22 @@ export default function ProfileBentoGrid({
                 {language === 'pt' ? 'Ainda sem conquistas. Complete serviços para ganhar emblemas!' : 'No badges yet. Complete services to earn badges!'}
               </p>
             )}
-          </div>
+          </ProfileSection>
 
           {/* HOTEL DETAILS - Large card */}
           {isHotel && walkerProfile?.hotel_details && (
-            <div className="md:col-span-3 lg:col-span-4 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
+            <ProfileSection delay={0.2} className="md:col-span-3 lg:col-span-4 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
               <HotelProfileDisplay
                 hotel={walkerProfile}
                 currentUser={currentUser}
                 onBookingClick={onHotelBookingClick}
               />
-            </div>
+            </ProfileSection>
           )}
 
           {/* SERVICES - Improved professional card */}
           {isProfessional && !isHotel && (walkerProfile?.services_offered || trainerProfile?.services_offered || []).length > 0 && (
-            <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+            <ProfileSection delay={0.2} className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3" /> {language === 'pt' ? 'Serviços' : 'Services'}
               </h3>
@@ -209,12 +219,12 @@ export default function ProfileBentoGrid({
                   );
                 })}
               </div>
-            </div>
+            </ProfileSection>
           )}
 
           {/* PORTFOLIO - Medium card */}
           {walkerProfile?.portfolio?.length > 0 && (
-            <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+            <ProfileSection delay={0.26} className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic flex items-center gap-1.5">
                 <ImageIcon className="w-3 h-3" /> {language === 'pt' ? 'Portefólio' : 'Portfolio'}
               </h3>
@@ -234,12 +244,12 @@ export default function ProfileBentoGrid({
                   </div>
                 ))}
               </div>
-            </div>
+            </ProfileSection>
           )}
 
           {/* DAYS OFF - Small card */}
           {isProfessional && (
-            <div className="md:col-span-1 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+            <ProfileSection delay={0.26} className="md:col-span-1 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic flex items-center gap-1.5">
                 <Moon className="w-3 h-3" /> {language === 'pt' ? 'Folgas' : 'Days Off'}
               </h3>
@@ -257,19 +267,19 @@ export default function ProfileBentoGrid({
                   ))}
                 </div>
               )}
-            </div>
+            </ProfileSection>
           )}
 
           {/* HOTEL DAILY ROUTINE */}
           {isHotel && walkerProfile?.hotel_details?.business_hours && (
-            <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+            <ProfileSection delay={0.26} className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
               <HotelDailyRoutine businessHours={walkerProfile.hotel_details.business_hours} />
-            </div>
+            </ProfileSection>
           )}
 
           {/* REVIEWS - Large card */}
           {isProfessional && (
-            <div className="md:col-span-3 lg:col-span-4 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
+            <ProfileSection delay={0.32} className="md:col-span-3 lg:col-span-4 bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest italic flex items-center gap-1.5">
                 <Star className="w-3 h-3" /> {language === 'pt' ? 'Feedback' : 'Feedback'}
               </h3>
@@ -287,12 +297,12 @@ export default function ProfileBentoGrid({
                   <p className="text-slate-400 text-sm">{language === 'pt' ? 'Sem avaliações' : 'No reviews'}</p>
                 </div>
               )}
-            </div>
+            </ProfileSection>
           )}
 
           {/* ADMIN BAR */}
           {currentUser?.role === 'admin' && (
-            <div className="md:col-span-3 lg:col-span-4 bg-red-600 text-white p-2 text-xs font-bold flex justify-center items-center gap-4 rounded-xl shadow-md">
+            <ProfileSection delay={0.38} className="md:col-span-3 lg:col-span-4 bg-red-600 text-white p-2 text-xs font-bold flex justify-center items-center gap-4 rounded-xl shadow-md">
               <span className="flex items-center gap-2"><Shield className="w-4 h-4" /> ADMIN</span>
               {onBan && <button onClick={onBan} className="underline hover:text-red-200">Banir</button>}
               {onToggleVerify && (
@@ -300,7 +310,7 @@ export default function ProfileBentoGrid({
                   {profileUser?.is_verified ? 'Remover' : 'Verificar'}
                 </button>
               )}
-            </div>
+            </ProfileSection>
           )}
         </div>
 

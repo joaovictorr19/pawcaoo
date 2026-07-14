@@ -22,6 +22,7 @@ import HotelTeamSection from "@/components/hotel/HotelTeamSection";
 import HotelProfileDisplay from "@/components/hotel/HotelProfileDisplay";
 import HotelBookingModal from "@/components/hotel/HotelBookingModal";
 import ProfileBentoGrid from "@/components/profile/ProfileBentoGrid";
+import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -329,11 +330,7 @@ export default function UserProfile() {
   }, [loadingUser, profileUser?.id]);
 
   if (loadingUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (!profileUser) {
