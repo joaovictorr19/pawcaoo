@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { PawPrint, Bone, Heart, Star, Sparkles } from "lucide-react";
+import { PawPrint, Bone, Heart, Star, Sparkles, Euro, ArrowRight, Search } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 const TEAL = "#00a699";
@@ -177,63 +177,69 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
           </motion.div>
 
-          {/* Right: glass CTA cards */}
-          <div className="flex flex-col gap-4 md:gap-6">
-            {/* Card 1 - ENCONTRAR */}
+          {/* Right: premium glass CTA cards */}
+          <div className="flex flex-col gap-4 md:gap-5">
+            {/* Card 1 - ENCONTRAR PROFISSIONAL */}
             <motion.div
               variants={itemVariants}
-              whileHover={{ y: -4 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="rounded-[1.5rem] p-5 md:p-6 border border-white/70 relative overflow-hidden group"
-              style={{ background: "rgba(255, 255, 255, 0.55)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", boxShadow: "0 10px 40px rgba(0,0,0,0.08)" }}
+              whileHover={{ y: -3 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
+              className="rounded-2xl relative overflow-hidden border border-white/60 group"
+              style={{ background: "rgba(255, 255, 255, 0.65)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", boxShadow: "0 12px 40px rgba(0,0,0,0.07)" }}
             >
-              {/* Accent bar top */}
-              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: TEAL }} />
-              {/* Icon + content row */}
-              <div className="relative z-10 flex items-start gap-4">
-                <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: `${TEAL}15` }}>
-                  <PawPrint className="w-5 h-5" style={{ color: TEAL }} strokeWidth={2.5} />
-                </div>
-                <div className="flex flex-col gap-3 flex-1 min-w-0">
-                  <p className="font-semibold text-sm md:text-[15px] leading-snug text-slate-700">{card1Body}</p>
+              <div className="flex">
+                {/* Vertical accent bar */}
+                <div className="w-1.5 shrink-0 bg-[#00a699]" />
+                {/* Content */}
+                <div className="flex-1 p-5 md:p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-[#00a699]/10 border border-[#00a699]/15">
+                      <Search className="w-4.5 h-4.5 text-[#00a699]" strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#00a699]">Cliente</span>
+                  </div>
+                  <p className="text-[13px] md:text-sm leading-relaxed text-slate-600 mb-4">{card1Body}</p>
                   <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={onEncontrar}
-                    className="self-start rounded-full px-6 py-2.5 font-black uppercase tracking-wide text-xs md:text-sm text-white shadow-md flex items-center gap-2 bg-[#00a699]"
-                    style={{ boxShadow: '0 4px 14px rgba(0,166,153,0.35)' }}
+                    className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white bg-[#00a699] shadow-[0_4px_14px_rgba(0,166,153,0.3)] hover:shadow-[0_6px_20px_rgba(0,166,153,0.4)] transition-shadow"
                   >
-                    ENCONTRAR
+                    Encontrar
+                    <ArrowRight className="w-3.5 h-3.5" strokeWidth={3} />
                   </motion.button>
                 </div>
               </div>
             </motion.div>
 
-            {/* Card 2 - REGISTA-TE */}
+            {/* Card 2 - REGISTA-TE COMO PROFISSIONAL */}
             <motion.div
               variants={itemVariants}
-              whileHover={{ y: -4 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="rounded-[1.5rem] p-5 md:p-6 border border-white/70 relative overflow-hidden group"
-              style={{ background: "rgba(255, 255, 255, 0.55)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", boxShadow: "0 10px 40px rgba(0,0,0,0.08)" }}
+              whileHover={{ y: -3 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
+              className="rounded-2xl relative overflow-hidden border border-white/60 group"
+              style={{ background: "rgba(255, 255, 255, 0.65)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", boxShadow: "0 12px 40px rgba(0,0,0,0.07)" }}
             >
-              {/* Accent bar top */}
-              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: ORANGE }} />
-              {/* Icon + content row */}
-              <div className="relative z-10 flex items-start gap-4">
-                <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: `${ORANGE}15` }}>
-                  <Heart className="w-5 h-5" style={{ color: ORANGE }} strokeWidth={2.5} fill="currentColor" />
-                </div>
-                <div className="flex flex-col gap-3 flex-1 min-w-0">
-                  <p className="font-semibold text-sm md:text-[15px] leading-snug text-slate-700">{card2Body}</p>
+              <div className="flex">
+                {/* Vertical accent bar */}
+                <div className="w-1.5 shrink-0 bg-[#ff6633]" />
+                {/* Content */}
+                <div className="flex-1 p-5 md:p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center bg-[#ff6633]/10 border border-[#ff6633]/15">
+                      <Euro className="w-4.5 h-4.5 text-[#ff6633]" strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#ff6633]">Profissional</span>
+                  </div>
+                  <p className="text-[13px] md:text-sm leading-relaxed text-slate-600 mb-4">{card2Body}</p>
                   <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={onRegistar}
-                    className="self-start rounded-full px-6 py-2.5 font-black uppercase tracking-wide text-xs md:text-sm text-white shadow-md flex items-center gap-2 bg-[#ff6633]"
-                    style={{ boxShadow: '0 4px 14px rgba(255,102,51,0.35)' }}
+                    className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white bg-[#ff6633] shadow-[0_4px_14px_rgba(255,102,51,0.3)] hover:shadow-[0_6px_20px_rgba(255,102,51,0.4)] transition-shadow"
                   >
-                    REGISTA-TE
+                    Registar
+                    <ArrowRight className="w-3.5 h-3.5" strokeWidth={3} />
                   </motion.button>
                 </div>
               </div>
