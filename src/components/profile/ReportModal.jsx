@@ -55,18 +55,18 @@ export default function ReportModal({ open, onOpenChange, reportedUser, reporter
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md bg-[#F4F7FB] border-0 p-0 overflow-hidden rounded-3xl">
-        <div className="bg-white m-3 rounded-2xl p-6 space-y-5">
+        <div className="bg-white m-2 rounded-2xl p-4 space-y-3">
           <DialogHeader className="space-y-0">
-            <DialogTitle className="flex items-center gap-2 text-[#1A202C] text-lg font-bold p-0">
-              <Flag className="w-5 h-5 text-rose-500" />
+            <DialogTitle className="flex items-center gap-2 text-[#1A202C] text-base font-bold p-0">
+              <Flag className="w-4 h-4 text-rose-500" />
               Denunciar Utilizador
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
-            <Label className="text-[#1A202C] font-bold text-sm">
+          <div className="space-y-2">
+            <Label className="text-[#1A202C] font-bold text-xs">
               Motivo <span className="text-[#718096]">*</span>
             </Label>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {REASONS.map((r) => {
                 const Icon = r.icon;
                 const isSelected = reason === r.value;
@@ -75,16 +75,16 @@ export default function ReportModal({ open, onOpenChange, reportedUser, reporter
                     key={r.value}
                     type="button"
                     onClick={() => setReason(r.value)}
-                    className={`w-full flex items-center gap-3 text-left px-4 py-3 rounded-xl text-sm font-medium transition-all border ${
+                    className={`w-full flex items-center gap-3 text-left px-3 py-2 rounded-xl text-sm font-medium transition-all border ${
                       isSelected
                         ? "bg-[#E0F2FE] border-[#BBE1FA] text-[#1A202C]"
                         : "bg-white border-[#CBD5E0] text-[#1A202C] hover:bg-slate-50"
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
                       isSelected ? "bg-[#BBE1FA]" : "bg-slate-100"
                     }`}>
-                      <Icon className={`w-4 h-4 ${isSelected ? "text-[#1A202C]" : "text-[#718096]"}`} />
+                      <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-[#1A202C]" : "text-[#718096]"}`} />
                     </div>
                     <span className="flex-1">{r.label}</span>
                     {isSelected && <Check className="w-4 h-4 text-[#1A202C] flex-shrink-0" />}
@@ -93,8 +93,8 @@ export default function ReportModal({ open, onOpenChange, reportedUser, reporter
               })}
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="report-desc" className="text-[#1A202C] font-bold text-sm">
+          <div className="space-y-1.5">
+            <Label htmlFor="report-desc" className="text-[#1A202C] font-bold text-xs">
               Descrição (opcional)
             </Label>
             <Textarea
@@ -102,7 +102,7 @@ export default function ReportModal({ open, onOpenChange, reportedUser, reporter
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Adicione detalhes sobre a denúncia..."
-              rows={4}
+              rows={3}
               className="resize-none bg-white border-[#CBD5E0] text-[#1A202C] placeholder:text-[#718096] rounded-xl"
             />
           </div>
