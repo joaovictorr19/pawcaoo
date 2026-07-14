@@ -88,9 +88,7 @@ export default function DynamicBackground() {
       { src: ASSET_BALL, pos: "bottom-[12%] right-[7%]", size: 42, delay: 2.5, dur: 7.5, blend: "screen" },
       { src: ASSET_PAW_CORAL, pos: "bottom-[42%] right-[14%]", size: 32, delay: 3, dur: 6, blend: "multiply" },
       { src: ASSET_BONE, pos: "top-[52%] left-[16%]", size: 38, delay: 1.8, dur: 5.5, blend: "multiply", rotate: -20 },
-      { src: ASSET_PAW_TEAL, pos: "top-[68%] right-[22%]", size: 36, delay: 0.4, dur: 7, blend: "multiply" },
       { src: ASSET_BALL, pos: "top-[18%] left-[32%]", size: 30, delay: 3.2, dur: 6.8, blend: "screen" },
-      { src: ASSET_PAW_CORAL, pos: "bottom-[55%] left-[28%]", size: 34, delay: 2.2, dur: 7.2, blend: "multiply" },
       { src: ASSET_BONE, pos: "bottom-[30%] right-[30%]", size: 40, delay: 0.6, dur: 6.3, blend: "multiply", rotate: 50 },
     ];
 
