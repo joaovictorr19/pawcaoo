@@ -54,15 +54,13 @@
   
   html {
     @apply text-foreground;
-    overflow-y: auto;
     overflow-x: hidden;
   }
 
   body {
     @apply text-foreground;
     background: transparent;
-    overflow-y: visible;
-    overflow-x: hidden;
+    overflow: visible;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -292,11 +290,9 @@
   /* Ensure root div doesn't trap scroll on Android */
   #root {
     width: 100%;
-    overflow-x: hidden;
-    overflow-y: visible;
+    overflow: visible;
     display: flex;
     flex-direction: column;
-    -webkit-overflow-scrolling: touch;
   }
 
   /* PawGo Live Tracking - Marcador suave no mapa */
