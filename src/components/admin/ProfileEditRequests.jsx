@@ -130,9 +130,14 @@ export default function ProfileEditRequests() {
 
   if (requests.length === 0) {
     return (
-      <div className="text-center py-10 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-        <Check className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-        <p className="text-gray-500">Nenhuma alteração pendente.</p>
+      <div className="relative">
+        <div className="absolute left-[6px] top-2 h-8 w-0.5 bg-[#1D8A82]"></div>
+        <div className="relative pl-8">
+          <div className="absolute left-0 top-1 w-3 h-3 rounded-full bg-green-600 ring-4 ring-white z-10 flex items-center justify-center">
+            <Check className="w-2 h-2 text-white" strokeWidth={4} />
+          </div>
+          <p className="text-sm text-slate-500 pt-0.5">Nenhuma alteração pendente.</p>
+        </div>
       </div>
     );
   }
@@ -188,70 +193,89 @@ export default function ProfileEditRequests() {
   };
 
   return (
-    <div className="grid gap-4">
-      {requests.map(request => (
-        <Card key={request.id} className="border border-yellow-200 bg-yellow-50/30">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                  <Clock className="w-3 h-3 mr-1" /> Pendente
-                </Badge>
-                <h4 className="font-bold text-gray-900">{request.professional_name || request.walker_name}</h4>
-                <Badge className="text-xs capitalize">
-                  {request.profile_type || 'walker'}
-                </Badge>
+    <div className="relative">
+      <div className="absolute left-[6px] top-2 bottom-2 w-0.5 bg-[#1D8A82]"></div>
+      <div className="space-y-3">
+        {requests.map(request => {
+          const changes = request.requested_changes || {};
+          const changeChips = [];
+          if (changes.hourly_rate) changeChips.push('Tarifa base');
+          if (changes.services_offered) changes.services_offered.forEach(s => changeChips.push(s.service_name || 'Serviço'));
+          if (changes.bio) changeChips.push('Descrição');
+          if (changes.location) changeChips.push('Localização');
+
+          return (
+            <div key={request.id} className="relative pl-8">
+              <div className="absolute left-0 top-4 w-3 h-3 rounded-full bg-[#1D8A82] ring-4 ring-white z-10"></div>
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FFF9E6] text-[#B8860B]">Pendente</span>
+                    <h4 className="font-bold text-slate-900 text-sm">{request.professional_name || request.walker_name}</h4>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-[#1D8A82] capitalize">{request.profile_type || 'walker'}</span>
+                  </div>
+                  <p className="text-xs text-slate-400">Solicitado em {new Date(request.created_date).toLocaleDateString()}</p>
+                </div>
+                {changeChips.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {changeChips.map((chip, i) => (
+                      <span key={i} className="px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-[#1D8A82]">{chip}</span>
+                    ))}
+                  </div>
+                )}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="outline" onClick={() => setSelectedRequest(request)} className="border-[#1D8A82] text-[#1D8A82] hover:bg-teal-50">
+                      <Eye className="w-4 h-4 mr-2" /> Rever Detalhes
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md p-0 overflow-hidden bg-white/95 backdrop-blur-xl border border-white/60 shadow-2xl" style={{ borderRadius: '1.5rem' }}>
+                    <div className="bg-gradient-to-r from-[#1D8A82] to-[#2DB0A6] px-6 py-5 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <DialogTitle className="text-white text-lg font-extrabold leading-tight">Rever Alterações</DialogTitle>
+                        <p className="text-white/80 text-xs mt-0.5">{request.professional_name || request.walker_name}</p>
+                      </div>
+                    </div>
+
+                    <div className="px-6 pt-5 pb-4">
+                      <p className="text-sm text-slate-500 mb-4">O profissional solicitou as seguintes mudanças no perfil.</p>
+                      <h5 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3">Novos Dados</h5>
+                      {renderChanges(request.requested_changes)}
+                    </div>
+
+                    <div className="border-t border-slate-100 px-6 py-4 flex gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => rejectMutation.mutate(request)}
+                        disabled={rejectMutation.isPending}
+                        className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4 mr-2" /> Rejeitar
+                      </Button>
+                      <Button
+                        onClick={() => approveMutation.mutate(request)}
+                        disabled={approveMutation.isPending}
+                        className="flex-1 bg-gradient-to-r from-[#1D8A82] to-[#2DB0A6] hover:opacity-90 text-white border-0"
+                      >
+                        <Check className="w-4 h-4 mr-2" /> Aprovar e Publicar
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
-              <p className="text-xs text-gray-500">
-                Solicitado em {new Date(request.created_date).toLocaleDateString()}
-              </p>
             </div>
-            
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline" onClick={() => setSelectedRequest(request)}>
-                  <Eye className="w-4 h-4 mr-2" /> Rever
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md p-0 overflow-hidden bg-white/95 backdrop-blur-xl border border-white/60 shadow-2xl" style={{ borderRadius: '1.5rem' }}>
-                <div className="bg-gradient-to-r from-[#1D8A82] to-[#2DB0A6] px-6 py-5 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <DialogTitle className="text-white text-lg font-extrabold leading-tight">Rever Alterações</DialogTitle>
-                    <p className="text-white/80 text-xs mt-0.5">{request.professional_name || request.walker_name}</p>
-                  </div>
-                </div>
-
-                <div className="px-6 pt-5 pb-4">
-                  <p className="text-sm text-slate-500 mb-4">O profissional solicitou as seguintes mudanças no perfil.</p>
-                  <h5 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3">Novos Dados</h5>
-                  {renderChanges(request.requested_changes)}
-                </div>
-
-                <div className="border-t border-slate-100 px-6 py-4 flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => rejectMutation.mutate(request)}
-                    disabled={rejectMutation.isPending}
-                    className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                  >
-                    <X className="w-4 h-4 mr-2" /> Rejeitar
-                  </Button>
-                  <Button
-                    onClick={() => approveMutation.mutate(request)}
-                    disabled={approveMutation.isPending}
-                    className="flex-1 bg-gradient-to-r from-[#1D8A82] to-[#2DB0A6] hover:opacity-90 text-white border-0"
-                  >
-                    <Check className="w-4 h-4 mr-2" /> Aprovar e Publicar
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
-      ))}
+          );
+        })}
+        <div className="relative pl-8">
+          <div className="absolute left-0 top-3 w-3 h-3 rounded-full bg-green-600 ring-4 ring-white z-10 flex items-center justify-center">
+            <Check className="w-2 h-2 text-white" strokeWidth={4} />
+          </div>
+          <p className="text-xs text-slate-400 pt-2">Nenhuma alteração pendente.</p>
+        </div>
+      </div>
     </div>
   );
 }
