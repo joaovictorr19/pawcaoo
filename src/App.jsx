@@ -59,6 +59,11 @@ const WalkerOnboarding = lazy(() => import('./pages/WalkerOnboarding').catch(e =
   return { default: () => <div>Erro ao carregar página</div> };
 }));
 
+const ActiveWalkDashboard = lazy(() => import('./pages/ActiveWalkDashboard').catch(e => {
+  console.error('Error loading ActiveWalkDashboard:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
+
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
@@ -171,6 +176,7 @@ const AuthenticatedApp = () => {
             <Route path="/ProfessionalTypeSelect" element={<Suspense fallback={<PageLoader />}><ProfessionalTypeSelect /></Suspense>} />
             <Route path="/HotelOnboarding" element={<Suspense fallback={<PageLoader />}><HotelOnboarding /></Suspense>} />
             <Route path="/WalkerOnboarding" element={<Suspense fallback={<PageLoader />}><WalkerOnboarding /></Suspense>} />
+            <Route path="/ActiveWalkDashboard" element={<Suspense fallback={<PageLoader />}><ActiveWalkDashboard /></Suspense>} />
 
             <Route path="*" element={<PageNotFound />} />
             </Routes>
