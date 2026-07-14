@@ -324,11 +324,19 @@ export default function AdminDebug() {
         if (!walker) throw new Error("Nenhum WalkerProfile encontrado.");
         return await base44.entities.Review.create({
           walker_id: walker.id,
-          reviewer_email: "cliente-teste@debug.com",
-          reviewer_name: "Cliente Teste",
+          walker_name: walker.walker_name,
+          reviewer_email: currentUserEmail,
+          reviewer_name: currentUser?.full_name || "Admin Teste",
           rating: 5,
           comment: "Excelente serviço! (dados de teste)",
-          special_notes: DEBUG_FLAG,
+          is_verified: true,
+          would_recommend: true,
+          categories: {
+            punctuality: 5,
+            care: 5,
+            communication: 5,
+            professionalism: 5,
+          },
         });
       },
       "✅ Avaliação criada"
@@ -393,7 +401,7 @@ export default function AdminDebug() {
 
       // Reviews with debug flag
       try {
-        const reviews = await base44.entities.Review.filter({ reviewer_email: "cliente-teste@debug.com" });
+        const reviews = await base44.entities.Review.filter({ reviewer_email: currentUserEmail });
         for (const r of reviews) {
           await base44.entities.Review.delete(r.id);
           deletedCount++;
