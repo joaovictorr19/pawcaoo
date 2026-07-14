@@ -166,8 +166,12 @@ button:focus-visible {
   }
 }
 
-html, body, #root {
+html {
   height: 100%;
+}
+
+body, #root {
+  min-height: 100%;
 }
 
 body {

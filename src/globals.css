@@ -61,7 +61,7 @@
   body {
     @apply text-foreground;
     background: transparent;
-    overflow-y: auto;
+    overflow-y: visible;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
