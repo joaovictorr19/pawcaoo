@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { getEffectiveCommissionRate } from "@/utils/commission";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,8 +40,9 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
 
   const createRecurringMutation = useMutation({
     mutationFn: async (data) => {
+      const commissionRate = getEffectiveCommissionRate(walker);
       const serviceAmount = walker.hourly_rate * formData.durationHours;
-      const platformFee = serviceAmount * 0.15;
+      const platformFee = serviceAmount * (commissionRate / 100);
       const totalPerWalk = serviceAmount + platformFee;
 
       return await base44.entities.ScheduledAppointment.create({

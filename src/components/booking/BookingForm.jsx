@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { getEffectiveCommissionRate } from "@/utils/commission";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -240,7 +241,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     const discountAmount = baseRate * (discount / 100);
     const walkerReceives = baseRate - discountAmount;
     
-    const commissionRate = proSubscription?.commission_rate || 15;
+    const commissionRate = getEffectiveCommissionRate(pro);
     const platformFee = walkerReceives * (commissionRate / 100);
     const totalAmount = walkerReceives + platformFee;
 

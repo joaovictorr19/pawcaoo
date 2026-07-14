@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { getEffectiveCommissionRate } from '@/utils/commission';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -54,8 +55,8 @@ export default function BookingStepperModal({
         duration_hours: 1,
         status: 'pending',
         total_amount: walker.hourly_rate || 15,
-        service_amount: (walker.hourly_rate || 15) * 0.85,
-        platform_fee: (walker.hourly_rate || 15) * 0.15,
+        service_amount: (walker.hourly_rate || 15) * (1 - getEffectiveCommissionRate(walker) / 100),
+        platform_fee: (walker.hourly_rate || 15) * (getEffectiveCommissionRate(walker) / 100),
         payment_status: 'pending'
       };
 
