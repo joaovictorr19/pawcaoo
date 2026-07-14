@@ -12,7 +12,7 @@ import ReviewModal from "../components/reviews/ReviewModal";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
-import TestimonialsSection from "../components/home/TestimonialsSection";
+const TestimonialsSection = React.lazy(() => import("../components/home/TestimonialsSection"));
 import UnauthenticatedHero from "../components/home/UnauthenticatedHero";
 import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -517,17 +517,6 @@ export default function Home() {
     setCurrentPage(1);
   }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, filterAnimalType, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
 
-  if (userLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div>
-          <PawCaoLogo size="large" animated={true} />
-          <p className="text-gray-600 text-center mt-4">A carregar...</p>
-        </div>
-      </div>
-    );
-  }
-
   const resetAdvancedFilters = () => {
     setAdvancedFilters({
       radius: 50,
@@ -609,7 +598,11 @@ export default function Home() {
             
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
-          {user ? (
+          {userLoading ? (
+            <div className="max-w-4xl mx-auto mb-6">
+              <div className="h-32 md:h-40 bg-slate-200/50 rounded-3xl animate-pulse" />
+            </div>
+          ) : user ? (
             <div className="max-w-4xl mx-auto bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6 mb-6">
               {/* Embedded Owner Dashboard */}
               {(() => {
@@ -1100,7 +1093,11 @@ export default function Home() {
         </div>
 
         {/* Testimonials Section */}
-        {!user && <TestimonialsSection />}
+        {!userLoading && !user && (
+          <Suspense fallback={null}>
+            <TestimonialsSection />
+          </Suspense>
+        )}
 
         {/* Trust Badges Section */}
         <div className="mt-12 mb-8">
