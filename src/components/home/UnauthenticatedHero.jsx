@@ -177,8 +177,6 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
           {/* Right: soft gradient horizon CTA cards */}
           <div className="relative flex flex-col gap-4 md:gap-5">
-            {/* Soft gradient backdrop */}
-            <div className="absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl" style={{ background: "radial-gradient(circle at 25% 15%, #e0c3fc 0%, transparent 55%), radial-gradient(circle at 75% 85%, #c6f9f9 0%, transparent 55%)" }} />
 
             {/* Card 1 - CLIENTE */}
             <motion.div
