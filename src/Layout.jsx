@@ -535,11 +535,7 @@ function LayoutContent({ children, currentPageName }) {
             ) : (
               <button
                 onClick={() => base44.auth.redirectToLogin()}
-                className="rounded-full px-6 py-2 text-sm font-bold text-white transition-all active:scale-95 hover:shadow-lg flex items-center gap-2"
-                style={{
-                  background: 'linear-gradient(135deg, #00a699, #207373)',
-                  boxShadow: '0 4px 14px rgba(0, 166, 153, 0.3)',
-                }}
+                className="rounded-full px-6 py-2 text-sm font-bold text-white transition-all active:scale-95 hover:shadow-lg flex items-center gap-2 bg-gradient-to-br from-[#00a699] to-[#207373] shadow-[0_4px_14px_rgba(0,166,153,0.3)]"
               >
                 {nav('signIn')}
               </button>
