@@ -125,21 +125,6 @@ export default function DynamicBackground() {
   }
 
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-transparent w-screen h-screen" style={{ minHeight: '100vh', minWidth: '100vw' }}>
-      <div className="absolute inset-0">
-        <div
-          className="absolute top-[5%] left-[10%] w-[50vw] h-[50vw] rounded-full filter blur-[120px] opacity-30 animate-blob-1"
-          style={{ backgroundColor: orbColors.primary, transition: 'background-color 1s ease' }}
-        />
-        <div
-          className="absolute bottom-[10%] right-[5%] w-[45vw] h-[45vw] rounded-full filter blur-[120px] opacity-25 animate-blob-2"
-          style={{ backgroundColor: orbColors.secondary, transition: 'background-color 1s ease' }}
-        />
-        <div
-          className="absolute top-[50%] left-[50%] w-[40vw] h-[40vw] rounded-full filter blur-[100px] opacity-18 animate-blob-3"
-          style={{ backgroundColor: orbColors.tertiary, transition: 'background-color 1s ease' }}
-        />
-      </div>
-    </div>
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-transparent w-screen h-screen" style={{ minHeight: '100vh', minWidth: '100vw' }} />
   );
 }
