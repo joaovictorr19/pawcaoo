@@ -488,6 +488,15 @@
           "default": "all_days",
           "description": "Pol\u00edtica de check-in/out: all_days, no_sundays, no_sundays_holidays"
         },
+        "blocked_dates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "date"
+          },
+          "default": [],
+          "description": "Datas bloqueadas pelo hotel (folgas) \u2014 n\u00e3o aceita reservas nestes dias"
+        },
         "amenities": {
           "type": "array",
           "items": {
