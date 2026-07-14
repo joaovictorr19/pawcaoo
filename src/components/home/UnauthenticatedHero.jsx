@@ -167,7 +167,7 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
             {/* Transparent glass frame */}
             <div className="relative overflow-hidden rounded-[1.75rem] md:rounded-[2.5rem] aspect-[4/3] md:aspect-[5/4] w-full max-w-md mx-auto border border-white/40" style={{ background: "#ffffff", boxShadow: "0 6px 24px rgba(0,0,0,0.06)" }}>
               <img
-                src={dogImageUrl || "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/f166b5e44_generated_image.png"}
+                src={dogImageUrl || "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/6f5a681b3_generated_image.png"}
                 alt="Cão cool PawCão"
                 className="w-full h-full object-contain mix-blend-multiply"
               />
