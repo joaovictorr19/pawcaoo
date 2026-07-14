@@ -103,13 +103,21 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
   // Update form with profile data
   useEffect(() => {
     if (profile) {
+      // Derive platform_fee_percentage from the profile's commission settings
+      let feePercent = 10; // default
+      if (profile.exempt_from_platform_fees === true || profile.commission_rate_mode === 'zero' || profile.commission_rate_mode === 'zero_temporary') {
+        feePercent = 0;
+      } else if (profile.commission_rate_mode === 'custom_percent') {
+        feePercent = profile.custom_commission_rate != null ? Number(profile.custom_commission_rate) : 10;
+      }
       setFormData(prev => ({
         ...prev,
         hourly_rate: profile.hourly_rate || 0,
         bio: profile.bio || "",
         is_active: profile.is_active || false,
         verification_status: profile.verification_status || "pending",
-        location: profile.location || prev.city
+        location: profile.location || prev.city,
+        platform_fee_percentage: feePercent
       }));
     }
   }, [profile]);
@@ -198,6 +206,20 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
           verification_status: data.verification_status,
           location: data.location
         };
+
+        // Map platform_fee_percentage → commission_rate_mode system on the profile
+        const feePercent = parseFloat(data.platform_fee_percentage);
+        if (isNaN(feePercent) || feePercent === 10) {
+          updateData.commission_rate_mode = 'default';
+          updateData.exempt_from_platform_fees = false;
+        } else if (feePercent === 0) {
+          updateData.commission_rate_mode = 'zero';
+          updateData.exempt_from_platform_fees = true;
+        } else {
+          updateData.commission_rate_mode = 'custom_percent';
+          updateData.custom_commission_rate = feePercent;
+          updateData.exempt_from_platform_fees = false;
+        }
         
         if (profile.name === 'WalkerProfile' || userToEdit.account_type === 'walker') {
            await base44.entities.WalkerProfile.update(profile.id, { ...updateData, walker_name: data.full_name });
