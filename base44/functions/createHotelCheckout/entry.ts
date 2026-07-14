@@ -56,13 +56,18 @@ Deno.serve(async (req) => {
     const PLATFORM_FEE_RATE = 0.10;
     let serverPricePerUnit = 0;
 
+    // Helper: find price in services array as fallback
+    const findServicePrice = (svcType) => {
+      const svc = (hotelDetails.services || []).find(s => s.service_type === svcType);
+      return svc?.price_per_day || 0;
+    };
+
     if (service_type === 'boarding') {
-      serverPricePerUnit = hotelDetails.price_per_night || 0;
+      serverPricePerUnit = hotelDetails.price_per_night || findServicePrice('boarding') || 0;
     } else if (service_type === 'daycare') {
-      serverPricePerUnit = hotelDetails.price_daycare || 0;
+      serverPricePerUnit = hotelDetails.price_daycare || findServicePrice('daycare') || 0;
     } else {
-      const svc = (hotelDetails.services || []).find(s => s.service_type === service_type);
-      serverPricePerUnit = svc?.price_per_day || 0;
+      serverPricePerUnit = findServicePrice(service_type);
     }
 
     const serverNights = total_nights || 1;

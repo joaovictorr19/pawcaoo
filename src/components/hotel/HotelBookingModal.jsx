@@ -118,12 +118,23 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         delivery_method: deliveryMethod,
       });
 
+      // Verificar se o link de pagamento foi gerado com sucesso
+      const checkoutUrl = response?.data?.url;
+      const checkoutError = response?.data?.error;
+
+      if (checkoutError || !checkoutUrl) {
+        toast.error(checkoutError || 'Erro ao gerar link de pagamento. Tente novamente.');
+        setIsCreating(false);
+        return;
+      }
+
+      // Só enviar email APÓS confirmar que o link de pagamento existe
       const ownerName = clientProfile?.full_name || currentUser.full_name || currentUser.email;
       const dogList = selectedDogs.map(d => `• ${d.dog_name} (${d.breed || 'SRD'}, ${d.size || 'médio'})`).join('\n');
       const emailBody = [
         `Olá ${ownerName},`,
         ``,
-        `A sua reserva no ${hotel.walker_name} foi registada com sucesso!`,
+        `A sua reserva no ${hotel.walker_name} foi registada e está a aguardar pagamento.`,
         ``,
         `Detalhes da Reserva:`,
         `Serviço: ${selectedService.service_name}`,
@@ -145,7 +156,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         ``,
         specialRequests ? `Pedidos especiais: ${specialRequests}` : '',
         ``,
-        `Para concluir o pagamento, será redirecionado para o Stripe.`,
+        `Estamos a redirecioná-lo para o pagamento seguro via Stripe.`,
+        `A reserva só será confirmada após a conclusão do pagamento.`,
         ``,
         `Obrigado por escolher a PawCão!`,
       ].filter(Boolean).join('\n');
@@ -153,7 +165,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       try {
         await base44.integrations.Core.SendEmail({
           to: currentUser.email,
-          subject: `Reserva confirmada — ${hotel.walker_name} (${formatDate(checkinDate)} → ${formatDate(checkoutDate)})`,
+          subject: `Reserva registada — pagamento pendente — ${hotel.walker_name} (${formatDate(checkinDate)} → ${formatDate(checkoutDate)})`,
           body: emailBody,
         });
       } catch (emailErr) {
@@ -161,15 +173,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       }
 
       setFinalized(true);
-
-      const checkoutUrl = response?.data?.url;
-      if (checkoutUrl) {
-        setTimeout(() => { window.location.href = checkoutUrl; }, 1800);
-      } else {
-        toast.error('Erro ao gerar link de pagamento. Tente novamente.');
-        setIsCreating(false);
-        setFinalized(false);
-      }
+      setTimeout(() => { window.location.href = checkoutUrl; }, 600);
     } catch (error) {
       toast.error(`Erro: ${error.message}`);
       setIsCreating(false);
