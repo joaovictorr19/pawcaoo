@@ -41,42 +41,6 @@ Deno.serve(async (req) => {
       type
     } = body;
 
-    // Look up professional's custom commission rate
-    let walkerProfile = null;
-    if (professional_id) {
-      const byId = await base44.asServiceRole.entities.WalkerProfile.filter({ id: professional_id });
-      if (byId.length > 0) walkerProfile = byId[0];
-    }
-    if (!walkerProfile && professional_email) {
-      const byEmail = await base44.asServiceRole.entities.WalkerProfile.filter({ created_by: professional_email });
-      if (byEmail.length > 0) walkerProfile = byEmail[0];
-    }
-
-    // Calculate effective commission rate
-    const DEFAULT_RATE = 10;
-    let commissionRate = DEFAULT_RATE;
-    if (walkerProfile) {
-      const mode = walkerProfile.commission_rate_mode || 'default';
-      if (mode === 'zero') {
-        commissionRate = 0;
-      } else if (mode === 'zero_temporary') {
-        if (walkerProfile.commission_rate_expiry && new Date() > new Date(walkerProfile.commission_rate_expiry)) {
-          commissionRate = DEFAULT_RATE; // expired
-        } else {
-          commissionRate = 0;
-        }
-      } else if (mode === 'custom_percent') {
-        commissionRate = walkerProfile.custom_commission_rate != null ? Number(walkerProfile.custom_commission_rate) : DEFAULT_RATE;
-      } else if (walkerProfile.exempt_from_platform_fees === true) {
-        commissionRate = 0;
-      }
-    }
-
-    // Override platform_fee with the correct calculated value
-    const calculatedFee = Math.round((Number(service_amount) * commissionRate / 100) * 100) / 100;
-    const effectivePlatformFee = calculatedFee;
-    const effectiveTotalAmount = Number(service_amount) + effectivePlatformFee;
-
     // CRITICAL SECURITY: Validate date is not blocked (day-off or fully booked)
     const availabilityRecords = await base44.asServiceRole.entities.CalendarAvailability.filter({
       professional_email: professional_email,
@@ -142,7 +106,7 @@ Deno.serve(async (req) => {
                 walk_date
               }
             },
-            unit_amount: Math.round(effectiveTotalAmount * 100), // Stripe uses cents
+            unit_amount: Math.round(total_amount * 100), // Stripe uses cents
           },
           quantity: 1,
         },
@@ -156,9 +120,8 @@ Deno.serve(async (req) => {
         professional_type,
         service_name,
         service_amount: service_amount.toString(),
-        platform_fee: effectivePlatformFee.toString(),
-        total_amount: effectiveTotalAmount.toString(),
-        commission_rate: commissionRate.toString(),
+        platform_fee: platform_fee.toString(),
+        total_amount: total_amount.toString(),
         dog_name,
         dog_size,
         walk_date,

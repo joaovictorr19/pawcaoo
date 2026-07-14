@@ -6,37 +6,7 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
 });
 
 const PAWCAO_ACCOUNT_ID = Deno.env.get('PAWCAO_STRIPE_ACCOUNT_ID') || 'acct_default';
-const DEFAULT_COMMISSION_PERCENT = 10; // 10% default commission
-
-function getEffectiveCommissionRate(walkerProfile) {
-  if (!walkerProfile) return DEFAULT_COMMISSION_PERCENT;
-
-  const mode = walkerProfile.commission_rate_mode || 'default';
-
-  // Check if zero_temporary has expired
-  if (mode === 'zero_temporary') {
-    if (walkerProfile.commission_rate_expiry) {
-      const expiry = new Date(walkerProfile.commission_rate_expiry);
-      if (new Date() > expiry) {
-        // Expired - revert to default
-        return DEFAULT_COMMISSION_PERCENT;
-      }
-    }
-    return 0;
-  }
-
-  if (mode === 'zero') return 0;
-  if (mode === 'custom_percent') {
-    return walkerProfile.custom_commission_rate != null
-      ? Number(walkerProfile.custom_commission_rate)
-      : DEFAULT_COMMISSION_PERCENT;
-  }
-
-  // Legacy: exempt_from_platform_fees flag
-  if (walkerProfile.exempt_from_platform_fees === true) return 0;
-
-  return DEFAULT_COMMISSION_PERCENT;
-}
+const PLATFORM_FEE_EUR = 1.5; // €1.5 fixed commission
 
 Deno.serve(async (req) => {
   try {
@@ -71,14 +41,11 @@ Deno.serve(async (req) => {
       const byEmail = await base44.asServiceRole.entities.WalkerProfile.filter({ created_by: booking.walker_email });
       if (byEmail.length > 0) walkerProfile = byEmail[0];
     }
-    // Calculate commission based on custom rate or default
-    const commissionRate = getEffectiveCommissionRate(walkerProfile);
-    const serviceAmount = booking.service_amount || booking.total_amount || 0;
-    const feeToTransfer = Math.round((serviceAmount * commissionRate / 100) * 100) / 100;
-    const isExempt = feeToTransfer === 0;
+    const isExempt = walkerProfile?.exempt_from_platform_fees === true;
+    const feeToTransfer = isExempt ? 0 : PLATFORM_FEE_EUR;
 
     console.log(`📤 Distributing fees for booking ${bookingId}`);
-    console.log(`   Commission rate: ${commissionRate}%, Service amount: €${serviceAmount}, Fee: €${feeToTransfer}`);
+    console.log(`   Walker exempt: ${isExempt}, Fee: €${feeToTransfer}`);
 
     // Get payment record
     const payments = await base44.asServiceRole.entities.Payment.filter({

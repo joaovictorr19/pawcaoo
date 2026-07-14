@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Eye, Edit, Trash2, RefreshCw, Loader2, ChevronLeft, ChevronRight, Award, UserCircle, ShieldAlert, CheckCircle, Ban, Percent
+  Eye, Edit, Trash2, RefreshCw, Loader2, ChevronLeft, ChevronRight, Award, UserCircle, ShieldAlert, CheckCircle, Ban
 } from "lucide-react";
 import { motion, useMotionValue, AnimatePresence } from "framer-motion";
 import { createPageUrl } from "@/utils";
@@ -342,7 +342,6 @@ export default function AdminUserTable({
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap w-[200px]">{t('fullName', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">XP</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">{t('accountType', language)}</TableHead>
-                    <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">Comissão</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">{t('status', language)}</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs whitespace-nowrap">Data</TableHead>
                     <TableHead className="text-gray-700 font-bold text-xs text-right whitespace-nowrap sticky right-0 bg-gray-50/80">{t('actions', language)}</TableHead>
@@ -351,7 +350,7 @@ export default function AdminUserTable({
                 <TableBody>
                   {paginatedUsers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="h-32 text-center text-gray-500">
+                      <TableCell colSpan={7} className="h-32 text-center text-gray-500">
                         {filteredUsers.length === 0 && users.length > 0 
                           ? (language === 'pt' ? 'Nenhum utilizador encontrado com os filtros aplicados' : 'No users found with applied filters')
                           : (language === 'pt' ? 'A carregar utilizadores...' : 'Loading users...')}
@@ -392,23 +391,6 @@ export default function AdminUserTable({
                               {label}
                             </Badge>
                           );
-                        })()}
-                      </TableCell>
-                      <TableCell>
-                        {(() => {
-                          const walker = walkers.find(w => w.created_by === user.email);
-                          const trainer = trainers.find(t => t.created_by === user.email);
-                          const profile = walker || trainer;
-                          if (!profile) return <span className="text-[10px] text-slate-300">—</span>;
-                          const mode = profile.commission_rate_mode || 'default';
-                          const isExempt = profile.exempt_from_platform_fees;
-                          if (mode === 'zero' || (mode === 'zero_temporary') || isExempt) {
-                            return <Badge className="bg-emerald-100 text-emerald-700 text-[10px] h-5"><Percent className="w-2.5 h-2.5 mr-0.5" />0%</Badge>;
-                          }
-                          if (mode === 'custom_percent') {
-                            return <Badge className="bg-blue-100 text-blue-700 text-[10px] h-5"><Percent className="w-2.5 h-2.5 mr-0.5" />{profile.custom_commission_rate}%</Badge>;
-                          }
-                          return <Badge className="bg-slate-100 text-slate-600 text-[10px] h-5"><Percent className="w-2.5 h-2.5 mr-0.5" />10%</Badge>;
                         })()}
                       </TableCell>
                       <TableCell>

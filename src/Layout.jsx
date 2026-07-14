@@ -575,7 +575,7 @@ function LayoutContent({ children, currentPageName }) {
             />
           )}
 
-          <main className="flex-1 w-full pt-[calc(3.75rem+env(safe-area-inset-top))] md:pt-0 pb-28 md:pb-0">
+          <main className="flex-1 w-full pt-14 md:pt-0 pb-28 md:pb-0">
             {children}
           </main>
 

@@ -71,7 +71,7 @@ export default function ProfileBentoGrid({
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 auto-rows-min">
 
           {/* HERO CARD - Identity with integrated cover */}
-          <ProfileSection delay={0} className={`md:col-span-3 ${isHotel ? 'lg:col-span-2' : 'lg:col-span-4'}`}>
+          <ProfileSection delay={0} className="md:col-span-3 lg:col-span-4">
             <ProfileHeroCard
               profileUser={profileUser}
               walkerProfile={walkerProfile}

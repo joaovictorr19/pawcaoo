@@ -147,7 +147,7 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
       <HeroDecorations />
 
       {/* Hero text - centered */}
-      <motion.div variants={itemVariants} className="relative z-10 px-4 md:px-6 pt-2 md:pt-14 max-w-5xl mx-auto text-center">
+      <motion.div variants={itemVariants} className="relative z-10 px-4 md:px-6 pt-10 md:pt-14 max-w-5xl mx-auto text-center">
         <h1 className="font-heading font-bold tracking-tight leading-[1.08] text-2xl sm:text-3xl md:text-4xl lg:text-5xl" style={{ color: TEAL }}>
           {line1}
         </h1>

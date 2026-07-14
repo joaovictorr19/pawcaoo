@@ -83,26 +83,6 @@ const MainPage = mainPageKey && Pages[mainPageKey] ? Pages[mainPageKey] : () => 
 
 setupIframeMessaging();
 
-// Suppress benign ResizeObserver loop warning (browser quirk, not an app bug)
-if (typeof window !== 'undefined') {
-  const _resizeObserverHandler = (e) => {
-    if (e.message === 'ResizeObserver loop completed with undelivered notifications.' ||
-        e.message === 'ResizeObserver loop limit exceeded') {
-      e.stopImmediatePropagation();
-      e.stopPropagation();
-      e.preventDefault();
-    }
-  };
-  window.addEventListener('error', _resizeObserverHandler);
-  window.addEventListener('unhandledrejection', (e) => {
-    const msg = e?.reason?.message || String(e?.reason || '');
-    if (msg.includes('ResizeObserver loop')) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  });
-}
-
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-white" role="status" aria-live="polite">
     <PawCaoLogo size="large" animated={true} />

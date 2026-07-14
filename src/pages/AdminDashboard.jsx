@@ -71,7 +71,6 @@ import { GrantBadgeModal } from "../components/admin/GrantBadgeModal";
 import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
 import AdminProfessionalsPanel from "../components/admin/AdminProfessionalsPanel";
 import AdminReportsPanel from "../components/admin/AdminReportsPanel";
-import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -807,7 +806,6 @@ export default function AdminDashboard() {
                <TabsTrigger value="professionals" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-pink-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐾 Profissionais</TabsTrigger>
                <TabsTrigger value="moderation" className="rounded-full bg-rose-100 text-rose-700 shadow-none data-[state=active]:bg-rose-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🚨 Moderação</TabsTrigger>
                <TabsTrigger value="debug" className="rounded-full bg-red-100 text-red-700 shadow-none data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
-               <TabsTrigger value="financeiro" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">💰 Financeiro</TabsTrigger>
             </TabsList>
           </div>
 
@@ -1093,10 +1091,6 @@ export default function AdminDashboard() {
                 <AdminDebug />
               </div>
             )}
-          </TabsContent>
-
-          <TabsContent value="financeiro">
-            {activeTab === 'financeiro' && <AdminFinancePanel />}
           </TabsContent>
 
           <TabsContent value="moderation">
