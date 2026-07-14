@@ -300,6 +300,22 @@
     transition: all 1.5s linear;
   }
 
+  /* Hero CTA buttons — gradient via class to bypass button[style*="background"] override */
+  .hero-cta-teal {
+    background: linear-gradient(135deg, #00a699, #2dd4bf) !important;
+    box-shadow: 0 4px 16px rgba(0, 166, 153, 0.3);
+  }
+  .hero-cta-teal:hover {
+    box-shadow: 0 6px 24px rgba(0, 166, 153, 0.4);
+  }
+  .hero-cta-orange {
+    background: linear-gradient(135deg, #ff6633, #ff9966) !important;
+    box-shadow: 0 4px 16px rgba(255, 102, 51, 0.3);
+  }
+  .hero-cta-orange:hover {
+    box-shadow: 0 6px 24px rgba(255, 102, 51, 0.4);
+  }
+
   [role="tabpanel"] {
     background: transparent;
   }

@@ -175,31 +175,45 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
           </motion.div>
 
-          {/* Right: soft gradient horizon CTA cards */}
+          {/* Right: premium glass CTA cards */}
           <div className="relative flex flex-col gap-4 md:gap-5">
 
             {/* Card 1 - CLIENTE */}
             <motion.div
               variants={itemVariants}
-              whileHover={{ y: -3 }}
+              whileHover={{ y: -4 }}
               transition={{ type: "spring", stiffness: 300, damping: 22 }}
-              className="rounded-[20px] relative overflow-hidden border border-white/80"
-              style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(0,0,0,0.06)" }}
+              className="relative overflow-hidden rounded-[24px] border border-white/60"
+              style={{
+                background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,253,250,0.9) 100%)",
+                backdropFilter: "blur(24px)",
+                WebkitBackdropFilter: "blur(24px)",
+                boxShadow: "0 10px 40px rgba(0,166,153,0.10), 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)",
+              }}
             >
-              <div className="p-6 md:p-7">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-3.5 py-1.5 text-[13px] font-extrabold uppercase tracking-wide mb-3" style={{ color: TEAL }}>
-                  <Search className="w-3.5 h-3.5" strokeWidth={2.5} />
-                  Cliente
-                </span>
-                <p className="text-[13px] md:text-sm leading-relaxed text-[#1a1a1a] mb-5">{card1Body}</p>
+              {/* Accent glow strip */}
+              <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(90deg, ${TEAL}, #2dd4bf, ${TEAL})` }} />
+              {/* Decorative corner glow */}
+              <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20" style={{ background: `radial-gradient(circle, ${TEAL}, transparent 70%)` }} />
+
+              <div className="relative p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl shadow-sm" style={{ background: `linear-gradient(135deg, ${TEAL}, #2dd4bf)`, boxShadow: `0 4px 12px ${TEAL}30` }}>
+                    <Search className="w-5 h-5 text-white" strokeWidth={2.5} />
+                  </div>
+                  <span className="text-sm font-extrabold uppercase tracking-wider" style={{ color: TEAL }}>
+                    {language === "pt" ? "Cliente" : language === "es" ? "Cliente" : language === "fr" ? "Client" : "Client"}
+                  </span>
+                </div>
+                <p className="text-[13px] md:text-sm leading-relaxed text-slate-700 mb-6">{card1Body}</p>
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={onEncontrar}
-                  className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold text-[#1a1a1a] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] transition-shadow"
+                  className="hero-cta-teal inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-bold text-white transition-all"
                 >
-                  Encontrar
-                  <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  {language === "pt" ? "Encontrar" : language === "es" ? "Buscar" : language === "fr" ? "Trouver" : "Find"}
+                  <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
                 </motion.button>
               </div>
             </motion.div>
@@ -207,25 +221,38 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
             {/* Card 2 - PROFISSIONAL */}
             <motion.div
               variants={itemVariants}
-              whileHover={{ y: -3 }}
+              whileHover={{ y: -4 }}
               transition={{ type: "spring", stiffness: 300, damping: 22 }}
-              className="rounded-[20px] relative overflow-hidden border border-white/80"
-              style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 8px 32px rgba(0,0,0,0.06)" }}
+              className="relative overflow-hidden rounded-[24px] border border-white/60"
+              style={{
+                background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,245,240,0.9) 100%)",
+                backdropFilter: "blur(24px)",
+                WebkitBackdropFilter: "blur(24px)",
+                boxShadow: "0 10px 40px rgba(255,102,51,0.10), 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)",
+              }}
             >
-              <div className="p-6 md:p-7">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-3.5 py-1.5 text-[13px] font-extrabold uppercase tracking-wide mb-3" style={{ color: ORANGE }}>
-                  <Euro className="w-3.5 h-3.5" strokeWidth={2.5} />
-                  Profissional
-                </span>
-                <p className="text-[13px] md:text-sm leading-relaxed text-[#1a1a1a] mb-5">{card2Body}</p>
+              {/* Accent glow strip */}
+              <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(90deg, ${ORANGE}, #ff9966, ${ORANGE})` }} />
+              {/* Decorative corner glow */}
+              <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20" style={{ background: `radial-gradient(circle, ${ORANGE}, transparent 70%)` }} />
+
+              <div className="relative p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl shadow-sm" style={{ background: `linear-gradient(135deg, ${ORANGE}, #ff9966)`, boxShadow: `0 4px 12px ${ORANGE}30` }}>
+                    <Euro className="w-5 h-5 text-white" strokeWidth={2.5} />
+                  </div>
+                  <span className="text-sm font-extrabold uppercase tracking-wider" style={{ color: ORANGE }}>
+                    {language === "pt" ? "Profissional" : language === "es" ? "Profesional" : language === "fr" ? "Professionnel" : "Professional"}
+                  </span>
+                </div>
+                <p className="text-[13px] md:text-sm leading-relaxed text-slate-700 mb-6">{card2Body}</p>
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={onRegistar}
-                  className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-extrabold text-white shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] transition-shadow"
-                  style={{ background: `linear-gradient(135deg, ${ORANGE}, #ff8855)` }}
+                  className="hero-cta-orange inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-bold text-white transition-all"
                 >
-                  Registar
+                  {language === "pt" ? "Registar" : language === "es" ? "Registrarse" : language === "fr" ? "S'inscrire" : "Register"}
                   <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
                 </motion.button>
               </div>
