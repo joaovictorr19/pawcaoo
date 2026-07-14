@@ -165,14 +165,12 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
             <div className="absolute inset-0 rounded-[2.5rem] blur-3xl opacity-25" style={{ background: `radial-gradient(circle at 50% 40%, ${TEAL}, transparent 70%)` }} />
 
             {/* Transparent glass frame */}
-            <div className="relative overflow-hidden rounded-[1.75rem] md:rounded-[2.5rem] aspect-[4/3] md:aspect-[5/4] w-full max-w-md mx-auto border border-white/40 backdrop-blur-sm" style={{ background: "rgba(255, 255, 255, 0.06)", boxShadow: "0 6px 24px rgba(0,0,0,0.06)" }}>
-              {dogImageUrl ? (
-                <img src={dogImageUrl} alt="Cão cool PawCão" className="w-full h-full object-cover mix-blend-multiply" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <PawPrint className="w-16 h-16" style={{ color: TEAL, opacity: 0.4 }} />
-                </div>
-              )}
+            <div className="relative overflow-hidden rounded-[1.75rem] md:rounded-[2.5rem] aspect-[4/3] md:aspect-[5/4] w-full max-w-md mx-auto border border-white/40" style={{ background: "#ffffff", boxShadow: "0 6px 24px rgba(0,0,0,0.06)" }}>
+              <img
+                src={dogImageUrl || "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/f166b5e44_generated_image.png"}
+                alt="Cão cool PawCão"
+                className="w-full h-full object-contain mix-blend-multiply"
+              />
             </div>
 
           </motion.div>
