@@ -463,14 +463,23 @@ function LayoutContent({ children, currentPageName }) {
         <DynamicBackground />
       </div>
 
-      {/* Top header for desktop */}
-      <header className="hidden md:flex fixed top-0 left-0 right-0 z-[10000] h-16 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div className="max-w-6xl mx-auto w-full h-full px-4 flex items-center justify-between">
+      {/* Top header for desktop — floating glass */}
+      <header className="hidden md:flex fixed top-3 left-4 right-4 z-[10000]">
+        <div
+          className="max-w-6xl mx-auto w-full flex items-center justify-between rounded-full px-5 py-2"
+          style={{
+            background: 'rgba(255, 255, 255, 0.72)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.5)',
+            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+          }}
+        >
           <Link to={createPageUrl("Home")} className="flex items-center gap-2">
             <PawCaoLogo size="small" showText={false} />
             <span className="sr-only">PawCão</span>
           </Link>
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center gap-1">
             {/* Links de painel — só para utilizadores autenticados */}
             {authUser && (() => {
               const role = authUser.role || 'user';
@@ -479,33 +488,20 @@ function LayoutContent({ children, currentPageName }) {
               const isPro = role === 'walker' || role === 'trainer' || role === 'professional';
 
               const navCls = ({ isActive }) =>
-                `px-3 py-2 rounded-full text-sm ${isActive ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100 text-slate-700'}`;
+                `px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${isActive ? 'bg-teal-500/15 text-teal-700' : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'}`;
 
               if (isAdmin) return (
                 <>
                   <NavLink to={createPageUrl("ProfessionalHubV2")} className={navCls}>{nav('professionalHub')}</NavLink>
                   <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>{nav('clientPanel')}</NavLink>
-                  <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-red-100 text-red-700' : 'hover:bg-red-50 text-red-600'}`}>
+                  <NavLink to={createPageUrl("AdminDashboard")} className={({ isActive }) => `px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${isActive ? 'bg-red-100 text-red-700' : 'text-red-500 hover:bg-red-50'}`}>
                     Admin
                   </NavLink>
                 </>
               );
 
-              // Verifica se o utilizador tem um perfil de hotel (pode estar em WalkerProfile com professional_type="hotel" ou ter role="hotel")
-              const hasHotelProfile = async () => {
-                try {
-                  const profiles = await base44.entities.WalkerProfile.filter({ 
-                    created_by: authUser.email, 
-                    professional_type: 'hotel' 
-                  });
-                  return profiles.length > 0;
-                } catch { 
-                  return false; 
-                }
-              };
-
               if (isHotel) return (
-                <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-slate-100 text-slate-900' : 'hover:bg-slate-50 text-slate-600'}`}>
+                <NavLink to={createPageUrl("HotelDashboard")} className={({ isActive }) => `px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${isActive ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'}`}>
                   {nav('myHotel')}
                 </NavLink>
               );
@@ -522,7 +518,7 @@ function LayoutContent({ children, currentPageName }) {
               );
             })()}
             {hotelPartnerships && hotelPartnerships.length > 0 && (
-              <NavLink to={createPageUrl("PartnerHotelPanel")} className={({ isActive }) => `px-3 py-2 rounded-full text-sm font-semibold ${isActive ? 'bg-slate-100 text-slate-900' : 'hover:bg-slate-50 text-slate-600'}`}>
+              <NavLink to={createPageUrl("PartnerHotelPanel")} className={({ isActive }) => `px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${isActive ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'}`}>
                 Painel Parceiro
               </NavLink>
             )}
@@ -530,9 +526,23 @@ function LayoutContent({ children, currentPageName }) {
           <div className="flex items-center gap-2">
             <LanguageSelector />
             {stableUser ? (
-              <Button variant="outline" size="sm" onClick={handleLogout}>{nav('signOut')}</Button>
+              <button
+                onClick={handleLogout}
+                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 bg-white/50 hover:bg-white/80 border border-slate-200/50 transition-all active:scale-95"
+              >
+                {nav('signOut')}
+              </button>
             ) : (
-              <Button size="sm" onClick={() => base44.auth.redirectToLogin()}>{nav('signIn')}</Button>
+              <button
+                onClick={() => base44.auth.redirectToLogin()}
+                className="rounded-full px-6 py-2 text-sm font-bold text-white transition-all active:scale-95 hover:shadow-lg flex items-center gap-2"
+                style={{
+                  background: 'linear-gradient(135deg, #00a699, #207373)',
+                  boxShadow: '0 4px 14px rgba(0, 166, 153, 0.3)',
+                }}
+              >
+                {nav('signIn')}
+              </button>
             )}
           </div>
         </div>
