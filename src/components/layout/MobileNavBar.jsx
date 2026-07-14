@@ -140,7 +140,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   if (!user || isOnProfHub) return null;
 
   // Active checks per tab
-  const isTab1Active = (isProf && isActive(createPageUrl("Dashboard"))) ||
+  const isTab1Active = (isProf && isActive(createPageUrl("ProfessionalHubV2"))) ||
     (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
     (!isProf && !isTutor && isActive(createPageUrl("Home")));
   const isTab2Active = (isProf && isActive(createPageUrl("ProfessionalCalendar"))) ||
@@ -173,7 +173,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         {/* ABA 1: EXPLORAR / PAINEL / CLIENTE */}
         <button
           onClick={() => {
-            const targetPath = isProf ? createPageUrl("Dashboard") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
+            const targetPath = isProf ? createPageUrl("ProfessionalHubV2") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
             handleTabClick(targetPath);
           }}
           className={`${tabBase} ${isTab1Active ? activeCls : inactiveCls}`}
