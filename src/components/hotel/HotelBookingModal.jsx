@@ -128,52 +128,11 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         return;
       }
 
-      // Só enviar email APÓS confirmar que o link de pagamento existe
-      const ownerName = clientProfile?.full_name || currentUser.full_name || currentUser.email;
-      const dogList = selectedDogs.map(d => `• ${d.dog_name} (${d.breed || 'SRD'}, ${d.size || 'médio'})`).join('\n');
-      const emailBody = [
-        `Olá ${ownerName},`,
-        ``,
-        `A sua reserva no ${hotel.walker_name} foi registada e está a aguardar pagamento.`,
-        ``,
-        `Detalhes da Reserva:`,
-        `Serviço: ${selectedService.service_name}`,
-        `Animais: ${selectedDogs.length} ${selectedDogs.length === 1 ? 'animal' : 'animais'}`,
-        `${dogList}`,
-        ``,
-        `Check-in: ${formatDate(checkinDate)} às ${checkinTime}`,
-        `Check-out: ${formatDate(checkoutDate)} às ${checkoutTime}`,
-        `Duração: ${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}`,
-        ``,
-        deliveryMethod === 'pickup'
-          ? `Recolha ao domicílio: ${pickupAddress}`
-          : `Entrega no hotel: ${hotelAddress}`,
-        ``,
-        `Resumo de valores:`,
-        `Serviço: ${serviceAmount}€`,
-        `Taxa de plataforma: ${platformFee}€`,
-        `Total: ${totalAmount}€`,
-        ``,
-        specialRequests ? `Pedidos especiais: ${specialRequests}` : '',
-        ``,
-        `Estamos a redirecioná-lo para o pagamento seguro via Stripe.`,
-        `A reserva só será confirmada após a conclusão do pagamento.`,
-        ``,
-        `Obrigado por escolher a PawCão!`,
-      ].filter(Boolean).join('\n');
-
-      try {
-        await base44.integrations.Core.SendEmail({
-          to: currentUser.email,
-          subject: `Reserva registada — pagamento pendente — ${hotel.walker_name} (${formatDate(checkinDate)} → ${formatDate(checkoutDate)})`,
-          body: emailBody,
-        });
-      } catch (emailErr) {
-        console.error('Email send error:', emailErr);
-      }
-
+      // Redirecionar imediatamente para o Stripe.
+      // A confirmação no sistema e o email de confirmação só são enviados
+      // pelo webhook (stripeWebhook) após o pagamento ser bem-sucedido.
       setFinalized(true);
-      setTimeout(() => { window.location.href = checkoutUrl; }, 600);
+      window.location.href = checkoutUrl;
     } catch (error) {
       toast.error(`Erro: ${error.message}`);
       setIsCreating(false);

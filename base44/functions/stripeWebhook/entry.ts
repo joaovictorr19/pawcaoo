@@ -583,6 +583,45 @@ async function handleCheckoutCompleted(base44, session) {
                             related_id: hotelBookingId,
                             icon: '✅'
                         });
+
+                        // ── Enviar email de confirmação ao cliente (só após pagamento) ──
+                        try {
+                            const svcLabels = {
+                                boarding: 'Alojamento', daycare: 'Creche Diurna', grooming: 'Grooming',
+                                walk_with_partner: 'Passeio com Parceiro', training: 'Treino'
+                            };
+                            const svcLabel = svcLabels[hb.service_type] || hb.service_type;
+                            const dogNames = (hb.dogs || []).map(d => d.dog_name).filter(Boolean).join(', ') || 'animal';
+
+                            const emailBody = [
+                                `Olá ${hb.owner_name || ''},`,
+                                ``,
+                                `O seu pagamento foi processado com sucesso e a sua reserva no ${hb.hotel_name || 'hotel'} está confirmada!`,
+                                ``,
+                                `Detalhes da Reserva:`,
+                                `Serviço: ${svcLabel}`,
+                                `Animais: ${dogNames}`,
+                                `Check-in: ${hb.checkin_date}${hb.checkin_time ? ' às ' + hb.checkin_time : ''}`,
+                                `Check-out: ${hb.checkout_date}${hb.checkout_time ? ' às ' + hb.checkout_time : ''}`,
+                                `Duração: ${hb.total_nights} ${hb.total_nights === 1 ? 'noite' : 'noites'}`,
+                                ``,
+                                `Resumo de valores:`,
+                                `Serviço: ${hb.service_amount}€`,
+                                `Taxa de plataforma: ${hb.platform_fee}€`,
+                                `Total pago: ${hb.total_amount}€`,
+                                ``,
+                                `Obrigado por escolher a PawCão!`,
+                            ].join('\n');
+
+                            await base44.asServiceRole.integrations.Core.SendEmail({
+                                to: hb.owner_email,
+                                subject: `Reserva confirmada — ${hb.hotel_name || 'Hotel'} (${hb.checkin_date} → ${hb.checkout_date})`,
+                                body: emailBody,
+                            });
+                            console.log('✅ Hotel booking confirmation email sent to:', hb.owner_email);
+                        } catch (e) {
+                            console.error('Error sending hotel confirmation email:', e);
+                        }
                     }
                 }
             } catch (e) {
