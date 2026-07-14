@@ -6,13 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle, RefreshCw, PawPrint } from "lucide-react";
 import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
 import ReviewModal from "../components/reviews/ReviewModal";
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
 import TestimonialsSection from "../components/home/TestimonialsSection";
+import UnauthenticatedHero from "../components/home/UnauthenticatedHero";
 import CloudyBackground from "../components/home/CloudyBackground";
 import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -316,7 +317,7 @@ export default function Home() {
     refetchInterval: false
   });
 
-  const { data: walkers = [], isLoading: loadingWalkers } = useQuery({
+  const { data: walkers = [], isLoading: loadingWalkers, refetch: refetchWalkers, isFetching: isFetchingWalkers } = useQuery({
     queryKey: ['allWalkers'],
     queryFn: async () => {
       try {
@@ -878,53 +879,13 @@ export default function Home() {
               )}
             </div>
           ) : (
-            /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS --- */
-            <div className="text-center max-w-6xl mx-auto relative mt-10 animate-in fade-in duration-700">
-              
-              <div className="mb-16">
-                <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none mb-6">
-                  {language === 'pt' ? 'O passeio que o seu cão precisa,' : language === 'es' ? 'El paseo que tu perro necesita,' : language === 'fr' ? 'La promenade dont votre chien a besoin,' : 'The walk your dog needs,'}<br/>
-                  <span className="text-orange-500">{language === 'pt' ? 'com a confiança que você procura.' : language === 'es' ? 'con la confianza que buscas.' : language === 'fr' ? 'avec la confiance que vous recherchez.' : 'with the trust you are looking for.'}</span>
-                </h1>
-                <p className="text-slate-600 font-bold uppercase tracking-[0.3em] text-xs">
-                  {language === 'pt' ? 'A melhor rede de dog walkers de Portugal' : language === 'es' ? 'La mejor red de paseadores de perros de Portugal' : language === 'fr' ? 'Le meilleur réseau de promeneurs de chiens du Portugal' : 'The best dog walker network in Portugal'}
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8 px-4 max-w-4xl mx-auto">
-                
-                <div className="group relative bg-white/80 backdrop-blur-xl p-10 rounded-[3rem] shadow-2xl border border-white transition-all hover:-translate-y-2">
-                  <div className="relative z-10 text-left">
-                    <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-orange-200">
-                      <MapPin size={28} />
-                    </div>
-                    <h2 className="text-2xl font-black text-slate-900 mb-2">{language === 'pt' ? 'Encontrar Passeador' : language === 'es' ? 'Encontrar Paseador' : language === 'fr' ? 'Trouver un promeneur' : 'Find a Walker'}</h2>
-                    <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
-                      {language === 'pt' ? 'Profissionais verificados prontos para dar ao seu cão o passeio que ele merece.' : language === 'es' ? 'Profesionales verificados listos para darle a tu perro el paseo que merece.' : language === 'fr' ? 'Des professionnels vérifiés prêts à offrir à votre chien la promenade qu’il mérite.' : 'Verified professionals ready to give your dog the walk they deserve.'}
-                    </p>
-                    <button onClick={handleClientRegister} className="w-full bg-slate-900 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-orange-600 transition-colors">
-                      {language === 'pt' ? 'Começar Agora' : language === 'es' ? 'Empezar Ahora' : language === 'fr' ? 'Commencer Maintenant' : 'Start Now'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="group relative bg-slate-900 p-10 rounded-[3rem] shadow-2xl border border-slate-800 transition-all hover:-translate-y-2">
-                  <div className="relative z-10 text-left">
-                    <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-6">
-                      <Zap size={28} className="text-orange-400" />
-                    </div>
-                    <h2 className="text-2xl font-black text-white mb-2">{language === 'pt' ? 'Ser Profissional' : language === 'es' ? 'Ser Profesional' : language === 'fr' ? 'Devenir Professionnel' : 'Become a Professional'}</h2>
-                    <p className="text-slate-400 text-sm font-medium mb-8 leading-relaxed">
-                      {language === 'pt' ? 'Transforme a sua paixão por animais numa fonte de rendimento flexível.' : language === 'es' ? 'Convierte tu pasión por los animales en una fuente de ingresos flexible.' : language === 'fr' ? 'Transformez votre passion pour les animaux en une source de revenus flexible.' : 'Turn your passion for animals into a flexible source of income.'}
-                    </p>
-                    <button onClick={handleBecomePro} className="w-full bg-orange-500 text-white h-16 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-orange-500/20">
-                      {language === 'pt' ? 'Fazer Registo Pro' : language === 'es' ? 'Hacer Registro Pro' : language === 'fr' ? 'Créer un Profil Pro' : 'Create Pro Account'}
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-            </div>
+            /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS (HERO PREMIUM) --- */
+            <UnauthenticatedHero
+              onEntrar={handleLogin}
+              onEncontrar={handleClientRegister}
+              onRegistar={handleBecomePro}
+              dogImageUrl="https://media.base44.com/images/public/6907b3be1ec43db5676a2085/13c3f4393_generated_image.png"
+            />
           )}
         </div>
       </div>
@@ -1002,12 +963,38 @@ export default function Home() {
               </div>
 
               <TabsContent value="professionals">
-                <div className="bg-black/5 md:bg-black/10 md:backdrop-blur-lg rounded-2xl p-6 md:p-8 shadow-lg">
-                  <h2 className="text-xl md:text-3xl font-bold text-white drop-shadow-lg mb-6">
-                    {language === 'pt' ? 'Profissionais Disponíveis' : 
-                     language === 'es' ? 'Profesionales Disponibles' : 
-                     'Available Professionals'}
-                  </h2>
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-80px" }}
+                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative rounded-2xl p-6 md:p-8 shadow-2xl overflow-hidden"
+                  style={{ background: "linear-gradient(160deg, #0a0a0a 0%, #0d1f1e 55%, #0a0a0a 100%)" }}
+                >
+                  <div className="absolute -top-16 -right-10 w-48 h-48 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ background: "#009b93" }} />
+                  <div className="absolute -bottom-16 -left-10 w-48 h-48 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "#ff6622" }} />
+
+                  <div className="relative z-10 flex items-center justify-between gap-3 mb-6">
+                    <h2 className="text-xl md:text-3xl font-black drop-shadow-lg flex items-center gap-2" style={{ color: "#009b93" }}>
+                      <PawPrint className="w-5 h-5 md:w-6 md:h-6" />
+                      {language === 'pt' ? 'Profissionais Disponíveis' : 
+                       language === 'es' ? 'Profesionales Disponibles' : 
+                       'Available Professionals'}
+                    </h2>
+                    <motion.button
+                      whileHover={{ scale: 1.08, rotate: 90 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => refetchWalkers()}
+                      disabled={isFetchingWalkers}
+                      className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center border border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors disabled:opacity-50"
+                      title="Recarregar"
+                      aria-label="Recarregar profissionais"
+                    >
+                      <RefreshCw className={`w-4 h-4 text-white ${isFetchingWalkers ? "animate-spin" : ""}`} />
+                    </motion.button>
+                  </div>
+
+                  <div className="relative z-10">
                   {loadingWalkers ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                       {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
@@ -1045,7 +1032,8 @@ export default function Home() {
                       ))}
                     </div>
                   )}
-                </div>
+                  </div>
+                </motion.div>
               </TabsContent>
 
               <TabsContent value="emergency">
