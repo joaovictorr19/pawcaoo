@@ -69,11 +69,11 @@ export default function GlobalSearch({ isOpen, onClose }) {
   // Quick links for empty state
   const quickLinks = [
     { icon: User, label: language === 'pt' ? 'Profissionais' : 'Professionals', url: createPageUrl("Home"), color: 'text-blue-600' },
-    { icon: ShoppingBag, label: language === 'pt' ? 'Loja' : 'Shop', url: createPageUrl("Shop"), color: 'text-green-600' },
-    { icon: Heart, label: language === 'pt' ? 'Adoção' : 'Adoption', url: createPageUrl("AdoptionListings"), color: 'text-pink-600' },
+    { icon: ShoppingBag, label: language === 'pt' ? 'Loja' : 'Shop', url: createPageUrl("Partners"), color: 'text-green-600' },
+    { icon: Heart, label: language === 'pt' ? 'Adoção' : 'Adoption', url: createPageUrl("Home"), color: 'text-pink-600' },
     { icon: Calendar, label: language === 'pt' ? 'Minhas Reservas' : 'My Bookings', url: createPageUrl("MyBookings"), color: 'text-purple-600' },
     { icon: Package, label: language === 'pt' ? 'Minhas Encomendas' : 'My Orders', url: createPageUrl("MyOrders"), color: 'text-orange-600' },
-    { icon: MapPin, label: language === 'pt' ? 'Emergência' : 'Emergency', url: createPageUrl("PostEmergency"), color: 'text-red-600' }
+    { icon: MapPin, label: language === 'pt' ? 'Emergência' : 'Emergency', url: createPageUrl("RequestWalk"), color: 'text-red-600' }
   ];
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
         url = createPageUrl(`UserProfile?${item.username ? `username=${item.username}` : `id=${item.user_id}`}`);
         break;
       case 'product':
-        url = createPageUrl("Shop");
+        url = createPageUrl("Partners");
         break;
       case 'partner':
         url = createPageUrl(`PartnerDetails?id=${item.id}`);

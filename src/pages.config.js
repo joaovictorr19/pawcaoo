@@ -75,7 +75,7 @@ export const PAGES = {
     "ConnectedAccountStorefront": page(() => import('./pages/ConnectedAccountStorefront')),
     "Contact": page(() => import('./pages/Contact')),
     "CookiesPolicy": page(() => import('./pages/CookiesPolicy')),
-    "Dashboard": page(() => import('./pages/Dashboard')),
+
     "DogConnectPremium": page(() => import('./pages/DogConnectPremium')),
     "DogConnectRewards": page(() => import('./pages/DogConnectRewards')),
     "DogSittingServices": page(() => import('./pages/DogSittingServices')),

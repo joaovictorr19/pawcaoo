@@ -84,7 +84,7 @@ export default function FiscalSettings() {
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
-            onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
+            onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar

@@ -104,9 +104,9 @@ export default function PartnerContentSubmission() {
       // Redirecionar para o feed ou eventos dependendo do tipo
       setTimeout(() => {
         if (data.content_type === 'SocialEvent') {
-          navigate(createPageUrl("SocialEvents"));
+          navigate(createPageUrl("Home"));
         } else {
-          navigate(createPageUrl("SocialFeed"));
+          navigate(createPageUrl("Home"));
         }
       }, 1500);
     },
@@ -224,7 +224,7 @@ export default function PartnerContentSubmission() {
               Você não tem acesso a nenhum publisher no momento. Entre em contato com o administrador para obter acesso.
             </p>
             <Button 
-              onClick={() => navigate(createPageUrl("SocialFeed"))}
+              onClick={() => navigate(createPageUrl("Home"))}
               variant="outline"
               className="border-2"
             >

@@ -70,7 +70,7 @@ export default function EditTrainerProfile() {
       toast.success('✅ Alterações enviadas para aprovação do administrador. Suas mudanças serão aplicadas após revisão.', {
         duration: 5000
       });
-      setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 2000);
+      setTimeout(() => navigate(createPageUrl("ProfessionalHubV2")), 2000);
     },
     onError: (error) => {
       toast.error('Erro ao enviar: ' + error.message);
@@ -165,7 +165,7 @@ export default function EditTrainerProfile() {
         submitEditRequestMutation.mutate(sensitiveChanges);
     } else if (Object.keys(directChanges).length > 0) {
         queryClient.invalidateQueries(['myTrainerProfile']);
-        setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 1000);
+        setTimeout(() => navigate(createPageUrl("ProfessionalHubV2")), 1000);
     } else {
         toast.info('Nenhuma alteração detectada.');
     }
@@ -230,7 +230,7 @@ export default function EditTrainerProfile() {
             <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">Perfil não encontrado</h2>
             <p className="text-gray-600 mb-6">Você ainda não tem um perfil de treinador.</p>
-            <Button onClick={() => navigate(createPageUrl('BecomeTrainer'))}>
+            <Button onClick={() => navigate(createPageUrl('BecomeProfessional'))}>
               Criar Perfil de Treinador
             </Button>
           </CardContent>
@@ -244,7 +244,7 @@ export default function EditTrainerProfile() {
       <div className="max-w-4xl mx-auto">
         <Button
           variant="outline"
-          onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
+          onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}
           className="mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -540,7 +540,7 @@ export default function EditTrainerProfile() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
+                  onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}
                   className="flex-1"
                 >
                   Cancelar

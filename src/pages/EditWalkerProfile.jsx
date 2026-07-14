@@ -101,7 +101,7 @@ export default function EditWalkerProfile() {
         toast.success('Perfil atualizado com sucesso!');
       }
       
-      setTimeout(() => navigate(createPageUrl('ProfessionalDashboard')), 1500);
+      setTimeout(() => navigate(createPageUrl("ProfessionalHubV2")), 1500);
     },
     onError: (error) => {
       toast.error('Erro: ' + error.message);
@@ -260,7 +260,7 @@ export default function EditWalkerProfile() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
+            onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}
             className="shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -719,7 +719,7 @@ export default function EditWalkerProfile() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}
+            onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}
             className="flex-1 h-12"
           >
             Cancelar

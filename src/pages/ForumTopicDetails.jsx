@@ -145,7 +145,7 @@ export default function ForumTopicDetails() {
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 p-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Topic not found</h2>
-          <Button onClick={() => navigate(createPageUrl('Community'))}>
+          <Button onClick={() => navigate(createPageUrl("Home"))}>
             Back to Community
           </Button>
         </div>
@@ -159,7 +159,7 @@ export default function ForumTopicDetails() {
         <Button
           variant="outline"
           className="mb-6"
-          onClick={() => navigate(createPageUrl('Community'))}
+          onClick={() => navigate(createPageUrl("Home"))}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Forum

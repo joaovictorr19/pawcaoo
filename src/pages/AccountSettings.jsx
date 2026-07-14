@@ -1121,7 +1121,7 @@ export default function AccountSettings() {
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => navigate(createPageUrl("ProfessionalDashboard"))}
+                      onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}
                     >
                       Abrir Painel Profissional Completo
                     </Button>

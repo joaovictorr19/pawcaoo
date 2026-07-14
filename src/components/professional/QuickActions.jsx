@@ -9,7 +9,7 @@ export default function QuickActions({ onAddService }) {
 
   const actions = [
     { label: "Editar Perfil", icon: Edit, onClick: () => navigate(createPageUrl('EditWalkerProfile')), style: "bg-gray-900 text-white hover:bg-gray-800" },
-    { label: "Agenda", icon: Calendar, onClick: () => navigate(createPageUrl('ManageAvailability')), style: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50" },
+    { label: "Agenda", icon: Calendar, onClick: () => navigate(createPageUrl("ProfessionalCalendar")), style: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50" },
     { label: "Serviço", icon: Plus, onClick: onAddService, style: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50" },
     { label: "Fiscal", icon: FileText, onClick: () => navigate(createPageUrl('FiscalSettings')), style: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50" },
   ];

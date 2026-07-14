@@ -12,7 +12,7 @@ export default function CockpitErrorState({ error }) {
         <div className="text-6xl mb-4">⚠️</div>
         <h2 className="text-xl font-bold mb-2">Erro ao carregar</h2>
         <p className="text-gray-400 mb-4">{error?.message || 'Serviço não encontrado'}</p>
-        <Button onClick={() => navigate(createPageUrl('ProfessionalDashboard'))}>Voltar ao Painel</Button>
+        <Button onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}>Voltar ao Painel</Button>
       </div>
     </div>
   );

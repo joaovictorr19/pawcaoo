@@ -34,15 +34,15 @@ export default function LayoutFooter() {
               <li><Link to={createPageUrl("Home")} className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
               <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
               <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
-              <li><Link to={createPageUrl("Shop")} className="hover:text-green-600 transition-colors">{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</Link></li>
+              <li><Link to={createPageUrl("Partners")} className="hover:text-green-600 transition-colors">{language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Shop'}</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-gray-900 mb-3">{t('forProfessionals', language)}</h4>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link to={createPageUrl("BecomeWalker")} className="hover:text-green-600 transition-colors">{t('becomeWalker', language)}</Link></li>
-              <li><Link to={createPageUrl("BecomeTrainer")} className="hover:text-green-600 transition-colors">{t('becomeTrainer', language)}</Link></li>
-              <li><Link to={createPageUrl("ProfessionalDashboard")} className="hover:text-green-600 transition-colors">{t('professionalDashboard', language)}</Link></li>
+              <li><Link to={createPageUrl("BecomeProfessional")} className="hover:text-green-600 transition-colors">{t('becomeWalker', language)}</Link></li>
+              <li><Link to={createPageUrl("BecomeProfessional")} className="hover:text-green-600 transition-colors">{t('becomeTrainer', language)}</Link></li>
+              <li><Link to={createPageUrl("ProfessionalHubV2")} className="hover:text-green-600 transition-colors">{t('professionalDashboard', language)}</Link></li>
             </ul>
           </div>
           <div>

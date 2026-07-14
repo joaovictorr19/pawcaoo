@@ -100,7 +100,7 @@ export default function BookService() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['serviceBookings'] });
       toast.success(language === 'pt' ? 'Reserva criada com sucesso!' : 'Booking created successfully!');
-      navigate(createPageUrl('OwnerDashboard'));
+      navigate(createPageUrl('ClientDashboard'));
     },
     onError: (error) => {
       toast.error(error.message || 'Erro ao criar reserva');

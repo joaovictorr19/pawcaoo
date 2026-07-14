@@ -141,7 +141,7 @@ export default function Favorites() {
             ) : favoritePets.length === 0 ? (
               <EmptyState 
                 message={language === 'pt' ? 'Nenhum pet favorito ainda' : 'No favorite pets yet'}
-                action={() => navigate(createPageUrl('AdoptionListings'))}
+                action={() => navigate(createPageUrl("Home"))}
                 buttonText={t('browsePets', language)}
               />
             ) : (

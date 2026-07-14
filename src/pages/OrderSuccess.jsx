@@ -43,7 +43,7 @@ export default function OrderSuccess() {
               <Package className="w-4 h-4 mr-2" />
               {language === 'pt' ? 'Ver Encomendas' : 'View Orders'}
             </Button>
-            <Button variant="outline" onClick={() => navigate(createPageUrl('Shop'))}>
+            <Button variant="outline" onClick={() => navigate(createPageUrl("Partners"))}>
               {language === 'pt' ? 'Continuar Compras' : 'Continue Shopping'}
             </Button>
           </div>

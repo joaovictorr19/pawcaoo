@@ -790,7 +790,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                       toast.error("Salve o perfil do animal primeiro!");
                       return;
                     }
-                    navigate(createPageUrl('PostEmergency') + `?dogName=${formData.dog_name}&dogPhoto=${formData.photo_url || ''}`);
+                    navigate(createPageUrl("RequestWalk") + `?dogName=${formData.dog_name}&dogPhoto=${formData.photo_url || ''}`);
                   }}
                 >
                   Publicar Passeio de Emergencia

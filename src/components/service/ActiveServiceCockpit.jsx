@@ -675,7 +675,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
                     distance_km: distanceKm
                   });
                   queryClient.invalidateQueries(['activeBooking']);
-                  navigate(createPageUrl('ProfessionalDashboard'));
+                  navigate(createPageUrl("ProfessionalHubV2"));
                 }}
                 onScanError={() => {
                   toast.error('Verificação falhou');

@@ -371,7 +371,7 @@ export default function MyProfile() {
 
               {/* Dog Connect Quick Access */}
               <Button
-                onClick={() => navigate(createPageUrl('SocialFeed'))}
+                onClick={() => navigate(createPageUrl("Home"))}
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
               >
                 <Camera className="w-4 h-4 mr-2" />
