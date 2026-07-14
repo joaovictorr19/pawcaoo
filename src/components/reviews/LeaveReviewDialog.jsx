@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Star, Calendar, Dog, CheckCircle, Loader2 } from "lucide-react";
+import { Star, Calendar, Dog, CheckCircle, Loader2, PawPrint } from "lucide-react";
 import { format } from "date-fns";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { toast } from "sonner";
@@ -129,65 +129,94 @@ export default function LeaveReviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Star className="w-5 h-5 text-amber-500 fill-amber-400" />
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[1.75rem] border-0 p-0"
+        style={{
+          background: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(255, 255, 255, 0.6)',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
+        }}
+      >
+        <DialogHeader className="px-8 pt-8 pb-2">
+          <DialogTitle className="flex items-center gap-2.5 text-2xl font-heading font-bold" style={{ color: '#0d9483' }}>
+            <Star className="w-6 h-6 fill-amber-400 text-amber-500" style={{ color: '#f59e0b' }} />
             Avaliar {professionalName}
           </DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-            <p className="text-sm text-slate-400 mt-2">A carregar reservas...</p>
+          <div className="flex flex-col items-center justify-center py-16 px-8">
+            <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#0d9483' }} />
+            <p className="text-sm mt-3" style={{ color: '#64748b' }}>A carregar reservas...</p>
           </div>
         ) : !selectedBooking ? (
           eligibleBookings.length > 0 ? (
-            <div className="space-y-3">
-              <p className="text-sm text-slate-500 mb-2">
+            <div className="px-8 pb-8 space-y-3">
+              <p className="text-sm mb-3" style={{ color: '#64748b' }}>
                 Seleciona o serviço concluído que queres avaliar:
               </p>
               {eligibleBookings.map((booking) => (
                 <button
                   key={booking.id}
                   onClick={() => setSelectedBooking(booking)}
-                  className="w-full flex items-center gap-3 p-4 rounded-2xl border border-slate-200 hover:border-amber-300 hover:bg-amber-50/50 transition-all text-left"
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-transparent transition-all text-left hover:shadow-md group"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.6)',
+                    borderColor: 'rgba(226, 232, 240, 0.8)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#0d9483';
+                    e.currentTarget.style.background = 'rgba(13, 148, 131, 0.04)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)';
+                  }}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                    <Dog className="w-5 h-5 text-amber-600" />
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors group-hover:bg-teal-50"
+                    style={{ background: 'rgba(13, 148, 131, 0.08)' }}
+                  >
+                    <PawPrint className="w-5 h-5" style={{ color: '#0d9483' }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-slate-900 truncate">
+                    <p className="font-semibold text-sm truncate" style={{ color: '#1e293b' }}>
                       {booking.dog_name || booking.dogs?.[0]?.dog_name || "Cão"}
                     </p>
-                    <p className="text-xs text-slate-400 flex items-center gap-1">
+                    <p className="text-xs flex items-center gap-1.5 mt-0.5" style={{ color: '#94a3b8' }}>
                       <Calendar className="w-3 h-3" />
                       {formatBookingLabel(booking)}
                     </p>
                   </div>
-                  <CheckCircle className="w-5 h-5 text-slate-200" />
+                  <CheckCircle className="w-5 h-5 text-slate-200 group-hover:text-teal-500 transition-colors" />
                 </button>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <Calendar className="w-10 h-10 mx-auto mb-3 opacity-20 text-slate-400" />
-              <p className="text-slate-500 text-sm font-medium">
+            <div className="text-center py-16 px-8">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-3xl flex items-center justify-center"
+                style={{ background: 'rgba(13, 148, 131, 0.06)' }}
+              >
+                <Calendar className="w-8 h-8" style={{ color: '#0d9483', opacity: 0.5 }} />
+              </div>
+              <p className="text-sm font-medium" style={{ color: '#475569' }}>
                 Não tens serviços concluídos com este profissional para avaliar.
               </p>
-              <p className="text-slate-400 text-xs mt-1">
+              <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>
                 Completa um serviço primeiro para poderes deixar a tua avaliação.
               </p>
             </div>
           )
         ) : (
-          <ReviewForm
-            booking={selectedBooking}
-            onSubmit={handleSubmit}
-            onCancel={() => setSelectedBooking(null)}
-            isProcessing={isProcessing}
-          />
+          <div className="px-8 pb-8">
+            <ReviewForm
+              booking={selectedBooking}
+              onSubmit={handleSubmit}
+              onCancel={() => setSelectedBooking(null)}
+              isProcessing={isProcessing}
+            />
+          </div>
         )}
       </DialogContent>
     </Dialog>

@@ -89,9 +89,9 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
   }, [isClientReview]);
 
   const StarRating = ({ value, onChange, label }) => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex gap-1.5">
+    <div className="space-y-2.5">
+      <Label className="text-sm font-semibold" style={{ color: '#334155' }}>{label}</Label>
+      <div className="flex gap-2">
         {Array.from({ length: 5 }, (_, i) => (
           <button
             key={i}
@@ -100,9 +100,10 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
             className="transition-transform hover:scale-110"
           >
             <Star
-              className={`w-8 h-8 ${
-                i < value ? 'fill-amber-400 text-amber-400' : 'text-slate-200'
+              className={`w-9 h-9 ${
+                i < value ? 'fill-amber-400' : ''
               }`}
+              style={{ color: i < value ? '#f59e0b' : '#e2e8f0' }}
             />
           </button>
         ))}
@@ -111,8 +112,8 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
   );
 
   const CategoryStars = ({ value, onChange, label }) => (
-    <div className="space-y-2">
-      <Label className="text-sm">{label}</Label>
+    <div className="space-y-1.5">
+      <Label className="text-xs font-medium" style={{ color: '#64748b' }}>{label}</Label>
       <div className="flex gap-1">
         {Array.from({ length: 5 }, (_, i) => (
           <button
@@ -123,8 +124,9 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
           >
             <Star
               className={`w-5 h-5 ${
-                i < value ? 'fill-amber-400 text-amber-400' : 'text-slate-200'
+                i < value ? 'fill-amber-400' : ''
               }`}
+              style={{ color: i < value ? '#f59e0b' : '#e2e8f0' }}
             />
           </button>
         ))}
@@ -138,35 +140,36 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <Card className="border-0 shadow-2xl">
-        <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50">
-          <CardTitle className="flex items-center gap-2 text-2xl">
-            <Star className="w-6 h-6 text-amber-500 fill-amber-400" />
-            {isClientReview ? "Rate Client & Dog" : `Leave a Review for ${targetName}`}
+      <Card className="border-0 shadow-none bg-transparent">
+        <CardHeader className="bg-transparent p-0 mb-6">
+          <CardTitle className="flex items-center gap-2.5 text-lg font-heading font-bold" style={{ color: '#0d9483' }}>
+            <Star className="w-5 h-5 fill-amber-400" style={{ color: '#f59e0b' }} />
+            {isClientReview ? "Avaliar Cliente & Cão" : `Avaliar ${targetName}`}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-8">
+        <CardContent className="p-0">
           <form onSubmit={handleSubmit} className="space-y-6">
             <StarRating
               value={formData.rating}
               onChange={(rating) => setFormData({ ...formData, rating })}
-              label="Overall Rating *"
+              label="Avaliação Geral *"
             />
 
             <div className="space-y-2">
-              <Label htmlFor="comment">Your Review</Label>
+              <Label htmlFor="comment" className="text-sm font-semibold" style={{ color: '#334155' }}>O teu comentário</Label>
               <Textarea
                 id="comment"
                 value={formData.comment}
                 onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                placeholder={`Share your experience with this ${targetType.toLowerCase()}...`}
+                placeholder={`Partilha a tua experiência com este ${targetType.toLowerCase()}...`}
                 rows={5}
-                className="resize-none"
+                className="resize-none rounded-2xl border-slate-200"
+                style={{ background: 'rgba(255, 255, 255, 0.6)' }}
               />
             </div>
 
-            <div className="border-t border-gray-200 pt-6">
-              <h4 className="font-semibold text-gray-900 mb-4">Rate by Category</h4>
+            <div className="border-t border-slate-100 pt-6">
+              <h4 className="font-semibold text-sm mb-4" style={{ color: '#334155' }}>Avaliar por Categoria</h4>
               <div className="grid md:grid-cols-2 gap-4">
                 {isClientReview ? (
                   <>
@@ -268,32 +271,33 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
                 checked={formData.would_recommend}
                 onCheckedChange={(checked) => setFormData({ ...formData, would_recommend: checked })}
               />
-              <label htmlFor="recommend" className="text-sm font-medium cursor-pointer">
-                {isClientReview 
-                  ? "I would work with this client again" 
-                  : `I would recommend this ${targetType.toLowerCase()} to others`}
+              <label htmlFor="recommend" className="text-sm font-medium cursor-pointer" style={{ color: '#475569' }}>
+                {isClientReview
+                  ? "Trabalharia novamente com este cliente"
+                  : `Recomendaria este ${targetType.toLowerCase()} a outros`}
               </label>
             </div>
 
             {!isClientReview && (
-              <div className="pt-4 border-t border-gray-100 mt-4">
-                <Label className="mb-3 block">Leave a Tip (Optional)</Label>
-                <div className="flex gap-3 flex-wrap">
+              <div className="pt-4 border-t border-slate-100 mt-4">
+                <Label className="mb-3 block text-sm font-semibold" style={{ color: '#334155' }}>Deixar Gorjeta (Opcional)</Label>
+                <div className="flex gap-2 flex-wrap">
                   {[0, 2, 5, 10, 15, 20].map((amount) => (
                     <Button
                       key={amount}
                       type="button"
                       variant={formData.tip_amount === amount ? "default" : "outline"}
-                      className={`flex-1 min-w-[60px] ${formData.tip_amount === amount ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                      className="flex-1 min-w-[55px] rounded-xl"
+                      style={formData.tip_amount === amount ? { background: '#0d9483', borderColor: '#0d9483' } : {}}
                       onClick={() => setFormData({ ...formData, tip_amount: amount })}
                     >
-                      {amount === 0 ? 'No Tip' : `€${amount}`}
+                      {amount === 0 ? 'Sem gorjeta' : `€${amount}`}
                     </Button>
                   ))}
                 </div>
                 {formData.tip_amount > 0 && (
-                  <p className="text-sm text-green-600 mt-2 font-medium">
-                    + €{formData.tip_amount} tip will be added to your payment.
+                  <p className="text-sm mt-2 font-medium" style={{ color: '#0d9483' }}>
+                    + €{formData.tip_amount} gorjeta será adicionada ao pagamento.
                   </p>
                 )}
               </div>
@@ -304,16 +308,17 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
                 type="button"
                 variant="outline"
                 onClick={onCancel}
-                className="flex-1"
+                className="flex-1 rounded-2xl"
               >
-                Cancel
+                Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={isProcessing}
-                className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                className="flex-1 rounded-2xl text-white"
+                style={{ background: '#0d9483' }}
               >
-                {isProcessing ? "Submitting..." : "Submit Review"}
+                {isProcessing ? "A enviar..." : "Enviar"}
               </Button>
             </div>
           </form>
