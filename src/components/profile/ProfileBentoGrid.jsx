@@ -89,13 +89,15 @@ export default function ProfileBentoGrid({
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic">
                 Disponibilidade
               </h3>
-              <HotelRangeCalendar
-                daysOff={daysOff}
-                checkinPolicy={walkerProfile?.hotel_details?.checkin_policy_type || 'all_days'}
-                onRangeSelect={(checkin, checkout) => {
-                  if (checkin && checkout) onHotelDateSelect?.(checkin, checkout);
-                }}
-              />
+              <div className="max-w-sm">
+                <HotelRangeCalendar
+                  daysOff={daysOff}
+                  checkinPolicy={walkerProfile?.hotel_details?.checkin_policy_type || 'all_days'}
+                  onRangeSelect={(checkin, checkout) => {
+                    if (checkin && checkout) onHotelDateSelect?.(checkin, checkout);
+                  }}
+                />
+              </div>
             </div>
           )}
 
