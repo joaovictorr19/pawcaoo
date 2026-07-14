@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Check, X, MapPin, Clock, Calendar, PawPrint, Loader2 } from "lucide-react";
+import { Check, X, MapPin, Clock, Calendar, PawPrint, Loader2, Phone, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -124,20 +124,44 @@ export default function PendingRequestsList({ user, professionalProfile }) {
             <div className="flex justify-between items-start mb-3">
               <div>
                 <h3 className="font-semibold text-slate-900">{booking.owner_name}</h3>
-                <span className="text-xs bg-amber-50 text-amber-600 px-2 py-1 rounded-full border border-amber-100 font-medium">
-                  Aguarda resposta
-                </span>
+                {booking.owner_phone && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                      <Phone className="w-3 h-3" /> {booking.owner_phone}
+                    </span>
+                    <a
+                      href={`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs text-green-600 flex items-center gap-1 hover:underline"
+                    >
+                      <MessageCircle className="w-3 h-3" /> WhatsApp
+                    </a>
+                  </div>
+                )}
               </div>
+              <span className="text-xs bg-amber-50 text-amber-600 px-2 py-1 rounded-full border border-amber-100 font-medium">
+                Aguarda resposta
+              </span>
             </div>
 
             {/* Dogs */}
-            <div className="space-y-1.5 mb-3">
+            <div className="space-y-2 mb-3">
               {dogs.map((dog, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm text-slate-600">
-                  <PawPrint className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                  <span className="font-medium">{dog.dog_name || "Cão"}</span>
-                  {dog.dog_breed && <span className="text-slate-400">• {dog.dog_breed}</span>}
-                  {dog.dog_size && <span className="text-slate-400">• {sizeLabels[dog.dog_size] || dog.dog_size}</span>}
+                  {dog.photo_url ? (
+                    <img src={dog.photo_url} alt={dog.dog_name} className="w-9 h-9 rounded-full object-cover border border-orange-200" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-orange-50 flex items-center justify-center">
+                      <PawPrint className="w-4 h-4 text-orange-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium">{dog.dog_name || "Cão"}</span>
+                    {dog.dog_breed && <span className="text-slate-400"> • {dog.dog_breed}</span>}
+                    {dog.dog_size && <span className="text-slate-400"> • {sizeLabels[dog.dog_size] || dog.dog_size}</span>}
+                  </div>
                 </div>
               ))}
             </div>

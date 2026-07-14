@@ -29,6 +29,8 @@ import ProfessionalProfileForm from "@/components/professional-hub/ProfessionalP
 import HotelManagementPanel from "@/components/professional-hub/HotelManagementPanel";
 import PendingRequestsList from "@/components/professional-hub/PendingRequestsList";
 
+const sizeLabels = { small: "Pequeno", medium: "Médio", large: "Grande", extra_large: "Extra Grande" };
+
 function ActiveRequestsList({ user }) {
   const { data: activeBookings = [] } = useQuery({
     queryKey: ['activeBookings', user?.email],
@@ -36,14 +38,13 @@ function ActiveRequestsList({ user }) {
       if (!user?.email) return [];
       return base44.entities.Booking.filter({
         $or: [
-          { walker_email: user.email, status: 'pending' },
           { walker_email: user.email, status: 'confirmed' },
           { walker_email: user.email, status: 'in_progress' }
         ]
       }, '-created_date', 50);
     },
     enabled: !!user?.email,
-    refetchInterval: user?.pawgo_status?.is_online ? 15000 : false
+    refetchInterval: 15000
   });
 
   const navigate = useNavigate();
@@ -59,29 +60,83 @@ function ActiveRequestsList({ user }) {
   return (
     <div className="space-y-4">
       <h2 className="text-base font-semibold text-slate-700 mb-4">Passeios Ativos</h2>
-      {activeBookings.map((booking) => (
-        <div
-          key={booking.id}
-          className="bg-white border border-slate-100 rounded-2xl p-4 cursor-pointer hover:border-orange-200 hover:shadow-sm transition-all shadow-sm"
-          onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
-        >
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="font-semibold text-slate-900">{booking.owner_name}</h3>
-            <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full border border-orange-100 font-medium">Confirmado</span>
-          </div>
-          <p className="text-sm text-slate-500 mb-3">🐕 {booking.dog_name} • {booking.duration_hours}h</p>
-          <p className="text-xs text-slate-400">{new Date(booking.walk_date).toLocaleDateString('pt-PT')} às {booking.walk_time}</p>
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
-            }}
-            className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold"
+      {activeBookings.map((booking) => {
+        const dogs = booking.dogs?.length > 0
+          ? booking.dogs
+          : [{ dog_name: booking.dog_name, dog_breed: booking.dog_breed, dog_size: booking.dog_size, photo_url: null }];
+        const walkDate = booking.walk_date || booking.session_date;
+        const walkTime = booking.walk_time || booking.session_time;
+        const isInProgress = booking.status === 'in_progress';
+
+        return (
+          <div
+            key={booking.id}
+            className="bg-white border border-slate-100 rounded-2xl p-4 cursor-pointer hover:border-orange-200 hover:shadow-sm transition-all shadow-sm"
+            onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`))}
           >
-            Iniciar Passeio
-          </Button>
-        </div>
-      ))}
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h3 className="font-semibold text-slate-900">{booking.owner_name}</h3>
+                {booking.owner_phone && (
+                  <a href={`tel:${booking.owner_phone}`} onClick={(e) => e.stopPropagation()} className="text-xs text-slate-400 hover:text-orange-500">
+                    {booking.owner_phone}
+                  </a>
+                )}
+              </div>
+              <span className={`text-xs px-2 py-1 rounded-full border font-medium ${
+                isInProgress
+                  ? 'bg-green-50 text-green-600 border-green-100'
+                  : 'bg-orange-50 text-orange-600 border-orange-100'
+              }`}>
+                {isInProgress ? 'Em andamento' : 'Confirmado'}
+              </span>
+            </div>
+
+            {/* Dogs */}
+            <div className="space-y-1.5 mb-3">
+              {dogs.map((dog, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm text-slate-600">
+                  {dog.photo_url ? (
+                    <img src={dog.photo_url} alt={dog.dog_name} className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <span className="text-base">🐕</span>
+                  )}
+                  <span className="font-medium">{dog.dog_name || "Cão"}</span>
+                  {dog.dog_breed && <span className="text-slate-400">• {dog.dog_breed}</span>}
+                  {dog.dog_size && <span className="text-slate-400">• {sizeLabels[dog.dog_size] || dog.dog_size}</span>}
+                </div>
+              ))}
+            </div>
+
+            {/* Details */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mb-3">
+              {walkDate && (
+                <span>{new Date(walkDate).toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' })}{walkTime ? ` às ${walkTime}` : ''}</span>
+              )}
+              <span>{booking.duration_hours || 1}h</span>
+              {booking.pickup_address && (
+                <span className="truncate max-w-[200px]">📍 {booking.pickup_address}</span>
+              )}
+            </div>
+
+            {booking.special_notes && (
+              <p className="text-[11px] text-amber-700 bg-amber-50 px-2 py-1 rounded mb-3 border border-amber-200">
+                {booking.special_notes}
+              </p>
+            )}
+
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${booking.id}`));
+              }}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold"
+            >
+              {isInProgress ? 'Ver passeio em andamento' : 'Iniciar Passeio'}
+            </Button>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -113,7 +168,11 @@ export default function ProfessionalHubV2() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('tab') === 'agenda') setActiveTab('calendar');
+    const t = params.get('tab');
+    if (t === 'agenda') setActiveTab('calendar');
+    else if (t === 'requests') setActiveTab('requests');
+    else if (t === 'active') setActiveTab('active');
+    else if (t === 'documents') setActiveTab('documents');
   }, []);
 
   useEffect(() => {
