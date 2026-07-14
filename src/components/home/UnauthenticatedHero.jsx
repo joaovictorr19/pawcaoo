@@ -202,8 +202,8 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={onEncontrar}
-                    className="self-start rounded-full px-6 py-2.5 font-black uppercase tracking-wide text-xs md:text-sm text-white shadow-md flex items-center gap-2"
-                    style={{ background: TEAL, boxShadow: `0 4px 14px ${TEAL}40` }}
+                    className="self-start rounded-full px-6 py-2.5 font-black uppercase tracking-wide text-xs md:text-sm text-white shadow-md flex items-center gap-2 bg-[#00a699]"
+                    style={{ boxShadow: '0 4px 14px rgba(0,166,153,0.35)' }}
                   >
                     ENCONTRAR
                   </motion.button>
@@ -232,8 +232,8 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     onClick={onRegistar}
-                    className="self-start rounded-full px-6 py-2.5 font-black uppercase tracking-wide text-xs md:text-sm text-white shadow-md flex items-center gap-2"
-                    style={{ background: ORANGE, boxShadow: `0 4px 14px ${ORANGE}40` }}
+                    className="self-start rounded-full px-6 py-2.5 font-black uppercase tracking-wide text-xs md:text-sm text-white shadow-md flex items-center gap-2 bg-[#ff6633]"
+                    style={{ boxShadow: '0 4px 14px rgba(255,102,51,0.35)' }}
                   >
                     REGISTA-TE
                   </motion.button>
