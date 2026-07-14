@@ -40,7 +40,7 @@ export function ProfessionalCard({ walker }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-1">
-          <h3 className="font-black text-slate-900 text-sm truncate">{walker.full_name || walker.walker_name || walker.trainer_name}</h3>
+          <h3 className="font-display font-black text-slate-900 text-sm truncate tracking-tight">{walker.full_name || walker.walker_name || walker.trainer_name}</h3>
           
           {/* 3. Renderização Estática dos Emblemas (Não Piscam) */}
           <div className="flex gap-0.5 shrink-0">

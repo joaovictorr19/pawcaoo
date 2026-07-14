@@ -8,7 +8,7 @@ module.exports = {
   theme: {
   	extend: {
   		fontFamily: {
-  			heading: ['Borsok', 'League Spartan', 'sans-serif'],
+  			heading: ['League Spartan', 'sans-serif'],
   			body: ['Poppins', 'sans-serif'],
   			display: ['Borsok', 'League Spartan', 'sans-serif'],
   			sans: ['Poppins', 'sans-serif'],
