@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useTheme } from "../ThemeContext";
+import { motion } from "framer-motion";
+import { PawPrint, Heart } from "lucide-react";
 
 export default function DynamicBackground() {
   const [weather, setWeather] = useState('sunny');
@@ -72,38 +74,38 @@ export default function DynamicBackground() {
   const isLoggedIn = !!user;
 
   if (!isLoggedIn) {
+    const floatItems = [
+      { Icon: PawPrint, pos: "top-[6%] left-[4%]", color: "#00a699", size: 44, delay: 0, dur: 7 },
+      { Icon: Heart, pos: "top-[10%] right-[6%]", color: "#ff6633", size: 30, delay: 1.5, dur: 6 },
+      { Icon: PawPrint, pos: "top-[28%] left-[9%]", color: "#ff6633", size: 36, delay: 0.8, dur: 8 },
+      { Icon: Heart, pos: "top-[38%] right-[4%]", color: "#00a699", size: 26, delay: 2, dur: 7 },
+      { Icon: PawPrint, pos: "bottom-[18%] left-[5%]", color: "#00a699", size: 40, delay: 1.2, dur: 6.5 },
+      { Icon: Heart, pos: "bottom-[12%] right-[7%]", color: "#ff6633", size: 34, delay: 2.5, dur: 7.5 },
+      { Icon: PawPrint, pos: "bottom-[42%] right-[14%]", color: "#ff6633", size: 28, delay: 3, dur: 6 },
+      { Icon: Heart, pos: "top-[52%] left-[16%]", color: "#00a699", size: 22, delay: 1.8, dur: 5.5 },
+      { Icon: PawPrint, pos: "top-[68%] right-[22%]", color: "#00a699", size: 34, delay: 0.4, dur: 7 },
+      { Icon: Heart, pos: "top-[18%] left-[32%]", color: "#ff6633", size: 24, delay: 3.2, dur: 6.8 },
+      { Icon: PawPrint, pos: "bottom-[55%] left-[28%]", color: "#ff6633", size: 30, delay: 2.2, dur: 7.2 },
+      { Icon: Heart, pos: "bottom-[30%] right-[30%]", color: "#00a699", size: 28, delay: 0.6, dur: 6.3 },
+    ];
+
     return (
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#7dd3fc]">
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(180deg, #38bdf8 0%, #7dd3fc 30%, #e0f2fe 100%)' }}
-        />
-        <div
-          className="absolute top-[10%] right-[10%] w-32 h-32 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, #fff9c4 0%, #fde68a 30%, rgba(253,230,138,0) 70%)',
-            filter: 'blur(8px)',
-            boxShadow: '0 0 60px 20px rgba(253, 230, 138, 0.3)'
-          }}
-        />
-        <div className="absolute top-[15%] left-[10%] opacity-80" style={{ animation: 'float 6s ease-in-out infinite' }}>
-          <div className="relative" style={{ filter: 'blur(12px)' }}>
-            <div className="absolute w-24 h-24 bg-white rounded-full" style={{ top: 0, left: 0 }} />
-            <div className="absolute w-32 h-32 bg-white rounded-full" style={{ top: -20, left: 40 }} />
-            <div className="absolute w-28 h-28 bg-white rounded-full" style={{ top: 10, left: 90 }} />
-          </div>
-        </div>
-        <div className="absolute top-[25%] right-[15%] opacity-70" style={{ animation: 'float 9s ease-in-out infinite reverse' }}>
-          <div className="relative" style={{ filter: 'blur(14px)' }}>
-            <div className="absolute w-36 h-36 bg-white rounded-full" style={{ top: 0, left: 0 }} />
-            <div className="absolute w-40 h-40 bg-white rounded-full" style={{ top: -25, left: 50 }} />
-            <div className="absolute w-32 h-32 bg-white rounded-full" style={{ top: 15, left: 120 }} />
-          </div>
-        </div>
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[40%]"
-          style={{ background: 'linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0) 100%)' }}
-        />
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" style={{ background: "linear-gradient(180deg, #e0f7f6 0%, #f0fdfa 40%, #ffffff 100%)" }}>
+        {floatItems.map((item, i) => (
+          <motion.div
+            key={i}
+            className={`absolute ${item.pos}`}
+            animate={{ y: [0, -18, 0], rotate: [0, 8, -4, 0] }}
+            transition={{ duration: item.dur, repeat: Infinity, delay: item.delay, ease: "easeInOut" }}
+          >
+            <item.Icon
+              size={item.size}
+              style={{ color: item.color, opacity: 0.2, filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.06))" }}
+              strokeWidth={2}
+              fill="currentColor"
+            />
+          </motion.div>
+        ))}
       </div>
     );
   }

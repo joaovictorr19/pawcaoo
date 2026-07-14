@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { PawPrint, Bone, Heart } from "lucide-react";
+import { PawPrint } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 const TEAL = "#00a699";
@@ -15,41 +15,6 @@ const itemVariants = {
   hidden: { opacity: 0, y: 28 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
 };
-
-const FLOAT_ITEMS = [
-  { Icon: PawPrint, pos: "top-[6%] left-[4%]", color: TEAL, size: 38, delay: 0, dur: 7 },
-  { Icon: Heart, pos: "top-[10%] right-[7%]", color: ORANGE, size: 28, delay: 1.5, dur: 6 },
-  { Icon: Bone, pos: "top-[44%] left-[2%]", color: TEAL, size: 32, delay: 0.8, dur: 8 },
-  { Icon: PawPrint, pos: "bottom-[16%] right-[5%]", color: ORANGE, size: 42, delay: 2, dur: 7 },
-  { Icon: Heart, pos: "bottom-[30%] left-[9%]", color: TEAL, size: 22, delay: 1.2, dur: 6.5 },
-  { Icon: Bone, pos: "top-[60%] right-[3%]", color: ORANGE, size: 28, delay: 2.5, dur: 7.5 },
-  { Icon: PawPrint, pos: "top-[78%] left-[7%]", color: ORANGE, size: 30, delay: 3, dur: 6 },
-  { Icon: Heart, pos: "top-[26%] right-[22%]", color: YELLOW, size: 20, delay: 1.8, dur: 5.5 },
-  { Icon: Bone, pos: "bottom-[50%] right-[14%]", color: TEAL, size: 24, delay: 0.4, dur: 7 },
-  { Icon: PawPrint, pos: "top-[48%] right-[28%]", color: YELLOW, size: 26, delay: 3.2, dur: 6.8 },
-];
-
-function FloatingDecorations() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      {FLOAT_ITEMS.map((item, i) => (
-        <motion.div
-          key={i}
-          className={`absolute ${item.pos}`}
-          animate={{ y: [0, -16, 0], rotate: [0, 8, -4, 0] }}
-          transition={{ duration: item.dur, repeat: Infinity, delay: item.delay, ease: "easeInOut" }}
-        >
-          <item.Icon
-            size={item.size}
-            style={{ color: item.color, opacity: 0.4, filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.08))" }}
-            strokeWidth={2.5}
-            fill="currentColor"
-          />
-        </motion.div>
-      ))}
-    </div>
-  );
-}
 
 export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar, dogImageUrl }) {
   const { language } = useLanguage();
@@ -97,8 +62,6 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
       animate="visible"
       className="relative w-full overflow-hidden"
     >
-      <FloatingDecorations />
-
       {/* Hero text - centered */}
       <motion.div variants={itemVariants} className="relative z-10 px-4 md:px-6 pt-10 md:pt-14 max-w-5xl mx-auto text-center">
         <h1 className="font-black tracking-tight leading-[1.08] text-2xl sm:text-3xl md:text-4xl lg:text-5xl" style={{ color: TEAL }}>

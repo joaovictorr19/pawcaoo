@@ -14,7 +14,6 @@ const AdvancedTrainerFilters = React.lazy(() => import("../components/search/Adv
 
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import UnauthenticatedHero from "../components/home/UnauthenticatedHero";
-import CloudyBackground from "../components/home/CloudyBackground";
 import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
@@ -605,7 +604,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative w-full">
-      {!user && <CloudyBackground />}
 
       <div className="relative z-10">
             
