@@ -8,10 +8,10 @@ module.exports = {
   theme: {
   	extend: {
   		fontFamily: {
-  			heading: ['Nunito', 'system-ui', 'sans-serif'],
-  			body: ['Nunito', 'system-ui', 'sans-serif'],
-  			display: ['Nunito', 'system-ui', 'sans-serif'],
-  			sans: ['Nunito', 'system-ui', 'sans-serif'],
+  			heading: ['Borsok', 'League Spartan', 'sans-serif'],
+  			body: ['Poppins', 'sans-serif'],
+  			display: ['Borsok', 'League Spartan', 'sans-serif'],
+  			sans: ['Poppins', 'sans-serif'],
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
