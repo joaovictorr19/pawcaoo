@@ -612,7 +612,7 @@ export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
           placeholder="Pesquisar por dono, animal ou e-mail..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-300 placeholder:text-slate-400"
+          className="w-full pl-9 pr-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-300 placeholder:text-slate-400"
         />
       </div>
 
@@ -690,7 +690,7 @@ export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
           </div>
           <div className="space-y-2">
             {pendingBookings.map(b => (
-              <div key={b.id} className="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center justify-between gap-3">
+              <div key={b.id} className="bg-orange-50 border border-orange-200 rounded-xl p-3 flex flex-col gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-800">
                     {b.dogs?.map(d => d.dog_name).join(" & ") || b.owner_name}
@@ -699,11 +699,11 @@ export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
                   <p className="text-xs text-orange-600 mt-0.5">📅 {b.checkin_date}{b.checkout_date ? ` → ${b.checkout_date}` : ""}</p>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
-                  <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs px-3"
+                  <Button size="sm" className="h-9 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs px-3"
                     onClick={() => onUpdateBooking(b.id, { status: "confirmed" })}>
                     Confirmar
                   </Button>
-                  <Button size="sm" variant="outline" className="h-8 border-red-200 text-red-500 hover:bg-red-50 rounded-xl text-xs px-3"
+                  <Button size="sm" variant="outline" className="h-9 border-red-200 text-red-500 hover:bg-red-50 rounded-xl text-xs px-3"
                     onClick={() => onUpdateBooking(b.id, { status: "rejected" })}>
                     Rejeitar
                   </Button>

@@ -214,36 +214,36 @@ function BookingCard({ booking, onUpdate }) {
               <div className="flex gap-2 pt-1 flex-wrap">
                 {booking.status === "pending" && (
                   <>
-                    <Button size="sm" className="flex-1 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs min-w-[100px]"
+                    <Button size="sm" className="flex-1 h-9 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs min-w-[100px]"
                       onClick={() => onUpdate(booking.id, { status: "confirmed" })}>
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Confirmar
                     </Button>
-                    <Button size="sm" variant="outline" className="h-8 border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs"
+                    <Button size="sm" variant="outline" className="h-9 border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs"
                       onClick={() => onUpdate(booking.id, { status: "rejected" })}>
                       <X className="w-3.5 h-3.5 mr-1" /> Rejeitar
                     </Button>
                   </>
                 )}
                 {booking.status === "confirmed" && (
-                  <Button size="sm" className="flex-1 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs"
+                  <Button size="sm" className="flex-1 h-9 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs"
                     onClick={() => onUpdate(booking.id, { status: "checked_in", checkin_time: format(new Date(), "HH:mm") })}>
                     <DoorOpen className="w-3.5 h-3.5 mr-1" /> Check-in
                   </Button>
                 )}
                 {booking.status === "checked_in" && (
-                  <Button size="sm" className="flex-1 h-8 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs"
+                  <Button size="sm" className="flex-1 h-9 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs"
                     onClick={() => onUpdate(booking.id, { status: "checked_out", checkout_time: format(new Date(), "HH:mm") })}>
                     <DoorOpen className="w-3.5 h-3.5 mr-1" /> Check-out
                   </Button>
                 )}
                 {booking.status === "checked_out" && (
-                  <Button size="sm" className="flex-1 h-8 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs"
+                  <Button size="sm" className="flex-1 h-9 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs"
                     onClick={() => onUpdate(booking.id, { status: "completed" })}>
                     <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Concluir
                   </Button>
                 )}
                 {["confirmed", "pending"].includes(booking.status) && (
-                  <Button size="sm" variant="outline" className="h-8 border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-xs"
+                  <Button size="sm" variant="outline" className="h-9 border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-xs"
                     onClick={() => onUpdate(booking.id, { status: "cancelled" })}>
                     <XCircle className="w-3.5 h-3.5 mr-1" /> Cancelar
                   </Button>
@@ -338,7 +338,7 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
           placeholder="Pesquisar por dono, animal, email ou telefone..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-300 placeholder:text-slate-400"
+          className="w-full pl-9 pr-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-300 placeholder:text-slate-400"
         />
       </div>
 
@@ -354,7 +354,7 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
             <button
               key={f.key}
               onClick={() => setStatusFilter(f.key)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all min-h-[36px] ${
                 statusFilter === f.key
                   ? "bg-slate-900 text-white"
                   : "bg-white border border-slate-200 text-slate-500 hover:border-slate-300"
@@ -379,7 +379,7 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
           {filtered.length} reserva{filtered.length !== 1 ? "s" : ""}
           {search && ` · "${search}"`}
         </p>
-        <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5 text-xs"
+        <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5 text-xs h-9"
           onClick={onNewBooking}>
           <ClipboardList className="w-3.5 h-3.5" /> Nova
         </Button>

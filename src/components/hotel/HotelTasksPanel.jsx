@@ -88,7 +88,7 @@ function TaskRow({ task, onToggleComplete }) {
           )}
           <button
             onClick={() => onToggleComplete(task)}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90 ${
+            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all active:scale-90 ${
               isDone
                 ? "bg-emerald-100 text-emerald-600"
                 : "bg-slate-100 text-slate-400 hover:bg-emerald-50 hover:text-emerald-500"
@@ -143,7 +143,7 @@ function TaskColumn({ category, tasks, onToggleComplete }) {
   return (
     <div className="flex flex-col">
       {/* Column header */}
-      <div className={`rounded-xl border px-3 py-2.5 flex items-center justify-between ${Cat.headerCls} mb-3 sticky top-0 z-10`}>
+      <div className={`rounded-xl border px-3 py-2.5 flex items-center justify-between ${Cat.headerCls} mb-3`}>
         <div className="flex items-center gap-2">
           <Icon className={`w-4 h-4 ${Cat.iconCls}`} />
           <span className="text-xs font-bold uppercase tracking-wide">{Cat.label}</span>
@@ -200,7 +200,7 @@ function CheckinTaskRow({ booking, onAction, actionLabel, actionCls, icon: Icon 
       </div>
       <Button
         size="sm"
-        className={`h-8 rounded-lg text-xs font-semibold px-3 shrink-0 ${actionCls}`}
+        className={`h-9 rounded-lg text-xs font-semibold px-3 shrink-0 ${actionCls}`}
         onClick={() => onAction(booking.id)}
       >
         {actionLabel}
@@ -329,7 +329,7 @@ export default function HotelTasksPanel({ bookings, onUpdateBooking }) {
             placeholder="Pesquisar animal ou dono..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-300 placeholder:text-slate-400"
+            className="w-full pl-9 pr-3 py-2.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-300 placeholder:text-slate-400"
           />
         </div>
       </div>
@@ -352,7 +352,7 @@ export default function HotelTasksPanel({ bookings, onUpdateBooking }) {
 
         {/* Check-ins & Check-outs column */}
         <div className="flex flex-col">
-          <div className={`rounded-xl border px-3 py-2.5 flex items-center justify-between ${CATEGORIES.checkins.headerCls} mb-3 sticky top-0 z-10`}>
+          <div className={`rounded-xl border px-3 py-2.5 flex items-center justify-between ${CATEGORIES.checkins.headerCls} mb-3`}>
             <div className="flex items-center gap-2">
               <DoorOpen className={`w-4 h-4 ${CATEGORIES.checkins.iconCls}`} />
               <span className="text-xs font-bold uppercase tracking-wide">Check-ins & Check-outs</span>

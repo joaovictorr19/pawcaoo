@@ -109,9 +109,9 @@ export default function HotelSalesInsights({ bookings, hotelProfile, onNewBookin
             <Euro className="w-5 h-5 text-emerald-400" />
           </div>
         </div>
-        <div className="flex gap-4 mt-3 pt-3 border-t border-white/10">
+        <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10">
           <div>
-            <p className="text-[9px] text-slate-400 uppercase tracking-wide">Hóspedes agora</p>
+            <p className="text-[9px] text-slate-400 uppercase tracking-wide">Hóspedes</p>
             <p className="text-sm font-bold">{insights.currentGuests}</p>
           </div>
           <div>
@@ -158,7 +158,7 @@ export default function HotelSalesInsights({ bookings, hotelProfile, onNewBookin
                   {opp.action && (
                     <button
                       onClick={opp.action}
-                      className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg ${c.btn} flex items-center gap-0.5 shrink-0`}
+                      className={`text-[10px] font-bold px-3 py-2 rounded-lg ${c.btn} flex items-center gap-0.5 shrink-0 active:scale-95`}
                     >
                       {opp.actionLabel} <ArrowRight className="w-2.5 h-2.5" />
                     </button>
@@ -185,7 +185,7 @@ export default function HotelSalesInsights({ bookings, hotelProfile, onNewBookin
                 <button
                   key={s.label}
                   onClick={onNewBooking}
-                  className="flex flex-col items-center gap-1 py-2.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
+                  className="flex flex-col items-center gap-1 py-3.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-95"
                 >
                   <Icon className={`w-4 h-4 ${s.color}`} />
                   <span className="text-[10px] font-semibold text-slate-700">{s.label}</span>

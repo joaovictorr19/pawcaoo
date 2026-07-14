@@ -283,41 +283,41 @@ export default function HotelDashboard() {
               <p className="text-slate-400 text-xs truncate max-w-[180px]">{hotelProfile?.location}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {pendingBookings.length > 0 && (
-              <Badge className="bg-amber-50 text-amber-700 border border-amber-200 text-xs">
+              <Badge className="bg-amber-50 text-amber-700 border border-amber-200 text-xs shrink-0">
                 {pendingBookings.length} pendente{pendingBookings.length > 1 ? "s" : ""}
               </Badge>
             )}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 shrink-0">
               <CircleDot className={`w-3 h-3 ${hotelProfile?.is_active ? "text-emerald-500" : "text-slate-300"}`} />
               <span className="text-xs font-medium text-slate-600 hidden sm:inline">
                 {hotelProfile?.is_active ? "Ativo" : "Inativo"}
               </span>
             </div>
             <Button size="sm" variant="outline"
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs"
+              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs h-9 w-9 sm:w-auto p-0 sm:px-3"
               onClick={handleSyncGoogleCalendar} disabled={isSyncing}>
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
               <span className="hidden md:inline">{isSyncing ? "A sincronizar" : "Google Calendar"}</span>
             </Button>
             <Button size="sm" variant="outline"
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs"
+              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs h-9 w-9 sm:w-auto p-0 sm:px-3"
               onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}>
-              <Settings className="w-3.5 h-3.5" /> <span className="hidden md:inline">Configurar</span>
+              <Settings className="w-4 h-4" /> <span className="hidden md:inline">Configurar</span>
             </Button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="max-w-5xl mx-auto px-4 flex gap-0.5 overflow-x-auto scrollbar-none">
+        <div className="max-w-5xl mx-auto px-4 flex gap-0.5 overflow-x-auto scrollbar-none -webkit-overflow-scrolling-touch">
           {TABS.map(tab => {
             const Icon = tab.icon;
             const count = tab.key === "hospedes" ? activeBookings.length + pendingBookings.length
                          : tab.key === "parceiros" ? partners.length : 0;
             return (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 transition-all rounded-t-md ${
+                className={`flex items-center gap-2 px-3.5 py-3 text-xs font-semibold whitespace-nowrap border-b-2 transition-all rounded-t-md min-h-[40px] ${
                   activeTab === tab.key
                     ? "border-slate-900 text-slate-900"
                     : "border-transparent text-slate-400 hover:text-slate-600"
@@ -550,7 +550,7 @@ export default function HotelDashboard() {
       {/* Floating Action Button */}
       <button
         onClick={() => setShowNewBooking(true)}
-        className="fixed bottom-24 md:bottom-8 right-5 z-30 w-14 h-14 bg-slate-900 hover:bg-slate-800 rounded-2xl shadow-lg shadow-slate-900/20 flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+        className="fixed bottom-28 md:bottom-8 right-4 sm:right-5 z-30 w-14 h-14 bg-slate-900 hover:bg-slate-800 rounded-2xl shadow-lg shadow-slate-900/20 flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
         title="Nova Reserva"
       >
         <Plus className="w-6 h-6 text-white" />
