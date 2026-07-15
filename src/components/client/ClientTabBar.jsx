@@ -13,7 +13,7 @@ export function ClientTabBar({ active, onChange, unreadCount = 0 }) {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-t border-white/10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
       <div className="overflow-x-auto scrollbar-none">
-        <div className="flex items-center px-2 py-2 gap-1 w-max mx-auto min-w-full justify-around">
+        <div className="flex items-center px-2 py-2 gap-1 w-full justify-around">
           {tabs.map((tab) => {
             const isActive = active === tab.id;
             return (
