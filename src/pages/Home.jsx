@@ -742,7 +742,7 @@ export default function Home() {
                         <span className="text-[11px] font-bold" style={{ color: '#33414a' }}>Legado</span>
                       </button>
                       <button
-                        onClick={() => navigate(createPageUrl(['walker', 'trainer', 'both'].includes(user?.account_type) ? 'MyBookings' : 'ClientDashboard'))}
+                        onClick={() => navigate(createPageUrl('ClientDashboard'))}
                         className="flex items-center gap-2 p-2 rounded-2xl transition-all active:scale-95 touch-manipulation"
                         style={{ background: 'linear-gradient(to right, #34827d, #e8f3f2)', boxShadow: '0 4px 16px rgba(52,130,125,0.18)' }}
                       >
