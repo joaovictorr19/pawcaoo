@@ -92,21 +92,14 @@ export default function ClientDataSettings({ user }) {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       queryClient.invalidateQueries({ queryKey: ['clientDashboardProfile'] });
       toast.success('Dados atualizados com sucesso.');
+      setShowSuccess(true);
     },
     onError: () => {
       toast.error('Não foi possível atualizar os dados.');
     },
-    onSettled: () => setShowSuccess(false),
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
-  const prevPending = React.useRef(false);
-  React.useEffect(() => {
-    if (prevPending && !saveMutation.isPending && saveMutation.isSuccess) {
-      setShowSuccess(true);
-    }
-    prevPending = saveMutation.isPending;
-  }, [saveMutation.isPending, saveMutation.isSuccess]);
 
   return (
     <div className="space-y-4">
