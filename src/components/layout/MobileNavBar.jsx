@@ -160,7 +160,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   return (
     <div
       className="md:hidden fixed bottom-0 left-0 right-0 z-[9998] w-full pointer-events-none"
-      style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}
+      style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', background: 'linear-gradient(to bottom, transparent 0%, transparent 45%, #4A9E96 45%, #4A9E96 100%)' }}
     >
       <div
         className="mx-auto flex items-center justify-between gap-1 max-w-md pointer-events-auto"
