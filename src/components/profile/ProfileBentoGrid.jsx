@@ -143,51 +143,47 @@ export default function ProfileBentoGrid({
           <div className="lg:col-span-2 space-y-3 md:space-y-4">
 
           {/* BADGES / ACHIEVEMENTS — Glass Premium selos */}
-          <ProfileSection delay={0.14} className="relative rounded-2xl p-4 md:p-5 shadow-md border border-teal-200/40 bg-white/60 backdrop-blur-xl overflow-hidden">
-            {/* Subtle teal glow accent */}
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-teal-400/8 rounded-full blur-3xl pointer-events-none" />
-            <div className="relative flex items-center justify-between mb-4">
-              <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                <div className="w-7 h-7 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center shadow-sm shadow-teal-200">
-                  <Award className="w-4 h-4 text-white" />
-                </div>
-                {language === 'pt' ? 'Selos de Conquistas' : 'Achievement Seals'}
-                <span className="bg-teal-100 text-teal-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+          <ProfileSection delay={0.14} className="relative rounded-xl p-3 md:p-3.5 shadow-sm bg-transparent overflow-hidden">
+            <div className="relative flex items-center justify-between mb-3">
+              <h3 className="text-xs font-black text-slate-700 flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-teal-500" />
+                {language === 'pt' ? 'Selos' : 'Seals'}
+                <span className="bg-teal-50 text-teal-600 text-[9px] font-black px-1.5 py-0.5 rounded-full">
                   {earnedBadges.length}
                 </span>
               </h3>
             </div>
             {loadingBadges ? (
-              <div className="flex gap-4 overflow-x-auto overflow-y-hidden py-3 px-1">
-                {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-20 bg-white/60 rounded-2xl flex-shrink-0 animate-pulse" />)}
+              <div className="flex gap-2.5 overflow-x-auto overflow-y-hidden py-1 px-0.5">
+                {[1, 2, 3, 4].map(i => <div key={i} className="w-16 h-16 bg-slate-100/70 rounded-xl flex-shrink-0 animate-pulse" />)}
               </div>
             ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-4 overflow-x-auto overflow-y-hidden py-3 px-1">
+              <div className="flex gap-2.5 overflow-x-auto overflow-y-hidden py-1 px-0.5">
                 {earnedBadges.slice(0, 10).map((badge) => (
-                  <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 flex flex-col items-center gap-1.5 w-20">
-                    <div className="relative rounded-2xl p-1 bg-gradient-to-br from-teal-300/50 via-white/30 to-teal-200/30 shadow-md shadow-teal-100/50 ring-1 ring-teal-300/30">
-                      <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
-                      <div className="absolute inset-1 flex items-center justify-center bg-slate-900/85 text-white text-[9px] font-bold text-center leading-tight rounded-xl px-1 opacity-0 group-hover/badge:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
+                  <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 flex flex-col items-center gap-1 w-16">
+                    <div className="relative rounded-xl p-1 bg-slate-50/80 shadow-sm">
+                      <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
+                      <div className="absolute inset-1 flex items-center justify-center bg-slate-900/85 text-white text-[8px] font-bold text-center leading-tight rounded-lg px-0.5 opacity-0 group-hover/badge:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
                         {badge.name || badge.badge_id}
                       </div>
                     </div>
-                    <span className="text-[9px] font-bold text-slate-600 text-center leading-tight line-clamp-2 px-0.5">
+                    <span className="text-[8px] font-bold text-slate-500 text-center leading-tight line-clamp-1 px-0.5">
                       {badge.name || badge.badge_id}
                     </span>
                   </div>
                 ))}
                 {earnedBadges.length > 10 && (
-                  <div className="flex flex-col items-center justify-center gap-1.5 flex-shrink-0 w-20">
-                    <div className="w-20 h-20 rounded-2xl bg-teal-50 flex items-center justify-center border border-teal-100">
-                      <span className="text-teal-600 font-black text-sm">+{earnedBadges.length - 10}</span>
+                  <div className="flex flex-col items-center justify-center gap-1 flex-shrink-0 w-16">
+                    <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center">
+                      <span className="text-teal-600 font-black text-xs">+{earnedBadges.length - 10}</span>
                     </div>
-                    <p className="text-[9px] font-bold text-teal-600">ver mais</p>
+                    <p className="text-[8px] font-bold text-teal-600">ver mais</p>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-xs text-slate-400 font-bold italic py-4 text-center">
-                {language === 'pt' ? 'Ainda sem conquistas. Complete serviços para ganhar selos!' : 'No badges yet. Complete services to earn seals!'}
+              <p className="text-[10px] text-slate-400 font-bold italic py-3 text-center">
+                {language === 'pt' ? 'Ainda sem selos. Complete serviços para ganhar!' : 'No badges yet!'}
               </p>
             )}
           </ProfileSection>
