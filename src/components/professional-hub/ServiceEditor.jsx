@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import ServiceIconPicker, { getServiceIcon } from "@/components/professionals/ServiceIconPicker";
 
 export function ServiceEditor({ professionalProfile, isWalker = true }) {
   const queryClient = useQueryClient();
@@ -15,7 +16,8 @@ export function ServiceEditor({ professionalProfile, isWalker = true }) {
     service_name: "",
     description: "",
     duration_options: ["30", "60", "90"],
-    price: ""
+    price: "",
+    icon: ""
   });
 
   const updateMutation = useMutation({
@@ -44,7 +46,8 @@ export function ServiceEditor({ professionalProfile, isWalker = true }) {
       service_name: newService.service_name,
       description: newService.description,
       duration_options: newService.duration_options.filter(d => d),
-      price: parseFloat(newService.price)
+      price: parseFloat(newService.price),
+      icon: newService.icon || ""
     };
 
     const updated = [...services, service];
@@ -55,7 +58,8 @@ export function ServiceEditor({ professionalProfile, isWalker = true }) {
       service_name: "",
       description: "",
       duration_options: ["30", "60", "90"],
-      price: ""
+      price: "",
+      icon: ""
     });
   };
 
@@ -79,9 +83,12 @@ export function ServiceEditor({ professionalProfile, isWalker = true }) {
               className="bg-slate-900 border-slate-700/50 p-4 rounded-2xl flex items-start justify-between group hover:border-slate-600 transition-colors"
             >
               <div className="flex-1">
-                <h4 className="font-bold text-sm text-white mb-1">
-                  {service.service_name}
-                </h4>
+                <div className="flex items-center gap-2 mb-1">
+                  {service.icon && (() => { const SvcIcon = getServiceIcon(service.icon); return <SvcIcon className="w-4 h-4 text-orange-400 flex-shrink-0" />; })()}
+                  <h4 className="font-bold text-sm text-white">
+                    {service.service_name}
+                  </h4>
+                </div>
                 {service.description && (
                   <p className="text-[9px] text-slate-400 mb-2 line-clamp-2">
                     {service.description}
@@ -196,6 +203,13 @@ export function ServiceEditor({ professionalProfile, isWalker = true }) {
             </div>
           </div>
         </div>
+
+        {/* Ícone do Serviço */}
+        <ServiceIconPicker
+          value={newService.icon}
+          onChange={(icon) => setNewService({ ...newService, icon })}
+          variant="dark"
+        />
 
         {/* Botão Adicionar */}
         <Button

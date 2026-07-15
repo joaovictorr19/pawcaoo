@@ -12,6 +12,7 @@ import HotelRangeCalendar from "@/components/hotel/HotelRangeCalendar";
 import ProfileHeroCard from "@/components/profile/ProfileHeroCard";
 import ProfileSection from "@/components/profile/ProfileSection";
 import ReportModal from "@/components/profile/ReportModal";
+import { getServiceIcon } from "@/components/professionals/ServiceIconPicker";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
@@ -203,7 +204,7 @@ export default function ProfileBentoGrid({
               </h3>
               <div className="space-y-2.5">
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).filter(s => s.is_active !== false).map((service, idx) => {
-                  const Icon = SERVICE_ICONS[service.service_type] || SERVICE_ICONS.other;
+                  const Icon = getServiceIcon(service.icon, SERVICE_ICONS[service.service_type] || SERVICE_ICONS.other);
                   return (
                     <div
                       key={idx}

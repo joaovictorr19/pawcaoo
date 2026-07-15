@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Trash2, Plus, Edit2, Save, X, Tag, Clock, Euro } from 'lucide-react';
 import { toast } from 'sonner';
+import ServiceIconPicker, { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
 
 export default function ServiceOfferingsEditor({ professionalProfile }) {
   const queryClient = useQueryClient();
@@ -13,7 +14,8 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
     service_name: '',
     description: '',
     duration_options: [],
-    price: ''
+    price: '',
+    icon: ''
   });
   const [durationInput, setDurationInput] = useState('');
 
@@ -43,7 +45,8 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
       description: formData.description || '',
       duration_options: durationInput ? [durationInput] : [],
       price: parseFloat(formData.price),
-      service_type: formData.service_name.toLowerCase().includes('grupo') ? 'group_walk' : 'standard'
+      service_type: formData.service_name.toLowerCase().includes('grupo') ? 'group_walk' : 'standard',
+      icon: formData.icon || ''
     };
     const updatedServices = editingIndex !== null
       ? services.map((s, i) => i === editingIndex ? newService : s)
@@ -61,7 +64,8 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
       service_name: service.service_name,
       description: service.description || '',
       duration_options: service.duration_options || [],
-      price: service.price?.toString() || ''
+      price: service.price?.toString() || '',
+      icon: service.icon || ''
     });
     setDurationInput(service.duration_options?.[0] || '');
     setEditingIndex(index);
@@ -69,7 +73,7 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
   };
 
   const resetForm = () => {
-    setFormData({ service_name: '', description: '', duration_options: [], price: '' });
+    setFormData({ service_name: '', description: '', duration_options: [], price: '', icon: '' });
     setDurationInput('');
     setEditingIndex(null);
     setShowForm(false);
@@ -105,6 +109,7 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
           <div key={idx} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-start hover:border-slate-300 transition-colors">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
+                {service.icon && (() => { const SvcIcon = getServiceIcon(service.icon); return <SvcIcon className="w-4 h-4 text-orange-500 flex-shrink-0" />; })()}
                 <h4 className="font-semibold text-sm text-slate-900">{service.service_name}</h4>
                 <span className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full">
                   {service.price}€
@@ -197,6 +202,12 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
               </div>
             </div>
           </div>
+
+            {/* Ícone do Serviço */}
+            <ServiceIconPicker
+              value={formData.icon}
+              onChange={(icon) => setFormData({ ...formData, icon })}
+            />
 
           <div className="flex gap-2 pt-1">
             <Button

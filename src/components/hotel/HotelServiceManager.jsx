@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Plus, Trash2, Edit2, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import ServiceIconPicker, { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
 
 const SERVICE_TYPES = [
   { value: 'boarding', label: 'Alojamento' },
@@ -35,7 +36,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
     description: '',
     price_per_day: '',
     capacity_total: '',
-    accepted_dog_sizes: []
+    accepted_dog_sizes: [],
+    icon: ''
   });
 
   const services = hotelProfile?.hotel_details?.services || [];
@@ -47,7 +49,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       description: '',
       price_per_day: '',
       capacity_total: '',
-      accepted_dog_sizes: []
+      accepted_dog_sizes: [],
+      icon: ''
     });
     setEditingServiceId(null);
     setIsAddingService(true);
@@ -56,7 +59,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
   const handleEdit = (service) => {
     setFormData({
       ...service,
-      accepted_dog_sizes: service.accepted_dog_sizes || []
+      accepted_dog_sizes: service.accepted_dog_sizes || [],
+      icon: service.icon || ''
     });
     setEditingServiceId(service.service_id);
     setIsAddingService(true);
@@ -105,7 +109,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                 price_per_day: parseFloat(formData.price_per_day),
                 capacity_total: parseInt(formData.capacity_total),
                 capacity_available: Math.min(parseInt(formData.capacity_total), s.capacity_available || parseInt(formData.capacity_total)),
-                accepted_dog_sizes: formData.accepted_dog_sizes
+                accepted_dog_sizes: formData.accepted_dog_sizes,
+                icon: formData.icon || ''
               }
             : s
         );
@@ -120,7 +125,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
           capacity_total: parseInt(formData.capacity_total),
           capacity_available: parseInt(formData.capacity_total),
           is_active: true,
-          accepted_dog_sizes: formData.accepted_dog_sizes
+          accepted_dog_sizes: formData.accepted_dog_sizes,
+          icon: formData.icon || ''
         });
       }
 
@@ -284,6 +290,12 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                 </div>
               </div>
 
+              {/* Ícone do Serviço */}
+              <ServiceIconPicker
+                value={formData.icon}
+                onChange={(icon) => setFormData({ ...formData, icon })}
+              />
+
               <div className="flex items-center gap-2 justify-end pt-4 border-t border-purple-100">
                 <Button
                   onClick={handleCancel}
@@ -323,7 +335,10 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
               <Card className="p-4 border-2 border-slate-100 hover:border-purple-200 transition-colors">
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-slate-900">{service.service_name}</h4>
+                    <div className="flex items-center gap-2">
+                      {service.icon && (() => { const SvcIcon = getServiceIcon(service.icon); return <SvcIcon className="w-4 h-4 text-purple-600 flex-shrink-0" />; })()}
+                      <h4 className="font-bold text-slate-900">{service.service_name}</h4>
+                    </div>
                     <p className="text-sm text-slate-600 line-clamp-1">{service.description}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
