@@ -60,9 +60,6 @@
   body {
     @apply text-foreground;
     background: transparent;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   input, textarea, select, [role="dialog"], [role="combobox"], [data-radix-popper-content-wrapper], [data-radix-dialog-content] {
@@ -288,11 +285,9 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Ensure root div doesn't trap scroll on Android */
+  /* Root div — no overflow rules; let the viewport (html) handle scrolling */
   #root {
     width: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
   }
