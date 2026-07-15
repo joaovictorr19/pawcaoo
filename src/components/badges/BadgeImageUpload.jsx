@@ -33,7 +33,10 @@ const compressBadgeImage = async (file, maxSizeKB = 500, targetSize = 512) => {
         canvas.height = targetSize;
         
         const ctx = canvas.getContext('2d');
-        
+
+        // Desativar smoothing para preservar pixel art (não borrar pixels)
+        ctx.imageSmoothingEnabled = false;
+
         // Preservar transparência
         ctx.clearRect(0, 0, targetSize, targetSize);
         

@@ -327,4 +327,11 @@
   [role="tabpanel"] {
     background: transparent;
   }
+
+  /* Pixel art badge rendering — keeps crisp pixels when scaling up/down */
+  .badge-img-pixel {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+  }
 }

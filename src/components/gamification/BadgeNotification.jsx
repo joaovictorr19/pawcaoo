@@ -25,8 +25,14 @@ export default function BadgeNotification({ badge, onClose }) {
                 transition={{ duration: 0.6, repeat: 2 }}
                 className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center border-2 border-white/30 shadow-lg"
               >
-                {badge.image_url ? (
-                  <img src={badge.image_url} alt={badge.name} className="w-full h-full object-cover rounded-xl" />
+                {badge.image_png_file || badge.image_url ? (
+                  <img
+                    src={badge.image_png_file || badge.image_url}
+                    alt={badge.name}
+                    className="w-full h-full object-contain p-1 rounded-xl badge-img-pixel"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 ) : (
                   <span className="text-5xl">{badge.icon || '🏅'}</span>
                 )}

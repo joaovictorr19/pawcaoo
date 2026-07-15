@@ -29,7 +29,7 @@ export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, s
         <img
           src={imageUrl}
           alt={badge.name}
-          className={`${imgClass} object-contain drop-shadow-lg z-10 p-1`}
+          className={`${imgClass} object-contain drop-shadow-lg z-10 p-1 badge-img-pixel`}
           loading="lazy"
           decoding="async"
           onError={(e) => { e.target.style.display = 'none'; }}

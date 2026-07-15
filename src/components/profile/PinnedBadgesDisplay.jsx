@@ -47,12 +47,13 @@ export default function PinnedBadgesDisplay({
                       }`} />
                       
                       {badge.image_png_file || badge.image_url ? (
-                        <img 
-                          src={badge.image_png_file || badge.image_url} 
-                          alt={badge.name} 
-                          className="w-10 h-10 object-contain z-10 drop-shadow-lg" 
+                        <img
+                          src={badge.image_png_file || badge.image_url}
+                          alt={badge.name}
+                          className="w-10 h-10 object-contain z-10 drop-shadow-lg badge-img-pixel"
                           loading="lazy"
                           decoding="async"
+                          onError={(e) => { e.target.style.display = 'none'; }}
                         />
                       ) : (
                         <span className="text-3xl z-10 drop-shadow-md">{badge.icon || '🏆'}</span>
@@ -131,12 +132,13 @@ export default function PinnedBadgesDisplay({
                         }`} />
                         
                         {badge.image_png_file || badge.image_url ? (
-                          <img 
-                            src={badge.image_png_file || badge.image_url} 
-                            alt={badge.name} 
-                            className="w-10 h-10 object-contain z-10 drop-shadow-lg" 
+                          <img
+                            src={badge.image_png_file || badge.image_url}
+                            alt={badge.name}
+                            className="w-10 h-10 object-contain z-10 drop-shadow-lg badge-img-pixel"
                             loading="lazy"
                             decoding="async"
+                            onError={(e) => { e.target.style.display = 'none'; }}
                           />
                         ) : (
                           <span className="text-3xl z-10 drop-shadow-md">{badge.icon || '🏆'}</span>

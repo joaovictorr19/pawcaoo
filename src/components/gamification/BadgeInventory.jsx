@@ -216,25 +216,19 @@ export default function BadgeInventory({
                       <img 
                         src={badge.animation_url} 
                         alt={badge.name} 
-                        className="w-14 h-14 object-contain drop-shadow-md" 
+                        className="w-14 h-14 object-contain drop-shadow-md badge-img-pixel" 
                         loading="lazy"
                         decoding="async"
-                        onError={(e) => {
-                          console.error(`❌ Erro ao carregar animação: ${badge.name}`);
-                          e.target.style.display = 'none';
-                        }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
                       />
                     ) : (badge.image_png_file || badge.image_url) ? (
                       <img 
                         src={badge.image_png_file || badge.image_url}
                         alt={badge.name} 
-                        className="w-14 h-14 object-contain drop-shadow-md" 
+                        className="w-14 h-14 object-contain drop-shadow-md badge-img-pixel" 
                         loading="lazy"
                         decoding="async"
-                        onError={(e) => {
-                          console.error(`❌ Erro ao carregar emblema: ${badge.name}`);
-                          e.target.style.display = 'none';
-                        }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
                       />
                     ) : (
                       <div className="text-4xl flex items-center justify-center">
