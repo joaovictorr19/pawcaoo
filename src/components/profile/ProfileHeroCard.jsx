@@ -1,4 +1,6 @@
 import React from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   MapPin, Star, Award, Clock, BedDouble, Shield, CheckCircle2,
@@ -117,6 +119,42 @@ export default function ProfileHeroCard({
       ? "border-amber-400 ring-4 ring-amber-300/40"
       : "border-white ring-4 ring-white/60";
 
+  // ── Favorite logic ──
+  const queryClient = useQueryClient();
+  const favoriteEntityId = walkerProfile?.id || trainerProfile?.id || profileUser?.id;
+
+  const { data: existingFavorite } = useQuery({
+    queryKey: ['favoriteCheck', favoriteEntityId],
+    queryFn: async () => {
+      if (!favoriteEntityId) return null;
+      const favs = await base44.entities.Favorite.filter({ walker_id: favoriteEntityId });
+      return favs[0] || null;
+    },
+    enabled: !!favoriteEntityId && !isOwnProfile && isProfessional,
+  });
+
+  const isFavorited = !!existingFavorite;
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      if (existingFavorite) {
+        await base44.entities.Favorite.delete(existingFavorite.id);
+      } else {
+        await base44.entities.Favorite.create({
+          walker_id: favoriteEntityId,
+          walker_name: displayName,
+          walker_photo_url: displayPhotoUrl,
+          walker_location: displayCity,
+          walker_hourly_rate: walkerProfile?.hourly_rate || trainerProfile?.hourly_rate,
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favoriteCheck', favoriteEntityId] });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    },
+  });
+
   return (
     <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col relative overflow-hidden">
       {/* Cover banner inside the card */}
@@ -132,6 +170,18 @@ export default function ProfileHeroCard({
           }}
         />
         <div className={`absolute inset-0 ${isHotel ? "bg-gradient-to-t from-purple-900/40 via-purple-900/10 to-transparent" : "bg-gradient-to-t from-slate-900/30 via-transparent to-transparent"}`} />
+
+        {/* Favorite button — top left of cover */}
+        {!isOwnProfile && isProfessional && (
+          <button
+            onClick={() => toggleFavoriteMutation.mutate()}
+            disabled={toggleFavoriteMutation.isPending}
+            className="absolute top-3 left-3 w-9 h-9 rounded-full backdrop-blur-md bg-white/25 border border-white/40 flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+            title={isFavorited ? (language === 'pt' ? 'Remover dos favoritos' : 'Remove from favorites') : (language === 'pt' ? 'Adicionar aos favoritos' : 'Add to favorites')}
+          >
+            <Heart className={`w-4 h-4 transition-all ${isFavorited ? 'text-red-500 fill-red-500' : 'text-white'}`} />
+          </button>
+        )}
 
         {/* Verified / Seal badges on cover */}
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
