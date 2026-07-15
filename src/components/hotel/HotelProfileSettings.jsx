@@ -10,6 +10,7 @@ import {
   Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check
 } from "lucide-react";
 import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
+import SaveConfirmation from "@/components/ui/SaveConfirmation";
 
 export default function HotelProfileSettings({ hotelProfile, onSave }) {
   const queryClient = useQueryClient();
@@ -377,6 +378,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
               {justSaved ? "Guardado!" : "Guardar Alterações"}
             </Button>
           </div>
+
+          <SaveConfirmation show={justSaved} message="Perfil do hotel guardado com sucesso! ✅" onDismiss={() => setJustSaved(false)} />
         </div>
       </div>
     </div>

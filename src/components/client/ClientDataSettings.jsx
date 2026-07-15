@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Phone, User, Save } from "lucide-react";
 import { toast } from "sonner";
+import SaveConfirmation from "@/components/ui/SaveConfirmation";
 
 export default function ClientDataSettings({ user }) {
   const queryClient = useQueryClient();
@@ -94,8 +95,18 @@ export default function ClientDataSettings({ user }) {
     },
     onError: () => {
       toast.error('Não foi possível atualizar os dados.');
-    }
+    },
+    onSettled: () => setShowSuccess(false),
   });
+
+  const [showSuccess, setShowSuccess] = useState(false);
+  const prevPending = React.useRef(false);
+  React.useEffect(() => {
+    if (prevPending && !saveMutation.isPending && saveMutation.isSuccess) {
+      setShowSuccess(true);
+    }
+    prevPending = saveMutation.isPending;
+  }, [saveMutation.isPending, saveMutation.isSuccess]);
 
   return (
     <div className="space-y-4">
@@ -164,6 +175,8 @@ export default function ClientDataSettings({ user }) {
             <Save className="w-4 h-4 mr-2" />
             {saveMutation.isPending ? 'A guardar...' : 'Guardar dados de recolha'}
           </Button>
+
+          <SaveConfirmation show={showSuccess} message="Dados de recolha guardados com sucesso! ✅" onDismiss={() => setShowSuccess(false)} />
 
           <div className="rounded-2xl border border-white/10 bg-slate-800 p-3 space-y-1">
             <p className="text-[11px] uppercase tracking-widest text-slate-500 font-bold">Pré-visualização enviada</p>

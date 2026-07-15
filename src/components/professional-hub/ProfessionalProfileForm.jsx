@@ -18,6 +18,7 @@ import ImageCropModal from "../ui/ImageCropModal";
 import CenteredAvatarUpload from "../ui/CenteredAvatarUpload";
 import BreedSelector from "../professionals/BreedSelector";
 import HotelPartnersStep from "./HotelPartnersStep";
+import SaveConfirmation from "@/components/ui/SaveConfirmation";
 
 const STEPS_DEFAULT = ["Perfil", "Serviços", "Preferências", "Documentos"];
 const STEPS_HOTEL = ["Hotel", "Serviços", "Passeadores", "Documentos"];
@@ -167,6 +168,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
 
   const [formData, setFormData] = useState(() => buildInitialForm(user, professionalProfile));
   const [cropModal, setCropModal] = useState({ open: false, url: null, type: "photo" });
+  const [showSaved, setShowSaved] = useState(false);
 
   const set = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));
   const toggleArr = (key, val) => {
@@ -355,7 +357,11 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
       queryClient.invalidateQueries({ queryKey: ['myTrainerProfile'] });
       queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
       toast.success(isEditing ? "Perfil atualizado! Aguardando aprovação. ✅" : "Perfil submetido para aprovação! 🎉");
-      onDone();
+      if (isEditing) {
+        setShowSaved(true);
+      } else {
+        onDone();
+      }
     },
     onError: (e) => toast.error("Erro: " + e.message),
     onSettled: () => setLoading(false),
@@ -806,6 +812,10 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                   {submitMutation.isPending ? "A guardar..." : isEditing ? "Guardar Alterações ✅" : "Criar Perfil 🚀"}
                 </Button>
               </div>
+
+              {showSaved && (
+                <SaveConfirmation show={showSaved} message="Perfil guardado com sucesso! Aguardando aprovação. ✅" onDismiss={() => { setShowSaved(false); onDone(); }} duration={2500} />
+              )}
             </motion.div>
           )}
         </form>

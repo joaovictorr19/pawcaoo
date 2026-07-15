@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import CenteredAvatarUpload from "@/components/ui/CenteredAvatarUpload";
+import SaveConfirmation from "@/components/ui/SaveConfirmation";
 import SubscriptionManager from "../components/subscriptions/SubscriptionManager";
 import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 import AnimalManagerModal from "../components/profile/AnimalManagerModal";
@@ -44,6 +45,10 @@ export default function AccountSettings() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const coverInputRef = React.useRef(null);
+  const [showProfileSaved, setShowProfileSaved] = useState(false);
+  const [showPrefsSaved, setShowPrefsSaved] = useState(false);
+  const prevProfilePending = useRef(false);
+  const prevPrefsPending = useRef(false);
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -126,6 +131,20 @@ export default function AccountSettings() {
     confirmNewPassword: "",
     isSubmitting: false
   });
+
+  useEffect(() => {
+    if (prevProfilePending && !updateProfileMutation.isPending && updateProfileMutation.isSuccess && !updateProfileMutation.variables?.preferences) {
+      setShowProfileSaved(true);
+    }
+    prevProfilePending = updateProfileMutation.isPending;
+  }, [updateProfileMutation.isPending, updateProfileMutation.isSuccess, updateProfileMutation.variables]);
+
+  useEffect(() => {
+    if (prevPrefsPending && !updateProfileMutation.isPending && updateProfileMutation.isSuccess && updateProfileMutation.variables?.preferences) {
+      setShowPrefsSaved(true);
+    }
+    prevPrefsPending = updateProfileMutation.isPending;
+  }, [updateProfileMutation.isPending, updateProfileMutation.isSuccess, updateProfileMutation.variables]);
 
   useEffect(() => {
     if (user) {
@@ -635,6 +654,8 @@ export default function AccountSettings() {
                       <Save className="w-4 h-4 mr-2" />
                       Salvar Perfil Público
                     </Button>
+
+                    <SaveConfirmation show={showProfileSaved} message="Perfil público salvo com sucesso! ✅" onDismiss={() => setShowProfileSaved(false)} />
                   </CardContent>
                 </Card>
               )}
@@ -741,6 +762,8 @@ export default function AccountSettings() {
                       <Save className="w-4 h-4 mr-2" />
                       Salvar Dados Privados
                     </Button>
+
+                    <SaveConfirmation show={showProfileSaved} message="Dados privados salvos com sucesso! ✅" onDismiss={() => setShowProfileSaved(false)} />
                   </CardContent>
                 </Card>
               )}
@@ -826,6 +849,8 @@ export default function AccountSettings() {
                       <Save className="w-4 h-4 mr-2" />
                       Salvar Preferências
                     </Button>
+
+                    <SaveConfirmation show={showPrefsSaved} message="Preferências salvas com sucesso! ✅" onDismiss={() => setShowPrefsSaved(false)} />
                   </CardContent>
                 </Card>
               )}
