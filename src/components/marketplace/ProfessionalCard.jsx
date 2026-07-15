@@ -52,7 +52,7 @@ export function ProfessionalCard({ walker }) {
         <div className="flex items-center gap-2 flex-wrap">
           {profileData.isHotel && (
             <span className="bg-purple-600 text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shrink-0">
-              🏨 Hotel Canino
+              Hotel Canino
             </span>
           )}
           {!profileData.isHotel && profileData.isPawcao && (
