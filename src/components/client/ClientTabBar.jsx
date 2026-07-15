@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
-import { BarChart3, CalendarDays, PawPrint, Settings } from "lucide-react";
+import { BarChart3, CalendarDays, PawPrint, Settings, Bell } from "lucide-react";
 
-export function ClientTabBar({ active, onChange }) {
+export function ClientTabBar({ active, onChange, unreadCount = 0 }) {
   const tabs = [
     { id: "overview", label: "Resumo", icon: BarChart3 },
     { id: "bookings", label: "Reservas", icon: CalendarDays },
     { id: "dogs", label: "Animais", icon: PawPrint },
+    { id: "notifications", label: "Avisos", icon: Bell, badge: unreadCount },
     { id: "client_data", label: "Perfil", icon: Settings },
   ];
 
@@ -28,11 +29,18 @@ export function ClientTabBar({ active, onChange }) {
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
-                <tab.icon
-                  className={`w-5 h-5 mb-1 relative z-10 transition-colors ${
-                    isActive ? "text-orange-500" : "text-slate-500"
-                  }`}
-                />
+                <div className="relative">
+                  <tab.icon
+                    className={`w-5 h-5 mb-1 relative z-10 transition-colors ${
+                      isActive ? "text-orange-500" : "text-slate-500"
+                    }`}
+                  />
+                  {tab.badge > 0 && (
+                    <span className="absolute -top-1.5 -right-2 bg-orange-500 text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center z-20">
+                      {tab.badge > 9 ? '9+' : tab.badge}
+                    </span>
+                  )}
+                </div>
                 <span
                   className={`text-[9px] font-bold relative z-10 transition-colors whitespace-nowrap ${
                     isActive ? "text-white" : "text-slate-500"

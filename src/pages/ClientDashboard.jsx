@@ -9,10 +9,11 @@ import WalkReport from "@/components/client/WalkReport";
 import PendingHotelBookings from "@/components/client/PendingHotelBookings";
 import MyDogsManager from "@/components/profile/MyDogsManager";
 import ClientDataSettings from "@/components/client/ClientDataSettings";
+import ClientNotificationsWidget from "@/components/client/ClientNotificationsWidget";
 import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
 import {
   History, MapPin, Star, Shield, Award, ChevronRight,
-  CalendarDays, PawPrint, Clock, CheckCircle2, XCircle, AlertCircle, User
+  CalendarDays, PawPrint, Clock, CheckCircle2, XCircle, AlertCircle, User, Bell
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -102,6 +103,22 @@ export default function ClientDashboard() {
     enabled: !!selectedBooking?.id,
   });
 
+  const { data: myDogs = [] } = useQuery({
+    queryKey: ['clientDogs', user?.email],
+    queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const { data: unreadNotifications = [] } = useQuery({
+    queryKey: ['clientUnreadNotifs', user?.email],
+    queryFn: () => base44.entities.Notification.filter(
+      { recipient_email: user.email, is_read: false },
+      '-created_date', 50
+    ),
+    enabled: !!user?.email,
+    refetchInterval: 30000,
+  });
+
   const stats = useMemo(() => {
     const completed = allBookings.filter(b => b.status === 'completed');
     const totalDistance = completed.reduce((sum, b) => sum + (b.distance_km || 0), 0);
@@ -155,6 +172,9 @@ export default function ClientDashboard() {
             <motion.div key="ov" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
               {/* Reservas de hotel com pagamento pendente */}
               <PendingHotelBookings user={user} />
+
+              {/* Notificações */}
+              <ClientNotificationsWidget user={user} onSeeAll={() => navigate(createPageUrl('Notifications'))} />
 
               {/* Passeio ativo */}
               {stats.activeWalk && (
@@ -210,6 +230,32 @@ export default function ClientDashboard() {
                 ))}
               </div>
 
+              {/* Preview dos meus animais */}
+              {myDogs.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Meus Animais</p>
+                    <button onClick={() => setActiveTab('dogs')} className="text-xs text-orange-400 font-bold">Ver todos</button>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
+                    {myDogs.slice(0, 6).map(dog => (
+                      <button
+                        key={dog.id}
+                        onClick={() => navigate(createPageUrl(`AnimalProfile?id=${dog.id}`))}
+                        className="flex-shrink-0 flex flex-col items-center gap-1 w-16"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-white/5 overflow-hidden flex items-center justify-center">
+                          {dog.photo_url
+                            ? <img src={dog.photo_url} className="w-full h-full object-cover" alt={dog.dog_name} />
+                            : <span className="text-2xl">🐾</span>}
+                        </div>
+                        <p className="text-[10px] font-bold text-white truncate w-full text-center">{dog.dog_name}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Atalhos rápidos */}
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => setActiveTab('bookings')} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
@@ -220,7 +266,7 @@ export default function ClientDashboard() {
                 <button onClick={() => setActiveTab('dogs')} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
                   <PawPrint className="w-6 h-6 text-pink-400" />
                   <p className="text-sm font-bold text-white">Meus Animais</p>
-                  <p className="text-xs text-slate-500">Gerir perfis</p>
+                  <p className="text-xs text-slate-500">{myDogs.length} {myDogs.length === 1 ? 'registado' : 'registados'}</p>
                 </button>
                 <button onClick={() => navigate(createPageUrl('Home'))} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
                   <Award className="w-6 h-6 text-blue-400" />
@@ -284,6 +330,13 @@ export default function ClientDashboard() {
             </motion.div>
           )}
 
+          {/* ─── NOTIFICAÇÕES ─── */}
+          {activeTab === 'notifications' && (
+            <motion.div key="ntf" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <ClientNotificationsWidget user={user} onSeeAll={() => navigate(createPageUrl('Notifications'))} />
+            </motion.div>
+          )}
+
           {/* ─── PERFIL ─── */}
           {activeTab === 'client_data' && (
             <motion.div key="cd" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -294,7 +347,7 @@ export default function ClientDashboard() {
         </AnimatePresence>
       </main>
 
-      <ClientTabBar active={activeTab} onChange={setActiveTab} />
+      <ClientTabBar active={activeTab} onChange={setActiveTab} unreadCount={unreadNotifications.length} />
 
       {/* Modal de relatório */}
       {selectedBooking && (
