@@ -33,19 +33,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
   const [uploadingCover, setUploadingCover] = useState(false);
 
   const uploadImage = async (file) => {
-    const reader = new FileReader();
-    return new Promise((resolve, reject) => {
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
-        try {
-          const { file_url } = await base44.integrations.Core.UploadFile({ file: reader.result });
-          resolve(file_url);
-        } catch (err) {
-          reject(err);
-        }
-      };
-      reader.onerror = () => reject(new Error("Erro ao ler ficheiro"));
-    });
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    return file_url;
   };
 
   const handlePhotoUpload = async (e) => {
