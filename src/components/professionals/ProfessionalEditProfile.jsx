@@ -72,7 +72,7 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file: formData.coverFile });
         finalCoverUrl = file_url;
       }
-      await base44.auth.updateMe({
+      const updatePayload = {
         full_name: formData.full_name,
         photo_url: finalAvatarUrl,
         professional_profile: {
@@ -83,7 +83,13 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
           cover_url: finalCoverUrl,
           gallery: formData.gallery || []
         }
-      });
+      };
+      const impersonation = JSON.parse(localStorage.getItem('impersonation') || 'null');
+      if (impersonation?.targetUserId) {
+        await base44.functions.invoke('updateUserAsAdmin', { targetUserId: impersonation.targetUserId, updateData: updatePayload });
+      } else {
+        await base44.auth.updateMe(updatePayload);
+      }
       if (onUpdate) onUpdate();
       toast.success("Perfil atualizado!", { id: toastId });
       if (onClose) onClose();

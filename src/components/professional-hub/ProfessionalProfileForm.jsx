@@ -222,6 +222,14 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
 
   const submitMutation = useMutation({
     mutationFn: async (data) => {
+      const impersonation = JSON.parse(localStorage.getItem('impersonation') || 'null');
+      const updateMe = async (payload) => {
+        if (impersonation?.targetUserId) {
+          await base44.functions.invoke('updateUserAsAdmin', { targetUserId: impersonation.targetUserId, updateData: payload });
+        } else {
+          await base44.auth.updateMe(payload);
+        }
+      };
       const isHotel = professionalType === 'hotel';
       const isWalker = !isHotel && (professionalType === 'walker' || professionalType === 'both');
       const isTrainer = !isHotel && (professionalType === 'trainer' || professionalType === 'both');
@@ -275,7 +283,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
           const res = await base44.entities.WalkerProfile.create(hotelData);
           savedProfileId = res.id;
         }
-        await base44.auth.updateMe({ account_type: 'hotel', profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, full_name: data.name });
+        await updateMe({ account_type: 'hotel', profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, full_name: data.name });
         const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
         if (userProfiles.length > 0) await base44.entities.UserProfile.update(userProfiles[0].id, { full_name: data.name, profile_photo_url: data.photo_url, city: data.location });
         await base44.entities.ProfileEditRequest.create({ profile_id: savedProfileId, profile_type: 'hotel', professional_name: data.name, professional_email: user.email, requested_changes: { hotel_details: data.hotel_details }, original_data: professionalProfile || {}, status: 'pending' });
@@ -316,7 +324,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
         }
       }
 
-      await base44.auth.updateMe({ account_type: professionalType, profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, full_name: data.name });
+      await updateMe({ account_type: professionalType, profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, full_name: data.name });
 
       const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
       const profileUpdate = { full_name: data.name, profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, bio: data.bio };
