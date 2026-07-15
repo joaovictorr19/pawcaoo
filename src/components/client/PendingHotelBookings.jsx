@@ -1,10 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CreditCard, Loader2, AlertCircle, Hotel } from "lucide-react";
+import { CreditCard, Loader2, AlertCircle, Hotel, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+function useCountdown(expiresAt) {
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  useEffect(() => {
+    if (!expiresAt) return;
+    const calc = () => Math.max(0, Math.floor((new Date(expiresAt) - new Date()) / 1000));
+    setSecondsLeft(calc());
+    const t = setInterval(() => {
+      const s = calc();
+      setSecondsLeft(s);
+      if (s <= 0) clearInterval(t);
+    }, 1000);
+    return () => clearInterval(t);
+  }, [expiresAt]);
+  return secondsLeft;
+}
+
+function CountdownBadge({ expiresAt }) {
+  const seconds = useCountdown(expiresAt);
+  if (seconds <= 0) return null;
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  const isUrgent = seconds <= 60;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${isUrgent ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-amber-500/20 text-amber-400'}`}>
+      <Clock className="w-3 h-3" />
+      {mins}:{String(secs).padStart(2, '0')}
+    </span>
+  );
+}
 
 export default function PendingHotelBookings({ user }) {
   const [payingId, setPayingId] = useState(null);
@@ -81,8 +111,12 @@ export default function PendingHotelBookings({ user }) {
               <p className="text-xs text-slate-400 truncate">
                 {dogNames} · Check-in: {booking.checkin_date ? format(new Date(booking.checkin_date + 'T12:00:00'), "dd MMM", { locale: ptBR }) : '—'}
               </p>
-              <p className="text-xs text-amber-400 font-semibold mt-0.5">
-                ⚠️ Pagamento pendente · {booking.total_amount}€
+              <p className="text-xs text-amber-400 font-semibold mt-0.5 flex items-center gap-2 flex-wrap">
+                <span>⚠️ Pagamento pendente · {booking.total_amount}€</span>
+                {booking.payment_expires_at && <CountdownBadge expiresAt={booking.payment_expires_at} />}
+              </p>
+              <p className="text-[10px] text-red-400/80 mt-0.5">
+                Se não pagar em 5 min, a reserva é cancelada automaticamente.
               </p>
             </div>
             <div className="flex flex-col gap-1.5 flex-shrink-0">

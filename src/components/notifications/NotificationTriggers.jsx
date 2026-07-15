@@ -353,6 +353,80 @@ export default function NotificationTriggers({ user }) {
     return () => clearInterval(timer);
   }, [user?.email, notifPrefs]);
 
+  // ─── Reservas de hotel com pagamento pendente (5 min) — aviso global ─────────
+  useEffect(() => {
+    if (!user?.email) return;
+
+    let active = true;
+
+    const checkPendingHotelPayments = async () => {
+      try {
+        const pending = await base44.entities.HotelBooking.filter({
+          owner_email: user.email,
+          payment_status: 'pending',
+          status: 'pending'
+        }, '-created_date', 10);
+
+        if (!active || !pending || pending.length === 0) return;
+
+        for (const booking of pending) {
+          if (!booking.payment_expires_at) continue;
+          const expiresAt = new Date(booking.payment_expires_at);
+          const now = new Date();
+          if (expiresAt <= now) continue; // já expirou, o sistema cancela
+
+          const minutesLeft = Math.max(0, Math.ceil((expiresAt - now) / 60000));
+          const sessionKey = `hotel_pay_notified_${booking.id}`;
+
+          // Notificar apenas uma vez por sessão do navegador
+          if (sessionStorage.getItem(sessionKey)) continue;
+          sessionStorage.setItem(sessionKey, '1');
+
+          // Notificação in-app
+          if (allowInApp('payment')) {
+            try {
+              await base44.entities.Notification.create({
+                recipient_email: user.email,
+                title: '⏰ Pagamento pendente — reserva pode ser cancelada',
+                message: `Tens uma reserva no "${booking.hotel_name || 'Hotel'}" (${booking.total_amount}€) por pagar. Se não pagares em ${minutesLeft} min, a reserva será cancelada automaticamente.`,
+                type: 'payment',
+                is_read: false,
+                link: '/ClientDashboard',
+                icon: '⏰',
+                related_id: booking.id
+              });
+            } catch {}
+          }
+
+          // Browser push
+          if (allowPush('payment') && 'Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification('⏰ Pagamento pendente', {
+                body: `Reserva no ${booking.hotel_name || 'Hotel'} — ${minutesLeft} min restantes antes de cancelamento.`,
+                tag: `hotel_pay_${booking.id}`,
+                icon: '/logo.png',
+                badge: '/favicon.png',
+                requireInteraction: true
+              });
+            } catch {}
+          }
+        }
+      } catch (err) {
+        // silencioso
+      }
+    };
+
+    // Verificar imediatamente ao montar (utilizador pode ter voltado ao site)
+    checkPendingHotelPayments();
+    // Re-verificar a cada 30s para apanhar countdown
+    const interval = setInterval(checkPendingHotelPayments, 30000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [user?.email, notifPrefs]);
+
   // ─── Pedidos urgentes PawGo (EmergencyWalk) para profissionais ───────────────
   useEffect(() => {
     if (!user?.email) return;

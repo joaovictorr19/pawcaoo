@@ -184,6 +184,32 @@ Deno.serve(async (req) => {
       payment_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
     });
 
+    // ── Reservar vagas imediatamente (ficam ocupadas durante os 5 min de pagamento) ──
+    // Se não pagar a tempo, cancelExpiredHotelBookings liberta as vagas.
+    try {
+      const dogsCount = newBooking.total_dogs || 1;
+      const hotelProfilesForCap = await base44.asServiceRole.entities.WalkerProfile.filter({ id: hotel_profile_id });
+      if (hotelProfilesForCap.length > 0) {
+        const capProfile = hotelProfilesForCap[0];
+        const capHd = capProfile.hotel_details || {};
+        const capServices = (capHd.services || []).map(s => {
+          if (s.service_type === service_type) {
+            const current = s.capacity_available ?? 0;
+            return { ...s, capacity_available: Math.max(0, current - dogsCount) };
+          }
+          return s;
+        });
+        const topCurrent = capHd.capacity_available ?? 0;
+        const topUpdated = Math.max(0, topCurrent - dogsCount);
+        await base44.asServiceRole.entities.WalkerProfile.update(capProfile.id, {
+          hotel_details: { ...capHd, capacity_available: topUpdated, services: capServices }
+        });
+        console.log(`🏨 Vagas reservadas (pendente): -${dogsCount} para ${service_type}`);
+      }
+    } catch (capErr) {
+      console.error('Erro ao reservar vagas:', capErr.message);
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],

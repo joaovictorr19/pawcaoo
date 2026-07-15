@@ -522,8 +522,8 @@ async function handleCheckoutCompleted(base44, session) {
                     });
                     console.log('✅ HotelBooking confirmed after payment:', hotelBookingId);
 
-                    // ── Decrementar vagas disponíveis no serviço do hotel ──
-                    await adjustHotelCapacity(base44, hb.hotel_profile_id, hb.service_type, -(hb.total_dogs || 1));
+                    // ── Vagas já foram reservadas na criação da reserva pendente (createHotelCheckout) ──
+                    // Não decrementar novamente aqui para evitar dupla contagem.
 
                     // ── Creditar carteira do hotel com service_amount (pendente) ──
                     if (hb.hotel_email && (hb.service_amount || 0) > 0) {
