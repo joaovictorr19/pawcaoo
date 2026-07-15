@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
-  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck
+  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check
 } from "lucide-react";
 import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
 
@@ -31,6 +31,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     blocked_dates: hotelProfile?.hotel_details?.blocked_dates || [],
   });
   const [saving, setSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
 
@@ -144,6 +145,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
 
       onSave?.();
       queryClient.invalidateQueries(['walkerProfile']);
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2500);
     } catch (err) {
       toast.error("Erro ao guardar perfil");
     } finally {
@@ -358,14 +361,20 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5"
+              className={`rounded-lg gap-1.5 transition-colors ${
+                justSaved
+                  ? "bg-emerald-600 hover:bg-emerald-600 text-white"
+                  : "bg-slate-900 hover:bg-slate-800 text-white"
+              }`}
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
+              ) : justSaved ? (
+                <Check className="w-4 h-4" />
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              Guardar Alterações
+              {justSaved ? "Guardado!" : "Guardar Alterações"}
             </Button>
           </div>
         </div>
