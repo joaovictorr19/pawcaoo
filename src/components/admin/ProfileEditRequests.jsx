@@ -170,6 +170,15 @@ export default function ProfileEditRequests() {
     if (changes.location) {
       items.push({ icon: Tag, label: 'Localização', value: changes.location });
     }
+    if (changes.walker_name) {
+      items.push({ icon: Tag, label: 'Nome', value: changes.walker_name });
+    }
+    if (changes.phone) {
+      items.push({ icon: Tag, label: 'Telefone', value: changes.phone });
+    }
+    if (changes.hotel_details?.full_address) {
+      items.push({ icon: Tag, label: 'Morada', value: changes.hotel_details.full_address });
+    }
     if (items.length === 0) return <p className="text-sm text-slate-400">Sem detalhes disponíveis.</p>;
     return (
       <div className="space-y-2.5">
@@ -203,6 +212,9 @@ export default function ProfileEditRequests() {
           if (changes.services_offered) changes.services_offered.forEach(s => changeChips.push(s.service_name || 'Serviço'));
           if (changes.bio) changeChips.push('Descrição');
           if (changes.location) changeChips.push('Localização');
+          if (changes.walker_name) changeChips.push('Nome');
+          if (changes.phone) changeChips.push('Telefone');
+          if (changes.hotel_details?.full_address) changeChips.push('Morada');
 
           return (
             <div key={request.id} className="relative pl-8">

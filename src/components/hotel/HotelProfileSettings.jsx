@@ -74,27 +74,74 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const origName = hotelProfile.hotel_details?.hotel_name || hotelProfile.walker_name || '';
+      const origLocation = hotelProfile.location || '';
+      const origPhone = hotelProfile.phone || '';
+      const origAddress = hotelProfile.hotel_details?.full_address || '';
+
+      const nameChanged = (form.hotel_name || '') !== origName;
+      const locationChanged = (form.location || '') !== origLocation;
+      const phoneChanged = (form.phone || '') !== origPhone;
+      const addressChanged = (form.full_address || '') !== origAddress;
+      const needsApproval = nameChanged || locationChanged || phoneChanged || addressChanged;
+
+      // 1. Direct save: bio, photos, checkin settings — keep original name/address/location/phone
+      const directHotelDetails = {
+        ...hotelProfile.hotel_details,
+        hotel_name: origName,
+        hotel_description: form.hotel_description,
+        full_address: origAddress,
+        checkin_time: form.checkin_time,
+        checkout_time: form.checkout_time,
+        checkin_description: form.checkin_description,
+        hide_checkin_times: form.hide_checkin_times,
+        offers_pickup: form.offers_pickup,
+        blocked_dates: form.blocked_dates,
+      };
+
       await base44.entities.WalkerProfile.update(hotelProfile.id, {
-        walker_name: form.hotel_name || form.walker_name,
-        location: form.location,
-        phone: form.phone,
+        walker_name: origName,
+        location: origLocation,
+        phone: origPhone,
         bio: form.bio,
         photo_url: form.photo_url,
         cover_photo_url: form.cover_photo_url,
-        hotel_details: {
-          ...hotelProfile.hotel_details,
-          hotel_name: form.hotel_name,
-          hotel_description: form.hotel_description,
-          full_address: form.full_address,
-          checkin_time: form.checkin_time,
-          checkout_time: form.checkout_time,
-          checkin_description: form.checkin_description,
-          hide_checkin_times: form.hide_checkin_times,
-          offers_pickup: form.offers_pickup,
-          blocked_dates: form.blocked_dates,
-        },
+        hotel_details: directHotelDetails,
       });
-      toast.success("Perfil do hotel atualizado");
+
+      // 2. If name/address/contact changed → create approval request
+      if (needsApproval) {
+        const approvalHotelDetails = {
+          ...directHotelDetails,
+          hotel_name: form.hotel_name,
+          full_address: form.full_address,
+        };
+
+        await base44.entities.ProfileEditRequest.create({
+          profile_id: hotelProfile.id,
+          profile_type: 'hotel',
+          professional_name: origName,
+          professional_email: hotelProfile.created_by,
+          requested_changes: {
+            walker_name: form.hotel_name || form.walker_name,
+            location: form.location,
+            phone: form.phone,
+            hotel_details: approvalHotelDetails,
+          },
+          original_data: {
+            walker_name: origName,
+            location: origLocation,
+            phone: origPhone,
+            hotel_details: { hotel_name: origName, full_address: origAddress },
+          },
+          status: 'pending',
+        });
+
+        toast.success("Nome, morada e contacto enviados para aprovação do admin. Restantes dados guardados.");
+      } else {
+        toast.success("Perfil do hotel atualizado");
+      }
+
       onSave?.();
       queryClient.invalidateQueries(['walkerProfile']);
     } catch (err) {
