@@ -14,7 +14,7 @@ export default function HotelDigitalPass({ hotelProfile }) {
   const [showCustomize, setShowCustomize] = useState(false);
 
   // Dados do hotel
-  const hotelName = hotelProfile?.walker_name || 'Hotel Canino';
+  const hotelName = hotelProfile?.hotel_details?.hotel_name || hotelProfile?.walker_name || 'Hotel Canino';
   const hotelLocation = hotelProfile?.location || 'Portugal';
   const hotelPhoto = hotelProfile?.photo_url || hotelProfile?.cover_photo_url;
   const servicesCount = hotelProfile?.hotel_details?.services?.length || 0;
@@ -22,7 +22,8 @@ export default function HotelDigitalPass({ hotelProfile }) {
   // URL pública do perfil do hotel (para QR Code)
   const getPublicHotelUrl = () => {
     const baseUrl = window.location.origin;
-    return `${baseUrl}/UserProfile?email=${encodeURIComponent(hotelProfile?.created_by || 'hotel')}`;
+    const profileId = hotelProfile?.id;
+    return profileId ? `${baseUrl}/p/${profileId}` : baseUrl;
   };
 
   const hotelUrl = getPublicHotelUrl();
@@ -262,7 +263,7 @@ export default function HotelDigitalPass({ hotelProfile }) {
           <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-center">
             <div className="flex items-center gap-2 text-gray-300">
               <span className="text-[10px] font-semibold uppercase tracking-widest">
-                pawcao.net
+                pawcao.pt
               </span>
             </div>
           </div>
