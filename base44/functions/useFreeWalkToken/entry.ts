@@ -24,10 +24,10 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { booking_id, walker_email, service_amount } = body;
+    const { booking_id } = body;
 
-    if (!booking_id || !walker_email || !service_amount) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!booking_id) {
+      return Response.json({ error: 'Missing booking_id' }, { status: 400 });
     }
 
     // 0. Verificar propriedade da reserva (prevenir IDOR)
@@ -40,6 +40,15 @@ Deno.serve(async (req) => {
     const bookingOwnerEmail = booking.owner_email || booking.created_by;
     if (bookingOwnerEmail !== user.email) {
       return Response.json({ error: 'Forbidden: you do not own this booking' }, { status: 403 });
+    }
+
+    // SECURITY: Derive walker_email and service_amount from the booking record,
+    // never from user-supplied input, to prevent payment diversion.
+    const walker_email = booking.walker_email;
+    const service_amount = booking.service_amount;
+
+    if (!walker_email || !service_amount) {
+      return Response.json({ error: 'Booking is missing walker or service amount' }, { status: 400 });
     }
 
     // 1. Verificar subscrição do utilizador

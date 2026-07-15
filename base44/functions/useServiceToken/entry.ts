@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { booking_id, walker_email } = await req.json();
+    const { booking_id } = await req.json();
 
     if (!booking_id) {
       return Response.json({ error: 'Booking ID required' }, { status: 400 });
@@ -45,8 +45,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Tokens have expired' }, { status: 400 });
     }
 
-    // Resolve walker's Stripe account before deducting tokens
-    const resolvedWalkerEmail = walker_email || (await getBookingWalkerEmail(base44, booking_id));
+    // SECURITY: Always resolve walker email from the booking record in the DB,
+    // never from user-supplied input, to prevent payment diversion.
+    const resolvedWalkerEmail = await getBookingWalkerEmail(base44, booking_id);
 
     if (!resolvedWalkerEmail) {
       return Response.json({ error: 'Could not determine walker for this booking' }, { status: 400 });
