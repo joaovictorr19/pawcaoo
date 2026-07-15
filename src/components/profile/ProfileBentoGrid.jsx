@@ -265,30 +265,30 @@ export default function ProfileBentoGrid({
               </h3>
             </div>
             {loadingBadges ? (
-              <div className="flex gap-2.5 overflow-x-auto overflow-y-hidden py-1 px-0.5">
-                {[1, 2, 3, 4].map(i => <div key={i} className="w-16 h-16 bg-slate-100/70 rounded-xl flex-shrink-0 animate-pulse" />)}
+              <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-1 px-0.5">
+                {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-20 bg-slate-100/70 rounded-xl flex-shrink-0 animate-pulse" />)}
               </div>
             ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-2.5 overflow-x-auto overflow-y-hidden py-1 px-0.5">
+              <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-1 px-0.5">
                 {earnedBadges.slice(0, 10).map((badge) => (
-                  <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 flex flex-col items-center gap-1 w-16">
-                    <div className="relative rounded-xl p-1 bg-slate-50/80 shadow-sm">
-                      <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
-                      <div className="absolute inset-1 flex items-center justify-center bg-slate-900/85 text-white text-[8px] font-bold text-center leading-tight rounded-lg px-0.5 opacity-0 group-hover/badge:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
+                  <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 flex flex-col items-center gap-1.5 w-20">
+                    <div className="relative rounded-xl p-1.5 bg-slate-50/80 shadow-sm">
+                      <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
+                      <div className="absolute inset-1 flex items-center justify-center bg-slate-900/85 text-white text-[9px] font-bold text-center leading-tight rounded-lg px-0.5 opacity-0 group-hover/badge:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
                         {badge.name || badge.badge_id}
                       </div>
                     </div>
-                    <span className="text-[8px] font-bold text-slate-500 text-center leading-tight line-clamp-1 px-0.5">
+                    <span className="text-[9px] font-bold text-slate-500 text-center leading-tight line-clamp-1 px-0.5">
                       {badge.name || badge.badge_id}
                     </span>
                   </div>
                 ))}
                 {earnedBadges.length > 10 && (
-                  <div className="flex flex-col items-center justify-center gap-1 flex-shrink-0 w-16">
-                    <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center">
-                      <span className="text-teal-600 font-black text-xs">+{earnedBadges.length - 10}</span>
+                  <div className="flex flex-col items-center justify-center gap-1.5 flex-shrink-0 w-20">
+                    <div className="w-16 h-16 rounded-xl bg-teal-50 flex items-center justify-center">
+                      <span className="text-teal-600 font-black text-sm">+{earnedBadges.length - 10}</span>
                     </div>
-                    <p className="text-[8px] font-bold text-teal-600">ver mais</p>
+                    <p className="text-[9px] font-bold text-teal-600">ver mais</p>
                   </div>
                 )}
               </div>
