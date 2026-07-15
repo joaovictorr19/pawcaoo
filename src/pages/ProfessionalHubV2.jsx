@@ -28,6 +28,7 @@ import PendingApproval from "@/components/professional-hub/PendingApproval";
 import ProfessionalProfileForm from "@/components/professional-hub/ProfessionalProfileForm";
 import HotelManagementPanel from "@/components/professional-hub/HotelManagementPanel";
 import PendingRequestsList from "@/components/professional-hub/PendingRequestsList";
+import ProOverview from "@/components/professional-hub/ProOverview";
 
 const sizeLabels = { small: "Pequeno", medium: "Médio", large: "Grande", extra_large: "Extra Grande" };
 
@@ -442,7 +443,7 @@ export default function ProfessionalHubV2() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
       </div>
     );
@@ -477,36 +478,36 @@ export default function ProfessionalHubV2() {
   const isOnline = user?.pawgo_status?.is_online || false;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" style={{ paddingBottom: 'calc(130px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
+    <div className="min-h-screen bg-slate-950 text-white font-sans" style={{ paddingBottom: 'calc(130px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
       <IncomingRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}
         onDecline={handleDeclineRequest}
       />
       {/* 1. Header com saudação, status e stats rápidas */}
-      <header className="bg-white border-b border-slate-100 px-4 pt-20 pb-6 mb-6 shadow-sm">
+      <header className="px-4 pt-6 md:pt-20 pb-5">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}>
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
-            <h1 className="text-xl font-bold text-slate-900">Olá, {user?.full_name?.split(' ')[0] || 'Pro'} {isHotelProfile ? '🏨' : '🐾'}</h1>
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
+            <h1 className="text-lg font-black text-white">Olá, {user?.full_name?.split(' ')[0] || 'Pro'} {isHotelProfile ? '🏨' : '🐾'}</h1>
           </motion.div>
           <motion.div className="flex items-center gap-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
             <button
               onClick={() => toggleOnlineMutation.mutate(!isOnline)}
               className={`px-3 py-1.5 rounded-full border cursor-pointer active:scale-95 transition-all font-semibold text-xs ${
                 isOnline
-                  ? 'border-emerald-300 text-emerald-700 bg-emerald-50'
-                  : 'border-slate-200 text-slate-500 bg-slate-50'
+                  ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
+                  : 'border-white/10 text-slate-500 bg-slate-900'
               }`}
             >
               <span className="flex items-center gap-1.5">
-                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} />
                 {isOnline ? 'Online' : 'Offline'}
               </span>
             </button>
             <button
               onClick={() => navigate(createPageUrl('Notifications'))}
-              className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+              className="w-9 h-9 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center text-slate-400 hover:bg-slate-800 transition-colors"
             >
               <Bell size={16} />
             </button>
@@ -528,52 +529,22 @@ export default function ProfessionalHubV2() {
           )}
 
           {!isHotelProfile && activeTab === "overview" && (
-            <motion.div 
-              key="ov" 
-              initial={{ opacity: 0, y: 10 }} 
+            <motion.div
+              key="ov"
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="space-y-8"
+              className="space-y-4"
             >
-              <StatsSection user={user} professionalProfile={professionalProfile} />
-
-              <div className="flex gap-2 mb-4">
-                <Button
-                  onClick={() => setActiveTab('portfolio')}
-                  className="flex-1 bg-slate-900 text-white hover:bg-slate-800 font-semibold rounded-2xl h-11"
-                >
-                  Portfólio
-                </Button>
-                <Button
-                  onClick={() => navigate(createPageUrl(`UserProfile?id=${user?.id}`))}
-                  variant="outline"
-                  className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold rounded-2xl h-11"
-                >
-                  Ver Perfil
-                </Button>
-              </div>
-
-              <div className="flex gap-2 mb-6">
-                <Button
-                  onClick={() => base44.auth.logout()}
-                  variant="outline"
-                  className="flex-1 border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold rounded-2xl h-11"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sair
-                </Button>
-                <Button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  variant="outline"
-                  className="flex-1 border-red-200 text-red-500 hover:bg-red-50 font-semibold rounded-2xl h-11"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Eliminar
-                </Button>
-              </div>
-
-
+              <ProOverview
+                user={user}
+                professionalProfile={professionalProfile}
+                onLogout={() => {
+                  if (confirm('Tem certeza que deseja sair?')) base44.auth.logout();
+                }}
+                onDeleteAccount={() => setShowDeleteConfirm(true)}
+              />
             </motion.div>
           )}
 
@@ -754,9 +725,9 @@ export default function ProfessionalHubV2() {
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900 mb-2">⚠️ Eliminar Conta</h3>
-            <p className="text-slate-500 text-sm mb-6">
+          <div className="bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-xl border border-white/10">
+            <h3 className="text-lg font-bold text-white mb-2">⚠️ Eliminar Conta</h3>
+            <p className="text-slate-400 text-sm mb-6">
               Tem certeza que deseja eliminar sua conta? Esta ação é irreversível e todos os seus dados serão permanentemente apagados.
             </p>
             <div className="flex gap-3">

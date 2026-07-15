@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { tryDecodeQR, validateForBooking } from '@/utils/qrTokens';
 
-export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START' }) {
+export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START', scannerLabel }) {
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [manualCode, setManualCode] = useState('');
@@ -147,10 +147,11 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
     };
   }, [scanning, booking?.id, booking?.status, type]);
 
-  const buttonColor = type === 'START' 
-    ? 'bg-green-600 hover:bg-green-700' 
+  const buttonColor = type === 'START'
+    ? 'bg-green-600 hover:bg-green-700'
     : 'bg-blue-600 hover:bg-blue-700';
-  const buttonText = type === 'START' ? '🟢 Ler QR de Início' : '🔴 Ler QR de Finalização';
+  const defaultLabel = type === 'START' ? '🟢 Ler QR de Início' : '🔴 Ler QR de Finalização';
+  const buttonText = scannerLabel || defaultLabel;
 
   return (
     <>
@@ -198,7 +199,7 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
               </div>
 
               <p className="text-white font-bold mt-6 text-lg drop-shadow-lg">
-                Aponte para o QR Code do cliente
+                {scannerLabel || 'Aponte para o QR Code do cliente'}
               </p>
             </div>
 

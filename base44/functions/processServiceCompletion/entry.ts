@@ -136,7 +136,8 @@ Deno.serve(async (req) => {
     }
 
     const professionalEmail = service[config.professionalEmailField];
-    if (professionalEmail !== user.email && user.role !== 'admin') {
+    const clientEmail = service[config.ownerEmailField] || service.created_by;
+    if (professionalEmail !== user.email && clientEmail !== user.email && user.role !== 'admin') {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 

@@ -11,6 +11,7 @@ import MyDogsManager from "@/components/profile/MyDogsManager";
 import ClientDataSettings from "@/components/client/ClientDataSettings";
 import ClientNotificationsWidget from "@/components/client/ClientNotificationsWidget";
 import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
+import ClientFinalizeWalk from "@/components/client/ClientFinalizeWalk";
 import {
   History, MapPin, Star, Shield, Award, ChevronRight,
   CalendarDays, PawPrint, Clock, CheckCircle2, XCircle, AlertCircle, User, Bell
@@ -176,20 +177,9 @@ export default function ClientDashboard() {
               {/* Notificações */}
               <ClientNotificationsWidget user={user} onSeeAll={() => navigate(createPageUrl('Notifications'))} />
 
-              {/* Passeio ativo */}
+              {/* Passeio ativo — finalização via QR */}
               {stats.activeWalk && (
-                <Card className="bg-gradient-to-r from-green-600 to-emerald-600 border-0">
-                  <CardContent className="p-4 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold text-white/80 mb-0.5">🔴 Passeio Ativo</p>
-                      <p className="font-bold text-white">{stats.activeWalk.dog_name} está a passear!</p>
-                      <p className="text-xs text-white/80">Com {stats.activeWalk.walker_name}</p>
-                    </div>
-                    <Button size="sm" onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${stats.activeWalk.id}`))} className="bg-white text-green-700 hover:bg-white/90 font-bold whitespace-nowrap">
-                      Ver →
-                    </Button>
-                  </CardContent>
-                </Card>
+                <ClientFinalizeWalk booking={stats.activeWalk} />
               )}
 
               {/* Próxima reserva */}

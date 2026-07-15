@@ -35,6 +35,7 @@ import {
 import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { WalkScanner } from "@/components/booking/WalkScanner";
+import WalkerFinalizeQR from "@/components/service/WalkerFinalizeQR";
 
 export default function ActiveServiceCockpit({ bookingId, user }) {
   const navigate = useNavigate();
@@ -667,24 +668,29 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
           {/* End Walk Button */}
           <div className="mt-2">
             {isWalkerParticipant ? (
+              <WalkerFinalizeQR
+                booking={booking}
+                onClientNotified={() => {
+                  queryClient.invalidateQueries(['activeBooking']);
+                }}
+              />
+            ) : (
               <WalkScanner
                 booking={booking}
                 type="END"
+                scannerLabel="📱 Ler QR do Passeador"
                 onScanSuccess={async () => {
-                  await base44.entities.Booking.update(bookingId, { 
+                  await base44.entities.Booking.update(bookingId, {
                     distance_km: distanceKm
                   });
                   queryClient.invalidateQueries(['activeBooking']);
-                  navigate(createPageUrl("ProfessionalHubV2"));
+                  toast.success('✅ Pagamento transferido e passeio concluído!');
+                  navigate(createPageUrl("ClientDashboard"));
                 }}
                 onScanError={() => {
                   toast.error('Verificação falhou');
                 }}
               />
-            ) : (
-              <div className="w-full rounded-xl bg-blue-600 px-4 py-4 text-center text-sm font-semibold text-white">
-                QR de finalização disponível apenas para o cliente mostrar ao profissional no fim do passeio.
-              </div>
             )}
           </div>
         </div>
