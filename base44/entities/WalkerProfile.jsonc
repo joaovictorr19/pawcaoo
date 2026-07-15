@@ -86,6 +86,10 @@
           "service_name": {
             "type": "string"
           },
+          "icon": {
+            "type": "string",
+            "description": "Icon name from ServiceIconPicker"
+          },
           "service_type": {
             "type": "string",
             "enum": [

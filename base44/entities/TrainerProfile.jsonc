@@ -60,6 +60,10 @@
           "service_name": {
             "type": "string"
           },
+          "icon": {
+            "type": "string",
+            "description": "Icon name from ServiceIconPicker"
+          },
           "description": {
             "type": "string"
           },
