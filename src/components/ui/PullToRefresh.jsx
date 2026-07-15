@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-
-const PAWCAO_ICON_URL = 'https://media.base44.com/images/public/6907b3be1ec43db5676a2085/9e2cd9208_IconPawcao_1.png';
+import { PawPrint } from 'lucide-react';
 
 export default function PullToRefresh({ children, onRefresh }) {
   const queryClient = useQueryClient();
@@ -104,38 +103,47 @@ export default function PullToRefresh({ children, onRefresh }) {
       <div
         className="fixed left-1/2 -translate-x-1/2 z-[9999] pointer-events-none flex flex-col items-center"
         style={{
-          top: '60px',
-          opacity: distance > 8 || loading ? 1 : 0,
-          transform: `translateY(${Math.min(distance, 60)}px)`,
-          transition: isPullingRef.current ? 'opacity 0.15s' : 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)'
+          top: '52px',
+          opacity: distance > 6 || loading ? 1 : 0,
+          transform: `translateY(${Math.min(distance, 56)}px) scale(${0.6 + progress * 0.4})`,
+          transition: isPullingRef.current
+            ? 'opacity 0.15s'
+            : 'all 0.35s cubic-bezier(0.22, 1, 0.36, 1)'
         }}
       >
         <div
-          className="rounded-full flex items-center justify-center shadow-lg transition-all duration-200"
+          className="rounded-full flex items-center justify-center shadow-lg"
           style={{
-            width: '44px',
-            height: '44px',
-            background: reached ? '#0d9488' : 'rgba(255,255,255,0.95)',
-            border: reached ? '2px solid #0d9488' : '2px solid rgba(13,148,136,0.2)',
+            width: '40px',
+            height: '40px',
+            background: reached ? 'linear-gradient(135deg, #0d9488, #14b8a6)' : 'rgba(255,255,255,0.95)',
+            border: reached
+              ? '2px solid #0d9488'
+              : `2px solid rgba(13,148,136,${0.15 + progress * 0.3})`,
+            boxShadow: reached
+              ? '0 4px 20px rgba(13,148,136,0.35)'
+              : '0 2px 12px rgba(0,0,0,0.08)',
           }}
         >
-          <img
-            src={PAWCAO_ICON_URL}
-            alt="PawCão"
-            className="w-7 h-7 object-contain"
+          <PawPrint
+            size={20}
+            strokeWidth={2.5}
             style={{
-              transform: loading
-                ? 'rotate(360deg)'
-                : `rotate(${progress * 180}deg) scale(${0.7 + progress * 0.3})`,
-              transition: loading ? 'transform 0.8s linear infinite' : 'transform 0.15s ease-out',
-              filter: reached ? 'brightness(0) invert(1)' : 'none',
+              color: reached ? '#ffffff' : '#0d9488',
+              transform: loading ? 'rotate(360deg)' : `rotate(${progress * 165}deg)`,
+              transition: loading
+                ? 'transform 0.8s linear infinite'
+                : 'transform 0.2s ease-out, color 0.2s ease-out',
             }}
           />
         </div>
-        {distance > 25 && !loading && (
-          <p className="text-[10px] text-center mt-1 font-bold" style={{ color: reached ? '#0d9488' : '#94a3b8' }}>
+        {distance > 28 && !loading && (
+          <span
+            className="text-[10px] font-bold mt-1.5 whitespace-nowrap"
+            style={{ color: reached ? '#0d9488' : '#94a3b8' }}
+          >
             {reached ? 'Solte para atualizar' : 'Puxe para atualizar'}
-          </p>
+          </span>
         )}
       </div>
 
