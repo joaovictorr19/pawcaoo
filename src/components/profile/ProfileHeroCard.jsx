@@ -35,6 +35,14 @@ const SLOT_ICONS = {
   night: Moon,
 };
 
+// Premium time-of-day color themes — each slot evokes its real-world light
+const SLOT_THEMES = {
+  morning:   "bg-gradient-to-br from-amber-200 to-amber-400 shadow-md shadow-amber-200/70",
+  afternoon: "bg-gradient-to-br from-amber-400 to-orange-500 shadow-md shadow-orange-300/60",
+  evening:   "bg-gradient-to-br from-rose-400 to-orange-500 shadow-md shadow-rose-300/60",
+  night:     "bg-gradient-to-br from-indigo-900 to-slate-900 shadow-md shadow-indigo-800/60",
+};
+
 const ANIMAL_ICONS = {
   dogs: PawPrint,
   cats: Heart,
@@ -297,9 +305,9 @@ export default function ProfileHeroCard({
                 return (
                   <div key={slot} className="relative z-10 flex flex-col items-center gap-1.5 flex-1">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                         isActive
-                          ? 'bg-gradient-to-br from-sky-400 to-sky-500 shadow-md shadow-sky-300/50'
+                          ? SLOT_THEMES[slot]
                           : 'bg-slate-100'
                       }`}
                     >
