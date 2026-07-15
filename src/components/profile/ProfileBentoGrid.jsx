@@ -143,9 +143,9 @@ export default function ProfileBentoGrid({
           <div className="lg:col-span-2 space-y-3 md:space-y-4">
 
           {/* BADGES / ACHIEVEMENTS — Glass Premium selos */}
-          <ProfileSection delay={0.14} className="relative rounded-3xl p-5 md:p-6 shadow-lg border border-teal-100/50 bg-white/70 backdrop-blur-xl overflow-hidden">
+          <ProfileSection delay={0.14} className="relative rounded-2xl p-4 md:p-5 shadow-md border border-teal-200/40 bg-white/60 backdrop-blur-xl overflow-hidden">
             {/* Subtle teal glow accent */}
-            <div className="absolute -top-12 -right-12 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-teal-400/8 rounded-full blur-3xl pointer-events-none" />
             <div className="relative flex items-center justify-between mb-4">
               <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
                 <div className="w-7 h-7 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center shadow-sm shadow-teal-200">
@@ -165,9 +165,9 @@ export default function ProfileBentoGrid({
               <div className="flex gap-4 overflow-x-auto overflow-y-hidden py-3 px-1">
                 {earnedBadges.slice(0, 10).map((badge) => (
                   <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 flex flex-col items-center gap-1.5 w-20">
-                    <div className="relative rounded-2xl p-0.5 bg-gradient-to-br from-teal-200/40 to-white/20 shadow-sm">
+                    <div className="relative rounded-2xl p-1 bg-gradient-to-br from-teal-300/50 via-white/30 to-teal-200/30 shadow-md shadow-teal-100/50 ring-1 ring-teal-300/30">
                       <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
-                      <div className="absolute inset-0.5 flex items-center justify-center bg-slate-900/85 text-white text-[9px] font-bold text-center leading-tight rounded-xl px-1 opacity-0 group-hover/badge:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
+                      <div className="absolute inset-1 flex items-center justify-center bg-slate-900/85 text-white text-[9px] font-bold text-center leading-tight rounded-xl px-1 opacity-0 group-hover/badge:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
                         {badge.name || badge.badge_id}
                       </div>
                     </div>
