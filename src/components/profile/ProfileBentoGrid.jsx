@@ -1,5 +1,5 @@
 // ProfileBentoGrid - bento layout for user profile
-import React from "react";
+import React, { useState } from "react";
 import { ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, PawPrint, Zap, Flag } from "lucide-react";
 import ReviewCard from "@/components/reviews/ReviewCard";
 import ProfessionalReviewsSection from "@/components/reviews/ProfessionalReviewsSection";
@@ -16,6 +16,7 @@ import { getServiceIcon } from "@/components/professionals/ServiceIconPicker";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import PortfolioLightbox from "@/components/ui/PortfolioLightbox";
 
 const SERVICE_ICONS = {
   walk: PawPrint,
@@ -55,6 +56,11 @@ export default function ProfileBentoGrid({
   const { language } = useLanguage();
   const isProfessional = walkerProfile || trainerProfile;
   const [reportOpen, setReportOpen] = React.useState(false);
+  const [lightbox, setLightbox] = useState({ open: false, index: 0 });
+
+  const portfolioItems = (walkerProfile?.portfolio || []).filter(p => p.media_url);
+  const trainerPortfolioItems = (trainerProfile?.portfolio || []).filter(p => p.media_url);
+  const allPortfolioItems = [...portfolioItems, ...trainerPortfolioItems];
 
   return (
     <div className="min-h-screen bg-slate-50 pb-32 pt-2">
@@ -191,25 +197,34 @@ export default function ProfileBentoGrid({
           )}
 
           {/* PORTFOLIO - Medium card */}
-          {walkerProfile?.portfolio?.length > 0 && (
+          {allPortfolioItems.length > 0 && (
             <ProfileSection delay={0.26} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic flex items-center gap-1.5">
                 <ImageIcon className="w-3 h-3" /> {language === 'pt' ? 'Portefólio' : 'Portfolio'}
               </h3>
               <div className="grid grid-cols-4 gap-2">
-                {walkerProfile.portfolio.filter(p => p.media_url).slice(0, 4).map((item, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100">
-                    <img
-                      src={item.media_url}
-                      alt={item.title || 'foto'}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1558944351-c3ad969c1a63?w=300&h=300&fit=crop';
-                      }}
-                    />
-                  </div>
+                {allPortfolioItems.slice(0, 8).map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setLightbox({ open: true, index: idx })}
+                    className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 group cursor-pointer"
+                  >
+                    {item.media_type === 'video' ? (
+                      <video src={item.media_url} className="w-full h-full object-cover" muted />
+                    ) : (
+                      <img
+                        src={item.media_url}
+                        alt={item.title || 'foto'}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1558944351-c3ad969c1a63?w=300&h=300&fit=crop';
+                        }}
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  </button>
                 ))}
               </div>
             </ProfileSection>
@@ -343,6 +358,14 @@ export default function ProfileBentoGrid({
         reporterEmail={currentUser?.email}
         reporterName={currentUser?.full_name}
       />
+
+      {lightbox.open && allPortfolioItems.length > 0 && (
+        <PortfolioLightbox
+          items={allPortfolioItems}
+          initialIndex={lightbox.index}
+          onClose={() => setLightbox({ open: false, index: 0 })}
+        />
+      )}
     </div>
   );
 }

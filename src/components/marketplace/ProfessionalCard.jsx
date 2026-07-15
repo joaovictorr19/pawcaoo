@@ -3,9 +3,12 @@ import { ArrowUpRight } from "lucide-react";
 import { BadgeStatic } from "@/components/ui/BadgeStatic";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 export function ProfessionalCard({ walker }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   // 1. Memorizamos os dados da Wallet e Perfil para não recalcularem sempre
   const profileData = useMemo(() => ({
@@ -22,6 +25,27 @@ export function ProfessionalCard({ walker }) {
       onClick={() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         navigate(createPageUrl('UserProfile?id=' + walker.id));
+      }}
+      onMouseEnter={() => {
+        queryClient.prefetchQuery({
+          queryKey: ['profileUser', walker.id, null, null, false, undefined],
+          queryFn: async () => {
+            const [r1, r2, wm] = await Promise.allSettled([
+              base44.entities.UserProfile.filter({ id: walker.id }),
+              base44.entities.UserProfile.filter({ user_id: walker.id }),
+              base44.entities.WalkerProfile.get(walker.id),
+            ]);
+            let userProfile = null;
+            if (r1.status === 'fulfilled' && r1.value?.length > 0) userProfile = r1.value[0];
+            else if (r2.status === 'fulfilled' && r2.value?.length > 0) userProfile = r2.value[0];
+            else if (wm.status === 'fulfilled' && wm.value?.id) {
+              const w = wm.value;
+              userProfile = { id: w.id, user_id: w.user_id || walker.id, user_email: w.created_by, full_name: w.walker_name, profile_photo_url: w.photo_url, bio: w.bio, city: w.location, role: w.professional_type || 'walker', is_verified: w.verification_status === 'verified', is_virtual_profile: true };
+            }
+            return userProfile;
+          },
+          staleTime: 30 * 1000,
+        });
       }}>
       
       {/* 2. Container da Foto com KEY FIXA (Evita o sumiço) */}
