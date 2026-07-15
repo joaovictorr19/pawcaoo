@@ -215,6 +215,29 @@ export default function ProfileBentoGrid({
             </ProfileSection>
           )}
 
+          {/* DAYS OFF - Small card */}
+          {isProfessional && (
+            <ProfileSection delay={0.26} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic flex items-center gap-1.5">
+                <Moon className="w-3 h-3" /> {language === 'pt' ? 'Folgas' : 'Days Off'}
+              </h3>
+              {daysOff.length === 0 ? (
+                <p className="text-xs text-slate-400">{language === 'pt' ? 'Sem folgas futuras.' : 'No upcoming days off.'}</p>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {daysOff.slice(0, 4).map((d) => (
+                    <div key={d.id} className="flex items-center gap-1.5 bg-slate-50 rounded-lg px-2.5 py-1.5">
+                      <Moon className="w-3 h-3 text-red-400" />
+                      <span className="text-[10px] font-semibold text-slate-600">
+                        {new Date(d.date).toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ProfileSection>
+          )}
+
           {/* BADGES / ACHIEVEMENTS — Glass Premium selos */}
           <ProfileSection delay={0.26} className="relative rounded-xl p-3 md:p-3.5 shadow-sm bg-transparent overflow-hidden">
             <div className="relative flex items-center justify-between mb-3">
@@ -260,29 +283,6 @@ export default function ProfileBentoGrid({
               </p>
             )}
           </ProfileSection>
-
-          {/* DAYS OFF - Small card */}
-          {isProfessional && (
-            <ProfileSection delay={0.26} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic flex items-center gap-1.5">
-                <Moon className="w-3 h-3" /> {language === 'pt' ? 'Folgas' : 'Days Off'}
-              </h3>
-              {daysOff.length === 0 ? (
-                <p className="text-xs text-slate-400">{language === 'pt' ? 'Sem folgas futuras.' : 'No upcoming days off.'}</p>
-              ) : (
-                <div className="flex gap-2 flex-wrap">
-                  {daysOff.slice(0, 4).map((d) => (
-                    <div key={d.id} className="flex items-center gap-1.5 bg-slate-50 rounded-lg px-2.5 py-1.5">
-                      <Moon className="w-3 h-3 text-red-400" />
-                      <span className="text-[10px] font-semibold text-slate-600">
-                        {new Date(d.date).toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: 'short' })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ProfileSection>
-          )}
 
           {/* HOTEL DAILY ROUTINE */}
           {isHotel && walkerProfile?.hotel_details?.business_hours && (
