@@ -72,10 +72,9 @@ function BookingCard({ booking, onUpdate }) {
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white border rounded-xl overflow-hidden transition-shadow hover:shadow-sm ${
+      className={`w-full bg-white border rounded-xl overflow-hidden transition-shadow hover:shadow-sm ${
         booking.status === "checked_in" ? "border-emerald-200" : "border-slate-200"
       }`}
     >
