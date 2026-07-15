@@ -148,7 +148,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   const isTab4Active = isActive(createPageUrl("UserProfile"));
 
   const tabBase = "flex flex-col items-center justify-center gap-1 transition-all duration-200 flex-1 min-w-0 py-2 rounded-full";
-  const activeCls = "text-white";
+  const activeCls = "text-white bg-[#207373]";
   const inactiveCls = "text-slate-500";
 
   return (
@@ -177,7 +177,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
             handleTabClick(targetPath);
           }}
           className={`${tabBase} ${isTab1Active ? activeCls : inactiveCls}`}
-          style={isTab1Active ? { background: '#207373', boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
+          style={isTab1Active ? { boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
         >
           {isProf ? <LayoutDashboard size={18} /> : isTutor ? <LayoutDashboard size={18} /> : <Map size={18} />}
           <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">
@@ -195,7 +195,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
             }
           }}
           className={`${tabBase} ${isTab2Active ? activeCls : inactiveCls}`}
-          style={isTab2Active ? { background: '#207373', boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
+          style={isTab2Active ? { boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
         >
           <Calendar size={18} />
           <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">{isProf ? (language === 'pt' ? 'Agenda' : language === 'es' ? 'Calendario' : 'Calendar') : labelSchedule}</span>
@@ -222,7 +222,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
             handleTabClick(profilePath);
           }}
           className={`${tabBase} ${isTab4Active ? activeCls : inactiveCls}`}
-          style={isTab4Active ? { background: '#207373', boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
+          style={isTab4Active ? { boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
         >
           <User size={18} />
           <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">{labelProfile}</span>

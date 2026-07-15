@@ -178,31 +178,27 @@ export default function MobileHeader() {
                   {isHotel && (
                     <button
                       onClick={() => { navigate(createPageUrl('HotelDashboard')); setMenuOpen(false); }}
-                      className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('HotelDashboard') ? 'text-white' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
-                      style={isActive('HotelDashboard') ? { background: '#207373' } : {}}
+                      className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('HotelDashboard') ? 'text-white bg-[#207373]' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
                     >
                       {lbl('hotel')}
                     </button>
                   )}
                   <button
                     onClick={() => { navigate(createPageUrl('ProfessionalHubV2')); setMenuOpen(false); }}
-                    className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('ProfessionalHubV2') ? 'text-white' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
-                    style={isActive('ProfessionalHubV2') ? { background: '#207373' } : {}}
+                    className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('ProfessionalHubV2') ? 'text-white bg-[#207373]' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
                   >
                     {lbl('professional')}
                   </button>
                   <button
                     onClick={() => { navigate(createPageUrl('ClientDashboard')); setMenuOpen(false); }}
-                    className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('ClientDashboard') ? 'text-white' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
-                    style={isActive('ClientDashboard') ? { background: '#207373' } : {}}
+                    className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('ClientDashboard') ? 'text-white bg-[#207373]' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
                   >
                     {lbl('client')}
                   </button>
                   {isAdmin && (
                     <button
                       onClick={() => { navigate(createPageUrl('AdminDashboard')); setMenuOpen(false); }}
-                      className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('AdminDashboard') ? 'text-white' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
-                      style={isActive('AdminDashboard') ? { background: '#207373' } : {}}
+                      className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('AdminDashboard') ? 'text-white bg-[#207373]' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
                     >
                       {lbl('admin')}
                     </button>
@@ -223,7 +219,7 @@ export default function MobileHeader() {
               <span>{lbl('exit')}</span>
             </button>
           ) : (
-            <button onClick={() => base44.auth.redirectToLogin()} className="h-7 px-3 text-[10px] font-bold text-white rounded-full transition-transform active:scale-95" style={{ background: '#207373' }}>
+            <button onClick={() => base44.auth.redirectToLogin()} className="h-7 px-3 text-[10px] font-bold text-white rounded-full transition-transform active:scale-95 bg-[#207373]">
               {lbl('enter')}
             </button>
           )}
