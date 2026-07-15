@@ -149,8 +149,13 @@ export default function ProfessionalHubV2() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
-  const initialTab = tabParam === 'agenda' ? 'calendar' : tabParam === 'active' ? 'active' : tabParam === 'documents' ? 'documents' : tabParam === 'requests' ? 'requests' : 'overview';
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const validTabs = ['overview', 'calendar', 'requests', 'active', 'documents', 'wallet', 'services', 'portfolio', 'reviews', 'finances', 'profile', 'tools'];
+  const mapTab = (t) => {
+    if (t === 'agenda') return 'calendar';
+    if (!t) return 'overview';
+    return validTabs.includes(t) ? t : 'overview';
+  };
+  const [activeTab, setActiveTab] = useState(mapTab(tabParam));
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -170,11 +175,8 @@ export default function ProfessionalHubV2() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const t = params.get('tab');
-    if (t === 'agenda') setActiveTab('calendar');
-    else if (t === 'requests') setActiveTab('requests');
-    else if (t === 'active') setActiveTab('active');
-    else if (t === 'documents') setActiveTab('documents');
-  }, []);
+    setActiveTab(mapTab(t));
+  }, [location.search]);
 
   useEffect(() => {
     scrollToTop();
