@@ -20,17 +20,20 @@ export function CreateBadgeModal({ onClose, onSuccess }) {
 
     setIsLoading(true);
     try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: newBadge.image_file });
+
       const badge = await base44.entities.BadgeDefinition.create({
         name: newBadge.name,
         description: newBadge.description,
         rarity: newBadge.rarity,
-        image_png_file: newBadge.image_file,
+        image_png_file: file_url,
+        image_url: file_url,
         category: 'special',
         xp: 0,
         icon: '🏆'
       });
       
-      toast.success("Emblema real criado e hospedado!");
+      toast.success("Emblema criado e hospedado com sucesso!");
       setNewBadge({ name: '', description: '', rarity: 'common', image_file: null });
       if (onSuccess) onSuccess(badge);
       if (onClose) onClose();
