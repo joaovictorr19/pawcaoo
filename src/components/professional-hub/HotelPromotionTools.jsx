@@ -30,7 +30,7 @@ export default function HotelPromotionTools({ user, professionalProfile }) {
     "Hotel";
 
   const profileUrl = profileId
-    ? `https://pawcao.pt/p/${profileId}`
+    ? `${window.location.origin}/p/${profileId}`
     : "";
 
   const copyLink = () => {

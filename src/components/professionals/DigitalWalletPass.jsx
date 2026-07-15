@@ -26,7 +26,8 @@ export default function DigitalWalletPass({
   const levelColor = getTierColor(tier.level);
 
   const getPublicProfileUrl = () => {
-    return `https://pawcao.pt/p/${user?.id}`;
+    const profileId = user?.id || user?.user_id;
+    return profileId ? `${window.location.origin}/p/${profileId}` : '';
   };
 
   const profileUrl = getPublicProfileUrl();

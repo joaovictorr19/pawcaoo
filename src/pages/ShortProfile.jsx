@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 
 /**
  * ShortProfile — Rota curta /p/:id que redireciona para o perfil completo
@@ -7,13 +6,8 @@ import { useNavigate, useParams } from "react-router-dom";
  */
 export default function ShortProfile() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (id) {
-      navigate(`/UserProfile?id=${id}`, { replace: true });
-    }
-  }, [id]);
+  if (!id) return null;
 
-  return null;
+  return <Navigate to={`/UserProfile?id=${id}`} replace />;
 }
