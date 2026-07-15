@@ -8,6 +8,7 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { getEffectiveCommissionRate } from '@/utils/commission';
 import HotelRangeCalendar from '@/components/hotel/HotelRangeCalendar';
 
 export default function HotelBookingModal({ isOpen, onClose, hotel, selectedService, currentUser, initialDate, initialCheckout }) {
@@ -67,8 +68,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
   const totalNights = checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
   const perDogPerNight = selectedService.price_per_day || 0;
+  const commissionRate = getEffectiveCommissionRate(hotel);
   const serviceAmount = Math.round(perDogPerNight * totalNights * selectedDogs.length * 100) / 100;
-  const platformFee = Math.round(serviceAmount * 0.1 * 100) / 100;
+  const platformFee = Math.round(serviceAmount * (commissionRate / 100) * 100) / 100;
   const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
 
   const handleCreateBooking = async () => {
@@ -642,7 +644,11 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         <span className="font-bold text-slate-700">{serviceAmount}€</span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span className="text-slate-500">Taxa de plataforma (10%)</span>
+                        <span className="text-slate-500">
+                          {commissionRate === 0
+                            ? 'Taxa de plataforma (Isento)'
+                            : `Taxa de plataforma (${commissionRate}%)`}
+                        </span>
                         <span className="font-bold text-amber-600">{platformFee}€</span>
                       </div>
                     </div>
