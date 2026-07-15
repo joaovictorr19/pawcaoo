@@ -40,24 +40,18 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
     }
   };
 
-  const isHotel = professionalProfile?.professional_type === "hotel";
-
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-black text-white mb-2">Ferramentas Pro</h3>
 
-      {isHotel && (
-        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-teal-500/10 rounded-xl border border-teal-500/20">
-          <Megaphone className="w-4 h-4 text-teal-400 flex-shrink-0" />
-          <span className="text-xs font-bold text-teal-300">
-            Ferramentas de Divulgação do Hotel
-          </span>
-        </div>
-      )}
+      <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-teal-500/10 rounded-xl border border-teal-500/20">
+        <Megaphone className="w-4 h-4 text-teal-400 flex-shrink-0" />
+        <span className="text-xs font-bold text-teal-300">
+          Ferramentas de Divulgação
+        </span>
+      </div>
 
-      {isHotel && (
-        <HotelPromotionTools user={user} professionalProfile={professionalProfile} />
-      )}
+      <HotelPromotionTools user={user} professionalProfile={professionalProfile} />
 
       <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
         <CardContent className="p-5">

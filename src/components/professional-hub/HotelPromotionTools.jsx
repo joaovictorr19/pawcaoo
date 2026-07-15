@@ -96,7 +96,7 @@ export default function HotelPromotionTools({ user, professionalProfile }) {
             </div>
             <div className="flex-1">
               <h4 className="font-bold text-white text-sm">
-                Página Pública do Hotel
+                Página Pública do Perfil
               </h4>
               <p className="text-xs text-slate-400">
                 O link completo do seu perfil para divulgar
