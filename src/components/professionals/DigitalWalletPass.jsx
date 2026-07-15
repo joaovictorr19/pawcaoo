@@ -26,12 +26,11 @@ export default function DigitalWalletPass({
   const levelColor = getTierColor(tier.level);
 
   const getPublicProfileUrl = () => {
-    const baseUrl = window.location.origin;
     const profileId = user?.id;
     if (profileType === "trainer") {
-      return `${baseUrl}/TrainerDetails?id=${profileId}`;
+      return `https://pawcao.net/TrainerDetails?id=${profileId}`;
     }
-    return `${baseUrl}/WalkerDetails?id=${profileId}`;
+    return `https://pawcao.net/WalkerDetails?id=${profileId}`;
   };
 
   const profileUrl = getPublicProfileUrl();
