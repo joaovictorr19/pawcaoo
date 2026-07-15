@@ -3,19 +3,28 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Check, Trash2, X, Calendar, CreditCard, Zap, MapPin, AlertTriangle, Megaphone, CheckCheck } from "lucide-react";
+import { Bell, Check, X, Calendar, CreditCard, Zap, AlertTriangle, Megaphone, CheckCheck } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 
 const TYPE_CONFIG = {
-  pawgo_request: { icon: Zap, color: 'text-orange-50', bg: 'from-orange-400 to-orange-500', label: 'PawGo' },
-  walk_update: { icon: MapPin, color: 'text-sky-50', bg: 'from-sky-400 to-cyan-500', label: 'Passeio' },
   booking: { icon: Calendar, color: 'text-indigo-50', bg: 'from-indigo-400 to-violet-500', label: 'Reserva' },
   payment: { icon: CreditCard, color: 'text-emerald-50', bg: 'from-emerald-400 to-teal-500', label: 'Pagamento' },
+  review: { icon: Check, color: 'text-amber-50', bg: 'from-amber-400 to-orange-500', label: 'Avaliação' },
   alert: { icon: AlertTriangle, color: 'text-red-50', bg: 'from-red-400 to-rose-500', label: 'Alerta' },
   system: { icon: Megaphone, color: 'text-purple-50', bg: 'from-purple-400 to-fuchsia-500', label: 'Sistema' },
+  promo: { icon: Zap, color: 'text-orange-50', bg: 'from-orange-400 to-amber-500', label: 'Promo' },
 };
+
+function isHotelRelated(n) {
+  const text = `${n.title || ''} ${n.message || ''}`.toLowerCase();
+  return n.icon === '🏨' ||
+    n.link === '/HotelDashboard' ||
+    text.includes('hotel') ||
+    text.includes('reserva no') ||
+    (n.related_id || '').startsWith('hotel_');
+}
 
 function formatDate(dateStr) {
   const d = new Date(dateStr);
@@ -90,13 +99,14 @@ export default function NotificationArea({ isOpen, onClose }) {
   const filters = [
     { key: "all", label: "Todas" },
     { key: "unread", label: "Não lidas" },
-    { key: "pawgo_request", label: "PawGo" },
     { key: "booking", label: "Reservas" },
+    { key: "hotel", label: "Hotel" },
     { key: "payment", label: "Pagamentos" },
   ];
 
   const filtered = filter === "all" ? notifications
     : filter === "unread" ? notifications.filter(n => !n.is_read)
+    : filter === "hotel" ? notifications.filter(n => isHotelRelated(n))
     : notifications.filter(n => n.type === filter);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -209,7 +219,7 @@ export default function NotificationArea({ isOpen, onClose }) {
                       <Icon className={`w-4 h-4 ${cfg.color}`} />
                     </div>
 
-                    <div className="flex-1 min-w-0 pr-6">
+                    <div className="flex-1 min-w-0 pr-12">
                       <div className="flex justify-between items-start gap-1">
                         <p className={`text-xs font-bold leading-tight truncate ${!n.is_read ? 'text-slate-900' : 'text-slate-600'}`}>
                           {n.title}
