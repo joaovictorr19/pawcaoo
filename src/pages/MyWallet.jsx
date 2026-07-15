@@ -1,23 +1,37 @@
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from "recharts";
 import {
   Wallet, Zap, Star, TrendingUp, Clock, ArrowUpRight,
-  Gift, Dog, CreditCard, DollarSign, Plus, Loader2
+  Gift, Dog, CreditCard, DollarSign, Plus, Loader2,
+  Banknote, PiggyBank, Receipt
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { motion } from "framer-motion";
 import { format, eachMonthOfInterval } from "date-fns";
 import { pt } from "date-fns/locale";
 import { toast } from "sonner";
+import BankCard from "@/components/wallet/BankCard";
+import TransactionItem from "@/components/wallet/TransactionItem";
+import WithdrawalHistory from "@/components/wallet/WithdrawalHistory";
+
+const TX_FILTERS = [
+  { key: "all", label: "Todas" },
+  { key: "incoming", label: "Entradas" },
+  { key: "outgoing", label: "Saídas" },
+  { key: "tokens", label: "Tokens" },
+  { key: "points", label: "Pontos" },
+];
+
+const INCOMING_TYPES = ["cashback_earned", "token_credited", "points_earned", "escrow_released", "walker_payment_pending", "walker_payment_completed"];
+const OUTGOING_TYPES = ["cashback_used", "token_used", "token_expired", "points_redeemed", "escrow_reserved", "surcharge_paid"];
+const TOKEN_TYPES = ["token_credited", "token_used", "token_expired"];
+const POINT_TYPES = ["points_earned", "points_redeemed"];
 
 export default function MyWallet() {
   const navigate = useNavigate();
@@ -27,6 +41,7 @@ export default function MyWallet() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [credits, setCredits] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [txFilter, setTxFilter] = useState("all");
 
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
@@ -38,18 +53,20 @@ export default function MyWallet() {
     queryFn: async () => {
       if (!user?.email) return null;
       const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
-      const savedWallet = wallets[0] || null;
+      const w = wallets[0] || null;
       return {
         user_email: user.email,
-        cashback_balance: savedWallet?.cashback_balance || 0,
-        service_tokens: savedWallet?.service_tokens || 0,
-        total_points: savedWallet?.total_points || 0,
-        escrow_balance: savedWallet?.escrow_balance || 0,
-        pending_walker_payments: savedWallet?.pending_walker_payments || 0,
-        available_balance: savedWallet?.available_balance || 0,
-        pending_balance: savedWallet?.pending_balance || 0,
-        total_earnings: savedWallet?.total_earnings || 0,
-        tokens_expiry_date: savedWallet?.tokens_expiry_date || null,
+        cashback_balance: w?.cashback_balance || 0,
+        service_tokens: w?.service_tokens || 0,
+        total_points: w?.total_points || 0,
+        escrow_balance: w?.escrow_balance || 0,
+        pending_walker_payments: w?.pending_walker_payments || 0,
+        available_balance: w?.available_balance || 0,
+        pending_balance: w?.pending_balance || 0,
+        total_earnings: w?.total_earnings || 0,
+        tokens_expiry_date: w?.tokens_expiry_date || null,
+        last_renewal_date: w?.last_renewal_date || null,
+        cycle_start_date: w?.cycle_start_date || null,
       };
     },
     enabled: !!user?.email
@@ -57,7 +74,7 @@ export default function MyWallet() {
 
   const { data: transactions = [] } = useQuery({
     queryKey: ['walletTransactions', user?.email],
-    queryFn: () => base44.entities.WalletTransaction.filter({ user_email: user.email }, '-created_date', 50),
+    queryFn: () => base44.entities.WalletTransaction.filter({ user_email: user.email }, '-created_date', 100),
     enabled: !!user?.email
   });
 
@@ -112,6 +129,12 @@ export default function MyWallet() {
     enabled: !!user?.id,
   });
 
+  const { data: withdrawals = [] } = useQuery({
+    queryKey: ['myWithdrawals', user?.email],
+    queryFn: () => base44.entities.IbanWithdrawalRequest.filter({ user_email: user.email }, '-created_date', 20),
+    enabled: !!user?.email,
+  });
+
   const metrics = useMemo(() => {
     const allBookings = [...walkerBookings, ...trainerBookings];
     const avgRating = reviews.length > 0
@@ -138,17 +161,25 @@ export default function MyWallet() {
       month, earnings: parseFloat(amount.toFixed(2))
     }));
 
+    const thisMonth = now.getMonth();
+    const thisMonthEarnings = allBookings
+      .filter(b => b.completed_date && new Date(b.completed_date).getMonth() === thisMonth)
+      .reduce((sum, b) => sum + (b.service_amount || 0), 0);
+
     return {
       totalActivities: allBookings.length,
       avgRating,
       monthlyChartData,
-      totalEarnings: monthlyChartData.reduce((sum, m) => sum + m.earnings, 0).toFixed(2)
+      totalEarnings: monthlyChartData.reduce((sum, m) => sum + m.earnings, 0).toFixed(2),
+      thisMonthEarnings
     };
   }, [walkerBookings, trainerBookings, reviews]);
 
   const clientFunds = wallet?.cashback_balance || 0;
-  const professionalPending = (wallet?.available_balance || 0) + (wallet?.pending_walker_payments || 0);
+  const clientTotalValue = clientFunds + (wallet?.service_tokens || 0) * 12 + (wallet?.total_points || 0) * 0.01;
+  const professionalAvailable = (wallet?.available_balance || 0) + (wallet?.pending_walker_payments || 0);
   const professionalPendingHotel = wallet?.pending_balance || 0;
+  const professionalTotalBalance = professionalAvailable + professionalPendingHotel;
 
   const addCreditsMutation = useMutation({
     mutationFn: async (amount) => {
@@ -184,65 +215,108 @@ export default function MyWallet() {
       setShowWithdraw(false);
       setWithdrawAmount('');
       queryClient.invalidateQueries({ queryKey: ['myWallet'] });
+      queryClient.invalidateQueries({ queryKey: ['myWithdrawals'] });
     },
     onError: (error) => toast.error(error.message)
   });
 
   const isProfessional = walkerProfile || trainerProfile;
 
+  const filteredTx = useMemo(() => {
+    if (txFilter === "all") return transactions;
+    if (txFilter === "incoming") return transactions.filter(t => INCOMING_TYPES.includes(t.transaction_type));
+    if (txFilter === "outgoing") return transactions.filter(t => OUTGOING_TYPES.includes(t.transaction_type));
+    if (txFilter === "tokens") return transactions.filter(t => TOKEN_TYPES.includes(t.transaction_type));
+    if (txFilter === "points") return transactions.filter(t => POINT_TYPES.includes(t.transaction_type));
+    return transactions;
+  }, [transactions, txFilter]);
+
   if (loadingUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24 md:pb-8">
-      {/* Sticky header bar */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      {/* Sticky header */}
+      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center">
-            <Wallet className="w-4 h-4 text-orange-500" />
+          <div className="w-8 h-8 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center">
+            <Wallet className="w-4 h-4 text-teal-600" />
           </div>
           <h1 className="text-base font-bold text-slate-900">Minha Wallet</h1>
         </div>
       </div>
-      <div className="max-w-3xl mx-auto px-4 pt-5">
 
-        {/* Tabs */}
+      <div className="max-w-3xl mx-auto px-4 pt-5">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full mb-5 h-10 bg-white border border-slate-200 rounded-xl shadow-sm" style={{ gridTemplateColumns: isProfessional ? '1fr 1fr' : '1fr' }}>
-            <TabsTrigger value="client" className="rounded-lg text-sm font-medium data-[state=active]:bg-orange-500 data-[state=active]:text-white">Cliente</TabsTrigger>
-            {isProfessional && <TabsTrigger value="pro" className="rounded-lg text-sm font-medium data-[state=active]:bg-orange-500 data-[state=active]:text-white">Profissional</TabsTrigger>}
+          <TabsList className="grid w-full mb-5 h-11 bg-white border border-slate-200 rounded-xl shadow-sm" style={{ gridTemplateColumns: isProfessional ? '1fr 1fr' : '1fr' }}>
+            <TabsTrigger value="client" className="rounded-lg text-sm font-semibold data-[state=active]:bg-teal-600 data-[state=active]:text-white">
+              <Wallet className="w-3.5 h-3.5 mr-1.5" /> Cliente
+            </TabsTrigger>
+            {isProfessional && (
+              <TabsTrigger value="pro" className="rounded-lg text-sm font-semibold data-[state=active]:bg-teal-600 data-[state=active]:text-white">
+                <Banknote className="w-3.5 h-3.5 mr-1.5" /> Profissional
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* ── CLIENT TAB ── */}
           <TabsContent value="client" className="space-y-5">
+            {/* Main bank card */}
+            <BankCard
+              balance={`€${clientFunds.toFixed(2)}`}
+              label="PawCão Wallet"
+              subtitle="Saldo Disponível"
+              icon={Wallet}
+              variant="teal"
+              footer={
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-white/70">Valor total estimado</span>
+                  <span className="font-bold text-white">€{clientTotalValue.toFixed(2)}</span>
+                </div>
+              }
+            />
 
-            {/* Balances */}
+            {/* Balance breakdown */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: "Tokens", value: wallet?.service_tokens || 0, icon: <Zap className="w-4 h-4 text-orange-500" />, bg: "bg-orange-50 border-orange-100", val: null,
+                { label: "Tokens", value: wallet?.service_tokens || 0, icon: <Zap className="w-4 h-4 text-orange-500" />, bg: "bg-orange-50 border-orange-100",
                   sub: wallet?.tokens_expiry_date
                     ? (new Date(wallet.tokens_expiry_date) < new Date() ? 'Expirado' : `Expira ${format(new Date(wallet.tokens_expiry_date), 'dd/MM')}`)
                     : 'Passeios grátis' },
-                { label: "Saldo", value: `€${clientFunds.toFixed(2)}`, icon: <Wallet className="w-4 h-4 text-blue-500" />, bg: "bg-blue-50 border-blue-100", sub: "Para serviços" },
+                { label: "Cashback", value: `€${clientFunds.toFixed(2)}`, icon: <PiggyBank className="w-4 h-4 text-blue-500" />, bg: "bg-blue-50 border-blue-100", sub: "Para serviços" },
                 { label: "Pontos", value: (wallet?.total_points || 0).toLocaleString(), icon: <Star className="w-4 h-4 text-yellow-500" />, bg: "bg-yellow-50 border-yellow-100", sub: "Troque por prémios" },
               ].map(item => (
-                <div key={item.label} className={`${item.bg} border rounded-2xl p-4`}>
-                  <div className="mb-3">{item.icon}</div>
+                <div key={item.label} className={`${item.bg} border rounded-2xl p-3.5`}>
+                  <div className="mb-2">{item.icon}</div>
                   <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{item.label}</p>
-                  <p className="text-xl font-bold text-slate-900 mt-0.5">{item.value}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">{item.sub}</p>
+                  <p className="text-lg font-bold text-slate-900 mt-0.5">{item.value}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{item.sub}</p>
                 </div>
               ))}
             </div>
 
+            {/* Escrow info */}
+            {(wallet?.escrow_balance || 0) > 0 && (
+              <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <PiggyBank className="w-5 h-5 text-blue-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-slate-700">Cofre de Reserva</p>
+                  <p className="text-xs text-slate-400">Valor cativo para pagar passeadores</p>
+                </div>
+                <p className="text-lg font-bold text-blue-600">€{(wallet?.escrow_balance || 0).toFixed(2)}</p>
+              </div>
+            )}
+
             {/* Actions */}
             <div className="grid grid-cols-3 gap-2">
-              <Button onClick={() => setShowAddCredits(true)} className="h-11 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold text-sm">
+              <Button onClick={() => setShowAddCredits(true)} className="h-11 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-semibold text-sm">
                 <Plus className="w-4 h-4 mr-1" /> Carregar
               </Button>
               <Button onClick={() => navigate(createPageUrl('Home'))} variant="outline" className="h-11 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-semibold text-sm">
@@ -256,29 +330,40 @@ export default function MyWallet() {
             {/* Transactions */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-slate-100">
-                <h3 className="font-semibold text-slate-800 text-sm">Transações Recentes</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                    <Receipt className="w-4 h-4 text-slate-400" />
+                    Transações
+                  </h3>
+                </div>
+                {/* Filter pills */}
+                <div className="flex gap-1.5 overflow-x-auto">
+                  <div className="flex gap-1.5 bg-slate-50 border border-slate-200 rounded-full p-1">
+                    {TX_FILTERS.map(f => (
+                      <button
+                        key={f.key}
+                        onClick={() => setTxFilter(f.key)}
+                        className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                          txFilter === f.key
+                            ? "bg-teal-600 text-white shadow-sm"
+                            : "text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-              {transactions.length === 0 ? (
+              {filteredTx.length === 0 ? (
                 <div className="p-10 text-center">
                   <Wallet className="w-10 h-10 mx-auto mb-3 text-slate-200" />
-                  <p className="text-sm text-slate-400">Nenhuma transação ainda</p>
+                  <p className="text-sm text-slate-400">Nenhuma transação encontrada</p>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-50">
-                  {transactions.slice(0, 8).map((tx) => (
-                    <div key={tx.id} className="px-5 py-3.5 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-slate-800">{tx.description}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          {format(new Date(tx.created_date), "dd/MM/yyyy HH:mm", { locale: pt })}
-                        </p>
-                      </div>
-                      {tx.amount > 0 && (
-                        <p className={`font-semibold text-sm ${['cashback_earned', 'token_credited', 'points_earned'].includes(tx.transaction_type) ? 'text-emerald-600' : 'text-slate-600'}`}>
-                          {['cashback_earned', 'token_credited', 'points_earned'].includes(tx.transaction_type) ? '+' : '-'}€{tx.amount.toFixed(2)}
-                        </p>
-                      )}
-                    </div>
+                <div className="divide-y divide-slate-50 max-h-[400px] overflow-y-auto">
+                  {filteredTx.slice(0, 30).map((tx) => (
+                    <TransactionItem key={tx.id} tx={tx} />
                   ))}
                 </div>
               )}
@@ -288,53 +373,80 @@ export default function MyWallet() {
           {/* ── PRO TAB ── */}
           {isProfessional && (
             <TabsContent value="pro" className="space-y-5">
+              {/* Main bank card */}
+              <BankCard
+                balance={`€${professionalAvailable.toFixed(2)}`}
+                label="Conta Profissional"
+                subtitle="Disponível para Saque"
+                icon={Banknote}
+                variant="dark"
+                footer={
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="text-white/50 block">Pendente (Hotel)</span>
+                      <span className="font-bold text-amber-300">€{professionalPendingHotel.toFixed(2)}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-white/50 block">Saldo Total</span>
+                      <span className="font-bold text-white">€{professionalTotalBalance.toFixed(2)}</span>
+                    </div>
+                  </div>
+                }
+              />
 
-              {/* Stats */}
+              {/* Stats grid */}
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Disponível p/ Saque", value: `€${professionalPending.toFixed(2)}`, icon: <DollarSign className="w-4 h-4 text-emerald-500" />, bg: "bg-emerald-50 border-emerald-100" },
-                  { label: "Pendente (Hotel)", value: `€${professionalPendingHotel.toFixed(2)}`, icon: <Clock className="w-4 h-4 text-amber-500" />, bg: "bg-amber-50 border-amber-100" },
-                  { label: "Total Ganho", value: `€${(wallet?.total_earnings || 0).toFixed(2)}`, icon: <TrendingUp className="w-4 h-4 text-orange-500" />, bg: "bg-orange-50 border-orange-100" },
-                  { label: "Avaliação Média", value: `⭐ ${metrics.avgRating}`, icon: <Star className="w-4 h-4 text-yellow-500" />, bg: "bg-yellow-50 border-yellow-100" },
+                  { label: "Este Mês", value: `€${metrics.thisMonthEarnings.toFixed(2)}`, icon: <TrendingUp className="w-4 h-4 text-emerald-500" />, bg: "bg-emerald-50 border-emerald-100" },
+                  { label: "Total Ganho", value: `€${(wallet?.total_earnings || 0).toFixed(2)}`, icon: <DollarSign className="w-4 h-4 text-teal-500" />, bg: "bg-teal-50 border-teal-100" },
+                  { label: "Pendente Walker", value: `€${(wallet?.pending_walker_payments || 0).toFixed(2)}`, icon: <Clock className="w-4 h-4 text-amber-500" />, bg: "bg-amber-50 border-amber-100" },
+                  { label: "Avaliação", value: `⭐ ${metrics.avgRating}`, icon: <Star className="w-4 h-4 text-yellow-500" />, bg: "bg-yellow-50 border-yellow-100" },
                 ].map(item => (
-                  <div key={item.label} className={`${item.bg} border rounded-2xl p-4`}>
+                  <div key={item.label} className={`${item.bg} border rounded-2xl p-3.5`}>
                     <div className="mb-2">{item.icon}</div>
                     <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{item.label}</p>
-                    <p className="text-xl font-bold text-slate-900 mt-0.5">{item.value}</p>
+                    <p className="text-lg font-bold text-slate-900 mt-0.5">{item.value}</p>
                   </div>
                 ))}
               </div>
 
               {/* Actions */}
               <div className="grid grid-cols-2 gap-3">
-                <Button onClick={() => setShowAddCredits(true)} className="h-11 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold">
-                  <Plus className="w-4 h-4 mr-2" /> Adicionar Créditos
-                </Button>
-                <Button onClick={() => setShowWithdraw(true)} disabled={professionalPending <= 0} variant="outline"
-                  className="h-11 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-semibold disabled:opacity-40">
+                <Button onClick={() => setShowWithdraw(true)} disabled={professionalAvailable <= 0}
+                  className="h-11 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-semibold disabled:opacity-40">
                   <ArrowUpRight className="w-4 h-4 mr-2" /> Solicitar Saque
+                </Button>
+                <Button onClick={() => navigate(createPageUrl('WalkerWallet'))} variant="outline"
+                  className="h-11 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-semibold">
+                  <Receipt className="w-4 h-4 mr-2" /> Ver Extrato
                 </Button>
               </div>
 
-              {/* Chart */}
+              {/* Earnings chart */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
                 <h3 className="font-semibold text-slate-800 text-sm mb-4">Ganhos — Últimos 6 Meses</h3>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={metrics.monthlyChartData}>
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={metrics.monthlyChartData}>
+                    <defs>
+                      <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#0d9488" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#0d9488" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                     <XAxis dataKey="month" stroke="#94a3b8" style={{ fontSize: '11px' }} />
                     <YAxis stroke="#94a3b8" style={{ fontSize: '11px' }} />
                     <ChartTooltip
-                      formatter={(v) => `€${v.toFixed(2)}`}
+                      formatter={(v) => [`€${v.toFixed(2)}`, 'Ganhos']}
                       contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '12px' }}
                     />
-                    <Line type="monotone" dataKey="earnings" stroke="#f97316" strokeWidth={2.5}
-                      dot={{ fill: '#f97316', r: 4 }} activeDot={{ r: 6 }} />
-                  </LineChart>
+                    <Area type="monotone" dataKey="earnings" stroke="#0d9488" strokeWidth={2.5}
+                      fill="url(#earningsGrad)" dot={{ fill: '#0d9488', r: 4 }} activeDot={{ r: 6 }} />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Activity grid */}
+              {/* Activity stats */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
                 <h3 className="font-semibold text-slate-800 text-sm mb-4">Atividade</h3>
                 <div className="grid grid-cols-3 gap-4 text-center">
@@ -352,6 +464,34 @@ export default function MyWallet() {
                   </div>
                 </div>
               </div>
+
+              {/* Withdrawal history */}
+              <WithdrawalHistory withdrawals={withdrawals} />
+
+              {/* Pro transactions */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b border-slate-100">
+                  <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                    <Receipt className="w-4 h-4 text-slate-400" />
+                    Transações Profissionais
+                  </h3>
+                </div>
+                {transactions.filter(t => ["walker_payment_pending", "walker_payment_completed", "escrow_released", "surcharge_paid"].includes(t.transaction_type)).length === 0 ? (
+                  <div className="p-10 text-center">
+                    <Banknote className="w-10 h-10 mx-auto mb-3 text-slate-200" />
+                    <p className="text-sm text-slate-400">Sem transações profissionais</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-50 max-h-[300px] overflow-y-auto">
+                    {transactions
+                      .filter(t => ["walker_payment_pending", "walker_payment_completed", "escrow_released", "surcharge_paid"].includes(t.transaction_type))
+                      .slice(0, 20)
+                      .map((tx) => (
+                        <TransactionItem key={tx.id} tx={tx} />
+                      ))}
+                    </div>
+                )}
+              </div>
             </TabsContent>
           )}
         </Tabs>
@@ -360,7 +500,7 @@ export default function MyWallet() {
       {/* Add Credits Modal */}
       <Dialog open={showAddCredits} onOpenChange={setShowAddCredits}>
         <DialogContent className="max-w-md rounded-3xl border border-slate-200 bg-white p-0 shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-5 text-white">
+          <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-5 text-white">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-xl font-bold text-white">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20">
@@ -375,7 +515,7 @@ export default function MyWallet() {
             <div className="grid grid-cols-3 gap-3">
               {[10, 25, 50].map((v) => (
                 <button key={v} type="button" onClick={() => setCredits(v.toString())}
-                  className={`rounded-2xl border px-4 py-4 text-center transition-all ${credits === v.toString() ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300'}`}>
+                  className={`rounded-2xl border px-4 py-4 text-center transition-all ${credits === v.toString() ? 'border-teal-500 bg-teal-50 text-teal-600 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'}`}>
                   <div className="text-xs font-medium text-slate-400">Adicionar</div>
                   <div className="mt-1 text-lg font-bold">€{v}</div>
                 </button>
@@ -384,7 +524,7 @@ export default function MyWallet() {
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-slate-900">Outro valor</label>
               <Input type="number" placeholder="Ex: 30" value={credits} onChange={(e) => setCredits(e.target.value)}
-                min="5" step="1" className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus-visible:ring-orange-400" />
+                min="5" step="1" className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus-visible:ring-teal-400" />
               <p className="text-xs text-slate-400">Valor mínimo: €5</p>
             </div>
             <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 flex items-center justify-between">
@@ -396,7 +536,7 @@ export default function MyWallet() {
               <Button onClick={() => {
                 if (!credits || parseFloat(credits) < 5) { toast.error('Mínimo €5'); return; }
                 addCreditsMutation.mutate(parseFloat(credits));
-              }} disabled={addCreditsMutation.isPending} className="rounded-2xl bg-orange-500 hover:bg-orange-600 text-white">
+              }} disabled={addCreditsMutation.isPending} className="rounded-2xl bg-teal-600 hover:bg-teal-700 text-white">
                 {addCreditsMutation.isPending ? 'A abrir pagamento...' : 'Continuar para pagamento'}
               </Button>
             </div>
@@ -409,18 +549,18 @@ export default function MyWallet() {
         <DialogContent className="max-w-sm rounded-3xl border border-slate-200 bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-900">
-              <ArrowUpRight className="w-5 h-5 text-orange-500" /> Solicitar Saque
+              <ArrowUpRight className="w-5 h-5 text-teal-600" /> Solicitar Saque
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100">
+            <div className="p-4 rounded-2xl bg-teal-50 border border-teal-100">
               <p className="text-xs text-slate-400 font-medium">Saldo Disponível</p>
-              <p className="text-2xl font-bold text-orange-500 mt-1">€{professionalPending.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-teal-600 mt-1">€{professionalAvailable.toFixed(2)}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-slate-700 block mb-2">Valor (€)</label>
               <Input type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)}
-                max={professionalPending || 0} step="0.01" className="h-11 rounded-xl border-slate-200" />
+                max={professionalAvailable || 0} step="0.01" className="h-11 rounded-xl border-slate-200" />
             </div>
             <div className="flex gap-2 pt-1">
               <Button variant="outline" onClick={() => setShowWithdraw(false)} className="flex-1 rounded-xl border-slate-200">Cancelar</Button>
@@ -428,7 +568,7 @@ export default function MyWallet() {
                 const amount = parseFloat(withdrawAmount);
                 if (!amount || amount <= 0) { toast.error('Valor inválido'); return; }
                 withdrawMutation.mutate(amount);
-              }} disabled={withdrawMutation.isPending} className="flex-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-white">
+              }} disabled={withdrawMutation.isPending} className="flex-1 rounded-xl bg-teal-600 hover:bg-teal-700 text-white">
                 {withdrawMutation.isPending ? 'A processar...' : 'Sacar'}
               </Button>
             </div>
