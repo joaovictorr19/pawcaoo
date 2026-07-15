@@ -130,7 +130,7 @@ export default function ProfileHeroCard({
       const favs = await base44.entities.Favorite.filter({ walker_id: favoriteEntityId });
       return favs[0] || null;
     },
-    enabled: !!favoriteEntityId && !isOwnProfile && isProfessional,
+    enabled: !!favoriteEntityId && !isOwnProfile && !!isProfessional,
   });
 
   const isFavorited = !!existingFavorite;
