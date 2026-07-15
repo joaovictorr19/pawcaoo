@@ -142,45 +142,52 @@ export default function ProfileBentoGrid({
           {/* ===== RIGHT COLUMN — Professional info ===== */}
           <div className="lg:col-span-2 space-y-3 md:space-y-4">
 
-          {/* BADGES / ACHIEVEMENTS - MOVED UP for prominence */}
-          <ProfileSection delay={0.14} className="bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-5 md:p-6 shadow-sm border border-amber-100">
-            <div className="flex items-center justify-between mb-4">
+          {/* BADGES / ACHIEVEMENTS — Glass Premium selos */}
+          <ProfileSection delay={0.14} className="relative rounded-3xl p-5 md:p-6 shadow-lg border border-teal-100/50 bg-white/70 backdrop-blur-xl overflow-hidden">
+            {/* Subtle teal glow accent */}
+            <div className="absolute -top-12 -right-12 w-40 h-40 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative flex items-center justify-between mb-4">
               <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center shadow-sm">
+                <div className="w-7 h-7 bg-gradient-to-br from-teal-400 to-teal-600 rounded-lg flex items-center justify-center shadow-sm shadow-teal-200">
                   <Award className="w-4 h-4 text-white" />
                 </div>
-                {language === 'pt' ? 'Conquistas' : 'Achievements'}
-                <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                {language === 'pt' ? 'Selos de Conquistas' : 'Achievement Seals'}
+                <span className="bg-teal-100 text-teal-700 text-[10px] font-black px-2 py-0.5 rounded-full">
                   {earnedBadges.length}
                 </span>
               </h3>
             </div>
             {loadingBadges ? (
-              <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-2 px-1">
-                {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-20 bg-slate-100 rounded-2xl flex-shrink-0 animate-pulse" />)}
+              <div className="flex gap-4 overflow-x-auto overflow-y-hidden py-3 px-1">
+                {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-20 bg-white/60 rounded-2xl flex-shrink-0 animate-pulse" />)}
               </div>
             ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-2 px-1">
+              <div className="flex gap-4 overflow-x-auto overflow-y-hidden py-3 px-1">
                 {earnedBadges.slice(0, 10).map((badge) => (
-                  <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 w-14">
-                    <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="sm" />
-                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90 text-white text-[9px] font-bold text-center leading-tight rounded-xl px-1 opacity-0 group-hover/badge:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
-                      {badge.name || badge.badge_id}
+                  <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 flex flex-col items-center gap-1.5 w-20">
+                    <div className="relative rounded-2xl p-0.5 bg-gradient-to-br from-teal-200/40 to-white/20 shadow-sm">
+                      <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
+                      <div className="absolute inset-0.5 flex items-center justify-center bg-slate-900/85 text-white text-[9px] font-bold text-center leading-tight rounded-xl px-1 opacity-0 group-hover/badge:opacity-100 transition-opacity duration-200 z-30 pointer-events-none">
+                        {badge.name || badge.badge_id}
+                      </div>
                     </div>
+                    <span className="text-[9px] font-bold text-slate-600 text-center leading-tight line-clamp-2 px-0.5">
+                      {badge.name || badge.badge_id}
+                    </span>
                   </div>
                 ))}
                 {earnedBadges.length > 10 && (
                   <div className="flex flex-col items-center justify-center gap-1.5 flex-shrink-0 w-20">
-                    <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center">
-                      <span className="text-amber-600 font-black text-sm">+{earnedBadges.length - 10}</span>
+                    <div className="w-20 h-20 rounded-2xl bg-teal-50 flex items-center justify-center border border-teal-100">
+                      <span className="text-teal-600 font-black text-sm">+{earnedBadges.length - 10}</span>
                     </div>
-                    <p className="text-[9px] font-bold text-amber-600">ver mais</p>
+                    <p className="text-[9px] font-bold text-teal-600">ver mais</p>
                   </div>
                 )}
               </div>
             ) : (
               <p className="text-xs text-slate-400 font-bold italic py-4 text-center">
-                {language === 'pt' ? 'Ainda sem conquistas. Complete serviços para ganhar emblemas!' : 'No badges yet. Complete services to earn badges!'}
+                {language === 'pt' ? 'Ainda sem conquistas. Complete serviços para ganhar selos!' : 'No badges yet. Complete services to earn seals!'}
               </p>
             )}
           </ProfileSection>
