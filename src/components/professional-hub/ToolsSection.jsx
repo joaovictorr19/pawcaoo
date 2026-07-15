@@ -4,10 +4,11 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { QrCode, CreditCard, Download } from "lucide-react";
+import { QrCode, CreditCard, Download, Megaphone } from "lucide-react";
 import DigitalWalletPass from "../professionals/DigitalWalletPass";
 import DataExportInline from "../professionals/DataExportInline";
 import StripeConnectSetup from "../professionals/StripeConnectSetup";
+import HotelPromotionTools from "./HotelPromotionTools";
 
 export function ToolsSection({ user, professionalProfile, onEditProfile }) {
   const [iban, setIban] = React.useState("");
@@ -39,11 +40,25 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
     }
   };
 
+  const isHotel = professionalProfile?.professional_type === "hotel";
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-black text-white mb-2">Ferramentas Pro</h3>
-      
-      
+
+      {isHotel && (
+        <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-teal-500/10 rounded-xl border border-teal-500/20">
+          <Megaphone className="w-4 h-4 text-teal-400 flex-shrink-0" />
+          <span className="text-xs font-bold text-teal-300">
+            Ferramentas de Divulgação do Hotel
+          </span>
+        </div>
+      )}
+
+      {isHotel && (
+        <HotelPromotionTools user={user} professionalProfile={professionalProfile} />
+      )}
+
       <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
         <CardContent className="p-5">
           <div className="flex items-center gap-3 mb-4">
