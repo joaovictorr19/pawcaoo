@@ -209,12 +209,12 @@ export default function PortfolioSection({ professionalProfile }) {
 
   const addMutation = useMutation({
     mutationFn: (item) => entity.update(professionalProfile.id, { portfolio: [...portfolio, { ...item, date: new Date().toISOString().split('T')[0] }] }),
-    onSuccess: () => { queryClient.invalidateQueries(['myProfessionalProfile']); toast.success("Adicionado ao portfólio!"); setShowAdd(false); }
+    onSuccess: () => { queryClient.invalidateQueries(['myProfessionalProfile']); queryClient.invalidateQueries(['myHotelProfile']); toast.success("Adicionado ao portfólio!"); setShowAdd(false); }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (item) => entity.update(professionalProfile.id, { portfolio: portfolio.filter(p => p.media_url !== item.media_url) }),
-    onSuccess: () => { queryClient.invalidateQueries(['myProfessionalProfile']); toast.success("Removido"); }
+    onSuccess: () => { queryClient.invalidateQueries(['myProfessionalProfile']); queryClient.invalidateQueries(['myHotelProfile']); toast.success("Removido"); }
   });
 
   return (

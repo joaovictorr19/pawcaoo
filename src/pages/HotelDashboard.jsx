@@ -38,6 +38,7 @@ import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel"
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
 import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
 import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
+import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -542,6 +543,10 @@ export default function HotelDashboard() {
                 />
               </div>
               <HotelDigitalPass hotelProfile={hotelProfile} />
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Portfólio</p>
+                <PortfolioSection professionalProfile={hotelProfile} />
+              </div>
             </motion.div>
           )}
 
