@@ -57,6 +57,7 @@ export default function ProfileBentoGrid({
   const isProfessional = walkerProfile || trainerProfile;
   const [reportOpen, setReportOpen] = React.useState(false);
   const [lightbox, setLightbox] = useState({ open: false, index: 0 });
+  const [showAllBadges, setShowAllBadges] = useState(false);
 
   const portfolioItems = (walkerProfile?.portfolio || []).filter(p => p.media_url);
   const trainerPortfolioItems = (trainerProfile?.portfolio || []).filter(p => p.media_url);
@@ -269,8 +270,8 @@ export default function ProfileBentoGrid({
                 {[1, 2, 3, 4].map(i => <div key={i} className="w-20 h-20 bg-slate-100/70 rounded-xl flex-shrink-0 animate-pulse" />)}
               </div>
             ) : earnedBadges.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto overflow-y-hidden py-1 px-0.5">
-                {earnedBadges.slice(0, 10).map((badge) => (
+              <div className={`flex gap-3 ${showAllBadges ? 'flex-wrap' : 'overflow-x-auto overflow-y-hidden'} py-1 px-0.5`}>
+                {(showAllBadges ? earnedBadges : earnedBadges.slice(0, 10)).map((badge) => (
                   <div key={badge._uniqueId} className="group/badge relative flex-shrink-0 flex flex-col items-center gap-1.5 w-20">
                     <div className="relative rounded-xl p-1.5 bg-slate-50/80 shadow-sm">
                       <BadgeItem badge={badge} isOwner={isOwnProfile} isEarned={true} size="md" />
@@ -284,12 +285,19 @@ export default function ProfileBentoGrid({
                   </div>
                 ))}
                 {earnedBadges.length > 10 && (
-                  <div className="flex flex-col items-center justify-center gap-1.5 flex-shrink-0 w-20">
-                    <div className="w-16 h-16 rounded-xl bg-teal-50 flex items-center justify-center">
-                      <span className="text-teal-600 font-black text-sm">+{earnedBadges.length - 10}</span>
+                  <button
+                    onClick={() => setShowAllBadges(!showAllBadges)}
+                    className="flex flex-col items-center justify-center gap-1.5 flex-shrink-0 w-20 cursor-pointer"
+                  >
+                    <div className="w-16 h-16 rounded-xl bg-teal-50 hover:bg-teal-100 flex items-center justify-center transition-colors">
+                      <span className="text-teal-600 font-black text-sm">
+                        {showAllBadges ? '−' : `+${earnedBadges.length - 10}`}
+                      </span>
                     </div>
-                    <p className="text-[9px] font-bold text-teal-600">ver mais</p>
-                  </div>
+                    <p className="text-[9px] font-bold text-teal-600">
+                      {showAllBadges ? 'ver menos' : 'ver mais'}
+                    </p>
+                  </button>
                 )}
               </div>
             ) : (
