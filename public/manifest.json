@@ -11,27 +11,27 @@
   "categories": ["lifestyle", "pets"],
   "icons": [
     {
-      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/62f4f7c70_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg",
+      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/c461612a5_generated_image.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/62f4f7c70_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg",
+      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/c461612a5_generated_image.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/62f4f7c70_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg",
+      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/c461612a5_generated_image.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/62f4f7c70_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg",
+      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/c461612a5_generated_image.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ]

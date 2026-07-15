@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/62f4f7c70_Gemini_Generated_Image_6i8f4m6i8f4m6i8f.jpg";
+const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/c461612a5_generated_image.png";
 
 export default function PawCaoLogo({ size = "default", showText = true, className = "", animated = false }) {
   // Validate size prop
