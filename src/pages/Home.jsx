@@ -610,8 +610,9 @@ export default function Home() {
             </div>
           ) : user ? (
             <div className="max-w-4xl mx-auto relative mb-6">
-              <div className={`absolute -inset-1 bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} opacity-10 blur-xl rounded-3xl pointer-events-none`} />
-              <div className="relative bg-gradient-to-br from-slate-800/20 via-slate-900/15 to-slate-800/20 backdrop-blur-sm rounded-3xl shadow-2xl p-4 md:p-6">
+              <div className={`absolute -inset-1 bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} opacity-20 blur-2xl rounded-3xl pointer-events-none`} />
+              <div className="relative bg-white/35 backdrop-blur-xl border border-white/50 rounded-3xl shadow-2xl p-4 md:p-6 overflow-hidden">
+                <div className={`absolute inset-0 bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} opacity-[0.05] pointer-events-none`} />
               {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentTier = calculateTier(currentXP);
