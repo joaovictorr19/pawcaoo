@@ -38,6 +38,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
   const isProf = user?.preferences?.current_mode === "professional";
   const isTutor = user?.preferences?.current_mode === "tutor";
   const isOnline = user?.pawgo_status?.is_online;
+  const isHotel = user?.role === 'hotel' || user?.role === 'hotel_admin';
 
   // Localized labels with safe fallbacks
   const labelDashboard = t('dashboard', language) || (language === 'pt' ? 'Painel' : language === 'es' ? 'Panel' : 'Dashboard');
@@ -134,13 +135,18 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     }
   };
 
-  // Hide global nav only on ProfessionalHubV2 (has its own ProfessionalTabBar)
-  const isOnProfHub = location.pathname === '/ProfessionalHubV2' || location.pathname === createPageUrl('ProfessionalHubV2');
+  // Hide global nav on pages that have their own bottom tab bar
+  const profHubPath = createPageUrl("ProfessionalHubV2");
+  const hotelDashPath = createPageUrl("HotelDashboard");
+  const isOnOwnTabBar = location.pathname === profHubPath || location.pathname === hotelDashPath ||
+    location.pathname.startsWith(profHubPath) || location.pathname.startsWith(hotelDashPath);
 
-  if (!user || isOnProfHub) return null;
+  if (!user || isOnOwnTabBar) return null;
+
+  const profPanelPath = isHotel ? hotelDashPath : profHubPath;
 
   // Active checks per tab
-  const isTab1Active = (isProf && isActive(createPageUrl("Dashboard"))) ||
+  const isTab1Active = (isProf && isActive(profPanelPath)) ||
     (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
     (!isProf && !isTutor && isActive(createPageUrl("Home")));
   const isTab2Active = (isProf && isActive(createPageUrl("ProfessionalCalendar"))) ||
@@ -173,7 +179,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
         {/* ABA 1: EXPLORAR / PAINEL / CLIENTE */}
         <button
           onClick={() => {
-            const targetPath = isProf ? createPageUrl("Dashboard") : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
+            const targetPath = isProf ? profPanelPath : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
             handleTabClick(targetPath);
           }}
           className={`${tabBase} ${isTab1Active ? activeCls : inactiveCls}`}
