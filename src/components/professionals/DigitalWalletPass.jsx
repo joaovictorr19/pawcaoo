@@ -18,7 +18,7 @@ export default function DigitalWalletPass({
   const cardRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const name = user?.walker_name || user?.trainer_name || user?.hotel_details?.hotel_name || user?.full_name || "Profissional";
+  const name = user?.hotel_details?.hotel_name || user?.walker_name || user?.trainer_name || user?.full_name || "Profissional";
   const photo = user?.photo_url || user?.profile_photo_url;
   const username = user?.username || user?.id;
   const xp = user?.gamification_xp || 0;

@@ -384,7 +384,8 @@ function LayoutContent({ children, currentPageName }) {
           if (walkers?.length) {
             const w = walkers[0];
             if (!w.walker_name || String(w.walker_name).trim() === '') {
-              await base44.entities.WalkerProfile.update(w.id, { walker_name: deriveName });
+              const hotelName = w.hotel_details?.hotel_name;
+              await base44.entities.WalkerProfile.update(w.id, { walker_name: hotelName || deriveName });
             }
           }
         } catch (e) { console.warn('WalkerProfile name backfill skipped:', e?.message); }
