@@ -108,14 +108,19 @@ function LayoutContent({ children, currentPageName }) {
         let userData = null;
 
         if (impersonation?.targetUserId) {
-          const realUser = await base44.auth.me();
-          if (realUser?.role === 'admin') {
-            const targets = await base44.entities.User.filter({ id: impersonation.targetUserId });
-            if (targets.length > 0) {
-              userData = { ...targets[0], isImpersonating: true };
-            }
-          } else {
+          const expired = impersonation.expiresAt && new Date(impersonation.expiresAt) < new Date();
+          if (expired) {
             localStorage.removeItem('impersonation');
+          } else {
+            const realUser = await base44.auth.me();
+            if (realUser?.role === 'admin') {
+              const targets = await base44.entities.User.filter({ id: impersonation.targetUserId });
+              if (targets.length > 0) {
+                userData = { ...targets[0], isImpersonating: true };
+              }
+            } else {
+              localStorage.removeItem('impersonation');
+            }
           }
         }
 
@@ -269,7 +274,7 @@ function LayoutContent({ children, currentPageName }) {
   
   React.useEffect(() => {
     const awardWelcomeBadge = async () => {
-      if (!authUser?.email || welcomeBadgeAwardedRef.current) return;
+      if (!authUser?.email || welcomeBadgeAwardedRef.current || authUser?.isImpersonating) return;
 
       const badges = authUser.achievements_badges || [];
       const hasWelcomeBadge = badges.some(b => b.badge_id === 'welcome');
@@ -310,7 +315,7 @@ function LayoutContent({ children, currentPageName }) {
   
   React.useEffect(() => {
     const setupProfiles = async () => {
-      if (!authUser?.email || profileSetupRef.current.initialized) return;
+      if (!authUser?.email || profileSetupRef.current.initialized || authUser?.isImpersonating) return;
       
       profileSetupRef.current.initialized = true;
 

@@ -19,6 +19,12 @@ export default function ImpersonationBanner() {
   const [showLinks, setShowLinks] = useState(false);
   const impersonationData = JSON.parse(localStorage.getItem('impersonation') || 'null');
 
+  const isExpired = impersonationData?.expiresAt && new Date(impersonationData.expiresAt) < new Date();
+  if (isExpired) {
+    localStorage.removeItem('impersonation');
+    return null;
+  }
+
   if (!impersonationData) return null;
 
   const handleStopImpersonation = () => {

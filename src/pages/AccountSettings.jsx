@@ -185,7 +185,12 @@ export default function AccountSettings() {
         data.last_username_change_date = new Date().toISOString();
       }
 
-      await base44.auth.updateMe(data);
+      const impersonation = JSON.parse(localStorage.getItem('impersonation') || 'null');
+      if (impersonation?.targetUserId) {
+        await base44.functions.invoke('updateUserAsAdmin', { targetUserId: impersonation.targetUserId, updateData: data });
+      } else {
+        await base44.auth.updateMe(data);
+      }
 
       try {
         const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
