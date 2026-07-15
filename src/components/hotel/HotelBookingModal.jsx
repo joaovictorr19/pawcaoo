@@ -167,7 +167,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                 <motion.button
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setStep(s => s - 1)}
-                  className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center"
+                  className="w-9 h-9 rounded-xl bg-white/25 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-sm"
                 >
                   <ChevronLeft className="w-4 h-4 text-white" />
                 </motion.button>
@@ -183,7 +183,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center"
+              className="w-9 h-9 rounded-xl bg-white/25 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-sm"
             >
               <X className="w-4 h-4 text-white" />
             </motion.button>
@@ -226,8 +226,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
               {step === 0 && (
                 <div className="space-y-3">
                   {myDogs.length === 0 ? (
-                    <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-3xl p-8 text-center space-y-4">
-                      <div className="w-16 h-16 mx-auto rounded-2xl bg-white/10 flex items-center justify-center">
+                    <div className="bg-white/20 backdrop-blur-xl border border-white/25 rounded-3xl p-8 text-center space-y-4">
+                      <div className="w-16 h-16 mx-auto rounded-2xl bg-white/15 flex items-center justify-center">
                         <PawPrint className="w-8 h-8 text-[#00BFA5]" />
                       </div>
                       <div>
@@ -270,8 +270,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                              }}
                              className={`w-full p-2.5 rounded-2xl border text-left transition-all flex items-center gap-2.5 backdrop-blur-md ${
                                isSelected
-                                 ? 'border-[#00BFA5] bg-white/20 shadow-[0_0_12px_rgba(0,191,165,0.25)]'
-                                 : 'border-white/15 bg-white/10 hover:bg-white/15'
+                                 ? 'border-[#00BFA5] bg-white/30 shadow-[0_0_12px_rgba(0,191,165,0.25)]'
+                                 : 'border-white/25 bg-white/20 hover:bg-white/25'
                              }`}
                            >
                              {dog.photo_url ? (
@@ -333,7 +333,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       [dog.id]: { ...prev[dog.id], [field]: val }
                     }));
                     return (
-                      <div key={dog.id} className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 space-y-2.5 border border-white/15">
+                      <div key={dog.id} className="bg-white/20 backdrop-blur-xl rounded-2xl p-3 space-y-2.5 border border-white/25">
                         <div className="flex items-center gap-2.5 pb-2.5 border-b border-white/10">
                           {dog.photo_url ? (
                             <img src={dog.photo_url} className="w-9 h-9 rounded-full object-cover border border-white/20" alt={dog.dog_name} />
@@ -356,7 +356,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             onChange={e => updateCare('diet', e.target.value)}
                             placeholder="Ração, marca, quantidade, horários..."
                             rows={2}
-                            className="w-full p-3 rounded-xl border border-white/15 bg-white/5 text-white text-sm placeholder:text-white/30 focus:border-[#00BFA5] focus:bg-white/10 focus:outline-none resize-none transition-colors"
+                            className="w-full p-3 rounded-xl border border-white/25 bg-white/15 text-white text-sm placeholder:text-white/40 focus:border-[#00BFA5] focus:bg-white/20 focus:outline-none resize-none transition-colors"
                           />
                         </div>
                         <div>
@@ -368,7 +368,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             onChange={e => updateCare('medications', e.target.value)}
                             placeholder="Nome, dosagem, frequência e horários..."
                             rows={2}
-                            className="w-full p-3 rounded-xl border border-white/15 bg-white/5 text-white text-sm placeholder:text-white/30 focus:border-[#00BFA5] focus:bg-white/10 focus:outline-none resize-none transition-colors"
+                            className="w-full p-3 rounded-xl border border-white/25 bg-white/15 text-white text-sm placeholder:text-white/40 focus:border-[#00BFA5] focus:bg-white/20 focus:outline-none resize-none transition-colors"
                           />
                         </div>
                         <div>
@@ -380,7 +380,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             onChange={e => updateCare('routine', e.target.value)}
                             placeholder="Passeios, sestas, brincadeiras, hábitos..."
                             rows={2}
-                            className="w-full p-3 rounded-xl border border-white/15 bg-white/5 text-white text-sm placeholder:text-white/30 focus:border-[#00BFA5] focus:bg-white/10 focus:outline-none resize-none transition-colors"
+                            className="w-full p-3 rounded-xl border border-white/25 bg-white/15 text-white text-sm placeholder:text-white/40 focus:border-[#00BFA5] focus:bg-white/20 focus:outline-none resize-none transition-colors"
                           />
                         </div>
                       </div>
@@ -448,7 +448,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           type="time"
                           value={checkinTime}
                           onChange={(e) => setCheckinTime(e.target.value)}
-                          className="w-full p-2.5 rounded-lg border border-white/15 bg-white/10 text-white font-bold text-sm focus:border-[#00BFA5] focus:bg-white/15 focus:outline-none transition-colors"
+                          className="w-full p-2.5 rounded-lg border border-white/25 bg-white/20 text-white font-bold text-sm focus:border-[#00BFA5] focus:bg-white/25 focus:outline-none transition-colors"
                         />
                       </div>
                       <div>
@@ -459,7 +459,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           type="time"
                           value={checkoutTime}
                           onChange={(e) => setCheckoutTime(e.target.value)}
-                          className="w-full p-2.5 rounded-lg border border-white/15 bg-white/10 text-white font-bold text-sm focus:border-[#00BFA5] focus:bg-white/15 focus:outline-none transition-colors"
+                          className="w-full p-2.5 rounded-lg border border-white/25 bg-white/20 text-white font-bold text-sm focus:border-[#00BFA5] focus:bg-white/25 focus:outline-none transition-colors"
                         />
                       </div>
                     </div>
@@ -508,7 +508,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       Enviámos os detalhes para <span className="font-bold text-white">{currentUser.email}</span>
                     </p>
                   </div>
-                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-4 py-3 flex items-center gap-2 text-xs text-white/60">
+                  <div className="bg-white/20 backdrop-blur-md border border-white/25 rounded-xl px-4 py-3 flex items-center gap-2 text-xs text-white/80">
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -523,10 +523,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
               {/* STEP 3 — Resumo e Pagamento */}
               {step === 3 && !finalized && (
                 <div className="space-y-3">
-                  <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 space-y-3 border border-white/15">
+                  <div className="bg-white/20 backdrop-blur-xl rounded-2xl p-4 space-y-3 border border-white/25">
                     {/* Hotel header */}
                     <div className="flex items-center gap-3 pb-3 border-b border-white/10">
-                      <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-xl bg-white/20 border border-white/25 flex items-center justify-center">
                         <PawPrint className="w-5 h-5 text-[#00BFA5]" />
                       </div>
                       <div>
@@ -570,8 +570,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             onClick={() => setDeliveryMethod('dropoff')}
                             className={`p-2.5 rounded-lg border text-left transition-all ${
                               deliveryMethod === 'dropoff'
-                                ? 'border-[#00BFA5] bg-[#00BFA5]/15'
-                                : 'border-white/15 bg-white/5 hover:bg-white/10'
+                                ? 'border-[#00BFA5] bg-[#00BFA5]/25'
+                                : 'border-white/25 bg-white/15 hover:bg-white/20'
                             }`}
                           >
                             <Home className="w-3.5 h-3.5 text-[#00BFA5] mb-1" />
@@ -582,8 +582,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             onClick={() => setDeliveryMethod('pickup')}
                             className={`p-2.5 rounded-lg border text-left transition-all ${
                               deliveryMethod === 'pickup'
-                                ? 'border-[#00BFA5] bg-[#00BFA5]/15'
-                                : 'border-white/15 bg-white/5 hover:bg-white/10'
+                                ? 'border-[#00BFA5] bg-[#00BFA5]/25'
+                                : 'border-white/25 bg-white/15 hover:bg-white/20'
                             }`}
                           >
                             <Truck className="w-3.5 h-3.5 text-[#00BFA5] mb-1" />
@@ -591,11 +591,11 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           </button>
                         </div>
                       ) : (
-                        <div className="bg-white/5 border border-white/15 rounded-lg p-2.5 flex items-start gap-2 mb-2">
-                          <Home className="w-3.5 h-3.5 text-white/60 flex-shrink-0 mt-0.5" />
+                        <div className="bg-white/15 border border-white/25 rounded-lg p-2.5 flex items-start gap-2 mb-2">
+                          <Home className="w-3.5 h-3.5 text-white/80 flex-shrink-0 mt-0.5" />
                           <div>
-                            <p className="text-xs font-bold text-white/80">Entrega no hotel</p>
-                            <p className="text-[11px] text-white/50">Este hotel não oferece recolha ao domicílio</p>
+                            <p className="text-xs font-bold text-white">Entrega no hotel</p>
+                            <p className="text-[11px] text-white/60">Este hotel não oferece recolha ao domicílio</p>
                           </div>
                         </div>
                       )}
@@ -606,12 +606,12 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           value={pickupAddress}
                           onChange={(e) => setPickupAddress(e.target.value)}
                           placeholder="Morada completa de recolha"
-                          className="w-full p-2.5 rounded-lg border border-white/15 bg-white/5 text-white text-sm placeholder:text-white/30 focus:border-[#00BFA5] focus:bg-white/10 focus:outline-none transition-colors"
+                          className="w-full p-2.5 rounded-lg border border-white/25 bg-white/15 text-white text-sm placeholder:text-white/40 focus:border-[#00BFA5] focus:bg-white/20 focus:outline-none transition-colors"
                         />
                       ) : (
                         hotelAddress && (
-                          <div className="bg-white/5 border border-white/15 rounded-lg p-2.5 flex items-start gap-2">
-                            <MapPin className="w-3.5 h-3.5 text-white/60 flex-shrink-0 mt-0.5" />
+                          <div className="bg-white/15 border border-white/25 rounded-lg p-2.5 flex items-start gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-white/80 flex-shrink-0 mt-0.5" />
                             <div>
                               <p className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Endereço do Hotel</p>
                               <p className="text-xs text-white/80 mt-0.5">{hotelAddress}</p>
@@ -629,7 +629,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         onChange={(e) => setSpecialRequests(e.target.value)}
                         placeholder="Restrições, preferências, etc."
                         rows={2}
-                        className="w-full p-2.5 rounded-lg border border-white/15 bg-white/5 text-white text-sm placeholder:text-white/30 focus:border-[#00BFA5] focus:bg-white/10 focus:outline-none resize-none transition-colors"
+                        className="w-full p-2.5 rounded-lg border border-white/25 bg-white/15 text-white text-sm placeholder:text-white/40 focus:border-[#00BFA5] focus:bg-white/20 focus:outline-none resize-none transition-colors"
                       />
                     </div>
 
