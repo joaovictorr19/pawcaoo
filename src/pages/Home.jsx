@@ -622,7 +622,7 @@ export default function Home() {
                 
                 return (
                   <div className="space-y-3 mb-6 relative">
-                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-green-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
+                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 md:w-96 md:h-96 bg-green-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
                     
                     <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>

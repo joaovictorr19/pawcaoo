@@ -174,7 +174,8 @@ html {
 
 body, #root {
   min-height: 100%;
-  overflow: visible;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {

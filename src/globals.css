@@ -60,7 +60,8 @@
   body {
     @apply text-foreground;
     background: transparent;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -290,7 +291,8 @@
   /* Ensure root div doesn't trap scroll on Android */
   #root {
     width: 100%;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
   }
