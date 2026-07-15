@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import {
 import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
 
 export default function HotelProfileSettings({ hotelProfile, onSave }) {
+  const queryClient = useQueryClient();
   const [form, setForm] = useState({
     walker_name: hotelProfile?.walker_name || "",
     location: hotelProfile?.location || "",
@@ -73,7 +75,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     setSaving(true);
     try {
       await base44.entities.WalkerProfile.update(hotelProfile.id, {
-        walker_name: form.walker_name,
+        walker_name: form.hotel_name || form.walker_name,
         location: form.location,
         phone: form.phone,
         bio: form.bio,
@@ -94,6 +96,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
       });
       toast.success("Perfil do hotel atualizado");
       onSave?.();
+      queryClient.invalidateQueries(['walkerProfile']);
     } catch (err) {
       toast.error("Erro ao guardar perfil");
     } finally {

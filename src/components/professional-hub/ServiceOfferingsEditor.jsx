@@ -29,6 +29,7 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['myProfessionalProfile']);
+      queryClient.invalidateQueries(['walkerProfile']);
       toast.success('Serviços atualizados!');
       resetForm();
     },

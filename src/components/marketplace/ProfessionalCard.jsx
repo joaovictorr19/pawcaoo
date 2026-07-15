@@ -33,14 +33,14 @@ export function ProfessionalCard({ walker }) {
           onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
           onError={(e) => {
              e.currentTarget.classList.remove('opacity-0');
-             e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(walker.full_name || walker.walker_name || walker.trainer_name || 'P') + '&background=10b981&color=fff&size=200';
+             e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(walker.hotel_details?.hotel_name || walker.full_name || walker.walker_name || walker.trainer_name || 'P') + '&background=10b981&color=fff&size=200';
           }}
         />
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-1">
-          <h3 className="font-heading font-bold text-slate-900 text-sm truncate tracking-tight">{walker.full_name || walker.walker_name || walker.trainer_name}</h3>
+          <h3 className="font-heading font-bold text-slate-900 text-sm truncate tracking-tight">{walker.hotel_details?.hotel_name || walker.full_name || walker.walker_name || walker.trainer_name}</h3>
           
           {/* 3. Renderização Estática dos Emblemas (Não Piscam) */}
           <div className="flex gap-0.5 shrink-0">

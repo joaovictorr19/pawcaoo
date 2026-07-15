@@ -139,6 +139,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       });
 
       queryClient.invalidateQueries(['hotelProfile']);
+      queryClient.invalidateQueries(['myHotelProfile']);
+      queryClient.invalidateQueries(['walkerProfile']);
       onServiceUpdate?.();
       setIsAddingService(false);
       setEditingServiceId(null);
@@ -161,6 +163,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       });
 
       queryClient.invalidateQueries(['hotelProfile']);
+      queryClient.invalidateQueries(['myHotelProfile']);
+      queryClient.invalidateQueries(['walkerProfile']);
       onServiceUpdate?.();
       toast.success('Serviço deletado!');
     } catch (error) {

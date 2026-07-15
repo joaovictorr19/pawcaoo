@@ -11,6 +11,7 @@ import {
   Zap,
   CalendarPlus,
 } from 'lucide-react';
+import { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
 
 const SERVICE_TYPE_CONFIG = {
   boarding: { label: 'Alojamento', icon: BedDouble, accent: 'bg-indigo-50 text-indigo-600', ring: 'ring-indigo-100' },
@@ -105,7 +106,7 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {activeServices.map((service, idx) => {
           const config = SERVICE_TYPE_CONFIG[service.service_type] || SERVICE_TYPE_CONFIG.other;
-          const Icon = config.icon;
+          const Icon = getServiceIcon(service.icon, config.icon);
           const available = service.capacity_available ?? service.capacity_total ?? 0;
           const total = service.capacity_total ?? 0;
           const isSoldOut = available <= 0 || total <= 0;
