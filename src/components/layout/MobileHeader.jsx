@@ -142,7 +142,7 @@ export default function MobileHeader() {
         {/* Logo à esquerda */}
         <div className="flex items-center shrink-0">
           <button onClick={() => navigate(createPageUrl('Home'))} aria-label="Ir para a página inicial" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
-            <PawCaoLogo size="small" showText={true} />
+            <PawCaoLogo size="small" showText={false} />
           </button>
         </div>
 
