@@ -100,7 +100,19 @@ export default function HotelDashboard() {
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
-    queryFn: () => base44.auth.me(),
+    queryFn: async () => {
+      try {
+        let u = await base44.auth.me();
+        const imp = JSON.parse(localStorage.getItem("impersonation") || "null");
+        if (imp?.targetUserId && u?.role === "admin") {
+          const t = await base44.entities.User.filter({ id: imp.targetUserId });
+          if (t.length > 0) u = { ...t[0], isImpersonating: true };
+        }
+        return u;
+      } catch {
+        return null;
+      }
+    },
     staleTime: 10 * 60 * 1000,
   });
 
