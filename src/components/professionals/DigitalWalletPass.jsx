@@ -26,11 +26,7 @@ export default function DigitalWalletPass({
   const levelColor = getTierColor(tier.level);
 
   const getPublicProfileUrl = () => {
-    const profileId = user?.id;
-    if (profileType === "trainer") {
-      return `https://pawcao.net/TrainerDetails?id=${profileId}`;
-    }
-    return `https://pawcao.net/WalkerDetails?id=${profileId}`;
+    return `https://pawcao.pt/p/${user?.id}`;
   };
 
   const profileUrl = getPublicProfileUrl();
@@ -209,7 +205,7 @@ export default function DigitalWalletPass({
           <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-center">
             <div className="flex items-center gap-2 text-slate-300">
               <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ fontFamily: "'League Spartan', sans-serif" }}>
-                pawcao.net
+                pawcao.pt
               </span>
             </div>
           </div>

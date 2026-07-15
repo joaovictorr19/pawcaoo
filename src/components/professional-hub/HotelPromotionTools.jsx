@@ -29,10 +29,8 @@ export default function HotelPromotionTools({ user, professionalProfile }) {
     user?.full_name ||
     "Hotel";
 
-  const profileType = professionalProfile?.professional_type;
-  const profileRoute = profileType === "trainer" ? "/TrainerDetails" : "/WalkerDetails";
   const profileUrl = profileId
-    ? `https://pawcao.net${profileRoute}?id=${profileId}`
+    ? `https://pawcao.pt/p/${profileId}`
     : "";
 
   const copyLink = () => {
