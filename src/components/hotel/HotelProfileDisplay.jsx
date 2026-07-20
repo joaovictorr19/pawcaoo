@@ -12,6 +12,7 @@ import {
   CalendarPlus,
 } from 'lucide-react';
 import { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
+import HotelPortfolioGallery from '@/components/hotel/HotelPortfolioGallery';
 
 const SERVICE_TYPE_CONFIG = {
   boarding: { label: 'Alojamento', icon: BedDouble, accent: 'bg-indigo-50 text-indigo-600', ring: 'ring-indigo-100' },
@@ -97,7 +98,7 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
       <div>
         <h3 className="text-lg font-bold text-slate-900 tracking-tight">Serviços Disponíveis</h3>
         <p className="text-slate-400 text-sm mt-0.5">Escolha um serviço para iniciar a reserva</p>
@@ -184,6 +185,8 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
           );
         })}
       </div>
+
+      <HotelPortfolioGallery hotel={hotel} />
     </div>
   );
 }

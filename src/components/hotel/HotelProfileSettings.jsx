@@ -10,6 +10,7 @@ import {
   Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check
 } from "lucide-react";
 import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
+import HotelPortfolioEditor from "@/components/hotel/HotelPortfolioEditor";
 import SaveConfirmation from "@/components/ui/SaveConfirmation";
 
 export default function HotelProfileSettings({ hotelProfile, onSave }) {
@@ -357,6 +358,9 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
               onChange={(dates) => setForm(prev => ({ ...prev, blocked_dates: dates }))}
             />
           </div>
+
+          {/* Portfolio */}
+          <HotelPortfolioEditor hotelProfile={hotelProfile} />
 
           <div className="flex justify-end pt-1">
             <Button
