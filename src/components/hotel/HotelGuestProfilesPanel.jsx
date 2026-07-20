@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Users, Search, Crown, PawPrint, Phone, Mail, Calendar, Euro, Stethoscope, ShieldAlert, Star } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
+import GuestBookingHistory from "./GuestBookingHistory";
 
 const SIZE_LABELS = { small: "Pequeno", medium: "Médio", large: "Grande", extra_large: "Extra Grande" };
 
@@ -42,6 +43,7 @@ export default function HotelGuestProfilesPanel({ hotelProfile }) {
     return (
       <GuestProfileDetail
         profile={selected}
+        hotelEmail={hotelProfile?.created_by}
         onBack={() => setSelected(null)}
         onToggleVip={() => toggleVip.mutate({ id: selected.id, is_vip: !selected.is_vip })}
       />
@@ -106,7 +108,7 @@ export default function HotelGuestProfilesPanel({ hotelProfile }) {
   );
 }
 
-function GuestProfileDetail({ profile, onBack, onToggleVip }) {
+function GuestProfileDetail({ profile, hotelEmail, onBack, onToggleVip }) {
   return (
     <div className="space-y-4">
       <button onClick={onBack} className="text-xs text-slate-500 font-semibold hover:text-slate-700">
@@ -194,6 +196,8 @@ function GuestProfileDetail({ profile, onBack, onToggleVip }) {
           </div>
         </div>
       )}
+
+      <GuestBookingHistory ownerEmail={profile.owner_email} hotelEmail={hotelEmail} />
     </div>
   );
 }
