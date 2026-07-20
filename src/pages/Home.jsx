@@ -2,12 +2,10 @@ import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle, RefreshCw, PawPrint, Bone } from "lucide-react";
+import { Search, MapPin, Heart, Users, Award, Calendar, ShieldCheck, Wallet, AlertCircle, RefreshCw, PawPrint, Bone } from "lucide-react";
 const ProfessionalCard = React.lazy(() => import("../components/marketplace/ProfessionalCard").then(m => ({ default: m.ProfessionalCard })));
 const ReviewModal = React.lazy(() => import("../components/reviews/ReviewModal"));
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
@@ -15,7 +13,6 @@ const AdvancedTrainerFilters = React.lazy(() => import("../components/search/Adv
 
 const TestimonialsSection = React.lazy(() => import("../components/home/TestimonialsSection"));
 import UnauthenticatedHero from "../components/home/UnauthenticatedHero";
-import { OnlineWalkersRibbon } from "../components/home/OnlineWalkersRibbon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
@@ -25,13 +22,9 @@ import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
 
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import PawCaoLogo from "@/components/PawCaoLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/components/ThemeContext";
-import { CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Trophy } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 

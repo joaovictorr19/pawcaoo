@@ -289,6 +289,24 @@
     animation: shimmer 3s infinite;
   }
 
+  @keyframes bgFall {
+    0% {
+      transform: translateY(0) translateX(0) rotate(var(--bg-rotate, 0deg));
+    }
+    25% {
+      transform: translateY(29vh) translateX(var(--bg-sway, 0px)) rotate(calc(var(--bg-rotate, 0deg) + 30deg));
+    }
+    50% {
+      transform: translateY(58vh) translateX(calc(var(--bg-sway, 0px) * -0.6)) rotate(calc(var(--bg-rotate, 0deg) - 20deg));
+    }
+    75% {
+      transform: translateY(87vh) translateX(calc(var(--bg-sway, 0px) * 0.3)) rotate(calc(var(--bg-rotate, 0deg) + 10deg));
+    }
+    100% {
+      transform: translateY(116vh) translateX(0) rotate(var(--bg-rotate, 0deg));
+    }
+  }
+
   main, section, article, .content-area {
     background: transparent;
     overflow-y: visible;
