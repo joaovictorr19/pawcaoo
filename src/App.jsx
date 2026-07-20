@@ -74,9 +74,9 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { setupIframeMessaging } from './lib/iframe-messaging';
 import PageNotFound from './lib/PageNotFound';
-import PawCaoLogo from '@/components/PawCaoLogo';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import PageLoader from '@/components/ui/PageLoader';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -103,13 +103,6 @@ if (typeof window !== 'undefined') {
     }
   });
 }
-
-const PageLoader = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-white" role="status" aria-live="polite">
-    <PawCaoLogo size="large" animated={true} />
-    <span className="sr-only">A carregar PawCão...</span>
-  </div>
-);
 
 const ErrorBoundaryWrapper = ({ children }) => {
   const [hasError, setHasError] = React.useState(false);
