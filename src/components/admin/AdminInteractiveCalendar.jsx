@@ -118,21 +118,21 @@ export default function AdminInteractiveCalendar() {
   };
 
   return (
-    <Card className="h-[800px] flex flex-col shadow-lg border-0 glass-panel">
-      <CardHeader className="border-b px-6 py-4 flex flex-row items-center justify-between bg-white/50">
-        <div className="flex items-center gap-4">
-          <CardTitle className="text-xl flex items-center gap-2">
+    <Card className="flex h-[720px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm md:h-[800px]">
+      <CardHeader className="flex flex-col gap-4 border-b border-slate-200 bg-white px-4 py-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <CardTitle className="flex items-center gap-2 text-xl font-black text-slate-950">
             <CalendarIcon className="w-5 h-5 text-indigo-600" />
             Agenda Interativa
           </CardTitle>
           
-          <div className="flex items-center bg-white rounded-md border shadow-sm p-1">
+          <div className="flex min-w-0 items-center rounded-xl border border-slate-200 bg-slate-50 p-1">
             <Button variant="ghost" size="icon" onClick={handlePrev} className="h-7 w-7">
               <ChevronLeft className="w-4 h-4" />
             </Button>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" className="h-7 px-3 text-sm font-semibold min-w-[140px]">
+                <Button variant="ghost" className="h-8 min-w-0 flex-1 px-2 text-xs font-semibold sm:min-w-[140px] sm:text-sm">
                   {view === 'week' 
                     ? `${format(days[0], 'd MMM', { locale })} - ${format(days[days.length-1], 'd MMM', { locale })}`
                     : format(currentDate, 'd MMMM yyyy', { locale })
@@ -169,9 +169,9 @@ export default function AdminInteractiveCalendar() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 lg:w-auto">
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[130px] h-9 text-xs">
+            <SelectTrigger className="h-10 w-full text-xs lg:w-[140px]">
               <div className="flex items-center gap-2">
                 <Filter className="w-3 h-3" />
                 <SelectValue placeholder="Status" />
@@ -186,7 +186,7 @@ export default function AdminInteractiveCalendar() {
           </Select>
 
           <Select value={filterWalker} onValueChange={setFilterWalker}>
-            <SelectTrigger className="w-[180px] h-9 text-xs">
+            <SelectTrigger className="h-10 w-full text-xs lg:w-[190px]">
               <div className="flex items-center gap-2">
                 <User className="w-3 h-3" />
                 <SelectValue placeholder="Profissional" />
@@ -202,9 +202,10 @@ export default function AdminInteractiveCalendar() {
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
+      <CardContent className="flex flex-1 flex-col overflow-x-auto p-0">
+        <div className="min-w-[860px] flex flex-1 flex-col md:min-w-0">
         {/* Header Row (Days) */}
-        <div className="flex border-b bg-gray-50/50">
+        <div className="flex border-b bg-slate-50">
           <div className="w-16 border-r flex-shrink-0 bg-white" /> {/* Time Column Header */}
           {days.map(day => (
             <div key={day.toISOString()} className={`flex-1 text-center py-2 border-r last:border-r-0 ${isSameDay(day, new Date()) ? 'bg-blue-50/50' : ''}`}>
@@ -264,6 +265,7 @@ export default function AdminInteractiveCalendar() {
               </div>
             ))}
           </div>
+        </div>
         </div>
       </CardContent>
     </Card>

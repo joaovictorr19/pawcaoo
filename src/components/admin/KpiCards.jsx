@@ -65,7 +65,7 @@ export default function KpiCards({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="mb-1 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map(i => (
           <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />
         ))}
@@ -74,16 +74,16 @@ export default function KpiCards({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="mb-1 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {cards.map((card, idx) => (
-        <Card key={idx} className="border-none shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500">{card.title}</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">{card.value}</h3>
-              <p className="text-xs text-gray-400 mt-1">{card.desc}</p>
+        <Card key={idx} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+          <CardContent className="flex min-h-36 items-center justify-between gap-4 p-5 md:p-6">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-600">{card.title}</p>
+              <h3 className="mt-1 text-4xl font-black tracking-tight text-slate-950">{card.value}</h3>
+              <p className="mt-1 text-xs text-slate-500">{card.desc}</p>
             </div>
-            <div className={`p-3 rounded-full ${card.bg}`}>
+            <div className={`shrink-0 rounded-2xl p-3.5 ${card.bg}`}>
               <card.icon className={`w-6 h-6 ${card.color}`} />
             </div>
           </CardContent>

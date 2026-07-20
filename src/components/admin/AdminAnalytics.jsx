@@ -126,10 +126,16 @@ export default function AdminAnalytics({
   }, [walkers]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-700">Desempenho da plataforma</p>
+        <h2 className="mt-1 text-2xl font-black text-slate-950 md:text-3xl">Análise</h2>
+        <p className="mt-1 text-sm text-slate-600">Métricas, tendências e cobertura num único painel.</p>
+      </div>
+
       {/* 1. KPIs Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-l-4 border-l-green-500 shadow-sm">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="rounded-3xl border border-slate-200 border-t-4 border-t-emerald-500 bg-white shadow-sm">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">Walkers Ativos</p>
@@ -142,7 +148,7 @@ export default function AdminAnalytics({
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-500 shadow-sm">
+        <Card className="rounded-3xl border border-slate-200 border-t-4 border-t-blue-500 bg-white shadow-sm">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">Reservas (30 dias)</p>
@@ -155,7 +161,7 @@ export default function AdminAnalytics({
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500 shadow-sm">
+        <Card className="rounded-3xl border border-slate-200 border-t-4 border-t-purple-500 bg-white shadow-sm">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">Taxa de Conclusão</p>
@@ -171,7 +177,7 @@ export default function AdminAnalytics({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 2. Gráfico de Desempenho */}
-        <Card className="lg:col-span-2 shadow-lg border-0">
+        <Card className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-blue-600" />
@@ -200,7 +206,7 @@ export default function AdminAnalytics({
         </Card>
 
         {/* 3. Top Walkers Widget */}
-        <Card className="lg:col-span-1 shadow-lg border-0">
+        <Card className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-yellow-500" />
@@ -237,11 +243,11 @@ export default function AdminAnalytics({
       </div>
 
       {/* Map (Optional context) */}
-      <Card className="shadow-lg border-0">
+      <Card className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <CardHeader>
           <CardTitle>Mapa de Cobertura</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] p-0 overflow-hidden rounded-b-xl">
+        <CardContent className="h-[260px] overflow-hidden p-0 md:h-[320px]">
             <MapContainer 
               center={[38.7223, -9.1393]} 
               zoom={6} 

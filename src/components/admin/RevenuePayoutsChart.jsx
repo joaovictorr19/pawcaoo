@@ -46,13 +46,13 @@ export default function RevenuePayoutsChart({ payments = [], isLoading = false }
   }
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow h-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-800">
+    <Card className="h-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <CardHeader className="border-b border-slate-100 px-5 py-4">
+        <CardTitle className="text-lg font-extrabold text-slate-900">
           {language === 'pt' ? 'Faturamento vs Repasses (6 Meses)' : 'Revenue vs Payouts (6 Months)'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="h-[300px]">
+      <CardContent className="h-[280px] p-3 md:h-[300px] md:p-6">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
