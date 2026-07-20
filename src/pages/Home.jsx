@@ -8,8 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Search, MapPin, Zap, Star, Shield, Heart, TrendingUp, Users, Sliders, Award, Home as HomeIcon, PlusCircle, Calendar, MessageCircle, Clock, CheckCircle, ShieldCheck, PlayCircle, StarHalf, Crown, Dog, BarChart3, Store, ShoppingBag, Sparkles, Wallet, GraduationCap, Rss, Briefcase, Loader2, ChevronLeft, ChevronRight, AlertCircle, RefreshCw, PawPrint, Bone } from "lucide-react";
-import { ProfessionalCard } from "../components/marketplace/ProfessionalCard";
-import ReviewModal from "../components/reviews/ReviewModal";
+const ProfessionalCard = React.lazy(() => import("../components/marketplace/ProfessionalCard").then(m => ({ default: m.ProfessionalCard })));
+const ReviewModal = React.lazy(() => import("../components/reviews/ReviewModal"));
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
@@ -236,8 +236,9 @@ export default function Home() {
       return profiles[0] || null;
     },
     enabled: !!user?.email,
-    staleTime: 10 * 1000,
-    refetchOnWindowFocus: true,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: professionalProfile } = useQuery({
@@ -251,6 +252,9 @@ export default function Home() {
       return profiles[0] || null;
     },
     enabled: !!user?.email,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const hasProfessionalProfile = !!professionalProfile;
@@ -878,11 +882,13 @@ export default function Home() {
 
       {/* Modal de Avaliação */}
       {reviewBooking && (
-        <ReviewModal 
-          booking={reviewBooking} 
-          isOpen={!!reviewBooking} 
-          onClose={() => setReviewBooking(null)} 
-        />
+        <Suspense fallback={null}>
+          <ReviewModal
+            booking={reviewBooking}
+            isOpen={!!reviewBooking}
+            onClose={() => setReviewBooking(null)}
+          />
+        </Suspense>
       )}
 
 
@@ -1020,7 +1026,9 @@ export default function Home() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
                       {paginatedProfessionals.map((pro) => (
-                        <ProfessionalCard key={pro.id} walker={pro} />
+                        <Suspense key={pro.id} fallback={<div className="bg-white rounded-xl p-4 h-64 animate-pulse" />}>
+                          <ProfessionalCard walker={pro} />
+                        </Suspense>
                       ))}
                     </div>
                   )}
