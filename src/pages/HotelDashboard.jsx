@@ -513,7 +513,7 @@ export default function HotelDashboard() {
           <HotelSalesInsights
             bookings={bookings}
             hotelProfile={hotelProfile}
-            onNewBooking={() => setShowNewBooking(true)}
+            onNewBooking={() => setShowAddService(true)}
           />
         )}
 
