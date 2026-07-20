@@ -37,6 +37,7 @@ import HotelWaitlistPanel from "@/components/hotel/HotelWaitlistPanel";
 import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel";
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
 import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
+import AssignTaskModal from "@/components/hotel/AssignTaskModal";
 import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 import BackButton from "@/components/ui/BackButton";
@@ -96,6 +97,7 @@ export default function HotelDashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showNewBooking, setShowNewBooking] = useState(false);
   const [showAddPartner, setShowAddPartner] = useState(false);
+  const [showAssignTask, setShowAssignTask] = useState(false);
   const [alertDismissed, setAlertDismissed] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -303,6 +305,16 @@ export default function HotelDashboard() {
   const handleUpdateBooking = (id, data) => updateBookingMutation.mutate({ id, data });
   const handleCreateBooking = (data) => createBookingMutation.mutate(data);
 
+  const handleAssignTask = async ({ bookingId, addOn }) => {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+    const newAddOns = [...(booking.add_ons || []), addOn];
+    const newTotal = newAddOns.reduce((sum, a) => sum + (a.total_price || 0), 0);
+    await base44.entities.HotelBooking.update(bookingId, { add_ons: newAddOns, add_ons_total: newTotal });
+    queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
+    toast.success("Tarefa atribuída ao parceiro");
+  };
+
   const partners = hotelProfile?.hotel_details?.partner_walkers || [];
   const {
     capacityTotal, occupancyToday, occupancyPct, revenue30d,
@@ -465,6 +477,16 @@ export default function HotelDashboard() {
 
           {activeTab === "tarefas" && (
             <motion.div key="tarefas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              {partners.length > 0 && (
+                <div className="mb-3">
+                  <Button
+                    onClick={() => setShowAssignTask(true)}
+                    className="w-full sm:w-auto h-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Atribuir Tarefa a Parceiro
+                  </Button>
+                </div>
+              )}
               <HotelTasksPanel
                 bookings={bookings}
                 onUpdateBooking={handleUpdateBooking}
@@ -625,6 +647,15 @@ export default function HotelDashboard() {
         }}
         hotelProfile={hotelProfile}
       />
+
+      {showAssignTask && (
+        <AssignTaskModal
+          bookings={bookings}
+          partners={partners}
+          onAssign={handleAssignTask}
+          onClose={() => setShowAssignTask(false)}
+        />
+      )}
     </div>
   );
 }
