@@ -19,6 +19,22 @@ Deno.serve(async (req) => {
     const professional_type = event.entity_name === 'WalkerProfile' ? 'Walker' : 'Trainer';
     const professional_email = data.created_by || data.walker_email || data.trainer_email;
 
+    // Dedupe: se já foi enviada notificação para este profissional nos últimos 5 minutos
+    // (ex: registo cria WalkerProfile + TrainerProfile em simultâneo), não enviar de novo
+    const recent = await base44.asServiceRole.entities.Notification.filter(
+      { title: 'Novo Profissional Pendente' },
+      '-created_date',
+      20
+    );
+    const fiveMinAgo = Date.now() - 5 * 60 * 1000;
+    const alreadyNotified = recent.some(n =>
+      String(n.message || '').startsWith(`${professional_name} (`) &&
+      new Date(n.created_date).getTime() > fiveMinAgo
+    );
+    if (alreadyNotified) {
+      return Response.json({ success: true, deduped: true, admins_notified: 0 });
+    }
+
     const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
 
     for (const admin of admins) {
