@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Eye, Search, ToggleLeft, ToggleRight, RefreshCw } from "lucide-react";
+import { Trash2, Eye, Search, ToggleLeft, ToggleRight, RefreshCw, Settings } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { ensureProfileSlug } from "@/utils/profileSlug";
+import AdminProfessionalManageModal from "@/components/admin/AdminProfessionalManageModal";
 
 const TYPE_LABELS = {
   walker: "Passeador",
@@ -23,6 +24,7 @@ const VERIFICATION_COLORS = {
 export default function AdminProfessionalsPanel({ walkers = [], onDelete, onToggleActive, onRefresh }) {
   const [search, setSearch] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [manageWalker, setManageWalker] = useState(null);
 
   const handleRefresh = async () => {
     if (!onRefresh) return;
@@ -125,6 +127,15 @@ export default function AdminProfessionalsPanel({ walkers = [], onDelete, onTogg
                         <Button
                           size="sm"
                           variant="ghost"
+                          className="h-7 px-2 hover:bg-blue-50 rounded-full gap-1 text-blue-600 font-semibold"
+                          title="Gerir Perfil"
+                          onClick={() => setManageWalker(w)}
+                        >
+                          <Settings className="w-3.5 h-3.5" /> Gerir
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           className="h-7 w-7 p-0 hover:bg-slate-100 rounded-full"
                           title="Ver Perfil"
                           onClick={() => ensureProfileSlug(w.hotel_details?.hotel_name || w.walker_name, w.created_by, w.professional_type === 'hotel' ? 'hotel' : 'walker').then(link => window.open(link, "_blank"))}
@@ -160,6 +171,13 @@ export default function AdminProfessionalsPanel({ walkers = [], onDelete, onTogg
           </div>
         )}
       </div>
+
+      <AdminProfessionalManageModal
+        walker={manageWalker}
+        isOpen={!!manageWalker}
+        onClose={() => setManageWalker(null)}
+        onToggleActive={onToggleActive}
+      />
     </div>
   );
 }
