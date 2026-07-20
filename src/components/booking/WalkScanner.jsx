@@ -91,10 +91,6 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
       streamRef.current = stream;
       setScanning(true);
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-
       toast.info('📸 Câmera ativa - aponte para o QR Code');
     } catch (error) {
       console.error('Camera error:', error);
@@ -116,8 +112,26 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
     setScanning(false);
   };
 
+  // Attach the camera stream once the dialog (and video element) is mounted
   useEffect(() => {
-    if (!scanning || !videoRef.current || !("BarcodeDetector" in window)) return;
+    if (!scanning) return;
+    const attach = () => {
+      if (videoRef.current && streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        videoRef.current.play().catch(() => {});
+        return true;
+      }
+      return false;
+    };
+    if (attach()) return;
+    const retry = setInterval(() => {
+      if (attach()) clearInterval(retry);
+    }, 100);
+    return () => clearInterval(retry);
+  }, [scanning]);
+
+  useEffect(() => {
+    if (!scanning || !("BarcodeDetector" in window)) return;
 
     const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
     scanIntervalRef.current = setInterval(async () => {
@@ -182,6 +196,7 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
               ref={videoRef}
               autoPlay 
               playsInline
+              muted
               className="w-full h-full object-cover"
             />
 
