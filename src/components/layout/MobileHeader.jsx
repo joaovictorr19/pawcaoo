@@ -74,6 +74,11 @@ export default function MobileHeader() {
 
         {/* Botões centralizados - dropdown compacto para poupar espaço */}
         <div className="flex-1 flex items-center justify-center min-w-0">
+          {!authed ? (
+            <span className="font-heading font-extrabold text-base text-slate-900 tracking-tight pointer-events-none">
+              Paw<span className="text-[#1D8A82]">Cão</span>
+            </span>
+          ) : null}
           {authed && (
             <div ref={menuRef}>
               <ModeSwitcherMenu
