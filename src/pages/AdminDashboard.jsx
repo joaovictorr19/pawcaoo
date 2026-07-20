@@ -773,15 +773,17 @@ export default function AdminDashboard() {
       <ErrorBoundary>
         <div className="mb-8 space-y-5">
           <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex flex-col gap-5 p-5 md:flex-row md:items-center md:justify-between md:p-7">
-              <div className="flex min-w-0 items-center gap-4">
-                <BackButton />
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-teal-600 shadow-lg shadow-teal-600/20">
-                  <Shield className="h-7 w-7 text-white" />
+            <div className="flex flex-col items-center gap-5 p-5 text-center md:flex-row md:items-center md:justify-between md:text-left md:p-7">
+              <div className="flex min-w-0 flex-col items-center gap-3 md:flex-row md:gap-4">
+                <div className="flex items-center gap-3 md:gap-0">
+                  <BackButton />
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-600 shadow-lg shadow-teal-600/20 md:ml-2 md:h-14 md:w-14">
+                    <Shield className="h-6 w-6 text-white md:h-7 md:w-7" />
+                  </div>
                 </div>
                 <div className="min-w-0">
                   <p className="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-teal-700">Centro de controlo</p>
-                  <h1 className="text-wrap-balance text-3xl font-black text-slate-950 md:text-4xl">Administração PawCão</h1>
+                  <h1 className="text-2xl font-black leading-tight text-slate-950 md:text-4xl">Administração PawCão</h1>
                   <p className="mt-1 text-sm text-slate-600 md:text-base">Gestão modular de toda a plataforma</p>
                 </div>
               </div>
