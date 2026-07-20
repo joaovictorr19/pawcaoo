@@ -246,6 +246,54 @@ Deno.serve(async (req) => {
       balance_after: 0
     });
 
+    // ── Credit walker's UserWallet so the professional sees their balance ──
+    if (professionalEmail) {
+      try {
+        const proWallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: professionalEmail });
+        let proWallet = proWallets[0];
+        if (!proWallet) {
+          proWallet = await base44.asServiceRole.entities.UserWallet.create({
+            user_email: professionalEmail,
+            cashback_balance: 0, service_tokens: 0, total_points: 0,
+            available_balance: 0, pending_balance: 0, total_earnings: 0
+          });
+        }
+        const newTotalEarnings = (proWallet.total_earnings || 0) + serviceAmount;
+        const updates = { total_earnings: newTotalEarnings };
+
+        if (!transferId) {
+          // Stripe Connect not configured — money stays with platform, track as pending for the pro
+          const newPending = (proWallet.pending_walker_payments || 0) + serviceAmount;
+          updates.pending_walker_payments = newPending;
+
+          await base44.asServiceRole.entities.WalletTransaction.create({
+            user_email: professionalEmail,
+            transaction_type: 'walker_payment_pending',
+            amount: serviceAmount,
+            description: `Pagamento pendente — ${kind === 'training' ? 'treino' : 'passeio'} com ${service[config.ownerNameField] || 'cliente'}`,
+            related_booking_id: service.id,
+            related_payout_id: payoutId,
+            balance_after: newPending
+          });
+        } else {
+          // Stripe transfer done — money is in the pro's Stripe account, just track earnings
+          await base44.asServiceRole.entities.WalletTransaction.create({
+            user_email: professionalEmail,
+            transaction_type: 'escrow_released',
+            amount: serviceAmount,
+            description: `Pagamento enviado via Stripe — ${kind === 'training' ? 'treino' : 'passeio'} com ${service[config.ownerNameField] || 'cliente'}`,
+            related_booking_id: service.id,
+            related_payout_id: payoutId,
+            balance_after: (proWallet.available_balance || 0) + serviceAmount
+          });
+        }
+
+        await base44.asServiceRole.entities.UserWallet.update(proWallet.id, updates);
+      } catch (e) {
+        console.error('Error crediting professional wallet:', e);
+      }
+    }
+
     if (professionalEmail) {
       await base44.asServiceRole.entities.Notification.create({
         recipient_email: professionalEmail,

@@ -33,17 +33,17 @@ export function WalletSection({ user }) {
 
   const addQuickCreditsMutation = useMutation({
     mutationFn: async (amount) => {
-      const session = await base44.functions.invoke('createStripeCheckout', {
+      const response = await base44.functions.invoke('createStripeCheckout', {
         productName: `Créditos PawCão - €${amount}`,
         amount: Math.round(amount * 100),
         quantity: 1,
         walletTopup: true,
       });
-      return session;
+      return response.data;
     },
-    onSuccess: (session) => {
-      if (session?.url) {
-        window.location.href = session.url;
+    onSuccess: (data) => {
+      if (data?.url) {
+        window.location.href = data.url;
       }
     }
   });
