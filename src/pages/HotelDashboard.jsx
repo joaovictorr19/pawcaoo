@@ -124,7 +124,10 @@ export default function HotelDashboard() {
   const { data: hotelProfile, isLoading: loadingProfile } = useQuery({
     queryKey: ["myHotelProfile", user?.email],
     queryFn: async () => {
-      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email, professional_type: "hotel" });
+      let profiles = await base44.entities.WalkerProfile.filter({ user_id: user.id, professional_type: "hotel" });
+      if (!profiles.length) {
+        profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email, professional_type: "hotel" });
+      }
       const profile = profiles[0] || null;
 
       if (!profile && user?.email) {
