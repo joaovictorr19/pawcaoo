@@ -461,7 +461,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const handleLogout = () => {
     if (confirm(nav('confirmLogout'))) {
-      base44.auth.logout();
+      base44.auth.logout('/');
     }
   };
 
