@@ -491,11 +491,13 @@ function LayoutContent({ children, currentPageName }) {
           <Link to={createPageUrl("Home")} className="flex items-center gap-2">
             <PawCaoLogo size="small" showText={false} />
           </Link>
-          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-            <span className="font-heading font-extrabold text-base md:text-lg text-slate-900 tracking-tight">
-              Paw<span className="text-[#1D8A82]">Cão</span>
-            </span>
-          </div>
+          {!stableUser && (
+            <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+              <span className="font-heading font-extrabold text-base md:text-lg text-slate-900 tracking-tight">
+                Paw<span className="text-[#1D8A82]">Cão</span>
+              </span>
+            </div>
+          )}
           <nav className="flex items-center gap-1">
             {/* Links de painel — só para utilizadores autenticados */}
             {authUser && (() => {
