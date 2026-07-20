@@ -38,11 +38,12 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await base44.auth.verifyOtp({ email, otpCode });
-      base44.auth.setToken(res.access_token);
+      await base44.auth.verifyOtp({ email, otpCode });
+      toast.success("Conta verificada! Faça login para continuar.");
       const params = new URLSearchParams(window.location.search);
-      const dest = params.get('from') || '/ProfessionalTypeSelect';
-      window.location.href = dest;
+      const from = params.get('from');
+      const loginUrl = from ? `/login?from=${encodeURIComponent(from)}` : '/login';
+      setTimeout(() => { window.location.href = loginUrl; }, 1200);
     } catch (error) {
       toast.error(error.message || "Código inválido");
     } finally {
@@ -193,7 +194,7 @@ export default function Register() {
 
           <p className="text-center text-sm text-slate-500">
             Já tem conta?{" "}
-            <Link to="/login" className="text-orange-600 hover:text-orange-700 font-medium">
+            <Link to={getDestUrl() === '/ProfessionalTypeSelect' ? '/login' : `/login?from=${encodeURIComponent(getDestUrl())}`} className="text-orange-600 hover:text-orange-700 font-medium">
               Entrar
             </Link>
           </p>

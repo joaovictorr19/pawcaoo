@@ -17,7 +17,9 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/";
+      const params = new URLSearchParams(window.location.search);
+      const dest = params.get('from') || '/';
+      window.location.href = dest;
     } catch (error) {
       toast.error(error.message || "Email ou senha inválidos");
     } finally {
