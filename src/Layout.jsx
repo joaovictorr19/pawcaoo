@@ -431,6 +431,7 @@ function LayoutContent({ children, currentPageName }) {
     myHotel:         { pt: 'Meu Hotel',             en: 'My Hotel',      es: 'Mi Hotel',         fr: 'Mon Hôtel'    },
     signOut:         { pt: 'Sair',                  en: 'Sign Out',      es: 'Salir',            fr: 'Déconnexion'  },
     signIn:          { pt: 'Entrar',                en: 'Sign In',       es: 'Entrar',           fr: 'Connexion'    },
+    signUp:          { pt: 'Registar',              en: 'Sign Up',       es: 'Registrarse',      fr: 'S\'inscrire'  },
     confirmLogout:   { pt: 'Tem certeza que deseja sair?', en: 'Are you sure you want to log out?', es: '¿Estás seguro de que quieres cerrar sesión?', fr: 'Êtes-vous sûr de vouloir vous déconnecter?' },
   };
   const nav = (key) => NAV_I18N[key]?.[language] || NAV_I18N[key]?.pt || key;
@@ -546,10 +547,10 @@ function LayoutContent({ children, currentPageName }) {
               </button>
             ) : (
               <button
-                onClick={() => base44.auth.redirectToLogin()}
+                onClick={() => navigate('/register')}
                 className="rounded-full px-6 py-2 text-sm font-bold text-white transition-all active:scale-95 hover:shadow-lg flex items-center gap-2 bg-gradient-to-br from-[#00a699] to-[#207373] shadow-[0_4px_14px_rgba(0,166,153,0.3)]"
               >
-                {nav('signIn')}
+                {nav('signUp')}
               </button>
             )}
           </div>

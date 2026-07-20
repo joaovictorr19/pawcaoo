@@ -40,7 +40,9 @@ export default function Register() {
     try {
       const res = await base44.auth.verifyOtp({ email, otpCode });
       base44.auth.setToken(res.access_token);
-      window.location.href = "/ProfessionalTypeSelect";
+      const params = new URLSearchParams(window.location.search);
+      const dest = params.get('from') || '/ProfessionalTypeSelect';
+      window.location.href = dest;
     } catch (error) {
       toast.error(error.message || "Código inválido");
     } finally {
@@ -57,12 +59,17 @@ export default function Register() {
     }
   };
 
+  const getDestUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('from') || '/ProfessionalTypeSelect';
+  };
+
   const handleGoogleLogin = () => {
-    base44.auth.loginWithProvider("google", "/ProfessionalTypeSelect");
+    base44.auth.loginWithProvider("google", getDestUrl());
   };
 
   const handleAppleLogin = () => {
-    base44.auth.loginWithProvider("apple", "/ProfessionalTypeSelect");
+    base44.auth.loginWithProvider("apple", getDestUrl());
   };
 
   return (

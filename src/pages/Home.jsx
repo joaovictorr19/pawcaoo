@@ -563,7 +563,7 @@ export default function Home() {
   };
 
   const handleLogin = () => {
-    base44.auth.redirectToLogin(window.location.href);
+    navigate('/register');
   };
 
   const handleBecomePro = () => {
@@ -574,7 +574,7 @@ export default function Home() {
         navigate(createPageUrl('ProfessionalTypeSelect'));
       }
     } else {
-      base44.auth.redirectToLogin(createPageUrl('ProfessionalTypeSelect'));
+      navigate('/register?from=' + encodeURIComponent(createPageUrl('ProfessionalTypeSelect')));
     }
   };
 
@@ -582,7 +582,7 @@ export default function Home() {
     if (user) {
       navigate(createPageUrl('ClientSetup'));
     } else {
-      base44.auth.redirectToLogin(createPageUrl('ClientSetup'));
+      navigate('/register?from=' + encodeURIComponent(createPageUrl('ClientSetup')));
     }
   };
 
