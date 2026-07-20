@@ -38,7 +38,6 @@ import Breadcrumbs from "@/components/navigation/Breadcrumbs";
 import { ToastProvider } from "@/components/notifications/NotificationToast";
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
-import MobileNavBar from "@/components/layout/MobileNavBar";
 import SidebarNav from "@/components/layout/SidebarNav";
 import { lazy, Suspense } from "react";
 
@@ -544,9 +543,6 @@ function LayoutContent({ children, currentPageName }) {
         <div className="hidden md:block" style={{ height: '26px' }} />
         <div className="flex flex-1 w-full flex-col">
           <MobileHeader />
-          {stableUser && (
-            <MobileNavBar user={stableUser} unreadCount={unreadCount} onNotificationsClick={() => setIsNotificationPanelOpen(true)} />
-          )}
 
           <GlobalSearch 
             isOpen={isSearchOpen}
@@ -568,7 +564,7 @@ function LayoutContent({ children, currentPageName }) {
           )}
 
           <PullToRefresh>
-            <main className="flex-1 w-full pt-[calc(4.5rem+env(safe-area-inset-top))] md:pt-0 pb-28 md:pb-0">
+            <main className="flex-1 w-full pt-[calc(4.5rem+env(safe-area-inset-top))] md:pt-0 pb-8 md:pb-0">
               {children}
             </main>
           </PullToRefresh>
