@@ -68,12 +68,13 @@ export default function ClientSetup() {
     owned_dogs: [],
   });
 
-  const { data: user } = useQuery({
+  const { data: user, isError: userError } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => base44.auth.me(),
+    retry: 1,
   });
 
-  const { data: userProfile } = useQuery({
+  const { data: userProfile, isError: profileError } = useQuery({
     queryKey: ["clientSetupProfile", user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
@@ -82,11 +83,19 @@ export default function ClientSetup() {
     },
     enabled: !!user?.email,
     staleTime: 0,
+    retry: 1,
   });
 
   useEffect(() => {
-    if (formInitialized || !user) return;
-    if (userProfile === undefined) return;
+    if (formInitialized) return;
+    if (!user) {
+      if (userError) { setFormInitialized(true); }
+      return;
+    }
+    if (userProfile === undefined) {
+      if (profileError) { setFormInitialized(true); }
+      return;
+    }
 
     setFormInitialized(true);
     setForm(prev => ({
@@ -97,7 +106,7 @@ export default function ClientSetup() {
       city: userProfile?.city || "",
       owned_dogs: userProfile?.owned_dogs?.length ? userProfile.owned_dogs : [],
     }));
-  }, [userProfile, user, formInitialized]);
+  }, [userProfile, user, formInitialized, userError, profileError]);
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 

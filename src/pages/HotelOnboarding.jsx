@@ -60,12 +60,13 @@ export default function HotelOnboarding() {
     };
   });
 
-  const { data: user } = useQuery({
+  const { data: user, isError: userError } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => base44.auth.me(),
+    retry: 1,
   });
 
-  const { data: existingProfile } = useQuery({
+  const { data: existingProfile, isError: profileError } = useQuery({
     queryKey: ["existingHotelProfile", user?.email],
     queryFn: async () => {
       if (!user?.email) return null;
@@ -77,12 +78,19 @@ export default function HotelOnboarding() {
     },
     enabled: !!user?.email,
     staleTime: 0,
+    retry: 1,
   });
 
   useEffect(() => {
     if (formInitialized) return;
-    if (!user) return;
-    if (existingProfile === undefined) return;
+    if (!user) {
+      if (userError) { setFormInitialized(true); setIsLoadingData(false); }
+      return;
+    }
+    if (existingProfile === undefined) {
+      if (profileError) { setFormInitialized(true); setIsLoadingData(false); }
+      return;
+    }
 
     setFormInitialized(true);
     setIsLoadingData(false);
@@ -116,7 +124,7 @@ export default function HotelOnboarding() {
     } else if (user.full_name) {
       setForm(prev => ({ ...prev, walker_name: user.full_name, hotel_name: user.full_name }));
     }
-  }, [existingProfile, user, formInitialized]);
+  }, [existingProfile, user, formInitialized, userError, profileError]);
 
   const set = (key, val) => {
     setForm(prev => {
