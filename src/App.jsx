@@ -110,7 +110,8 @@ const ErrorBoundaryWrapper = ({ children }) => {
   const [hasError, setHasError] = React.useState(false);
   
   React.useEffect(() => {
-    const handleError = () => {
+    const handleError = (e) => {
+      if (e?.message?.includes('ResizeObserver loop')) return;
       setHasError(true);
       setTimeout(() => setHasError(false), 100);
     };
