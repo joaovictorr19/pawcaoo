@@ -42,8 +42,8 @@ export default function ShortProfile() {
           const slugs = await base44.entities.ProfileSlug.filter({ slug });
           if (slugs?.length > 0) {
             const s = slugs[0];
-            if (s.entity_email) { setResolved({ email: s.entity_email }); return; }
-            if (s.entity_id) { setResolved({ id: s.entity_id }); return; }
+            if (s.entity_email) { setResolved({ email: s.entity_email, type: s.entity_type }); return; }
+            if (s.entity_id) { setResolved({ id: s.entity_id, type: s.entity_type }); return; }
           }
         } catch (e) {}
 
@@ -61,15 +61,17 @@ export default function ShortProfile() {
         try {
           const walkers = await base44.entities.WalkerProfile.list(undefined, 200);
           const baseSlug = slug.replace(/-\d+$/, '');
-          const match = walkers.find(w => {
+          const matches = walkers.filter(w => {
             const name = w.hotel_details?.hotel_name || w.walker_name;
             const s = slugify(name);
             return s === slug || s === baseSlug;
           });
+          // Priorizar hotéis se houver múltiplos matches (evita hotel → passeador)
+          const match = matches.find(w => w.professional_type === 'hotel') || matches[0];
           if (match && match.created_by) {
             const type = match.professional_type === 'hotel' ? 'hotel' : 'walker';
             ensureSlug(type, match.created_by, match.hotel_details?.hotel_name || match.walker_name, slug);
-            setResolved({ email: match.created_by });
+            setResolved({ email: match.created_by, type });
             return;
           }
         } catch (e) {}
@@ -84,7 +86,7 @@ export default function ShortProfile() {
           });
           if (match && match.created_by) {
             ensureSlug('trainer', match.created_by, match.trainer_name, slug);
-            setResolved({ email: match.created_by });
+            setResolved({ email: match.created_by, type: 'trainer' });
             return;
           }
         } catch (e) {}
@@ -122,8 +124,8 @@ export default function ShortProfile() {
   }
 
   // Renderizar o perfil diretamente — o URL mantém-se /p/slug
-  if (resolved?.email) return <UserProfile fixedEmail={resolved.email} />;
-  if (resolved?.id) return <UserProfile fixedId={resolved.id} />;
+  if (resolved?.email) return <UserProfile fixedEmail={resolved.email} fixedType={resolved.type} />;
+  if (resolved?.id) return <UserProfile fixedId={resolved.id} fixedType={resolved.type} />;
   if (resolved?.partnerId) return <Navigate to={`/PartnerDetails?id=${resolved.partnerId}`} replace />;
 
   if (notFound) {

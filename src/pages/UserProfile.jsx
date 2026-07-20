@@ -19,7 +19,7 @@ const AnimalManagerModal = lazy(() => import("../components/profile/AnimalManage
 const ProfessionalBookingModal = lazy(() => import("../components/professional/ProfessionalBookingModal"));
 const HotelBookingModal = lazy(() => import("@/components/hotel/HotelBookingModal"));
 
-export default function UserProfile({ fixedEmail, fixedId }) {
+export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -213,11 +213,16 @@ export default function UserProfile({ fixedEmail, fixedId }) {
   });
 
   const { data: walkerProfile } = useQuery({
-    queryKey: ['walkerProfile', profileEmail],
+    queryKey: ['walkerProfile', profileEmail, fixedType],
     queryFn: async () => {
       if (!profileEmail) return null;
       const walkers = await base44.entities.WalkerProfile.filter({ created_by: profileEmail });
-      return walkers[0] || null;
+      if (!walkers?.length) return null;
+      // Se sabemos o tipo (hotel/trainer), priorizar esse perfil
+      if (fixedType === 'hotel') {
+        return walkers.find(w => w.professional_type === 'hotel') || walkers[0];
+      }
+      return walkers[0];
     },
     enabled: !!profileEmail,
     staleTime: 5 * 60 * 1000,
