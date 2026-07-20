@@ -148,6 +148,14 @@ export default function HotelCapacityAdjuster({ hotelProfile }) {
                   </Button>
 
                   <Button
+                    onClick={() => handleUpdateCapacity(service.service_id, 0)}
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs font-bold rounded-lg text-red-600 hover:bg-red-100"
+                  >
+                    Esgotar
+                  </Button>
+                  <Button
                     onClick={() => handleUpdateCapacity(service.service_id, service.capacity_total)}
                     size="sm"
                     variant="ghost"
