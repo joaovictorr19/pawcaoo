@@ -10,6 +10,7 @@ import Register from './pages/Register.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import ShortProfile from './pages/ShortProfile.jsx'
+import QRProfileTest from './pages/QRProfileTest.jsx'
 const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2').catch(e => {
   console.error('Error loading ProfessionalHubV2:', e);
   return { default: () => <div>Erro ao carregar página</div> };
@@ -192,6 +193,7 @@ const AuthenticatedApp = () => {
             <Route path="/WalkerOnboarding" element={<Suspense fallback={<PageLoader />}><WalkerOnboarding /></Suspense>} />
             <Route path="/ActiveWalkDashboard" element={<Suspense fallback={<PageLoader />}><ActiveWalkDashboard /></Suspense>} />
 
+            <Route path="/QRProfileTest" element={<QRProfileTest />} />
             <Route path="/p/:slug" element={<ShortProfile />} />
             <Route path="*" element={<PageNotFound />} />
             </Routes>
