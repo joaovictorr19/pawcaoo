@@ -37,15 +37,6 @@ export default function EditAnimalProfile() {
     queryFn: () => base44.auth.me(),
   });
 
-  const VACCINE_OPTIONS = [
-    "Raiva",
-    "Tosse do Canil (Bordetella)",
-    "Polivalente (DHPPi / V8 / V10)",
-    "Leishmaniose",
-    "Leptospirose",
-    "Gripe Canina",
-  ];
-
   const [formData, setFormData] = useState({
     dog_name: "",
     animal_type: "dog",
@@ -329,55 +320,61 @@ export default function EditAnimalProfile() {
 
             {/* Vacinas */}
             <div>
-              <label className={labelCls}>💉 Vacinas</label>
-              <p className="text-xs text-slate-400 mb-3">Registe cada vacina individualmente com a data da última dose</p>
+              <div className="flex items-center justify-between mb-1">
+                <label className={labelCls}>💉 Vacinas</label>
+                <button
+                  type="button"
+                  onClick={() => set('vaccines', [...formData.vaccines, { vaccine_name: "", last_date: "", next_date: "" }])}
+                  className="text-xs font-semibold text-green-600 hover:text-green-700 flex items-center gap-1"
+                >
+                  + Adicionar vacina
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 mb-3">Escreva o nome de cada vacina e respetiva data</p>
               <div className="space-y-3">
-                {VACCINE_OPTIONS.map((vaccineName) => {
-                  const existing = formData.vaccines.find(v => v.vaccine_name === vaccineName);
-                  const hasVaccine = !!existing;
-                  return (
-                    <div key={vaccineName} className={`rounded-xl border transition-all ${hasVaccine ? 'border-green-300 bg-green-50' : 'border-slate-200 bg-white'}`}>
-                      <label className="flex items-center gap-3 p-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={hasVaccine}
-                          className="w-4 h-4 accent-green-500"
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              set('vaccines', [...formData.vaccines, { vaccine_name: vaccineName, last_date: "", next_date: "" }]);
-                            } else {
-                              set('vaccines', formData.vaccines.filter(v => v.vaccine_name !== vaccineName));
-                            }
-                          }}
-                        />
-                        <span className="text-sm font-semibold text-slate-800 flex-1">{vaccineName}</span>
-                        {hasVaccine && <span className="text-xs text-green-600 font-medium">✓ Vacinado</span>}
-                      </label>
-                      {hasVaccine && (
-                        <div className="px-3 pb-3 grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Última dose</label>
-                            <input
-                              type="date"
-                              value={existing.last_date || ""}
-                              onChange={(e) => set('vaccines', formData.vaccines.map(v => v.vaccine_name === vaccineName ? { ...v, last_date: e.target.value } : v))}
-                              className={inputCls + " h-9 text-xs"}
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Próxima dose</label>
-                            <input
-                              type="date"
-                              value={existing.next_date || ""}
-                              onChange={(e) => set('vaccines', formData.vaccines.map(v => v.vaccine_name === vaccineName ? { ...v, next_date: e.target.value } : v))}
-                              className={inputCls + " h-9 text-xs"}
-                            />
-                          </div>
-                        </div>
-                      )}
+                {formData.vaccines.length === 0 && (
+                  <p className="text-xs text-slate-400 italic py-2">Nenhuma vacina registada. Clique em "Adicionar vacina".</p>
+                )}
+                {formData.vaccines.map((vaccine, idx) => (
+                  <div key={idx} className="rounded-xl border border-slate-200 bg-white p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={vaccine.vaccine_name || ""}
+                        onChange={(e) => set('vaccines', formData.vaccines.map((v, i) => i === idx ? { ...v, vaccine_name: e.target.value } : v))}
+                        placeholder="Ex: Raiva, Polivalente V10..."
+                        className={inputCls + " flex-1"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => set('vaccines', formData.vaccines.filter((_, i) => i !== idx))}
+                        className="text-red-400 hover:text-red-600 p-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  );
-                })}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Última dose</label>
+                        <input
+                          type="date"
+                          value={vaccine.last_date || ""}
+                          onChange={(e) => set('vaccines', formData.vaccines.map((v, i) => i === idx ? { ...v, last_date: e.target.value } : v))}
+                          className={inputCls + " h-9 text-xs"}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-semibold text-slate-400 uppercase block mb-1">Próxima dose</label>
+                        <input
+                          type="date"
+                          value={vaccine.next_date || ""}
+                          onChange={(e) => set('vaccines', formData.vaccines.map((v, i) => i === idx ? { ...v, next_date: e.target.value } : v))}
+                          className={inputCls + " h-9 text-xs"}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
