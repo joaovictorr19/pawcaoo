@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import PawCaoLogoIcon from "@/components/PawCaoLogoIcon";
+
+const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/e3013a5a7_IMG_3975.jpg";
 
 export default function PawCaoLogo({ size = "default", showText = true, className = "", animated = false }) {
   // Validate size prop
@@ -58,8 +59,10 @@ export default function PawCaoLogo({ size = "default", showText = true, classNam
         {...iconProps}
         className={`${currentSize.container} rounded-full shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group cursor-pointer flex-shrink-0 ring-2 ring-white/60 hover:ring-teal-200`}
       >
-        <PawCaoLogoIcon
-          className="w-full h-full relative z-10"
+        <img
+          src={PAWCAO_LOGO_URL}
+          alt="PawCão"
+          className="w-full h-full object-cover scale-[1.08] relative z-10"
         />
         
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 z-20 pointer-events-none" />
