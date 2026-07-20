@@ -57,11 +57,14 @@ export default function ShortProfile() {
         } catch (e) {}
 
         // 3) Tentar WalkerProfile — buscar por nome slugificado
+        //    Aceita também slug com sufixo numérico (ex: hotel-canino-2 → base hotel-canino)
         try {
           const walkers = await base44.entities.WalkerProfile.list(undefined, 200);
+          const baseSlug = slug.replace(/-\d+$/, '');
           const match = walkers.find(w => {
             const name = w.hotel_details?.hotel_name || w.walker_name;
-            return slugify(name) === slug;
+            const s = slugify(name);
+            return s === slug || s === baseSlug;
           });
           if (match && match.created_by) {
             const type = match.professional_type === 'hotel' ? 'hotel' : 'walker';
@@ -74,7 +77,11 @@ export default function ShortProfile() {
         // 4) Tentar TrainerProfile
         try {
           const trainers = await base44.entities.TrainerProfile.list(undefined, 200);
-          const match = trainers.find(t => slugify(t.trainer_name) === slug);
+          const baseSlug = slug.replace(/-\d+$/, '');
+          const match = trainers.find(t => {
+            const s = slugify(t.trainer_name);
+            return s === slug || s === baseSlug;
+          });
           if (match && match.created_by) {
             ensureSlug('trainer', match.created_by, match.trainer_name, slug);
             setRedirect(`/UserProfile?email=${encodeURIComponent(match.created_by)}`);

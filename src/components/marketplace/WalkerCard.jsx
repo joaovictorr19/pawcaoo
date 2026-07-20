@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Star, DollarSign, Shield, Heart, User, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { buildShortProfileLink } from "@/utils/profileSlug";
+import { ensureProfileSlug } from "@/utils/profileSlug";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useTheme } from "@/components/ThemeContext";
@@ -78,16 +78,20 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
 
   const profileName = walker?.hotel_details?.hotel_name || walker?.walker_name;
 
-  const handleViewProfile = (e) => {
+  const handleViewProfile = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     window.scrollTo({ top: 0, behavior: 'instant' });
-    navigate(buildShortProfileLink(profileName, walker?.created_by));
+    const type = walker?.professional_type === 'hotel' ? 'hotel' : 'walker';
+    const link = await ensureProfileSlug(profileName, walker?.created_by, type);
+    navigate(link);
   };
 
-  const handleCardClick = () => {
+  const handleCardClick = async () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    navigate(buildShortProfileLink(profileName, walker?.created_by));
+    const type = walker?.professional_type === 'hotel' ? 'hotel' : 'walker';
+    const link = await ensureProfileSlug(profileName, walker?.created_by, type);
+    navigate(link);
   };
 
   return (

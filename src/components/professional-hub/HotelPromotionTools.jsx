@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
+import { ensureProfileSlug } from "@/utils/profileSlug";
 import {
   Globe,
   Copy,
@@ -22,16 +23,21 @@ import {
  * Link público, QR Code de partilha, e botões de redes sociais
  */
 export default function HotelPromotionTools({ user, professionalProfile }) {
-  const profileId = professionalProfile?.id;
   const hotelName =
     professionalProfile?.hotel_details?.hotel_name ||
     professionalProfile?.walker_name ||
     user?.full_name ||
     "Hotel";
 
-  const profileUrl = profileId
-    ? `${window.location.origin}/p/${profileId}`
-    : "";
+  const [profileUrl, setProfileUrl] = useState('');
+  useEffect(() => {
+    const email = professionalProfile?.created_by || user?.email;
+    if (hotelName && email) {
+      ensureProfileSlug(hotelName, email, 'hotel').then(slug => {
+        setProfileUrl(`${window.location.origin}${slug}`);
+      });
+    }
+  }, [professionalProfile?.id, hotelName, professionalProfile?.created_by]);
 
   const copyLink = () => {
     if (!profileUrl) return;
@@ -83,7 +89,7 @@ export default function HotelPromotionTools({ user, professionalProfile }) {
     img.src = "data:image/svg+xml;utf8," + encodeURIComponent(svgData);
   };
 
-  if (!profileId) return null;
+  if (!profileUrl) return null;
 
   return (
     <>

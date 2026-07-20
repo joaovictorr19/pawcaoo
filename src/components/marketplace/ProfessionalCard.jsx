@@ -3,7 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { BadgeStatic } from "@/components/ui/BadgeStatic";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { buildShortProfileLink } from "@/utils/profileSlug";
+import { ensureProfileSlug } from "@/utils/profileSlug";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
@@ -23,10 +23,12 @@ export function ProfessionalCard({ walker }) {
   return (
     <div className={`bg-white rounded-[2.5rem] p-4 mb-3 border shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow
       ${profileData.isHotel ? 'border-purple-400 ring-2 ring-purple-300/60 shadow-purple-50' : profileData.isPawcao ? 'border-amber-400 ring-2 ring-amber-300/60 shadow-amber-100' : 'border-slate-100'}`}
-      onClick={() => {
+      onClick={async () => {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         const name = walker?.hotel_details?.hotel_name || walker?.walker_name;
-        navigate(buildShortProfileLink(name, walker?.created_by));
+        const type = walker?.professional_type === 'hotel' ? 'hotel' : 'walker';
+        const link = await ensureProfileSlug(name, walker?.created_by, type);
+        navigate(link);
       }}
       onMouseEnter={() => {
         queryClient.prefetchQuery({

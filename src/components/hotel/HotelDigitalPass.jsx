@@ -1,10 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Share2, Edit2, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import QRCode from 'react-qr-code';
+import { ensureProfileSlug } from '@/utils/profileSlug';
 
 const loadHtml2Canvas = () => import('html2canvas').then(m => m.default);
 
@@ -19,14 +20,19 @@ export default function HotelDigitalPass({ hotelProfile }) {
   const hotelPhoto = hotelProfile?.photo_url || hotelProfile?.cover_photo_url;
   const servicesCount = hotelProfile?.hotel_details?.services?.length || 0;
 
-  // URL pública do perfil do hotel (para QR Code)
-  const getPublicHotelUrl = () => {
-    const baseUrl = window.location.origin;
-    const profileId = hotelProfile?.id;
-    return profileId ? `${baseUrl}/p/${profileId}` : baseUrl;
-  };
-
-  const hotelUrl = getPublicHotelUrl();
+  // URL pública do perfil do hotel (para QR Code) — usa slug com nome
+  const [hotelUrl, setHotelUrl] = useState('');
+  useEffect(() => {
+    const name = hotelProfile?.hotel_details?.hotel_name || hotelProfile?.walker_name;
+    const email = hotelProfile?.created_by;
+    if (name && email) {
+      ensureProfileSlug(name, email, 'hotel').then(slug => {
+        setHotelUrl(`${window.location.origin}${slug}`);
+      });
+    } else {
+      setHotelUrl(window.location.origin);
+    }
+  }, [hotelProfile?.id, hotelProfile?.walker_name, hotelProfile?.created_by]);
 
   // Download do cartão como PNG
   const handleDownloadPass = async () => {

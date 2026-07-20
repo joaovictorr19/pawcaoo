@@ -1,10 +1,11 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import QRCode from "react-qr-code";
 const loadHtml2Canvas = () => import("html2canvas").then(m => m.default);
 import { Download, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getTierColor, calculateTier } from "@/components/gamification/tierSystem";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import { ensureProfileSlug } from "@/utils/profileSlug";
 
 /**
  * DigitalWalletPass - Cartão estilo Apple Wallet para profissionais
@@ -25,12 +26,17 @@ export default function DigitalWalletPass({
   const tier = calculateTier(xp);
   const levelColor = getTierColor(tier.level);
 
-  const getPublicProfileUrl = () => {
-    const profileId = user?.id || user?.user_id;
-    return profileId ? `${window.location.origin}/p/${profileId}` : '';
-  };
-
-  const profileUrl = getPublicProfileUrl();
+  const [profileUrl, setProfileUrl] = useState('');
+  useEffect(() => {
+    const name = user?.hotel_details?.hotel_name || user?.walker_name || user?.trainer_name || user?.full_name;
+    const email = user?.created_by || user?.email;
+    if (name && email) {
+      const type = user?.professional_type === 'hotel' ? 'hotel' : 'walker';
+      ensureProfileSlug(name, email, type).then(slug => {
+        setProfileUrl(`${window.location.origin}${slug}`);
+      });
+    }
+  }, [user?.id, user?.walker_name, user?.hotel_details?.hotel_name]);
 
   const getTitle = () => {
     if (user?.professional_type === "hotel") return "Hotel Parceiro";
