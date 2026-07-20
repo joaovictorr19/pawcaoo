@@ -43,9 +43,13 @@
         "feeding",
         "medication",
         "incident",
-        "observation"
+        "observation",
+        "elimination",
+        "exercise",
+        "grooming",
+        "veterinary"
       ],
-      "description": "Tipo de registo: saude, comportamento, alimentacao, medicamento, incidente, observacao"
+      "description": "Tipo de registo: saude, comportamento, alimentacao, medicamento, incidente, observacao, eliminacao, exercicio, grooming, veterinario"
     },
     "title": {
       "type": "string",
@@ -93,6 +97,104 @@
       ],
       "description": "Nivel de energia observado"
     },
+    "stool_status": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "loose",
+        "constipated",
+        "none",
+        "blood"
+      ],
+      "description": "Estado das fezes"
+    },
+    "urination": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "frequent",
+        "reduced",
+        "none",
+        "accident"
+      ],
+      "description": "Padrao de miccao"
+    },
+    "water_intake": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "reduced",
+        "excessive",
+        "none"
+      ],
+      "description": "Ingestao de agua"
+    },
+    "socialization": {
+      "type": "string",
+      "enum": [
+        "friendly",
+        "neutral",
+        "shy",
+        "aggressive",
+        "anxious"
+      ],
+      "description": "Comportamento social com outros caes/pessoas"
+    },
+    "mood": {
+      "type": "string",
+      "enum": [
+        "happy",
+        "calm",
+        "excited",
+        "anxious",
+        "tired",
+        "stressed",
+        "depressed"
+      ],
+      "description": "Humor/estado emocional observado"
+    },
+    "exercise_minutes": {
+      "type": "number",
+      "description": "Minutos de exercicio/passeio"
+    },
+    "exercise_type": {
+      "type": "string",
+      "enum": [
+        "walk",
+        "playtime",
+        "training",
+        "swimming",
+        "none"
+      ],
+      "description": "Tipo de exercicio realizado"
+    },
+    "sleep_hours": {
+      "type": "number",
+      "description": "Horas de sono descansado"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Foto anexada ao registo"
+    },
+    "grooming_notes": {
+      "type": "string",
+      "description": "Notas de grooming/banho"
+    },
+    "vaccination_checked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Vacina verificada nesta data"
+    },
+    "deworming_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da ultima desparasitacao"
+    },
+    "flea_tick_treatment": {
+      "type": "boolean",
+      "default": false,
+      "description": "Tratamento pulgas/carrapatos aplicado"
+    },
     "recorded_by": {
       "type": "string",
       "description": "Email do membro da equipa que registou"
@@ -113,6 +215,11 @@
       "type": "boolean",
       "default": false,
       "description": "Acompanhamento resolvido"
+    },
+    "notify_owner": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se este registo deve ser notificado ao dono no site"
     }
   },
   "required": [
