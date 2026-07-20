@@ -341,23 +341,43 @@ export default function HotelDashboard() {
       return;
     }
 
-    // Card: notify the client in-app — they pay through the site (commission-aware)
+    // Card: generate Stripe checkout link + notify the client in-app
+    let stripeUrl = null;
+    try {
+      const addOnIndex = newAddOns.length - 1;
+      const origin = window.location.origin;
+      const resp = await base44.functions.invoke('createHotelAddOnCheckout', {
+        bookingId,
+        addOnIndex,
+        initiatedBy: 'hotel',
+        successUrl: `${origin}/ClientDashboard?addon=success`,
+        cancelUrl: `${origin}/ClientDashboard?addon=cancelled`,
+      });
+      stripeUrl = resp?.data?.url || null;
+    } catch (e) {
+      console.error('Stripe add-on checkout error:', e);
+    }
+
     if (booking.owner_email) {
       try {
         await base44.entities.Notification.create({
           recipient_email: booking.owner_email,
-          title: '💳 Pedido de Pagamento — Serviço Extra',
-          message: `O hotel pediu ${total.toFixed(2)}€ pelo serviço "${addOn.service_name}". Paga no teu painel para confirmar.`,
+          title: '💳 Pagamento de Serviço Extra',
+          message: stripeUrl
+            ? `O hotel pediu ${total.toFixed(2)}€ pelo serviço "${addOn.service_name}". Clica para pagar com cartão ou usa o teu saldo PawCão no painel.`
+            : `O hotel pediu ${total.toFixed(2)}€ pelo serviço "${addOn.service_name}". Paga no teu painel (cartão ou saldo PawCão).`,
           type: 'payment',
           related_id: bookingId,
-          link: createPageUrl("ClientDashboard"),
+          link: stripeUrl || createPageUrl("ClientDashboard"),
           icon: '💳',
         });
       } catch (e) {
         console.error('Notify client error:', e);
       }
     }
-    toast.success(`Pedido de pagamento enviado ao cliente (${total.toFixed(2)}€)`);
+    toast.success(stripeUrl
+      ? `Stripe gerado + cliente notificado (${total.toFixed(2)}€)`
+      : `Cliente notificado — pagamento via painel (${total.toFixed(2)}€)`);
   };
 
   const partners = hotelProfile?.hotel_details?.partner_walkers || [];

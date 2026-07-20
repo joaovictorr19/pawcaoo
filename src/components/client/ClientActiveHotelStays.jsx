@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Hotel, Dog, CalendarDays, Clock, CheckCircle2, XCircle,
   Droplets, Scissors, PawPrint, Star, Utensils, Pill, Smile,
-  HeartHandshake, Loader2, Plus, CreditCard, Bell
+  HeartHandshake, Loader2, Plus, CreditCard, Bell, Wallet
 } from "lucide-react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -38,6 +38,17 @@ export default function ClientActiveHotelStays({ user }) {
   const queryClient = useQueryClient();
   const [requestingFor, setRequestingFor] = useState(null); // bookingId
   const [payingAddOn, setPayingAddOn] = useState(null);    // {bookingId, index}
+
+  const { data: wallet } = useQuery({
+    queryKey: ['myWallet', user?.email],
+    queryFn: async () => {
+      const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
+      return wallets[0] || null;
+    },
+    enabled: !!user?.email,
+  });
+
+  const walletBalance = (wallet?.escrow_balance || 0) + (wallet?.cashback_balance || 0);
 
   const { data: activeStays = [], isLoading } = useQuery({
     queryKey: ['clientActiveHotelStays', user?.email],
@@ -129,6 +140,25 @@ export default function ClientActiveHotelStays({ user }) {
     }
   };
 
+  const handlePayWithWallet = async (bookingId, addOnIndex, amount) => {
+    if (walletBalance < amount) {
+      toast.error(`Saldo PawCão insuficiente. Tens ${walletBalance.toFixed(2)}€.`);
+      return;
+    }
+    setPayingAddOn({ bookingId, addOnIndex, wallet: true });
+    try {
+      const res = await base44.functions.invoke('payHotelAddOnWithWallet', { bookingId, addOnIndex });
+      if (res?.data?.error) { toast.error(res.data.error); return; }
+      toast.success(`Pago com saldo PawCão (${amount.toFixed(2)}€)`);
+      queryClient.invalidateQueries({ queryKey: ['clientActiveHotelStays'] });
+      queryClient.invalidateQueries({ queryKey: ['myWallet'] });
+    } catch (e) {
+      toast.error("Erro ao pagar com saldo: " + (e.message || ''));
+    } finally {
+      setPayingAddOn(null);
+    }
+  };
+
   if (isLoading) return null;
 
   if (activeStays.length === 0) return null;
@@ -203,9 +233,17 @@ export default function ClientActiveHotelStays({ user }) {
             {/* Hotel-initiated add-ons awaiting payment */}
             {hotelAddOnsToPay.length > 0 && (
               <div className="px-4 py-3 border-b border-white/5 space-y-2">
-                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">💳 Pagamento Pendente</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">💳 Pagamento Pendente</p>
+                  {walletBalance > 0 && (
+                    <span className="text-[9px] text-teal-400 font-bold flex items-center gap-0.5">
+                      <Wallet className="w-2.5 h-2.5" /> {walletBalance.toFixed(2)}€
+                    </span>
+                  )}
+                </div>
                 {hotelAddOnsToPay.map(a => {
                   const Icon = SERVICE_ICONS[a.service_name] || PawPrint;
+                  const isPaying = payingAddOn?.bookingId === booking.id && payingAddOn?.addOnIndex === a.index;
                   return (
                     <div key={a.index} className="flex items-center gap-2 bg-amber-500/10 rounded-lg p-2 border border-amber-500/20">
                       <Icon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -215,16 +253,29 @@ export default function ClientActiveHotelStays({ user }) {
                         </p>
                         <p className="text-[10px] text-amber-400 font-bold">{a.total_price?.toFixed(2)}€ a pagar</p>
                       </div>
+                      {walletBalance >= (a.total_price || 0) && (
+                        <Button
+                          size="sm"
+                          className="h-7 px-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-[10px] font-bold gap-1 shrink-0"
+                          disabled={isPaying}
+                          onClick={() => handlePayWithWallet(booking.id, a.index, a.total_price)}
+                        >
+                          {isPaying && payingAddOn?.wallet
+                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                            : <Wallet className="w-3 h-3" />}
+                          Saldo
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         className="h-7 px-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 text-[10px] font-bold gap-1 shrink-0"
-                        disabled={payingAddOn?.bookingId === booking.id && payingAddOn?.addOnIndex === a.index}
+                        disabled={isPaying}
                         onClick={() => handlePayAddOn(booking.id, a.index)}
                       >
-                        {payingAddOn?.bookingId === booking.id && payingAddOn?.addOnIndex === a.index
+                        {isPaying && !payingAddOn?.wallet
                           ? <Loader2 className="w-3 h-3 animate-spin" />
                           : <CreditCard className="w-3 h-3" />}
-                        Pagar
+                        Cartão
                       </Button>
                     </div>
                   );
