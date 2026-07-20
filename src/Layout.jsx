@@ -46,6 +46,7 @@ import PullToRefresh from "@/components/ui/PullToRefresh";
 import BadgeNotification from "@/components/gamification/BadgeNotification";
 import PushNotificationManager from "@/components/notifications/PushNotificationManager";
 import MobileHeader from "@/components/layout/MobileHeader";
+import MobileNavBar from "@/components/layout/MobileNavBar";
 
 import NotificationTriggers from "@/components/notifications/NotificationTriggers";
 import DynamicBackground from "@/components/ui/DynamicBackground";
@@ -572,6 +573,12 @@ function LayoutContent({ children, currentPageName }) {
           <LayoutFooter />
         </div>
       </div>
+
+      <MobileNavBar
+        user={stableUser}
+        unreadCount={unreadCount}
+        onNotificationsClick={() => setIsNotificationPanelOpen(true)}
+      />
     </SidebarProvider>
   );
 }
