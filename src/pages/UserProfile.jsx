@@ -19,7 +19,7 @@ const AnimalManagerModal = lazy(() => import("../components/profile/AnimalManage
 const ProfessionalBookingModal = lazy(() => import("../components/professional/ProfessionalBookingModal"));
 const HotelBookingModal = lazy(() => import("@/components/hotel/HotelBookingModal"));
 
-export default function UserProfile() {
+export default function UserProfile({ fixedEmail, fixedId }) {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -33,7 +33,7 @@ export default function UserProfile() {
   }, [location.key]);
 
   const urlParams = new URLSearchParams(window.location.search);
-  const rawEmail = urlParams.get('email') || location.state?.email;
+  const rawEmail = fixedEmail || urlParams.get('email') || location.state?.email;
   let profileEmailParam = rawEmail;
   if (rawEmail) {
     try {
@@ -44,7 +44,7 @@ export default function UserProfile() {
     } catch (e) {}
   }
 
-  const profileIdParam = urlParams.get('id');
+  const profileIdParam = fixedId || urlParams.get('id');
   const profileUsernameParam = urlParams.get('username');
 
 

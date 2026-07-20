@@ -2,30 +2,35 @@ import { Navigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { slugify } from "@/utils/profileSlug";
+import UserProfile from "./UserProfile";
 
 /**
- * ShortProfile — Rota curta /p/:slug que resolve o nome para o perfil completo
- * Permite links limpos tipo pawcao.pt/p/hotel-canino-lisboa
+ * ShortProfile — Rota curta /p/:slug que resolve o nome e renderiza o perfil
+ * diretamente, mantendo o URL limpo (ex: pawcao.pt/p/hotel-canino-lisboa).
  *
  * Ordem de resolução:
  * 1. ProfileSlug entity (slug → entity_email/type)
  * 2. UserProfile.filter({ username: slug })
  * 3. WalkerProfile — busca por hotel_name/walker_name slugificado (lazy backfill)
+ * 4. TrainerProfile
+ * 5. PartnerCompany → redirect to /PartnerDetails
  */
 export default function ShortProfile() {
   const { slug: rawSlug } = useParams();
-  const [redirect, setRedirect] = useState(null);
+  const [resolved, setResolved] = useState(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function resolve() {
       if (!rawSlug) { setNotFound(true); return; }
+      setResolved(null);
+      setNotFound(false);
 
       // Aceita tanto slug (com hífens) quanto ID antigo (alfanumérico sem hífens)
       const looksLikeLegacyId = rawSlug.length > 20 && !rawSlug.includes('-');
       if (looksLikeLegacyId) {
-        setRedirect(`/UserProfile?id=${rawSlug}`);
+        setResolved({ id: rawSlug });
         return;
       }
 
@@ -37,27 +42,22 @@ export default function ShortProfile() {
           const slugs = await base44.entities.ProfileSlug.filter({ slug });
           if (slugs?.length > 0) {
             const s = slugs[0];
-            if (s.entity_email) {
-              setRedirect({ pathname: '/UserProfile', state: { email: s.entity_email } });
-            } else if (s.entity_id) {
-              setRedirect(`/UserProfile?id=${s.entity_id}`);
-            }
-            return;
+            if (s.entity_email) { setResolved({ email: s.entity_email }); return; }
+            if (s.entity_id) { setResolved({ id: s.entity_id }); return; }
           }
-        } catch (e) { /* entity pode não existir ainda */ }
+        } catch (e) {}
 
         // 2) Tentar UserProfile por username
         try {
           const users = await base44.entities.UserProfile.filter({ username: slug });
           if (users?.length > 0 && users[0].user_email) {
             ensureSlug('user', users[0].user_email, users[0].full_name || slug, slug);
-            setRedirect({ pathname: '/UserProfile', state: { email: users[0].user_email } });
+            setResolved({ email: users[0].user_email });
             return;
           }
         } catch (e) {}
 
         // 3) Tentar WalkerProfile — buscar por nome slugificado
-        //    Aceita também slug com sufixo numérico (ex: hotel-canino-2 → base hotel-canino)
         try {
           const walkers = await base44.entities.WalkerProfile.list(undefined, 200);
           const baseSlug = slug.replace(/-\d+$/, '');
@@ -69,7 +69,7 @@ export default function ShortProfile() {
           if (match && match.created_by) {
             const type = match.professional_type === 'hotel' ? 'hotel' : 'walker';
             ensureSlug(type, match.created_by, match.hotel_details?.hotel_name || match.walker_name, slug);
-            setRedirect({ pathname: '/UserProfile', state: { email: match.created_by } });
+            setResolved({ email: match.created_by });
             return;
           }
         } catch (e) {}
@@ -84,7 +84,7 @@ export default function ShortProfile() {
           });
           if (match && match.created_by) {
             ensureSlug('trainer', match.created_by, match.trainer_name, slug);
-            setRedirect({ pathname: '/UserProfile', state: { email: match.created_by } });
+            setResolved({ email: match.created_by });
             return;
           }
         } catch (e) {}
@@ -95,12 +95,11 @@ export default function ShortProfile() {
           const match = companies.find(c => slugify(c.company_name) === slug);
           if (match && match.id) {
             ensureSlug('company', match.company_email, match.company_name, slug);
-            setRedirect(`/PartnerDetails?id=${match.id}`);
+            setResolved({ partnerId: match.id });
             return;
           }
         } catch (e) {}
 
-        // Não encontrado
         if (!cancelled) setNotFound(true);
       } catch (e) {
         if (!cancelled) setNotFound(true);
@@ -122,7 +121,10 @@ export default function ShortProfile() {
     } catch (e) { /* slug pode já existir, ignorar */ }
   }
 
-  if (redirect) return <Navigate to={redirect} replace />;
+  // Renderizar o perfil diretamente — o URL mantém-se /p/slug
+  if (resolved?.email) return <UserProfile fixedEmail={resolved.email} />;
+  if (resolved?.id) return <UserProfile fixedId={resolved.id} />;
+  if (resolved?.partnerId) return <Navigate to={`/PartnerDetails?id=${resolved.partnerId}`} replace />;
 
   if (notFound) {
     return (
