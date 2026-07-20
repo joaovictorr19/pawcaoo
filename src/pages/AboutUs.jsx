@@ -88,6 +88,9 @@ export default function AboutUs() {
       missionLabel: "A NOSSA MISSÃO",
       missionTitle: "Simplificar o cuidado animal",
       missionText: "Existimos para eliminar a frustração das plataformas confusas. Conectamos donos de cães a profissionais qualificados em segundos — com segurança, transparência e zero burocracia.",
+      sealLabel: "SELO PAWCÃO",
+      sealTitle: "Verificados pessoalmente pela nossa equipa",
+      sealText: "Todos os profissionais com o Selo PawCão são visitados pessoalmente pela nossa equipa. Não nos basta um registo online — deslocamo-nos ao local, conhecemos o profissional, avaliamos as instalações e validamos as condições de trabalho antes de atribuir o selo. É a nossa forma de garantir confiança real.",
       storyLabel: "A NOSSA HISTÓRIA",
       storyTitle: "Nascido de uma frustração real",
       storyP1: "O PawCão nasceu porque as plataformas existentes são lentas, confusas e cheias de passos desnecessários. Vimos donos frustrados, profissionais perdidos em interfaces complicadas e hotéis a perder horas em processos que deviam levar minutos.",
@@ -114,6 +117,9 @@ export default function AboutUs() {
       missionLabel: "NUESTRA MISIÓN",
       missionTitle: "Simplificar el cuidado animal",
       missionText: "Existimos para eliminar la frustración de las plataformas confusas. Conectamos dueños de perros con profesionales cualificados en segundos — con seguridad, transparencia y cero burocracia.",
+      sealLabel: "SELLO PAWCÃO",
+      sealTitle: "Verificados personalmente por nuestro equipo",
+      sealText: "Todos los profesionales con el Sello PawCão son visitados personalmente por nuestro equipo. No nos basta con un registro online — nos desplazamos al lugar, conocemos al profesional, evaluamos las instalaciones y validamos las condiciones de trabajo antes de otorgar el sello. Es nuestra forma de garantizar confianza real.",
       storyLabel: "NUESTRA HISTORIA",
       storyTitle: "Nacido de una frustración real",
       storyP1: "PawCão nació porque las plataformas existentes son lentas, confusas y llenas de pasos innecesarios. Vimos dueños frustrados, profesionales perdidos en interfaces complicadas y hoteles perdiendo horas en procesos que deberían tomar minutos.",
@@ -140,6 +146,9 @@ export default function AboutUs() {
       missionLabel: "OUR MISSION",
       missionTitle: "Simplifying pet care",
       missionText: "We exist to eliminate the frustration of confusing platforms. We connect dog owners with qualified professionals in seconds — with security, transparency and zero bureaucracy.",
+      sealLabel: "PAWCÃO SEAL",
+      sealTitle: "Personally verified by our team",
+      sealText: "Every professional with the PawCão Seal is personally visited by our team. An online registration isn't enough — we go to the location, meet the professional, assess the facilities and validate the working conditions before awarding the seal. That's how we ensure real trust.",
       storyLabel: "OUR STORY",
       storyTitle: "Born from real frustration",
       storyP1: "PawCão was born because existing platforms are slow, confusing and full of unnecessary steps. We saw frustrated owners, professionals lost in complicated interfaces and hotels wasting hours on processes that should take minutes.",
@@ -364,6 +373,31 @@ export default function AboutUs() {
               <p className="text-lg md:text-xl text-slate-700 leading-relaxed font-light max-w-3xl">
                 {tr.missionText}
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PAWCÃO SEAL */}
+      <section className="px-4 pb-16 md:pb-24">
+        <div className="max-w-5xl mx-auto">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100/60 p-8 md:p-14 lg:p-16">
+            <div className="absolute -top-10 -left-10 w-40 h-40 bg-amber-200/30 rounded-full blur-3xl" />
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+              <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                <Award className="w-10 h-10 md:w-12 md:h-12 text-white" />
+              </div>
+              <div className="text-center md:text-left flex-1">
+                <span className="text-xs font-bold text-amber-600 tracking-widest uppercase mb-3 block">
+                  {tr.sealLabel}
+                </span>
+                <h2 className="font-heading font-extrabold text-2xl md:text-3xl lg:text-4xl text-slate-900 mb-4 tracking-tight leading-tight">
+                  {tr.sealTitle}
+                </h2>
+                <p className="text-base md:text-lg text-slate-700 leading-relaxed font-light max-w-3xl">
+                  {tr.sealText}
+                </p>
+              </div>
             </div>
           </div>
         </div>
