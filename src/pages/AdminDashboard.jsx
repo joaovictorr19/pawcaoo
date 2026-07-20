@@ -3,26 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -32,21 +13,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Users, Shield, CheckCircle, X, Clock, Ban, Package,
-  Calendar, DollarSign, Star, AlertCircle, BarChart3, Store,
-  Sparkles, ShieldCheck, Heart, Award, Search, Crown, Megaphone,
-  FileText, Trash2, Plus, Edit, Gift,
-  RefreshCw, Loader2, Zap, TrendingUp, Eye, AlertTriangle
+  Users, Shield, Clock, Ban, AlertCircle,
+  Award, Gift, Zap, AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { pt } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { createPageUrl } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/components/LanguageContext";
-import { t } from "@/components/translations";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
@@ -55,11 +28,9 @@ import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
 
-import Pagination from "../components/ui/Pagination";
 import ClientDetails from "../components/admin/ClientDetails";
 
 import BroadcastManager from "../components/admin/BroadcastManager";
-import StoreItemsManager from "../components/admin/StoreItemsManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
@@ -155,6 +126,8 @@ export default function AdminDashboard() {
         return null;
       }
     },
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const isAdmin = user?.role === 'admin';
@@ -212,7 +185,6 @@ export default function AdminDashboard() {
     enabled: isAdmin,
     refetchInterval: 30000,
     staleTime: 10000,
-    refetchOnMount: 'always',
   });
 
   const { data: allUsers = [], isLoading: loadingAllUsers } = useQuery({
@@ -222,7 +194,6 @@ export default function AdminDashboard() {
     enabled: isAdmin && activeTab === 'users',
     initialData: [],
     staleTime: 30 * 1000,
-    refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   });
 
@@ -263,6 +234,7 @@ export default function AdminDashboard() {
     enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allPartnerServices = [] } = useQuery({
@@ -378,6 +350,7 @@ export default function AdminDashboard() {
     enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: adoptionListings = [] } = useQuery({
@@ -386,6 +359,7 @@ export default function AdminDashboard() {
     enabled: isAdmin,
     initialData: [],
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: badgeDefinitions = [], isFetching: loadingBadges } = useQuery({
@@ -395,7 +369,6 @@ export default function AdminDashboard() {
     enabled: isAdmin && activeTab === 'gamification',
     initialData: [],
     staleTime: 30 * 1000,
-    refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   });
 
