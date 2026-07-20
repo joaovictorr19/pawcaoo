@@ -3,7 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import AdminModuleNavigation from "@/components/admin/AdminModuleNavigation";
+import AdminStatCard from "@/components/admin/AdminStatCard";
 import {
   Dialog,
   DialogContent,
@@ -766,69 +768,51 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto p-4 md:p-6">
+      <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
       <ErrorBoundary>
-        <div className="mb-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <BackButton />
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl rounded-2xl">
-                <Shield className="w-7 h-7 text-white" />
+        <div className="mb-8 space-y-5">
+          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-col gap-5 p-5 md:flex-row md:items-center md:justify-between md:p-7">
+              <div className="flex min-w-0 items-center gap-4">
+                <BackButton />
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-teal-600 shadow-lg shadow-teal-600/20">
+                  <Shield className="h-7 w-7 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-teal-700">Centro de controlo</p>
+                  <h1 className="text-wrap-balance text-3xl font-black text-slate-950 md:text-4xl">Administração PawCão</h1>
+                  <p className="mt-1 text-sm text-slate-600 md:text-base">Gestão modular de toda a plataforma</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-black text-slate-900">Admin Dashboard</h1>
-                <p className="text-sm md:text-base text-slate-600">Controle total da plataforma</p>
+              <div className="shrink-0">
+                <QuickCreateDummy onCreated={() => {
+                  queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+                  queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                  queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+                }} />
               </div>
             </div>
-            <QuickCreateDummy onCreated={() => {
-              queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-              queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-              queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-            }} />
-          </div>
+          </section>
 
           {loadingStats ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className="h-32" style={{ borderRadius: 0 }} />
-              ))}
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-36 rounded-2xl" />)}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-               {dashboardStats.slice(0, 3).map((stat, idx) => (
-                 <Card key={idx} className="bg-gradient-to-br from-white to-slate-50 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center p-6">
-                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3 shadow-md`}>
-                     <stat.icon className="w-6 h-6 text-white" />
-                   </div>
-                   <div className="text-3xl font-black text-slate-900 leading-none mb-1">{stat.value}</div>
-                   <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide text-center">{stat.label}</div>
-                   <div className="text-xs text-slate-500 mt-1">{stat.subLabel}</div>
-                 </Card>
-               ))}
-             </div>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {dashboardStats.map((stat, idx) => <AdminStatCard key={stat.label} stat={stat} index={idx} />)}
+            </div>
           )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="overflow-x-auto pb-3 no-scrollbar border-b border-slate-200">
-             <TabsList className="flex w-max gap-2 bg-transparent p-0 h-auto">
-               <TabsTrigger value="overview" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📊 Dashboard</TabsTrigger>
-               <TabsTrigger value="godmode" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🌍 God Mode</TabsTrigger>
-               <TabsTrigger value="calendar" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">📅 Agenda</TabsTrigger>
-
-
-               <TabsTrigger value="approvals" className="rounded-full bg-orange-100 text-orange-700 shadow-none data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
-                 ✅ Aprovações {(walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length) > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length}</span>}
-               </TabsTrigger>
-               <TabsTrigger value="users" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
-               <TabsTrigger value="operations" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
-               <TabsTrigger value="gamification" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-yellow-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🏆 Gamificação</TabsTrigger>
-               <TabsTrigger value="professionals" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-pink-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐾 Profissionais</TabsTrigger>
-               <TabsTrigger value="moderation" className="rounded-full bg-rose-100 text-rose-700 shadow-none data-[state=active]:bg-rose-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🚨 Moderação</TabsTrigger>
-               <TabsTrigger value="debug" className="rounded-full bg-red-100 text-red-700 shadow-none data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🐞 Debug</TabsTrigger>
-               <TabsTrigger value="financeiro" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">💰 Financeiro</TabsTrigger>
-            </TabsList>
-          </div>
+          <section aria-label="Módulos administrativos" className="mb-6 rounded-3xl border border-slate-200 bg-slate-50/70 p-3 shadow-sm md:p-4">
+            <div className="mb-3 px-1">
+              <h2 className="text-lg font-extrabold text-slate-950">Módulos</h2>
+              <p className="text-sm text-slate-600">Selecione uma área para gerir</p>
+            </div>
+            <AdminModuleNavigation approvalCount={walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length} />
+          </section>
 
           <TabsContent value="overview">
             {activeTab === 'overview' && (
