@@ -160,60 +160,58 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="max-h-[88vh] rounded-t-[1.5rem] focus:outline-none border-t border-slate-200/80">
+      <DrawerContent className="max-h-[92vh] rounded-t-[1.25rem] bg-white focus:outline-none flex flex-col">
         {/* Header */}
-        <div className="relative px-4 pt-4 pb-3 bg-gradient-to-b from-slate-50 to-white border-b border-slate-100">
+        <div className="relative px-5 pt-5 pb-4 bg-white">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {step > 0 && !finalized && (
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setStep(s => s - 1)}
-                  className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm"
-                >
-                  <ChevronLeft className="w-4 h-4 text-slate-600" />
-                </motion.button>
-              )}
-              <div>
-                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold flex items-center gap-1">
-                  <Sparkles className="w-2.5 h-2.5" />
-                  {hotel.walker_name} · {selectedService.service_name}
-                </p>
-                <h2 className="text-base font-black text-slate-900 tracking-tight">{steps[step].title}</h2>
-              </div>
-            </div>
+            <p className="text-[10px] text-slate-900 uppercase tracking-[0.15em] font-bold">
+              {hotel.walker_name} · {selectedService.service_name}
+            </p>
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm"
+              className="w-8 h-8 flex items-center justify-center"
             >
-              <X className="w-4 h-4 text-slate-600" />
+              <X className="w-5 h-5 text-slate-900" />
             </motion.button>
+          </div>
+
+          <div className="relative flex items-center justify-center mt-1 h-10">
+            {step > 0 && !finalized && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setStep(s => s - 1)}
+                className="absolute left-0 w-9 h-9 rounded-lg border border-slate-300 bg-white flex items-center justify-center"
+              >
+                <ChevronLeft className="w-4 h-4 text-slate-900" />
+              </motion.button>
+            )}
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">{steps[step].title}</h2>
           </div>
 
           {/* Progress indicator */}
           {!finalized && (
-            <div className="flex items-center gap-1.5 mt-3">
+            <div className="flex items-center mt-3">
               {steps.map((s, idx) => (
-                <div key={idx} className="flex items-center gap-1.5 flex-1">
-                  <div className={`flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-black transition-all duration-300 ${
-                    step >= idx
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-400'
+                <React.Fragment key={idx}>
+                  <div className={`flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold shrink-0 transition-all duration-300 ${
+                    step === idx
+                      ? 'bg-black text-white'
+                      : 'bg-slate-100 text-slate-600'
                   }`}>
-                    {step > idx ? '✓' : idx + 1}
+                    {idx + 1}
                   </div>
                   {idx < steps.length - 1 && (
-                    <div className={`h-0.5 flex-1 rounded-full transition-all duration-500 ${step > idx ? 'bg-slate-900' : 'bg-slate-200'}`} />
+                    <div className={`h-[2px] flex-1 transition-all duration-500 ${step > idx ? 'bg-black' : 'bg-slate-200'}`} />
                   )}
-                </div>
+                </React.Fragment>
               ))}
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto flex-1 px-4 pt-4 pb-6">
+        <div className="overflow-y-auto flex-1 px-5 pt-4 pb-6">
           <AnimatePresence mode="wait" custom={step}>
             <motion.div
               key={step + (finalized ? '-final' : '')}
@@ -258,7 +256,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           </span>
                         )}
                       </div>
-                      <div className="space-y-2.5">
+                      <div className="divide-y divide-slate-100">
                         {myDogs.map(dog => {
                           const isSelected = selectedDogIds.includes(dog.id);
                           return (
@@ -270,10 +268,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                   isSelected ? prev.filter(id => id !== dog.id) : [...prev, dog.id]
                                 );
                               }}
-                              className={`w-full p-2.5 rounded-xl border-2 text-left transition-all flex items-center gap-2.5 ${
+                              className={`w-full px-3 py-3 rounded-lg text-left transition-all flex items-center gap-3 ${
                                 isSelected
-                                  ? 'border-slate-900 bg-slate-50'
-                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                                  ? 'bg-slate-100'
+                                  : 'bg-white hover:bg-slate-50'
                               }`}
                             >
                               {dog.photo_url ? (
@@ -287,8 +285,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                 <p className="font-bold text-slate-900 text-sm">{dog.dog_name}</p>
                                 <p className="text-[11px] text-slate-500">{dog.breed || 'SRD'} · {dog.size === 'small' ? 'Pequeno' : dog.size === 'medium' ? 'Médio' : dog.size === 'large' ? 'Grande' : 'XL'}</p>
                               </div>
-                              <div className={`w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all ${
-                                isSelected ? 'border-slate-900 bg-slate-900' : 'border-slate-300'
+                              <div className={`w-5 h-5 rounded-[4px] border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                                isSelected ? 'border-black bg-black' : 'border-slate-300 bg-white'
                               }`}>
                                 {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
                               </div>
@@ -296,22 +294,6 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           );
                         })}
                       </div>
-                      <AnimatePresence>
-                        {selectedDogIds.length > 0 && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                          >
-                            <Button
-                              onClick={() => setStep(1)}
-                              className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
-                            >
-                              Continuar com {selectedDogIds.length} {selectedDogIds.length === 1 ? 'animal' : 'animais'}
-                            </Button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                     </>
                   )}
                 </div>
@@ -335,7 +317,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       [dog.id]: { ...prev[dog.id], [field]: val }
                     }));
                     return (
-                      <div key={dog.id} className="bg-white rounded-xl p-3 space-y-2.5 border border-slate-200">
+                      <div key={dog.id} className="bg-white space-y-2.5 pb-4 border-b border-slate-100">
                         <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
                           {dog.photo_url ? (
                             <img src={dog.photo_url} className="w-9 h-9 rounded-lg object-cover" alt={dog.dog_name} />
@@ -388,12 +370,6 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       </div>
                     );
                   })}
-                  <Button
-                    onClick={() => setStep(2)}
-                    className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
-                  >
-                    Continuar
-                  </Button>
                 </div>
               )}
 
@@ -467,22 +443,6 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     </div>
                   )}
 
-                  <AnimatePresence>
-                    {checkinDate && checkoutDate && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                      >
-                        <Button
-                          onClick={() => setStep(3)}
-                          className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
-                        >
-                          Ver Resumo
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
               )}
 
@@ -525,16 +485,11 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
               {/* STEP 3 — Resumo e Pagamento */}
               {step === 3 && !finalized && (
                 <div className="space-y-3">
-                  <div className="bg-white rounded-xl p-4 space-y-3 border border-slate-200">
+                  <div className="bg-white space-y-3">
                     {/* Hotel header */}
-                    <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center border border-slate-200">
-                        <PawPrint className="w-5 h-5 text-slate-600" />
-                      </div>
-                      <div>
-                        <p className="font-black text-slate-900 text-sm">{hotel.walker_name}</p>
-                        <p className="text-[11px] text-slate-500">{selectedService.service_name}</p>
-                      </div>
+                    <div className="pb-3 border-b border-slate-100">
+                      <p className="font-black text-slate-900 text-lg">{hotel.walker_name}</p>
+                      <p className="text-sm text-slate-600">Serviço · <span className="font-bold text-slate-900">{selectedService.service_name}</span></p>
                     </div>
 
                     {/* Summary rows */}
@@ -654,40 +609,73 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     </div>
 
                     {/* Total */}
-                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl px-4 py-3 flex justify-between items-center">
-                      <div>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Total</p>
-                        <p className="text-[11px] text-slate-300">Pagamento único</p>
-                      </div>
-                      <span className="text-xl font-black text-white">{totalAmount}€</span>
+                    <div className="border border-slate-900 bg-slate-50 rounded-lg px-4 py-3.5 flex justify-between items-center">
+                      <p className="text-sm font-bold text-slate-900">Total — Pagamento único</p>
+                      <span className="text-base font-black text-slate-900">{totalAmount}€</span>
                     </div>
-                  </div>
-
-                  <Button
-                    onClick={handleCreateBooking}
-                    disabled={isCreating}
-                    className="w-full h-12 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl text-base flex items-center justify-center gap-2 transition-all"
-                  >
-                    {isCreating ? (
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                      />
-                    ) : (
-                      <><CreditCard className="w-4 h-4" /> Confirmar e Pagar {totalAmount}€</>
-                    )}
-                  </Button>
-
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Pagamento seguro via Stripe</span>
                   </div>
                 </div>
               )}
             </motion.div>
           </AnimatePresence>
         </div>
+
+        {/* Sticky footer CTA */}
+        {!finalized && (
+          (step === 0 && myDogs.length > 0 && selectedDogIds.length > 0) ||
+          step === 1 ||
+          (step === 2 && checkinDate && checkoutDate) ||
+          step === 3
+        ) && (
+          <div className="px-5 pt-3 pb-5 bg-white border-t border-slate-100 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+            {step === 0 && (
+              <Button
+                onClick={() => setStep(1)}
+                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
+              >
+                Continuar com {selectedDogIds.length} {selectedDogIds.length === 1 ? 'animal' : 'animais'}
+              </Button>
+            )}
+            {step === 1 && (
+              <Button
+                onClick={() => setStep(2)}
+                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
+              >
+                Continuar
+              </Button>
+            )}
+            {step === 2 && (
+              <Button
+                onClick={() => setStep(3)}
+                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
+              >
+                Ver Resumo
+              </Button>
+            )}
+            {step === 3 && (
+              <>
+                <Button
+                  onClick={handleCreateBooking}
+                  disabled={isCreating}
+                  className="w-full h-12 bg-black hover:bg-slate-800 text-white font-black rounded-xl text-base flex items-center justify-center gap-2 transition-all"
+                >
+                  {isCreating ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                    />
+                  ) : (
+                    <>Confirmar e Pagar {totalAmount}€</>
+                  )}
+                </Button>
+                <p className="text-center text-xs text-slate-500 mt-2.5 flex items-center justify-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Pagamento seguro via Stripe
+                </p>
+              </>
+            )}
+          </div>
+        )}
       </DrawerContent>
     </Drawer>
   );
