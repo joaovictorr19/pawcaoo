@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, Moon, X, CalendarDays, Clock, Dog, User, Che
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import GroupWalksManager from "@/components/professional-hub/GroupWalksManager";
 
 export default function ProfessionalCalendar() {
   const navigate = useNavigate();
@@ -322,6 +323,11 @@ export default function ProfessionalCalendar() {
           </div>
         </div>
 
+        {!isHotelProfile && (
+          <div className="mt-6">
+            <GroupWalksManager user={user} professionalProfile={walkerProfile || trainerProfile} />
+          </div>
+        )}
       </div>
     </div>
   );

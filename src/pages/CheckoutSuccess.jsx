@@ -43,9 +43,47 @@ export default function CheckoutSuccess() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const bookingId = searchParams.get('booking_id');
-  const type = searchParams.get('type'); // 'booking' | 'hotel_booking'
+  const sessionId = searchParams.get('session_id');
+  const eventId = searchParams.get('event_id');
+  const type = searchParams.get('type'); // 'booking' | 'hotel_booking' | 'group_walk'
   const [sessionDetails, setSessionDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Confirm group walk booking
+  const confirmGroupWalkMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke("confirmGroupWalkBooking", {
+        session_id: sessionId,
+        event_id: eventId,
+      });
+      return response?.data;
+    },
+    onSuccess: (data) => {
+      setSessionDetails({
+        isGroupWalk: true,
+        id: sessionId,
+        amount_total: 0,
+        currency: 'eur',
+        payment_status: 'paid',
+        eventId: eventId,
+        alreadyJoined: data?.already_joined,
+      });
+      queryClient.invalidateQueries(['groupWalkEventsPublic']);
+      setLoading(false);
+    },
+    onError: (error) => {
+      console.error('Group walk confirm error:', error);
+      setSessionDetails({
+        isGroupWalk: true,
+        id: sessionId,
+        amount_total: 0,
+        currency: 'eur',
+        payment_status: 'error',
+        error: error?.message,
+      });
+      setLoading(false);
+    }
+  });
 
   // Update payment status
   const updatePaymentMutation = useMutation({
@@ -136,13 +174,15 @@ export default function CheckoutSuccess() {
   });
 
   useEffect(() => {
-    if (bookingId) {
+    if (type === 'group_walk' && sessionId && eventId) {
+      confirmGroupWalkMutation.mutate();
+    } else if (bookingId) {
       updatePaymentMutation.mutate();
     } else {
       setLoading(false);
     }
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-  }, [bookingId]);
+  }, [bookingId, type, sessionId, eventId]);
 
 
 
@@ -166,7 +206,7 @@ export default function CheckoutSuccess() {
     );
   }
 
-  if (!bookingId || !sessionDetails) {
+  if (!bookingId && !sessionDetails) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center p-6">
         <Card className="max-w-md border-0 shadow-2xl">
@@ -214,6 +254,10 @@ export default function CheckoutSuccess() {
             <p className="text-center text-gray-600 text-lg mb-8">
               {sessionDetails?.isHotel
                 ? `Reserva em ${sessionDetails.hotelName} confirmada com sucesso!`
+                : sessionDetails?.isGroupWalk
+                ? sessionDetails.alreadyJoined
+                  ? 'Já estavas inscrito neste passeio em grupo!'
+                  : 'A tua inscrição no passeio em grupo foi confirmada com sucesso! 🐕'
                 : `O pagamento para o passeio de ${sessionDetails?.dog_name} foi processado com sucesso.`}
             </p>
 
