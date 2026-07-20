@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   MapPin, Star, Award, Clock, BedDouble, Shield, CheckCircle2,
   PawPrint, Globe, Calendar, Zap, Heart, TrendingUp,
-  Sun, Moon, Sunrise, Sunset,
+  Sun, Moon, Sunrise, Sunset, Instagram, RefreshCw,
 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
@@ -111,6 +111,33 @@ export default function ProfileHeroCard({
   const gamificationLevel = profileUser?.gamification_level;
 
   const coverUrl = displayCoverUrl;
+
+  const instagramUrl = walkerProfile?.instagram_url || trainerProfile?.instagram_url || "";
+
+  const lastUpdatedRaw = walkerProfile?.updated_date || trainerProfile?.updated_date || profileUser?.updated_date;
+  const lastUpdatedLabel = (() => {
+    if (!lastUpdatedRaw) return "";
+    try {
+      const d = new Date(lastUpdatedRaw);
+      if (isNaN(d.getTime())) return "";
+      return d.toLocaleString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    } catch { return ""; }
+  })();
+
+  const normalizeInstagram = (url) => {
+    if (!url) return "";
+    const trimmed = url.trim();
+    if (!trimmed) return "";
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    if (/^@/.test(trimmed)) return `https://instagram.com/${trimmed.slice(1)}`;
+    return `https://instagram.com/${trimmed}`;
+  };
+  const instagramLink = normalizeInstagram(instagramUrl);
+  const instagramHandle = (() => {
+    if (!instagramUrl) return "";
+    const match = instagramUrl.replace(/^@/, "").match(/instagram\.com\/([^/?#]+)/i);
+    return match ? `@${match[1]}` : (instagramUrl.startsWith("@") ? instagramUrl : "Instagram");
+  })();
 
   const avatarBorderColor = isHotel
     ? "border-purple-400 ring-4 ring-purple-300/40"
@@ -310,7 +337,28 @@ export default function ProfileHeroCard({
               color="slate"
             />
           )}
+          {instagramLink && (
+            <a
+              href={instagramLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border bg-gradient-to-br from-pink-50 to-purple-50 text-pink-700 border-pink-100 hover:from-pink-100 hover:to-purple-100 transition-colors"
+            >
+              <Instagram className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="text-[11px] font-bold leading-none">{instagramHandle}</span>
+            </a>
+          )}
         </div>
+
+        {/* Last updated badge */}
+        {lastUpdatedLabel && (
+          <div className="flex items-center justify-center gap-1 mt-3">
+            <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+              <RefreshCw className="w-2.5 h-2.5" />
+              {language === 'pt' ? 'Atualizado em' : 'Updated on'} {lastUpdatedLabel}
+            </span>
+          </div>
+        )}
 
         {/* Specializations */}
         {specializations.length > 0 && (

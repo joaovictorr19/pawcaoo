@@ -74,6 +74,7 @@ function buildInitialForm(user, existingProfile) {
       experience_years: String(existingProfile.experience_years || ""),
       phone: existingProfile.phone || "",
       whatsapp_number: existingProfile.whatsapp_number || "",
+      instagram_url: existingProfile.instagram_url || "",
       dog_sizes: existingProfile.dog_sizes || [],
       dog_breeds_handled: existingProfile.dog_breeds_handled || [],
       breed_specialization: existingProfile.breed_specialization || [],
@@ -119,6 +120,7 @@ function buildInitialForm(user, existingProfile) {
     experience_years: "",
     phone: user?.phone || "",
     whatsapp_number: user?.phone || "",
+    instagram_url: "",
     dog_sizes: ["small", "medium", "large"],
     dog_breeds_handled: [],
     breed_specialization: [],
@@ -304,7 +306,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
       const commonData = {
         location: data.location, bio: data.bio, photo_url: data.photo_url,
         cover_photo_url: data.cover_photo_url, video_intro_url: data.video_intro_url,
-        phone: data.phone, whatsapp_number: data.whatsapp_number?.replace(/\D/g, ''),
+        phone: data.phone, whatsapp_number: data.whatsapp_number?.replace(/\D/g, ''), instagram_url: data.instagram_url,
         dog_sizes: data.dog_sizes, accepted_animals: data.accepted_animals,
         availability: data.availability, portfolio: data.portfolio,
         id_document_url: data.id_document_url, proof_of_address_url: data.proof_of_address_url,
@@ -540,6 +542,10 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                 <div>
                   <label className={`${labelCls} flex items-center gap-1`}><Phone className="w-3 h-3" /> WhatsApp</label>
                   <input value={formData.whatsapp_number} onChange={e => set("whatsapp_number", e.target.value)} placeholder="351912345678" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Instagram (opcional)</label>
+                  <input value={formData.instagram_url} onChange={e => set("instagram_url", e.target.value)} placeholder="https://instagram.com/oseuperfil" className={inputCls} />
                 </div>
                 <div>
                   <label className={labelCls}>Bio</label>

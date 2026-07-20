@@ -121,6 +121,10 @@
       "type": "string",
       "description": "Contact phone number"
     },
+    "instagram_url": {
+      "type": "string",
+      "description": "URL do perfil de Instagram do treinador"
+    },
     "certifications": {
       "type": "array",
       "items": {

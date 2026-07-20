@@ -214,6 +214,10 @@
     "whatsapp_number": {
       "type": "string"
     },
+    "instagram_url": {
+      "type": "string",
+      "description": "URL do perfil de Instagram do profissional"
+    },
     "mbway_number": {
       "type": "string"
     },
