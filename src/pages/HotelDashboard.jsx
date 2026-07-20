@@ -38,6 +38,7 @@ import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel"
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
 import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
 import AssignTaskModal from "@/components/hotel/AssignTaskModal";
+import AddServiceToStayModal from "@/components/hotel/AddServiceToStayModal";
 import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 import BackButton from "@/components/ui/BackButton";
@@ -98,6 +99,7 @@ export default function HotelDashboard() {
   const [showNewBooking, setShowNewBooking] = useState(false);
   const [showAddPartner, setShowAddPartner] = useState(false);
   const [showAssignTask, setShowAssignTask] = useState(false);
+  const [showAddService, setShowAddService] = useState(false);
   const [alertDismissed, setAlertDismissed] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -315,6 +317,29 @@ export default function HotelDashboard() {
     toast.success("Tarefa atribuída ao parceiro");
   };
 
+  const handleAddServiceToStay = async ({ bookingId, addOn, paymentMethod, total }) => {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+    const newAddOns = [...(booking.add_ons || []), addOn];
+    const newAddOnsTotal = newAddOns.reduce((sum, a) => sum + (a.total_price || 0), 0);
+    const updates = { add_ons: newAddOns, add_ons_total: newAddOnsTotal };
+    // Update booking total to include the extra service
+    if (booking.total_amount != null) {
+      updates.total_amount = (booking.total_amount || 0) + total;
+    }
+    // If paid presencialmente, mark the add-on payment as paid
+    if (paymentMethod === "cash") {
+      updates.service_amount = (booking.service_amount || 0) + total;
+    }
+    await base44.entities.HotelBooking.update(bookingId, updates);
+    queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
+    if (paymentMethod === "cash") {
+      toast.success(`Serviço adicionado · ${total.toFixed(2)}€ recebido (presencial)`);
+    } else {
+      toast.success("Serviço adicionado · pagamento a receber no check-out");
+    }
+  };
+
   const partners = hotelProfile?.hotel_details?.partner_walkers || [];
   const {
     capacityTotal, occupancyToday, occupancyPct, revenue30d,
@@ -477,16 +502,22 @@ export default function HotelDashboard() {
 
           {activeTab === "tarefas" && (
             <motion.div key="tarefas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              {partners.length > 0 && (
-                <div className="mb-3">
+              <div className="mb-3 flex flex-col sm:flex-row gap-2">
+                <Button
+                  onClick={() => setShowAddService(true)}
+                  className="w-full sm:w-auto h-10 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Serviço Extra (pagar na hora)
+                </Button>
+                {partners.length > 0 && (
                   <Button
                     onClick={() => setShowAssignTask(true)}
                     className="w-full sm:w-auto h-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold gap-1.5"
                   >
                     <Plus className="w-3.5 h-3.5" /> Atribuir Tarefa a Parceiro
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
               <HotelTasksPanel
                 bookings={bookings}
                 onUpdateBooking={handleUpdateBooking}
@@ -654,6 +685,16 @@ export default function HotelDashboard() {
           partners={partners}
           onAssign={handleAssignTask}
           onClose={() => setShowAssignTask(false)}
+        />
+      )}
+
+      {showAddService && (
+        <AddServiceToStayModal
+          bookings={bookings}
+          hotelProfile={hotelProfile}
+          partners={partners}
+          onConfirm={handleAddServiceToStay}
+          onClose={() => setShowAddService(false)}
         />
       )}
     </div>
