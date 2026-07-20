@@ -38,20 +38,21 @@ export default function PageLoader() {
               background: "radial-gradient(circle, rgba(13,148,131,0.25) 0%, transparent 70%)",
             }}
           />
-          {/* Paw circle */}
+          {/* Official PawCão logo */}
           <div
-            className="relative flex items-center justify-center rounded-full shadow-lg"
+            className="relative rounded-full shadow-lg overflow-hidden ring-2 ring-white/70"
             style={{
               width: 72,
               height: 72,
-              background: "linear-gradient(135deg, #0d9483, #2dd4bf)",
               boxShadow: "0 8px 30px rgba(13,148,131,0.3)",
               animation: "loaderBounce 1.2s ease-in-out infinite",
             }}
           >
-            <svg width="38" height="38" viewBox="0 0 24 24" fill="white">
-              <path d="M12 10.5c1.5 0 2.5-1.5 2.5-3S13.5 4 12 4s-2.5 2-2.5 3.5 1 3 2.5 3zM6.5 12c1 0 1.75-1 1.75-2S7.5 8 6.5 8 4.75 9 4.75 10s.75 2 1.75 2zM17.5 12c1 0 1.75-1 1.75-2S18.5 8 17.5 8s-1.75 1-1.75 2 .75 2 1.75 2zM5 15.5c0 2.5 2.5 4.5 7 4.5s7-2 7-4.5-3-3.5-7-3.5-7 1-7 3.5z"/>
-            </svg>
+            <img
+              src="https://media.base44.com/images/public/6907b3be1ec43db5676a2085/58cad35d5_37581B35-5C27-4772-B599-CF9FD8421908.jpg"
+              alt="PawCão"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
 
