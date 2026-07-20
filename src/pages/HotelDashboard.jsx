@@ -181,11 +181,10 @@ export default function HotelDashboard() {
             const oldStatus = booking.status;
             const newStatus = updates.status;
             const dogs = booking.total_dogs || 1;
-            // Decrement capacity when booking becomes confirmed or checked_in (from pending)
-            if (oldStatus === "pending" && ["confirmed", "checked_in"].includes(newStatus)) {
-              await adjustServiceCapacity(booking.service_type, -dogs);
-            }
-            // Restore capacity when cancelling from an active/confirmed state
+            // Capacity is already reserved at booking creation (by createHotelCheckout backend
+            // or by createBookingMutation below). Do NOT decrement again on confirm — that would
+            // double-count.
+            // Restore capacity when cancelling from an active/confirmed/pending state
             if (newStatus === "cancelled" && ["confirmed", "checked_in", "in_progress", "pending"].includes(oldStatus)) {
               await adjustServiceCapacity(booking.service_type, dogs);
             }
@@ -208,7 +207,8 @@ export default function HotelDashboard() {
     mutationFn: (data) => base44.entities.HotelBooking.create(data),
     onSuccess: async (newBooking) => {
       queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
-      if (["confirmed", "checked_in"].includes(newBooking.status) && newBooking.service_type) {
+      // Reserve capacity for any active status (pending, confirmed, checked_in)
+      if (["pending", "confirmed", "checked_in"].includes(newBooking.status) && newBooking.service_type) {
         await adjustServiceCapacity(newBooking.service_type, -(newBooking.total_dogs || 1));
       }
       toast.success(newBooking.status === "checked_in" ? "Check-in registado" : "Reserva criada com sucesso");
@@ -591,211 +591,6 @@ export default function HotelDashboard() {
         }}
         hotelProfile={hotelProfile}
       />
-    </div>
-  );
-}
-
-// Booking Row Component
-function BookingRow({ booking, onUpdate }) {
-  const [expanded, setExpanded] = useState(false);
-  const cfg = STATUS_CONFIG[booking.status] || STATUS_CONFIG.completed;
-  const ServiceIcon = SERVICE_ICONS[booking.service_type] || ClipboardList;
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-slate-200 rounded-xl overflow-hidden mb-2">
-      <button className="w-full text-left p-4" onClick={() => setExpanded(e => !e)}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-semibold text-slate-900 text-sm">{booking.owner_name}</p>
-              {booking.dogs?.length > 0 && (
-                <span className="flex items-center gap-1 text-[10px] text-slate-500 font-medium">
-                  <PawPrint className="w-3 h-3" />
-                  {booking.dogs.map(d => d.dog_name).join(", ")}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1.5 flex-wrap">
-              <span className="flex items-center gap-1">
-                <ServiceIcon className="w-3 h-3" />
-                {SERVICE_LABELS[booking.service_type] || booking.service_type}
-              </span>
-              <span className="flex items-center gap-1">
-                <CalendarDays className="w-3 h-3" />
-                {booking.checkin_date}{booking.checkout_date ? ` → ${booking.checkout_date}` : ""}
-              </span>
-              {booking.checkin_time && (
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {booking.checkin_time}
-                </span>
-              )}
-              <span className="flex items-center gap-1">
-                <Dog className="w-3 h-3" />
-                {booking.total_dogs || 1}
-              </span>
-              {booking.total_amount > 0 && (
-                <span className="text-emerald-600 font-semibold">{booking.total_amount.toFixed(2)}€</span>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Badge variant="outline" className={`text-[10px] border ${cfg.cls}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1`} />
-              {cfg.label}
-            </Badge>
-            <ChevronDown className={`w-4 h-4 text-slate-300 transition-transform ${expanded ? "rotate-180" : ""}`} />
-          </div>
-        </div>
-      </button>
-
-      <AnimatePresence>
-        {expanded && (
-          <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }}
-            className="overflow-hidden border-t border-slate-100">
-            <div className="p-4 pt-3 space-y-2.5">
-              {booking.owner_phone && (
-                <p className="text-xs text-slate-500 flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-slate-400" /> {booking.owner_phone}
-                </p>
-              )}
-              {booking.owner_email && (
-                <p className="text-xs text-slate-500 flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 text-slate-400" /> {booking.owner_email}
-                </p>
-              )}
-              {booking.special_requests && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  <p className="text-xs text-amber-700 flex items-start gap-2">
-                    <StickyNote className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                    <span>{booking.special_requests}</span>
-                  </p>
-                </div>
-              )}
-              {booking.assigned_walker_name && (
-                <p className="text-xs text-slate-600 font-medium flex items-center gap-2">
-                  <UserCheck className="w-3.5 h-3.5 text-slate-400" />
-                  Parceiro: {booking.assigned_walker_name}
-                </p>
-              )}
-              {booking.internal_notes && (
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-                  <p className="text-xs text-slate-500 flex items-start gap-2">
-                    <FileText className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
-                    <span>{booking.internal_notes}</span>
-                  </p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-1 flex-wrap">
-                {booking.status === "pending" && (
-                  <>
-                    <Button size="sm" className="flex-1 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs min-w-[120px]"
-                      onClick={() => onUpdate(booking.id, { status: "confirmed" })}>
-                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Confirmar
-                    </Button>
-                    <Button size="sm" variant="outline"
-                      className="flex-1 h-8 border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs min-w-[120px]"
-                      onClick={() => onUpdate(booking.id, { status: "rejected" })}>
-                      <X className="w-3.5 h-3.5 mr-1" /> Rejeitar
-                    </Button>
-                  </>
-                )}
-                {booking.status === "confirmed" && (
-                  <Button size="sm" className="flex-1 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs"
-                    onClick={() => onUpdate(booking.id, { status: "checked_in", checkin_time: new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) })}>
-                    <DoorOpen className="w-3.5 h-3.5 mr-1" /> Registar Check-in
-                  </Button>
-                )}
-                {booking.status === "checked_in" && (
-                  <Button size="sm" className="flex-1 h-8 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs"
-                    onClick={() => onUpdate(booking.id, { status: "checked_out", checkout_time: new Date().toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) })}>
-                    <DoorOpen className="w-3.5 h-3.5 mr-1" /> Registar Check-out
-                  </Button>
-                )}
-                {booking.status === "checked_out" && (
-                  <Button size="sm" className="flex-1 h-8 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs"
-                    onClick={() => onUpdate(booking.id, { status: "completed" })}>
-                    <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Concluir Estadia
-                  </Button>
-                )}
-                {["confirmed", "pending"].includes(booking.status) && (
-                  <Button size="sm" variant="outline"
-                    className="h-8 border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-xs"
-                    onClick={() => onUpdate(booking.id, { status: "cancelled" })}>
-                    <XCircle className="w-3.5 h-3.5 mr-1" /> Cancelar
-                  </Button>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-// Stats Panel Component
-function StatsPanel({ bookings }) {
-  const totalRevenue = bookings.filter(b => !["cancelled", "rejected"].includes(b.status)).reduce((acc, b) => acc + (b.total_amount || 0), 0);
-  const completedCount = bookings.filter(b => b.status === "completed").length;
-  const cancelledCount = bookings.filter(b => ["cancelled", "rejected"].includes(b.status)).length;
-  const avgValue = completedCount > 0
-    ? (bookings.filter(b => b.status === "completed").reduce((acc, b) => acc + (b.total_amount || 0), 0) / completedCount)
-    : 0;
-
-  const serviceBreakdown = Object.entries(
-    bookings.reduce((acc, b) => {
-      if (["cancelled", "rejected"].includes(b.status)) return acc;
-      acc[b.service_type] = (acc[b.service_type] || 0) + 1;
-      return acc;
-    }, {})
-  ).sort((a, b) => b[1] - a[1]);
-
-  const stats = [
-    { label: "Receita Total", value: `${totalRevenue.toFixed(2)}€`, color: "text-emerald-700" },
-    { label: "Concluídas", value: completedCount, color: "text-blue-700" },
-    { label: "Canceladas", value: cancelledCount, color: "text-red-600" },
-    { label: "Ticket Médio", value: `${avgValue.toFixed(2)}€`, color: "text-slate-700" },
-  ];
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {stats.map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{s.label}</p>
-            <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {serviceBreakdown.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-xl p-4">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Reservas por Tipo de Serviço</p>
-          <div className="space-y-2.5">
-            {serviceBreakdown.map(([type, count]) => {
-              const maxCount = serviceBreakdown[0][1];
-              const Icon = SERVICE_ICONS[type] || ClipboardList;
-              return (
-                <div key={type} className="flex items-center gap-3">
-                  <span className="flex items-center gap-1.5 text-xs text-slate-600 w-32 shrink-0">
-                    <Icon className="w-3.5 h-3.5 text-slate-400" />
-                    {SERVICE_LABELS[type] || type}
-                  </span>
-                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-900 rounded-full transition-all duration-500"
-                      style={{ width: `${(count / maxCount) * 100}%` }} />
-                  </div>
-                  <span className="text-xs font-bold text-slate-600 w-6 text-right">{count}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

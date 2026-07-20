@@ -75,9 +75,12 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const servicePrice = selectedService.price_per_day || 0;
   const pricingUnits = isOvernight ? totalNights : 1;
   const commissionRate = getEffectiveCommissionRate(hotel);
-  const serviceAmount = Math.round(servicePrice * pricingUnits * selectedDogs.length * 100) / 100;
-  const platformFee = Math.round(serviceAmount * (commissionRate / 100) * 100) / 100;
-  const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
+  // Commission is INCLUDED in the price (taken from hotel's portion), NOT added on top.
+  // Client pays baseAmount; hotel receives baseAmount - platformFee.
+  const baseAmount = Math.round(servicePrice * pricingUnits * selectedDogs.length * 100) / 100;
+  const platformFee = Math.round(baseAmount * (commissionRate / 100) * 100) / 100;
+  const totalAmount = baseAmount;
+  const hotelReceives = Math.round((baseAmount - platformFee) * 100) / 100;
 
   const handleCreateBooking = async () => {
     if (!currentUser?.email) {
@@ -140,7 +143,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         price_per_night: servicePrice,
         total_amount: totalAmount,
         platform_fee: platformFee,
-        service_amount: serviceAmount,
+        service_amount: hotelReceives,
         special_requests: specialRequests,
         pickup_address: deliveryMethod === 'pickup' ? pickupAddress : '',
         delivery_method: deliveryMethod,
@@ -673,16 +676,22 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         <span className="text-slate-500">
                           {servicePrice}€ {isOvernight ? `× ${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isAppointment ? '/ sessão' : '/ dia'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
                         </span>
-                        <span className="font-bold text-slate-700">{serviceAmount}€</span>
+                        <span className="font-bold text-slate-700">{baseAmount}€</span>
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-slate-500">
                           {commissionRate === 0
                             ? 'Taxa de plataforma (Isento)'
-                            : `Taxa de plataforma (${commissionRate}%)`}
+                            : `Taxa de plataforma (${commissionRate}% · incluída)`}
                         </span>
-                        <span className="font-bold text-amber-600">{platformFee}€</span>
+                        <span className="font-bold text-amber-600">−{platformFee}€</span>
                       </div>
+                      {commissionRate > 0 && (
+                        <div className="flex justify-between text-[10px] text-slate-400">
+                          <span>Hotel recebe</span>
+                          <span className="font-semibold">{hotelReceives}€</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Total */}
