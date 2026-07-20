@@ -445,9 +445,7 @@ function LayoutContent({ children, currentPageName }) {
       <ImpersonationBanner />
       <LayoutSEO />
       <LayoutStyles />
-      <div className="hidden md:block">
-        <DynamicBackground />
-      </div>
+      <DynamicBackground />
 
       {/* Top header for desktop — floating glass */}
       <header className="hidden md:flex fixed top-3 left-4 right-4 z-[10000]">
