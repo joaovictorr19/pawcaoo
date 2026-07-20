@@ -19,7 +19,13 @@ Deno.serve(async (req) => {
 
     let cancelledCount = 0;
     for (const booking of expiredBookings) {
-      if (booking.payment_expires_at && new Date(booking.payment_expires_at) < new Date(now)) {
+      // Determinar a data limite de pagamento: usa payment_expires_at se existir,
+      // senão fallback para created_date + 5 min (limpa reservas legadas sem timer)
+      const expiresAt = booking.payment_expires_at
+        ? new Date(booking.payment_expires_at)
+        : (booking.created_date ? new Date(new Date(booking.created_date).getTime() + 5 * 60 * 1000) : null);
+
+      if (expiresAt && expiresAt < new Date(now)) {
         await base44.asServiceRole.entities.HotelBooking.update(booking.id, {
           status: 'cancelled',
           cancellation_reason: 'Pagamento não realizado dentro de 5 minutos.',

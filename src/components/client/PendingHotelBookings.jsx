@@ -92,9 +92,21 @@ export default function PendingHotelBookings({ user }) {
 
   if (!pendingBookings || pendingBookings.length === 0) return null;
 
+  // Filtrar reservas cujo prazo de pagamento já expirou (o backend cancela-as a cada 5 min,
+  // mas aqui escondemos do UI para o utilizador não ver cards stale "a pagar")
+  const now = new Date();
+  const activeBookings = pendingBookings.filter(b => {
+    const expiresAt = b.payment_expires_at
+      ? new Date(b.payment_expires_at)
+      : (b.created_date ? new Date(new Date(b.created_date).getTime() + 5 * 60 * 1000) : null);
+    return !expiresAt || expiresAt > now;
+  });
+
+  if (activeBookings.length === 0) return null;
+
   return (
     <div className="space-y-2">
-      {pendingBookings.map((booking) => {
+      {activeBookings.map((booking) => {
         const dogNames = (booking.dogs || []).map(d => d.dog_name).filter(Boolean).join(', ') || 'animal';
         return (
           <div

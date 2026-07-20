@@ -27,6 +27,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Esta reserva já foi paga.' }, { status: 400 });
     }
 
+    // Reiniciar o temporizador de 5 minutos para esta tentativa de pagamento
+    await base44.asServiceRole.entities.HotelBooking.update(hb.id, {
+      payment_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+    });
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 
     // Get or create Stripe customer
