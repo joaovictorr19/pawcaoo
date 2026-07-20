@@ -16,88 +16,6 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
 };
 
-const HERO_TOYS = [
-  { Icon: Bone, pos: "top-[1%] left-[1%]", color: TEAL, size: 38, delay: 0, dur: 7 },
-  { Icon: Heart, pos: "top-[4%] right-[3%]", color: ORANGE, size: 28, delay: 1.5, dur: 6 },
-  { Icon: Star, pos: "top-[16%] right-[9%]", color: YELLOW, size: 24, delay: 2, dur: 6.5 },
-  { Icon: Sparkles, pos: "top-[42%] right-[1%]", color: YELLOW, size: 22, delay: 2.5, dur: 6 },
-  { Icon: Bone, pos: "bottom-[6%] right-[4%]", color: TEAL, size: 32, delay: 1.2, dur: 7 },
-  { Icon: Heart, pos: "bottom-[20%] left-[4%]", color: TEAL, size: 24, delay: 1.8, dur: 5.5 },
-  { Icon: PawPrint, pos: "top-[62%] left-[1%]", color: ORANGE, size: 30, delay: 3, dur: 7.2 },
-  { Icon: Sparkles, pos: "bottom-[42%] left-[7%]", color: TEAL, size: 20, delay: 0.6, dur: 6.3 },
-  { Icon: Star, pos: "bottom-[55%] right-[18%]", color: ORANGE, size: 18, delay: 1.1, dur: 5.8 },
-];
-
-function TennisBall({ className, delay = 0 }) {
-  return (
-    <motion.div
-      className={`absolute ${className}`}
-      animate={{ y: [0, -14, 0], rotate: [0, 20, 0] }}
-      transition={{ duration: 6, repeat: Infinity, delay, ease: "easeInOut" }}
-    >
-      <div className="w-7 h-7 rounded-full relative" style={{ background: `radial-gradient(circle at 35% 35%, #ffe066, ${YELLOW})`, boxShadow: "0 4px 14px rgba(0,0,0,0.12)" }}>
-        <svg viewBox="0 0 40 40" className="w-full h-full">
-          <path d="M4,20 Q10,4 20,4 Q30,4 36,20" fill="none" stroke="white" strokeWidth="2.5" opacity="0.5" strokeLinecap="round"/>
-          <path d="M4,20 Q10,36 20,36 Q30,36 36,20" fill="none" stroke="white" strokeWidth="2.5" opacity="0.5" strokeLinecap="round"/>
-        </svg>
-      </div>
-    </motion.div>
-  );
-}
-
-function CollarDecoration({ className }) {
-  return (
-    <motion.div
-      className={`absolute ${className}`}
-      animate={{ y: [0, -8, 0], rotate: [-2, 2, -2] }}
-      transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      style={{ filter: "drop-shadow(0 6px 16px rgba(0,0,0,0.12))" }}
-    >
-      <svg width="140" height="70" viewBox="0 0 140 70" fill="none">
-        <path d="M8,35 Q70,14 132,35 Q70,56 8,35" stroke={ORANGE} strokeWidth="12" strokeLinecap="round" fill="none"/>
-        <path d="M12,33 Q70,16 128,33" stroke="rgba(255,255,255,0.35)" strokeWidth="3" strokeLinecap="round" fill="none"/>
-        <circle cx="28" cy="30" r="3.5" fill={YELLOW}/>
-        <circle cx="48" cy="26" r="3.5" fill={YELLOW}/>
-        <circle cx="92" cy="26" r="3.5" fill={YELLOW}/>
-        <circle cx="112" cy="30" r="3.5" fill={YELLOW}/>
-        <rect x="60" y="22" width="20" height="26" rx="4" fill={TEAL} stroke="white" strokeWidth="2"/>
-        <rect x="66" y="28" width="8" height="14" rx="2" fill="white" opacity="0.35"/>
-        <circle cx="70" cy="55" r="3" fill={TEAL}/>
-        <circle cx="70" cy="63" r="10" fill={YELLOW} stroke="white" strokeWidth="2"/>
-        <circle cx="70" cy="61" r="2.5" fill={TEAL}/>
-        <circle cx="66" cy="58.5" r="1.5" fill={TEAL}/>
-        <circle cx="74" cy="58.5" r="1.5" fill={TEAL}/>
-        <circle cx="67" cy="64" r="1.2" fill={TEAL}/>
-        <circle cx="73" cy="64" r="1.2" fill={TEAL}/>
-      </svg>
-    </motion.div>
-  );
-}
-
-function HeroDecorations() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      {HERO_TOYS.map((item, i) => (
-        <motion.div
-          key={i}
-          className={`absolute ${item.pos}`}
-          animate={{ y: [0, -14, 0], rotate: [0, 8, -4, 0] }}
-          transition={{ duration: item.dur, repeat: Infinity, delay: item.delay, ease: "easeInOut" }}
-        >
-          <item.Icon
-            size={item.size}
-            style={{ color: item.color, opacity: 0.4, filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.06))" }}
-            strokeWidth={2}
-            fill="none"
-          />
-        </motion.div>
-      ))}
-      <TennisBall className="top-[26%] right-[16%]" delay={1} />
-      <TennisBall className="bottom-[32%] left-[9%]" delay={2.5} />
-    </div>
-  );
-}
-
 export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar, dogImageUrl }) {
   const { language } = useLanguage();
 
@@ -144,8 +62,6 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
       animate="visible"
       className="relative w-full overflow-hidden"
     >
-      <HeroDecorations />
-
       {/* Hero text - centered */}
       <motion.div variants={itemVariants} className="relative z-10 px-4 md:px-6 pt-2 md:pt-14 max-w-5xl mx-auto text-center">
         <h1 className="font-display font-bold tracking-wide leading-[1.05] text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-sm" style={{ color: TEAL, textShadow: "0 2px 12px rgba(0,166,153,0.15)" }}>
