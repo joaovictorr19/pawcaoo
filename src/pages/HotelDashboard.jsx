@@ -588,6 +588,7 @@ export default function HotelDashboard() {
                   bookings={bookings}
                   onUpdateBooking={handleUpdateBooking}
                   onNewBooking={() => setShowNewBooking(true)}
+                  onRefresh={() => queryClient.invalidateQueries({ queryKey: ["hotelBookings"] })}
                 />
               )}
             </motion.div>

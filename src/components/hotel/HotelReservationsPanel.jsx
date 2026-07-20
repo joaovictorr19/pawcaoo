@@ -8,7 +8,7 @@ import {
   ClipboardList, Search, CalendarDays, Clock, Dog, Phone, Mail,
   CheckCircle2, X, ChevronDown, PawPrint, StickyNote, FileText,
   UserCheck, DoorOpen, XCircle, Euro, ListChecks, Filter, TrendingUp,
-  CreditCard, AlertCircle
+  CreditCard, AlertCircle, RefreshCw
 } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -256,7 +256,7 @@ function BookingCard({ booking, onUpdate }) {
   );
 }
 
-export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNewBooking }) {
+export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNewBooking, onRefresh }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -378,10 +378,18 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
           {filtered.length} reserva{filtered.length !== 1 ? "s" : ""}
           {search && ` · "${search}"`}
         </p>
-        <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5 text-xs h-9"
-          onClick={onNewBooking}>
-          <ClipboardList className="w-3.5 h-3.5" /> Nova
-        </Button>
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button size="sm" variant="outline" className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs h-9"
+              onClick={onRefresh}>
+              <RefreshCw className="w-3.5 h-3.5" /> Atualizar
+            </Button>
+          )}
+          <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5 text-xs h-9"
+            onClick={onNewBooking}>
+            <ClipboardList className="w-3.5 h-3.5" /> Nova
+          </Button>
+        </div>
       </div>
 
       {/* Bookings list */}
