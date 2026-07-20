@@ -16,7 +16,9 @@ export default function AdminCommissionManager({
   expiryDate,
   setExpiryDate,
   zeroMonths,
-  setZeroMonths
+  setZeroMonths,
+  borneBy,
+  setBorneBy
 }) {
   const effectiveRate = (() => {
     if (mode === "zero" || mode === "zero_temporary") return 0;
@@ -128,6 +130,36 @@ export default function AdminCommissionManager({
               A taxa reverte automaticamente para {DEFAULT_RATE}% em {new Date(expiryDate).toLocaleDateString("pt-PT")}
             </p>
           )}
+        </div>
+      )}
+
+      <Separator />
+
+      {/* Who pays the commission */}
+      {borneBy !== undefined && setBorneBy && (
+        <div className="space-y-3">
+          <div>
+            <Label>Quem paga a comissão?</Label>
+            <p className="text-[11px] text-slate-500 mt-0.5">Podes mudar por cada profissional conforme o acordo</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setBorneBy("hotel")}
+              className={"rounded-xl border-2 p-3 text-left transition-all " +
+                (borneBy === "hotel" ? "border-teal-500 bg-teal-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300")}
+            >
+              <p className="text-sm font-bold">Hotel paga</p>
+              <p className="text-[11px] text-slate-500">Taxa retirada do profissional · cliente paga só o serviço</p>
+            </button>
+            <button
+              onClick={() => setBorneBy("client")}
+              className={"rounded-xl border-2 p-3 text-left transition-all " +
+                (borneBy === "client" ? "border-orange-500 bg-orange-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300")}
+            >
+              <p className="text-sm font-bold">Cliente paga</p>
+              <p className="text-[11px] text-slate-500">Taxa adicionada ao cliente · profissional recebe valor cheio</p>
+            </button>
+          </div>
         </div>
       )}
 

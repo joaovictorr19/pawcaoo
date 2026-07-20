@@ -93,9 +93,20 @@ Deno.serve(async (req) => {
       return sum + ((a.total_price || 0) > 0 ? (a.total_price || 0) : (a.price_per_unit || 0) * (a.quantity || 1));
     }, 0);
 
-    const serverTotalAmount = serverBaseAmount + serverAddOnsTotal;
-    const serverPlatformFee = Math.round(serverTotalAmount * PLATFORM_FEE_RATE * 100) / 100;
-    const serverServiceAmount = Math.round((serverTotalAmount - serverPlatformFee) * 100) / 100;
+    // Determine who bears the commission: "hotel" (deducted from hotel) or "client" (added on top)
+    const commissionBorneBy = hotelProfile.commission_borne_by || 'hotel';
+    const baseAmount = serverBaseAmount + serverAddOnsTotal;
+    const serverPlatformFee = Math.round(baseAmount * PLATFORM_FEE_RATE * 100) / 100;
+    let serverTotalAmount, serverServiceAmount;
+    if (commissionBorneBy === 'client') {
+      // Commission added on top — client pays base + fee, hotel receives full base
+      serverTotalAmount = Math.round((baseAmount + serverPlatformFee) * 100) / 100;
+      serverServiceAmount = baseAmount;
+    } else {
+      // Commission included — client pays base, hotel receives base - fee
+      serverTotalAmount = baseAmount;
+      serverServiceAmount = Math.round((baseAmount - serverPlatformFee) * 100) / 100;
+    }
 
     if (serverTotalAmount <= 0) {
       return Response.json({ error: 'Não foi possível calcular o preço do serviço.' }, { status: 400 });

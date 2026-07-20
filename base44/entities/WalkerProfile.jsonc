@@ -261,6 +261,15 @@
       "format": "date",
       "description": "Data de expiracao da taxa zero temporaria. Quando expira, reverte para o padrao da plataforma"
     },
+    "commission_borne_by": {
+      "type": "string",
+      "enum": [
+        "hotel",
+        "client"
+      ],
+      "default": "hotel",
+      "description": "Quem paga a comissao: hotel (retirada do valor do hotel, cliente paga so o servico) ou client (adicionada por cima ao cliente, hotel recebe valor cheio)"
+    },
     "is_featured": {
       "type": "boolean",
       "default": false

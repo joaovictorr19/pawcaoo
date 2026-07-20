@@ -64,6 +64,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
   const [customRate, setCustomRate] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [zeroMonths, setZeroMonths] = useState(3);
+  const [borneBy, setBorneBy] = useState("hotel");
 
   const { data: linked, isLoading } = useQuery({
     queryKey: ["adminAccountEditor", userToEdit?.id],
@@ -95,6 +96,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
     setCommissionMode(pro?.commission_rate_mode || "default");
     setCustomRate(pro?.custom_commission_rate != null ? String(pro.custom_commission_rate) : "");
     setExpiryDate(pro?.commission_rate_expiry || "");
+    setBorneBy(pro?.commission_borne_by || "hotel");
   }, [userToEdit, linked]);
 
   const isProfessional = !!linked?.professionalProfile;
@@ -162,6 +164,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
         payload.custom_commission_rate = commissionMode === "custom_percent" ? Number(customRate) : null;
         payload.commission_rate_expiry = commissionMode === "zero_temporary" ? expiryDate : null;
         payload.exempt_from_platform_fees = (commissionMode === "zero" || commissionMode === "zero_temporary");
+        payload.commission_borne_by = borneBy;
 
         if (linked.professionalType === "walker") {
           await base44.entities.WalkerProfile.update(linked.professionalProfile.id, payload);
@@ -358,6 +361,8 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                     setExpiryDate={setExpiryDate}
                     zeroMonths={zeroMonths}
                     setZeroMonths={setZeroMonths}
+                    borneBy={borneBy}
+                    setBorneBy={setBorneBy}
                   />
                 </TabsContent>
               )}

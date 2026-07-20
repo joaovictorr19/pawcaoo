@@ -5,6 +5,10 @@
  * @param {object} profile - WalkerProfile or TrainerProfile
  * @returns {number} Commission rate as a percentage (0-100)
  */
+export function getCommissionBearer(profile) {
+  return profile?.commission_borne_by || "hotel";
+}
+
 export function getEffectiveCommissionRate(profile) {
   const DEFAULT_RATE = 10;
 

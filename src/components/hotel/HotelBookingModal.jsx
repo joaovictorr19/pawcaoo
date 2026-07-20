@@ -8,7 +8,7 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { getEffectiveCommissionRate } from '@/utils/commission';
+import { getEffectiveCommissionRate, getCommissionBearer } from '@/utils/commission';
 import HotelRangeCalendar from '@/components/hotel/HotelRangeCalendar';
 
 export default function HotelBookingModal({ isOpen, onClose, hotel, selectedService, currentUser, initialDate, initialCheckout }) {
@@ -75,12 +75,19 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const servicePrice = selectedService.price_per_day || 0;
   const pricingUnits = isOvernight ? totalNights : 1;
   const commissionRate = getEffectiveCommissionRate(hotel);
-  // Commission is INCLUDED in the price (taken from hotel's portion), NOT added on top.
-  // Client pays baseAmount; hotel receives baseAmount - platformFee.
+  const commissionBorneBy = getCommissionBearer(hotel);
   const baseAmount = Math.round(servicePrice * pricingUnits * selectedDogs.length * 100) / 100;
   const platformFee = Math.round(baseAmount * (commissionRate / 100) * 100) / 100;
-  const totalAmount = baseAmount;
-  const hotelReceives = Math.round((baseAmount - platformFee) * 100) / 100;
+  let totalAmount, hotelReceives;
+  if (commissionBorneBy === 'client') {
+    // Commission added on top — client pays base + fee, hotel receives full base
+    totalAmount = Math.round((baseAmount + platformFee) * 100) / 100;
+    hotelReceives = baseAmount;
+  } else {
+    // Commission included — client pays base, hotel receives base - fee
+    totalAmount = baseAmount;
+    hotelReceives = Math.round((baseAmount - platformFee) * 100) / 100;
+  }
 
   const handleCreateBooking = async () => {
     if (!currentUser?.email) {
@@ -682,9 +689,11 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         <span className="text-slate-500">
                           {commissionRate === 0
                             ? 'Taxa de plataforma (Isento)'
-                            : `Taxa de plataforma (${commissionRate}% · incluída)`}
+                            : commissionBorneBy === 'client'
+                              ? `Taxa de plataforma (${commissionRate}% · cliente)`
+                              : `Taxa de plataforma (${commissionRate}% · incluída)`}
                         </span>
-                        <span className="font-bold text-amber-600">−{platformFee}€</span>
+                        <span className="font-bold text-amber-600">{commissionBorneBy === 'client' ? '+' : '−'}{platformFee}€</span>
                       </div>
                       {commissionRate > 0 && (
                         <div className="flex justify-between text-[10px] text-slate-400">

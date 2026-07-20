@@ -33,6 +33,7 @@ function HotelCommissionRow({ hotel }) {
     hotel.custom_commission_rate != null ? String(hotel.custom_commission_rate) : ""
   );
   const [expiryDate, setExpiryDate] = useState(hotel.commission_rate_expiry || "");
+  const [borneBy, setBorneBy] = useState(hotel.commission_borne_by || "hotel");
   const [saving, setSaving] = useState(false);
 
   const effectiveRate = getEffectiveRate(hotel);
@@ -45,6 +46,7 @@ function HotelCommissionRow({ hotel }) {
         custom_commission_rate: mode === "custom_percent" ? Number(customRate) : null,
         commission_rate_expiry: mode === "zero_temporary" ? expiryDate : null,
         exempt_from_platform_fees: mode === "zero" || mode === "zero_temporary",
+        commission_borne_by: borneBy,
       };
       await base44.entities.WalkerProfile.update(hotel.id, payload);
       await queryClient.invalidateQueries({ queryKey: ["adminHotelCommissions"] });
@@ -86,7 +88,10 @@ function HotelCommissionRow({ hotel }) {
             </span>
             <span className="text-slate-300">·</span>
             <span className="text-slate-500">
-              Modelo: <strong className="text-teal-700">comissão do hotel</strong> (cliente paga só o serviço)
+              Modelo: <strong className={hotel.commission_borne_by === 'client' ? 'text-orange-600' : 'text-teal-700'}>
+                {hotel.commission_borne_by === 'client' ? 'cliente paga taxa' : 'comissão do hotel'}
+              </strong>
+              {hotel.commission_borne_by === 'client' ? ' (taxa adicionada ao cliente)' : ' (cliente paga só o serviço)'}
             </span>
           </div>
         </div>
@@ -104,9 +109,34 @@ function HotelCommissionRow({ hotel }) {
         <div className="mt-4 pt-4 border-t border-slate-100 space-y-4">
           <div className="rounded-xl border border-teal-100 bg-teal-50/50 p-3">
             <p className="text-xs text-teal-800">
-              💡 A comissão é retirada do <strong>hotel</strong> (profissional), não adicionada ao cliente.
-              O cliente paga apenas o valor do serviço. Se definir Taxa Zero, o hotel fica isento e recebe o valor cheio.
+              💡 Escolhe <strong>quem paga a comissão</strong> para este hotel. Podes mudar por cada hotel conforme o acordo comercial.
             </p>
+          </div>
+
+          {/* Bearer toggle */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setBorneBy("hotel")}
+              className={"rounded-xl border-2 p-3 text-left transition-all " +
+                (borneBy === "hotel" ? "border-teal-500 bg-teal-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300")}
+            >
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Hotel className="w-3.5 h-3.5" />
+                <span className="text-xs font-bold">Hotel paga</span>
+              </div>
+              <p className="text-[10px] text-slate-500">Taxa retirada do hotel · cliente paga só o serviço</p>
+            </button>
+            <button
+              onClick={() => setBorneBy("client")}
+              className={"rounded-xl border-2 p-3 text-left transition-all " +
+                (borneBy === "client" ? "border-orange-500 bg-orange-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300")}
+            >
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Percent className="w-3.5 h-3.5" />
+                <span className="text-xs font-bold">Cliente paga</span>
+              </div>
+              <p className="text-[10px] text-slate-500">Taxa adicionada ao cliente · hotel recebe valor cheio</p>
+            </button>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
