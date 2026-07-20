@@ -29,6 +29,7 @@ import ProfessionalProfileForm from "@/components/professional-hub/ProfessionalP
 import HotelManagementPanel from "@/components/professional-hub/HotelManagementPanel";
 import PendingRequestsList from "@/components/professional-hub/PendingRequestsList";
 import ProOverview from "@/components/professional-hub/ProOverview";
+import BackButton from "@/components/ui/BackButton";
 
 const sizeLabels = { small: "Pequeno", medium: "Médio", large: "Grande", extra_large: "Extra Grande" };
 
@@ -489,10 +490,13 @@ export default function ProfessionalHubV2() {
       {/* 1. Header com saudação, status e stats rápidas */}
       <header className="px-4 pt-6 md:pt-20 pb-5">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-3">
+          <BackButton className="bg-slate-800/80 border-white/10 text-slate-300 hover:bg-slate-700 hover:text-white" />
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}>
             <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
             <h1 className="text-lg font-black text-white">Olá, {user?.full_name?.split(' ')[0] || 'Pro'} {isHotelProfile ? '🏨' : '🐾'}</h1>
           </motion.div>
+          </div>
           <motion.div className="flex items-center gap-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
             <button
               onClick={() => toggleOnlineMutation.mutate(!isOnline)}

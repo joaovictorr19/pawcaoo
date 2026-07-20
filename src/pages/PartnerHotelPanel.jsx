@@ -17,6 +17,7 @@ import PartnerTaskCard from '@/components/hotel/PartnerTaskCard';
 import AssignTaskModal from '@/components/hotel/AssignTaskModal';
 import HotelReservationsPanel from '@/components/hotel/HotelReservationsPanel';
 import HotelTasksPanel from '@/components/hotel/HotelTasksPanel';
+import BackButton from '@/components/ui/BackButton';
 
 const SERVICE_LABELS = {
   walk: 'Passeio', bathing: 'Banho', grooming: 'Grooming',
@@ -226,6 +227,7 @@ export default function PartnerHotelPanel() {
       <div className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
+            <BackButton />
             {hotel.photo_url ? (
               <img src={hotel.photo_url} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" />
             ) : (

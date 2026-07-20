@@ -39,6 +39,7 @@ import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
 import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
 import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
+import BackButton from "@/components/ui/BackButton";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -318,6 +319,7 @@ export default function HotelDashboard() {
       <header className="bg-white border-b border-slate-200 sticky top-12 md:top-0 z-20">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <BackButton />
             <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0">
               <Hotel className="w-5 h-5 text-white" />
             </div>

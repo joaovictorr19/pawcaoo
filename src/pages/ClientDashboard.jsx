@@ -13,6 +13,7 @@ import ClientDataSettings from "@/components/client/ClientDataSettings";
 import ClientNotificationsWidget from "@/components/client/ClientNotificationsWidget";
 import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
 import ClientFinalizeWalk from "@/components/client/ClientFinalizeWalk";
+import BackButton from "@/components/ui/BackButton";
 import {
   History, MapPin, Star, Shield, Award, ChevronRight,
   CalendarDays, PawPrint, Clock, CheckCircle2, XCircle, AlertCircle, User, Bell
@@ -143,6 +144,7 @@ export default function ClientDashboard() {
       {/* Header */}
       <header className="px-4 pt-6 md:pt-20 pb-5">
         <div className="flex items-center gap-3">
+          <BackButton className="bg-slate-800/80 border-white/10 text-slate-300 hover:bg-slate-700 hover:text-white" />
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center flex-shrink-0">
             {user?.profile_photo_url
               ? <img src={user.profile_photo_url} alt="" className="w-12 h-12 rounded-full object-cover" />

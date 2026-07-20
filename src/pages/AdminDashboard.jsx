@@ -73,6 +73,7 @@ import AdminProfessionalsPanel from "../components/admin/AdminProfessionalsPanel
 import AdminReportsPanel from "../components/admin/AdminReportsPanel";
 import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import ImpersonateDialog from "../components/admin/ImpersonateDialog";
+import BackButton from "@/components/ui/BackButton";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -797,6 +798,7 @@ export default function AdminDashboard() {
         <div className="mb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
+              <BackButton />
               <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl rounded-2xl">
                 <Shield className="w-7 h-7 text-white" />
               </div>
