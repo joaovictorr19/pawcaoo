@@ -23,21 +23,23 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const payload = await req.json();
-    const { bookingId, addOnIndex, successUrl, cancelUrl } = payload;
+    const { bookingId, addOnIndex, successUrl, cancelUrl, initiatedBy } = payload;
 
     if (!bookingId || addOnIndex === undefined) {
       return Response.json({ error: 'bookingId e addOnIndex são obrigatórios' }, { status: 400 });
     }
 
-    // Fetch the hotel booking (user-scoped — RLS ensures owner can only see their own)
+    // Fetch the hotel booking
     const bookings = await base44.entities.HotelBooking.filter({ id: bookingId });
     const booking = bookings[0];
     if (!booking) {
       return Response.json({ error: 'Reserva não encontrada' }, { status: 404 });
     }
 
-    // Verify ownership
-    if (booking.owner_email !== user.email && booking.created_by !== user.email) {
+    // Access: hotel owner (created_by / hotel_email) or client (owner_email)
+    const isHotel = booking.created_by === user.email || booking.hotel_email === user.email;
+    const isClient = booking.owner_email === user.email;
+    if (!isHotel && !isClient) {
       return Response.json({ error: 'Sem acesso a esta reserva' }, { status: 403 });
     }
 
@@ -47,10 +49,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Serviço não encontrado' }, { status: 404 });
     }
 
-    // Verify the add-on was accepted by the hotel
-    if (addOn.request_status !== 'accepted') {
+    // When hotel initiates, the add-on is auto-accepted; skip the status gate.
+    // When client initiates, require hotel acceptance first.
+    if (initiatedBy !== 'hotel' && addOn.request_status !== 'accepted') {
       return Response.json({ error: 'O hotel ainda não aceitou este serviço' }, { status: 400 });
     }
+
+    // Customer email: the client pays, not the hotel
+    const customerEmail = booking.owner_email || user.email;
 
     const amount = addOn.total_price || 0;
     if (amount <= 0) {
@@ -77,14 +83,16 @@ Deno.serve(async (req) => {
       mode: 'payment',
       success_url: successUrl || `${origin}/ClientDashboard?addon=success`,
       cancel_url: cancelUrl || `${origin}/ClientDashboard?addon=cancelled`,
-      customer_email: user.email,
+      customer_email: customerEmail,
       metadata: {
         booking_id: bookingId,
         add_on_index: String(addOnIndex),
         user_email: user.email,
+        customer_email: customerEmail,
         hotel_email: booking.hotel_email || '',
         service_name: addOn.service_name,
         type: 'hotel_addon',
+        initiated_by: initiatedBy || 'client',
       },
     });
 

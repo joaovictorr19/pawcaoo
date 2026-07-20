@@ -323,20 +323,52 @@ export default function HotelDashboard() {
     const newAddOns = [...(booking.add_ons || []), addOn];
     const newAddOnsTotal = newAddOns.reduce((sum, a) => sum + (a.total_price || 0), 0);
     const updates = { add_ons: newAddOns, add_ons_total: newAddOnsTotal };
-    // Update booking total to include the extra service
     if (booking.total_amount != null) {
       updates.total_amount = (booking.total_amount || 0) + total;
     }
-    // If paid presencialmente, mark the add-on payment as paid
     if (paymentMethod === "cash") {
       updates.service_amount = (booking.service_amount || 0) + total;
     }
     await base44.entities.HotelBooking.update(bookingId, updates);
     queryClient.invalidateQueries({ queryKey: ["hotelBookings"] });
+
     if (paymentMethod === "cash") {
       toast.success(`Serviço adicionado · ${total.toFixed(2)}€ recebido (presencial)`);
-    } else {
-      toast.success("Serviço adicionado · pagamento a receber no check-out");
+      return;
+    }
+
+    // Card/Link: create a Stripe checkout session and notify the client
+    try {
+      const addOnIndex = newAddOns.length - 1;
+      const origin = window.location.origin;
+      const res = await base44.functions.invoke('createHotelAddOnCheckout', {
+        bookingId,
+        addOnIndex,
+        initiatedBy: 'hotel',
+        successUrl: `${origin}/ClientDashboard?addon=success`,
+        cancelUrl: `${origin}/ClientDashboard?addon=cancelled`,
+      });
+
+      const checkoutUrl = res?.url || res?.data?.url;
+      const serviceLabel = addOn.service_name;
+
+      // Send a notification to the client with the payment link
+      if (booking.owner_email) {
+        await base44.entities.Notification.create({
+          recipient_email: booking.owner_email,
+          title: '💳 Pedido de Pagamento — Serviço Extra',
+          message: `O hotel enviou um pedido de pagamento de ${total.toFixed(2)}€ pelo serviço "${serviceLabel}". Clique para pagar.`,
+          type: 'payment',
+          related_id: bookingId,
+          link: checkoutUrl || undefined,
+          icon: '💳',
+        });
+      }
+
+      toast.success(`Pedido de pagamento enviado ao cliente (${total.toFixed(2)}€)`);
+    } catch (e) {
+      console.error('Stripe add-on checkout error:', e);
+      toast.error("Serviço registado, mas falhou o envio do link de pagamento ao cliente");
     }
   };
 
