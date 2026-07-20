@@ -28,11 +28,15 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    base44.auth.loginWithProvider("google", "/");
+    const params = new URLSearchParams(window.location.search);
+    const dest = params.get('from') || '/';
+    base44.auth.loginWithProvider("google", dest);
   };
 
   const handleAppleLogin = () => {
-    base44.auth.loginWithProvider("apple", "/");
+    const params = new URLSearchParams(window.location.search);
+    const dest = params.get('from') || '/';
+    base44.auth.loginWithProvider("apple", dest);
   };
 
   return (
@@ -111,7 +115,7 @@ export default function Login() {
 
           <p className="text-center text-sm text-slate-500">
             Não tem conta?{" "}
-            <Link to="/register" className="text-orange-600 hover:text-orange-700 font-medium">
+            <Link to={(() => { const f = new URLSearchParams(window.location.search).get('from'); return f ? `/register?from=${encodeURIComponent(f)}` : '/register'; })()} className="text-orange-600 hover:text-orange-700 font-medium">
               Criar conta
             </Link>
           </p>

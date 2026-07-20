@@ -168,7 +168,11 @@ export default function HotelOnboarding() {
   };
 
   const handleFinish = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.info("Precisas de criar uma conta para guardar o teu hotel.");
+      navigate(`/register?from=${encodeURIComponent('/HotelOnboarding')}`);
+      return;
+    }
     setLoading(true);
     try {
       await submitProfessionalProfile(user, form, isEditing, queryClient, navigate);

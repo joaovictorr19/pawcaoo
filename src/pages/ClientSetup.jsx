@@ -50,22 +50,26 @@ export default function ClientSetup() {
   const [uploadingAnimalIdx, setUploadingAnimalIdx] = useState(null);
   const [formInitialized, setFormInitialized] = useState(false);
 
-  const [form, setForm] = useState({
-    full_name: "",
-    phone: "",
-    photo_url: "",
-    bio: "",
-    // Morada completa para rotas
-    street: "",
-    door_number: "",
-    floor_apt: "",
-    postal_code: "",
-    city: "",
-    country: "Portugal",
-    latitude: null,
-    longitude: null,
-    // Animais
-    owned_dogs: [],
+  const [form, setForm] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem("client_setup_form");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      full_name: "",
+      phone: "",
+      photo_url: "",
+      bio: "",
+      street: "",
+      door_number: "",
+      floor_apt: "",
+      postal_code: "",
+      city: "",
+      country: "Portugal",
+      latitude: null,
+      longitude: null,
+      owned_dogs: [],
+    };
   });
 
   const { data: user, isError: userError } = useQuery({
@@ -108,7 +112,11 @@ export default function ClientSetup() {
     }));
   }, [userProfile, user, formInitialized, userError, profileError]);
 
-  const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+  const set = (key, val) => setForm(prev => {
+    const updated = { ...prev, [key]: val };
+    try { sessionStorage.setItem("client_setup_form", JSON.stringify(updated)); } catch (e) {}
+    return updated;
+  });
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -176,7 +184,11 @@ export default function ClientSetup() {
   };
 
   const handleFinish = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.info("Precisas de criar uma conta para guardar o teu perfil.");
+      navigate(`/register?from=${encodeURIComponent('/ClientSetup')}`);
+      return;
+    }
     setLoading(true);
     try {
       // Geocodificar morada
@@ -263,6 +275,7 @@ export default function ClientSetup() {
         }
       }
 
+      sessionStorage.removeItem("client_setup_form");
       queryClient.invalidateQueries(["currentUser"]);
       queryClient.invalidateQueries(["clientSetupProfile"]);
       queryClient.invalidateQueries(["dogProfiles"]);

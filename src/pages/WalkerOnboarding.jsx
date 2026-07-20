@@ -182,7 +182,11 @@ export default function WalkerOnboarding() {
   };
 
   const handleFinish = async () => {
-    if (!user) return;
+    if (!user) {
+      toast.info("Precisas de criar uma conta para guardar o teu perfil.");
+      navigate(`/register?from=${encodeURIComponent('/WalkerOnboarding')}`);
+      return;
+    }
     setLoading(true);
     try {
       await submitProfessionalProfile(user, form, isEditing, queryClient, navigate);
