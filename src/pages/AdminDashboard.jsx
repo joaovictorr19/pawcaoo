@@ -554,26 +554,43 @@ export default function AdminDashboard() {
     }
   };
 
+  const syncUserVerification = async (email, status, role) => {
+    try {
+      const users = await base44.entities.User.filter({ email });
+      if (users.length > 0) {
+        const u = users[0];
+        const updates = {
+          professional_profile: {
+            ...(u.professional_profile || {}),
+            verification_status: status,
+            is_verified: status === 'verified',
+          },
+        };
+        if (role) updates.role = role;
+        await base44.entities.User.update(u.id, updates);
+      }
+    } catch (e) {
+      console.warn('Erro ao sincronizar verificação no User:', e);
+    }
+  };
+
   const handleApproveApplication = (type, item) => {
     if (type === 'walker') {
       updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true } });
+      syncUserVerification(item.created_by, 'verified', null);
+      toast.success("Passeador aprovado!");
     } else if (type === 'trainer') {
-      base44.entities.TrainerProfile.update(item.id, { verification_status: 'verified', is_active: true }).then(() => {
+      base44.entities.TrainerProfile.update(item.id, { verification_status: 'verified', is_active: true }).then(async () => {
+        await syncUserVerification(item.created_by, 'verified', null);
         queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
         toast.success("Treinador aprovado!");
       });
     } else if (type === 'hotel') {
       base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true }).then(async () => {
-        // Atualizar role do utilizador para 'hotel' quando hotel é aprovado
-        try {
-          const users = await base44.entities.User.filter({ email: item.created_by });
-          if (users.length > 0) {
-            await base44.entities.User.update(users[0].id, { role: 'hotel' });
-          }
-        } catch (e) {
-          console.warn('Erro ao atualizar role para hotel:', e);
-        }
+        await syncUserVerification(item.created_by, 'verified', 'hotel');
         queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
         toast.success("Hotel aprovado!");
       });
     } else if (type === 'shelter') {
@@ -590,9 +607,20 @@ export default function AdminDashboard() {
     const data = { verification_status: 'rejected', rejection_reason: reason };
     if (type === 'walker') {
       updateWalkerMutation.mutate({ id: item.id, data });
+      syncUserVerification(item.created_by, 'rejected', null);
+      toast.success("Rejeitado!");
     } else if (type === 'trainer') {
-      base44.entities.TrainerProfile.update(item.id, data).then(() => {
+      base44.entities.TrainerProfile.update(item.id, data).then(async () => {
+        await syncUserVerification(item.created_by, 'rejected', null);
         queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+        toast.success("Rejeitado!");
+      });
+    } else if (type === 'hotel') {
+      base44.entities.WalkerProfile.update(item.id, data).then(async () => {
+        await syncUserVerification(item.created_by, 'rejected', null);
+        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
         toast.success("Rejeitado!");
       });
     } else if (type === 'shelter') {

@@ -1,10 +1,53 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Building2, Dog, User, ChevronRight, Sparkles } from "lucide-react";
+import { Building2, Dog, User, ChevronRight, Sparkles, Loader2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 export default function ProfessionalTypeSelect() {
   const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkExistingProfile = async () => {
+      try {
+        const user = await base44.auth.me();
+        if (!user?.email) { setChecking(false); return; }
+
+        // Verificar se já tem perfil de walker/trainer/hotel
+        const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+        if (walkers.length > 0 && walkers[0].walker_name && walkers[0].verification_status === "verified") {
+          // Já tem perfil verificado — redirecionar para o dashboard apropriado
+          const wp = walkers[0];
+          if (wp.professional_type === "hotel") {
+            navigate("/HotelDashboard", { replace: true });
+          } else {
+            navigate("/ProfessionalHubV2", { replace: true });
+          }
+          return;
+        }
+
+        // Verificar se já tem perfil de cliente completo
+        const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+        if (profiles.length > 0 && profiles[0].full_name && profiles[0].city) {
+          navigate("/", { replace: true });
+          return;
+        }
+      } catch (e) {
+        // Não autenticado ou erro — mostrar seleção normalmente
+      }
+      setChecking(false);
+    };
+    checkExistingProfile();
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+      </div>
+    );
+  }
 
   const options = [
     {
@@ -39,7 +82,7 @@ export default function ProfessionalTypeSelect() {
         <motion.button
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/")}
           className="mb-8 flex items-center gap-2 text-slate-400 hover:text-white text-sm font-semibold"
         >
           <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
