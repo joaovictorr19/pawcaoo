@@ -57,7 +57,7 @@ export default function PawCaoLogo({ size = "default", showText = true, classNam
     <div className={`flex items-center gap-2 md:gap-3 ${className}`}>
       <LogoIcon 
         {...iconProps}
-        className={`${currentSize.container} rounded-full shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden group cursor-pointer flex-shrink-0 ring-1 ring-black/5`}
+        className={`${currentSize.container} rounded-full shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group cursor-pointer flex-shrink-0 ring-2 ring-white/60 hover:ring-teal-200`}
       >
         <img
           src={PAWCAO_LOGO_URL}
@@ -65,9 +65,9 @@ export default function PawCaoLogo({ size = "default", showText = true, classNam
           className="w-full h-full object-cover relative z-10"
         />
         
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 z-20 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 z-20 pointer-events-none" />
         
-        <div className="absolute inset-0 rounded-xl md:rounded-2xl ring-2 ring-white/20 group-hover:ring-white/40 transition-all z-20 pointer-events-none" />
+        <div className="absolute inset-0 rounded-full ring-1 ring-black/5 group-hover:ring-teal-300/30 transition-all z-20 pointer-events-none" />
       </LogoIcon>
 
       {showText && (

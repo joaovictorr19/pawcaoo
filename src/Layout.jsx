@@ -479,7 +479,7 @@ function LayoutContent({ children, currentPageName }) {
       {/* Top header for desktop — floating glass */}
       <header className="hidden md:flex fixed top-3 left-4 right-4 z-[10000]">
         <div
-          className="max-w-6xl mx-auto w-full flex items-center justify-between rounded-full px-5 py-2"
+          className="max-w-6xl mx-auto w-full flex items-center justify-between rounded-full px-5 py-2 relative"
           style={{
             background: 'rgba(255, 255, 255, 0.72)',
             backdropFilter: 'blur(20px)',
@@ -490,8 +490,12 @@ function LayoutContent({ children, currentPageName }) {
         >
           <Link to={createPageUrl("Home")} className="flex items-center gap-2">
             <PawCaoLogo size="small" showText={false} />
-            <span className="sr-only">PawCão</span>
           </Link>
+          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+            <span className="font-heading font-extrabold text-base md:text-lg text-slate-900 tracking-tight">
+              Paw<span className="text-[#1D8A82]">Cão</span>
+            </span>
+          </div>
           <nav className="flex items-center gap-1">
             {/* Links de painel — só para utilizadores autenticados */}
             {authUser && (() => {
