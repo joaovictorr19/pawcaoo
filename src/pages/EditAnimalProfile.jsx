@@ -7,12 +7,13 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Upload, Loader2, Save, Trash2, Camera } from "lucide-react";
 import { toast } from "sonner";
+import FormSelect from "@/components/ui/FormSelect";
 
 const sectionCls = "bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4";
 const labelCls = "text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5";
 const inputCls = "w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 transition-colors";
 const textareaCls = "w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 resize-none transition-colors";
-const selectCls = "w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400 transition-colors appearance-none";
+const selectTriggerCls = "w-full h-11 min-h-0 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:ring-2 focus:ring-orange-100 focus:border-orange-400 transition-colors";
 
 export default function EditAnimalProfile() {
   const navigate = useNavigate();
@@ -225,13 +226,18 @@ export default function EditAnimalProfile() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Tipo</label>
-                <select value={formData.animal_type} onChange={e => set('animal_type', e.target.value)} className={selectCls}>
-                  <option value="dog">🐕 Cão</option>
-                  <option value="cat">🐱 Gato</option>
-                  <option value="reptile">🦎 Réptil</option>
-                  <option value="rodent">🐹 Roedor</option>
-                  <option value="bird">🦜 Ave</option>
-                </select>
+                <FormSelect
+                  value={formData.animal_type}
+                  onChange={v => set('animal_type', v)}
+                  triggerClassName={selectTriggerCls}
+                  options={[
+                    { value: "dog", label: "🐕 Cão" },
+                    { value: "cat", label: "🐱 Gato" },
+                    { value: "reptile", label: "🦎 Réptil" },
+                    { value: "rodent", label: "🐹 Roedor" },
+                    { value: "bird", label: "🦜 Ave" },
+                  ]}
+                />
               </div>
               <div>
                 <label className={labelCls}>Raça</label>
@@ -253,19 +259,29 @@ export default function EditAnimalProfile() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Tamanho</label>
-                <select value={formData.size} onChange={e => set('size', e.target.value)} className={selectCls}>
-                  <option value="small">Pequeno</option>
-                  <option value="medium">Médio</option>
-                  <option value="large">Grande</option>
-                  <option value="extra_large">Extra Grande</option>
-                </select>
+                <FormSelect
+                  value={formData.size}
+                  onChange={v => set('size', v)}
+                  triggerClassName={selectTriggerCls}
+                  options={[
+                    { value: "small", label: "Pequeno" },
+                    { value: "medium", label: "Médio" },
+                    { value: "large", label: "Grande" },
+                    { value: "extra_large", label: "Extra Grande" },
+                  ]}
+                />
               </div>
               <div>
                 <label className={labelCls}>Sexo</label>
-                <select value={formData.gender} onChange={e => set('gender', e.target.value)} className={selectCls}>
-                  <option value="male">Macho</option>
-                  <option value="female">Fêmea</option>
-                </select>
+                <FormSelect
+                  value={formData.gender}
+                  onChange={v => set('gender', v)}
+                  triggerClassName={selectTriggerCls}
+                  options={[
+                    { value: "male", label: "Macho" },
+                    { value: "female", label: "Fêmea" },
+                  ]}
+                />
               </div>
             </div>
 
@@ -313,10 +329,15 @@ export default function EditAnimalProfile() {
 
             <div>
               <label className={labelCls}>Castrado</label>
-              <select value={formData.is_neutered.toString()} onChange={e => set('is_neutered', e.target.value === 'true')} className={selectCls}>
-                <option value="true">Sim ✅</option>
-                <option value="false">Não</option>
-              </select>
+              <FormSelect
+                value={formData.is_neutered.toString()}
+                onChange={v => set('is_neutered', v === 'true')}
+                triggerClassName={selectTriggerCls}
+                options={[
+                  { value: "true", label: "Sim ✅" },
+                  { value: "false", label: "Não" },
+                ]}
+              />
             </div>
 
             {/* Vacinas */}
@@ -456,21 +477,31 @@ export default function EditAnimalProfile() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Nível de Energia</label>
-                <select value={formData.energy_level} onChange={e => set('energy_level', e.target.value)} className={selectCls}>
-                  <option value="low">Baixa</option>
-                  <option value="normal">Normal</option>
-                  <option value="high">Alta</option>
-                  <option value="very_high">Muito Alta</option>
-                </select>
+                <FormSelect
+                  value={formData.energy_level}
+                  onChange={v => set('energy_level', v)}
+                  triggerClassName={selectTriggerCls}
+                  options={[
+                    { value: "low", label: "Baixa" },
+                    { value: "normal", label: "Normal" },
+                    { value: "high", label: "Alta" },
+                    { value: "very_high", label: "Muito Alta" },
+                  ]}
+                />
               </div>
               <div>
                 <label className={labelCls}>Socialização</label>
-                <select value={formData.socialization} onChange={e => set('socialization', e.target.value)} className={selectCls}>
-                  <option value="friendly">Amigável 😊</option>
-                  <option value="neutral">Neutro</option>
-                  <option value="shy">Tímido</option>
-                  <option value="aggressive">Agressivo ⚠️</option>
-                </select>
+                <FormSelect
+                  value={formData.socialization}
+                  onChange={v => set('socialization', v)}
+                  triggerClassName={selectTriggerCls}
+                  options={[
+                    { value: "friendly", label: "Amigável 😊" },
+                    { value: "neutral", label: "Neutro" },
+                    { value: "shy", label: "Tímido" },
+                    { value: "aggressive", label: "Agressivo ⚠️" },
+                  ]}
+                />
               </div>
             </div>
 

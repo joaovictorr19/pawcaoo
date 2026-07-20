@@ -11,6 +11,7 @@ import {
   Camera, MapPin, Phone, ChevronRight, ChevronLeft,
   CheckCircle, Upload, Plus, Trash2, User, Home, PawPrint
 } from "lucide-react";
+import FormSelect from "@/components/ui/FormSelect";
 
 const STEPS = ["Perfil", "Morada", "Os meus animais", "Conclusão"];
 
@@ -447,15 +448,17 @@ export default function ClientSetup() {
 
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">País</label>
-                <select
+                <FormSelect
                   value={form.country}
-                  onChange={e => set("country", e.target.value)}
-                  className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-blue-500 outline-none text-sm"
-                >
-                  <option value="Portugal">Portugal</option>
-                  <option value="Spain">Espanha</option>
-                  <option value="France">França</option>
-                </select>
+                  onChange={v => set("country", v)}
+                  triggerClassName="w-full h-12 min-h-0 px-4 bg-slate-800 text-white rounded-xl border-slate-700 focus:border-blue-500 text-sm"
+                  contentClassName="bg-slate-800 text-white border-slate-700"
+                  options={[
+                    { value: "Portugal", label: "Portugal" },
+                    { value: "Spain", label: "Espanha" },
+                    { value: "France", label: "França" },
+                  ]}
+                />
               </div>
 
               <div>
@@ -574,15 +577,13 @@ export default function ClientSetup() {
                       {(animal.animal_type === "dog" || !animal.animal_type) && (
                         <div>
                           <label className="text-xs text-slate-500 mb-1 block">Tamanho</label>
-                          <select
+                          <FormSelect
                             value={animal.dog_size}
-                            onChange={e => updateAnimal(idx, "dog_size", e.target.value)}
-                            className="w-full h-9 px-3 bg-slate-700 text-white rounded-lg text-xs outline-none border border-slate-600 focus:border-blue-500"
-                          >
-                            {DOG_SIZES.map(s => (
-                              <option key={s.value} value={s.value}>{s.label} ({s.desc})</option>
-                            ))}
-                          </select>
+                            onChange={v => updateAnimal(idx, "dog_size", v)}
+                            triggerClassName="w-full h-9 min-h-0 px-3 bg-slate-700 text-white rounded-lg text-xs border-slate-600 focus:border-blue-500"
+                            contentClassName="bg-slate-800 text-white border-slate-700"
+                            options={DOG_SIZES.map(s => ({ value: s.value, label: `${s.label} (${s.desc})` }))}
+                          />
                         </div>
                       )}
                     </div>

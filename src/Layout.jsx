@@ -46,6 +46,7 @@ import PullToRefresh from "@/components/ui/PullToRefresh";
 import BadgeNotification from "@/components/gamification/BadgeNotification";
 import PushNotificationManager from "@/components/notifications/PushNotificationManager";
 import MobileHeader from "@/components/layout/MobileHeader";
+import BottomTabBar from "@/components/layout/BottomTabBar";
 
 import NotificationTriggers from "@/components/notifications/NotificationTriggers";
 import DynamicBackground from "@/components/ui/DynamicBackground";
@@ -564,12 +565,14 @@ function LayoutContent({ children, currentPageName }) {
           )}
 
           <PullToRefresh>
-            <main className="flex-1 w-full pt-[calc(4.5rem+env(safe-area-inset-top))] md:pt-0 pb-8 md:pb-0">
+            <main className="flex-1 w-full pt-[calc(4.5rem+env(safe-area-inset-top))] md:pt-0 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
               {children}
             </main>
           </PullToRefresh>
 
           <LayoutFooter />
+
+          <BottomTabBar />
         </div>
       </div>
     </SidebarProvider>
