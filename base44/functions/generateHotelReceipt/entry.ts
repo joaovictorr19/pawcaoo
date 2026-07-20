@@ -13,6 +13,14 @@ Deno.serve(async (req) => {
     const booking = await base44.asServiceRole.entities.HotelBooking.get(booking_id);
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
+    // SECURITY: only participants of the booking (or admins) can access the receipt
+    const email = (user.email || '').toLowerCase();
+    const isParticipant = [booking.owner_email, booking.hotel_email, booking.assigned_walker_email, booking.created_by]
+      .some((e) => e && String(e).toLowerCase() === email);
+    if (!isParticipant && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const hotelName = booking.hotel_name || 'Hotel';
     const today = new Date();
     const dateStr = today.toLocaleDateString('pt-PT');

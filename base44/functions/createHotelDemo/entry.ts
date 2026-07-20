@@ -3,7 +3,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
+
+    // SECURITY: only admins can create demo data
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
+
     const DEMO_EMAIL = 'support@pawcao.net';
     const today = new Date();
     const tomorrow = new Date(today);
