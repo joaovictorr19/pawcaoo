@@ -20,11 +20,11 @@ import { t } from "@/components/translations";
 import { calculateTier } from "@/components/gamification/tierSystem";
 import { calculateCompatibilityScore } from "@/utils/recommendationEngine";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/components/ThemeContext";
-import { Trophy } from "lucide-react";
+import { Trophy, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -1025,6 +1025,17 @@ export default function Home() {
                       ))}
                     </div>
                   )}
+                  </div>
+
+                  <div className="relative z-10 flex justify-center mt-8 mb-2">
+                    <Link
+                      to={createPageUrl("AboutUs")}
+                      className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-[#0d9483] font-heading font-bold text-sm tracking-tight transition-all duration-300 hover:scale-105 active:scale-95"
+                      style={{ boxShadow: "0 4px 20px rgba(13,148,131,0.18)", background: "transparent" }}
+                    >
+                      {language === 'pt' ? 'Sobre Nós' : language === 'es' ? 'Sobre Nosotros' : 'About Us'}
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
                   </div>
                 </motion.div>
               </TabsContent>
