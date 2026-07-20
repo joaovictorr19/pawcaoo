@@ -16,11 +16,11 @@ import { WalkSecurityPass } from "@/components/booking/WalkSecurityPass";
 import ClientFinalizeWalk from "@/components/client/ClientFinalizeWalk";
 import BackButton from "@/components/ui/BackButton";
 import {
-  History, MapPin, Star, Shield, Award, ChevronRight,
-  CalendarDays, PawPrint, Clock, CheckCircle2, XCircle, AlertCircle, User, Bell
+  History, MapPin, Star, Shield, Award,
+  CalendarDays, PawPrint, Clock, CheckCircle2, XCircle, AlertCircle, User
 } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { pt } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -50,7 +50,7 @@ function BookingCard({ booking, onClick }) {
         <div className="flex-1 min-w-0">
           <p className="font-bold text-white text-sm truncate">{booking.dog_name || booking.dogs?.map(d => d.dog_name).join(', ') || 'Cão'}</p>
           <p className="text-xs text-slate-400 truncate">
-            {booking.walker_name || booking.trainer_name || '—'} · {dateStr ? format(new Date(dateStr + 'T12:00:00'), "dd MMM yyyy", { locale: ptBR }) : '—'}
+            {booking.walker_name || booking.trainer_name || '—'} · {dateStr ? format(new Date(dateStr + 'T12:00:00'), "dd MMM yyyy", { locale: pt }) : '—'}
           </p>
         </div>
         <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${cfg.bg} ${cfg.color} flex-shrink-0`}>
@@ -70,7 +70,9 @@ export default function ClientDashboard() {
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => getCurrentUser()
+    queryFn: () => getCurrentUser(),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: allBookings = [], isLoading: bookingsLoading } = useQuery({
@@ -89,6 +91,8 @@ export default function ClientDashboard() {
       });
     },
     enabled: !!user?.email,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: checkpoints = [] } = useQuery({
@@ -190,7 +194,7 @@ export default function ClientDashboard() {
                       <div>
                         <p className="font-bold text-white">{stats.nextWalk.dog_name}</p>
                         <p className="text-xs text-slate-400 mt-0.5">
-                          {stats.nextWalk.walk_date ? format(new Date(stats.nextWalk.walk_date + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR }) : '—'} · {stats.nextWalk.walker_name}
+                          {stats.nextWalk.walk_date ? format(new Date(stats.nextWalk.walk_date + 'T12:00:00'), "dd 'de' MMMM", { locale: pt }) : '—'} · {stats.nextWalk.walker_name}
                         </p>
                       </div>
                       <Shield className="w-8 h-8 text-blue-400 flex-shrink-0" />

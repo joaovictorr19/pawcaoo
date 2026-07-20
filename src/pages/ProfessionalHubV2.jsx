@@ -1,33 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Loader2, Trash2, LogOut, Star, UserCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bell, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 import { ProfessionalTabBar } from "../components/professional-hub/ProfessionalTabBar";
-import { AgendaCalendar } from "../components/professional-hub/AgendaCalendar";
-import { StatsSection } from "../components/professional-hub/StatsSection";
-import { ServiceManager } from "../components/professional-hub/ServiceManager";
-import { ServiceEditor } from "../components/professional-hub/ServiceEditor";
-import { ProfessionalEditProfile } from "@/components/professionals/ProfessionalEditProfile";
+const AgendaCalendar = React.lazy(() => import("../components/professional-hub/AgendaCalendar").then(m => ({ default: m.AgendaCalendar })));
 import IncomingRequestModal from "@/components/professional/IncomingRequestModal";
 import { VerificationBanner } from "@/components/professional-hub/VerificationBanner";
-import { ToolsSection } from "@/components/professional-hub/ToolsSection";
-import { WalletSection } from "@/components/professional-hub/WalletSection";
-import { FinancesSection } from "@/components/professional-hub/FinancesSection";
-import { DayOffManager } from "@/components/professional-hub/DayOffManager";
-import ServiceOfferingsEditor from "@/components/professional-hub/ServiceOfferingsEditor";
-import ReviewsManagementSection from "@/components/professional-hub/ReviewsManagementSection";
-import PortfolioSection from "@/components/professional-hub/PortfolioSection";
-import DocumentsVerificationSection from "@/components/professional-hub/DocumentsVerificationSection";
+const ToolsSection = React.lazy(() => import("@/components/professional-hub/ToolsSection").then(m => ({ default: m.ToolsSection })));
+const WalletSection = React.lazy(() => import("@/components/professional-hub/WalletSection").then(m => ({ default: m.WalletSection })));
+const FinancesSection = React.lazy(() => import("@/components/professional-hub/FinancesSection").then(m => ({ default: m.FinancesSection })));
+const DayOffManager = React.lazy(() => import("@/components/professional-hub/DayOffManager").then(m => ({ default: m.DayOffManager })));
+const ServiceOfferingsEditor = React.lazy(() => import("@/components/professional-hub/ServiceOfferingsEditor"));
+const ReviewsManagementSection = React.lazy(() => import("@/components/professional-hub/ReviewsManagementSection"));
+const PortfolioSection = React.lazy(() => import("@/components/professional-hub/PortfolioSection"));
+const DocumentsVerificationSection = React.lazy(() => import("@/components/professional-hub/DocumentsVerificationSection"));
 import PendingApproval from "@/components/professional-hub/PendingApproval";
 import ProfessionalProfileForm from "@/components/professional-hub/ProfessionalProfileForm";
-import HotelManagementPanel from "@/components/professional-hub/HotelManagementPanel";
-import PendingRequestsList from "@/components/professional-hub/PendingRequestsList";
+const HotelManagementPanel = React.lazy(() => import("@/components/professional-hub/HotelManagementPanel"));
+const PendingRequestsList = React.lazy(() => import("@/components/professional-hub/PendingRequestsList"));
 import ProOverview from "@/components/professional-hub/ProOverview";
 import BackButton from "@/components/ui/BackButton";
 
@@ -195,11 +191,10 @@ export default function ProfessionalHubV2() {
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-    refetchOnMount: 'always',
-    refetchInterval: false,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
   });
 
   // Fetch the related profile
@@ -215,7 +210,10 @@ export default function ProfessionalHubV2() {
       }
       return profiles[0] || null;
     },
-    enabled: !!user?.email
+    enabled: !!user?.email,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Check if profile needs update to new format (missing lat/lng or service_areas)
@@ -531,6 +529,7 @@ export default function ProfessionalHubV2() {
 
       <main className="px-4 md:px-6 pb-6 max-w-3xl mx-auto w-full">
         {/* Renderização Condicional por Abas */}
+        <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-orange-500 animate-spin" /></div>}>
         <AnimatePresence mode="wait">
           {/* ── Painel Hotel ─────────────────────────────────── */}
           {isHotelProfile && activeTab === "overview" && (
@@ -690,30 +689,6 @@ export default function ProfessionalHubV2() {
             </motion.div>
           )}
 
-          {verificationStatus !== 'verified' && activeTab === 'portfolio' && (
-            <motion.div
-              key="portfolio-pending"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <PortfolioSection professionalProfile={professionalProfile} />
-            </motion.div>
-          )}
-
-          {verificationStatus !== 'verified' && activeTab === 'documents' && (
-            <motion.div
-              key="documents-pending"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <DocumentsVerificationSection professionalProfile={professionalProfile} user={user} />
-            </motion.div>
-          )}
-
           {activeTab === "finances" && (
             <motion.div
               key="finances"
@@ -726,6 +701,7 @@ export default function ProfessionalHubV2() {
             </motion.div>
           )}
         </AnimatePresence>
+        </Suspense>
       </main>
 
       {/* Delete Account Confirmation Modal */}
