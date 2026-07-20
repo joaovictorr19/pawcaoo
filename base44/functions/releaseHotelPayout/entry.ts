@@ -24,8 +24,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (hb.status !== 'completed') {
-      return Response.json({ error: 'Booking not completed yet' }, { status: 400 });
+    // O pagamento é libertado quando o cão entra no hotel (check-in) ou em qualquer estado posterior
+    const RELEASE_STATUSES = ['checked_in', 'in_progress', 'checked_out', 'completed'];
+    if (!RELEASE_STATUSES.includes(hb.status)) {
+      return Response.json({ error: 'O pagamento só é libertado após o check-in do animal no hotel' }, { status: 400 });
     }
 
     const serviceAmount = hb.service_amount || 0;

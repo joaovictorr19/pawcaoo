@@ -515,12 +515,13 @@ async function handleCheckoutCompleted(base44, session) {
                         return;
                     }
 
+                    // ── NÃO auto-confirmar: manter como 'pending' para o hotel aceitar ou rejeitar ──
+                    // O pagamento foi recebido (payment_status: 'paid'), mas o hotel ainda precisa de aceitar.
                     await base44.asServiceRole.entities.HotelBooking.update(hotelBookingId, {
-                        status: 'confirmed',
                         payment_status: 'paid',
                         stripe_payment_intent_id: session.payment_intent || '',
                     });
-                    console.log('✅ HotelBooking confirmed after payment:', hotelBookingId);
+                    console.log('✅ HotelBooking payment confirmed (awaiting hotel acceptance):', hotelBookingId);
 
                     // ── Vagas já foram reservadas na criação da reserva pendente (createHotelCheckout) ──
                     // Não decrementar novamente aqui para evitar dupla contagem.
@@ -582,26 +583,26 @@ async function handleCheckoutCompleted(base44, session) {
                         }
                     }
 
-                    // Notificar hotel
+                    // Notificar hotel — pagamento recebido, aguardando aceitação
                     if (hb.hotel_email) {
                         await base44.asServiceRole.entities.Notification.create({
                             recipient_email: hb.hotel_email,
-                            title: '💳 Nova Reserva Confirmada!',
-                            message: `${hb.owner_name} pagou a reserva de ${(hb.dogs || []).map(d => d.dog_name).join(', ') || 'animal'}. Check-in: ${hb.checkin_date}.`,
+                            title: '💳 Nova Reserva PAGA — Aceite ou Rejeite!',
+                            message: `${hb.owner_name} pagou a reserva de ${(hb.dogs || []).map(d => d.dog_name).join(', ') || 'animal'}. Check-in: ${hb.checkin_date}. Aceite ou rejeite agora no seu painel.`,
                             type: 'booking',
                             related_id: hotelBookingId,
                             icon: '🏨'
                         });
                     }
-                    // Notificar cliente
+                    // Notificar cliente — pagamento recebido, aguardando confirmação do hotel
                     if (hb.owner_email) {
                         await base44.asServiceRole.entities.Notification.create({
                             recipient_email: hb.owner_email,
-                            title: '✅ Reserva de Hotel Confirmada',
-                            message: `A sua reserva no ${hb.hotel_name || 'hotel'} foi confirmada. Check-in: ${hb.checkin_date}.`,
+                            title: '⏳ Pagamento Recebido — Aguardando Confirmação',
+                            message: `O seu pagamento foi processado. Aguarde a confirmação do hotel ${hb.hotel_name || ''}.`,
                             type: 'payment',
                             related_id: hotelBookingId,
-                            icon: '✅'
+                            icon: '⏳'
                         });
 
                         // ── Enviar email de confirmação ao cliente (só após pagamento) ──
@@ -616,7 +617,7 @@ async function handleCheckoutCompleted(base44, session) {
                             const emailBody = [
                                 `Olá ${hb.owner_name || ''},`,
                                 ``,
-                                `O seu pagamento foi processado com sucesso e a sua reserva no ${hb.hotel_name || 'hotel'} está confirmada!`,
+                                `O seu pagamento foi processado com sucesso! A sua reserva no ${hb.hotel_name || 'hotel'} está agora a aguardar confirmação do hotel.`,
                                 ``,
                                 `Detalhes da Reserva:`,
                                 `Serviço: ${svcLabel}`,
@@ -635,7 +636,7 @@ async function handleCheckoutCompleted(base44, session) {
 
                             await base44.asServiceRole.integrations.Core.SendEmail({
                                 to: hb.owner_email,
-                                subject: `Reserva confirmada — ${hb.hotel_name || 'Hotel'} (${hb.checkin_date} → ${hb.checkout_date})`,
+                                subject: `Pagamento recebido — ${hb.hotel_name || 'Hotel'} (aguardando confirmação)`,
                                 body: emailBody,
                             });
                             console.log('✅ Hotel booking confirmation email sent to:', hb.owner_email);
@@ -647,7 +648,7 @@ async function handleCheckoutCompleted(base44, session) {
                         if (hb.hotel_email) {
                             try {
                                 const hotelEmailBody = [
-                                    `Nova reserva confirmada e paga!`,
+                                    `Nova reserva PAGA — aguardando a sua confirmação!`,
                                     ``,
                                     `Cliente: ${hb.owner_name || ''} (${hb.owner_email || ''})`,
                                     `Animais: ${dogNames}`,
@@ -662,7 +663,7 @@ async function handleCheckoutCompleted(base44, session) {
 
                                 await base44.asServiceRole.integrations.Core.SendEmail({
                                     to: hb.hotel_email,
-                                    subject: `Nova reserva confirmada — ${hb.owner_name || 'Cliente'} (${hb.checkin_date})`,
+                                    subject: `Nova reserva PAGA — ${hb.owner_name || 'Cliente'} (${hb.checkin_date})`,
                                     body: hotelEmailBody,
                                 });
                                 console.log('✅ Hotel notification email sent to:', hb.hotel_email);

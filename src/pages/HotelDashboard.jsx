@@ -188,13 +188,39 @@ export default function HotelDashboard() {
             if (newStatus === "cancelled" && ["confirmed", "checked_in", "in_progress", "pending"].includes(oldStatus)) {
               await adjustServiceCapacity(booking.service_type, dogs);
             }
-            // Release pending wallet balance when booking is completed
-            if (newStatus === "completed" && oldStatus !== "completed") {
+            // ── Libertar pagamento para o hotel quando o cão entra (check-in) ──
+            if (newStatus === "checked_in" && oldStatus !== "checked_in") {
               try {
                 await base44.functions.invoke('releaseHotelPayout', { bookingId: id });
+                toast.success("Pagamento libertado para o hotel (check-in).");
               } catch (e) {
                 console.error('Payout release error:', e);
               }
+            }
+            // ── Notificar cliente quando o hotel confirma ou rejeita a reserva ──
+            if (oldStatus === "pending" && newStatus === "confirmed") {
+              try {
+                await base44.entities.Notification.create({
+                  recipient_email: booking.owner_email,
+                  title: '✅ Reserva Confirmada pelo Hotel',
+                  message: `O hotel ${booking.hotel_name || ''} confirmou a sua reserva. Check-in: ${booking.checkin_date}.`,
+                  type: 'booking',
+                  related_id: booking.id,
+                  icon: '✅'
+                });
+              } catch (e) { console.error('Notify client error:', e); }
+            }
+            if (oldStatus === "pending" && newStatus === "rejected") {
+              try {
+                await base44.entities.Notification.create({
+                  recipient_email: booking.owner_email,
+                  title: '❌ Reserva Rejeitada',
+                  message: `O hotel ${booking.hotel_name || ''} não pode aceitar a sua reserva. O reembolso será processado.`,
+                  type: 'booking',
+                  related_id: booking.id,
+                  icon: '❌'
+                });
+              } catch (e) { console.error('Notify client error:', e); }
             }
           }
         }
