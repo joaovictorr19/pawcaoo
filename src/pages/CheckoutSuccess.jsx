@@ -91,24 +91,19 @@ export default function CheckoutSuccess() {
       if (!bookingId) return;
 
       // --- Hotel booking ---
+      // Only mark payment as paid — the Stripe webhook already handles wallet crediting,
+      // platform revenue, notifications, and emails. Crucially, the booking status stays
+      // as 'pending' so the hotel can accept or reject the reservation.
       if (type === 'hotel_booking') {
         const records = await base44.entities.HotelBooking.filter({ id: bookingId });
         const booking = records[0];
         if (!booking) return;
 
-        await base44.entities.HotelBooking.update(bookingId, {
-          status: 'confirmed',
-          payment_status: 'paid',
-        });
-
-        // Notify hotel
-        if (booking.hotel_email) {
-          await base44.entities.Notification.create({
-            recipient_email: booking.hotel_email,
-            title: '💰 Nova Reserva Paga!',
-            message: `Pagamento recebido de ${booking.owner_name} para ${booking.service_type} a partir de ${booking.checkin_date}.`,
-            type: 'booking',
-            related_id: bookingId,
+        // Only update payment_status (fallback if webhook hasn't fired yet).
+        // Do NOT change status — hotel must accept/reject manually.
+        if (booking.payment_status !== 'paid') {
+          await base44.entities.HotelBooking.update(bookingId, {
+            payment_status: 'paid',
           });
         }
 
