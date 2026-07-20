@@ -190,132 +190,83 @@ export default function DynamicBackground() {
     const TEAL = "#00a699";
     const ORANGE = "#ff6633";
     const YELLOW = "#ffcc33";
-    const TEAL_SOFT = "#5eead4";
+    const COLORS = [TEAL, ORANGE, YELLOW];
 
-    // Floating lucide icons — soft, scattered
-    const floatItems = [
-      { Icon: PawPrint, pos: "top-[6%] left-[4%]", color: TEAL, size: 44, delay: 0, dur: 7, rotate: 0 },
-      { Icon: Bone, pos: "top-[10%] right-[6%]", color: ORANGE, size: 38, delay: 1.5, dur: 6, rotate: 0 },
-      { Icon: Heart, pos: "top-[28%] left-[9%]", color: ORANGE, size: 36, delay: 0.8, dur: 8, rotate: 0 },
-      { Icon: Star, pos: "bottom-[12%] right-[7%]", color: YELLOW, size: 38, delay: 2.5, dur: 7.5, rotate: 0 },
-      { Icon: Sparkles, pos: "top-[18%] left-[32%]", color: YELLOW, size: 28, delay: 3.2, dur: 6.8, rotate: 0 },
-      { Icon: Heart, pos: "bottom-[55%] left-[28%]", color: ORANGE, size: 32, delay: 2.2, dur: 7.2, rotate: 0 },
-    ];
+    // Falling symbols — hotel, paw, bone, ball
+    const SYMBOLS = ["hotel", "paw", "bone", "ball", "paw", "bone", "hotel", "ball"];
+    const COUNT = 22;
 
-    // Custom SVG symbols positioned across the canvas
-    const svgDecorations = [
-      // Dog silhouettes (simple, happy)
-      { type: "dog", pos: "top-[14%] right-[12%]", color: TEAL, size: 70, delay: 1.2, dur: 7, flip: true },
-      { type: "dog", pos: "bottom-[16%] left-[8%]", color: ORANGE, size: 64, delay: 0.6, dur: 6.5, flip: false },
-      // Hotel / house
-      { type: "hotel", pos: "top-[44%] right-[5%]", color: TEAL, size: 58, delay: 2, dur: 8 },
-      { type: "hotel", pos: "bottom-[8%] right-[16%]", color: ORANGE, size: 50, delay: 1.4, dur: 7 },
-      // Food bowl
-      { type: "bowl", pos: "top-[34%] left-[14%]", color: ORANGE, size: 46, delay: 0.9, dur: 6.8 },
-      { type: "bowl", pos: "bottom-[40%] right-[22%]", color: TEAL, size: 42, delay: 2.4, dur: 7.3 },
-      // Frisbee
-      { type: "frisbee", pos: "top-[58%] left-[4%]", color: YELLOW, size: 52, delay: 1.7, dur: 6.2, rotate: 18 },
-      { type: "frisbee", pos: "bottom-[30%] left-[40%]", color: TEAL, size: 44, delay: 3, dur: 7, rotate: -12 },
-      // Leash curl
-      { type: "leash", pos: "top-[72%] right-[10%]", color: ORANGE, size: 90, delay: 2.8, dur: 8 },
-      // Clouds
-      { type: "cloud", pos: "top-[3%] left-[28%]", color: "#ffffff", size: 80, delay: 0, dur: 12 },
-      { type: "cloud", pos: "top-[8%] right-[30%]", color: "#ffffff", size: 64, delay: 4, dur: 14 },
-      { type: "cloud", pos: "top-[50%] left-[38%]", color: "#ffffff", size: 72, delay: 6, dur: 13 },
-      // Tennis ball
-      { type: "ball", pos: "top-[60%] right-[28%]", color: YELLOW, size: 26, delay: 1.1, dur: 5.8 },
-      { type: "ball", pos: "bottom-[48%] left-[20%]", color: YELLOW, size: 22, delay: 2.6, dur: 6.4 },
-    ];
+    // Deterministic pseudo-random for stable layout
+    const rand = (seed) => {
+      const x = Math.sin(seed * 999.13) * 10000;
+      return x - Math.floor(x);
+    };
 
-    // Paw print trail along the bottom
-    const pawTrail = [
-      { x: "8%", y: "88%", rotate: -12, delay: 0 },
-      { x: "16%", y: "90%", rotate: 8, delay: 0.5 },
-      { x: "24%", y: "86%", rotate: -5, delay: 1 },
-      { x: "33%", y: "89%", rotate: 15, delay: 1.5 },
-      { x: "42%", y: "85%", rotate: -8, delay: 2 },
-      { x: "52%", y: "88%", rotate: 6, delay: 2.5 },
-      { x: "61%", y: "86%", rotate: -14, delay: 3 },
-      { x: "70%", y: "89%", rotate: 10, delay: 3.5 },
-      { x: "79%", y: "85%", rotate: -6, delay: 4 },
-      { x: "88%", y: "88%", rotate: 12, delay: 4.5 },
-    ];
+    const fallingItems = Array.from({ length: COUNT }, (_, i) => {
+      const r1 = rand(i + 1);
+      const r2 = rand(i + 7);
+      const r3 = rand(i + 13);
+      const r4 = rand(i + 21);
+      const symbol = SYMBOLS[i % SYMBOLS.length];
+      const color = COLORS[i % COLORS.length];
+      const left = `${4 + r1 * 92}%`;
+      const size = symbol === "hotel" ? 38 + r2 * 22 : 26 + r2 * 18;
+      const duration = 16 + r3 * 14;
+      const delay = -(r4 * duration);
+      const sway = 14 + r1 * 22;
+      const rotate = (r2 - 0.5) * 40;
+      const opacity = 0.16 + r3 * 0.16;
+      return { symbol, color, left, size, duration, delay, sway, rotate, opacity, key: i };
+    });
 
     return (
       <div
         className="fixed inset-0 z-0 overflow-hidden pointer-events-none"
         style={{ background: "linear-gradient(180deg, #d4f5f3 0%, #e8fbf9 30%, #f4fefc 60%, #ffffff 100%)" }}
       >
-        {/* Soft sun glow top-right */}
+        {/* Soft sun glow top */}
         <div
           className="absolute top-[-8%] right-[-4%] w-[420px] h-[420px] rounded-full"
-          style={{ background: `radial-gradient(circle, rgba(255,204,51,0.22), transparent 65%)` }}
+          style={{ background: `radial-gradient(circle, rgba(255,204,51,0.18), transparent 65%)` }}
         />
-        {/* Soft teal glow bottom-left */}
+        {/* Soft teal glow bottom */}
         <div
           className="absolute bottom-[-10%] left-[-6%] w-[380px] h-[380px] rounded-full"
-          style={{ background: `radial-gradient(circle, rgba(0,166,153,0.16), transparent 65%)` }}
-        />
-        {/* Soft orange glow mid */}
-        <div
-          className="absolute top-[35%] left-[45%] w-[300px] h-[300px] rounded-full"
-          style={{ background: `radial-gradient(circle, rgba(255,102,51,0.10), transparent 70%)` }}
+          style={{ background: `radial-gradient(circle, rgba(0,166,153,0.14), transparent 65%)` }}
         />
 
-        {/* Floating lucide icons */}
-        {floatItems.map((item, i) => (
+        {/* Falling symbols */}
+        {fallingItems.map((item) => (
           <motion.div
-            key={`fi-${i}`}
-            className={`absolute ${item.pos}`}
-            animate={{ y: [0, -16, 0], rotate: [item.rotate, item.rotate + 8, item.rotate - 4, item.rotate] }}
-            transition={{ duration: item.dur, repeat: Infinity, delay: item.delay, ease: "easeInOut" }}
-          >
-            <item.Icon
-              size={item.size}
-              strokeWidth={1.8}
-              fill="none"
-              style={{ color: item.color, opacity: 0.32, filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.04))" }}
-            />
-          </motion.div>
-        ))}
-
-        {/* Custom SVG symbols */}
-        {svgDecorations.map((d, i) => (
-          <motion.div
-            key={`svg-${i}`}
-            className={`absolute ${d.pos}`}
-            animate={{ y: [0, -12, 0], rotate: [d.rotate || 0, (d.rotate || 0) + 6, (d.rotate || 0) - 3, (d.rotate || 0)] }}
-            transition={{ duration: d.dur, repeat: Infinity, delay: d.delay, ease: "easeInOut" }}
+            key={item.key}
+            className="absolute"
             style={{
-              transform: d.flip ? "scaleX(-1)" : undefined,
-              filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.05))",
+              left: item.left,
+              top: "-8%",
+              opacity: item.opacity,
+              filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.04))",
+            }}
+            animate={{
+              y: ["0vh", "116vh"],
+              x: [0, item.sway, -item.sway * 0.6, item.sway * 0.3, 0],
+              rotate: [item.rotate, item.rotate + 30, item.rotate - 20, item.rotate + 10, item.rotate],
+            }}
+            transition={{
+              duration: item.duration,
+              repeat: Infinity,
+              delay: item.delay,
+              ease: "linear",
             }}
           >
-            <SymbolSvg type={d.type} color={d.color} size={d.size} />
+            {item.symbol === "paw" ? (
+              <PawPrint size={item.size} strokeWidth={2} fill="none" style={{ color: item.color }} />
+            ) : item.symbol === "bone" ? (
+              <Bone size={item.size} strokeWidth={2.2} fill="none" style={{ color: item.color }} />
+            ) : (
+              <SymbolSvg type={item.symbol} color={item.color} size={item.size} />
+            )}
           </motion.div>
         ))}
-
-        {/* Paw print trail along bottom */}
-        {pawTrail.map((p, i) => (
-          <motion.div
-            key={`trail-${i}`}
-            className="absolute"
-            style={{ left: p.x, top: p.y, transform: `rotate(${p.rotate}deg)` }}
-            animate={{ opacity: [0.12, 0.26, 0.12] }}
-            transition={{ duration: 4, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
-          >
-            <PawPrint size={22} strokeWidth={2} fill="none" style={{ color: TEAL, opacity: 0.5 }} />
-          </motion.div>
-        ))}
-
-        {/* Subtle dot grid texture */}
-        <div
-          className="absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage: `radial-gradient(${TEAL} 1.2px, transparent 1.2px)`,
-            backgroundSize: "28px 28px",
-          }}
-        />
       </div>
     );
   }
