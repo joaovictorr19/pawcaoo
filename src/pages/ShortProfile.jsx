@@ -5,8 +5,8 @@ import { slugify } from "@/utils/profileSlug";
 import UserProfile from "./UserProfile";
 
 /**
- * ShortProfile — Rota curta /p/:slug que resolve o nome e renderiza o perfil
- * diretamente, mantendo o URL limpo (ex: pawcao.pt/p/hotel-canino-lisboa).
+ * ShortProfile — Rota curta /:slug que resolve o nome e renderiza o perfil
+ * diretamente, mantendo o URL limpo (ex: pawcao.pt/hotel-canino-lisboa).
  *
  * Ordem de resolução:
  * 1. ProfileSlug entity (slug → entity_email/type)

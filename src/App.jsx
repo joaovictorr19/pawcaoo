@@ -199,7 +199,7 @@ const AuthenticatedApp = () => {
             <Route path="/portugal" element={<CountryLandingPage country="portugal" />} />
             <Route path="/espanha" element={<CountryLandingPage country="espanha" />} />
             <Route path="/franca" element={<CountryLandingPage country="franca" />} />
-            <Route path="/p/:slug" element={<ShortProfile />} />
+            <Route path="/:slug" element={<ShortProfile />} />
             <Route path="*" element={<PageNotFound />} />
             </Routes>
         </Suspense>

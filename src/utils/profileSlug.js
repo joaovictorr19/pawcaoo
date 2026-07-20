@@ -34,7 +34,7 @@ export async function ensureProfileSlug(name, email, entityType = 'walker') {
   }
 
   if (!email) {
-    return `/p/${baseSlug}`;
+    return `/${baseSlug}`;
   }
 
   try {
@@ -45,7 +45,7 @@ export async function ensureProfileSlug(name, email, entityType = 'walker') {
     if (existing?.length > 0) {
       const mine = existing.find(s => s.entity_email === email);
       if (mine) {
-        return `/p/${baseSlug}`;
+        return `/${baseSlug}`;
       }
     } else {
       // Slug base está livre → criar
@@ -57,7 +57,7 @@ export async function ensureProfileSlug(name, email, entityType = 'walker') {
           display_name: name,
         });
       } catch (e) { /* corrida concorrente — ignorar */ }
-      return `/p/${baseSlug}`;
+      return `/${baseSlug}`;
     }
 
     // 2. Slug base está ocupado por outro → procurar sufixo único (-2, -3, ...)
@@ -76,21 +76,21 @@ export async function ensureProfileSlug(name, email, entityType = 'walker') {
             display_name: name,
           });
         } catch (e) { /* corrida concorrente — tentar próximo */ }
-        return `/p/${candidate}`;
+        return `/${candidate}`;
       }
 
       // Se já existe mas pertence a este email, reutilizar
       if (check.find(s => s.entity_email === email)) {
-        return `/p/${candidate}`;
+        return `/${candidate}`;
       }
 
       counter++;
     }
 
     // Fallback de segurança — nunca expõe email na URL
-    return `/p/${baseSlug}`;
+    return `/${baseSlug}`;
   } catch (e) {
-    return `/p/${baseSlug}`;
+    return `/${baseSlug}`;
   }
 }
 
@@ -101,6 +101,6 @@ export async function ensureProfileSlug(name, email, entityType = 'walker') {
  */
 export function buildShortProfileLink(name, email) {
   const slug = slugify(name) || slugify(email);
-  if (slug) return `/p/${slug}`;
+  if (slug) return `/${slug}`;
   return '/';
 }
