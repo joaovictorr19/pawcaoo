@@ -7,6 +7,7 @@ import PawCaoLogo from '@/components/PawCaoLogo';
 import { LogOut, ChevronDown } from 'lucide-react';
 import LanguageSelector from '@/components/ui/LanguageSelector';
 import { useLanguage } from '@/components/LanguageContext';
+import ModeSwitcherMenu from '@/components/layout/ModeSwitcherMenu';
 
 const ROOT_ROUTES = [
   createPageUrl('Home'),
@@ -150,62 +151,44 @@ export default function MobileHeader() {
         {/* Botões centralizados - dropdown compacto para poupar espaço */}
         <div className="flex-1 flex items-center justify-center min-w-0">
           {authed && (
-            <div ref={menuRef} className="relative">
-              <button
-                onClick={() => setMenuOpen(o => !o)}
-                className="flex items-center gap-1 h-7 px-3 text-[10px] font-bold rounded-full transition-all duration-200 text-[#1a1a1a hover:bg-slate-100/60"
-                style={{ background: 'rgba(255, 255, 255, 0.5)' }}
-              >
-                <span>{(() => {
+            <div ref={menuRef}>
+              <ModeSwitcherMenu
+                open={menuOpen}
+                onToggle={() => setMenuOpen(o => !o)}
+                currentLabel={(() => {
                   if (isHotel && isActive('HotelDashboard')) return lbl('hotel');
                   if (isActive('ProfessionalHubV2')) return lbl('professional');
                   if (isActive('ClientDashboard')) return lbl('client');
                   if (isAdmin && isActive('AdminDashboard')) return lbl('admin');
                   return lbl('professional');
-                })()}</span>
-                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {menuOpen && (
-                <div
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 rounded-2xl py-1 min-w-[120px]"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-                  }}
-                >
-                  {isHotel && (
-                    <button
-                      onClick={() => { navigate(createPageUrl('HotelDashboard')); setMenuOpen(false); }}
-                      className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('HotelDashboard') ? 'text-white bg-[#207373]' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
-                    >
-                      {lbl('hotel')}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => { navigate(createPageUrl('ProfessionalHubV2')); setMenuOpen(false); }}
-                    className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('ProfessionalHubV2') ? 'text-white bg-[#207373]' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
-                  >
-                    {lbl('professional')}
-                  </button>
-                  <button
-                    onClick={() => { navigate(createPageUrl('ClientDashboard')); setMenuOpen(false); }}
-                    className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('ClientDashboard') ? 'text-white bg-[#207373]' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
-                  >
-                    {lbl('client')}
-                  </button>
-                  {isAdmin && (
-                    <button
-                      onClick={() => { navigate(createPageUrl('AdminDashboard')); setMenuOpen(false); }}
-                      className={`w-full text-left px-3 py-1.5 text-[10px] font-bold rounded-xl transition-colors ${isActive('AdminDashboard') ? 'text-white bg-[#207373]' : 'text-[#1a1a1a] hover:bg-slate-100/60'}`}
-                    >
-                      {lbl('admin')}
-                    </button>
-                  )}
-                </div>
-              )}
+                })()}
+                options={[
+                  ...(isHotel ? [{
+                    key: 'hotel',
+                    label: lbl('hotel'),
+                    active: isActive('HotelDashboard'),
+                    onClick: () => { navigate(createPageUrl('HotelDashboard')); setMenuOpen(false); },
+                  }] : []),
+                  {
+                    key: 'professional',
+                    label: lbl('professional'),
+                    active: isActive('ProfessionalHubV2'),
+                    onClick: () => { navigate(createPageUrl('ProfessionalHubV2')); setMenuOpen(false); },
+                  },
+                  {
+                    key: 'client',
+                    label: lbl('client'),
+                    active: isActive('ClientDashboard'),
+                    onClick: () => { navigate(createPageUrl('ClientDashboard')); setMenuOpen(false); },
+                  },
+                  ...(isAdmin ? [{
+                    key: 'admin',
+                    label: lbl('admin'),
+                    active: isActive('AdminDashboard'),
+                    onClick: () => { navigate(createPageUrl('AdminDashboard')); setMenuOpen(false); },
+                  }] : []),
+                ]}
+              />
             </div>
           )}
         </div>
