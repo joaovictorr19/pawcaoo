@@ -85,12 +85,38 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'You do not have access to this booking' }, { status: 403 });
     }
 
-    // Calculate final amount
-    const finalAmount = discountAmount > 0
-      ? Math.max(0, (booking.total_amount || 0) - discountAmount)
-      : (booking.total_amount || 0);
+    // Validate discount server-side — never trust client-provided discountAmount.
+    // If a voucherCode is provided, look up the Redemption record and use its euro_value.
+    let validatedDiscount = 0;
 
-    console.log('💰 Amount:', { original: booking.total_amount, discount: discountAmount, final: finalAmount });
+    if (voucherCode) {
+      const redemptions = await base44.asServiceRole.entities.Redemption.filter({
+        redemption_code: voucherCode
+      });
+
+      if (redemptions.length === 0) {
+        return Response.json({ error: 'Voucher inválido ou expirado' }, { status: 400 });
+      }
+
+      const voucher = redemptions[0];
+
+      // Verify the voucher belongs to the authenticated user
+      if (voucher.user_email !== user.email) {
+        return Response.json({ error: 'Voucher não pertence a este utilizador' }, { status: 403 });
+      }
+
+      // Verify the voucher is still valid (not cancelled or already delivered)
+      if (voucher.status === 'cancelled' || voucher.status === 'delivered') {
+        return Response.json({ error: 'Voucher já utilizado ou cancelado' }, { status: 400 });
+      }
+
+      // Use the server-side euro_value, never the client-provided discountAmount
+      validatedDiscount = voucher.euro_value || 0;
+    }
+
+    const finalAmount = Math.max(0, (booking.total_amount || 0) - validatedDiscount);
+
+    console.log('💰 Amount:', { original: booking.total_amount, discount: validatedDiscount, final: finalAmount });
 
     // Create Stripe Checkout Session
     console.log('🔵 Criando sessão Stripe...');
@@ -117,7 +143,7 @@ Deno.serve(async (req) => {
         booking_id: bookingId,
         user_email: user.email,
         voucher_code: voucherCode || '',
-        discount_amount: discountAmount || 0,
+        discount_amount: validatedDiscount,
       },
     });
 
@@ -134,7 +160,7 @@ Deno.serve(async (req) => {
       service_amount: booking.service_amount || 0,
       platform_fee: booking.platform_fee || 0,
       total_amount: finalAmount,
-      loyalty_points_discount: discountAmount || 0,
+      loyalty_points_discount: validatedDiscount,
       status: 'pending',
       payment_method: 'stripe',
       stripe_payment_intent_id: session.payment_intent,

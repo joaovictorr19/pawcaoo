@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { userId, confirmDeletion } = await req.json();
+    const { userId, confirmDeletion, adminConfirmDelete } = await req.json();
 
     // Verify user is deleting their own account or is admin
     if (user.id !== userId && user.role !== 'admin') {
@@ -26,7 +26,6 @@ Deno.serve(async (req) => {
     
     // When admin deletes another user's account, require explicit admin-level confirmation
     if (user.id !== userId && user.role === 'admin') {
-      const { adminConfirmDelete } = await req.json();
       if (!adminConfirmDelete) {
         return Response.json({ 
           error: 'Admin confirmation required',
@@ -35,40 +34,53 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Delete all related data (cascading cleanup)
+    // Determine the target user's email for cascading cleanup.
+    // When an admin deletes another user's account, we must use the TARGET user's email,
+    // not the admin's own email — otherwise the admin's data gets destroyed instead.
+    let targetEmail = user.email;
+
+    if (user.id !== userId && user.role === 'admin') {
+      const targetUsers = await base44.asServiceRole.entities.User.filter({ id: userId });
+      if (targetUsers.length === 0) {
+        return Response.json({ error: 'Target user not found' }, { status: 404 });
+      }
+      targetEmail = targetUsers[0].email;
+    }
+
+    // Delete all related data (cascading cleanup) using the TARGET user's email
     try {
       // Delete walker profile
-      const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      const walkers = await base44.asServiceRole.entities.WalkerProfile.filter({ created_by: targetEmail });
       if (walkers.length > 0) {
-        await base44.entities.WalkerProfile.delete(walkers[0].id);
+        await base44.asServiceRole.entities.WalkerProfile.delete(walkers[0].id);
       }
 
       // Delete trainer profile
-      const trainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+      const trainers = await base44.asServiceRole.entities.TrainerProfile.filter({ created_by: targetEmail });
       if (trainers.length > 0) {
-        await base44.entities.TrainerProfile.delete(trainers[0].id);
+        await base44.asServiceRole.entities.TrainerProfile.delete(trainers[0].id);
       }
 
       // Delete user profile entity
-      const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+      const userProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_email: targetEmail });
       if (userProfiles.length > 0) {
-        await base44.entities.UserProfile.delete(userProfiles[0].id);
+        await base44.asServiceRole.entities.UserProfile.delete(userProfiles[0].id);
       }
 
       // Delete bookings (owner's bookings)
-      const ownerBookings = await base44.entities.Booking.filter({ created_by: user.email });
+      const ownerBookings = await base44.asServiceRole.entities.Booking.filter({ created_by: targetEmail });
       for (const booking of ownerBookings) {
-        await base44.entities.Booking.delete(booking.id);
+        await base44.asServiceRole.entities.Booking.delete(booking.id);
       }
 
       // Delete loyalty points
-      const loyaltyPoints = await base44.entities.LoyaltyPoints.filter({ user_email: user.email });
+      const loyaltyPoints = await base44.asServiceRole.entities.LoyaltyPoints.filter({ user_email: targetEmail });
       if (loyaltyPoints.length > 0) {
-        await base44.entities.LoyaltyPoints.delete(loyaltyPoints[0].id);
+        await base44.asServiceRole.entities.LoyaltyPoints.delete(loyaltyPoints[0].id);
       }
 
       // Delete preferences/settings if stored in entity
-      console.log('Account deletion cascading cleanup completed');
+      console.log('Account deletion cascading cleanup completed for:', targetEmail);
     } catch (cleanupErr) {
       console.error('Error during cascading cleanup:', cleanupErr);
       // Continue with main deletion even if cleanup fails
@@ -76,12 +88,12 @@ Deno.serve(async (req) => {
 
     // Delete the user account (this should be handled by auth provider)
     // For now, we're doing soft delete via disabling the account
-    console.log('Account scheduled for deletion:', user.email);
+    console.log('Account scheduled for deletion:', targetEmail);
 
     return Response.json({
       success: true,
       message: 'Conta eliminada com sucesso',
-      user_email: user.email
+      user_email: targetEmail
     });
   } catch (error) {
     console.error('Account deletion error:', error);

@@ -38,9 +38,10 @@ Deno.serve(async (req) => {
       walker_name: partner_name || email.split('@')[0],
       walker_photo_url: '',
       walker_profile_id: '',
-      is_available_today: true,
+      is_available_today: false,
       services: [],
       partner_role: partner_role || 'simple',
+      status: 'pending',
     };
 
     // Buscar o WalkerProfile do parceiro para obter o ID e foto
@@ -60,25 +61,12 @@ Deno.serve(async (req) => {
       },
     });
 
-    // 3. Adicionar a parceria ao perfil do parceiro
-    if (partnerProfiles.length > 0) {
-      const partnerProfile = partnerProfiles[0];
-      const partnerships = partnerProfile.hotel_partnerships || [];
-      
-      // Evitar duplicados
-      if (!partnerships.some(p => p.hotel_profile_id === hotel_profile_id)) {
-        const newPartnership = {
-          hotel_profile_id,
-          hotel_name: hotel.hotel_details?.hotel_name || hotel.walker_name || 'Hotel',
-          hotel_photo_url: hotel.photo_url || '',
-          partner_role: partner_role || 'simple',
-        };
-
-        await base44.asServiceRole.entities.WalkerProfile.update(partnerProfile.id, {
-          hotel_partnerships: [...partnerships, newPartnership],
-        });
-      }
-    }
+    // NOTE: The partnership is NOT written to the partner's profile here.
+    // A two-step invitation flow is required: the hotel creates a pending
+    // invitation (above), and the partner must explicitly accept it via a
+    // separate function before hotel_partnerships is updated on their profile.
+    // Writing to the partner's profile unilaterally via Service Role would
+    // allow hotels to forge false associations without consent.
 
     return Response.json({ success: true, message: 'Parceiro adicionado' });
   } catch (error) {
