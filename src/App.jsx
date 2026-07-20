@@ -72,7 +72,7 @@ import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes, useLocation, useNavigationType } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { setupIframeMessaging } from './lib/iframe-messaging';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -134,17 +134,8 @@ const LayoutWrapper = ({ children, currentPageName }) => {
   }
 };
 
-// iOS-like page transition variants — slide left on push, slide right on pop
-const pageVariants = {
-  initial: (direction) => ({ opacity: 0, x: direction > 0 ? 28 : -28 }),
-  animate: { opacity: 1, x: 0 },
-  exit: (direction) => ({ opacity: 0, x: direction > 0 ? -28 : 28 }),
-};
-
 const AuthenticatedApp = () => {
   const location = useLocation();
-  const navigationType = useNavigationType();
-  const direction = navigationType === 'POP' ? -1 : 1;
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -162,15 +153,13 @@ const AuthenticatedApp = () => {
 
   return (
     <LayoutWrapper currentPageName={mainPageKey}>
-      <AnimatePresence mode="wait" custom={direction} initial={false}>
+      <AnimatePresence mode="wait">
       <motion.div
         key={location.pathname}
-        custom={direction}
-        variants={pageVariants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
       >
         <Suspense fallback={<PageLoader />}>
           <Routes location={location}>
