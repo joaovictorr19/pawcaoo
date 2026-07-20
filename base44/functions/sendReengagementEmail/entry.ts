@@ -11,8 +11,16 @@ Deno.serve(async (req) => {
 
     const subject = 'Novidades no PawCão: A tua conta está pronta para novos clientes? 🐾';
 
+    // SECURITY: Escape HTML to prevent injection via user-controlled names
+    const escapeHtml = (s) => String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
     const buildBody = (name) => {
-      const firstName = name ? name.split(' ')[0] : 'amigo';
+      const firstName = name ? escapeHtml(name.split(' ')[0]) : 'amigo';
       return `
         <div style="font-family: 'Nunito', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
           <div style="background: linear-gradient(135deg, #1D8A82, #2DB0A6); padding: 32px 24px; text-align: center;">

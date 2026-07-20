@@ -119,8 +119,19 @@ Deno.serve(async (req) => {
       customerId = customer.id;
     }
 
-    // Get app host for redirect URLs
-    const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
+    // Get app host for redirect URLs — SECURITY: validate Origin against a
+    // strict whitelist to prevent open redirects after checkout.
+    const ALLOWED_ORIGINS = [
+      'https://pawcao.base44.app',
+      'https://app.pawcao.pt',
+      'https://pawcao.pt',
+      'https://www.pawcao.pt'
+    ];
+    const requestOrigin = req.headers.get('origin') || '';
+    const origin = (ALLOWED_ORIGINS.includes(requestOrigin) ||
+      /^https:\/\/[a-z0-9-]*pawcao[a-z0-9-]*\.base44\.app$/.test(requestOrigin))
+      ? requestOrigin
+      : 'https://pawcao.base44.app';
 
     // Create Stripe Checkout Session - immediate payment
     const session = await stripe.checkout.sessions.create({
