@@ -169,8 +169,64 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
   const [formData, setFormData] = useState(() => buildInitialForm(user, professionalProfile));
   const [cropModal, setCropModal] = useState({ open: false, url: null, type: "photo" });
   const [showSaved, setShowSaved] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  const set = (key, val) => setFormData(prev => ({ ...prev, [key]: val }));
+  const set = (key, val) => {
+    setFormData(prev => ({ ...prev, [key]: val }));
+    setErrors(prev => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const errorCls = "border-red-400 focus:border-red-400 focus:ring-red-100";
+  const FieldError = ({ field }) => errors[field] ? (
+    <p className="text-xs text-red-500 font-medium mt-1 flex items-center gap-1">
+      <AlertCircle className="w-3 h-3" /> {errors[field]}
+    </p>
+  ) : null;
+
+  const validateStep = (step) => {
+    const errs = {};
+    if (step === 0) {
+      if (!professionalType) errs.professional_type = "Selecione o tipo de profissional";
+      if (!formData.name.trim()) errs.name = "O nome profissional é obrigatório";
+      if (!formData.location.trim()) errs.location = "A localização é obrigatória";
+    }
+    if (step === 1 && isHotelType && !((formData.hotel_details?.price_per_night || 0) > 0)) {
+      errs.price_per_night = "Defina o preço por noite";
+    }
+    if (step === 1 && !isHotelType && !(parseFloat(formData.hourly_rate) > 0)) {
+      errs.hourly_rate = "Defina um preço por hora válido";
+    }
+    if (step === 3 && !isEditing) {
+      if (!formData.country_of_operation) {
+        errs.country_of_operation = "Selecione o país de operação";
+      } else {
+        const rule = DOCUMENT_RULES[formData.country_of_operation];
+        if (formData.country_of_operation === 'france') {
+          if (!formData.france_professional_type) errs.france_professional_type = "Indique se é Profissional ou Particular";
+          if (formData.france_professional_type === 'professional' && !formData.tax_id_france.trim()) errs.tax_id_france = "O Número Fiscal é obrigatório";
+        } else if (rule && !formData[rule.taxField].trim()) {
+          errs[rule.taxField] = `O ${rule.taxLabel} é obrigatório`;
+        }
+      }
+    }
+    return errs;
+  };
+
+  const tryProceed = (step, nextStep) => {
+    const errs = validateStep(step);
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      toast.error("Preencha os campos obrigatórios assinalados.");
+      return;
+    }
+    setErrors({});
+    setCurrentStep(nextStep);
+  };
   const toggleArr = (key, val) => {
     const arr = formData[key] || [];
     set(key, arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
@@ -369,7 +425,13 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!canProceed()) { toast.error("Preencha todos os campos obrigatórios."); return; }
+    const errs = validateStep(currentStep);
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      toast.error("Preencha os campos obrigatórios assinalados.");
+      return;
+    }
+    setErrors({});
     setLoading(true);
     submitMutation.mutate(formData);
   };
@@ -423,7 +485,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                     <button
                       key={opt.value}
                       type="button"
-                      onClick={() => setProfessionalType(opt.value)}
+                      onClick={() => { setProfessionalType(opt.value); setErrors(prev => { const n = { ...prev }; delete n.professional_type; return n; }); }}
                       className={`p-4 rounded-xl text-center transition-all ${
                         professionalType === opt.value
                           ? (opt.value === 'hotel' ? 'border-2 border-purple-400 bg-purple-50' : 'border-2 border-orange-400 bg-orange-50')
@@ -435,6 +497,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                     </button>
                   ))}
                 </div>
+                <FieldError field="professional_type" />
               </div>
 
               {/* Foto */}
@@ -466,11 +529,13 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
               <div className={sectionCls}>
                 <div>
                   <label className={labelCls}>Nome Profissional *</label>
-                  <input value={formData.name} onChange={e => set("name", e.target.value)} placeholder="O teu nome" className={inputCls} />
+                  <input value={formData.name} onChange={e => set("name", e.target.value)} placeholder="O teu nome" className={`${inputCls} ${errors.name ? errorCls : ''}`} />
+                  <FieldError field="name" />
                 </div>
                 <div>
                   <label className={`${labelCls} flex items-center gap-1`}><MapPin className="w-3 h-3" /> Localização *</label>
-                  <input value={formData.location} onChange={e => set("location", e.target.value)} placeholder="Lisboa, Porto..." className={inputCls} />
+                  <input value={formData.location} onChange={e => set("location", e.target.value)} placeholder="Lisboa, Porto..." className={`${inputCls} ${errors.location ? errorCls : ''}`} />
+                  <FieldError field="location" />
                 </div>
                 <div>
                   <label className={`${labelCls} flex items-center gap-1`}><Phone className="w-3 h-3" /> WhatsApp</label>
@@ -483,8 +548,8 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                 </div>
               </div>
 
-              <Button type="button" onClick={() => setCurrentStep(1)} disabled={!canProceed()}
-                className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-semibold disabled:opacity-40">
+              <Button type="button" onClick={() => tryProceed(0, 1)}
+                className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-semibold">
                 Continuar <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </motion.div>
@@ -529,6 +594,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                     </div>
                   </div>
                 ))}
+                <FieldError field="price_per_night" />
               </div>
 
               <div className={sectionCls}>
@@ -567,7 +633,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                 <Button type="button" onClick={() => setCurrentStep(0)} variant="outline" className="flex-1 h-12 border-slate-200 text-slate-600 rounded-2xl">
                   <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
                 </Button>
-                <Button type="button" onClick={() => setCurrentStep(2)} className="flex-1 h-12 bg-purple-500 hover:bg-purple-600 text-white rounded-2xl font-semibold">
+                <Button type="button" onClick={() => tryProceed(1, 2)} className="flex-1 h-12 bg-purple-500 hover:bg-purple-600 text-white rounded-2xl font-semibold">
                   Continuar <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
@@ -599,6 +665,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                       className="w-16 bg-transparent text-orange-500 font-bold text-xl text-right outline-none" />
                   </div>
                 </div>
+                <FieldError field="hourly_rate" />
               </div>
 
               <div className={sectionCls}>
@@ -639,8 +706,8 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                 <Button type="button" onClick={() => setCurrentStep(0)} variant="outline" className="flex-1 h-12 border-slate-200 text-slate-600 rounded-2xl">
                   <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
                 </Button>
-                <Button type="button" onClick={() => setCurrentStep(2)} disabled={!canProceed()}
-                  className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-semibold disabled:opacity-40">
+                <Button type="button" onClick={() => tryProceed(1, 2)}
+                  className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-semibold">
                   Continuar <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
@@ -737,23 +804,28 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                     </button>
                   ))}
                 </div>
+                <FieldError field="country_of_operation" />
                 {formData.country_of_operation && DOCUMENT_RULES[formData.country_of_operation] && (
                   <div>
                     <label className={labelCls}>{DOCUMENT_RULES[formData.country_of_operation].taxLabel} *</label>
                     <input value={formData[DOCUMENT_RULES[formData.country_of_operation].taxField]}
                       onChange={e => set(DOCUMENT_RULES[formData.country_of_operation].taxField, e.target.value)}
                       placeholder={`Inserir ${DOCUMENT_RULES[formData.country_of_operation].taxLabel}`}
-                      className={inputCls} />
+                      className={`${inputCls} ${errors[DOCUMENT_RULES[formData.country_of_operation].taxField] ? errorCls : ''}`} />
+                    <FieldError field={DOCUMENT_RULES[formData.country_of_operation].taxField} />
                   </div>
                 )}
                 {formData.country_of_operation === 'france' && (
-                  <div className="grid grid-cols-2 gap-2">
-                    {[{ v: 'professional', l: 'Profissional' }, { v: 'individual', l: 'Particular' }].map(opt => (
-                      <button key={opt.v} type="button" onClick={() => set('france_professional_type', opt.v)}
-                        className={`p-3 rounded-xl border-2 text-center transition-all ${formData.france_professional_type === opt.v ? 'border-orange-400 bg-orange-50' : 'border-slate-200'}`}>
-                        <p className="text-sm font-semibold text-slate-700">{opt.l}</p>
-                      </button>
-                    ))}
+                  <div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[{ v: 'professional', l: 'Profissional' }, { v: 'individual', l: 'Particular' }].map(opt => (
+                        <button key={opt.v} type="button" onClick={() => set('france_professional_type', opt.v)}
+                          className={`p-3 rounded-xl border-2 text-center transition-all ${formData.france_professional_type === opt.v ? 'border-orange-400 bg-orange-50' : 'border-slate-200'}`}>
+                          <p className="text-sm font-semibold text-slate-700">{opt.l}</p>
+                        </button>
+                      ))}
+                    </div>
+                    <FieldError field="france_professional_type" />
                   </div>
                 )}
               </div>
