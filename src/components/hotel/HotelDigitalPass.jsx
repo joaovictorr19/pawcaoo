@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import QRCode from 'react-qr-code';
 import { ensureProfileSlug } from '@/utils/profileSlug';
+import { getPublicBaseUrl } from '@/utils/publicUrl';
 
 const loadHtml2Canvas = () => import('html2canvas').then(m => m.default);
 
@@ -27,10 +28,10 @@ export default function HotelDigitalPass({ hotelProfile }) {
     const email = hotelProfile?.created_by;
     if (name && email) {
       ensureProfileSlug(name, email, 'hotel').then(slug => {
-        setHotelUrl(`${window.location.origin}${slug}`);
+        setHotelUrl(`${getPublicBaseUrl()}${slug}`);
       });
     } else {
-      setHotelUrl(window.location.origin);
+      setHotelUrl(getPublicBaseUrl());
     }
   }, [hotelProfile?.id, hotelProfile?.walker_name, hotelProfile?.created_by]);
 

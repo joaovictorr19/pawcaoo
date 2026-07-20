@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getTierColor, calculateTier } from "@/components/gamification/tierSystem";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { ensureProfileSlug } from "@/utils/profileSlug";
+import { getPublicBaseUrl } from "@/utils/publicUrl";
 
 /**
  * DigitalWalletPass - Cartão estilo Apple Wallet para profissionais
@@ -33,7 +34,7 @@ export default function DigitalWalletPass({
     if (name && email) {
       const type = user?.professional_type === 'hotel' ? 'hotel' : 'walker';
       ensureProfileSlug(name, email, type).then(slug => {
-        setProfileUrl(`${window.location.origin}${slug}`);
+        setProfileUrl(`${getPublicBaseUrl()}${slug}`);
       });
     }
   }, [user?.id, user?.walker_name, user?.hotel_details?.hotel_name]);

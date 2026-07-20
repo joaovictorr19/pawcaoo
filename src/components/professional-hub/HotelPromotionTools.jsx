@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
 import { ensureProfileSlug } from "@/utils/profileSlug";
+import { getPublicBaseUrl } from "@/utils/publicUrl";
 import {
   Globe,
   Copy,
@@ -34,7 +35,7 @@ export default function HotelPromotionTools({ user, professionalProfile }) {
     const email = professionalProfile?.created_by || user?.email;
     if (hotelName && email) {
       ensureProfileSlug(hotelName, email, 'hotel').then(slug => {
-        setProfileUrl(`${window.location.origin}${slug}`);
+        setProfileUrl(`${getPublicBaseUrl()}${slug}`);
       });
     }
   }, [professionalProfile?.id, hotelName, professionalProfile?.created_by]);
