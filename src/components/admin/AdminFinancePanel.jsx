@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import CompanyVaultPanel from "./CompanyVaultPanel";
+import AdminHotelCommissionManager from "./AdminHotelCommissionManager";
 
 const euro = (v) => (v || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR", minimumFractionDigits: 2 });
 
@@ -182,6 +183,15 @@ export default function AdminFinancePanel() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mt-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Percent className="w-4 h-4 text-teal-600" />
+          <h3 className="text-sm font-bold text-slate-900">Comissões de Hotéis</h3>
+          <span className="text-xs text-slate-400">— a comissão é retirada do hotel; o cliente paga só o serviço</span>
+        </div>
+        <AdminHotelCommissionManager />
       </div>
     </div>
   );
