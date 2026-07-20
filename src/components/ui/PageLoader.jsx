@@ -40,18 +40,25 @@ export default function PageLoader() {
           />
           {/* Official PawCão logo */}
           <div
-            className="relative rounded-full shadow-lg overflow-hidden ring-2 ring-white/70"
+            className="relative rounded-full overflow-hidden ring-2 ring-white/80"
             style={{
-              width: 72,
-              height: 72,
-              boxShadow: "0 8px 30px rgba(13,148,131,0.3)",
+              width: 76,
+              height: 76,
+              boxShadow: "0 10px 34px rgba(13,148,131,0.35), inset 0 0 0 1px rgba(255,255,255,0.4)",
               animation: "loaderBounce 1.2s ease-in-out infinite",
             }}
           >
             <img
-              src="https://media.base44.com/images/public/6907b3be1ec43db5676a2085/58cad35d5_37581B35-5C27-4772-B599-CF9FD8421908.jpg"
+              src="https://media.base44.com/images/public/6907b3be1ec43db5676a2085/e3013a5a7_IMG_3975.jpg"
               alt="PawCão"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover scale-[1.06]"
+            />
+            <div
+              className="absolute inset-0 z-20 pointer-events-none"
+              style={{
+                background: "linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%)",
+                animation: "loaderShimmer 1.8s ease-in-out infinite",
+              }}
             />
           </div>
         </div>
@@ -61,7 +68,7 @@ export default function PageLoader() {
           className="text-2xl font-extrabold tracking-tight mb-5"
           style={{ fontFamily: "'League Spartan', sans-serif", color: "#0f766e" }}
         >
-          PawCão
+          Paw<span style={{ color: "#1D8A82" }}>Cão</span>
         </h1>
 
         {/* Loading dots */}
@@ -110,6 +117,10 @@ export default function PageLoader() {
         @keyframes loaderBar {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
+        }
+        @keyframes loaderShimmer {
+          0% { transform: translateX(-120%); }
+          100% { transform: translateX(120%); }
         }
         @keyframes pawFloat {
           from { transform: translateY(0) rotate(-5deg); }
