@@ -567,14 +567,10 @@ export default function Home() {
   };
 
   const handleBecomePro = () => {
-    if (user) {
-      if (hasProfessionalProfile) {
-        navigate(createPageUrl('ProfessionalHubV2'));
-      } else {
-        navigate(createPageUrl('ProfessionalTypeSelect'));
-      }
+    if (user && hasProfessionalProfile) {
+      navigate(createPageUrl('ProfessionalHubV2'));
     } else {
-      navigate('/register?from=' + encodeURIComponent(createPageUrl('ProfessionalTypeSelect')));
+      navigate(createPageUrl('ProfessionalTypeSelect'));
     }
   };
 
