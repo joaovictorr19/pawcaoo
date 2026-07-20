@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { tryDecodeQR, validateForBooking } from '@/utils/qrTokens';
+import jsQR from 'jsqr';
 
 export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START', scannerLabel }) {
   const [scanning, setScanning] = useState(false);
@@ -131,22 +132,46 @@ export function WalkScanner({ booking, onScanSuccess, onScanError, type = 'START
   }, [scanning]);
 
   useEffect(() => {
-    if (!scanning || !("BarcodeDetector" in window)) return;
+    if (!scanning) return;
 
-    const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+    const hasNativeDetector = "BarcodeDetector" in window;
+    const detector = hasNativeDetector
+      ? new window.BarcodeDetector({ formats: ["qr_code"] })
+      : null;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const readQRValue = async (video) => {
+      if (hasNativeDetector) {
+        const codes = await detector.detect(video);
+        return codes?.length ? codes[0].rawValue : null;
+      }
+      // Fallback (iOS Safari): capturar frame e decodificar com jsQR
+      if (!video.videoWidth || !video.videoHeight) return null;
+      const scale = Math.min(1, 640 / video.videoWidth);
+      canvas.width = video.videoWidth * scale;
+      canvas.height = video.videoHeight * scale;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      return code?.data || null;
+    };
+
     scanIntervalRef.current = setInterval(async () => {
       if (!videoRef.current || hasProcessedRef.current) return;
       try {
-        const codes = await detector.detect(videoRef.current);
-        if (!codes?.length) return;
-        const decoded = tryDecodeQR(codes[0].rawValue);
+        const rawValue = await readQRValue(videoRef.current);
+        if (!rawValue) return;
+        const decoded = tryDecodeQR(rawValue);
         const result = validateForBooking(booking, decoded, type);
         if (result.valid) {
           await handleSuccessfulScan({
-            token: decoded.token || codes[0].rawValue,
+            token: decoded.token || rawValue,
             type: result.step === 'start' ? 'START' : 'END',
             bookingId: booking.id
           });
+        } else {
+          toast.error('QR Code inválido para esta reserva', { id: 'qr-invalid' });
         }
       } catch (error) {
         console.error('QR detect error:', error);
