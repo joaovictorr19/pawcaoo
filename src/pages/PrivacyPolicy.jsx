@@ -1,385 +1,644 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Lock, Eye, Trash2, Cookie, Globe } from "lucide-react";
-import { useLanguage } from "@/components/LanguageContext";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Shield,
+  Lock,
+  Eye,
+  Trash2,
+  Cookie,
+  Globe,
+  Mail,
+  ChevronDown,
+  Check,
+  FileText,
+  Database,
+  Users,
+  Scale,
+  Clock,
+  ShieldCheck,
+  Baby,
+  Bell,
+} from "lucide-react";
+import { useLanguage } from "@/components/LanguageContext";
 
 export default function PrivacyPolicy() {
   const { language, setLanguage } = useLanguage();
+  const [openSection, setOpenSection] = useState(0);
 
   const content = {
     pt: {
       title: "Política de Privacidade",
+      subtitle: "Como recolhemos, utilizamos e protegemos os seus dados",
       lastUpdated: "Última atualização: 20 de Julho de 2026",
-      selectLanguage: "Selecionar idioma",
-      intro: "A PawCão está comprometida com a proteção dos seus dados pessoais. Esta Política de Privacidade explica como recolhemos, utilizamos e protegemos as suas informações, em total conformidade com o Regulamento Geral de Proteção de Dados (RGPD) da União Europeia.",
+      intro:
+        "A PawCão está comprometida com a proteção dos seus dados pessoais. Esta política explica de forma clara como tratamos as suas informações, em total conformidade com o RGPD da União Europeia.",
+      badge: "Conforme RGPD",
       sections: [
         {
-          title: "1. Dados que Recolhemos",
           icon: Eye,
-          content: "**Dados de Identidade:**\n• Nome completo\n• Endereço de email\n• Número de telefone\n• Fotografia de perfil (opcional)\n• Documento de identificação (apenas para profissionais)\n\n**Dados do Animal:**\n• Nome, raça, idade e peso\n• Fotografias\n• Histórico de saúde e vacinação\n• Comportamento e necessidades especiais\n\n**Coordenação de Localização:**\n• A PawCão NÃO recolhe nem armazena a localização em tempo real\n• A partilha de localização durante o serviço é feita diretamente entre dono e profissional via WhatsApp\n• A PawCão não tem acesso nem responsabilidade sobre essa partilha\n\n**Dados de Pagamento:**\n• Processados de forma encriptada através de parceiros certificados (Stripe)\n• A PawCão NÃO armazena dados completos de cartão de crédito\n• Apenas últimos 4 dígitos para identificação"
+          title: "Dados que Recolhemos",
+          blocks: [
+            { label: "Dados de Identidade", items: ["Nome completo", "Endereço de email", "Número de telefone", "Fotografia de perfil (opcional)", "Documento de identificação (profissionais)"] },
+            { label: "Dados do Animal", items: ["Nome, raça, idade e peso", "Fotografias", "Histórico de saúde e vacinação", "Comportamento e necessidades especiais"] },
+            { label: "Coordenação de Localização", items: ["A PawCão NÃO recolhe nem armazena localização em tempo real", "Partilha feita diretamente entre dono e profissional via WhatsApp", "Sem acesso nem responsabilidade sobre essa partilha"] },
+            { label: "Dados de Pagamento", items: ["Processados de forma encriptada (Stripe)", "Não armazenamos dados completos do cartão", "Apenas últimos 4 dígitos para identificação"] },
+          ],
         },
         {
-          title: "2. Finalidade do Tratamento",
-          icon: Shield,
-          content: "Os seus dados são utilizados exclusivamente para:\n\n**Execução do Serviço:**\n• Criar e gerir a sua conta\n• Conectar donos de animais com profissionais\n• Processar pagamentos de forma segura\n• Enviar notificações sobre reservas e serviços\n\n**Segurança da Plataforma:**\n• Verificar identidade de profissionais\n• Prevenir fraudes e abusos\n• Resolver disputas entre utilizadores\n\n**Comunicação:**\n• Responder a questões de suporte\n• Enviar atualizações importantes sobre o serviço\n• Newsletter (apenas com consentimento explícito)\n\n**IMPORTANTE:** NÃO vendemos, alugamos ou partilhamos os seus dados pessoais com terceiros para fins publicitários ou de marketing."
+          icon: Database,
+          title: "Finalidade do Tratamento",
+          blocks: [
+            { label: "Execução do Serviço", items: ["Criar e gerir a sua conta", "Conectar donos com profissionais", "Processar pagamentos com segurança", "Notificações sobre reservas e serviços"] },
+            { label: "Segurança da Plataforma", items: ["Verificar identidade de profissionais", "Prevenir fraudes e abusos", "Resolver disputas entre utilizadores"] },
+            { label: "Comunicação", items: ["Responder a questões de suporte", "Atualizações importantes do serviço", "Newsletter (apenas com consentimento)"] },
+          ],
+          highlight: "NÃO vendemos, alugamos nem partilhamos os seus dados com terceiros para fins publicitários ou de marketing.",
         },
         {
-          title: "3. Partilha de Dados",
+          icon: Users,
+          title: "Partilha de Dados",
+          blocks: [
+            { label: "Outros Utilizadores", items: ["Profissionais veem dados necessários ao serviço", "Donos veem contactos do profissional após confirmação"] },
+            { label: "Prestadores Técnicos", items: ["Processadores de pagamento (Stripe)", "Serviços de hosting (cloud)", "Serviços de email transacional"] },
+            { label: "Autoridades Legais", items: ["Apenas por ordem judicial", "Notificado sempre que legalmente possível"] },
+          ],
+          highlight: "Todos os terceiros estão obrigados contratualmente a proteger os seus dados conforme o RGPD.",
+        },
+        {
+          icon: ShieldCheck,
+          title: "Os Seus Direitos (RGPD)",
+          blocks: [
+            { label: "Direito de Acesso", items: ["Solicitar cópia de todos os dados que temos sobre si"] },
+            { label: "Direito de Retificação", items: ["Corrigir dados incorretos ou desatualizados a qualquer momento"] },
+            { label: "Direito ao Esquecimento", items: ["Eliminar completamente a conta e dados associados", "Processamos pedidos em até 30 dias"] },
+            { label: "Direito à Portabilidade", items: ["Receber dados num formato estruturado e legível por máquina"] },
+            { label: "Direito de Oposição", items: ["Opor-se ao tratamento para fins específicos"] },
+            { label: "Direito de Limitação", items: ["Solicitar limitação do tratamento em certas circunstâncias"] },
+          ],
+          highlight: "Para exercer estes direitos: support@pawcao.net ou opções em Definições da Conta.",
+        },
+        {
           icon: Lock,
-          content: "Os seus dados podem ser partilhados apenas com:\n\n**Outros Utilizadores da Plataforma:**\n• Profissionais veem dados necessários para prestar o serviço\n• Donos veem dados de contacto do profissional após confirmação\n\n**Prestadores de Serviços Técnicos:**\n• Processadores de pagamento (Stripe)\n• Serviços de hosting (infraestrutura cloud)\n• Serviços de email transacional\n\n**Autoridades Legais:**\n• Apenas quando legalmente obrigados por ordem judicial\n• Será notificado sempre que legalmente possível\n\nTodos os terceiros são obrigados contratualmente a proteger os seus dados conforme o RGPD."
+          title: "Segurança dos Dados",
+          blocks: [
+            { label: "Medidas Técnicas", items: ["Encriptação SSL/TLS em todas as comunicações", "Encriptação de dados sensíveis em repouso", "Autenticação segura com hash de passwords", "Backups regulares encriptados"] },
+            { label: "Medidas Organizacionais", items: ["Monitorização contínua de acessos", "Acesso restrito (princípio do mínimo privilégio)", "Auditorias de segurança regulares"] },
+          ],
         },
         {
-          title: "4. Os Seus Direitos (RGPD)",
-          icon: Shield,
-          content: "Enquanto titular dos dados, tem os seguintes direitos:\n\n**Direito de Acesso:**\nPode solicitar uma cópia de todos os dados que temos sobre si.\n\n**Direito de Retificação:**\nPode corrigir dados incorretos ou desatualizados a qualquer momento.\n\n**Direito ao Esquecimento (Apagar):**\nPode solicitar a eliminação completa da sua conta e todos os dados associados. Processamos pedidos em até 30 dias.\n\n**Direito à Portabilidade:**\nPode solicitar os seus dados num formato estruturado e legível por máquina.\n\n**Direito de Oposição:**\nPode opor-se ao tratamento dos seus dados para fins específicos.\n\n**Direito de Limitação:**\nPode solicitar a limitação do tratamento em determinadas circunstâncias.\n\n**Para exercer estes direitos:** Contacte support@pawcao.net ou utilize as opções em Definições da Conta."
+          icon: Clock,
+          title: "Retenção de Dados",
+          blocks: [
+            { label: "Conta Ativa", items: ["Dados mantidos enquanto a conta estiver ativa"] },
+            { label: "Após Eliminação", items: ["Dados pessoais: eliminados em 30 dias", "Dados financeiros: mantidos 7 anos (obrigação fiscal)", "Dados de litígio: mantidos até resolução"] },
+            { label: "Localização", items: ["PawCão não recolhe nem armazena localização", "Partilha feita diretamente via WhatsApp"] },
+          ],
         },
         {
-          title: "5. Segurança dos Dados",
-          icon: Lock,
-          content: "Implementamos medidas técnicas e organizacionais robustas:\n\n• Encriptação SSL/TLS em todas as comunicações\n• Encriptação de dados sensíveis em repouso\n• Autenticação segura com hash de passwords\n• Monitorização contínua de acessos\n• Backups regulares com encriptação\n• Acesso restrito a dados pessoais (princípio do mínimo privilégio)\n• Auditorias de segurança regulares"
-        },
-        {
-          title: "6. Retenção de Dados",
-          icon: Trash2,
-          content: "Mantemos os seus dados apenas pelo tempo necessário:\n\n**Conta Ativa:**\nDados mantidos enquanto a conta estiver ativa.\n\n**Após Eliminação de Conta:**\n• Dados pessoais: eliminados em 30 dias\n• Dados financeiros: mantidos 7 anos (obrigação legal fiscal)\n• Dados de litígio: mantidos até resolução\n\n**Coordenação de Localização:**\n• A PawCão não recolhe nem armazena localização\n• A partilha de localização é feita diretamente entre dono e profissional via WhatsApp"
-        },
-        {
-          title: "7. Cookies",
           icon: Cookie,
-          content: "Utilizamos cookies de forma limitada:\n\n**Estritamente Necessários:**\n• Autenticação e sessão de login\n• Preferências de idioma\n• Segurança (CSRF protection)\n\n**Funcionais (com consentimento):**\n• Lembrar preferências de pesquisa\n• Melhorar experiência de navegação\n\n**NÃO utilizamos:**\n• Cookies de rastreamento publicitário\n• Cookies de terceiros para marketing\n\nPode gerir as suas preferências de cookies nas definições do browser."
+          title: "Cookies",
+          blocks: [
+            { label: "Estritamente Necessários", items: ["Autenticação e sessão de login", "Preferências de idioma", "Segurança (proteção CSRF)"] },
+            { label: "Funcionais (com consentimento)", items: ["Lembrar preferências de pesquisa", "Melhorar experiência de navegação"] },
+          ],
+          highlight: "NÃO utilizamos cookies de rastreamento publicitário nem cookies de terceiros para marketing.",
         },
         {
-          title: "8. Transferências Internacionais",
           icon: Globe,
-          content: "Os seus dados são processados principalmente na União Europeia. Quando transferências para fora da UE são necessárias (ex: serviços cloud), garantimos:\n\n• Cláusulas contratuais padrão da UE\n• Certificação de adequação do país de destino\n• Medidas de segurança adicionais conforme necessário"
+          title: "Transferências Internacionais",
+          blocks: [
+            { label: "Processamento na UE", items: ["Os seus dados são processados principalmente na União Europeia"] },
+            { label: "Fora da UE (quando necessário)", items: ["Cláusulas contratuais padrão da UE", "Certificação de adequação do país de destino", "Medidas de segurança adicionais"] },
+          ],
         },
         {
-          title: "9. Menores de Idade",
-          icon: Shield,
-          content: "A PawCão não se destina a menores de 18 anos. Não recolhemos intencionalmente dados de menores. Se descobrirmos que recolhemos dados de um menor, eliminaremos imediatamente essa informação."
+          icon: Baby,
+          title: "Menores de Idade",
+          blocks: [
+            { label: "Idade Mínima", items: ["A PawCão não se destina a menores de 18 anos", "Não recolhemos intencionalmente dados de menores", "Dados de menores serão eliminados imediatamente"] },
+          ],
         },
         {
-          title: "10. Alterações a esta Política",
-          icon: Eye,
-          content: "Podemos atualizar esta política periodicamente. Notificaremos sobre alterações significativas através de:\n\n• Email para utilizadores registados\n• Aviso destacado na plataforma\n• Atualização da data de revisão\n\nRecomendamos a revisão periódica desta política."
+          icon: Bell,
+          title: "Alterações a esta Política",
+          blocks: [
+            { label: "Notificação de Alterações", items: ["Email para utilizadores registados", "Aviso destacado na plataforma", "Atualização da data de revisão"] },
+          ],
         },
         {
-          title: "11. Contacto e DPO",
-          icon: Shield,
-          content: "Para questões sobre privacidade ou exercício dos seus direitos:\n\n**Email:** support@pawcao.net\n\n**Autoridade de Controlo:**\nTem o direito de apresentar reclamação à autoridade de proteção de dados do seu país:\n• Portugal: CNPD (www.cnpd.pt)\n• Espanha: AEPD (www.aepd.es)\n• França: CNIL (www.cnil.fr)"
-        }
-      ]
+          icon: Mail,
+          title: "Contacto e DPO",
+          blocks: [
+            { label: "Contacto Direto", items: ["support@pawcao.net"] },
+            { label: "Autoridades de Controlo", items: ["Portugal: CNPD — www.cnpd.pt", "Espanha: AEPD — www.aepd.es", "França: CNIL — www.cnil.fr"] },
+          ],
+        },
+      ],
+      commitmentTitle: "O nosso compromisso com a sua privacidade",
+      commitmentText:
+        "A PawCão trata a privacidade dos seus dados com a máxima seriedade. Se tiver qualquer dúvida ou preocupação, não hesite em contactar-nos.",
+      langLabel: "Idioma",
     },
     en: {
       title: "Privacy Policy",
+      subtitle: "How we collect, use, and protect your data",
       lastUpdated: "Last updated: July 20, 2026",
-      selectLanguage: "Select language",
-      intro: "PawCão is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and protect your information, in full compliance with the European Union's General Data Protection Regulation (GDPR).",
+      intro:
+        "PawCão is committed to protecting your personal data. This policy clearly explains how we handle your information, in full compliance with the EU GDPR.",
+      badge: "GDPR Compliant",
       sections: [
         {
-          title: "1. Data We Collect",
           icon: Eye,
-          content: "**Identity Data:**\n• Full name\n• Email address\n• Phone number\n• Profile photo (optional)\n• Identification document (professionals only)\n\n**Pet Data:**\n• Name, breed, age, and weight\n• Photos\n• Health and vaccination history\n• Behavior and special needs\n\n**Location Coordination:**\n• PawCão does NOT collect or store real-time location\n• Location sharing during the service is done directly between owner and professional via WhatsApp\n• PawCão has no access or responsibility over that sharing\n\n**Payment Data:**\n• Processed encrypted through certified partners (Stripe)\n• PawCão does NOT store complete credit card data\n• Only last 4 digits for identification"
+          title: "Data We Collect",
+          blocks: [
+            { label: "Identity Data", items: ["Full name", "Email address", "Phone number", "Profile photo (optional)", "ID document (professionals only)"] },
+            { label: "Pet Data", items: ["Name, breed, age, and weight", "Photos", "Health and vaccination history", "Behavior and special needs"] },
+            { label: "Location Coordination", items: ["PawCão does NOT collect or store real-time location", "Sharing done directly between owner and professional via WhatsApp", "No access or responsibility over that sharing"] },
+            { label: "Payment Data", items: ["Processed encrypted (Stripe)", "We do not store full card details", "Only last 4 digits for identification"] },
+          ],
         },
         {
-          title: "2. Purpose of Processing",
-          icon: Shield,
-          content: "Your data is used exclusively for:\n\n**Service Execution:**\n• Create and manage your account\n• Connect pet owners with professionals\n• Process payments securely\n• Send notifications about bookings and services\n\n**Platform Security:**\n• Verify professional identity\n• Prevent fraud and abuse\n• Resolve disputes between users\n\n**Communication:**\n• Respond to support questions\n• Send important service updates\n• Newsletter (only with explicit consent)\n\n**IMPORTANT:** We do NOT sell, rent, or share your personal data with third parties for advertising or marketing purposes."
+          icon: Database,
+          title: "Purpose of Processing",
+          blocks: [
+            { label: "Service Execution", items: ["Create and manage your account", "Connect owners with professionals", "Process payments securely", "Booking and service notifications"] },
+            { label: "Platform Security", items: ["Verify professional identity", "Prevent fraud and abuse", "Resolve disputes between users"] },
+            { label: "Communication", items: ["Respond to support questions", "Important service updates", "Newsletter (only with consent)"] },
+          ],
+          highlight: "We do NOT sell, rent, or share your data with third parties for advertising or marketing purposes.",
         },
         {
-          title: "3. Data Sharing",
+          icon: Users,
+          title: "Data Sharing",
+          blocks: [
+            { label: "Other Users", items: ["Professionals see data needed to provide the service", "Owners see professional contacts after confirmation"] },
+            { label: "Technical Providers", items: ["Payment processors (Stripe)", "Hosting services (cloud)", "Transactional email services"] },
+            { label: "Legal Authorities", items: ["Only when required by court order", "You will be notified when legally possible"] },
+          ],
+          highlight: "All third parties are contractually bound to protect your data under GDPR.",
+        },
+        {
+          icon: ShieldCheck,
+          title: "Your Rights (GDPR)",
+          blocks: [
+            { label: "Right of Access", items: ["Request a copy of all data we hold about you"] },
+            { label: "Right to Rectification", items: ["Correct inaccurate or outdated data at any time"] },
+            { label: "Right to Erasure", items: ["Delete your account and all associated data", "Requests processed within 30 days"] },
+            { label: "Right to Portability", items: ["Receive data in a structured, machine-readable format"] },
+            { label: "Right to Object", items: ["Object to processing for specific purposes"] },
+            { label: "Right to Restriction", items: ["Request processing limitation in certain circumstances"] },
+          ],
+          highlight: "To exercise these rights: support@pawcao.net or options in Account Settings.",
+        },
+        {
           icon: Lock,
-          content: "Your data may only be shared with:\n\n**Other Platform Users:**\n• Professionals see data necessary to provide the service\n• Owners see professional's contact data after confirmation\n\n**Technical Service Providers:**\n• Payment processors (Stripe)\n• Hosting services (cloud infrastructure)\n• Transactional email services\n\n**Legal Authorities:**\n• Only when legally required by court order\n• You will be notified whenever legally possible\n\nAll third parties are contractually obligated to protect your data according to GDPR."
+          title: "Data Security",
+          blocks: [
+            { label: "Technical Measures", items: ["SSL/TLS encryption on all communications", "Encryption of sensitive data at rest", "Secure authentication with password hashing", "Regular encrypted backups"] },
+            { label: "Organizational Measures", items: ["Continuous access monitoring", "Restricted access (least privilege)", "Regular security audits"] },
+          ],
         },
         {
-          title: "4. Your Rights (GDPR)",
-          icon: Shield,
-          content: "As a data subject, you have the following rights:\n\n**Right of Access:**\nYou can request a copy of all data we have about you.\n\n**Right to Rectification:**\nYou can correct incorrect or outdated data at any time.\n\n**Right to Erasure (Right to be Forgotten):**\nYou can request complete deletion of your account and all associated data. We process requests within 30 days.\n\n**Right to Portability:**\nYou can request your data in a structured, machine-readable format.\n\n**Right to Object:**\nYou can object to processing of your data for specific purposes.\n\n**Right to Restriction:**\nYou can request processing limitation in certain circumstances.\n\n**To exercise these rights:** Contact support@pawcao.net or use options in Account Settings."
+          icon: Clock,
+          title: "Data Retention",
+          blocks: [
+            { label: "Active Account", items: ["Data kept while the account is active"] },
+            { label: "After Deletion", items: ["Personal data: deleted within 30 days", "Financial data: kept 7 years (tax obligation)", "Litigation data: kept until resolution"] },
+            { label: "Location", items: ["PawCão does not collect or store location", "Sharing done directly via WhatsApp"] },
+          ],
         },
         {
-          title: "5. Data Security",
-          icon: Lock,
-          content: "We implement robust technical and organizational measures:\n\n• SSL/TLS encryption on all communications\n• Encryption of sensitive data at rest\n• Secure authentication with password hashing\n• Continuous access monitoring\n• Regular encrypted backups\n• Restricted access to personal data (least privilege principle)\n• Regular security audits"
-        },
-        {
-          title: "6. Data Retention",
-          icon: Trash2,
-          content: "We keep your data only as long as necessary:\n\n**Active Account:**\nData maintained while the account is active.\n\n**After Account Deletion:**\n• Personal data: deleted within 30 days\n• Financial data: kept 7 years (legal tax obligation)\n• Litigation data: kept until resolution\n\n**Location Coordination:**\n• PawCão does not collect or store location\n• Location sharing is done directly between owner and professional via WhatsApp"
-        },
-        {
-          title: "7. Cookies",
           icon: Cookie,
-          content: "We use cookies in a limited way:\n\n**Strictly Necessary:**\n• Authentication and login session\n• Language preferences\n• Security (CSRF protection)\n\n**Functional (with consent):**\n• Remember search preferences\n• Improve browsing experience\n\n**We do NOT use:**\n• Advertising tracking cookies\n• Third-party marketing cookies\n\nYou can manage your cookie preferences in browser settings."
+          title: "Cookies",
+          blocks: [
+            { label: "Strictly Necessary", items: ["Authentication and login session", "Language preferences", "Security (CSRF protection)"] },
+            { label: "Functional (with consent)", items: ["Remember search preferences", "Improve browsing experience"] },
+          ],
+          highlight: "We do NOT use advertising tracking cookies or third-party marketing cookies.",
         },
         {
-          title: "8. International Transfers",
           icon: Globe,
-          content: "Your data is processed mainly in the European Union. When transfers outside the EU are necessary (e.g., cloud services), we ensure:\n\n• EU standard contractual clauses\n• Adequacy certification of destination country\n• Additional security measures as needed"
+          title: "International Transfers",
+          blocks: [
+            { label: "EU Processing", items: ["Your data is processed mainly within the European Union"] },
+            { label: "Outside EU (when necessary)", items: ["EU standard contractual clauses", "Adequacy certification of destination country", "Additional security measures"] },
+          ],
         },
         {
-          title: "9. Minors",
-          icon: Shield,
-          content: "PawCão is not intended for minors under 18. We do not knowingly collect data from minors. If we discover we have collected data from a minor, we will immediately delete that information."
+          icon: Baby,
+          title: "Minors",
+          blocks: [
+            { label: "Minimum Age", items: ["PawCão is not intended for users under 18", "We do not knowingly collect data from minors", "Minors' data will be deleted immediately"] },
+          ],
         },
         {
-          title: "10. Changes to this Policy",
-          icon: Eye,
-          content: "We may update this policy periodically. We will notify about significant changes through:\n\n• Email to registered users\n• Prominent notice on the platform\n• Update of the revision date\n\nWe recommend periodic review of this policy."
+          icon: Bell,
+          title: "Changes to this Policy",
+          blocks: [
+            { label: "Change Notification", items: ["Email to registered users", "Prominent notice on the platform", "Update of the revision date"] },
+          ],
         },
         {
-          title: "11. Contact and DPO",
-          icon: Shield,
-          content: "For privacy questions or to exercise your rights:\n\n**Email:** support@pawcao.net\n\n**Supervisory Authority:**\nYou have the right to file a complaint with your country's data protection authority:\n• Portugal: CNPD (www.cnpd.pt)\n• Spain: AEPD (www.aepd.es)\n• France: CNIL (www.cnil.fr)"
-        }
-      ]
+          icon: Mail,
+          title: "Contact and DPO",
+          blocks: [
+            { label: "Direct Contact", items: ["support@pawcao.net"] },
+            { label: "Supervisory Authorities", items: ["Portugal: CNPD — www.cnpd.pt", "Spain: AEPD — www.aepd.es", "France: CNIL — www.cnil.fr"] },
+          ],
+        },
+      ],
+      commitmentTitle: "Our commitment to your privacy",
+      commitmentText:
+        "PawCão takes your data privacy with the utmost seriousness. If you have any questions or concerns, do not hesitate to contact us.",
+      langLabel: "Language",
     },
     es: {
       title: "Política de Privacidad",
+      subtitle: "Cómo recopilamos, usamos y protegemos sus datos",
       lastUpdated: "Última actualización: 20 de Julio de 2026",
-      selectLanguage: "Seleccionar idioma",
-      intro: "PawCão está comprometido con la protección de sus datos personales. Esta Política de Privacidad explica cómo recopilamos, utilizamos y protegemos su información, en total conformidad con el Reglamento General de Protección de Datos (RGPD) de la Unión Europea.",
+      intro:
+        "PawCão está comprometido con la protección de sus datos personales. Esta política explica de forma clara cómo tratamos su información, en total conformidad con el RGPD de la Unión Europea.",
+      badge: "Conforme RGPD",
       sections: [
         {
-          title: "1. Datos que Recopilamos",
           icon: Eye,
-          content: "**Datos de Identidad:**\n• Nombre completo\n• Dirección de email\n• Número de teléfono\n• Fotografía de perfil (opcional)\n• Documento de identificación (solo profesionales)\n\n**Datos del Animal:**\n• Nombre, raza, edad y peso\n• Fotografías\n• Historial de salud y vacunación\n• Comportamiento y necesidades especiales\n\n**Coordinación de Ubicación:**\n• PawCão NO recopila ni almacena la ubicación en tiempo real\n• La compartición de ubicación durante el servicio se hace directamente entre dueño y profesional vía WhatsApp\n• PawCão no tiene acceso ni responsabilidad sobre esa compartición\n\n**Datos de Pago:**\n• Procesados de forma encriptada a través de socios certificados (Stripe)\n• PawCão NO almacena datos completos de tarjeta de crédito\n• Solo últimos 4 dígitos para identificación"
+          title: "Datos que Recopilamos",
+          blocks: [
+            { label: "Datos de Identidad", items: ["Nombre completo", "Dirección de Email", "Número de teléfono", "Foto de perfil (opcional)", "Documento de identidad (profesionales)"] },
+            { label: "Datos del Animal", items: ["Nombre, raza, edad y peso", "Fotografías", "Historial de salud y vacunación", "Comportamiento y necesidades especiales"] },
+            { label: "Coordinación de Ubicación", items: ["PawCão NO recopila ni almacena ubicación en tiempo real", "Compartición directa entre dueño y profesional vía WhatsApp", "Sin acceso ni responsabilidad sobre esa compartición"] },
+            { label: "Datos de Pago", items: ["Procesados de forma encriptada (Stripe)", "No almacenamos datos completos de la tarjeta", "Solo últimos 4 dígitos para identificación"] },
+          ],
         },
         {
-          title: "2. Finalidad del Tratamiento",
-          icon: Shield,
-          content: "Sus datos se utilizan exclusivamente para:\n\n**Ejecución del Servicio:**\n• Crear y gestionar su cuenta\n• Conectar dueños de mascotas con profesionales\n• Procesar pagos de forma segura\n• Enviar notificaciones sobre reservas y servicios\n\n**Seguridad de la Plataforma:**\n• Verificar identidad de profesionales\n• Prevenir fraudes y abusos\n• Resolver disputas entre usuarios\n\n**Comunicación:**\n• Responder a preguntas de soporte\n• Enviar actualizaciones importantes sobre el servicio\n• Newsletter (solo con consentimiento explícito)\n\n**IMPORTANTE:** NO vendemos, alquilamos ni compartimos sus datos personales con terceros para fines publicitarios o de marketing."
+          icon: Database,
+          title: "Finalidad del Tratamiento",
+          blocks: [
+            { label: "Ejecución del Servicio", items: ["Crear y gestionar su cuenta", "Conectar dueños con profesionales", "Procesar pagos con seguridad", "Notificaciones sobre reservas y servicios"] },
+            { label: "Seguridad de la Plataforma", items: ["Verificar identidad de profesionales", "Prevenir fraudes y abusos", "Resolver disputas entre usuarios"] },
+            { label: "Comunicación", items: ["Responder preguntas de soporte", "Actualizaciones importantes del servicio", "Newsletter (solo con consentimiento)"] },
+          ],
+          highlight: "NO vendemos, alquilamos ni compartimos sus datos con terceros para fines publicitarios o de marketing.",
         },
         {
-          title: "3. Compartición de Datos",
+          icon: Users,
+          title: "Compartición de Datos",
+          blocks: [
+            { label: "Otros Usuarios", items: ["Profesionales ven datos necesarios para el servicio", "Dueños ven contactos del profesional tras confirmación"] },
+            { label: "Proveedores Técnicos", items: ["Procesadores de pago (Stripe)", "Servicios de hosting (cloud)", "Servicios de email transaccional"] },
+            { label: "Autoridades Legales", items: ["Solo por orden judicial", "Será notificado cuando sea legalmente posible"] },
+          ],
+          highlight: "Todos los terceros están obligados contractualmente a proteger sus datos según el RGPD.",
+        },
+        {
+          icon: ShieldCheck,
+          title: "Sus Derechos (RGPD)",
+          blocks: [
+            { label: "Derecho de Acceso", items: ["Solicitar copia de todos los datos que tenemos sobre usted"] },
+            { label: "Derecho de Rectificación", items: ["Corregir datos incorrectos o desactualizados en cualquier momento"] },
+            { label: "Derecho al Olvido", items: ["Eliminar completamente su cuenta y datos asociados", "Procesamos solicitudes en hasta 30 días"] },
+            { label: "Derecho a la Portabilidad", items: ["Recibir datos en formato estructurado y legible por máquina"] },
+            { label: "Derecho de Oposición", items: ["Oponerse al tratamiento para fines específicos"] },
+            { label: "Derecho de Limitación", items: ["Solicitar limitación del tratamiento en ciertas circunstancias"] },
+          ],
+          highlight: "Para ejercer estos derechos: support@pawcao.net o opciones en Configuración de Cuenta.",
+        },
+        {
           icon: Lock,
-          content: "Sus datos pueden compartirse solo con:\n\n**Otros Usuarios de la Plataforma:**\n• Los profesionales ven datos necesarios para prestar el servicio\n• Los dueños ven datos de contacto del profesional tras confirmación\n\n**Proveedores de Servicios Técnicos:**\n• Procesadores de pago (Stripe)\n• Servicios de hosting (infraestructura cloud)\n• Servicios de email transaccional\n\n**Autoridades Legales:**\n• Solo cuando legalmente requerido por orden judicial\n• Será notificado siempre que sea legalmente posible\n\nTodos los terceros están obligados contractualmente a proteger sus datos según el RGPD."
+          title: "Seguridad de los Datos",
+          blocks: [
+            { label: "Medidas Técnicas", items: ["Encriptación SSL/TLS en todas las comunicaciones", "Encriptación de datos sensibles en reposo", "Autenticación segura con hash de contraseñas", "Copias de seguridad encriptadas"] },
+            { label: "Medidas Organizativas", items: ["Monitorización continua de accesos", "Acceso restringido (mínimo privilegio)", "Auditorías de seguridad regulares"] },
+          ],
         },
         {
-          title: "4. Sus Derechos (RGPD)",
-          icon: Shield,
-          content: "Como titular de los datos, tiene los siguientes derechos:\n\n**Derecho de Acceso:**\nPuede solicitar una copia de todos los datos que tenemos sobre usted.\n\n**Derecho de Rectificación:**\nPuede corregir datos incorrectos o desactualizados en cualquier momento.\n\n**Derecho al Olvido (Supresión):**\nPuede solicitar la eliminación completa de su cuenta y todos los datos asociados. Procesamos solicitudes en hasta 30 días.\n\n**Derecho a la Portabilidad:**\nPuede solicitar sus datos en un formato estructurado y legible por máquina.\n\n**Derecho de Oposición:**\nPuede oponerse al tratamiento de sus datos para fines específicos.\n\n**Derecho de Limitación:**\nPuede solicitar la limitación del tratamiento en determinadas circunstancias.\n\n**Para ejercer estos derechos:** Contacte support@pawcao.net o utilice las opciones en Configuración de Cuenta."
+          icon: Clock,
+          title: "Retención de Datos",
+          blocks: [
+            { label: "Cuenta Activa", items: ["Datos mantenidos mientras la cuenta esté activa"] },
+            { label: "Tras Eliminación", items: ["Datos personales: eliminados en 30 días", "Datos financieros: mantenidos 7 años (obligación fiscal)", "Datos de litigio: mantenidos hasta resolución"] },
+            { label: "Ubicación", items: ["PawCão no recopila ni almacena ubicación", "Compartición directa vía WhatsApp"] },
+          ],
         },
         {
-          title: "5. Seguridad de los Datos",
-          icon: Lock,
-          content: "Implementamos medidas técnicas y organizativas robustas:\n\n• Encriptación SSL/TLS en todas las comunicaciones\n• Encriptación de datos sensibles en reposo\n• Autenticación segura con hash de contraseñas\n• Monitorización continua de accesos\n• Copias de seguridad regulares encriptadas\n• Acceso restringido a datos personales (principio de mínimo privilegio)\n• Auditorías de seguridad regulares"
-        },
-        {
-          title: "6. Retención de Datos",
-          icon: Trash2,
-          content: "Mantenemos sus datos solo el tiempo necesario:\n\n**Cuenta Activa:**\nDatos mantenidos mientras la cuenta esté activa.\n\n**Después de Eliminación de Cuenta:**\n• Datos personales: eliminados en 30 días\n• Datos financieros: mantenidos 7 años (obligación legal fiscal)\n• Datos de litigio: mantenidos hasta resolución\n\n**Coordinación de Ubicación:**\n• PawCão no recopila ni almacena ubicación\n• La compartición de ubicación se hace directamente entre dueño y profesional vía WhatsApp"
-        },
-        {
-          title: "7. Cookies",
           icon: Cookie,
-          content: "Utilizamos cookies de forma limitada:\n\n**Estrictamente Necesarias:**\n• Autenticación y sesión de login\n• Preferencias de idioma\n• Seguridad (protección CSRF)\n\n**Funcionales (con consentimiento):**\n• Recordar preferencias de búsqueda\n• Mejorar experiencia de navegación\n\n**NO utilizamos:**\n• Cookies de seguimiento publicitario\n• Cookies de terceros para marketing\n\nPuede gestionar sus preferencias de cookies en la configuración del navegador."
+          title: "Cookies",
+          blocks: [
+            { label: "Estrictamente Necesarias", items: ["Autenticación y sesión de login", "Preferencias de idioma", "Seguridad (protección CSRF)"] },
+            { label: "Funcionales (con consentimiento)", items: ["Recordar preferencias de búsqueda", "Mejorar experiencia de navegación"] },
+          ],
+          highlight: "NO utilizamos cookies de seguimiento publicitario ni cookies de terceros para marketing.",
         },
         {
-          title: "8. Transferencias Internacionales",
           icon: Globe,
-          content: "Sus datos se procesan principalmente en la Unión Europea. Cuando son necesarias transferencias fuera de la UE (ej: servicios cloud), garantizamos:\n\n• Cláusulas contractuales estándar de la UE\n• Certificación de adecuación del país de destino\n• Medidas de seguridad adicionales según sea necesario"
+          title: "Transferencias Internacionales",
+          blocks: [
+            { label: "Procesamiento en la UE", items: ["Sus datos se procesan principalmente en la Unión Europea"] },
+            { label: "Fuera de la UE (cuando necesario)", items: ["Cláusulas contractuales estándar de la UE", "Certificación de adecuación del país de destino", "Medidas de seguridad adicionales"] },
+          ],
         },
         {
-          title: "9. Menores de Edad",
-          icon: Shield,
-          content: "PawCão no está destinado a menores de 18 años. No recopilamos intencionalmente datos de menores. Si descubrimos que hemos recopilado datos de un menor, eliminaremos inmediatamente esa información."
+          icon: Baby,
+          title: "Menores de Edad",
+          blocks: [
+            { label: "Edad Mínima", items: ["PawCão no está destinado a menores de 18 años", "No recopilamos intencionalmente datos de menores", "Datos de menores se eliminarán inmediatamente"] },
+          ],
         },
         {
-          title: "10. Cambios en esta Política",
-          icon: Eye,
-          content: "Podemos actualizar esta política periódicamente. Notificaremos sobre cambios significativos a través de:\n\n• Email a usuarios registrados\n• Aviso destacado en la plataforma\n• Actualización de la fecha de revisión\n\nRecomendamos la revisión periódica de esta política."
+          icon: Bell,
+          title: "Cambios en esta Política",
+          blocks: [
+            { label: "Notificación de Cambios", items: ["Email a usuarios registrados", "Aviso destacado en la plataforma", "Actualización de la fecha de revisión"] },
+          ],
         },
         {
-          title: "11. Contacto y DPO",
-          icon: Shield,
-          content: "Para preguntas sobre privacidad o ejercicio de sus derechos:\n\n**Email:** support@pawcao.net\n\n**Autoridad de Control:**\nTiene derecho a presentar una reclamación ante la autoridad de protección de datos de su país:\n• Portugal: CNPD (www.cnpd.pt)\n• España: AEPD (www.aepd.es)\n• Francia: CNIL (www.cnil.fr)"
-        }
-      ]
+          icon: Mail,
+          title: "Contacto y DPO",
+          blocks: [
+            { label: "Contacto Directo", items: ["support@pawcao.net"] },
+            { label: "Autoridades de Control", items: ["Portugal: CNPD — www.cnpd.pt", "España: AEPD — www.aepd.es", "Francia: CNIL — www.cnil.fr"] },
+          ],
+        },
+      ],
+      commitmentTitle: "Nuestro compromiso con su privacidad",
+      commitmentText:
+        "PawCão trata la privacidad de sus datos con la máxima seriedad. Si tiene alguna duda o preocupación, no dude en contactarnos.",
+      langLabel: "Idioma",
     },
     fr: {
       title: "Politique de Confidentialité",
+      subtitle: "Comment nous collectons, utilisons et protégeons vos données",
       lastUpdated: "Dernière mise à jour : 20 Juillet 2026",
-      selectLanguage: "Sélectionner la langue",
-      intro: "PawCão s'engage à protéger vos données personnelles. Cette Politique de Confidentialité explique comment nous collectons, utilisons et protégeons vos informations, en pleine conformité avec le Règlement Général sur la Protection des Données (RGPD) de l'Union Européenne.",
+      intro:
+        "PawCão s'engage à protéger vos données personnelles. Cette politique explique clairement comment nous traitons vos informations, en pleine conformité avec le RGPD de l'Union Européenne.",
+      badge: "Conforme RGPD",
       sections: [
         {
-          title: "1. Données que Nous Collectons",
           icon: Eye,
-          content: "**Données d'Identité :**\n• Nom complet\n• Adresse email\n• Numéro de téléphone\n• Photo de profil (optionnel)\n• Document d'identité (professionnels uniquement)\n\n**Données de l'Animal :**\n• Nom, race, âge et poids\n• Photos\n• Historique de santé et vaccination\n• Comportement et besoins spéciaux\n\n**Coordination de Localisation :**\n• PawCão NE collecte NI ne stocke la localisation en temps réel\n• Le partage de localisation pendant le service se fait directement entre propriétaire et professionnel via WhatsApp\n• PawCão n'a aucun accès ni responsabilité sur ce partage\n\n**Données de Paiement :**\n• Traitées de manière cryptée via des partenaires certifiés (Stripe)\n• PawCão NE stocke PAS les données complètes de carte de crédit\n• Uniquement les 4 derniers chiffres pour identification"
+          title: "Données Collectées",
+          blocks: [
+            { label: "Données d'Identité", items: ["Nom complet", "Adresse Email", "Numéro de téléphone", "Photo de profil (optionnel)", "Pièce d'identité (professionnels)"] },
+            { label: "Données de l'Animal", items: ["Nom, race, âge et poids", "Photos", "Historique de santé et vaccination", "Comportement et besoins spéciaux"] },
+            { label: "Coordination de Localisation", items: ["PawCão NE collecte NI ne stocke la localisation en temps réel", "Partage direct entre propriétaire et professionnel via WhatsApp", "Aucun accès ni responsabilité sur ce partage"] },
+            { label: "Données de Paiement", items: ["Traitées de manière cryptée (Stripe)", "Nous ne stockons pas les données complètes de carte", "Seuls les 4 derniers chiffres pour identification"] },
+          ],
         },
         {
-          title: "2. Finalité du Traitement",
-          icon: Shield,
-          content: "Vos données sont utilisées exclusivement pour :\n\n**Exécution du Service :**\n• Créer et gérer votre compte\n• Connecter propriétaires d'animaux et professionnels\n• Traiter les paiements de manière sécurisée\n• Envoyer des notifications sur les réservations et services\n\n**Sécurité de la Plateforme :**\n• Vérifier l'identité des professionnels\n• Prévenir les fraudes et abus\n• Résoudre les litiges entre utilisateurs\n\n**Communication :**\n• Répondre aux questions de support\n• Envoyer des mises à jour importantes sur le service\n• Newsletter (uniquement avec consentement explicite)\n\n**IMPORTANT :** Nous NE vendons, louons ou partageons PAS vos données personnelles avec des tiers à des fins publicitaires ou marketing."
+          icon: Database,
+          title: "Finalité du Traitement",
+          blocks: [
+            { label: "Exécution du Service", items: ["Créer et gérer votre compte", "Connecter propriétaires et professionnels", "Traiter les paiements sécurité", "Notifications sur réservations et services"] },
+            { label: "Sécurité de la Plateforme", items: ["Vérifier l'identité des professionnels", "Prévenir fraudes et abus", "Résoudre les litiges entre utilisateurs"] },
+            { label: "Communication", items: ["Répondre aux questions de support", "Mises à jour importantes du service", "Newsletter (uniquement avec consentement)"] },
+          ],
+          highlight: "Nous NE vendons, louons ou partageons PAS vos données avec des tiers à des fins publicitaires ou marketing.",
         },
         {
-          title: "3. Partage des Données",
+          icon: Users,
+          title: "Partage des Données",
+          blocks: [
+            { label: "Autres Utilisateurs", items: ["Les professionnels voient les données nécessaires au service", "Les propriétaires voient les contacts du professionnel après confirmation"] },
+            { label: "Prestataires Techniques", items: ["Processeurs de paiement (Stripe)", "Services d'hébergement (cloud)", "Services d'email transactionnel"] },
+            { label: "Autorités Légales", items: ["Uniquement par ordonnance du tribunal", "Vous serez notifié lorsque légalement possible"] },
+          ],
+          highlight: "Tous les tiers sont obligés contractuellement de protéger vos données selon le RGPD.",
+        },
+        {
+          icon: ShieldCheck,
+          title: "Vos Droits (RGPD)",
+          blocks: [
+            { label: "Droit d'Accès", items: ["Demander une copie de toutes les données que nous détenons sur vous"] },
+            { label: "Droit de Rectification", items: ["Corriger les données incorrectes ou obsolètes à tout moment"] },
+            { label: "Droit à l'Oubli", items: ["Supprimer complètement votre compte et données associées", "Demandes traitées sous 30 jours"] },
+            { label: "Droit à la Portabilité", items: ["Recevoir vos données dans un format structuré et lisible par machine"] },
+            { label: "Droit d'Opposition", items: ["S'opposer au traitement à des fins spécifiques"] },
+            { label: "Droit à la Limitation", items: ["Demander la limitation du traitement dans certaines circonstances"] },
+          ],
+          highlight: "Pour exercer ces droits : support@pawcao.net ou options dans les Paramètres du Compte.",
+        },
+        {
           icon: Lock,
-          content: "Vos données ne peuvent être partagées qu'avec :\n\n**Autres Utilisateurs de la Plateforme :**\n• Les professionnels voient les données nécessaires pour fournir le service\n• Les propriétaires voient les données de contact du professionnel après confirmation\n\n**Prestataires de Services Techniques :**\n• Processeurs de paiement (Stripe)\n• Services d'hébergement (infrastructure cloud)\n• Services d'email transactionnel\n\n**Autorités Légales :**\n• Uniquement lorsque légalement requis par ordonnance du tribunal\n• Vous serez notifié chaque fois que légalement possible\n\nTous les tiers sont contractuellement obligés de protéger vos données conformément au RGPD."
+          title: "Sécurité des Données",
+          blocks: [
+            { label: "Mesures Techniques", items: ["Cryptage SSL/TLS sur toutes les communications", "Cryptage des données sensibles au repos", "Authentification sécurisée avec hachage des mots de passe", "Sauvegardes régulières cryptées"] },
+            { label: "Mesures Organisationnelles", items: ["Surveillance continue des accès", "Accès restreint (moindre privilège)", "Audits de sécurité réguliers"] },
+          ],
         },
         {
-          title: "4. Vos Droits (RGPD)",
-          icon: Shield,
-          content: "En tant que personne concernée, vous avez les droits suivants :\n\n**Droit d'Accès :**\nVous pouvez demander une copie de toutes les données que nous avons sur vous.\n\n**Droit de Rectification :**\nVous pouvez corriger les données incorrectes ou obsolètes à tout moment.\n\n**Droit à l'Effacement (Droit à l'Oubli) :**\nVous pouvez demander la suppression complète de votre compte et de toutes les données associées. Nous traitons les demandes sous 30 jours.\n\n**Droit à la Portabilité :**\nVous pouvez demander vos données dans un format structuré et lisible par machine.\n\n**Droit d'Opposition :**\nVous pouvez vous opposer au traitement de vos données à des fins spécifiques.\n\n**Droit à la Limitation :**\nVous pouvez demander la limitation du traitement dans certaines circonstances.\n\n**Pour exercer ces droits :** Contactez support@pawcao.net ou utilisez les options dans les Paramètres du Compte."
+          icon: Clock,
+          title: "Conservation des Données",
+          blocks: [
+            { label: "Compte Actif", items: ["Données conservées tant que le compte est actif"] },
+            { label: "Après Suppression", items: ["Données personnelles : supprimées sous 30 jours", "Données financières : conservées 7 ans (obligation fiscale)", "Données de litige : conservées jusqu'à résolution"] },
+            { label: "Localisation", items: ["PawCão ne collecte ni ne stocke la localisation", "Partage direct via WhatsApp"] },
+          ],
         },
         {
-          title: "5. Sécurité des Données",
-          icon: Lock,
-          content: "Nous mettons en œuvre des mesures techniques et organisationnelles robustes :\n\n• Cryptage SSL/TLS sur toutes les communications\n• Cryptage des données sensibles au repos\n• Authentification sécurisée avec hachage des mots de passe\n• Surveillance continue des accès\n• Sauvegardes régulières cryptées\n• Accès restreint aux données personnelles (principe du moindre privilège)\n• Audits de sécurité réguliers"
-        },
-        {
-          title: "6. Conservation des Données",
-          icon: Trash2,
-          content: "Nous conservons vos données uniquement le temps nécessaire :\n\n**Compte Actif :**\nDonnées conservées tant que le compte est actif.\n\n**Après Suppression du Compte :**\n• Données personnelles : supprimées sous 30 jours\n• Données financières : conservées 7 ans (obligation légale fiscale)\n• Données de litige : conservées jusqu'à résolution\n\n**Coordination de Localisation :**\n• PawCão ne collecte ni ne stocke la localisation\n• Le partage de localisation se fait directement entre propriétaire et professionnel via WhatsApp"
-        },
-        {
-          title: "7. Cookies",
           icon: Cookie,
-          content: "Nous utilisons les cookies de manière limitée :\n\n**Strictement Nécessaires :**\n• Authentification et session de connexion\n• Préférences de langue\n• Sécurité (protection CSRF)\n\n**Fonctionnels (avec consentement) :**\n• Mémoriser les préférences de recherche\n• Améliorer l'expérience de navigation\n\n**Nous N'utilisons PAS :**\n• Cookies de suivi publicitaire\n• Cookies tiers pour le marketing\n\nVous pouvez gérer vos préférences de cookies dans les paramètres du navigateur."
+          title: "Cookies",
+          blocks: [
+            { label: "Strictement Nécessaires", items: ["Authentification et session de connexion", "Préférences de langue", "Sécurité (protection CSRF)"] },
+            { label: "Fonctionnels (avec consentement)", items: ["Mémoriser les préférences de recherche", "Améliorer l'expérience de navigation"] },
+          ],
+          highlight: "Nous N'utilisons PAS de cookies de suivi publicitaire ni de cookies tiers pour le marketing.",
         },
         {
-          title: "8. Transferts Internationaux",
           icon: Globe,
-          content: "Vos données sont traitées principalement dans l'Union Européenne. Lorsque des transferts hors UE sont nécessaires (ex : services cloud), nous garantissons :\n\n• Clauses contractuelles standard de l'UE\n• Certification d'adéquation du pays de destination\n• Mesures de sécurité supplémentaires si nécessaire"
+          title: "Transferts Internationaux",
+          blocks: [
+            { label: "Traitement dans l'UE", items: ["Vos données sont traitées principalement dans l'Union Européenne"] },
+            { label: "Hors UE (si nécessaire)", items: ["Clauses contractuelles standard de l'UE", "Certification d'adéquation du pays de destination", "Mesures de sécurité supplémentaires"] },
+          ],
         },
         {
-          title: "9. Mineurs",
-          icon: Shield,
-          content: "PawCão n'est pas destiné aux mineurs de moins de 18 ans. Nous ne collectons pas sciemment de données de mineurs. Si nous découvrons que nous avons collecté des données d'un mineur, nous supprimerons immédiatement ces informations."
+          icon: Baby,
+          title: "Mineurs",
+          blocks: [
+            { label: "Âge Minimum", items: ["PawCão n'est pas destiné aux moins de 18 ans", "Nous ne collectons pas sciemment de données de mineurs", "Les données de mineurs seront supprimées immédiatement"] },
+          ],
         },
         {
-          title: "10. Modifications de cette Politique",
-          icon: Eye,
-          content: "Nous pouvons mettre à jour cette politique périodiquement. Nous informerons des changements significatifs par :\n\n• Email aux utilisateurs enregistrés\n• Avis visible sur la plateforme\n• Mise à jour de la date de révision\n\nNous recommandons une révision périodique de cette politique."
+          icon: Bell,
+          title: "Modifications de cette Politique",
+          blocks: [
+            { label: "Notification des Changements", items: ["Email aux utilisateurs enregistrés", "Avis visible sur la plateforme", "Mise à jour de la date de révision"] },
+          ],
         },
         {
-          title: "11. Contact et DPO",
-          icon: Shield,
-          content: "Pour les questions de confidentialité ou l'exercice de vos droits :\n\n**Email :** support@pawcao.net\n\n**Autorité de Contrôle :**\nVous avez le droit de déposer une plainte auprès de l'autorité de protection des données de votre pays :\n• Portugal : CNPD (www.cnpd.pt)\n• Espagne : AEPD (www.aepd.es)\n• France : CNIL (www.cnil.fr)"
-        }
-      ]
-    }
+          icon: Mail,
+          title: "Contact et DPO",
+          blocks: [
+            { label: "Contact Direct", items: ["support@pawcao.net"] },
+            { label: "Autorités de Contrôle", items: ["Portugal : CNPD — www.cnpd.pt", "Espagne : AEPD — www.aepd.es", "France : CNIL — www.cnil.fr"] },
+          ],
+        },
+      ],
+      commitmentTitle: "Notre engagement envers votre confidentialité",
+      commitmentText:
+        "PawCão traite la confidentialité de vos données avec le plus grand sérieux. Si vous avez des questions ou des préoccupations, n'hésitez pas à nous contacter.",
+      langLabel: "Langue",
+    },
   };
 
   const t = content[language] || content.pt;
 
   const languages = [
-    { code: 'pt', name: 'Português', flag: '🇵🇹' },
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' }
+    { code: "pt", name: "Português", flag: "🇵🇹" },
+    { code: "en", name: "English", flag: "🇬🇧" },
+    { code: "es", name: "Español", flag: "🇪🇸" },
+    { code: "fr", name: "Français", flag: "🇫🇷" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Language Selector */}
-        <div className="flex justify-end mb-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Globe className="w-4 h-4" />
-                {t.selectLanguage}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+    <div className="min-h-screen bg-gradient-to-b from-teal-50/40 via-white to-white">
+      {/* Hero */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#0d9483] via-[#14b8a6] to-[#0891b2] text-white">
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 30%, white 1px, transparent 1px), radial-gradient(circle at 70% 60%, white 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+        <div className="relative max-w-4xl mx-auto px-4 py-14 md:py-20">
+          {/* Language selector */}
+          <div className="flex justify-end mb-6">
+            <div className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur-sm p-1">
               {languages.map((lang) => (
-                <DropdownMenuItem 
-                  key={lang.code} 
+                <button
+                  key={lang.code}
                   onClick={() => setLanguage(lang.code)}
-                  className="cursor-pointer"
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    language === lang.code
+                      ? "bg-white text-[#0d9483]"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  }`}
                 >
-                  {lang.flag} {lang.name}
-                </DropdownMenuItem>
+                  {lang.flag} {lang.code.toUpperCase()}
+                </button>
               ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm mb-5">
+            <Shield className="w-8 h-8" />
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-xs font-bold mb-4">
+            <Check className="w-3.5 h-3.5" />
+            {t.badge}
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-2 font-heading tracking-tight">
+            {t.title}
+          </h1>
+          <p className="text-lg text-white/80 mb-4">{t.subtitle}</p>
+          <p className="text-sm text-white/70 mb-6">{t.lastUpdated}</p>
+          <p className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed">
+            {t.intro}
+          </p>
         </div>
+      </div>
 
-        <Card className="border-0 shadow-2xl mb-6">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
-            <div className="flex items-center gap-3">
-              <Lock className="w-8 h-8" />
-              <div>
-                <CardTitle className="text-2xl md:text-3xl">{t.title}</CardTitle>
-                <p className="text-white/90 text-sm mt-1">{t.lastUpdated}</p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6 md:p-8">
-            {/* Introduction */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-8">
-              <p className="text-blue-900 leading-relaxed">
-                {t.intro}
-              </p>
-            </div>
-
-            {/* Sections */}
-            <div className="space-y-8">
-              {t.sections.map((section, index) => {
-                const IconComponent = section.icon || Shield;
-                return (
-                  <div key={index} className="border-b border-gray-200 pb-6 last:border-0">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <IconComponent className="w-5 h-5 text-white" />
-                      </div>
-                      {section.title}
+      <div className="max-w-4xl mx-auto px-4 -mt-8 md:-mt-12 pb-16 relative z-10">
+        {/* Accordion sections */}
+        <div className="glass-panel rounded-3xl overflow-hidden">
+          {t.sections.map((section, index) => {
+            const Icon = section.icon;
+            const isOpen = openSection === index;
+            return (
+              <div
+                key={index}
+                className={`border-b border-slate-200/60 last:border-0 ${
+                  isOpen ? "bg-white/40" : ""
+                }`}
+              >
+                <button
+                  onClick={() => setOpenSection(isOpen ? -1 : index)}
+                  className="w-full flex items-center gap-4 px-5 md:px-7 py-5 text-left hover:bg-white/30 transition-colors"
+                >
+                  <div
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isOpen
+                        ? "bg-[#0d9483] text-white"
+                        : "bg-[#0d9483]/10 text-[#0d9483]"
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="font-heading font-bold text-slate-900 text-base md:text-lg leading-tight">
+                      {index + 1}. {section.title}
                     </h2>
-                    <div className="text-gray-700 whitespace-pre-line leading-relaxed pl-13 ml-13 prose prose-sm max-w-none">
-                      {section.content.split('\n').map((line, i) => {
-                        if (line.startsWith('**') && line.endsWith('**')) {
-                          return <p key={i} className="font-bold text-gray-900 mt-4 mb-2">{line.replace(/\*\*/g, '')}</p>;
-                        }
-                        if (line.includes('**')) {
-                          const parts = line.split(/\*\*(.*?)\*\*/g);
-                          return (
-                            <p key={i} className="mb-1">
-                              {parts.map((part, j) => 
-                                j % 2 === 1 ? <strong key={j} className="text-gray-900">{part}</strong> : part
-                              )}
-                            </p>
-                          );
-                        }
-                        if (line.startsWith('•')) {
-                          return <p key={i} className="mb-1 ml-4">{line}</p>;
-                        }
-                        if (line.trim() === '') {
-                          return <br key={i} />;
-                        }
-                        return <p key={i} className="mb-2">{line}</p>;
-                      })}
+                  </div>
+                  <ChevronDown
+                    className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isOpen && (
+                  <div className="px-5 md:px-7 pb-6 pl-5 md:pl-7">
+                    <div className="ml-0 md:ml-[3.75rem] space-y-5 pt-1">
+                      {section.blocks.map((block, bi) => (
+                        <div key={bi}>
+                          <h3 className="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+                            <span className="w-1 h-4 rounded-full bg-[#0d9483]" />
+                            {block.label}
+                          </h3>
+                          <ul className="space-y-1.5 ml-3">
+                            {block.items.map((item, ii) => (
+                              <li
+                                key={ii}
+                                className="flex items-start gap-2 text-sm text-slate-600"
+                              >
+                                <Check className="w-4 h-4 text-[#0d9483] mt-0.5 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+
+                      {section.highlight && (
+                        <div className="flex items-start gap-2.5 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3">
+                          <Scale className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-amber-800 font-medium">
+                            {section.highlight}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-            {/* Final Note */}
-            <div className="mt-8 bg-purple-50 border-2 border-purple-200 rounded-xl p-6">
-              <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <Shield className="w-5 h-5 text-purple-600" />
-                {language === 'pt' && 'O Seu Compromisso com a Privacidade'}
-                {language === 'en' && 'Your Privacy Commitment'}
-                {language === 'es' && 'Su Compromiso con la Privacidad'}
-                {language === 'fr' && 'Votre Engagement de Confidentialité'}
-              </h3>
-              <p className="text-sm text-gray-700">
-                {language === 'pt' && 'A PawCão trata a privacidade dos seus dados com a máxima seriedade. Se tiver qualquer dúvida ou preocupação, não hesite em contactar-nos.'}
-                {language === 'en' && 'PawCão treats your data privacy with the utmost seriousness. If you have any questions or concerns, do not hesitate to contact us.'}
-                {language === 'es' && 'PawCão trata la privacidad de sus datos con la máxima seriedad. Si tiene alguna duda o preocupación, no dude en contactarnos.'}
-                {language === 'fr' && 'PawCão traite la confidentialité de vos données avec le plus grand sérieux. Si vous avez des questions ou des préoccupations, n\'hésitez pas à nous contacter.'}
-              </p>
+        {/* Commitment card */}
+        <div className="mt-6 rounded-3xl overflow-hidden shadow-xl shadow-[#0d9483]/10">
+          <div className="bg-gradient-to-br from-[#0d9483] to-[#0891b2] text-white p-6 md:p-8 flex items-start gap-4">
+            <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <h2 className="text-lg font-heading font-bold mb-1">
+                {t.commitmentTitle}
+              </h2>
+              <p className="text-white/90 text-sm leading-relaxed">
+                {t.commitmentText}
+              </p>
+              <a
+                href="mailto:support@pawcao.net"
+                className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-full bg-white text-[#0d9483] font-bold text-sm hover:bg-white/90 transition-colors"
+              >
+                <Mail className="w-4 h-4" />
+                support@pawcao.net
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
