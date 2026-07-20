@@ -139,7 +139,11 @@
               "training",
               "grooming",
               "bathing",
-              "nail_trim"
+              "nail_trim",
+              "feeding",
+              "medication",
+              "playtime",
+              "general_care"
             ]
           },
           "quantity": {
@@ -172,6 +176,14 @@
           "task_notes": {
             "type": "string",
             "description": "Notas do parceiro ao concluir a tarefa"
+          },
+          "assignment_notes": {
+            "type": "string",
+            "description": "Instrucoes deixadas pelo hotel ao atribuir a tarefa"
+          },
+          "due_time": {
+            "type": "string",
+            "description": "Horario recomendado para executar a tarefa (HH:MM)"
           }
         }
       },
@@ -315,6 +327,9 @@
           "data.owner_email": "{{user.email}}"
         },
         {
+          "data.assigned_walker_email": "{{user.email}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -328,6 +343,9 @@
         },
         {
           "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "data.assigned_walker_email": "{{user.email}}"
         },
         {
           "user_condition": {
