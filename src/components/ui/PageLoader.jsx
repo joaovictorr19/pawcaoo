@@ -3,7 +3,7 @@ import React from "react";
 export default function PageLoader() {
   return (
     <div
-      className="fixed inset-0 z-[99999] flex flex-col items-center justify-center overflow-hidden"
+      className="min-h-screen w-full flex flex-col items-center justify-center overflow-hidden relative"
       style={{ background: "linear-gradient(160deg, #f0fdfa 0%, #ffffff 45%, #ecfdf5 100%)" }}
       role="status"
       aria-live="polite"
