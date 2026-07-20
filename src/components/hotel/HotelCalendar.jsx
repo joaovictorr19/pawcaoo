@@ -80,11 +80,19 @@ export default function HotelCalendar({ bookings = [], onDayClick, selectedDate 
           const isTodayDay = isToday(day);
           const hasBookings = dayBookings.length > 0;
 
+          // Detectar chegadas e saídas neste dia
+          const arrivals = dayBookings.filter(b => {
+            try { return b.checkin_date && isSameDay(parseISO(b.checkin_date), day); } catch { return false; }
+          });
+          const departures = dayBookings.filter(b => {
+            try { return b.checkout_date && isSameDay(parseISO(b.checkout_date), day); } catch { return false; }
+          });
+
           return (
             <button
               key={idx}
               onClick={() => onDayClick?.(day)}
-              className={`min-h-[52px] p-1 text-left transition-all border-b border-r border-purple-50 relative group
+              className={`min-h-[84px] p-1 text-left transition-all border-b border-r border-purple-50 relative group
                 ${!isCurrentMonth ? "opacity-25" : ""}
                 ${isSelected
                   ? "bg-gradient-to-br from-purple-700 to-purple-500 shadow-inner"
@@ -104,9 +112,18 @@ export default function HotelCalendar({ bookings = [], onDayClick, selectedDate 
                 {format(day, "d")}
               </span>
               <div className="flex flex-col gap-0.5 px-0.5">
-                {dayBookings.slice(0, 3).map((b, i) => (
-                  <div key={i} className={`h-1 rounded-full ${SERVICE_COLORS[b.service_type] || "bg-slate-400"} ${isSelected ? "opacity-80" : ""}`} />
-                ))}
+                {dayBookings.slice(0, 3).map((b, i) => {
+                  const dogName = b.dogs?.[0]?.dog_name || b.owner_name?.split(" ")[0] || "?";
+                  const isArrival = arrivals.includes(b);
+                  const isDeparture = departures.includes(b);
+                  const arrow = isArrival && isDeparture ? "↔" : isArrival ? "↓" : isDeparture ? "↑" : "·";
+                  return (
+                    <div key={i} className={`flex items-center gap-0.5 rounded px-0.5 py-0.5 ${isSelected ? "bg-white/20" : "bg-purple-50/60"}`}>
+                      <span className={`text-[7px] font-bold leading-none ${isSelected ? "text-white" : "text-purple-700"}`}>{arrow}</span>
+                      <span className={`text-[7px] font-semibold leading-none truncate ${isSelected ? "text-white" : "text-slate-700"}`}>{dogName}</span>
+                    </div>
+                  );
+                })}
                 {dayBookings.length > 3 && (
                   <span className={`text-[7px] font-bold text-center ${isSelected ? "text-white/70" : "text-purple-400"}`}>+{dayBookings.length - 3}</span>
                 )}
@@ -117,13 +134,18 @@ export default function HotelCalendar({ bookings = [], onDayClick, selectedDate 
       </div>
 
       {/* Legend */}
-      <div className="px-3 py-2 bg-gradient-to-r from-purple-50 to-white border-t border-purple-100 flex flex-wrap gap-x-3 gap-y-1">
+      <div className="px-3 py-2 bg-gradient-to-r from-purple-50 to-white border-t border-purple-100 flex flex-wrap items-center gap-x-3 gap-y-1">
         {Object.entries(SERVICE_COLORS).map(([key, color]) => (
           <div key={key} className="flex items-center gap-1">
             <div className={`w-2 h-2 rounded-full ${color} shadow-sm`} />
             <span className="text-[9px] text-slate-500 font-medium">{SERVICE_LABELS[key]}</span>
           </div>
         ))}
+        <div className="flex items-center gap-2 ml-auto pl-2 border-l border-purple-100">
+          <span className="text-[9px] text-green-600 font-bold">↓ Chegada</span>
+          <span className="text-[9px] text-purple-600 font-bold">↑ Saída</span>
+          <span className="text-[9px] text-slate-500 font-bold">↔ Mesmo dia</span>
+        </div>
       </div>
     </div>
   );

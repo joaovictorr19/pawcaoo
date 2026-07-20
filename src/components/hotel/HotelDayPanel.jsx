@@ -123,7 +123,20 @@ export default function HotelDayPanel({ date, bookings = [], onUpdateBooking, ca
             </div>
 
             <div className="flex items-center gap-3 text-[10px] text-slate-400 mb-2 flex-wrap">
-              <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{booking.checkin_time || "—"} → {booking.checkout_time || "—"}</span>
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span className="font-semibold text-slate-600">{booking.checkin_time || "—"}</span>
+                {booking.checkout_date && (() => {
+                  try {
+                    const co = parseISO(booking.checkout_date);
+                    const ci = parseISO(booking.checkin_date);
+                    const sameDay = ci.toDateString() === co.toDateString();
+                    return sameDay
+                      ? <span> → <span className="font-semibold text-purple-600">{booking.checkout_time || "—"}</span></span>
+                      : <span> → <span className="font-semibold text-purple-600">{format(co, "dd/MM", { locale: pt })}{booking.checkout_time ? ` ${booking.checkout_time}` : ""}</span></span>;
+                  } catch { return null; }
+                })()}
+              </span>
               <span className="flex items-center gap-1"><Dog className="w-3 h-3" />{booking.total_dogs || 1} cão(ões)</span>
               {booking.total_amount && <span className="flex items-center gap-1 font-bold text-green-600"><Euro className="w-3 h-3" />{booking.total_amount.toFixed(2)}</span>}
               {booking.owner_phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{booking.owner_phone}</span>}
