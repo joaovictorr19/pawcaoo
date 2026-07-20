@@ -146,6 +146,11 @@ export default function ClientActiveHotelStays({ user }) {
           .map((a, i) => ({ ...a, index: i }))
           .filter(a => a.requested_by_client);
 
+        // Hotel-initiated add-ons with pending card payment (client must pay through the site)
+        const hotelAddOnsToPay = (booking.add_ons || [])
+          .map((a, i) => ({ ...a, index: i }))
+          .filter(a => !a.requested_by_client && a.request_status === 'accepted' && a.payment_method === 'card' && !a.paid && a.payment_status !== 'paid');
+
         return (
           <motion.div
             key={booking.id}
@@ -194,6 +199,38 @@ export default function ClientActiveHotelStays({ user }) {
                 </div>
               </div>
             </div>
+
+            {/* Hotel-initiated add-ons awaiting payment */}
+            {hotelAddOnsToPay.length > 0 && (
+              <div className="px-4 py-3 border-b border-white/5 space-y-2">
+                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">💳 Pagamento Pendente</p>
+                {hotelAddOnsToPay.map(a => {
+                  const Icon = SERVICE_ICONS[a.service_name] || PawPrint;
+                  return (
+                    <div key={a.index} className="flex items-center gap-2 bg-amber-500/10 rounded-lg p-2 border border-amber-500/20">
+                      <Icon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-white">
+                          {SERVICE_LABELS[a.service_name] || a.service_name}
+                        </p>
+                        <p className="text-[10px] text-amber-400 font-bold">{a.total_price?.toFixed(2)}€ a pagar</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="h-7 px-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 text-[10px] font-bold gap-1 shrink-0"
+                        disabled={payingAddOn?.bookingId === booking.id && payingAddOn?.addOnIndex === a.index}
+                        onClick={() => handlePayAddOn(booking.id, a.index)}
+                      >
+                        {payingAddOn?.bookingId === booking.id && payingAddOn?.addOnIndex === a.index
+                          ? <Loader2 className="w-3 h-3 animate-spin" />
+                          : <CreditCard className="w-3 h-3" />}
+                        Pagar
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Client-requested services status */}
             {clientAddOns.length > 0 && (
