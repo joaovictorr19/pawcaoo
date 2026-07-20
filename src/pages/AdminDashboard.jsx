@@ -134,6 +134,16 @@ export default function AdminDashboard() {
   const [impersonateReason, setImpersonateReason] = useState("");
   const [impersonateLoading, setImpersonateLoading] = useState(false);
 
+  // Force light mode on admin dashboard — prevents dark system preference
+  // from mixing dark CSS variables with hardcoded light colors
+  useEffect(() => {
+    const wasDark = document.documentElement.classList.contains('dark');
+    document.documentElement.classList.remove('dark');
+    return () => {
+      if (wasDark) document.documentElement.classList.add('dark');
+    };
+  }, []);
+
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
