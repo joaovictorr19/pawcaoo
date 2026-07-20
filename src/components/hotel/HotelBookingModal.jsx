@@ -418,27 +418,21 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
                   {checkinDate && (
                     <div className="grid grid-cols-2 gap-2.5">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block flex items-center gap-1 tracking-wider">
+                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
+                        <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1">
                           <Clock className="w-2.5 h-2.5" /> Entrada
-                        </label>
-                        <input
-                          type="time"
-                          value={checkinTime}
-                          onChange={(e) => setCheckinTime(e.target.value)}
-                          className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 font-bold text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
-                        />
+                        </p>
+                        <p className="text-sm font-black text-slate-900 mt-0.5">
+                          {hotel?.hotel_details?.checkin_time || checkinTime}
+                        </p>
                       </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block flex items-center gap-1 tracking-wider">
+                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
+                        <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1">
                           <Clock className="w-2.5 h-2.5" /> Saída
-                        </label>
-                        <input
-                          type="time"
-                          value={checkoutTime}
-                          onChange={(e) => setCheckoutTime(e.target.value)}
-                          className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 font-bold text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
-                        />
+                        </p>
+                        <p className="text-sm font-black text-slate-900 mt-0.5">
+                          {hotel?.hotel_details?.checkout_time || checkoutTime}
+                        </p>
                       </div>
                     </div>
                   )}

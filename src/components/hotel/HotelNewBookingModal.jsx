@@ -89,7 +89,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   // Guardar reserva sem pagamento (cliente paga presencialmente)
   const handleSaveOnly = () => {
     if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) {
-      toast.error("Preenche o nome do dono, data de check-in e tipo de serviço.");
+      toast.error("Preencha o nome do dono, a data de check-in e o tipo de serviço.");
       return;
     }
     onSave(buildPayload());
@@ -99,11 +99,11 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   // Registar pagamento presencial (dinheiro, MBWay, multibanco)
   const handlePaidOffline = () => {
     if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) {
-      toast.error("Preenche o nome do dono, data de check-in e tipo de serviço.");
+      toast.error("Preencha o nome do dono, a data de check-in e o tipo de serviço.");
       return;
     }
     if (grandTotal <= 0) {
-      toast.error("Insere um valor total para registar pagamento.");
+      toast.error("Insira um valor total para registar pagamento.");
       return;
     }
     onSave(buildPayload({ payment_status: "paid" }));
@@ -114,11 +114,11 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   // Gerar link de pagamento para enviar ao cliente
   const handleGenerateLink = async () => {
     if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) {
-      toast.error("Preenche os dados obrigatórios antes de gerar o link.");
+      toast.error("Preencha os dados obrigatórios antes de gerar o link.");
       return;
     }
     if (grandTotal <= 0) {
-      toast.error("Insere um valor total para gerar o link de pagamento.");
+      toast.error("Insira um valor total para gerar o link de pagamento.");
       return;
     }
     setGeneratingLink(true);
@@ -142,11 +142,11 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   // Pagar agora via Stripe (redireciona)
   const handlePayNow = async () => {
     if (!form.owner_name.trim() || !form.checkin_date || !form.service_type) {
-      toast.error("Preenche os dados obrigatórios.");
+      toast.error("Preencha os dados obrigatórios.");
       return;
     }
     if (grandTotal <= 0) {
-      toast.error("Insere um valor total válido.");
+      toast.error("Insira um valor total válido.");
       return;
     }
     setPayingNow(true);
