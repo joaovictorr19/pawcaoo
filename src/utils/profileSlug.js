@@ -28,9 +28,9 @@ export function slugify(text) {
  * @param {string} entityType  Tipo: 'hotel' | 'walker' | 'trainer' | 'company'
  */
 export async function ensureProfileSlug(name, email, entityType = 'walker') {
-  const baseSlug = slugify(name);
+  const baseSlug = slugify(name) || slugify(email);
   if (!baseSlug) {
-    return email ? `/UserProfile?email=${encodeURIComponent(email)}` : '/';
+    return '/';
   }
 
   if (!email) {
@@ -87,20 +87,20 @@ export async function ensureProfileSlug(name, email, entityType = 'walker') {
       counter++;
     }
 
-    // Fallback de segurança
-    return `/UserProfile?email=${encodeURIComponent(email)}`;
+    // Fallback de segurança — nunca expõe email na URL
+    return `/p/${baseSlug}`;
   } catch (e) {
-    return email ? `/UserProfile?email=${encodeURIComponent(email)}` : `/p/${baseSlug}`;
+    return `/p/${baseSlug}`;
   }
 }
 
 /**
  * Versão síncrona (legacy) — apenas slugifica, sem deduplicação.
  * Prefira ensureProfileSlug() para garantir unicidade.
+ * Nunca expõe email na URL — usa o slug do nome (ou email slugificado como fallback).
  */
 export function buildShortProfileLink(name, email) {
-  const slug = slugify(name);
+  const slug = slugify(name) || slugify(email);
   if (slug) return `/p/${slug}`;
-  if (email) return `/UserProfile?email=${encodeURIComponent(email)}`;
   return '/';
 }

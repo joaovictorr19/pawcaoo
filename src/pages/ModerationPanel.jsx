@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { buildShortProfileLink } from "@/utils/profileSlug";
+import { ensureProfileSlug, buildShortProfileLink } from "@/utils/profileSlug";
 import {
   Shield, AlertTriangle, CheckCircle, X, Flag, Ban,
   MessageCircle, Users, TrendingUp, Eye, Clock, Star, Heart, ShieldCheck, Award // Added Award
@@ -252,7 +252,7 @@ export default function ModerationPanel() {
         notification_type: 'other',
         related_content_type: 'user',
         post_preview: `Você recebeu o badge: ${badge.name}`,
-        action_url: buildShortProfileLink(targetUser.full_name, userEmail)
+        action_url: buildShortProfileLink(targetUser.full_name, userEmail) // sync — já não expõe email
       });
     },
     onSuccess: () => {
@@ -584,7 +584,7 @@ export default function ModerationPanel() {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => window.open(buildShortProfileLink(user.full_name, user.email), '_blank')}
+                          onClick={() => ensureProfileSlug(user.full_name, user.email, 'user').then(link => window.open(link, '_blank'))}
                         >
                           👤 Ver Perfil
                         </Button>
