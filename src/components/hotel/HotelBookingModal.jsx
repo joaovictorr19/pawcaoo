@@ -685,17 +685,17 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         </span>
                         <span className="font-bold text-slate-700">{baseAmount}€</span>
                       </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-slate-500">
-                          {commissionRate === 0
-                            ? 'Taxa de plataforma (Isento)'
-                            : commissionBorneBy === 'client'
-                              ? `Taxa de plataforma (${commissionRate}% · cliente)`
-                              : `Taxa de plataforma (${commissionRate}% · incluída)`}
-                        </span>
-                        <span className="font-bold text-amber-600">{commissionBorneBy === 'client' ? '+' : '−'}{platformFee}€</span>
-                      </div>
-                      {commissionRate > 0 && (
+                      {commissionBorneBy === 'client' && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500">
+                            {commissionRate === 0
+                              ? 'Taxa de plataforma (Isento)'
+                              : `Taxa de plataforma (${commissionRate}%)`}
+                          </span>
+                          <span className="font-bold text-amber-600">+{platformFee}€</span>
+                        </div>
+                      )}
+                      {commissionBorneBy === 'client' && commissionRate > 0 && (
                         <div className="flex justify-between text-[10px] text-slate-400">
                           <span>Hotel recebe</span>
                           <span className="font-semibold">{hotelReceives}€</span>
