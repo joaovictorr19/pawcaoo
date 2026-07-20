@@ -13,6 +13,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import HotelFiscalReceipt from './HotelFiscalReceipt';
 
 const PAYMENT_STATUS_CONFIG = {
   pending:  { label: 'Pendente',   dot: 'bg-amber-500',   cls: 'bg-amber-50 text-amber-700 border-amber-200' },
@@ -295,6 +296,9 @@ export default function HotelFinancesPanel({ hotelProfile, bookings }) {
           </div>
         )}
       </Card>
+
+      {/* Fiscal Receipt for Tax Declaration */}
+      <HotelFiscalReceipt hotelProfile={hotelProfile} bookings={bookings} />
 
       {/* Withdrawal Section */}
       <Card className="border border-slate-200 p-4">
