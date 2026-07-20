@@ -42,6 +42,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: you do not own this booking' }, { status: 403 });
     }
 
+    // SECURITY: Validate booking workflow state before releasing any funds.
+    // Prevents premature/repeated payouts for services not yet performed.
+    if (booking.paid_via_subscription || booking.payment_status === 'released') {
+      return Response.json({ error: 'This booking has already been paid' }, { status: 400 });
+    }
+    if (booking.status !== 'service_completed') {
+      return Response.json({
+        error: 'Free walk token can only be used after the service is completed and validated',
+        current_status: booking.status
+      }, { status: 400 });
+    }
+
     // SECURITY: Derive walker_email and service_amount from the booking record,
     // never from user-supplied input, to prevent payment diversion.
     const walker_email = booking.walker_email;

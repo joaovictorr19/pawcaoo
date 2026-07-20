@@ -98,11 +98,15 @@ Deno.serve(async (req) => {
       `Equipa PawCão`
     ].filter(v => v !== null).join('\n');
 
+    // SECURITY: Strip any HTML tags from user-controlled content to prevent
+    // HTML injection/phishing in the recipient's email client.
+    const stripHtml = (s: string) => s.replace(/<[^>]*>/g, '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
     await base44.asServiceRole.integrations.Core.SendEmail({
       from_name: 'PawCão',
       to: recipient,
-      subject: `Novo pedido de ${type} — ${dogName} (${owner}) | PawCão`,
-      body: lines,
+      subject: stripHtml(`Novo pedido de ${type} — ${dogName} (${owner}) | PawCão`),
+      body: stripHtml(lines),
     });
 
     return Response.json({ success: true });
