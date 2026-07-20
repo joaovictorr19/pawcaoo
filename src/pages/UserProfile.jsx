@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ProfileBentoGrid from "@/components/profile/ProfileBentoGrid";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
+import ProfileManagementSection from "@/components/profile/ProfileManagementSection";
 import GroupWalkEventsSection from "@/components/groupwalk/GroupWalkEventsSection";
 
 const BadgeSelectionModal = lazy(() => import("@/components/gamification/BadgeSelectionModal"));
@@ -395,6 +396,16 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
       onToggleVerify={() => toggleVerificationMutation.mutate(profileUser.id)}
       profileEmail={profileEmail}
     />
+
+      <div className="max-w-4xl mx-auto px-4 pb-8">
+        <ProfileManagementSection
+          walkerProfile={walkerProfile}
+          trainerProfile={trainerProfile}
+          currentUser={currentUser}
+          isOwnProfile={isOwnProfile}
+          profileEmail={profileEmail}
+        />
+      </div>
 
       {profileEmail && (walkerProfile || trainerProfile) && walkerProfile?.professional_type !== 'hotel' && (
         <div className="max-w-4xl mx-auto px-4 pb-8">
