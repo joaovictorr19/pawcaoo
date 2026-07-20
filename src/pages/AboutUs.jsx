@@ -1,485 +1,453 @@
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Shield, Users, Award, Target, Zap, TrendingUp, Star } from "lucide-react";
-import { motion } from "framer-motion";
-import { useLanguage } from "@/components/LanguageContext";
-import { base44 } from "@/api/base44Client";
+import React, { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton } from "@/components/ui/skeleton";
+import { base44 } from "@/api/base44Client";
+import { useLanguage } from "@/components/LanguageContext";
+import {
+  Heart, Shield, Users, Award, Zap, Star, PawPrint, MapPin, TrendingUp, Sparkles, ArrowRight, Dog,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/e3013a5a7_IMG_3975.jpg";
+
+function AnimatedCounter({ value, duration = 1200, suffix = "" }) {
+  const [display, setDisplay] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const target = typeof value === "number" ? value : 0;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !started.current) {
+          started.current = true;
+          const start = performance.now();
+          const tick = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setDisplay(Math.round(target * eased));
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [value, duration]);
+
+  const isFloat = typeof value === "string" && value.includes(".");
+  if (isFloat) {
+    return <span ref={ref}>{value}{suffix}</span>;
+  }
+  return <span ref={ref}>{display.toLocaleString("pt-PT")}{suffix}</span>;
+}
 
 export default function AboutUs() {
   const { language } = useLanguage();
 
-  // Fetch real-time stats
-  const { data: stats, isLoading: loadingStats } = useQuery({
-    queryKey: ['aboutUsStats'],
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ["aboutUsStats"],
     queryFn: async () => {
-      const [walkers, trainers, bookings, reviews, adoptions] = await Promise.all([
-        base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }),
-        base44.entities.TrainerProfile.filter({ is_active: true, verification_status: 'verified' }),
-        base44.entities.Booking.filter({ status: 'completed' }),
-        base44.entities.Review.list(),
-        base44.entities.AdoptionApplication.filter({ status: 'approved' })
+      const [walkers, trainers, completedBookings, reviews] = await Promise.all([
+        base44.entities.WalkerProfile.filter({ is_active: true }, undefined, 5000),
+        base44.entities.TrainerProfile.filter({ is_active: true }, undefined, 5000),
+        base44.entities.Booking.filter({ status: "completed" }, undefined, 5000),
+        base44.entities.Review.list(undefined, 5000),
       ]);
 
       const totalProfessionals = walkers.length + trainers.length;
-      const totalWalks = bookings.length;
-      const avgRating = reviews.length > 0 
-        ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-        : 5.0;
-      
+      const totalWalks = completedBookings.length;
+      const avgRating =
+        reviews.length > 0
+          ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+          : "0.0";
+
       return {
+        happyDogs: totalWalks,
         totalProfessionals,
         totalWalks,
         avgRating,
-        adoptedDogs: adoptions.length,
-        happyDogs: totalWalks + adoptions.length
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  const content = {
+  const t = {
     pt: {
-      title: "Sobre o PawCão",
-      subtitle: "Nascido da Frustração com Plataformas Confusas",
-      missionTitle: "A Nossa Missão",
-      missionText: "Simplificar a forma como os donos de cães encontram profissionais, hotéis caninos e parceiros pet shop. Oferecemos eficiência, segurança e uma experiência tão intuitiva que qualquer pessoa consegue fazer uma reserva em segundos, sem burocracias desnecessárias.",
-      
-      storyTitle: "A Nossa História: Por Que Criamos o PawCão",
-      storyText: "Criámos o PawCão porque existe um problema real. Outros sites de cuidados para animais são confusos, longos em registos, cheios de passos desnecessários e francamente, não são eficientes. Vimos donos de cães frustrados, profissionais perdidos em interfaces complicadas, e hotéis caninos a gastar horas em processos que deviam levar minutos.\n\nDecidimos fazer diferente. O PawCão foi criado com um princípio simples: eficiência em primeiro lugar, sem comprometer a segurança. Queremos ser os líderes globais neste espaço, começando por Portugal e Espanha, criando uma plataforma que realmente serve as pessoas (e os cães).",
-      
-      valuesTitle: "Os Nossos Pilares",
-      values: [
-        {
-          icon: Zap,
-          title: "Eficiência Sem Compromissos",
-          description: "Reservas em segundos, registos simplificados. Nada de formulários longos ou processos confusos. Fazemos a tecnologia servir você, não o contrário."
-        },
-        {
-          icon: Shield,
-          title: "Segurança Reforçada",
-          description: "Embora sejamos rápidos, nunca descuramos a segurança. Verificação rigorosa, pagamentos encriptados, e confiança total em cada transação."
-        },
-        {
-          icon: Award,
-          title: "Gamificação & Recompensas",
-          description: "Torne a experiência divertida. Ganhe pontos, desbloqueie recompensas, e seja parte de uma comunidade que valoriza a lealdade."
-        },
-        {
-          icon: Users,
-          title: "Comunidade Global",
-          description: "Conectamos donos, profissionais, hotéis e pet shops. Um ecossistema completo onde todos prosperam juntos."
-        }
-      ],
-
+      heroBadge: "Plataforma de Cuidados para Cães",
+      heroTitle1: "Sobre o",
+      heroTitle2: "PawCão",
+      heroSubtitle: "A plataforma que conecta donos de cães a profissionais verificados, hotéis caninos e serviços pet — de forma simples, segura e eficiente.",
       statsTitle: "PawCão em Números",
-
-      whyTitle: "Por Que Escolher o PawCão?",
-      whyItems: [
-        {
-          icon: Zap,
-          title: "Reservas Simples",
-          description: "Faça uma reserva em menos de 1 minuto. Sem burocracias, sem confusão."
-        },
-        {
-          icon: Shield,
-          title: "Segurança Total",
-          description: "Todos os profissionais verificados, seguros incluídos, pagamentos 100% seguros."
-        },
-        {
-          icon: Heart,
-          title: "Acompanhamento em Tempo Real",
-          description: "Saiba exatamente onde está o seu cão. Tracking GPS, fotos diárias, e atualizações constantes."
-        },
-        {
-          icon: Award,
-          title: "Recompensas Reais",
-          description: "Cada reserva vale pontos. Resgate prêmios, upgrades, e vantagens exclusivas."
-        }
-      ],
-
-      teamTitle: "A Nossa Visão para o Futuro",
-      teamText: "Somos uma equipa de pessoas apaixonadas pela eficiência e pelo bem-estar animal. Acreditamos que a tecnologia deve tornar a vida mais simples, não mais complicada. O nosso objetivo é ser a plataforma número 1 globalmente para cuidados com animais de estimação.",
-      
-      joinTitle: "Junte-se ao Movimento",
-      joinText: "Quer seja um dono que procura simplicidade e segurança, um profissional que quer crescer, ou um negócio pet que quer escalar—tem um lugar no PawCão. Estamos apenas a começar, e o melhor está por vir."
-    },
-    en: {
-      title: "About PawCão",
-      subtitle: "Born from Frustration with Confusing Platforms",
-      missionTitle: "Our Mission",
-      missionText: "Simplify how dog owners find professionals, dog hotels, and pet shop partners. We deliver efficiency, security, and such an intuitive experience that anyone can make a booking in seconds—without unnecessary red tape.",
-      
-      storyTitle: "Our Story: Why We Built PawCão",
-      storyText: "We created PawCão because there's a real problem. Other pet care websites are confusing, lengthy in registration, filled with unnecessary steps, and frankly, inefficient. We saw dog owners frustrated, professionals lost in complicated interfaces, and dog hotels spending hours on processes that should take minutes.\n\nWe decided to do it differently. PawCão was built on one principle: efficiency first, never compromising on safety. We want to be the global leaders in this space, starting with Portugal and Spain, building a platform that truly serves people (and dogs).",
-      
-      valuesTitle: "Our Pillars",
-      values: [
-        {
-          icon: Zap,
-          title: "Efficiency Without Compromise",
-          description: "Bookings in seconds, simplified registration. No long forms or confusing processes. We make technology work for you, not the other way around."
-        },
-        {
-          icon: Shield,
-          title: "Reinforced Security",
-          description: "While we're fast, we never compromise on safety. Rigorous verification, encrypted payments, and complete trust in every transaction."
-        },
-        {
-          icon: Award,
-          title: "Gamification & Rewards",
-          description: "Make the experience fun. Earn points, unlock rewards, and be part of a community that values loyalty."
-        },
-        {
-          icon: Users,
-          title: "Global Community",
-          description: "We connect owners, professionals, hotels, and pet shops. A complete ecosystem where everyone thrives together."
-        }
-      ],
-
-      statsTitle: "PawCão in Numbers",
-
-      whyTitle: "Why Choose PawCão?",
-      whyItems: [
-        {
-          icon: Zap,
-          title: "Simple Bookings",
-          description: "Make a reservation in under 1 minute. No red tape, no confusion."
-        },
-        {
-          icon: Shield,
-          title: "Complete Safety",
-          description: "All professionals verified, insurance included, 100% secure payments."
-        },
-        {
-          icon: Heart,
-          title: "Real-Time Tracking",
-          description: "Know exactly where your dog is. GPS tracking, daily photos, and constant updates."
-        },
-        {
-          icon: Award,
-          title: "Real Rewards",
-          description: "Every booking earns you points. Redeem for prizes, upgrades, and exclusive perks."
-        }
-      ],
-
-      teamTitle: "Our Vision for the Future",
-      teamText: "We're a team of people passionate about efficiency and animal welfare. We believe technology should make life simpler, not more complicated. Our goal is to be the #1 platform globally for pet care.",
-      
-      joinTitle: "Join the Movement",
-      joinText: "Whether you're an owner seeking simplicity and safety, a professional wanting to grow, or a pet business ready to scale—you have a place in PawCão. We're just getting started, and the best is yet to come."
+      statsSubtitle: "Dados em tempo real, sempre atualizados",
+      missionLabel: "A NOSSA MISSÃO",
+      missionTitle: "Simplificar o cuidado animal",
+      missionText: "Existimos para eliminar a frustração das plataformas confusas. Conectamos donos de cães a profissionais qualificados em segundos — com segurança, transparência e zero burocracia.",
+      storyLabel: "A NOSSA HISTÓRIA",
+      storyTitle: "Nascido de uma frustração real",
+      storyP1: "O PawCão nasceu porque as plataformas existentes são lentas, confusas e cheias de passos desnecessários. Vimos donos frustrados, profissionais perdidos em interfaces complicadas e hotéis a perder horas em processos que deviam levar minutos.",
+      storyP2: "Decidimos fazer diferente. Construímos uma plataforma onde a eficiência nunca compromete a segurança — reservas em segundos, profissionais verificados e pagamentos protegidos. Começámos em Portugal e Espanha, com a ambição de ser a plataforma número 1 globalmente.",
+      valuesTitle: "Os Nossos Pilares",
+      valuesSubtitle: "Princípios que guiam cada decisão",
+      ctaTitle: "Junte-se ao PawCão",
+      ctaText: "Quer seja dono, profissional ou hotel — há um lugar para si na maior comunidade de cuidados para cães.",
+      ctaButton: "Começar Agora",
+      statLabels: {
+        happyDogs: "Cães Felizes",
+        professionals: "Profissionais",
+        walks: "Passeios",
+        rating: "Avaliação",
+      },
     },
     es: {
-      title: "Sobre PawCão",
-      subtitle: "Nacido de la Frustración con Plataformas Confusas",
-      missionTitle: "Nuestra Misión",
-      missionText: "Simplificar cómo los dueños de perros encuentran profesionales, hoteles caninos y socios de tiendas de mascotas. Ofrecemos eficiencia, seguridad y una experiencia tan intuitiva que cualquiera puede hacer una reserva en segundos, sin trámites innecesarios.",
-      
-      storyTitle: "Nuestra Historia: Por Qué Creamos PawCão",
-      storyText: "Creamos PawCão porque existe un problema real. Otros sitios de cuidado de mascotas son confusos, tediosos en los registros, llenos de pasos innecesarios y francamente, no son eficientes. Vimos dueños de perros frustrados, profesionales perdidos en interfaces complicadas, y hoteles caninos gastando horas en procesos que deberían tomar minutos.\n\nDecidimos hacerlo diferente. PawCão fue creado con un principio simple: eficiencia primero, sin comprometer la seguridad. Queremos ser los líderes globales en este espacio, comenzando con Portugal y España, construyendo una plataforma que realmente sirva a las personas (y a los perros).",
-      
-      valuesTitle: "Nuestros Pilares",
-      values: [
-        {
-          icon: Zap,
-          title: "Eficiencia Sin Compromiso",
-          description: "Reservas en segundos, registros simplificados. Sin formularios largos ni procesos confusos. Hacemos que la tecnología le sirva a usted, no al revés."
-        },
-        {
-          icon: Shield,
-          title: "Seguridad Reforzada",
-          description: "Aunque somos rápidos, nunca comprometemos la seguridad. Verificación rigurosa, pagos encriptados, y confianza total en cada transacción."
-        },
-        {
-          icon: Award,
-          title: "Gamificación y Recompensas",
-          description: "Haga que la experiencia sea divertida. Gane puntos, desbloquee recompensas y sea parte de una comunidad que valora la lealtad."
-        },
-        {
-          icon: Users,
-          title: "Comunidad Global",
-          description: "Conectamos dueños, profesionales, hoteles y tiendas de mascotas. Un ecosistema completo donde todos prosperan juntos."
-        }
-      ],
-
+      heroBadge: "Plataforma de Cuidados para Perros",
+      heroTitle1: "Sobre",
+      heroTitle2: "PawCão",
+      heroSubtitle: "La plataforma que conecta dueños de perros con profesionales verificados, hoteles caninos y servicios pet — de forma simple, segura y eficiente.",
       statsTitle: "PawCão en Números",
-
-      whyTitle: "¿Por Qué Elegir PawCão?",
-      whyItems: [
-        {
-          icon: Zap,
-          title: "Reservas Simples",
-          description: "Haga una reserva en menos de 1 minuto. Sin trámites, sin confusión."
-        },
-        {
-          icon: Shield,
-          title: "Seguridad Total",
-          description: "Todos los profesionales verificados, seguros incluidos, pagos 100% seguros."
-        },
-        {
-          icon: Heart,
-          title: "Seguimiento en Tiempo Real",
-          description: "Sepa exactamente dónde está su perro. GPS tracking, fotos diarias y actualizaciones constantes."
-        },
-        {
-          icon: Award,
-          title: "Recompensas Reales",
-          description: "Cada reserva le gana puntos. Canjee premios, mejoras y ventajas exclusivas."
-        }
-      ],
-
-      teamTitle: "Nuestra Visión para el Futuro",
-      teamText: "Somos un equipo de personas apasionadas por la eficiencia y el bienestar animal. Creemos que la tecnología debe hacer la vida más simple, no más complicada. Nuestro objetivo es ser la plataforma número 1 globalmente para el cuidado de mascotas.",
-      
-      joinTitle: "Únete al Movimiento",
-      joinText: "Ya sea que busques simpleza y seguridad, que seas un profesional que quiere crecer, o un negocio de mascotas listo para escalar—tienes un lugar en PawCão. Acabamos de empezar, y lo mejor está por venir."
-    }
+      statsSubtitle: "Datos en tiempo real, siempre actualizados",
+      missionLabel: "NUESTRA MISIÓN",
+      missionTitle: "Simplificar el cuidado animal",
+      missionText: "Existimos para eliminar la frustración de las plataformas confusas. Conectamos dueños de perros con profesionales cualificados en segundos — con seguridad, transparencia y cero burocracia.",
+      storyLabel: "NUESTRA HISTORIA",
+      storyTitle: "Nacido de una frustración real",
+      storyP1: "PawCão nació porque las plataformas existentes son lentas, confusas y llenas de pasos innecesarios. Vimos dueños frustrados, profesionales perdidos en interfaces complicadas y hoteles perdiendo horas en procesos que deberían tomar minutos.",
+      storyP2: "Decidimos hacerlo diferente. Construimos una plataforma donde la eficiencia nunca compromete la seguridad — reservas en segundos, profesionales verificados y pagos protegidos. Empezamos en Portugal y España, con la ambición de ser la plataforma número 1 globalmente.",
+      valuesTitle: "Nuestros Pilares",
+      valuesSubtitle: "Principios que guían cada decisión",
+      ctaTitle: "Únete a PawCão",
+      ctaText: "Ya seas dueño, profesional u hotel — hay un lugar para ti en la mayor comunidad de cuidados para perros.",
+      ctaButton: "Empezar Ahora",
+      statLabels: {
+        happyDogs: "Perros Felices",
+        professionals: "Profesionales",
+        walks: "Paseos",
+        rating: "Calificación",
+      },
+    },
+    en: {
+      heroBadge: "Dog Care Platform",
+      heroTitle1: "About",
+      heroTitle2: "PawCão",
+      heroSubtitle: "The platform that connects dog owners with verified professionals, dog hotels and pet services — simply, securely and efficiently.",
+      statsTitle: "PawCão in Numbers",
+      statsSubtitle: "Real-time data, always up to date",
+      missionLabel: "OUR MISSION",
+      missionTitle: "Simplifying pet care",
+      missionText: "We exist to eliminate the frustration of confusing platforms. We connect dog owners with qualified professionals in seconds — with security, transparency and zero bureaucracy.",
+      storyLabel: "OUR STORY",
+      storyTitle: "Born from real frustration",
+      storyP1: "PawCão was born because existing platforms are slow, confusing and full of unnecessary steps. We saw frustrated owners, professionals lost in complicated interfaces and hotels wasting hours on processes that should take minutes.",
+      storyP2: "We decided to do it differently. We built a platform where efficiency never compromises security — bookings in seconds, verified professionals and protected payments. We started in Portugal and Spain, with the ambition to be the #1 platform globally.",
+      valuesTitle: "Our Pillars",
+      valuesSubtitle: "Principles that guide every decision",
+      ctaTitle: "Join PawCão",
+      ctaText: "Whether you're an owner, professional or hotel — there's a place for you in the largest dog care community.",
+      ctaButton: "Get Started",
+      statLabels: {
+        happyDogs: "Happy Dogs",
+        professionals: "Professionals",
+        walks: "Walks",
+        rating: "Rating",
+      },
+    },
   };
 
-  const t = content[language] || content.pt;
+  const tr = t[language] || t.pt;
+
+  const values = [
+    {
+      icon: Zap,
+      title: language === "pt" ? "Eficiência Sem Compromissos" : language === "es" ? "Eficiencia Sin Compromiso" : "Efficiency Without Compromise",
+      description: language === "pt"
+        ? "Reservas em segundos, registos simplificados. Sem formulários longos nem processos confusos."
+        : language === "es"
+          ? "Reservas en segundos, registros simplificados. Sin formularios largos ni procesos confusos."
+          : "Bookings in seconds, simplified registration. No long forms or confusing processes.",
+      color: "from-teal-500 to-cyan-600",
+      bg: "bg-teal-50",
+    },
+    {
+      icon: Shield,
+      title: language === "pt" ? "Segurança Reforçada" : language === "es" ? "Seguridad Reforzada" : "Reinforced Security",
+      description: language === "pt"
+        ? "Verificação rigorosa, pagamentos encriptados e confiança total em cada transação."
+        : language === "es"
+          ? "Verificación rigurosa, pagos encriptados y confianza total en cada transacción."
+          : "Rigorous verification, encrypted payments and complete trust in every transaction.",
+      color: "from-slate-600 to-slate-800",
+      bg: "bg-slate-50",
+    },
+    {
+      icon: Heart,
+      title: language === "pt" ? "Bem-Estar Animal" : language === "es" ? "Bienestar Animal" : "Animal Welfare",
+      description: language === "pt"
+        ? "Cão em primeiro lugar. Tracking GPS em tempo real, fotos diárias e acompanhamento constante."
+        : language === "es"
+          ? "El perro primero. Tracking GPS en tiempo real, fotos diarias y seguimiento constante."
+          : "Dog first. Real-time GPS tracking, daily photos and constant monitoring.",
+      color: "from-rose-500 to-pink-600",
+      bg: "bg-rose-50",
+    },
+    {
+      icon: Users,
+      title: language === "pt" ? "Comunidade Global" : language === "es" ? "Comunidad Global" : "Global Community",
+      description: language === "pt"
+        ? "Conectamos donos, profissionais, hotéis e pet shops num ecossistema onde todos prosperam."
+        : language === "es"
+          ? "Conectamos dueños, profesionales, hoteles y tiendas pet en un ecosistema donde todos prosperan."
+          : "We connect owners, professionals, hotels and pet shops in an ecosystem where everyone thrives.",
+      color: "from-amber-500 to-orange-600",
+      bg: "bg-amber-50",
+    },
+  ];
+
+  const statCards = [
+    {
+      icon: Dog,
+      label: tr.statLabels.happyDogs,
+      value: stats?.happyDogs ?? 0,
+      suffix: "",
+      gradient: "from-teal-500 to-emerald-600",
+    },
+    {
+      icon: Users,
+      label: tr.statLabels.professionals,
+      value: stats?.totalProfessionals ?? 0,
+      suffix: "",
+      gradient: "from-slate-600 to-slate-800",
+    },
+    {
+      icon: PawPrint,
+      label: tr.statLabels.walks,
+      value: stats?.totalWalks ?? 0,
+      suffix: "",
+      gradient: "from-rose-500 to-pink-600",
+    },
+    {
+      icon: Star,
+      label: tr.statLabels.rating,
+      value: stats?.avgRating ?? "0.0",
+      suffix: "/5",
+      gradient: "from-amber-500 to-orange-600",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-20 md:py-32 px-4">
-        <div className="max-w-5xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
-              {t.title}
-            </h1>
-            <p className="text-xl md:text-2xl text-white/90">
-              {t.subtitle}
-            </p>
-          </motion.div>
+    <div className="min-h-screen bg-white overflow-x-hidden">
+      {/* HERO */}
+      <section className="relative pt-28 md:pt-36 pb-16 md:pb-24 px-4">
+        {/* Decorative floating paws */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.04]">
+          {[...Array(8)].map((_, i) => (
+            <PawPrint
+              key={i}
+              className="absolute text-teal-900"
+              style={{
+                width: `${30 + i * 12}px`,
+                height: `${30 + i * 12}px`,
+                top: `${(i * 37) % 90}%`,
+                left: `${(i * 53) % 95}%`,
+                transform: `rotate(${i * 45}deg)`,
+              }}
+            />
+          ))}
         </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
-        {/* Mission */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="mb-20"
-        >
-          <div className="max-w-4xl mx-auto bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 md:p-14 border border-blue-100/50">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Target className="w-7 h-7 text-white" />
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
-                {t.missionTitle}
-              </h2>
+        {/* Subtle gradient glow */}
+        <div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full blur-[120px] opacity-20 pointer-events-none"
+          style={{ background: "linear-gradient(135deg, #0d9483, #2dd4bf)" }}
+        />
+
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full shadow-2xl ring-4 ring-white overflow-hidden relative group">
+              <img
+                src={PAWCAO_LOGO_URL}
+                alt="PawCão"
+                className="w-full h-full object-cover scale-110 transition-transform duration-700 group-hover:scale-125"
+              />
+              <div className="absolute inset-0 rounded-full ring-1 ring-black/5" />
             </div>
-            <p className="text-lg md:text-xl text-slate-700 leading-relaxed font-light">
-              {t.missionText}
-            </p>
           </div>
-        </motion.div>
 
-        {/* Story */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="mb-20"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">
-            {t.storyTitle}
-          </h2>
-          <div className="prose prose-lg max-w-none text-slate-700">
-            {t.storyText.split('\n').map((paragraph, idx) => (
-              <p key={idx} className="text-lg leading-relaxed font-light mb-4 last:mb-0">
-                {paragraph}
-              </p>
-            ))}
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-50 border border-teal-100 mb-6">
+            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+            <span className="text-xs font-bold text-teal-700 tracking-wide uppercase">{tr.heroBadge}</span>
           </div>
-        </motion.div>
 
-        {/* Values */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="mb-20"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-12 text-center">
-            {t.valuesTitle}
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {t.values.map((value, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <div className="h-full bg-white border border-slate-200 rounded-2xl p-8 hover:border-slate-300 hover:shadow-lg transition-all duration-300 group">
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-slate-900 to-slate-700 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                      <value.icon className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                        {value.title}
-                      </h3>
-                      <p className="text-slate-600 font-light leading-relaxed">
-                        {value.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+          {/* Title */}
+          <h1 className="font-heading font-extrabold text-4xl md:text-6xl lg:text-7xl text-slate-900 mb-6 tracking-tight leading-none">
+            {tr.heroTitle1}{" "}
+            <span className="relative inline-block">
+              Paw<span className="text-[#0d9483]">Cão</span>
+              <PawPrint className="absolute -top-2 -right-6 w-5 h-5 md:w-7 md:h-7 text-teal-400 rotate-12" />
+            </span>
+          </h1>
 
-        {/* Real-Time Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="mb-20"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-12 text-center">
-            {t.statsTitle}
-          </h2>
-          {loadingStats ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className="h-40 rounded-2xl" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[
-                { icon: TrendingUp, label: language === 'pt' ? 'Cães Felizes' : language === 'es' ? 'Perros Felices' : 'Happy Dogs', value: stats?.happyDogs, gradient: 'from-emerald-600 to-teal-600', delay: 0.2 },
-                { icon: Users, label: language === 'pt' ? 'Profissionais' : language === 'es' ? 'Profesionales' : 'Professionals', value: stats?.totalProfessionals, gradient: 'from-blue-600 to-cyan-600', delay: 0.3 },
-                { icon: Heart, label: language === 'pt' ? 'Passeios' : language === 'es' ? 'Paseos' : 'Walks', value: stats?.totalWalks, gradient: 'from-rose-600 to-pink-600', delay: 0.4 },
-                { icon: Star, label: language === 'pt' ? 'Avaliação' : language === 'es' ? 'Calificación' : 'Rating', value: `${stats?.avgRating || '5.0'}/5`, gradient: 'from-amber-600 to-orange-600', delay: 0.5 }
-              ].map((stat, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: stat.delay }}
-                >
-                  <div className={`bg-gradient-to-br ${stat.gradient} text-white rounded-2xl p-8 text-center hover:shadow-2xl transition-all duration-300 group cursor-pointer`}>
-                    <stat.icon className="w-10 h-10 mx-auto mb-4 opacity-80 group-hover:scale-110 transition-transform duration-300" />
-                    <div className="text-4xl md:text-5xl font-bold mb-3">
-                      {typeof stat.value === 'number' ? stat.value.toLocaleString('pt-PT') : stat.value}+
-                    </div>
-                    <div className="text-sm md:text-base text-white/80 font-medium">
-                      {stat.label}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.div>
+          {/* Subtitle */}
+          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-light mb-8">
+            {tr.heroSubtitle}
+          </p>
 
-        {/* Why Choose */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="mb-20"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-12 text-center">
-            {t.whyTitle}
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {t.whyItems.map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <div className="bg-white border border-slate-200 rounded-2xl p-8 h-full hover:border-slate-300 hover:shadow-lg transition-all duration-300 group flex gap-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-slate-900 to-slate-700 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                    <item.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                      {item.title}
-                    </h3>
-                    <p className="text-slate-600 font-light">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+          {/* CTA */}
+          <Link
+            to={createPageUrl("Home")}
+            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-gradient-to-br from-[#0d9483] to-[#0f766e] text-white font-bold text-sm md:text-base shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+          >
+            {tr.ctaButton}
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </section>
 
-        {/* Team */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="mb-20"
-        >
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-12 md:p-16 border border-slate-200">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-slate-900 to-slate-700 rounded-2xl flex items-center justify-center">
-                <Users className="w-8 h-8 text-white" />
-              </div>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 text-center">
-              {t.teamTitle}
+      {/* STATS — Real-time */}
+      <section className="px-4 pb-16 md:pb-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 md:mb-14">
+            <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-slate-900 mb-2 tracking-tight">
+              {tr.statsTitle}
             </h2>
-            <p className="text-lg text-slate-700 max-w-3xl mx-auto text-center font-light leading-relaxed">
-              {t.teamText}
-            </p>
+            <p className="text-sm md:text-base text-slate-500 font-light">{tr.statsSubtitle}</p>
           </div>
-        </motion.div>
 
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-        >
-          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-12 md:p-16 text-white text-center overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative z-10">
-              <motion.div
-                initial={{ scale: 0 }}
-                whileInView={{ scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="inline-block mb-6"
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {statCards.map((stat, idx) => (
+              <div
+                key={idx}
+                className="relative overflow-hidden rounded-3xl p-6 md:p-8 text-white shadow-lg group"
               >
-                <Star className="w-16 h-16 mx-auto" />
-              </motion.div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                {t.joinTitle}
+                <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient}`} />
+                <div className="relative z-10">
+                  <div className="w-11 h-11 md:w-12 md:h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  </div>
+                  {isLoading ? (
+                    <div className="h-10 md:h-12 w-20 bg-white/20 rounded-lg animate-pulse" />
+                  ) : (
+                    <div className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold mb-1 tracking-tight">
+                      <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                    </div>
+                  )}
+                  <p className="text-xs md:text-sm font-semibold text-white/80 uppercase tracking-wide">
+                    {stat.label}
+                  </p>
+                </div>
+                {/* Decorative paw */}
+                <PawPrint className="absolute -bottom-3 -right-3 w-16 h-16 text-white/10 rotate-12" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MISSION */}
+      <section className="px-4 pb-16 md:pb-24">
+        <div className="max-w-5xl mx-auto">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-100/60 p-8 md:p-14 lg:p-16">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-200/30 rounded-full blur-3xl" />
+            <div className="relative z-10">
+              <span className="text-xs font-bold text-teal-600 tracking-widest uppercase mb-3 block">
+                {tr.missionLabel}
+              </span>
+              <h2 className="font-heading font-extrabold text-3xl md:text-4xl lg:text-5xl text-slate-900 mb-6 tracking-tight leading-tight">
+                {tr.missionTitle}
               </h2>
-              <p className="text-xl text-white/90 max-w-2xl mx-auto font-light leading-relaxed">
-                {t.joinText}
+              <p className="text-lg md:text-xl text-slate-700 leading-relaxed font-light max-w-3xl">
+                {tr.missionText}
               </p>
             </div>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </section>
+
+      {/* STORY */}
+      <section className="px-4 pb-16 md:pb-24">
+        <div className="max-w-4xl mx-auto">
+          <span className="text-xs font-bold text-teal-600 tracking-widest uppercase mb-3 block">
+            {tr.storyLabel}
+          </span>
+          <h2 className="font-heading font-extrabold text-3xl md:text-4xl lg:text-5xl text-slate-900 mb-8 tracking-tight leading-tight">
+            {tr.storyTitle}
+          </h2>
+          <div className="space-y-5">
+            <p className="text-lg md:text-xl text-slate-700 leading-relaxed font-light">{tr.storyP1}</p>
+            <p className="text-lg md:text-xl text-slate-700 leading-relaxed font-light">{tr.storyP2}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* VALUES */}
+      <section className="px-4 pb-16 md:pb-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 md:mb-14">
+            <h2 className="font-heading font-extrabold text-3xl md:text-4xl text-slate-900 mb-2 tracking-tight">
+              {tr.valuesTitle}
+            </h2>
+            <p className="text-sm md:text-base text-slate-500 font-light">{tr.valuesSubtitle}</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5 md:gap-6">
+            {values.map((value, idx) => (
+              <div
+                key={idx}
+                className="group bg-white border border-slate-100 rounded-3xl p-7 md:p-8 hover:shadow-xl hover:border-slate-200 transition-all duration-300 flex gap-5"
+              >
+                <div className={`flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br ${value.color} flex items-center justify-center shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                  <value.icon className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-heading font-bold text-lg md:text-xl text-slate-900 mb-2 tracking-tight">
+                    {value.title}
+                  </h3>
+                  <p className="text-sm md:text-base text-slate-600 font-light leading-relaxed">
+                    {value.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="px-4 pb-20 md:pb-28">
+        <div className="max-w-5xl mx-auto">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0f766e] via-[#0d9483] to-[#0f766e] p-10 md:p-16 text-center text-white shadow-2xl">
+            {/* Decorative paws */}
+            <PawPrint className="absolute top-6 left-8 w-8 h-8 text-white/10 rotate-12" />
+            <PawPrint className="absolute bottom-6 right-8 w-10 h-10 text-white/10 -rotate-12" />
+            <PawPrint className="absolute top-1/2 right-12 w-6 h-6 text-white/10 rotate-45" />
+
+            <div className="relative z-10">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm mb-6">
+                <PawPrint className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="font-heading font-extrabold text-3xl md:text-4xl lg:text-5xl mb-4 tracking-tight leading-tight">
+                {tr.ctaTitle}
+              </h2>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto font-light leading-relaxed mb-8">
+                {tr.ctaText}
+              </p>
+              <Link
+                to={createPageUrl("Home")}
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-[#0d9483] font-bold text-sm md:text-base shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                {tr.ctaButton}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
