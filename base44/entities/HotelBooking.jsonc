@@ -184,6 +184,11 @@
           "due_time": {
             "type": "string",
             "description": "Horario recomendado para executar a tarefa (HH:MM)"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Data recomendada para executar a tarefa"
           }
         }
       },

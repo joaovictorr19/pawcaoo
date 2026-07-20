@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { X, Dog, Droplets, Scissors, Star, Utensils, Pill, Smile, HeartHandshake, User, Calendar, Plus } from "lucide-react";
+import { X, Dog, Droplets, Scissors, Star, Utensils, Pill, Smile, HeartHandshake, Calendar, Plus, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 const SERVICE_OPTIONS = [
@@ -12,7 +12,7 @@ const SERVICE_OPTIONS = [
   { value: "nail_trim",    label: "Unhas",       icon: Scissors },
   { value: "feeding",      label: "Alimentação", icon: Utensils },
   { value: "medication",   label: "Medicação",   icon: Pill },
-  { value: "playtime",     label: "Brincar",     icon: Smile },
+  { value: "playtime",     label: "Brincar",    icon: Smile },
   { value: "general_care", label: "Cuidados",    icon: HeartHandshake },
 ];
 
@@ -21,7 +21,8 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
   const [serviceName, setServiceName] = useState("walk");
   const [selectedPartner, setSelectedPartner] = useState("");
   const [assignmentNotes, setAssignmentNotes] = useState("");
-  const [dueTime, setDueTime] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [isCompleted, setIsCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const activeBookings = useMemo(() => {
@@ -29,12 +30,15 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
   }, [bookings]);
 
   const handleSubmit = async () => {
-    if (!selectedBooking || !serviceName || !selectedPartner) {
-      toast.error("Preencha todos os campos");
+    if (!selectedBooking || !serviceName) {
+      toast.error("Selecione uma reserva e um serviço");
       return;
     }
     setSaving(true);
     try {
+      const partner = selectedPartner
+        ? partners.find(p => p.walker_email === selectedPartner)
+        : null;
       await onAssign({
         bookingId: selectedBooking,
         addOn: {
@@ -42,16 +46,17 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
           quantity: 1,
           price_per_unit: 0,
           total_price: 0,
-          assigned_walker_email: selectedPartner,
-          assigned_walker_name: partners.find(p => p.walker_email === selectedPartner)?.walker_name || "",
-          completed: false,
+          assigned_walker_email: selectedPartner || undefined,
+          assigned_walker_name: partner?.walker_name || "",
+          completed: isCompleted,
+          completed_at: isCompleted ? new Date().toISOString() : undefined,
           assignment_notes: assignmentNotes.trim() || undefined,
-          due_time: dueTime || undefined,
+          due_date: dueDate || undefined,
         },
       });
       onClose();
     } catch (e) {
-      toast.error("Erro ao atribuir tarefa");
+      toast.error("Erro ao guardar tarefa");
     } finally {
       setSaving(false);
     }
@@ -73,8 +78,8 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
               <Plus className="w-4 h-4 text-slate-600" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-sm">Atribuir Tarefa</h3>
-              <p className="text-[10px] text-slate-400">Registo operativo para o funcionário</p>
+              <h3 className="font-bold text-slate-900 text-sm">Nova Tarefa / Anotação</h3>
+              <p className="text-[10px] text-slate-400">Registo operativo · parceiro opcional</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg">
@@ -123,15 +128,17 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
             </div>
           </div>
 
-          {/* Partner select */}
+          {/* Partner select — optional */}
           <div>
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Parceiro</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+              Parceiro <span className="text-slate-300 normal-case">(opcional)</span>
+            </label>
             <select
               value={selectedPartner}
               onChange={e => setSelectedPartner(e.target.value)}
               className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200"
             >
-              <option value="">Selecionar parceiro...</option>
+              <option value="">Sem parceiro — apenas anotação</option>
               {partners.map(p => (
                 <option key={p.walker_email} value={p.walker_email}>
                   {p.walker_name || p.walker_email}
@@ -140,20 +147,23 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
             </select>
           </div>
 
-          {/* Due time */}
+          {/* Due date */}
           <div>
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Horário recomendado (opcional)</label>
-            <input
-              type="time"
-              value={dueTime}
-              onChange={e => setDueTime(e.target.value)}
-              className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200"
-            />
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Data (opcional)</label>
+            <div className="relative">
+              <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="date"
+                value={dueDate}
+                onChange={e => setDueDate(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200"
+              />
+            </div>
           </div>
 
           {/* Assignment notes / instructions */}
           <div>
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Instruções para o funcionário (opcional)</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Notas / Instruções (opcional)</label>
             <textarea
               value={assignmentNotes}
               onChange={e => setAssignmentNotes(e.target.value)}
@@ -163,11 +173,35 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
             />
           </div>
 
+          {/* Completed toggle */}
+          <button
+            onClick={() => setIsCompleted(!isCompleted)}
+            className={`w-full flex items-center gap-2.5 px-3 py-3 rounded-xl border transition-all ${
+              isCompleted
+                ? "bg-emerald-50 border-emerald-200"
+                : "bg-white border-slate-200 hover:border-slate-300"
+            }`}
+          >
+            <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
+              isCompleted ? "bg-emerald-500" : "bg-slate-100 border border-slate-300"
+            }`}>
+              {isCompleted && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+            </div>
+            <div className="text-left flex-1">
+              <p className={`text-xs font-bold ${isCompleted ? "text-emerald-700" : "text-slate-700"}`}>
+                Marcar como concluído
+              </p>
+              <p className="text-[10px] text-slate-400">
+                {isCompleted ? "A tarefa fica registada como feita" : "A tarefa fica pendente"}
+              </p>
+            </div>
+          </button>
+
           {/* Info banner */}
           <div className="bg-teal-50 border border-teal-200 rounded-xl px-3 py-2.5 flex items-center gap-2">
             <HeartHandshake className="w-4 h-4 text-teal-600 shrink-0" />
             <p className="text-[10px] text-teal-700 leading-snug">
-              Tarefa operacional — sem cobrança. O parceiro já presta serviço ao hotel; este registo serve apenas para comunicação rápida com o funcionário.
+              Registo operativo — sem cobrança. Pode ser apenas uma anotação ou atribuída a um parceiro.
             </p>
           </div>
         </div>
@@ -179,10 +213,10 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
           </Button>
           <Button
             className="flex-1 h-10 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800"
-            disabled={saving || !selectedBooking || !selectedPartner}
+            disabled={saving || !selectedBooking}
             onClick={handleSubmit}
           >
-            {saving ? "A guardar..." : "Atribuir Tarefa"}
+            {saving ? "A guardar..." : "Guardar"}
           </Button>
         </div>
       </motion.div>
