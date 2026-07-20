@@ -20,8 +20,6 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
   const [selectedBooking, setSelectedBooking] = useState("");
   const [serviceName, setServiceName] = useState("walk");
   const [selectedPartner, setSelectedPartner] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [pricePerUnit, setPricePerUnit] = useState(10);
   const [assignmentNotes, setAssignmentNotes] = useState("");
   const [dueTime, setDueTime] = useState("");
   const [saving, setSaving] = useState(false);
@@ -41,9 +39,9 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
         bookingId: selectedBooking,
         addOn: {
           service_name: serviceName,
-          quantity: Number(quantity) || 1,
-          price_per_unit: Number(pricePerUnit) || 0,
-          total_price: (Number(pricePerUnit) || 0) * (Number(quantity) || 1),
+          quantity: 1,
+          price_per_unit: 0,
+          total_price: 0,
           assigned_walker_email: selectedPartner,
           assigned_walker_name: partners.find(p => p.walker_email === selectedPartner)?.walker_name || "",
           completed: false,
@@ -76,7 +74,7 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
             </div>
             <div>
               <h3 className="font-bold text-slate-900 text-sm">Atribuir Tarefa</h3>
-              <p className="text-[10px] text-slate-400">Designar serviço a um parceiro</p>
+              <p className="text-[10px] text-slate-400">Registo operativo para o funcionário</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg">
@@ -142,31 +140,6 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
             </select>
           </div>
 
-          {/* Quantity + Price */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Quantidade</label>
-              <input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={e => setQuantity(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Preço/Unidade (€)</label>
-              <input
-                type="number"
-                min="0"
-                step="0.50"
-                value={pricePerUnit}
-                onChange={e => setPricePerUnit(e.target.value)}
-                className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200"
-              />
-            </div>
-          </div>
-
           {/* Due time */}
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Horário recomendado (opcional)</label>
@@ -190,12 +163,12 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
             />
           </div>
 
-          {/* Total preview */}
-          <div className="bg-slate-50 rounded-xl px-3 py-2 flex items-center justify-between">
-            <span className="text-xs text-slate-500">Total</span>
-            <span className="text-sm font-bold text-slate-900">
-              {((Number(pricePerUnit) || 0) * (Number(quantity) || 1)).toFixed(2)}€
-            </span>
+          {/* Info banner */}
+          <div className="bg-teal-50 border border-teal-200 rounded-xl px-3 py-2.5 flex items-center gap-2">
+            <HeartHandshake className="w-4 h-4 text-teal-600 shrink-0" />
+            <p className="text-[10px] text-teal-700 leading-snug">
+              Tarefa operacional — sem cobrança. O parceiro já presta serviço ao hotel; este registo serve apenas para comunicação rápida com o funcionário.
+            </p>
           </div>
         </div>
 
