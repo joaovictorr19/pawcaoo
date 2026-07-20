@@ -34,15 +34,39 @@ Deno.serve(async (req) => {
 
     const { 
       booking_id,
-      walker_email,
-      walker_name,
       scheduled_date,
       scheduled_time,
       accept_surcharge = false
     } = await req.json();
 
-    if (!booking_id || !walker_email) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!booking_id) {
+      return Response.json({ error: 'Missing booking_id' }, { status: 400 });
+    }
+
+    // === 0. VALIDAR PROPRIEDADE DA RESERVA ===
+    // Buscar a reserva do banco de dados — NUNCA confiar em dados do cliente
+    let booking;
+    try {
+      const bookings = await base44.entities.Booking.filter({ id: booking_id });
+      if (!bookings || bookings.length === 0) {
+        return Response.json({ error: 'Reserva não encontrada' }, { status: 404 });
+      }
+      booking = bookings[0];
+    } catch {
+      return Response.json({ error: 'Reserva não encontrada' }, { status: 404 });
+    }
+
+    // Validar que a reserva pertence ao utilizador autenticado
+    if (booking.owner_email !== user.email) {
+      return Response.json({ error: 'Não autorizado: esta reserva não pertence ao utilizador' }, { status: 403 });
+    }
+
+    // Usar walker_email e walker_name do registro da reserva, não do corpo da requisição
+    const walker_email = booking.walker_email;
+    const walker_name = booking.walker_name;
+
+    if (!walker_email) {
+      return Response.json({ error: 'Reserva não tem passeador associado' }, { status: 400 });
     }
 
     // === 1. VALIDAR WALLET E TOKENS ===
