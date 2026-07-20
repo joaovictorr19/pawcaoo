@@ -24,8 +24,9 @@ const SERVICE_TYPE_LABELS = {
   grooming: { pt: "Tosquia", es: "Peluquería", fr: "Toilettage", en: "Grooming" },
 };
 
-export default function CountryLandingPage() {
-  const { country } = useParams();
+export default function CountryLandingPage({ country: countryProp }) {
+  const params = useParams();
+  const country = countryProp || params.country;
   const [searchParams, setSearchParams] = useSearchParams();
   const { language } = useLanguage();
   const lang = resolveLang(language);

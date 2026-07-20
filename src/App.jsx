@@ -195,9 +195,9 @@ const AuthenticatedApp = () => {
             <Route path="/ActiveWalkDashboard" element={<Suspense fallback={<PageLoader />}><ActiveWalkDashboard /></Suspense>} />
 
             <Route path="/QRProfileTest" element={<QRProfileTest />} />
-            <Route path="/portugal" element={<CountryLandingPage />} />
-            <Route path="/espanha" element={<CountryLandingPage />} />
-            <Route path="/franca" element={<CountryLandingPage />} />
+            <Route path="/portugal" element={<CountryLandingPage country="portugal" />} />
+            <Route path="/espanha" element={<CountryLandingPage country="espanha" />} />
+            <Route path="/franca" element={<CountryLandingPage country="franca" />} />
             <Route path="/p/:slug" element={<ShortProfile />} />
             <Route path="*" element={<PageNotFound />} />
             </Routes>
