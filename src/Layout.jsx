@@ -172,12 +172,13 @@ function LayoutContent({ children, currentPageName }) {
         const hotels = await base44.entities.WalkerProfile.filter(
           { professional_type: 'hotel' },
           undefined,
-          100
+          5000
         );
         const partnerships = [];
+        const currentEmail = authUser.email.trim().toLowerCase();
         for (const h of hotels) {
           const partners = h.hotel_details?.partner_walkers || [];
-          const found = partners.find(p => p.walker_email?.toLowerCase() === authUser.email.toLowerCase());
+          const found = partners.find(p => p.walker_email?.trim().toLowerCase() === currentEmail);
           if (found) {
             partnerships.push({
               hotel_profile_id: h.id,
@@ -193,7 +194,8 @@ function LayoutContent({ children, currentPageName }) {
       }
     },
     enabled: !!authUser?.email,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 60 * 1000,
+    refetchOnMount: true,
   });
 
   React.useEffect(() => {
@@ -574,6 +576,7 @@ function LayoutContent({ children, currentPageName }) {
 
       <MobileNavBar
         user={stableUser}
+        hasHotelPartnership={hotelPartnerships?.length > 0}
         unreadCount={unreadCount}
         onNotificationsClick={() => setIsNotificationPanelOpen(true)}
       />

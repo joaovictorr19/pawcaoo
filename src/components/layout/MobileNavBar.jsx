@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Map, Calendar, User, Zap, LayoutDashboard, Globe, Bell } from "lucide-react";
+import { Map, Calendar, User, LayoutDashboard, Bell, Building2 } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import { motion } from "framer-motion";
@@ -28,7 +28,7 @@ const saveTabHistory = (history) => {
 
 let tabHistory = getTabHistorySafe();
 
-export default function MobileNavBar({ user, unreadCount = 0, onNotificationsClick }) {
+export default function MobileNavBar({ user, hasHotelPartnership = false, unreadCount = 0, onNotificationsClick }) {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -151,6 +151,7 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
     (!isProf && !isTutor && isActive(createPageUrl("Home")));
   const isTab2Active = (isProf && isActive(createPageUrl("ProfessionalCalendar"))) ||
     (!isProf && isActive(createPageUrl("MyBookings")));
+  const isPartnerActive = isActive(createPageUrl("PartnerHotelPanel"));
   const isTab4Active = isActive(createPageUrl("UserProfile"));
 
   const tabBase = "flex flex-col items-center justify-center gap-1 transition-all duration-200 flex-1 min-w-0 py-2 rounded-full";
@@ -220,6 +221,19 @@ export default function MobileNavBar({ user, unreadCount = 0, onNotificationsCli
           )}
           <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">{labelNotifications}</span>
         </button>
+
+        {hasHotelPartnership && (
+          <button
+            onClick={() => handleTabClick(createPageUrl("PartnerHotelPanel"))}
+            className={`${tabBase} ${isPartnerActive ? activeCls : inactiveCls}`}
+            style={isPartnerActive ? { boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
+          >
+            <Building2 size={18} />
+            <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">
+              {language === 'pt' ? 'Hotel' : language === 'es' ? 'Hotel' : 'Hotel'}
+            </span>
+          </button>
+        )}
 
         {/* ABA 4: PERFIL */}
         <button
