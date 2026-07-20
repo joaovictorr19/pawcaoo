@@ -37,19 +37,22 @@ const AccordionItem = ({ item, type, onApprove, onReject, onViewDetails, languag
   const [docUrl, setDocUrl] = React.useState(null);
 
   const getTypeBadge = () => {
-    if (type === 'walker') return { label: 'Walker', cls: 'bg-blue-100 text-blue-700' };
-    if (type === 'trainer') return { label: 'Trainer', cls: 'bg-amber-100 text-amber-700' };
+    if (type === 'walker') return { label: 'Passeador', cls: 'bg-blue-100 text-blue-700' };
+    if (type === 'hotel') return { label: 'Hotel', cls: 'bg-violet-100 text-violet-700' };
+    if (type === 'trainer') return { label: 'Treinador', cls: 'bg-amber-100 text-amber-700' };
     return { label: 'Abrigo', cls: 'bg-pink-100 text-pink-700' };
   };
 
   const getTitle = () => {
     if (type === 'walker') return item.walker_name;
+    if (type === 'hotel') return item.hotel_details?.hotel_name || item.walker_name;
     if (type === 'trainer') return item.business_name || item.trainer_name;
     return item.shelter_name;
   };
 
   const getSubtitle = () => {
     if (type === 'shelter') return item.contact_email;
+    if (type === 'hotel') return item.hotel_details?.full_address || item.location;
     return item.location;
   };
 
@@ -99,7 +102,7 @@ const AccordionItem = ({ item, type, onApprove, onReject, onViewDetails, languag
             <p className="text-sm text-slate-600 italic">"{item.bio || item.description || 'Sem descrição.'}"</p>
           </div>
 
-          {type !== 'shelter' && (
+          {type !== 'shelter' && type !== 'hotel' && (
             <div className="flex gap-4 text-sm">
               <div className="flex items-center gap-1">
                 <Star className="w-3.5 h-3.5 text-yellow-500" />
@@ -111,6 +114,23 @@ const AccordionItem = ({ item, type, onApprove, onReject, onViewDetails, languag
                 <span className="text-slate-500">Preço/hora:</span>
                 <span className="font-semibold text-slate-900">€{item.hourly_rate || item.base_rate || 0}</span>
               </div>
+            </div>
+          )}
+
+          {type === 'hotel' && (
+            <div className="flex gap-4 text-sm">
+              <div className="flex items-center gap-1">
+                <Home className="w-3.5 h-3.5 text-violet-500" />
+                <span className="text-slate-500">Capacidade:</span>
+                <span className="font-semibold text-slate-900">{item.hotel_details?.capacity_total || 'N/A'} cães</span>
+              </div>
+              {item.hotel_details?.price_per_night != null && (
+                <div className="flex items-center gap-1">
+                  <Euro className="w-3.5 h-3.5 text-green-600" />
+                  <span className="text-slate-500">Preço/noite:</span>
+                  <span className="font-semibold text-slate-900">€{item.hotel_details.price_per_night}</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -187,6 +207,7 @@ const EmptyState = ({ message }) => (
 
 export default function AdminVerificationQueue({
   walkers = [],
+  hotels = [],
   trainers = [],
   shelters = [],
   onApprove,
@@ -200,6 +221,7 @@ export default function AdminVerificationQueue({
 
   const allItems = [
     ...walkers.map(w => ({ item: w, type: 'walker' })),
+    ...hotels.map(h => ({ item: h, type: 'hotel' })),
     ...trainers.map(t => ({ item: t, type: 'trainer' })),
     ...shelters.map(s => ({ item: s, type: 'shelter' })),
   ];
@@ -208,8 +230,9 @@ export default function AdminVerificationQueue({
 
   const filterChips = [
     { key: 'all', label: 'Todos', count: allItems.length },
-    { key: 'walker', label: 'Walkers', count: walkers.length },
-    { key: 'trainer', label: 'Trainers', count: trainers.length },
+    { key: 'walker', label: 'Passeadores', count: walkers.length },
+    { key: 'hotel', label: 'Hotéis', count: hotels.length },
+    { key: 'trainer', label: 'Treinadores', count: trainers.length },
     { key: 'shelter', label: 'Abrigos', count: shelters.length },
   ];
 

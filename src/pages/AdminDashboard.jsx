@@ -388,7 +388,8 @@ export default function AdminDashboard() {
     refetchOnWindowFocus: false,
   });
 
-  const walkerApplications = allWalkers.filter(w => w.verification_status === 'pending' || !w.verification_status);
+  const walkerApplications = allWalkers.filter(w => (w.verification_status === 'pending' || !w.verification_status) && w.professional_type !== 'hotel');
+  const hotelApplications = allWalkers.filter(w => (w.verification_status === 'pending' || !w.verification_status) && w.professional_type === 'hotel');
   const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || !t.verification_status);
   const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || !s.verification_status);
   const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified' || w.is_active === true);
@@ -832,7 +833,7 @@ export default function AdminDashboard() {
 
 
                <TabsTrigger value="approvals" className="rounded-full bg-orange-100 text-orange-700 shadow-none data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">
-                 ✅ Aprovações {(walkerApplications.length + trainerApplications.length) > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{walkerApplications.length + trainerApplications.length}</span>}
+                 ✅ Aprovações {(walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length) > 0 && <span className="ml-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length}</span>}
                </TabsTrigger>
                <TabsTrigger value="users" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">🔑 Utilizadores</TabsTrigger>
                <TabsTrigger value="operations" className="rounded-full bg-slate-100 shadow-none data-[state=active]:bg-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-md px-4 py-2 text-sm font-bold transition-all whitespace-nowrap">⚡ Operações</TabsTrigger>
@@ -891,8 +892,8 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gradient-to-br from-[#1D8A82] to-[#2DB0A6] rounded-2xl p-5 shadow-lg">
                     <p className="text-white/80 text-sm font-bold">Verificações Pendentes</p>
-                    <p className="text-white text-4xl font-extrabold mt-1">{walkerApplications.length + trainerApplications.length + shelterApplications.length}</p>
-                    <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold">Walkers, Trainers, Abrigos</span>
+                    <p className="text-white text-4xl font-extrabold mt-1">{walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length}</p>
+                    <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold">Passeadores, Hotéis, Treinadores, Abrigos</span>
                   </div>
                   <div className="bg-gradient-to-br from-[#1D8A82] to-[#2DB0A6] rounded-2xl p-5 shadow-lg">
                     <p className="text-white/80 text-sm font-bold">Edições de Perfil</p>
@@ -910,6 +911,7 @@ export default function AdminDashboard() {
                     <div className="p-4">
                       <AdminVerificationQueue
                         walkers={walkerApplications}
+                        hotels={hotelApplications}
                         trainers={trainerApplications}
                         shelters={shelterApplications}
                         onApprove={handleApproveApplication}
