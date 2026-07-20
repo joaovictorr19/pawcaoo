@@ -16,19 +16,19 @@ export default function PrivacyPolicy() {
   const content = {
     pt: {
       title: "Política de Privacidade",
-      lastUpdated: "Última atualização: 22 de Dezembro de 2025",
+      lastUpdated: "Última atualização: 20 de Julho de 2026",
       selectLanguage: "Selecionar idioma",
       intro: "A PawCão está comprometida com a proteção dos seus dados pessoais. Esta Política de Privacidade explica como recolhemos, utilizamos e protegemos as suas informações, em total conformidade com o Regulamento Geral de Proteção de Dados (RGPD) da União Europeia.",
       sections: [
         {
           title: "1. Dados que Recolhemos",
           icon: Eye,
-          content: "**Dados de Identidade:**\n• Nome completo\n• Endereço de email\n• Número de telefone\n• Fotografia de perfil (opcional)\n• Documento de identificação (apenas para profissionais)\n\n**Dados do Animal:**\n• Nome, raça, idade e peso\n• Fotografias\n• Histórico de saúde e vacinação\n• Comportamento e necessidades especiais\n\n**Dados de Geolocalização:**\n• Localização em tempo real APENAS durante a utilização ativa do serviço de passeio\n• Utilizados exclusivamente para o mapa de rastreamento do passeio\n• Não são armazenados após conclusão do serviço (apenas rota histórica)\n\n**Dados de Pagamento:**\n• Processados de forma encriptada através de parceiros certificados (Stripe)\n• A PawCão NÃO armazena dados completos de cartão de crédito\n• Apenas últimos 4 dígitos para identificação"
+          content: "**Dados de Identidade:**\n• Nome completo\n• Endereço de email\n• Número de telefone\n• Fotografia de perfil (opcional)\n• Documento de identificação (apenas para profissionais)\n\n**Dados do Animal:**\n• Nome, raça, idade e peso\n• Fotografias\n• Histórico de saúde e vacinação\n• Comportamento e necessidades especiais\n\n**Coordenação de Localização:**\n• A PawCão NÃO recolhe nem armazena a localização em tempo real\n• A partilha de localização durante o serviço é feita diretamente entre dono e profissional via WhatsApp\n• A PawCão não tem acesso nem responsabilidade sobre essa partilha\n\n**Dados de Pagamento:**\n• Processados de forma encriptada através de parceiros certificados (Stripe)\n• A PawCão NÃO armazena dados completos de cartão de crédito\n• Apenas últimos 4 dígitos para identificação"
         },
         {
           title: "2. Finalidade do Tratamento",
           icon: Shield,
-          content: "Os seus dados são utilizados exclusivamente para:\n\n**Execução do Serviço:**\n• Criar e gerir a sua conta\n• Conectar donos de animais com profissionais\n• Processar pagamentos de forma segura\n• Permitir rastreamento GPS durante passeios\n• Enviar notificações sobre reservas e serviços\n\n**Segurança da Plataforma:**\n• Verificar identidade de profissionais\n• Prevenir fraudes e abusos\n• Resolver disputas entre utilizadores\n\n**Comunicação:**\n• Responder a questões de suporte\n• Enviar atualizações importantes sobre o serviço\n• Newsletter (apenas com consentimento explícito)\n\n**IMPORTANTE:** NÃO vendemos, alugamos ou partilhamos os seus dados pessoais com terceiros para fins publicitários ou de marketing."
+          content: "Os seus dados são utilizados exclusivamente para:\n\n**Execução do Serviço:**\n• Criar e gerir a sua conta\n• Conectar donos de animais com profissionais\n• Processar pagamentos de forma segura\n• Enviar notificações sobre reservas e serviços\n\n**Segurança da Plataforma:**\n• Verificar identidade de profissionais\n• Prevenir fraudes e abusos\n• Resolver disputas entre utilizadores\n\n**Comunicação:**\n• Responder a questões de suporte\n• Enviar atualizações importantes sobre o serviço\n• Newsletter (apenas com consentimento explícito)\n\n**IMPORTANTE:** NÃO vendemos, alugamos ou partilhamos os seus dados pessoais com terceiros para fins publicitários ou de marketing."
         },
         {
           title: "3. Partilha de Dados",
@@ -48,7 +48,7 @@ export default function PrivacyPolicy() {
         {
           title: "6. Retenção de Dados",
           icon: Trash2,
-          content: "Mantemos os seus dados apenas pelo tempo necessário:\n\n**Conta Ativa:**\nDados mantidos enquanto a conta estiver ativa.\n\n**Após Eliminação de Conta:**\n• Dados pessoais: eliminados em 30 dias\n• Dados financeiros: mantidos 7 anos (obrigação legal fiscal)\n• Dados de litígio: mantidos até resolução\n\n**Dados de Geolocalização:**\n• Rastreamento em tempo real: não armazenado\n• Rota histórica do passeio: mantida para referência do dono"
+          content: "Mantemos os seus dados apenas pelo tempo necessário:\n\n**Conta Ativa:**\nDados mantidos enquanto a conta estiver ativa.\n\n**Após Eliminação de Conta:**\n• Dados pessoais: eliminados em 30 dias\n• Dados financeiros: mantidos 7 anos (obrigação legal fiscal)\n• Dados de litígio: mantidos até resolução\n\n**Coordenação de Localização:**\n• A PawCão não recolhe nem armazena localização\n• A partilha de localização é feita diretamente entre dono e profissional via WhatsApp"
         },
         {
           title: "7. Cookies",
@@ -79,19 +79,19 @@ export default function PrivacyPolicy() {
     },
     en: {
       title: "Privacy Policy",
-      lastUpdated: "Last updated: December 22, 2025",
+      lastUpdated: "Last updated: July 20, 2026",
       selectLanguage: "Select language",
       intro: "PawCão is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and protect your information, in full compliance with the European Union's General Data Protection Regulation (GDPR).",
       sections: [
         {
           title: "1. Data We Collect",
           icon: Eye,
-          content: "**Identity Data:**\n• Full name\n• Email address\n• Phone number\n• Profile photo (optional)\n• Identification document (professionals only)\n\n**Pet Data:**\n• Name, breed, age, and weight\n• Photos\n• Health and vaccination history\n• Behavior and special needs\n\n**Geolocation Data:**\n• Real-time location ONLY during active use of the walking service\n• Used exclusively for the walk tracking map\n• Not stored after service completion (only historical route)\n\n**Payment Data:**\n• Processed encrypted through certified partners (Stripe)\n• PawCão does NOT store complete credit card data\n• Only last 4 digits for identification"
+          content: "**Identity Data:**\n• Full name\n• Email address\n• Phone number\n• Profile photo (optional)\n• Identification document (professionals only)\n\n**Pet Data:**\n• Name, breed, age, and weight\n• Photos\n• Health and vaccination history\n• Behavior and special needs\n\n**Location Coordination:**\n• PawCão does NOT collect or store real-time location\n• Location sharing during the service is done directly between owner and professional via WhatsApp\n• PawCão has no access or responsibility over that sharing\n\n**Payment Data:**\n• Processed encrypted through certified partners (Stripe)\n• PawCão does NOT store complete credit card data\n• Only last 4 digits for identification"
         },
         {
           title: "2. Purpose of Processing",
           icon: Shield,
-          content: "Your data is used exclusively for:\n\n**Service Execution:**\n• Create and manage your account\n• Connect pet owners with professionals\n• Process payments securely\n• Enable GPS tracking during walks\n• Send notifications about bookings and services\n\n**Platform Security:**\n• Verify professional identity\n• Prevent fraud and abuse\n• Resolve disputes between users\n\n**Communication:**\n• Respond to support questions\n• Send important service updates\n• Newsletter (only with explicit consent)\n\n**IMPORTANT:** We do NOT sell, rent, or share your personal data with third parties for advertising or marketing purposes."
+          content: "Your data is used exclusively for:\n\n**Service Execution:**\n• Create and manage your account\n• Connect pet owners with professionals\n• Process payments securely\n• Send notifications about bookings and services\n\n**Platform Security:**\n• Verify professional identity\n• Prevent fraud and abuse\n• Resolve disputes between users\n\n**Communication:**\n• Respond to support questions\n• Send important service updates\n• Newsletter (only with explicit consent)\n\n**IMPORTANT:** We do NOT sell, rent, or share your personal data with third parties for advertising or marketing purposes."
         },
         {
           title: "3. Data Sharing",
@@ -111,7 +111,7 @@ export default function PrivacyPolicy() {
         {
           title: "6. Data Retention",
           icon: Trash2,
-          content: "We keep your data only as long as necessary:\n\n**Active Account:**\nData maintained while the account is active.\n\n**After Account Deletion:**\n• Personal data: deleted within 30 days\n• Financial data: kept 7 years (legal tax obligation)\n• Litigation data: kept until resolution\n\n**Geolocation Data:**\n• Real-time tracking: not stored\n• Historical walk route: maintained for owner's reference"
+          content: "We keep your data only as long as necessary:\n\n**Active Account:**\nData maintained while the account is active.\n\n**After Account Deletion:**\n• Personal data: deleted within 30 days\n• Financial data: kept 7 years (legal tax obligation)\n• Litigation data: kept until resolution\n\n**Location Coordination:**\n• PawCão does not collect or store location\n• Location sharing is done directly between owner and professional via WhatsApp"
         },
         {
           title: "7. Cookies",
@@ -142,19 +142,19 @@ export default function PrivacyPolicy() {
     },
     es: {
       title: "Política de Privacidad",
-      lastUpdated: "Última actualización: 22 de Diciembre de 2025",
+      lastUpdated: "Última actualización: 20 de Julio de 2026",
       selectLanguage: "Seleccionar idioma",
       intro: "PawCão está comprometido con la protección de sus datos personales. Esta Política de Privacidad explica cómo recopilamos, utilizamos y protegemos su información, en total conformidad con el Reglamento General de Protección de Datos (RGPD) de la Unión Europea.",
       sections: [
         {
           title: "1. Datos que Recopilamos",
           icon: Eye,
-          content: "**Datos de Identidad:**\n• Nombre completo\n• Dirección de email\n• Número de teléfono\n• Fotografía de perfil (opcional)\n• Documento de identificación (solo profesionales)\n\n**Datos del Animal:**\n• Nombre, raza, edad y peso\n• Fotografías\n• Historial de salud y vacunación\n• Comportamiento y necesidades especiales\n\n**Datos de Geolocalización:**\n• Ubicación en tiempo real SOLO durante el uso activo del servicio de paseo\n• Utilizados exclusivamente para el mapa de seguimiento del paseo\n• No se almacenan después de la finalización del servicio (solo ruta histórica)\n\n**Datos de Pago:**\n• Procesados de forma encriptada a través de socios certificados (Stripe)\n• PawCão NO almacena datos completos de tarjeta de crédito\n• Solo últimos 4 dígitos para identificación"
+          content: "**Datos de Identidad:**\n• Nombre completo\n• Dirección de email\n• Número de teléfono\n• Fotografía de perfil (opcional)\n• Documento de identificación (solo profesionales)\n\n**Datos del Animal:**\n• Nombre, raza, edad y peso\n• Fotografías\n• Historial de salud y vacunación\n• Comportamiento y necesidades especiales\n\n**Coordinación de Ubicación:**\n• PawCão NO recopila ni almacena la ubicación en tiempo real\n• La compartición de ubicación durante el servicio se hace directamente entre dueño y profesional vía WhatsApp\n• PawCão no tiene acceso ni responsabilidad sobre esa compartición\n\n**Datos de Pago:**\n• Procesados de forma encriptada a través de socios certificados (Stripe)\n• PawCão NO almacena datos completos de tarjeta de crédito\n• Solo últimos 4 dígitos para identificación"
         },
         {
           title: "2. Finalidad del Tratamiento",
           icon: Shield,
-          content: "Sus datos se utilizan exclusivamente para:\n\n**Ejecución del Servicio:**\n• Crear y gestionar su cuenta\n• Conectar dueños de mascotas con profesionales\n• Procesar pagos de forma segura\n• Permitir seguimiento GPS durante paseos\n• Enviar notificaciones sobre reservas y servicios\n\n**Seguridad de la Plataforma:**\n• Verificar identidad de profesionales\n• Prevenir fraudes y abusos\n• Resolver disputas entre usuarios\n\n**Comunicación:**\n• Responder a preguntas de soporte\n• Enviar actualizaciones importantes sobre el servicio\n• Newsletter (solo con consentimiento explícito)\n\n**IMPORTANTE:** NO vendemos, alquilamos ni compartimos sus datos personales con terceros para fines publicitarios o de marketing."
+          content: "Sus datos se utilizan exclusivamente para:\n\n**Ejecución del Servicio:**\n• Crear y gestionar su cuenta\n• Conectar dueños de mascotas con profesionales\n• Procesar pagos de forma segura\n• Enviar notificaciones sobre reservas y servicios\n\n**Seguridad de la Plataforma:**\n• Verificar identidad de profesionales\n• Prevenir fraudes y abusos\n• Resolver disputas entre usuarios\n\n**Comunicación:**\n• Responder a preguntas de soporte\n• Enviar actualizaciones importantes sobre el servicio\n• Newsletter (solo con consentimiento explícito)\n\n**IMPORTANTE:** NO vendemos, alquilamos ni compartimos sus datos personales con terceros para fines publicitarios o de marketing."
         },
         {
           title: "3. Compartición de Datos",
@@ -174,7 +174,7 @@ export default function PrivacyPolicy() {
         {
           title: "6. Retención de Datos",
           icon: Trash2,
-          content: "Mantenemos sus datos solo el tiempo necesario:\n\n**Cuenta Activa:**\nDatos mantenidos mientras la cuenta esté activa.\n\n**Después de Eliminación de Cuenta:**\n• Datos personales: eliminados en 30 días\n• Datos financieros: mantenidos 7 años (obligación legal fiscal)\n• Datos de litigio: mantenidos hasta resolución\n\n**Datos de Geolocalización:**\n• Seguimiento en tiempo real: no almacenado\n• Ruta histórica del paseo: mantenida para referencia del dueño"
+          content: "Mantenemos sus datos solo el tiempo necesario:\n\n**Cuenta Activa:**\nDatos mantenidos mientras la cuenta esté activa.\n\n**Después de Eliminación de Cuenta:**\n• Datos personales: eliminados en 30 días\n• Datos financieros: mantenidos 7 años (obligación legal fiscal)\n• Datos de litigio: mantenidos hasta resolución\n\n**Coordinación de Ubicación:**\n• PawCão no recopila ni almacena ubicación\n• La compartición de ubicación se hace directamente entre dueño y profesional vía WhatsApp"
         },
         {
           title: "7. Cookies",
@@ -205,19 +205,19 @@ export default function PrivacyPolicy() {
     },
     fr: {
       title: "Politique de Confidentialité",
-      lastUpdated: "Dernière mise à jour : 22 Décembre 2025",
+      lastUpdated: "Dernière mise à jour : 20 Juillet 2026",
       selectLanguage: "Sélectionner la langue",
       intro: "PawCão s'engage à protéger vos données personnelles. Cette Politique de Confidentialité explique comment nous collectons, utilisons et protégeons vos informations, en pleine conformité avec le Règlement Général sur la Protection des Données (RGPD) de l'Union Européenne.",
       sections: [
         {
           title: "1. Données que Nous Collectons",
           icon: Eye,
-          content: "**Données d'Identité :**\n• Nom complet\n• Adresse email\n• Numéro de téléphone\n• Photo de profil (optionnel)\n• Document d'identité (professionnels uniquement)\n\n**Données de l'Animal :**\n• Nom, race, âge et poids\n• Photos\n• Historique de santé et vaccination\n• Comportement et besoins spéciaux\n\n**Données de Géolocalisation :**\n• Localisation en temps réel UNIQUEMENT pendant l'utilisation active du service de promenade\n• Utilisées exclusivement pour la carte de suivi de promenade\n• Non stockées après la fin du service (uniquement itinéraire historique)\n\n**Données de Paiement :**\n• Traitées de manière cryptée via des partenaires certifiés (Stripe)\n• PawCão NE stocke PAS les données complètes de carte de crédit\n• Uniquement les 4 derniers chiffres pour identification"
+          content: "**Données d'Identité :**\n• Nom complet\n• Adresse email\n• Numéro de téléphone\n• Photo de profil (optionnel)\n• Document d'identité (professionnels uniquement)\n\n**Données de l'Animal :**\n• Nom, race, âge et poids\n• Photos\n• Historique de santé et vaccination\n• Comportement et besoins spéciaux\n\n**Coordination de Localisation :**\n• PawCão NE collecte NI ne stocke la localisation en temps réel\n• Le partage de localisation pendant le service se fait directement entre propriétaire et professionnel via WhatsApp\n• PawCão n'a aucun accès ni responsabilité sur ce partage\n\n**Données de Paiement :**\n• Traitées de manière cryptée via des partenaires certifiés (Stripe)\n• PawCão NE stocke PAS les données complètes de carte de crédit\n• Uniquement les 4 derniers chiffres pour identification"
         },
         {
           title: "2. Finalité du Traitement",
           icon: Shield,
-          content: "Vos données sont utilisées exclusivement pour :\n\n**Exécution du Service :**\n• Créer et gérer votre compte\n• Connecter propriétaires d'animaux et professionnels\n• Traiter les paiements de manière sécurisée\n• Permettre le suivi GPS pendant les promenades\n• Envoyer des notifications sur les réservations et services\n\n**Sécurité de la Plateforme :**\n• Vérifier l'identité des professionnels\n• Prévenir les fraudes et abus\n• Résoudre les litiges entre utilisateurs\n\n**Communication :**\n• Répondre aux questions de support\n• Envoyer des mises à jour importantes sur le service\n• Newsletter (uniquement avec consentement explicite)\n\n**IMPORTANT :** Nous NE vendons, louons ou partageons PAS vos données personnelles avec des tiers à des fins publicitaires ou marketing."
+          content: "Vos données sont utilisées exclusivement pour :\n\n**Exécution du Service :**\n• Créer et gérer votre compte\n• Connecter propriétaires d'animaux et professionnels\n• Traiter les paiements de manière sécurisée\n• Envoyer des notifications sur les réservations et services\n\n**Sécurité de la Plateforme :**\n• Vérifier l'identité des professionnels\n• Prévenir les fraudes et abus\n• Résoudre les litiges entre utilisateurs\n\n**Communication :**\n• Répondre aux questions de support\n• Envoyer des mises à jour importantes sur le service\n• Newsletter (uniquement avec consentement explicite)\n\n**IMPORTANT :** Nous NE vendons, louons ou partageons PAS vos données personnelles avec des tiers à des fins publicitaires ou marketing."
         },
         {
           title: "3. Partage des Données",
@@ -237,7 +237,7 @@ export default function PrivacyPolicy() {
         {
           title: "6. Conservation des Données",
           icon: Trash2,
-          content: "Nous conservons vos données uniquement le temps nécessaire :\n\n**Compte Actif :**\nDonnées conservées tant que le compte est actif.\n\n**Après Suppression du Compte :**\n• Données personnelles : supprimées sous 30 jours\n• Données financières : conservées 7 ans (obligation légale fiscale)\n• Données de litige : conservées jusqu'à résolution\n\n**Données de Géolocalisation :**\n• Suivi en temps réel : non stocké\n• Itinéraire historique de promenade : conservé pour référence du propriétaire"
+          content: "Nous conservons vos données uniquement le temps nécessaire :\n\n**Compte Actif :**\nDonnées conservées tant que le compte est actif.\n\n**Après Suppression du Compte :**\n• Données personnelles : supprimées sous 30 jours\n• Données financières : conservées 7 ans (obligation légale fiscale)\n• Données de litige : conservées jusqu'à résolution\n\n**Coordination de Localisation :**\n• PawCão ne collecte ni ne stocke la localisation\n• Le partage de localisation se fait directement entre propriétaire et professionnel via WhatsApp"
         },
         {
           title: "7. Cookies",
