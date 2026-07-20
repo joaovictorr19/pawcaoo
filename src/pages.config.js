@@ -72,7 +72,6 @@ export const PAGES = {
     "BookService": page(() => import('./pages/BookService')),
     "CheckoutSuccess": page(() => import('./pages/CheckoutSuccess')),
     "ClientDashboard": page(() => import('./pages/ClientDashboard')),
-    "ConnectedAccountStorefront": page(() => import('./pages/ConnectedAccountStorefront')),
     "Contact": page(() => import('./pages/Contact')),
     "CookiesPolicy": page(() => import('./pages/CookiesPolicy')),
 
@@ -128,7 +127,6 @@ export const PAGES = {
     "StripeConnectSetup": page(() => import('./pages/StripeConnectSetup')),
     "Subscriptions": page(() => import('./pages/Subscriptions')),
     "TermsOfService": page(() => import('./pages/TermsOfService')),
-    "TestPayments": page(() => import('./pages/TestPayments')),
     "TrainerDetails": page(() => import('./pages/TrainerDetails')),
     "Trainers": page(() => import('./pages/Trainers')),
     "UserProfile": page(() => import('./pages/UserProfile')),
