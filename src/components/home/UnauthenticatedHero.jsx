@@ -48,12 +48,26 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
   const card2Body =
     language === "pt"
-      ? "Transforme a sua paixão por animais numa fonte de rendimento flexível."
+      ? "Transforme a sua paixão por animais numa fonte de rendimento flexível e junte-se à maior rede de profissionais pet."
       : language === "es"
-      ? "Convierte tu pasión por los animales en una fuente de ingresos flexible."
+      ? "Convierte tu pasión por los animales en una fuente de ingresos flexible y únete a la mayor red de profesionales pet."
       : language === "fr"
-      ? "Transformez votre passion pour les animaux en une source de revenus flexible."
-      : "Turn your passion for animals into a flexible source of income.";
+      ? "Transformez votre passion pour les animaux en une source de revenus flexible et rejoignez le plus grand réseau de professionnels pet."
+      : "Turn your passion for animals into a flexible source of income and join the largest pet professional network.";
+
+  const card2ProLabel =
+    language === "pt" ? "Sou Profissional" : language === "es" ? "Soy Profesional" : language === "fr" ? "Je suis Pro" : "I'm a Professional";
+  const card2ClientLabel =
+    language === "pt" ? "Sou Cliente" : language === "es" ? "Soy Cliente" : language === "fr" ? "Je suis Client" : "I'm a Client";
+
+  const card2ProFeatures =
+    language === "pt"
+      ? ["Gestão de reservas integrada", "Pagamentos seguros via Stripe", "Visibilidade para milhares de clientes"]
+      : language === "es"
+      ? ["Gestión de reservas integrada", "Pagos seguros vía Stripe", "Visibilidad para miles de clientes"]
+      : language === "fr"
+      ? ["Gestion des réservations intégrée", "Paiements sécurisés via Stripe", "Visibilité auprès de milliers de clients"]
+      : ["Integrated booking management", "Secure Stripe payments", "Visibility to thousands of clients"];
 
   return (
     <motion.section
@@ -134,7 +148,7 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
               </div>
             </motion.div>
 
-            {/* Card 2 - PROFISSIONAL */}
+            {/* Card 2 - PROFISSIONAL + CLIENTE */}
             <motion.div
               variants={itemVariants}
               whileHover={{ y: -4 }}
@@ -151,26 +165,57 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
               <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(90deg, ${ORANGE}, #ff9966, ${ORANGE})` }} />
               {/* Decorative corner glow */}
               <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20" style={{ background: `radial-gradient(circle, ${ORANGE}, transparent 70%)` }} />
+              {/* Subtle pattern overlay */}
+              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `radial-gradient(circle at 1px 1px, ${ORANGE} 1px, transparent 0)`, backgroundSize: "16px 16px" }} />
 
               <div className="relative p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl shadow-sm" style={{ background: `linear-gradient(135deg, ${ORANGE}, #ff9966)`, boxShadow: `0 4px 12px ${ORANGE}30` }}>
-                    <Euro className="w-5 h-5 text-white" strokeWidth={2.5} />
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-11 h-11 rounded-2xl" style={{ background: `linear-gradient(135deg, ${ORANGE}, #ff9966)`, boxShadow: `0 6px 16px ${ORANGE}35` }}>
+                      <Euro className="w-5 h-5 text-white" strokeWidth={2.5} />
+                    </div>
+                    <span className="text-sm font-extrabold uppercase tracking-wider" style={{ color: ORANGE }}>
+                      {language === "pt" ? "Juntar-se" : language === "es" ? "Únete" : language === "fr" ? "Rejoindre" : "Join Us"}
+                    </span>
                   </div>
-                  <span className="text-sm font-extrabold uppercase tracking-wider" style={{ color: ORANGE }}>
-                    {language === "pt" ? "Profissional" : language === "es" ? "Profesional" : language === "fr" ? "Professionnel" : "Professional"}
-                  </span>
+                  <Sparkles className="w-4 h-4" style={{ color: ORANGE, opacity: 0.5 }} />
                 </div>
-                <p className="text-[13px] md:text-sm leading-relaxed text-slate-700 mb-6">{card2Body}</p>
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={onRegistar}
-                  className="hero-cta-orange inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-bold text-white transition-all"
-                >
-                  {language === "pt" ? "Registar" : language === "es" ? "Registrarse" : language === "fr" ? "S'inscrire" : "Register"}
-                  <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
-                </motion.button>
+
+                <p className="text-[13px] md:text-sm leading-relaxed text-slate-700 mb-5">{card2Body}</p>
+
+                {/* Feature list */}
+                <ul className="space-y-2 mb-6">
+                  {card2ProFeatures.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-[12px] md:text-[13px] text-slate-600">
+                      <span className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: `${ORANGE}15` }}>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: ORANGE }} />
+                      </span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Dual CTA buttons */}
+                <div className="flex flex-col sm:flex-row gap-2.5">
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={onRegistar}
+                    className="hero-cta-orange flex-1 inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold text-white transition-all"
+                  >
+                    {card2ProLabel}
+                    <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={onEntrar}
+                    className="hero-cta-glass-premium flex-1 inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold transition-all"
+                  >
+                    {card2ClientLabel}
+                    <ArrowRight className="w-4 h-4" strokeWidth={2.5} style={{ color: TEAL }} />
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           </div>
