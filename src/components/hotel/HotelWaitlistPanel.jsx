@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Clock, Plus, Trash2, Bell, X, Users, CalendarDays } from "lucide-react";
+import { Clock, Plus, Trash2, Bell, X, Users, CalendarDays, UserCheck } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 
@@ -17,15 +17,61 @@ const STATUS_CFG = {
   cancelled: { label: "Cancelado", cls: "bg-slate-50 text-slate-500 border-slate-200" },
 };
 
-export default function HotelWaitlistPanel({ hotelProfile }) {
+export default function HotelWaitlistPanel({ hotelProfile, bookings = [] }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState("");
   const [form, setForm] = useState({
     owner_name: "", owner_email: "", owner_phone: "",
     dog_name: "", dog_breed: "", dog_size: "medium",
     requested_checkin_date: "", requested_checkout_date: "",
     service_type: "boarding", notes: "",
   });
+
+  // Extrair clientes recorrentes do histórico de reservas (únicos por email)
+  const recurringClients = React.useMemo(() => {
+    const map = new Map();
+    for (const b of bookings) {
+      const email = (b.owner_email || "").trim().toLowerCase();
+      if (!email) continue;
+      if (!map.has(email)) {
+        const firstDog = b.dogs?.[0] || {};
+        map.set(email, {
+          id: email,
+          owner_name: b.owner_name || "",
+          owner_email: b.owner_email || "",
+          owner_phone: b.owner_phone || "",
+          dog_name: firstDog.dog_name || "",
+          dog_breed: firstDog.dog_breed || "",
+          dog_size: firstDog.dog_size || "medium",
+          service_type: b.service_type || "boarding",
+          bookings_count: 1,
+          last_visit: b.checkin_date || b.created_date,
+        });
+      } else {
+        const existing = map.get(email);
+        existing.bookings_count += 1;
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.bookings_count - a.bookings_count);
+  }, [bookings]);
+
+  const handleSelectRecurring = (clientId) => {
+    setSelectedClientId(clientId);
+    if (!clientId) return;
+    const client = recurringClients.find(c => c.id === clientId);
+    if (!client) return;
+    setForm(f => ({
+      ...f,
+      owner_name: client.owner_name,
+      owner_email: client.owner_email,
+      owner_phone: client.owner_phone,
+      dog_name: client.dog_name,
+      dog_breed: client.dog_breed,
+      dog_size: client.dog_size,
+      service_type: client.service_type,
+    }));
+  };
 
   const { data: waitlist = [], isLoading } = useQuery({
     queryKey: ["hotelWaitlist", hotelProfile?.id],
@@ -39,6 +85,7 @@ export default function HotelWaitlistPanel({ hotelProfile }) {
       queryClient.invalidateQueries({ queryKey: ["hotelWaitlist"] });
       toast.success("Adicionado à lista de espera");
       setShowForm(false);
+      setSelectedClientId("");
       setForm({ owner_name: "", owner_email: "", owner_phone: "", dog_name: "", dog_breed: "", dog_size: "medium", requested_checkin_date: "", requested_checkout_date: "", service_type: "boarding", notes: "" });
     },
     onError: () => toast.error("Erro ao adicionar à lista"),
@@ -109,6 +156,30 @@ export default function HotelWaitlistPanel({ hotelProfile }) {
               <X className="w-4 h-4" />
             </button>
           </div>
+          {recurringClients.length > 0 && (
+            <div className="bg-teal-50 border border-teal-200 rounded-lg p-2.5 space-y-1.5">
+              <label className="text-[10px] font-bold text-teal-700 uppercase tracking-wide flex items-center gap-1">
+                <UserCheck className="w-3 h-3" /> Cliente Recorrente
+              </label>
+              <select
+                value={selectedClientId}
+                onChange={e => handleSelectRecurring(e.target.value)}
+                className={inputCls}
+              >
+                <option value="">— Novo cliente (preencher manualmente) —</option>
+                {recurringClients.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.owner_name} · {c.dog_name || "—"} · {c.bookings_count} reserva(s)
+                  </option>
+                ))}
+              </select>
+              {selectedClientId && (
+                <p className="text-[10px] text-teal-600">
+                  ✓ Dados preenchidos automaticamente do histórico
+                </p>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <input value={form.owner_name} onChange={e => setForm(f => ({ ...f, owner_name: e.target.value }))} placeholder="Nome do dono *" className={inputCls} />
             <input value={form.owner_phone} onChange={e => setForm(f => ({ ...f, owner_phone: e.target.value }))} placeholder="Telefone" className={inputCls} />

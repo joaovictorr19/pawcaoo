@@ -579,7 +579,7 @@ export default function HotelDashboard() {
 
           {activeTab === "espera" && (
             <motion.div key="espera" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              <HotelWaitlistPanel hotelProfile={hotelProfile} />
+              <HotelWaitlistPanel hotelProfile={hotelProfile} bookings={bookings} />
             </motion.div>
           )}
 
