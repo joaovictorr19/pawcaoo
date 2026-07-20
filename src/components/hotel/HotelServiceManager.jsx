@@ -12,11 +12,11 @@ import { toast } from 'sonner';
 import ServiceIconPicker, { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
 
 const SERVICE_TYPES = [
-  { value: 'boarding', label: 'Alojamento' },
-  { value: 'daycare', label: 'Creche Diária' },
-  { value: 'grooming', label: 'Grooming' },
-  { value: 'training', label: 'Treino' },
-  { value: 'other', label: 'Outro' }
+  { value: 'boarding', label: 'Alojamento', desc: 'Estadia com pernoita — cliente escolhe intervalo de datas, preço por noite' },
+  { value: 'daycare', label: 'Creche Diária', desc: 'Dia completo sem pernoita — cliente escolhe data, horário do hotel aplica' },
+  { value: 'grooming', label: 'Banho & Tosa', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
+  { value: 'training', label: 'Treino', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
+  { value: 'other', label: 'Outro', desc: 'Sessão única — cliente escolhe data e horário preferido' }
 ];
 
 const DOG_SIZES = [
@@ -230,6 +230,11 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                       <option key={type.value} value={type.value}>{type.label}</option>
                     ))}
                   </select>
+                  {SERVICE_TYPES.find(t => t.value === formData.service_type)?.desc && (
+                    <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                      {SERVICE_TYPES.find(t => t.value === formData.service_type).desc}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -248,7 +253,7 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-600 uppercase mb-2 block">
-                    Preço por Noite (€)
+                    Preço {formData.service_type === 'boarding' ? 'por Noite' : formData.service_type === 'daycare' ? 'por Dia' : 'por Sessão'} (€)
                   </label>
                   <Input
                     type="number"

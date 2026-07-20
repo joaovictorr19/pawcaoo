@@ -25,6 +25,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [dogCare, setDogCare] = useState({});
   const [isCreating, setIsCreating] = useState(false);
   const [finalized, setFinalized] = useState(false);
+  const [preferredTime, setPreferredTime] = useState('10:00');
 
   useEffect(() => {
     if (isOpen) {
@@ -37,6 +38,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setPickupAddress('');
       setDeliveryMethod(hotel?.hotel_details?.offers_pickup ? 'dropoff' : 'dropoff');
       setDogCare({});
+      setPreferredTime('10:00');
       setStep(0);
       setFinalized(false);
     }
@@ -66,10 +68,14 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const hotelAddress = hotel?.hotel_details?.full_address || hotel?.location || '';
   const finalAddress = deliveryMethod === 'pickup' ? pickupAddress : hotelAddress;
 
-  const totalNights = checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
-  const perDogPerNight = selectedService.price_per_day || 0;
+  const bookingMode = selectedService.service_type === 'boarding' ? 'overnight' : selectedService.service_type === 'daycare' ? 'daily' : 'appointment';
+  const isOvernight = bookingMode === 'overnight';
+  const isAppointment = bookingMode === 'appointment';
+  const totalNights = isOvernight && checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
+  const servicePrice = selectedService.price_per_day || 0;
+  const pricingUnits = isOvernight ? totalNights : 1;
   const commissionRate = getEffectiveCommissionRate(hotel);
-  const serviceAmount = Math.round(perDogPerNight * totalNights * selectedDogs.length * 100) / 100;
+  const serviceAmount = Math.round(servicePrice * pricingUnits * selectedDogs.length * 100) / 100;
   const platformFee = Math.round(serviceAmount * (commissionRate / 100) * 100) / 100;
   const totalAmount = Math.round((serviceAmount + platformFee) * 100) / 100;
 
@@ -80,8 +86,12 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       return;
     }
     if (selectedDogs.length === 0) { toast.error('Selecione pelo menos um animal'); return; }
-    if (!checkinDate || !checkoutDate) { toast.error('Escolha as datas no calendário'); return; }
-    if (new Date(checkoutDate) <= new Date(checkinDate)) { toast.error('Data de saída deve ser após a de entrada'); return; }
+    if (isOvernight) {
+      if (!checkinDate || !checkoutDate) { toast.error('Escolha as datas no calendário'); return; }
+      if (new Date(checkoutDate) <= new Date(checkinDate)) { toast.error('Data de saída deve ser após a de entrada'); return; }
+    } else {
+      if (!checkinDate) { toast.error('Escolha a data'); return; }
+    }
     if (deliveryMethod === 'pickup' && !pickupAddress.trim()) { toast.error('Indique o endereço de recolha'); return; }
     if (deliveryMethod === 'dropoff' && !hotelAddress.trim()) { toast.error('O hotel não tem endereço definido. Contacte o hotel.'); return; }
 
@@ -122,12 +132,12 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         veterinarian_phone: selectedDogs[0]?.vet_phone || '',
         service_type: selectedService.service_type,
         checkin_date: checkinDate,
-        checkout_date: checkoutDate,
-        checkin_time: checkinTime,
-        checkout_time: checkoutTime,
-        total_nights: totalNights,
+        checkout_date: isOvernight ? checkoutDate : checkinDate,
+        checkin_time: isOvernight ? checkinTime : (preferredTime || checkinTime),
+        checkout_time: isOvernight ? checkoutTime : '',
+        total_nights: isOvernight ? totalNights : (bookingMode === 'daily' ? 1 : 0),
         total_dogs: selectedDogs.length,
-        price_per_night: perDogPerNight,
+        price_per_night: servicePrice,
         total_amount: totalAmount,
         platform_fee: platformFee,
         service_amount: serviceAmount,
@@ -160,7 +170,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const steps = [
     { title: 'Animais', icon: PawPrint },
     { title: 'Cuidados', icon: Utensils },
-    { title: 'Datas', icon: Calendar },
+    { title: isOvernight ? 'Datas' : isAppointment ? 'Agendamento' : 'Data', icon: Calendar },
     { title: 'Resumo', icon: CheckCircle2 },
   ];
 
@@ -405,70 +415,109 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                 </div>
               )}
 
-              {/* STEP 2 — Calendário de intervalo */}
+              {/* STEP 2 — Datas / Agendamento */}
               {step === 2 && (
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkinDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
-                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Entrada</p>
-                      <p className="text-xs font-black text-slate-900 mt-0.5">
-                        {checkinDate ? formatDate(checkinDate) : '—'}
-                      </p>
-                    </div>
-                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                      <ChevronLeft className="w-3 h-3 text-slate-400 rotate-180" />
-                    </div>
-                    <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
-                      <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Saída</p>
-                      <p className="text-xs font-black text-slate-900 mt-0.5">
-                        {checkoutDate ? formatDate(checkoutDate) : '—'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {checkinPolicy !== 'all_days' && (
-                    <div className="bg-blue-50/80 border border-blue-200/60 rounded-lg p-2 flex items-center gap-1.5">
-                      <Clock className="w-3 h-3 text-blue-500 flex-shrink-0" />
-                      <p className="text-[11px] text-blue-700 font-semibold">
-                        {checkinPolicy === 'no_sundays' ? 'Hotel fechado aos Domingos' : 'Hotel fechado aos Domingos e Feriados'}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="bg-white rounded-xl border border-slate-200 p-2.5">
-                    <HotelRangeCalendar
-                      daysOff={(hotel?.hotel_details?.blocked_dates || []).map(d => ({ date: d }))}
-                      checkinPolicy={checkinPolicy}
-                      checkinDate={checkinDate}
-                      checkoutDate={checkoutDate}
-                      onRangeSelect={(ci, co) => {
-                        setCheckinDate(ci);
-                        setCheckoutDate(co);
-                      }}
-                    />
-                  </div>
-
-                  {checkinDate && (
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
-                        <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1">
-                          <Clock className="w-2.5 h-2.5" /> Entrada
+                  {isOvernight ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkinDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
+                          <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Entrada</p>
+                          <p className="text-xs font-black text-slate-900 mt-0.5">{checkinDate ? formatDate(checkinDate) : '—'}</p>
+                        </div>
+                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                          <ChevronLeft className="w-3 h-3 text-slate-400 rotate-180" />
+                        </div>
+                        <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
+                          <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Saída</p>
+                          <p className="text-xs font-black text-slate-900 mt-0.5">{checkoutDate ? formatDate(checkoutDate) : '—'}</p>
+                        </div>
+                      </div>
+                      {checkinPolicy !== 'all_days' && (
+                        <div className="bg-blue-50/80 border border-blue-200/60 rounded-lg p-2 flex items-center gap-1.5">
+                          <Clock className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                          <p className="text-[11px] text-blue-700 font-semibold">
+                            {checkinPolicy === 'no_sundays' ? 'Hotel fechado aos Domingos' : 'Hotel fechado aos Domingos e Feriados'}
+                          </p>
+                        </div>
+                      )}
+                      <div className="bg-white rounded-xl border border-slate-200 p-2.5">
+                        <HotelRangeCalendar
+                          daysOff={(hotel?.hotel_details?.blocked_dates || []).map(d => ({ date: d }))}
+                          checkinPolicy={checkinPolicy}
+                          checkinDate={checkinDate}
+                          checkoutDate={checkoutDate}
+                          onRangeSelect={(ci, co) => { setCheckinDate(ci); setCheckoutDate(co); }}
+                        />
+                      </div>
+                      {checkinDate && (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
+                            <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1"><Clock className="w-2.5 h-2.5" /> Entrada</p>
+                            <p className="text-sm font-black text-slate-900 mt-0.5">{hotel?.hotel_details?.checkin_time || checkinTime}</p>
+                          </div>
+                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
+                            <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1"><Clock className="w-2.5 h-2.5" /> Saída</p>
+                            <p className="text-sm font-black text-slate-900 mt-0.5">{hotel?.hotel_details?.checkout_time || checkoutTime}</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
+                          {isAppointment ? 'Escolha a data e hora' : 'Escolha a data'}
                         </p>
-                        <p className="text-sm font-black text-slate-900 mt-0.5">
-                          {hotel?.hotel_details?.checkin_time || checkinTime}
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {isAppointment ? 'Agendamento para sessão única' : 'Dia completo (creche)'}
                         </p>
                       </div>
-                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
-                        <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1">
-                          <Clock className="w-2.5 h-2.5" /> Saída
-                        </p>
-                        <p className="text-sm font-black text-slate-900 mt-0.5">
-                          {hotel?.hotel_details?.checkout_time || checkoutTime}
-                        </p>
+                      {checkinPolicy !== 'all_days' && (
+                        <div className="bg-blue-50/80 border border-blue-200/60 rounded-lg p-2 flex items-center gap-1.5">
+                          <Clock className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                          <p className="text-[11px] text-blue-700 font-semibold">
+                            {checkinPolicy === 'no_sundays' ? 'Hotel fechado aos Domingos' : 'Hotel fechado aos Domingos e Feriados'}
+                          </p>
+                        </div>
+                      )}
+                      <div className="bg-white rounded-xl border border-slate-200 p-3">
+                        <input
+                          type="date"
+                          value={checkinDate}
+                          min={new Date().toISOString().split('T')[0]}
+                          onChange={e => setCheckinDate(e.target.value)}
+                          className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                        />
                       </div>
-                    </div>
+                      {isAppointment && (
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1.5 tracking-wider">
+                            <Clock className="w-3 h-3" /> Horário preferido
+                          </label>
+                          <input
+                            type="time"
+                            value={preferredTime}
+                            onChange={e => setPreferredTime(e.target.value)}
+                            className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                          />
+                          <p className="text-[10px] text-slate-400 mt-1">O hotel confirmará a disponibilidade do horário</p>
+                        </div>
+                      )}
+                      {!isAppointment && checkinDate && (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
+                            <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1"><Clock className="w-2.5 h-2.5" /> Entrada</p>
+                            <p className="text-sm font-black text-slate-900 mt-0.5">{hotel?.hotel_details?.checkin_time || checkinTime}</p>
+                          </div>
+                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
+                            <p className="text-[9px] font-bold uppercase text-slate-400 tracking-wider flex items-center justify-center gap-1"><Clock className="w-2.5 h-2.5" /> Saída</p>
+                            <p className="text-sm font-black text-slate-900 mt-0.5">{hotel?.hotel_details?.checkout_time || checkoutTime}</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
-
                 </div>
               )}
 
@@ -528,16 +577,18 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500">Entrada</span>
-                        <span className="font-bold text-slate-900">{formatDate(checkinDate)} · {checkinTime}</span>
+                        <span className="text-slate-500">{isOvernight ? 'Entrada' : 'Data'}</span>
+                        <span className="font-bold text-slate-900">{formatDate(checkinDate)} · {isOvernight ? checkinTime : (isAppointment ? preferredTime : checkinTime)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500">Saída</span>
-                        <span className="font-bold text-slate-900">{formatDate(checkoutDate)} · {checkoutTime}</span>
-                      </div>
+                      {isOvernight && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-500">Saída</span>
+                          <span className="font-bold text-slate-900">{formatDate(checkoutDate)} · {checkoutTime}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">Duração</span>
-                        <span className="font-bold text-slate-900">{totalNights} {totalNights === 1 ? 'noite' : 'noites'}</span>
+                        <span className="font-bold text-slate-900">{isOvernight ? `${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isAppointment ? 'Sessão única' : '1 dia'}</span>
                       </div>
                     </div>
 
@@ -620,7 +671,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     <div className="pt-2.5 border-t border-slate-100 space-y-1.5">
                       <div className="flex justify-between text-xs">
                         <span className="text-slate-500">
-                          {perDogPerNight}€ × {totalNights} {totalNights === 1 ? 'noite' : 'noites'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
+                          {servicePrice}€ {isOvernight ? `× ${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isAppointment ? '/ sessão' : '/ dia'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
                         </span>
                         <span className="font-bold text-slate-700">{serviceAmount}€</span>
                       </div>
@@ -650,7 +701,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         {!finalized && (
           (step === 0 && myDogs.length > 0 && selectedDogIds.length > 0) ||
           step === 1 ||
-          (step === 2 && checkinDate && checkoutDate) ||
+          (step === 2 && checkinDate && (isOvernight ? !!checkoutDate : true)) ||
           step === 3
         ) && (
           <div className="px-5 pt-3 pb-5 bg-white border-t border-slate-100 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
