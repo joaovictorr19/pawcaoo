@@ -52,8 +52,17 @@ export const LanguageProvider = ({ children }) => {
     if (savedLang && SUPPORTED_LANGUAGES.includes(savedLang)) {
       return savedLang;
     }
-    
-    // 3. Default to Portuguese (app default)
+
+    // 3. Detect browser language
+    const browserLangs = navigator.languages || [navigator.language || ''];
+    for (const bl of browserLangs) {
+      const mapped = BROWSER_LANG_MAP[bl] || BROWSER_LANG_MAP[bl?.split('-')[0]];
+      if (mapped && SUPPORTED_LANGUAGES.includes(mapped)) {
+        return mapped;
+      }
+    }
+
+    // 4. Default to Portuguese (app default)
     return 'pt';
   });
 
