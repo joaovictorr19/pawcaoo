@@ -140,7 +140,7 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
+    <div className="min-h-screen bg-slate-950 text-white font-sans" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {/* Header */}
       <header className="px-4 pt-6 md:pt-20 pb-5">
         <div className="flex items-center gap-3">
@@ -157,6 +157,8 @@ export default function ClientDashboard() {
           </div>
         </div>
       </header>
+
+      <ClientTabBar active={activeTab} onChange={setActiveTab} unreadCount={unreadNotifications.length} />
 
       <main className="px-4 pb-6 max-w-2xl mx-auto w-full">
         <AnimatePresence mode="wait">
@@ -329,8 +331,6 @@ export default function ClientDashboard() {
 
         </AnimatePresence>
       </main>
-
-      <ClientTabBar active={activeTab} onChange={setActiveTab} unreadCount={unreadNotifications.length} />
 
       {/* Modal de relatório */}
       {selectedBooking && (
