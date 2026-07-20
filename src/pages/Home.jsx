@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -92,19 +93,7 @@ export default function Home() {
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: async () => {
-      try {
-        let u = await base44.auth.me();
-        const imp = JSON.parse(localStorage.getItem('impersonation') || 'null');
-        if (imp?.targetUserId && u?.role === 'admin') {
-           const t = await base44.entities.User.filter({ id: imp.targetUserId });
-           if (t.length > 0) u = { ...t[0], isImpersonating: true };
-        }
-        return u;
-      } catch (err) {
-        return null;
-      }
-    },
+    queryFn: () => getCurrentUser(),
     retry: false,
     staleTime: 10 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight, Wallet, PartyPopper, ArrowDown, ArrowUp } from "lucide-react";
@@ -468,7 +469,7 @@ export default function Gamification() {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
   });
 
   const { data: userProfile } = useQuery({

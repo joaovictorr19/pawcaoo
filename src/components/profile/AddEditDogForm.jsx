@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart as HeartIcon, Upload, X, Plus, Save, Heart, Camera } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import OptimizedImageUpload from "../adoption/OptimizedImageUpload";
@@ -23,7 +24,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
   });
 
   // Define default values for all possible fields

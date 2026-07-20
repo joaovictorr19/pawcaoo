@@ -28,6 +28,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom"; // Added for direct navigation if needed
@@ -54,7 +55,7 @@ export default function UserSearchAdvanced({ onSearch, usersSource = [], classNa
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
   });
 
   const { data: savedSearches = [] } = useQuery({

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -55,7 +56,7 @@ export default function NotificationArea({ isOpen, onClose }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isOpen, forceClose]);
 
-  const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => getCurrentUser() });
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications', user?.email],

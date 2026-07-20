@@ -1,5 +1,6 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +38,7 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
 
   const { data: user } = useQuery({ 
     queryKey: ['currentUser'], 
-    queryFn: () => base44.auth.me() 
+    queryFn: () => getCurrentUser() 
   });
 
   const { data: favorites = [] } = useQuery({

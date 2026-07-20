@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { getEffectiveCommissionRate } from "@/utils/commission";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   // Buscar usuário atual
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
   });
 
   const { data: userProfile } = useQuery({

@@ -1,6 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { Loader2 } from "lucide-react";
 import ActiveServiceCockpit from "@/components/service/ActiveServiceCockpit";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +14,7 @@ export default function ActiveWalkDashboard() {
 
   const { data: user, isLoading } = useQuery({
     queryKey: ["currentUser"],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
     staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });

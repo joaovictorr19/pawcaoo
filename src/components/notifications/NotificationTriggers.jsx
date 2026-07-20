@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from "@/utils/getCurrentUser";
 
 /**
  * Componente que monitora condições e dispara notificações automáticas
@@ -435,7 +436,7 @@ export default function NotificationTriggers({ user }) {
         if (event.type !== 'create') return;
         const ew = event.data;
         if (!ew || ew.status !== 'available') return;
-        const me = await base44.auth.me();
+        const me = await getCurrentUser();
         const isPro = ['walker','both','professional'].includes(me?.account_type);
         if (!isPro) return;
         if (allowInApp('alert')) {

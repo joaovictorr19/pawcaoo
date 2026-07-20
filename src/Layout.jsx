@@ -4,6 +4,7 @@ import { createPageUrl } from "@/utils";
 import { Dog, Home, Calendar, User, PlusCircle, Zap, Heart, CalendarClock, HomeIcon, Bell, History, Crown, Gift, Store, Award, Globe, Camera, Shield, ShieldCheck, BarChart3, Trophy, GraduationCap, Megaphone, ShoppingBag, Sparkles, LogOut, Building2, Download, Users, CreditCard, AlertCircle, Search } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -104,35 +105,7 @@ function LayoutContent({ children, currentPageName }) {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
-        const impersonation = JSON.parse(localStorage.getItem('impersonation'));
-        let userData = null;
-
-        if (impersonation?.targetUserId) {
-          const expired = impersonation.expiresAt && new Date(impersonation.expiresAt) < new Date();
-          if (expired) {
-            localStorage.removeItem('impersonation');
-          } else {
-            const realUser = await base44.auth.me();
-            if (realUser?.role === 'admin') {
-              // Use stored target user data — no fragile fetch on every refetch
-              if (impersonation.targetUserData) {
-                userData = { ...impersonation.targetUserData, isImpersonating: true };
-              } else {
-                // Fallback: fetch only if stored data is missing (legacy impersonation)
-                const targets = await base44.entities.User.filter({ id: impersonation.targetUserId });
-                if (targets.length > 0) {
-                  userData = { ...targets[0], isImpersonating: true };
-                }
-              }
-            } else {
-              localStorage.removeItem('impersonation');
-            }
-          }
-        }
-
-        if (!userData) {
-          userData = await base44.auth.me();
-        }
+        const userData = await getCurrentUser();
 
         if (userData?.email) {
           try {

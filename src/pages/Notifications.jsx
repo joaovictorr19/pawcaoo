@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Bell, Check, CheckCheck, Trash2, Zap, MapPin, Calendar, CreditCard, AlertTriangle, Megaphone, Settings, X } from "lucide-react";
@@ -42,7 +43,7 @@ export default function Notifications() {
   const [activeTab, setActiveTab] = useState("list");
   const [selectedId, setSelectedId] = useState(null);
 
-  const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => getCurrentUser() });
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications', user?.email],

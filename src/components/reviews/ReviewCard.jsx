@@ -6,6 +6,7 @@ import { Star, ThumbsUp, Heart, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { toast } from "sonner";
 
 export default function ReviewCard({ review }) {
@@ -13,7 +14,7 @@ export default function ReviewCard({ review }) {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
   });
 
   const { data: helpfulVotes } = useQuery({

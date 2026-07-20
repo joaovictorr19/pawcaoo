@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useTheme } from "../ThemeContext";
 import { motion } from "framer-motion";
 import { PawPrint, Bone, Heart, Star, Sparkles } from "lucide-react";
@@ -14,7 +15,7 @@ export default function DynamicBackground() {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
-        return await base44.auth.me();
+        return await getCurrentUser();
       } catch {
         return null;
       }

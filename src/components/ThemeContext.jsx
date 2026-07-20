@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { calculateTier } from '@/components/gamification/tierSystem';
 
 const ThemeContext = createContext();
@@ -26,7 +27,7 @@ export const ThemeProvider = ({ children }) => {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
     retry: false,
   });
 

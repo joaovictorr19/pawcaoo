@@ -1,12 +1,13 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import ProfessionalHubV2 from './ProfessionalHubV2';
 
 export default function Dashboard() {
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
     staleTime: 5 * 60 * 1000,
   });
 

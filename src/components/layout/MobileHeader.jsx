@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import PawCaoLogo from '@/components/PawCaoLogo';
 import { LogOut, ChevronDown } from 'lucide-react';
 import LanguageSelector from '@/components/ui/LanguageSelector';
@@ -84,7 +85,7 @@ export default function MobileHeader() {
         if (mounted) setAuthed(!!ok);
         if (ok) {
           try {
-            const me = await base44.auth.me();
+            const me = await getCurrentUser();
             if (mounted) {
               setIsAdmin(me?.role === 'admin');
               setIsHotel(me?.role === 'hotel' || me?.role === 'hotel_admin');

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
@@ -53,34 +54,7 @@ export default function AccountSettings() {
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: async () => {
-      try {
-        const impersonation = JSON.parse(localStorage.getItem('impersonation') || 'null');
-        if (impersonation?.targetUserId) {
-          const expired = impersonation.expiresAt && new Date(impersonation.expiresAt) < new Date();
-          if (expired) {
-            localStorage.removeItem('impersonation');
-          } else {
-            const realUser = await base44.auth.me();
-            if (realUser?.role === 'admin') {
-              if (impersonation.targetUserData) {
-                return { ...impersonation.targetUserData, isImpersonating: true };
-              }
-              const targets = await base44.entities.User.filter({ id: impersonation.targetUserId });
-              if (targets.length > 0) {
-                return { ...targets[0], isImpersonating: true };
-              }
-            } else {
-              localStorage.removeItem('impersonation');
-            }
-          }
-        }
-        return await base44.auth.me();
-      } catch (err) {
-        console.error('Auth error:', err);
-        return null;
-      }
-    },
+    queryFn: () => getCurrentUser(),
     retry: false,
   });
 

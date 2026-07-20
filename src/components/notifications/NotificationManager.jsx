@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, CheckCircle, AlertTriangle, Bell, MapPin, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -87,7 +88,7 @@ export default function NotificationManager() {
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
     staleTime: 5 * 60 * 1000,
   });
 

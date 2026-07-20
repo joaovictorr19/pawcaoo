@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, Suspense, lazy } from "react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User } from "lucide-react";
@@ -50,7 +51,7 @@ export default function UserProfile() {
 
   const { data: currentUser, isLoading: authLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     retry: 2,

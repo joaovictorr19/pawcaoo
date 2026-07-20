@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
@@ -67,17 +68,7 @@ export default function ClientDashboard() {
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: async () => {
-      let u = await base44.auth.me();
-      try {
-        const imp = JSON.parse(localStorage.getItem('impersonation') || 'null');
-        if (imp?.targetUserId && u?.role === 'admin') {
-          const t = await base44.entities.User.filter({ id: imp.targetUserId });
-          if (t.length > 0) u = { ...t[0], isImpersonating: true };
-        }
-      } catch (e) {}
-      return u;
-    }
+    queryFn: () => getCurrentUser()
   });
 
   const { data: allBookings = [], isLoading: bookingsLoading } = useQuery({

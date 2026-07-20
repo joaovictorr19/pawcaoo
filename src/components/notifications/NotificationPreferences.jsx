@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ const DEFAULT_PREFS = {
 
 export default function NotificationPreferences() {
   const queryClient = useQueryClient();
-  const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ['currentUser'], queryFn: () => getCurrentUser() });
 
   const { data: records = [] } = useQuery({
     queryKey: ['notifPrefs', user?.email],
