@@ -74,11 +74,35 @@ Deno.serve(async (req) => {
       maxDurationMinutes: MAX_IMPERSONATION_MINUTES
     };
 
+    // Return full target user data so the frontend can use it directly
+    // without a fragile extra fetch on every query refetch
+    const targetUserData = {
+      id: targetUser.id,
+      email: targetUser.email,
+      full_name: targetUser.full_name,
+      role: targetUser.role,
+      created_date: targetUser.created_date,
+      username: targetUser.username,
+      profile_photo_url: targetUser.profile_photo_url,
+      city: targetUser.city,
+      bio: targetUser.bio,
+      is_verified: targetUser.is_verified,
+      gamification_xp: targetUser.gamification_xp,
+      gamification_level: targetUser.gamification_level,
+      achievements_badges: targetUser.achievements_badges,
+      profile_stats: targetUser.profile_stats,
+      followers_count: targetUser.followers_count,
+      following_count: targetUser.following_count,
+      pawgo_status: targetUser.pawgo_status,
+      account_type: targetUser.account_type
+    };
+
     console.log(`Impersonation started: admin=${adminUser.email} target=${targetUser.email} audit=${auditLogId}`);
 
     return Response.json({
       success: true,
       impersonationData,
+      targetUserData,
       message: `Now impersonating ${targetUser.full_name}. Session expires in ${MAX_IMPERSONATION_MINUTES} minutes.`
     });
 

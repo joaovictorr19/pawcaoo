@@ -41,7 +41,11 @@ export default function ImpersonateDialog({ user, isOpen, onClose }) {
         reason: reason.trim(),
       });
       if (response.data?.success) {
-        localStorage.setItem("impersonation", JSON.stringify(response.data.impersonationData));
+        const impersonationPayload = {
+          ...response.data.impersonationData,
+          targetUserData: response.data.targetUserData
+        };
+        localStorage.setItem("impersonation", JSON.stringify(impersonationPayload));
         toast.success(`A entrar como ${user.full_name || user.email}...`);
         window.location.href = createPageUrl(destination);
       } else {

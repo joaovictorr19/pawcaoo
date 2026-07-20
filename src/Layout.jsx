@@ -114,9 +114,15 @@ function LayoutContent({ children, currentPageName }) {
           } else {
             const realUser = await base44.auth.me();
             if (realUser?.role === 'admin') {
-              const targets = await base44.entities.User.filter({ id: impersonation.targetUserId });
-              if (targets.length > 0) {
-                userData = { ...targets[0], isImpersonating: true };
+              // Use stored target user data — no fragile fetch on every refetch
+              if (impersonation.targetUserData) {
+                userData = { ...impersonation.targetUserData, isImpersonating: true };
+              } else {
+                // Fallback: fetch only if stored data is missing (legacy impersonation)
+                const targets = await base44.entities.User.filter({ id: impersonation.targetUserId });
+                if (targets.length > 0) {
+                  userData = { ...targets[0], isImpersonating: true };
+                }
               }
             } else {
               localStorage.removeItem('impersonation');
