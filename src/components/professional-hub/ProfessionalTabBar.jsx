@@ -1,57 +1,96 @@
-import { motion } from "framer-motion";
-import { BarChart3, Package, Calendar, QrCode, Wallet, Zap, TrendingUp, Star, Image, ShieldCheck, Bell } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BarChart3, Package, Calendar, QrCode, Wallet, Zap, TrendingUp, Star, Image, ShieldCheck, Bell, ChevronDown, User } from "lucide-react";
+
+const TABS = [
+  { id: "overview", label: "Resumo", icon: BarChart3 },
+  { id: "requests", label: "Pedidos", icon: Bell },
+  { id: "active", label: "Ativos", icon: Zap },
+  { id: "calendar", label: "Agenda", icon: Calendar },
+  { id: "profile", label: "Perfil", icon: User },
+  { id: "services", label: "Serviços", icon: Package },
+  { id: "portfolio", label: "Portfólio", icon: Image },
+  { id: "documents", label: "Documentos", icon: ShieldCheck },
+  { id: "reviews", label: "Avaliações", icon: Star },
+  { id: "finances", label: "Finanças", icon: TrendingUp },
+  { id: "wallet", label: "Carteira", icon: Wallet },
+  { id: "tools", label: "Ferramentas", icon: QrCode },
+];
 
 export function ProfessionalTabBar({ active, onChange }) {
-  const tabs = [
-    { id: "overview", label: "Resumo", icon: BarChart3 },
-    { id: "requests", label: "Pedidos", icon: Bell },
-    { id: "active", label: "Ativos", icon: Zap },
-    { id: "calendar", label: "Agenda", icon: Calendar },
-    { id: "profile", label: "Perfil", icon: Package },
-    { id: "services", label: "Serviços", icon: Package },
-    { id: "portfolio", label: "Portfólio", icon: Image },
-    { id: "documents", label: "Documentos", icon: ShieldCheck },
-    { id: "reviews", label: "Avaliações", icon: Star },
-    { id: "finances", label: "Finanças", icon: TrendingUp },
-    { id: "wallet", label: "Carteira", icon: Wallet },
-    { id: "tools", label: "Ferramentas", icon: QrCode },
-  ];
+  const [open, setOpen] = useState(false);
+  const activeTab = TABS.find((t) => t.id === active) || TABS[0];
+  const ActiveIcon = activeTab.icon;
+
+  const handleSelect = (id) => {
+    onChange(id);
+    setOpen(false);
+  };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-100 shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
-      <div className="overflow-x-auto scrollbar-none">
-        <div className="flex items-center px-2 py-1.5 gap-1 w-max mx-auto min-w-full justify-around">
-          {tabs.map((tab) => {
-            const isActive = active === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => onChange(tab.id)}
-                className="relative flex flex-col items-center justify-center min-w-[52px] h-14 rounded-xl transition-colors flex-shrink-0 px-2"
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTabPro"
-                    className="absolute inset-0 bg-orange-50 rounded-xl"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <tab.icon
-                  className={`w-5 h-5 mb-1 relative z-10 transition-colors ${
-                    isActive ? "text-orange-500" : "text-slate-400"
-                  }`}
+    <div className="max-w-3xl mx-auto px-4 pb-4 w-full">
+      {/* Desktop: pills no topo */}
+      <div className="hidden md:flex flex-wrap items-center gap-1 bg-slate-900 border border-white/10 rounded-2xl p-1.5">
+        {TABS.map((tab) => {
+          const isActive = active === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleSelect(tab.id)}
+              className="relative flex items-center gap-1.5 h-10 rounded-xl transition-colors px-3"
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeTabPro"
+                  className="absolute inset-0 bg-white/10 rounded-xl"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
-                <span
-                  className={`text-[9px] font-semibold relative z-10 transition-colors whitespace-nowrap ${
-                    isActive ? "text-orange-600" : "text-slate-400"
-                  }`}
-                >
-                  {tab.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+              )}
+              <tab.icon className={`w-4 h-4 relative z-10 ${isActive ? "text-orange-500" : "text-slate-500"}`} />
+              <span className={`text-xs font-bold relative z-10 whitespace-nowrap ${isActive ? "text-white" : "text-slate-500"}`}>
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Mobile: acordeão */}
+      <div className="md:hidden bg-slate-900 border border-white/10 rounded-2xl overflow-hidden">
+        <button
+          onClick={() => setOpen(!open)}
+          className="w-full flex items-center justify-between px-4 py-3.5"
+        >
+          <span className="flex items-center gap-2.5">
+            <ActiveIcon className="w-5 h-5 text-orange-500" />
+            <span className="text-sm font-bold text-white">{activeTab.label}</span>
+          </span>
+          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="border-t border-white/10 py-1 grid grid-cols-2">
+                {TABS.filter((t) => t.id !== active).map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleSelect(tab.id)}
+                    className="flex items-center gap-2.5 px-4 py-3 text-slate-400 hover:bg-white/5 transition-colors"
+                  >
+                    <tab.icon className="w-5 h-5" />
+                    <span className="text-sm font-semibold">{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

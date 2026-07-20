@@ -481,7 +481,7 @@ export default function ProfessionalHubV2() {
   const isOnline = user?.pawgo_status?.is_online || false;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans" style={{ paddingBottom: 'calc(130px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
+    <div className="min-h-screen bg-slate-950 text-white font-sans" style={{ paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
       <IncomingRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}
@@ -523,6 +523,11 @@ export default function ProfessionalHubV2() {
           <VerificationBanner status={professionalProfile?.verification_status} />
         </div>
       </header>
+
+      <ProfessionalTabBar active={activeTab} onChange={(tab) => {
+        setActiveTab(tab);
+        scrollToTop();
+      }} />
 
       <main className="px-4 md:px-6 pb-6 max-w-3xl mx-auto w-full">
         {/* Renderização Condicional por Abas */}
@@ -722,11 +727,6 @@ export default function ProfessionalHubV2() {
           )}
         </AnimatePresence>
       </main>
-
-      <ProfessionalTabBar active={activeTab} onChange={(tab) => {
-        setActiveTab(tab);
-        scrollToTop();
-      }} />
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
