@@ -1,15 +1,19 @@
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { X, Dog, Droplets, Scissors, Star, User, Calendar, Plus } from "lucide-react";
+import { X, Dog, Droplets, Scissors, Star, Utensils, Pill, Smile, HeartHandshake, User, Calendar, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 const SERVICE_OPTIONS = [
-  { value: "walk",      label: "Passeio",      icon: Dog },
-  { value: "bathing",   label: "Banho",        icon: Droplets },
-  { value: "grooming",  label: "Grooming",     icon: Scissors },
-  { value: "training",  label: "Treino",       icon: Star },
-  { value: "nail_trim", label: "Corte Unhas",  icon: Scissors },
+  { value: "walk",         label: "Passeio",     icon: Dog },
+  { value: "bathing",      label: "Banho",       icon: Droplets },
+  { value: "grooming",     label: "Grooming",    icon: Scissors },
+  { value: "training",     label: "Treino",      icon: Star },
+  { value: "nail_trim",    label: "Unhas",       icon: Scissors },
+  { value: "feeding",      label: "Alimentação", icon: Utensils },
+  { value: "medication",   label: "Medicação",   icon: Pill },
+  { value: "playtime",     label: "Brincar",     icon: Smile },
+  { value: "general_care", label: "Cuidados",    icon: HeartHandshake },
 ];
 
 export default function AssignTaskModal({ bookings, partners, onAssign, onClose }) {
@@ -18,6 +22,8 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
   const [selectedPartner, setSelectedPartner] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [pricePerUnit, setPricePerUnit] = useState(10);
+  const [assignmentNotes, setAssignmentNotes] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [saving, setSaving] = useState(false);
 
   const activeBookings = useMemo(() => {
@@ -41,6 +47,8 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
           assigned_walker_email: selectedPartner,
           assigned_walker_name: partners.find(p => p.walker_email === selectedPartner)?.walker_name || "",
           completed: false,
+          assignment_notes: assignmentNotes.trim() || undefined,
+          due_time: dueTime || undefined,
         },
       });
       onClose();
@@ -97,7 +105,7 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
           {/* Service type */}
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Serviço</label>
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-3 gap-1.5">
               {SERVICE_OPTIONS.map(opt => {
                 const Icon = opt.icon;
                 const isSelected = serviceName === opt.value;
@@ -157,6 +165,29 @@ export default function AssignTaskModal({ bookings, partners, onAssign, onClose 
                 className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200"
               />
             </div>
+          </div>
+
+          {/* Due time */}
+          <div>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Horário recomendado (opcional)</label>
+            <input
+              type="time"
+              value={dueTime}
+              onChange={e => setDueTime(e.target.value)}
+              className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200"
+            />
+          </div>
+
+          {/* Assignment notes / instructions */}
+          <div>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Instruções para o funcionário (opcional)</label>
+            <textarea
+              value={assignmentNotes}
+              onChange={e => setAssignmentNotes(e.target.value)}
+              rows={3}
+              placeholder="Ex: Dar comida seca, 2x ao dia. Não dar petiscos. O Bobby é alérgico a frango..."
+              className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-200 resize-none placeholder:text-slate-300"
+            />
           </div>
 
           {/* Total preview */}

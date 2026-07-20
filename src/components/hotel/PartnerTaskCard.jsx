@@ -3,15 +3,19 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   Dog, Droplets, Scissors, Star, CheckCircle2, Clock,
-  User, Calendar, Phone, Check
+  User, Calendar, Phone, Check, Utensils, Pill, Smile, HeartHandshake, AlarmClock
 } from "lucide-react";
 
 const SERVICE_META = {
-  walk:       { label: "Passeio",      icon: Dog,       color: "teal",   bg: "bg-teal-50",    border: "border-teal-200",    text: "text-teal-700",    iconColor: "text-teal-500" },
-  bathing:    { label: "Banho",        icon: Droplets,  color: "sky",    bg: "bg-sky-50",     border: "border-sky-200",     text: "text-sky-700",     iconColor: "text-sky-500" },
-  grooming:   { label: "Grooming",     icon: Scissors,  color: "purple", bg: "bg-purple-50",  border: "border-purple-200",  text: "text-purple-700",  iconColor: "text-purple-500" },
-  training:   { label: "Treino",       icon: Star,      color: "amber",  bg: "bg-amber-50",   border: "border-amber-200",   text: "text-amber-700",   iconColor: "text-amber-500" },
-  nail_trim:  { label: "Corte Unhas",  icon: Scissors,  color: "rose",   bg: "bg-rose-50",    border: "border-rose-200",    text: "text-rose-700",    iconColor: "text-rose-500" },
+  walk:         { label: "Passeio",     icon: Dog,            bg: "bg-teal-50",    border: "border-teal-200",    iconColor: "text-teal-500" },
+  bathing:      { label: "Banho",       icon: Droplets,      bg: "bg-sky-50",     border: "border-sky-200",     iconColor: "text-sky-500" },
+  grooming:     { label: "Grooming",    icon: Scissors,      bg: "bg-purple-50",  border: "border-purple-200",  iconColor: "text-purple-500" },
+  training:     { label: "Treino",      icon: Star,          bg: "bg-amber-50",   border: "border-amber-200",   iconColor: "text-amber-500" },
+  nail_trim:    { label: "Unhas",       icon: Scissors,      bg: "bg-rose-50",    border: "border-rose-200",    iconColor: "text-rose-500" },
+  feeding:      { label: "Alimentação", icon: Utensils,      bg: "bg-orange-50",  border: "border-orange-200",  iconColor: "text-orange-500" },
+  medication:   { label: "Medicação",   icon: Pill,          bg: "bg-red-50",     border: "border-red-200",     iconColor: "text-red-500" },
+  playtime:     { label: "Brincar",     icon: Smile,         bg: "bg-yellow-50",  border: "border-yellow-200",  iconColor: "text-yellow-500" },
+  general_care: { label: "Cuidados",    icon: HeartHandshake, bg: "bg-indigo-50",  border: "border-indigo-200",  iconColor: "text-indigo-500" },
 };
 
 export default function PartnerTaskCard({ task, onComplete }) {
@@ -78,6 +82,19 @@ export default function PartnerTaskCard({ task, onComplete }) {
                   <CheckCircle2 className="w-2.5 h-2.5" />
                   Concluído às {new Date(task.completed_at).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
                 </p>
+              )}
+
+              {task.due_time && (
+                <p className="text-[10px] text-blue-600 mt-1 flex items-center gap-0.5">
+                  <AlarmClock className="w-2.5 h-2.5" /> {task.due_time}
+                </p>
+              )}
+
+              {task.assignment_notes && (
+                <div className="mt-1.5 bg-blue-50 border border-blue-100 rounded-lg px-2 py-1.5">
+                  <p className="text-[9px] font-bold text-blue-400 uppercase tracking-wide mb-0.5">Instruções do Hotel</p>
+                  <p className="text-[10px] text-blue-700">{task.assignment_notes}</p>
+                </div>
               )}
 
               {task.task_notes && (

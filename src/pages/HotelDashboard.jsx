@@ -131,10 +131,16 @@ export default function HotelDashboard() {
 
         for (const h of allHotels) {
           const partners = h.hotel_details?.partner_walkers || [];
-          const isPartner = partners.find(p => p.walker_email === user.email && p.partner_role === 'limited');
-          if (isPartner) {
-            navigate(createPageUrl("PartnerHotelPanel"));
-            break;
+          const partnership = partners.find(p => p.walker_email === user.email);
+          if (partnership) {
+            if (partnership.partner_role === 'full') {
+              // Full-access partner: use the hotel's profile directly
+              return h;
+            } else {
+              // simple or limited: redirect to partner panel
+              navigate(createPageUrl("PartnerHotelPanel"));
+              return null;
+            }
           }
         }
       }
@@ -145,9 +151,9 @@ export default function HotelDashboard() {
   });
 
   const { data: bookings = [], isLoading: loadingBookings } = useQuery({
-    queryKey: ["hotelBookings", user?.email],
-    queryFn: () => base44.entities.HotelBooking.filter({ hotel_email: user.email }, "-created_date", 100),
-    enabled: !!user?.email,
+    queryKey: ["hotelBookings", hotelProfile?.id],
+    queryFn: () => base44.entities.HotelBooking.filter({ hotel_profile_id: hotelProfile.id }, "-created_date", 100),
+    enabled: !!hotelProfile?.id,
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000,
   });

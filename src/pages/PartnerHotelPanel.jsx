@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -6,17 +7,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   LogOut, Calendar, DollarSign, Clock, User, MapPin, Phone,
-  CheckCircle2, Plus, ListChecks, ClipboardList, Check, Inbox,
-  Dog, Droplets, Scissors, Star, Footprints
+  CheckCircle2, Plus, ListChecks, ClipboardList,
+  Dog, Star, LayoutGrid, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPageUrl } from '@/utils';
 import PartnerTaskCard from '@/components/hotel/PartnerTaskCard';
 import AssignTaskModal from '@/components/hotel/AssignTaskModal';
+import HotelReservationsPanel from '@/components/hotel/HotelReservationsPanel';
+import HotelTasksPanel from '@/components/hotel/HotelTasksPanel';
 
 const SERVICE_LABELS = {
   walk: 'Passeio', bathing: 'Banho', grooming: 'Grooming',
   training: 'Treino', nail_trim: 'Corte Unhas',
+  feeding: 'Alimentação', medication: 'Medicação',
+  playtime: 'Brincadeira', general_care: 'Cuidados Gerais',
   boarding: 'Alojamento', daycare: 'Creche',
 };
 
@@ -37,26 +43,17 @@ const STATUS_COLORS = {
   rejected: 'bg-red-50 text-red-500 border-red-200',
 };
 
-const TABS = [
-  { key: 'today', label: 'Hoje', icon: Clock },
-  { key: 'upcoming', label: 'Próximas', icon: Calendar },
-  { key: 'completed', label: 'Concluídas', icon: CheckCircle2 },
-  { key: 'bookings', label: 'Reservas', icon: ClipboardList },
-];
-
 export default function PartnerHotelPanel() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('today');
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [completingTask, setCompletingTask] = useState(null);
   const queryClient = useQueryClient();
 
-  // Get current user
   const { data: authUser, isLoading: isLoadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => await base44.auth.me(),
   });
 
-  // Fetch hotel profile
   const { data: hotel, isLoading } = useQuery({
     queryKey: ['partnerHotel', authUser?.email],
     queryFn: async () => {
@@ -85,7 +82,17 @@ export default function PartnerHotelPanel() {
     enabled: !!authUser?.email,
   });
 
-  // Fetch bookings
+  // Redirect full-access partners to the HotelDashboard
+  useEffect(() => {
+    if (hotel?.partnerRole === 'full') {
+      navigate(createPageUrl('HotelDashboard'));
+    }
+  }, [hotel?.partnerRole, navigate]);
+
+  const isFullRole = hotel?.partnerRole === 'full';
+  const isLimitedRole = hotel?.partnerRole === 'limited';
+  const canManage = isFullRole || isLimitedRole;
+
   const { data: bookings = [] } = useQuery({
     queryKey: ['partnerBookings', hotel?.id, authUser?.email],
     queryFn: async () => {
@@ -104,7 +111,6 @@ export default function PartnerHotelPanel() {
     enabled: !!hotel?.id && !!authUser?.email,
   });
 
-  // Extract tasks (add_ons) assigned to this partner
   const myTasks = useMemo(() => {
     if (!authUser?.email) return [];
     return bookings.flatMap(b => {
@@ -124,13 +130,11 @@ export default function PartnerHotelPanel() {
     });
   }, [bookings, authUser]);
 
-  // Split tasks
   const todayStr = new Date().toISOString().split('T')[0];
   const todayTasks = myTasks.filter(t => !t.completed && t.checkinDate <= todayStr && (!t.checkoutDate || t.checkoutDate >= todayStr));
   const upcomingTasks = myTasks.filter(t => !t.completed && t.checkinDate > todayStr);
   const completedTasks = myTasks.filter(t => t.completed);
 
-  // KPIs
   const tasksToday = todayTasks.length;
   const tasksCompletedToday = completedTasks.filter(t => {
     if (!t.completed_at) return false;
@@ -141,12 +145,10 @@ export default function PartnerHotelPanel() {
   const totalEarnings = myTasks.filter(t => t.completed).reduce((sum, t) => sum + (t.total_price || 0), 0);
   const activeGuests = bookings.filter(b => ['checked_in', 'in_progress'].includes(b.status)).length;
 
-  const canAssign = ['full', 'limited'].includes(hotel?.partnerRole);
   const partners = hotel?.hotel_details?.partner_walkers || [];
+  const canAssign = canManage && partners.length > 0;
 
-  // Complete task
   const handleCompleteTask = async (task) => {
-    setCompletingTask(task);
     const notes = window.prompt("Notas sobre a tarefa (opcional):", "") || "";
     try {
       const booking = bookings.find(b => b.id === task.bookingId);
@@ -163,12 +165,9 @@ export default function PartnerHotelPanel() {
       toast.success("Tarefa concluída");
     } catch (e) {
       toast.error("Erro ao concluir tarefa");
-    } finally {
-      setCompletingTask(null);
     }
   };
 
-  // Assign task
   const handleAssignTask = async ({ bookingId, addOn }) => {
     const booking = bookings.find(b => b.id === bookingId);
     if (!booking) return;
@@ -177,6 +176,16 @@ export default function PartnerHotelPanel() {
     await base44.entities.HotelBooking.update(bookingId, { add_ons: newAddOns, add_ons_total: newTotal });
     queryClient.invalidateQueries(['partnerBookings']);
     toast.success("Tarefa atribuída");
+  };
+
+  const handleUpdateBooking = async (id, data) => {
+    try {
+      await base44.entities.HotelBooking.update(id, data);
+      queryClient.invalidateQueries(['partnerBookings']);
+      toast.success("Reserva atualizada");
+    } catch (e) {
+      toast.error("Erro ao atualizar reserva");
+    }
   };
 
   if (isLoading || isLoadingUser) {
@@ -200,7 +209,16 @@ export default function PartnerHotelPanel() {
     );
   }
 
-  const roleLabels = { simple: 'Parceiro Simples', limited: 'Acesso Limitado', full: 'Funcionário' };
+  const roleLabels = { simple: 'Parceiro Simples', limited: 'Acesso Limitado', full: 'Acesso Total' };
+
+  const PARTNER_TABS = [
+    { key: 'today', label: 'Hoje', icon: Clock },
+    { key: 'upcoming', label: 'Próximas', icon: Calendar },
+    { key: 'completed', label: 'Concluídas', icon: CheckCircle2 },
+    ...(canManage
+      ? [{ key: 'reservations', label: 'Reservas', icon: ClipboardList }]
+      : [{ key: 'bookings', label: 'Reservas', icon: ClipboardList }]),
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50 pb-12">
@@ -256,9 +274,12 @@ export default function PartnerHotelPanel() {
 
         {/* Tabs */}
         <div className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1">
-          {TABS.map(tab => {
+          {PARTNER_TABS.map(tab => {
             const Icon = tab.icon;
-            const count = tab.key === 'today' ? todayTasks.length : tab.key === 'upcoming' ? upcomingTasks.length : tab.key === 'completed' ? completedTasks.length : bookings.length;
+            const count = tab.key === 'today' ? todayTasks.length
+              : tab.key === 'upcoming' ? upcomingTasks.length
+              : tab.key === 'completed' ? completedTasks.length
+              : bookings.length;
             return (
               <button
                 key={tab.key}
@@ -288,47 +309,53 @@ export default function PartnerHotelPanel() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            {/* Today's tasks */}
             {activeTab === 'today' && (
               <div className="space-y-2">
                 {todayTasks.length === 0 ? (
                   <EmptyState icon={CheckCircle2} title="Sem tarefas para hoje" subtitle="Novas tarefas aparecerão aqui" />
                 ) : (
-                  todayTasks.map((task, i) => (
+                  todayTasks.map(task => (
                     <PartnerTaskCard key={`${task.bookingId}-${task.addOnIndex}`} task={task} onComplete={handleCompleteTask} />
                   ))
                 )}
               </div>
             )}
 
-            {/* Upcoming tasks */}
             {activeTab === 'upcoming' && (
               <div className="space-y-2">
                 {upcomingTasks.length === 0 ? (
                   <EmptyState icon={Calendar} title="Sem tarefas próximas" subtitle="Tarefas futuras aparecerão aqui" />
                 ) : (
-                  upcomingTasks.map((task, i) => (
+                  upcomingTasks.map(task => (
                     <PartnerTaskCard key={`${task.bookingId}-${task.addOnIndex}`} task={task} onComplete={handleCompleteTask} />
                   ))
                 )}
               </div>
             )}
 
-            {/* Completed tasks */}
             {activeTab === 'completed' && (
               <div className="space-y-2">
                 {completedTasks.length === 0 ? (
                   <EmptyState icon={CheckCircle2} title="Sem tarefas concluídas" subtitle="Tarefas concluídas aparecerão aqui" />
                 ) : (
-                  completedTasks.slice(0, 50).map((task, i) => (
+                  completedTasks.slice(0, 50).map(task => (
                     <PartnerTaskCard key={`${task.bookingId}-${task.addOnIndex}`} task={task} />
                   ))
                 )}
               </div>
             )}
 
-            {/* All bookings */}
-            {activeTab === 'bookings' && (
+            {/* Full management reservations tab */}
+            {activeTab === 'reservations' && canManage && (
+              <HotelReservationsPanel
+                bookings={bookings}
+                onUpdateBooking={handleUpdateBooking}
+                onNewBooking={null}
+              />
+            )}
+
+            {/* Simple partner bookings list */}
+            {activeTab === 'bookings' && !canManage && (
               <div className="space-y-2">
                 {bookings.length === 0 ? (
                   <EmptyState icon={ClipboardList} title="Sem reservas" subtitle="As reservas do hotel aparecerão aqui" />
@@ -360,7 +387,6 @@ export default function PartnerHotelPanel() {
                           )}
                         </div>
                       </div>
-                      {/* Assigned add-ons for this partner */}
                       {(b.add_ons || []).filter(a => a.assigned_walker_email?.toLowerCase() === authUser?.email?.toLowerCase()).length > 0 && (
                         <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap gap-1">
                           {(b.add_ons || []).filter(a => a.assigned_walker_email?.toLowerCase() === authUser?.email?.toLowerCase()).map((a, i) => (
@@ -396,7 +422,6 @@ export default function PartnerHotelPanel() {
         </div>
       </div>
 
-      {/* Assign modal */}
       {showAssignModal && (
         <AssignTaskModal
           bookings={bookings}
