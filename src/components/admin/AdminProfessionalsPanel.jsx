@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Eye, Search, ToggleLeft, ToggleRight, RefreshCw } from "lucide-react";
 import { createPageUrl } from "@/utils";
+import { buildShortProfileLink } from "@/utils/profileSlug";
 
 const TYPE_LABELS = {
   walker: "Passeador",
@@ -126,7 +127,7 @@ export default function AdminProfessionalsPanel({ walkers = [], onDelete, onTogg
                           variant="ghost"
                           className="h-7 w-7 p-0 hover:bg-slate-100 rounded-full"
                           title="Ver Perfil"
-                          onClick={() => window.open(createPageUrl(`UserProfile?email=${w.created_by}`), "_blank")}
+                          onClick={() => window.open(buildShortProfileLink(w.walker_name || w.hotel_details?.hotel_name, w.created_by), "_blank")}
                         >
                           <Eye className="w-3.5 h-3.5 text-slate-500" />
                         </Button>

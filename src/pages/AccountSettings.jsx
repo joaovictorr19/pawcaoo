@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { buildShortProfileLink } from "@/utils/profileSlug";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -386,7 +387,7 @@ export default function AccountSettings() {
           </div>
           <Button
             variant="outline"
-            onClick={() => navigate(createPageUrl(`UserProfile?email=${user?.email}`))}
+            onClick={() => navigate(buildShortProfileLink(user?.full_name, user?.email))}
           >
             Ver Perfil Público
             <ChevronRight className="w-4 h-4 ml-2" />

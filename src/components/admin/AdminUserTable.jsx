@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { buildShortProfileLink } from "@/utils/profileSlug";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Eye, Edit, Trash2, RefreshCw, Loader2, ChevronLeft, ChevronRight, Award, UserCircle, ShieldAlert, CheckCircle, Ban, Percent
@@ -454,7 +455,7 @@ export default function AdminUserTable({
                       </TableCell>
                       <TableCell className="text-right sticky right-0 bg-white">
                         <div className="flex gap-1 justify-end">
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')} title="Ver Perfil">
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:bg-gray-200 rounded-full" onClick={() => window.open(buildShortProfileLink(user.full_name, user.email), '_blank')} title="Ver Perfil">
                             <Eye className="w-3.5 h-3.5 text-gray-500" />
                           </Button>
                           {/* AdminQuickVerify apenas para profissionais pendentes */}

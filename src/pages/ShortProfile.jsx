@@ -38,7 +38,7 @@ export default function ShortProfile() {
           if (slugs?.length > 0) {
             const s = slugs[0];
             if (s.entity_email) {
-              setRedirect(`/UserProfile?email=${encodeURIComponent(s.entity_email)}`);
+              setRedirect({ pathname: '/UserProfile', state: { email: s.entity_email } });
             } else if (s.entity_id) {
               setRedirect(`/UserProfile?id=${s.entity_id}`);
             }
@@ -51,7 +51,7 @@ export default function ShortProfile() {
           const users = await base44.entities.UserProfile.filter({ username: slug });
           if (users?.length > 0 && users[0].user_email) {
             ensureSlug('user', users[0].user_email, users[0].full_name || slug, slug);
-            setRedirect(`/UserProfile?email=${encodeURIComponent(users[0].user_email)}`);
+            setRedirect({ pathname: '/UserProfile', state: { email: users[0].user_email } });
             return;
           }
         } catch (e) {}
@@ -69,7 +69,7 @@ export default function ShortProfile() {
           if (match && match.created_by) {
             const type = match.professional_type === 'hotel' ? 'hotel' : 'walker';
             ensureSlug(type, match.created_by, match.hotel_details?.hotel_name || match.walker_name, slug);
-            setRedirect(`/UserProfile?email=${encodeURIComponent(match.created_by)}`);
+            setRedirect({ pathname: '/UserProfile', state: { email: match.created_by } });
             return;
           }
         } catch (e) {}
@@ -84,7 +84,7 @@ export default function ShortProfile() {
           });
           if (match && match.created_by) {
             ensureSlug('trainer', match.created_by, match.trainer_name, slug);
-            setRedirect(`/UserProfile?email=${encodeURIComponent(match.created_by)}`);
+            setRedirect({ pathname: '/UserProfile', state: { email: match.created_by } });
             return;
           }
         } catch (e) {}

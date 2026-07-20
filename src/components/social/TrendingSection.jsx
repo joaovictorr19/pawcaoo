@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Hash, Flame, Eye, MessageCircle, Heart, Sparkles } from "lucide-react";
+import { buildShortProfileLink } from "@/utils/profileSlug";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -196,7 +197,7 @@ export default function TrendingSection() {
             {trendingPosts.map((post) => (
               <button
                 key={post.id}
-                onClick={() => navigate(createPageUrl(`UserProfile?email=${post.author_email}`))}
+                onClick={() => navigate(buildShortProfileLink(post.author_name, post.author_email))}
                 className="w-full text-left p-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-start gap-2">
@@ -245,7 +246,7 @@ export default function TrendingSection() {
             {suggestedUsers.map((suggestedUser) => (
               <button
                 key={suggestedUser.user_email}
-                onClick={() => navigate(createPageUrl(`UserProfile?email=${suggestedUser.user_email}`))}
+                onClick={() => navigate(buildShortProfileLink(suggestedUser.full_name, suggestedUser.user_email))}
                 className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center text-white font-semibold">

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
+import { buildShortProfileLink } from "@/utils/profileSlug";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
@@ -436,7 +437,7 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
 
             <div className="space-y-3">
               <button 
-                onClick={() => window.open(createPageUrl(`UserProfile?email=${user.email}`), '_blank')}
+                onClick={() => window.open(buildShortProfileLink(user.full_name, user.email), '_blank')}
                 className="w-full h-14 bg-slate-50 hover:bg-slate-100 transition-colors rounded-2xl flex items-center px-6 gap-4 text-slate-600 font-bold text-sm"
               >
                 <UserCog size={18} /> Ver Perfil Completo

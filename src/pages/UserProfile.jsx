@@ -32,7 +32,7 @@ export default function UserProfile() {
   }, [location.key]);
 
   const urlParams = new URLSearchParams(window.location.search);
-  const rawEmail = urlParams.get('email');
+  const rawEmail = urlParams.get('email') || location.state?.email;
   let profileEmailParam = rawEmail;
   if (rawEmail) {
     try {
