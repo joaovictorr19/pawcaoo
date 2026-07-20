@@ -204,7 +204,7 @@ const MissionCard = ({ mission, isFlipped, onFlip }) => {
 
   return (
     <motion.div
-      className="relative w-64 h-96 cursor-pointer perspective-1000"
+      className="relative w-52 h-72 sm:w-60 sm:h-84 md:w-64 md:h-96 cursor-pointer perspective-1000"
       onClick={onFlip}
       whileHover={{ scale: 1.05, y: -10 }}
       transition={{ duration: 0.3 }}
@@ -485,16 +485,26 @@ export default function Gamification() {
     queryKey: ['allUsersRanking'],
     queryFn: async () => {
       const profiles = await base44.entities.UserProfile.list('-updated_date', 1000);
-      return profiles
-        .map((profile) => ({
-          ...profile,
-          ...profile.data,
-          gamification_xp: profile.gamification_xp ?? profile.data?.gamification_xp ?? 0,
-          gamification_level: profile.gamification_level ?? profile.data?.gamification_level ?? 1,
-          full_name: profile.full_name ?? profile.data?.full_name ?? 'Utilizador',
-          profile_photo_url: profile.profile_photo_url ?? profile.data?.profile_photo_url ?? '',
-          user_email: profile.user_email ?? profile.data?.user_email ?? ''
-        }))
+      // Deduplicar por user_email — manter apenas o registo com mais XP
+      const deduped = new Map();
+      profiles.forEach((profile) => {
+        const email = profile.user_email ?? profile.data?.user_email ?? '';
+        if (!email) return;
+        const xp = profile.gamification_xp ?? profile.data?.gamification_xp ?? 0;
+        const existing = deduped.get(email);
+        if (!existing || (existing.gamification_xp || 0) < xp) {
+          deduped.set(email, {
+            ...profile,
+            ...profile.data,
+            gamification_xp: xp,
+            gamification_level: profile.gamification_level ?? profile.data?.gamification_level ?? 1,
+            full_name: profile.full_name ?? profile.data?.full_name ?? 'Utilizador',
+            profile_photo_url: profile.profile_photo_url ?? profile.data?.profile_photo_url ?? '',
+            user_email: email
+          });
+        }
+      });
+      return Array.from(deduped.values())
         .sort((a, b) => (b.gamification_xp || 0) - (a.gamification_xp || 0));
     },
     staleTime: 0,
@@ -594,7 +604,7 @@ export default function Gamification() {
   const totalPages = Math.ceil(rankedUsers.length / rankingPerPage);
 
   return (
-    <div className="min-h-screen bg-neutral-950 relative overflow-hidden rounded-3xl mx-2 md:mx-4 my-2">
+    <div className="min-h-screen bg-neutral-950 relative overflow-hidden rounded-3xl mx-1 md:mx-4 my-2">
       {/* Link Carteira/Planos - Topo Direito */}
       <div className="absolute top-4 right-4 z-30">
         <Link 
@@ -629,10 +639,10 @@ export default function Gamification() {
       </div>
 
       {/* ========== SECÇÃO 1: O LEGADO DOS TITÃS ========== */}
-      <section className="relative pt-12 pb-16 px-4">
+      <section className="relative pt-8 md:pt-12 pb-12 md:pb-16 px-3 md:px-4">
         <div className="max-w-2xl mx-auto">
           <motion.h2
-            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-4"
+            className="text-center text-amber-500/60 uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm font-bold mb-3"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -644,7 +654,7 @@ export default function Gamification() {
           </p>
 
           {/* Pódio */}
-          <div className="flex items-end justify-center gap-2 md:gap-4">
+          <div className="flex items-end justify-center gap-1 sm:gap-2 md:gap-4">
             {/* 2º Lugar */}
             <PodiumPedestal user={podiumOrder[0]} position={2} delay={0.2} />
 
@@ -720,30 +730,30 @@ export default function Gamification() {
                 return (
                   <div 
                     key={profile.id}
-                    className={`flex items-center gap-4 py-3 border-b border-amber-500/5 last:border-0 ${
-                      isCurrentUser ? 'bg-blue-500/10 -mx-4 px-4 rounded-lg border-2 border-blue-500/30' : ''
+                    className={`flex items-center gap-2 md:gap-4 py-2.5 md:py-3 border-b border-amber-500/5 last:border-0 ${
+                      isCurrentUser ? 'bg-blue-500/10 -mx-3 md:-mx-4 px-3 md:px-4 rounded-lg border-2 border-blue-500/30' : ''
                     }`}
                   >
-                    <span className={`font-bold w-8 text-center ${
+                    <span className={`font-bold w-6 md:w-8 text-center text-xs md:text-sm ${
                       isCurrentUser ? 'text-blue-400' : 'text-amber-500/50'
                     }`}>
                       {actualRank}º
                     </span>
-                    <Avatar className="w-10 h-10 border border-amber-500/20">
+                    <Avatar className="w-8 h-8 md:w-10 md:h-10 border border-amber-500/20 flex-shrink-0">
                       <AvatarImage src={profile.profile_photo_url} />
-                      <AvatarFallback className="bg-neutral-800 text-amber-500 text-sm">
+                      <AvatarFallback className="bg-neutral-800 text-amber-500 text-xs md:text-sm">
                         {profile.full_name?.[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                      <p className="text-white font-medium text-sm flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium text-xs md:text-sm flex items-center gap-1 md:gap-2 truncate">
                         {profile.full_name}
-                        {isCurrentUser && <Badge className="bg-blue-500/20 text-blue-300 text-[10px]">{language === 'pt' ? 'Você' : language === 'es' ? 'Tú' : language === 'fr' ? 'Vous' : language === 'de' ? 'Sie' : language === 'it' ? 'Tu' : 'You'}</Badge>}
+                        {isCurrentUser && <Badge className="bg-blue-500/20 text-blue-300 text-[9px] md:text-[10px] flex-shrink-0">{language === 'pt' ? 'Você' : language === 'es' ? 'Tú' : language === 'fr' ? 'Vous' : language === 'de' ? 'Sie' : language === 'it' ? 'Tu' : 'You'}</Badge>}
                       </p>
-                      <p className="text-gray-600 text-xs">{t('level', language)} {Math.max(1, getLevelFromXP(profile.gamification_xp || 0))}</p>
+                      <p className="text-gray-600 text-[10px] md:text-xs">{t('level', language)} {Math.max(1, getLevelFromXP(profile.gamification_xp || 0))}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-black/50 border border-amber-500/20 text-amber-400/70 text-xs">
+                    <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+                      <Badge className="bg-black/50 border border-amber-500/20 text-amber-400/70 text-[10px] md:text-xs">
                         {(profile.gamification_xp || 0).toLocaleString()} XP
                       </Badge>
                       {canCelebrate && (
@@ -798,11 +808,11 @@ export default function Gamification() {
       </section>
 
       {/* ========== SECÇÃO 2: O TEU LEGADO ========== */}
-      <section className="relative py-12 px-4 border-t border-amber-500/10">
+      <section className="relative py-8 md:py-12 px-3 md:px-4 border-t border-amber-500/10">
         <div className="max-w-4xl mx-auto">
           {/* Título da secção */}
           <motion.h2
-            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-12"
+            className="text-center text-amber-500/60 uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm font-bold mb-8 md:mb-12"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -878,15 +888,15 @@ export default function Gamification() {
                 )}
               </motion.div>
 
-              <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">
+              <h1 className="text-3xl md:text-5xl font-black text-white mb-3 tracking-tight">
                 {title}
               </h1>
 
-              <p className="text-gray-500 text-sm mb-6">
+              <p className="text-gray-500 text-xs md:text-sm mb-6">
                 Faltam <span className="text-amber-400 font-bold">{xpNeeded.toLocaleString()} XP</span> para o próximo nível
               </p>
 
-              <div className="w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-amber-500/20 mx-auto">
+              <div className="w-56 md:w-64 h-2 bg-neutral-800 rounded-full overflow-hidden border border-amber-500/20 mx-auto">
                 <motion.div
                   className="h-full bg-gradient-to-r from-orange-600 to-amber-400"
                   initial={{ width: 0 }}
@@ -902,17 +912,17 @@ export default function Gamification() {
       <WeeklyDuelsPanel user={user} users={allUsers} />
 
       {/* ========== SECÇÃO 3: AS PROVAÇÕES ========== */}
-      <section className="relative py-16 px-4 border-t border-amber-500/10">
+      <section className="relative py-10 md:py-16 px-3 md:px-4 border-t border-amber-500/10">
         <div className="max-w-6xl mx-auto">
           <motion.h2
-            className="text-center text-amber-500/60 uppercase tracking-[0.3em] text-sm font-bold mb-4"
+            className="text-center text-amber-500/60 uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm font-bold mb-3"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
             As Provações
           </motion.h2>
-          <p className="text-center text-gray-600 text-xs mb-12">
+          <p className="text-center text-gray-600 text-xs mb-8 md:mb-12">
             Completa missões para ganhar XP e recompensas exclusivas
           </p>
 
@@ -938,7 +948,7 @@ export default function Gamification() {
             </Button>
 
             {/* Container das cartas */}
-            <div className="flex justify-center items-center gap-4 overflow-hidden px-16 py-8">
+            <div className="flex justify-center items-center gap-2 md:gap-4 overflow-hidden px-10 md:px-16 py-6 md:py-8">
               <AnimatePresence mode="popLayout">
                 {MISSIONS.slice(carouselIndex, carouselIndex + 3).concat(
                   MISSIONS.slice(0, Math.max(0, carouselIndex + 3 - MISSIONS.length))
