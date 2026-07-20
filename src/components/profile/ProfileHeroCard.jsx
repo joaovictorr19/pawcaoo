@@ -110,8 +110,7 @@ export default function ProfileHeroCard({
   const isPawcaoEmployee = walkerProfile?.is_pawcao_employee;
   const gamificationLevel = profileUser?.gamification_level;
 
-  const coverUrl = displayCoverUrl ||
-    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=300&fit=crop";
+  const coverUrl = displayCoverUrl;
 
   const avatarBorderColor = isHotel
     ? "border-purple-400 ring-4 ring-purple-300/40"
@@ -159,16 +158,16 @@ export default function ProfileHeroCard({
     <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col relative overflow-hidden">
       {/* Cover banner inside the card */}
       <div className="relative h-28 md:h-32 w-full overflow-hidden">
-        <img
-          src={coverUrl}
-          className="w-full h-full object-cover"
-          alt="Capa"
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=300&fit=crop";
-          }}
-        />
+        {coverUrl ? (
+          <img
+            src={coverUrl}
+            className="w-full h-full object-cover"
+            alt="Capa"
+            loading="lazy"
+          />
+        ) : (
+          <div className={`w-full h-full ${isHotel ? "bg-gradient-to-br from-purple-200 via-purple-300 to-purple-400" : "bg-gradient-to-br from-teal-200 via-teal-300 to-teal-400"}`} />
+        )}
         <div className={`absolute inset-0 ${isHotel ? "bg-gradient-to-t from-purple-900/40 via-purple-900/10 to-transparent" : "bg-gradient-to-t from-slate-900/30 via-transparent to-transparent"}`} />
 
         {/* Favorite button — top left of cover */}
@@ -218,12 +217,8 @@ export default function ProfileHeroCard({
               className="object-cover w-full h-full"
               style={{ objectFit: "cover" }}
               loading="lazy"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=256&h=256&fit=crop";
-              }}
             />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl font-black">
+            <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white text-2xl font-black">
               {displayName?.[0]?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
