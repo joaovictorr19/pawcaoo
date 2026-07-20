@@ -199,7 +199,7 @@ const AuthenticatedApp = () => {
             <Route path="/WalkerOnboarding" element={<Suspense fallback={<PageLoader />}><WalkerOnboarding /></Suspense>} />
             <Route path="/ActiveWalkDashboard" element={<Suspense fallback={<PageLoader />}><ActiveWalkDashboard /></Suspense>} />
 
-            <Route path="/p/:id" element={<ShortProfile />} />
+            <Route path="/p/:slug" element={<ShortProfile />} />
             <Route path="*" element={<PageNotFound />} />
             </Routes>
         </Suspense>
