@@ -94,16 +94,32 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         owner_name: clientProfile?.full_name || currentUser.full_name || currentUser.email,
         owner_email: currentUser.email,
         owner_phone: currentUser.phone || '',
-        dogs: selectedDogs.map(d => ({
-          dog_name: d.dog_name,
-          dog_breed: d.breed || 'SRD',
-          dog_size: d.size || 'medium',
-          dog_age: d.age || 0,
-          special_notes: d.behavioral_notes || '',
-          diet: dogCare[d.id]?.diet || '',
-          medications: dogCare[d.id]?.medications || '',
-          routine: dogCare[d.id]?.routine || ''
-        })),
+        dogs: selectedDogs.map(d => {
+          const care = dogCare[d.id] || {};
+          const notes = [
+            d.behavioral_notes,
+            d.medical_conditions && `Condições médicas: ${d.medical_conditions}`,
+            d.allergies && `Alergias: ${d.allergies}`,
+            d.reactive_to_dogs && '⚠️ Reativo a cães',
+            d.reactive_to_people && '⚠️ Reativo a pessoas',
+            d.reactive_to_noises && '⚠️ Reativo a barulhos',
+            d.other_observations,
+          ].filter(Boolean).join('\n');
+          return {
+            dog_name: d.dog_name,
+            dog_breed: d.breed || 'SRD',
+            dog_size: d.size || 'medium',
+            dog_age: d.age || 0,
+            special_notes: notes,
+            diet: care.diet || '',
+            medications: care.medications || '',
+            routine: care.routine || '',
+          };
+        }),
+        emergency_contact_name: selectedDogs[0]?.emergency_contact_name || '',
+        emergency_contact_phone: selectedDogs[0]?.emergency_contact_phone || '',
+        veterinarian_name: selectedDogs[0]?.vet_name || selectedDogs[0]?.vet_clinic_name || '',
+        veterinarian_phone: selectedDogs[0]?.vet_phone || '',
         service_type: selectedService.service_type,
         checkin_date: checkinDate,
         checkout_date: checkoutDate,
@@ -264,9 +280,19 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                               key={dog.id}
                               whileTap={{ scale: 0.98 }}
                               onClick={() => {
-                                setSelectedDogIds(prev =>
-                                  isSelected ? prev.filter(id => id !== dog.id) : [...prev, dog.id]
-                                );
+                                if (isSelected) {
+                                  setSelectedDogIds(prev => prev.filter(id => id !== dog.id));
+                                } else {
+                                  setSelectedDogIds(prev => [...prev, dog.id]);
+                                  setDogCare(prev => ({
+                                    ...prev,
+                                    [dog.id]: {
+                                      diet: prev[dog.id]?.diet || '',
+                                      medications: dog.medical_conditions || '',
+                                      routine: prev[dog.id]?.routine || '',
+                                    }
+                                  }));
+                                }
                               }}
                               className={`w-full px-3 py-3 rounded-lg text-left transition-all flex items-center gap-3 ${
                                 isSelected
@@ -308,6 +334,12 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5">
                       Informe a equipa do hotel sobre dieta, medicamentos e rotina
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-blue-700 leading-relaxed">
+                      Preenchemos automaticamente as condições médicas, alergias, reatividades e contactos de emergência a partir da ficha do seu animal. Pode editar os campos abaixo se necessário.
                     </p>
                   </div>
                   {selectedDogs.map(dog => {
