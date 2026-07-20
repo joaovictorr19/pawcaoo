@@ -47,6 +47,7 @@ import AdminReportsPanel from "../components/admin/AdminReportsPanel";
 import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import ImpersonateDialog from "../components/admin/ImpersonateDialog";
 import BackButton from "@/components/ui/BackButton";
+import "@/components/admin/admin-dashboard.css";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -726,7 +727,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="admin-dashboard-ui min-h-screen">
       {emergencyUsers?.length > 0 && (
         <div className="fixed inset-0 z-[9999] bg-red-600/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-white text-center pointer-events-none">
           <AlertTriangle className="w-24 h-24 mb-6 animate-bounce text-white" />
