@@ -78,6 +78,11 @@ const AccordionItem = ({ item, type, onApprove, onReject, onViewDetails, languag
             <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${typeBadge.cls}`}>
               {typeBadge.label}
             </span>
+            {item.verification_status === 'rejected' && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+                Rejeitado
+              </span>
+            )}
           </div>
           <div className="flex items-center text-xs text-slate-500 mt-0.5">
             <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
