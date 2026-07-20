@@ -11,7 +11,7 @@ export default function LayoutFooter() {
   return (
     <footer className="mt-16 backdrop-blur-2xl border-t transition-colors duration-300 relative z-0 bg-white/30 border-white/40 w-full">
       <div className="max-w-7xl mx-auto px-6 py-8 w-full">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
+        <div className="grid md:grid-cols-5 gap-8 mb-8">
           <div>
             <PawCaoLogo size="default" className="mb-4" />
             <p className="text-sm text-gray-600 mb-4">
@@ -43,6 +43,14 @@ export default function LayoutFooter() {
               <li><Link to={createPageUrl("BecomeProfessional")} className="hover:text-green-600 transition-colors">{t('becomeWalker', language)}</Link></li>
               <li><Link to={createPageUrl("BecomeProfessional")} className="hover:text-green-600 transition-colors">{t('becomeTrainer', language)}</Link></li>
               <li><Link to={createPageUrl("ProfessionalHubV2")} className="hover:text-green-600 transition-colors">{t('professionalDashboard', language)}</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Países</h4>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li><Link to="/portugal" className="hover:text-green-600 transition-colors">🇵🇹 Portugal</Link></li>
+              <li><Link to="/espanha" className="hover:text-green-600 transition-colors">🇪🇸 España</Link></li>
+              <li><Link to="/franca" className="hover:text-green-600 transition-colors">🇫🇷 France</Link></li>
             </ul>
           </div>
           <div>
