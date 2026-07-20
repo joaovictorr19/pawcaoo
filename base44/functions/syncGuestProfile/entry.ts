@@ -11,12 +11,15 @@ Deno.serve(async (req) => {
     const booking_id = body.booking_id || body.event?.entity_id;
     if (!booking_id) return Response.json({ error: 'booking_id required' }, { status: 400 });
 
-    // For automation events, use data directly if available
-    let booking = body.data;
-    if (!booking) {
-      booking = await base44.asServiceRole.entities.HotelBooking.get(booking_id);
-    }
+    // Always fetch the booking from the database — never trust body.data
+    // to prevent IDOR via user-supplied payload injection.
+    const booking = await base44.asServiceRole.entities.HotelBooking.get(booking_id);
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
+
+    // Authorization: only the hotel owner or the pet owner may sync the guest profile.
+    if (user.email !== booking.hotel_email && user.email !== booking.owner_email) {
+      return Response.json({ error: 'Forbidden: not authorized for this booking' }, { status: 403 });
+    }
 
     // Find or create guest profile
     const existing = await base44.asServiceRole.entities.HotelGuestProfile.filter({
