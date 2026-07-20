@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   X, Dog, Droplets, Scissors, Star, Utensils, Pill, Smile,
-  HeartHandshake, Banknote, Check, PawPrint, Loader2, AlertCircle
+  HeartHandshake, Banknote, Check, PawPrint, Loader2, AlertCircle, CreditCard
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -244,7 +244,7 @@ export default function AddServiceToStayModal({
 
             {/* Payment method */}
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Pagamento na hora</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Pagamento</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setPaymentMethod("cash")}
@@ -260,9 +260,14 @@ export default function AddServiceToStayModal({
                     paymentMethod === "card" ? "bg-teal-600 border-teal-600 text-white" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
                   }`}
                 >
-                  <Scissors className="w-3.5 h-3.5" /> Cartão/Link
+                  <CreditCard className="w-3.5 h-3.5" /> Pedir ao Cliente
                 </button>
               </div>
+              {paymentMethod === "card" && (
+                <p className="text-[9px] text-teal-600 font-medium mt-1.5 leading-tight">
+                  Gera link Stripe + notifica o cliente no site (cartão ou saldo PawCão)
+                </p>
+              )}
             </div>
 
             {/* Total preview */}
@@ -270,7 +275,7 @@ export default function AddServiceToStayModal({
               <div>
                 <span className="text-[10px] text-slate-400 uppercase tracking-wide block">Total a receber</span>
                 <span className="text-[10px] text-emerald-600 font-medium">
-                  {paymentMethod === "cash" ? "Pago presencial" : "Link de pagamento"}
+                  {paymentMethod === "cash" ? "Pago presencial" : "Pedido enviado ao cliente"}
                 </span>
               </div>
               <span className="text-lg font-bold text-slate-900">{total.toFixed(2)}€</span>
