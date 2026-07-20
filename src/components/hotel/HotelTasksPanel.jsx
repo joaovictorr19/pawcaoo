@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   PawPrint, Scissors, DoorOpen, CheckCircle2, Clock, User,
-  ChevronDown, ChevronUp, Calendar, Search, ListChecks, Heart
+  ChevronDown, ChevronUp, Calendar, Search, ListChecks, Heart,
+  Bell, XCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -217,6 +218,55 @@ export default function HotelTasksPanel({ bookings, onUpdateBooking }) {
     return bookings.filter(b => ["checked_in", "in_progress", "confirmed"].includes(b.status));
   }, [bookings]);
 
+  // Client-requested services pending acceptance
+  const clientRequests = useMemo(() => {
+    const requests = [];
+    activeBookings
+      .filter(b => ["checked_in", "in_progress"].includes(b.status))
+      .forEach(b => {
+        const dogNames = (b.dogs || []).map(d => d.dog_name).join(" & ") || b.owner_name;
+        (b.add_ons || []).forEach((addon, idx) => {
+          if (addon.requested_by_client && addon.request_status === "pending") {
+            requests.push({
+              bookingId: b.id,
+              addonIndex: idx,
+              dogNames,
+              ownerName: b.owner_name,
+              serviceName: addon.service_name,
+              serviceLabel: ADDON_LABELS[addon.service_name] || addon.service_name,
+              totalPrice: addon.total_price || 0,
+              notes: addon.assignment_notes,
+            });
+          }
+        });
+      });
+    return requests;
+  }, [activeBookings]);
+
+  const handleAcceptRequest = (req) => {
+    const booking = bookings.find(b => b.id === req.bookingId);
+    if (!booking) return;
+    const updatedAddons = (booking.add_ons || []).map((addon, i) => {
+      if (i === req.addonIndex) {
+        return { ...addon, request_status: "accepted" };
+      }
+      return addon;
+    });
+    onUpdateBooking(req.bookingId, { add_ons: updatedAddons });
+  };
+
+  const handleRejectRequest = (req) => {
+    const booking = bookings.find(b => b.id === req.bookingId);
+    if (!booking) return;
+    const updatedAddons = (booking.add_ons || []).map((addon, i) => {
+      if (i === req.addonIndex) {
+        return { ...addon, request_status: "rejected" };
+      }
+      return addon;
+    });
+    onUpdateBooking(req.bookingId, { add_ons: updatedAddons });
+  };
+
   const filteredBookings = useMemo(() => {
     if (!search.trim()) return activeBookings;
     const q = search.toLowerCase();
@@ -311,6 +361,47 @@ export default function HotelTasksPanel({ bookings, onUpdateBooking }) {
 
   return (
     <div className="space-y-4">
+      {/* Client service requests pending acceptance */}
+      {clientRequests.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+          <div className="flex items-center gap-1.5">
+            <Bell className="w-3.5 h-3.5 text-amber-600" />
+            <span className="text-xs font-bold text-amber-800 uppercase tracking-wide">
+              Pedidos do Dono ({clientRequests.length})
+            </span>
+          </div>
+          {clientRequests.map((req, i) => (
+            <div key={`${req.bookingId}-${req.addonIndex}`} className="bg-white border border-amber-100 rounded-lg p-2.5 flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-slate-800">
+                  {req.serviceLabel} · {req.dogNames}
+                </p>
+                <p className="text-[10px] text-slate-500">
+                  {req.ownerName} · {req.totalPrice.toFixed(2)}€
+                  {req.notes && ` · ${req.notes}`}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  onClick={() => handleRejectRequest(req)}
+                  className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-all active:scale-90"
+                  title="Recusar"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleAcceptRequest(req)}
+                  className="w-8 h-8 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 flex items-center justify-center transition-all active:scale-90"
+                  title="Aceitar"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div>
