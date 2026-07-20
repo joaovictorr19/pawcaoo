@@ -1028,6 +1028,100 @@ async function handleAccountUpdated(base44, account) {
             type: 'system',
             priority: 'high'
         });
+
+        // ── Libertar automaticamente pagamentos retidos assim que a conta fica ativa ──
+        if (canAcceptPayments) {
+            await releasePendingPayouts(base44, profile.created_by, account.id);
+        }
+    }
+}
+
+async function releasePendingPayouts(base44, professionalEmail, stripeAccountId) {
+    if (!professionalEmail || !stripeAccountId) return;
+    try {
+        const pending = await base44.asServiceRole.entities.WalkerPayout.filter({
+            walker_email: professionalEmail
+        });
+        const toRelease = pending.filter(p =>
+            ['failed', 'pending', 'pending_stripe_setup'].includes(p.status) && !p.stripe_transfer_id
+        );
+
+        let totalReleased = 0;
+        for (const payout of toRelease) {
+            const amount = Number(payout.net_amount || 0);
+            if (amount <= 0) continue;
+
+            try {
+                const transfer = await stripe.transfers.create({
+                    amount: Math.round(amount * 100),
+                    currency: 'eur',
+                    destination: stripeAccountId,
+                    transfer_group: `release_booking_${payout.booking_id}`,
+                    metadata: {
+                        booking_id: payout.booking_id || '',
+                        walker_email: professionalEmail,
+                        auto_release: 'true',
+                        payout_id: payout.id
+                    }
+                });
+
+                await base44.asServiceRole.entities.WalkerPayout.update(payout.id, {
+                    status: 'completed',
+                    stripe_transfer_id: transfer.id,
+                    paid_at: new Date().toISOString(),
+                    notes: `Auto-released after Stripe Connect activation (${transfer.id})`
+                });
+
+                // Atualizar Payment e Booking associados
+                if (payout.booking_id) {
+                    const payments = await base44.asServiceRole.entities.Payment.filter({ booking_id: payout.booking_id });
+                    if (payments[0]) {
+                        await base44.asServiceRole.entities.Payment.update(payments[0].id, {
+                            status: 'released',
+                            released_date: new Date().toISOString(),
+                            stripe_transfer_id: transfer.id
+                        });
+                    }
+                    const bookings = await base44.asServiceRole.entities.Booking.filter({ id: payout.booking_id });
+                    if (bookings[0]) {
+                        await base44.asServiceRole.entities.Booking.update(payout.booking_id, {
+                            status: 'completed',
+                            payment_status: 'released'
+                        });
+                    }
+                }
+
+                totalReleased += amount;
+            } catch (transferError) {
+                console.error(`Auto-release transfer failed for payout ${payout.id}:`, transferError.message);
+            }
+        }
+
+        if (totalReleased > 0) {
+            // Limpar pendentes na carteira do profissional
+            try {
+                const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: professionalEmail });
+                if (wallets[0]) {
+                    const newPending = Math.max(0, (wallets[0].pending_walker_payments || 0) - totalReleased);
+                    await base44.asServiceRole.entities.UserWallet.update(wallets[0].id, {
+                        pending_walker_payments: newPending
+                    });
+                }
+            } catch (e) {
+                console.error('Error updating professional wallet after release:', e);
+            }
+
+            await base44.asServiceRole.entities.Notification.create({
+                recipient_email: professionalEmail,
+                title: '💸 Pagamentos retidos libertados!',
+                message: `€${totalReleased.toFixed(2)} que estavam pendentes foram transferidos para a sua conta Stripe.`,
+                type: 'payment',
+                priority: 'high'
+            });
+            console.log(`✅ Auto-released €${totalReleased} to ${professionalEmail}`);
+        }
+    } catch (e) {
+        console.error('releasePendingPayouts error:', e);
     }
 }
 
