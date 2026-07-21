@@ -213,7 +213,16 @@ function BookingCard({ booking, onUpdate }) {
               <div className="flex gap-2 pt-1 flex-wrap">
                 {booking.status === "pending" && (
                   <>
-                    <Button size="sm" className="flex-1 h-9 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs min-w-[100px]"
+                    {booking.payment_status !== "paid" && (
+                      <div className="w-full flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <p className="text-[11px] text-amber-700 font-medium">
+                          Pagamento pendente — a reserva só pode ser confirmada após pagamento confirmado.
+                        </p>
+                      </div>
+                    )}
+                    <Button size="sm" className="flex-1 h-9 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs min-w-[100px] disabled:opacity-40 disabled:cursor-not-allowed"
+                      disabled={booking.payment_status !== "paid"}
                       onClick={() => onUpdate(booking.id, { status: "confirmed" })}>
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Confirmar
                     </Button>
