@@ -43,6 +43,7 @@ export default function EditAnimalProfile() {
     animal_type: "dog",
     breed: "",
     age: "",
+    age_months: 0,
     weight: "",
     size: "medium",
     gender: "male",
@@ -78,8 +79,9 @@ export default function EditAnimalProfile() {
         dog_name: animal.dog_name || "",
         animal_type: animal.animal_type || "dog",
         breed: animal.breed || "",
-        age: animal.age || "",
-        weight: animal.weight || "",
+        age: animal.age ?? "",
+        age_months: animal.age_months ?? 0,
+        weight: animal.weight ?? "",
         size: animal.size || "medium",
         gender: animal.gender || "male",
         color: animal.color || "",
@@ -157,7 +159,20 @@ export default function EditAnimalProfile() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.dog_name) { toast.error("Por favor insira o nome do animal"); return; }
-    saveMutation.mutate(formData);
+    // Clean payload: convert types and drop empty optional fields
+    const payload = Object.entries(formData).reduce((acc, [key, value]) => {
+      if (['age', 'age_months', 'weight'].includes(key)) {
+        acc[key] = value === '' || value === null || value === undefined ? undefined : Number(value);
+      } else if (typeof value === 'string' && value.trim() === '' && key !== 'dog_name') {
+        acc[key] = undefined;
+      } else {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+    // Always send owner_email for creates
+    if (isNewAnimal && user?.email) payload.owner_email = user.email;
+    saveMutation.mutate(payload);
   };
 
   const handleDelete = () => {
@@ -244,11 +259,11 @@ export default function EditAnimalProfile() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Idade (anos)</label>
-                <input type="number" value={formData.age} onChange={e => set('age', e.target.value)} className={inputCls} />
+                <input type="number" min="0" value={formData.age} onChange={e => set('age', e.target.value === '' ? '' : parseInt(e.target.value))} className={inputCls} />
               </div>
               <div>
-                <label className={labelCls}>Peso (kg)</label>
-                <input type="number" value={formData.weight} onChange={e => set('weight', e.target.value)} className={inputCls} />
+                <label className={labelCls}>Meses (0-11)</label>
+                <input type="number" min="0" max="11" value={formData.age_months} onChange={e => set('age_months', Math.min(11, Math.max(0, parseInt(e.target.value) || 0)))} className={inputCls} />
               </div>
             </div>
 

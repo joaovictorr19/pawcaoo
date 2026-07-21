@@ -33,6 +33,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
     animal_type: "dog",
     breed: "",
     age: "",
+    age_months: 0,
     date_of_birth: "",
     weight: "",
     size: "medium",
@@ -116,7 +117,10 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
         }
         // For numbers, convert empty strings to undefined
         else if (['age', 'weight'].includes(key)) {
-          acc[key] = value === '' || value === null ? undefined : value;
+         acc[key] = value === '' || value === null ? undefined : value;
+        }
+        else if (key === 'age_months') {
+         acc[key] = value === '' || value === null ? 0 : Number(value);
         }
         // For objects like gets_along_with, always include
         else if (key === 'gets_along_with' && typeof value === 'object') {
@@ -369,8 +373,22 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                     <Input
                       id="age"
                       type="number"
+                      min="0"
                       value={formData.age}
-                      onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) || "" })}
+                      onChange={(e) => setFormData({ ...formData, age: e.target.value === '' ? '' : parseInt(e.target.value) })}
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div className="space-y-1 md:space-y-2">
+                    <Label htmlFor="age_months" className="text-sm">Meses (0-11)</Label>
+                    <Input
+                      id="age_months"
+                      type="number"
+                      min="0"
+                      max="11"
+                      value={formData.age_months}
+                      onChange={(e) => setFormData({ ...formData, age_months: Math.min(11, Math.max(0, parseInt(e.target.value) || 0)) })}
                       placeholder="0"
                     />
                   </div>

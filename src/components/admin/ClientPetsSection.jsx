@@ -52,7 +52,7 @@ export default function ClientPetsSection({ userEmail }) {
               <div className="flex flex-wrap gap-1 mt-1">
                 <Badge variant="outline" className="text-xs">{pet.breed || 'Raça não inf.'}</Badge>
                 <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700">
-                  {pet.age ? `${pet.age} anos` : 'Idade não inf.'}
+                  {pet.age || pet.age_months ? `${pet.age || 0}a ${pet.age_months || 0}m` : 'Idade não inf.'}
                 </Badge>
               </div>
             </div>

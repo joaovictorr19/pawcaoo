@@ -59,7 +59,13 @@
       "type": "string"
     },
     "age": {
-      "type": "number"
+      "type": "number",
+      "description": "Idade em anos completos"
+    },
+    "age_months": {
+      "type": "number",
+      "default": 0,
+      "description": "Meses adicionais al\u00e9m dos anos completos (0-11)"
     },
     "date_of_birth": {
       "type": "string",
