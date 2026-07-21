@@ -100,7 +100,13 @@ function getCachedRates() {
     if (!cached) return null;
     const { rates, timestamp } = JSON.parse(cached);
     if (Date.now() - timestamp > RATES_CACHE_TTL) return null;
-    return rates;
+    // Only keep known currencies (filters out stale BRL from older cache)
+    const ALLOWED = { EUR: 1, GBP: 1, USD: 1 };
+    const cleaned = {};
+    for (const k of Object.keys(rates)) {
+      if (ALLOWED[k]) cleaned[k] = rates[k];
+    }
+    return Object.keys(cleaned).length > 0 ? cleaned : null;
   } catch {
     return null;
   }
@@ -191,6 +197,8 @@ export const LocalizationProvider = ({ children }) => {
       // Clear stale preference for removed countries (e.g. BR)
       if (savedCountry && !COUNTRY_CONFIG[savedCountry]) {
         localStorage.removeItem('pawcao_country');
+        // Also clear stale exchange rates that may include removed currencies (BRL)
+        localStorage.removeItem('pawcao_exchange_rates');
       }
 
       // 2. Try browser geolocation API
