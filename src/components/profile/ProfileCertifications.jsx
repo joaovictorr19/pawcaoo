@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Award, ExternalLink, ShieldCheck, Calendar, ImageIcon, X, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { Award, ExternalLink, ShieldCheck, Calendar, ImageIcon, X, ChevronLeft, ChevronRight, FileText, ScrollText, Infinity as InfinityIcon } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 function formatDate(raw) {
@@ -38,7 +38,9 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
       name: c.name,
       org: c.issuing_organization,
       issue_date: c.issue_date,
-      expiry_date: c.expiry_date,
+      expiry_date: c.no_expiry ? null : c.expiry_date,
+      no_expiry: !!c.no_expiry,
+      cert_type: c.cert_type || "certification",
       url: c.certificate_url,
       verify_url: c.verification_url,
       credential_id: c.credential_id,
@@ -155,7 +157,9 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
             <>
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-50 to-emerald-50 flex items-center justify-center flex-shrink-0 border border-teal-100">
-                  <Award className="w-4 h-4 text-teal-600" />
+                  {cert.cert_type === "participation"
+                    ? <ScrollText className="w-4 h-4 text-teal-600" />
+                    : <Award className="w-4 h-4 text-teal-600" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-sm text-slate-900 leading-tight">{cert.name}</h4>
@@ -167,7 +171,20 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                       <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-400">
                         <Calendar className="w-2.5 h-2.5" />
                         {issueLabel}
-                        {expiryLabel && ` → ${expiryLabel}`}
+                        {cert.no_expiry
+                          ? ""
+                          : expiryLabel && ` → ${expiryLabel}`}
+                      </span>
+                    )}
+                    {cert.no_expiry && (
+                      <span className="flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                        <InfinityIcon className="w-2.5 h-2.5" />
+                        {language === "pt" ? "Permanente" : "Permanent"}
+                      </span>
+                    )}
+                    {cert.cert_type === "participation" && (
+                      <span className="text-[9px] font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full">
+                        {language === "pt" ? "Participação" : "Participation"}
                       </span>
                     )}
                     {cert.credential_id && (

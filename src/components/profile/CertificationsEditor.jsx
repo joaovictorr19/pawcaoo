@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Award, Plus, Trash2, Upload, Eye, X, ImagePlus } from "lucide-react";
+import { Award, Plus, Trash2, Upload, Eye, X, ImagePlus, ScrollText } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
@@ -20,7 +20,7 @@ export default function CertificationsEditor({ value = [], onChange }) {
   };
 
   const add = () => {
-    onChange([...certs, { name: "", issuing_organization: "", issue_date: "", expiry_date: "", certificate_url: "", verification_url: "", credential_id: "", photos: [] }]);
+    onChange([...certs, { name: "", issuing_organization: "", issue_date: "", expiry_date: "", no_expiry: false, cert_type: "certification", certificate_url: "", verification_url: "", credential_id: "", photos: [] }]);
   };
 
   const remove = (idx) => {
@@ -96,9 +96,9 @@ export default function CertificationsEditor({ value = [], onChange }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center">
-                <Award className="w-3.5 h-3.5 text-teal-600" />
+                {cert.cert_type === "participation" ? <ScrollText className="w-3.5 h-3.5 text-teal-600" /> : <Award className="w-3.5 h-3.5 text-teal-600" />}
               </div>
-              <span className="text-xs font-bold text-slate-600">Certificação #{idx + 1}</span>
+              <span className="text-xs font-bold text-slate-600">{cert.cert_type === "participation" ? "Participação" : "Certificação"} #{idx + 1}</span>
             </div>
             <button
               type="button"
@@ -109,13 +109,38 @@ export default function CertificationsEditor({ value = [], onChange }) {
             </button>
           </div>
 
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => update(idx, "cert_type", "certification")}
+              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                cert.cert_type !== "participation"
+                  ? "bg-teal-50 border-teal-300 text-teal-700"
+                  : "bg-white border-slate-200 text-slate-400 hover:border-slate-300"
+              }`}
+            >
+              <Award className="w-3.5 h-3.5" /> Certificação
+            </button>
+            <button
+              type="button"
+              onClick={() => update(idx, "cert_type", "participation")}
+              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                cert.cert_type === "participation"
+                  ? "bg-teal-50 border-teal-300 text-teal-700"
+                  : "bg-white border-slate-200 text-slate-400 hover:border-slate-300"
+              }`}
+            >
+              <ScrollText className="w-3.5 h-3.5" /> Participação
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label className="text-[11px] font-semibold text-slate-500">Nome da certificação *</Label>
+              <Label className="text-[11px] font-semibold text-slate-500">Nome {cert.cert_type === "participation" ? "do evento/curso" : "da certificação"} *</Label>
               <Input
                 value={cert.name || ""}
                 onChange={(e) => update(idx, "name", e.target.value)}
-                placeholder="Ex: Licença de Estabelecimento de Animais"
+                placeholder={cert.cert_type === "participation" ? "Ex: Curso de Comportamento Canino" : "Ex: Licença de Estabelecimento de Animais"}
                 className="mt-1 h-9 rounded-lg text-sm"
               />
             </div>
@@ -146,8 +171,21 @@ export default function CertificationsEditor({ value = [], onChange }) {
                 type="date"
                 value={cert.expiry_date || ""}
                 onChange={(e) => update(idx, "expiry_date", e.target.value)}
-                className="mt-1 h-9 rounded-lg text-sm"
+                disabled={cert.no_expiry}
+                className="mt-1 h-9 rounded-lg text-sm disabled:opacity-40"
               />
+              <label className="flex items-center gap-1.5 mt-1.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={cert.no_expiry || false}
+                  onChange={e => {
+                    const next = certs.map((c, i) => i === idx ? { ...c, no_expiry: e.target.checked, expiry_date: e.target.checked ? "" : c.expiry_date } : c);
+                    onChange(next);
+                  }}
+                  className="w-3.5 h-3.5 rounded border-slate-300 text-teal-600 focus:ring-teal-200"
+                />
+                <span className="text-[10px] font-semibold text-slate-500">Sem data de validade (permanente)</span>
+              </label>
             </div>
             <div>
               <Label className="text-[11px] font-semibold text-slate-500">ID / Credencial</Label>
