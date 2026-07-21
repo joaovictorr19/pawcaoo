@@ -26,10 +26,7 @@ Deno.serve(async (req) => {
         : (booking.created_date ? new Date(new Date(booking.created_date).getTime() + 5 * 60 * 1000) : null);
 
       if (expiresAt && expiresAt < new Date(now)) {
-        await base44.asServiceRole.entities.HotelBooking.update(booking.id, {
-          status: 'cancelled',
-          cancellation_reason: 'Pagamento não realizado dentro de 5 minutos.',
-        });
+        await base44.asServiceRole.entities.HotelBooking.delete(booking.id);
         cancelledCount++;
 
         // ── Libertar vagas que estavam reservadas durante o período de pagamento ──
