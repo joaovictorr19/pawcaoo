@@ -42,6 +42,7 @@ export default function WalkerOnboarding() {
       whatsapp_number: "",
       professional_type: "walker",
       hourly_rate: "15",
+      exotic_rate: "20",
       services_offered: SERVICE_PRESETS.map(s => ({ ...s, price: s.defaultPrice })),
       accepted_animals: ["dogs"],
       dog_sizes: ["small", "medium", "large"],
@@ -107,6 +108,7 @@ export default function WalkerOnboarding() {
         cover_photo_url: existingProfile.cover_photo_url || "",
         whatsapp_number: existingProfile.whatsapp_number || "",
         hourly_rate: String(existingProfile.hourly_rate || "15"),
+        exotic_rate: String(existingProfile.exotic_rate || "20"),
         services_offered: presetServices,
         accepted_animals: existingProfile.accepted_animals?.length ? existingProfile.accepted_animals : prev.accepted_animals,
         dog_sizes: existingProfile.dog_sizes?.length ? existingProfile.dog_sizes : prev.dog_sizes,
@@ -349,6 +351,32 @@ export default function WalkerOnboarding() {
               </div>
             </div>
 
+            <div className="p-4 bg-slate-800 rounded-2xl flex items-center justify-between">
+              <div>
+                <p className="text-white font-bold text-sm">Preço para exóticos</p>
+                <p className="text-slate-400 text-xs">Répteis, roedores, aves, aracnídeos</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Euro className="w-4 h-4 text-emerald-400" />
+                <input type="number" min="0" step="0.5" value={form.exotic_rate} onChange={e => set("exotic_rate", e.target.value)} className="w-16 bg-transparent text-emerald-400 font-black text-xl text-right outline-none" />
+              </div>
+            </div>
+
+            {form.accepted_animals.some(a => ["reptiles", "rodents", "birds", "arachnids"].includes(a)) && (
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl">
+                <div className="flex items-start gap-2">
+                  <span className="text-lg">🏠</span>
+                  <div className="flex-1">
+                    <p className="text-emerald-300 font-bold text-sm">Alojamento de animais exóticos</p>
+                    <p className="text-slate-400 text-xs mt-1">
+                      Animais exóticos (répteis, roedores, aves, aracnídeos) ficam alojados na tua casa/instalação — não são passeados.
+                      Estes animais requerem ambiente controlado e cuidado especializado no teu espaço, como um serviço de hotel/boarding.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <p className="text-white text-sm font-bold mb-3">Serviços rápidos</p>
               <div className="space-y-3">
@@ -538,6 +566,10 @@ export default function WalkerOnboarding() {
                 <div>
                   <p className="text-slate-500 text-xs uppercase tracking-widest">Preço/hora</p>
                   <p className="text-orange-400 font-black text-sm">{form.hourly_rate}€</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 text-xs uppercase tracking-widest">Exóticos</p>
+                  <p className="text-emerald-400 font-black text-sm">{form.exotic_rate}€</p>
                 </div>
                 <div>
                   <p className="text-slate-500 text-xs uppercase tracking-widest">Serviços</p>

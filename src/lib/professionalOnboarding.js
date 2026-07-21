@@ -36,7 +36,10 @@ export const ANIMALS = [
   { value: "reptiles", label: "Répteis", icon: "🦎" },
   { value: "rodents", label: "Roedores", icon: "🐹" },
   { value: "birds", label: "Aves", icon: "🦜" },
+  { value: "arachnids", label: "Aracnídeos", icon: "🕷️" },
 ];
+
+export const EXOTIC_ANIMALS = ["reptiles", "rodents", "birds", "arachnids"];
 
 export const SERVICE_PRESETS = [
   { key: "walk_30", service_name: "Passeio 30 min", description: "Passeio individual rápido", defaultPrice: 10, service_type: "standard", is_active: true },
@@ -80,6 +83,7 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
     whatsapp_number: form.whatsapp_number || "",
     phone: form.whatsapp_number || "",
     hourly_rate: parseFloat(form.hourly_rate) || 15,
+    exotic_rate: parseFloat(form.exotic_rate) || 0,
     services_offered: form.services_offered || [],
     accepted_animals: form.accepted_animals || ["dogs"],
     dog_sizes: form.dog_sizes || ["small", "medium", "large"],
@@ -138,6 +142,7 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
       trainer_name: form.walker_name || user.full_name,
       location: form.location,
       hourly_rate: parseFloat(form.hourly_rate) || 15,
+      exotic_rate: parseFloat(form.exotic_rate) || 0,
       bio: form.bio,
       photo_url: form.photo_url || user.profile_photo_url || "",
       phone: form.whatsapp_number || "",
