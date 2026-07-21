@@ -3,6 +3,36 @@
   background: linear-gradient(180deg, #f8fafc 0%, #ffffff 36rem);
 }
 
+/* Override any dark-mode variables while the admin dashboard is active */
+.admin-dashboard-ui,
+.admin-dashboard-ui * {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+}
+
+/* Force light backgrounds on dialogs/popovers rendered as portals */
+.admin-dashboard-ui ~ [role="dialog"],
+.admin-dashboard-ui ~ [data-radix-popper-content-wrapper] {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+}
+
 .admin-dashboard-ui [role="tabpanel"] {
   min-width: 0;
   margin-top: 1.25rem;

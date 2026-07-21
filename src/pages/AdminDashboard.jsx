@@ -110,12 +110,24 @@ export default function AdminDashboard() {
   const [impersonateLoading, setImpersonateLoading] = useState(false);
 
   // Force light mode on admin dashboard — prevents dark system preference
-  // from mixing dark CSS variables with hardcoded light colors
+  // from mixing dark CSS variables with hardcoded light colors.
+  // Uses a MutationObserver to keep 'dark' removed even if ThemeProvider
+  // re-applies it via the system media-query listener.
   useEffect(() => {
-    const wasDark = document.documentElement.classList.contains('dark');
-    document.documentElement.classList.remove('dark');
+    const root = document.documentElement;
+    const wasDark = root.classList.contains('dark');
+    root.classList.remove('dark');
+
+    const observer = new MutationObserver(() => {
+      if (root.classList.contains('dark')) {
+        root.classList.remove('dark');
+      }
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+
     return () => {
-      if (wasDark) document.documentElement.classList.add('dark');
+      observer.disconnect();
+      if (wasDark) root.classList.add('dark');
     };
   }, []);
 
