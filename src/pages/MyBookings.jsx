@@ -40,6 +40,7 @@ import AchievementModal from "../components/gamification/AchievementModal";
 import CheckoutModal from "../components/payments/CheckoutModal";
 import WalkSecurityPass from "../components/booking/WalkSecurityPass";
 import BookingReceiptButton from "../components/booking/BookingReceiptButton";
+import HotelStayDiary from "../components/hotel/HotelStayDiary";
 import { CreditCard } from "lucide-react";
 
 export default function MyBookings() {
@@ -707,6 +708,11 @@ export default function MyBookings() {
           {/* QR Code Security Pass */}
           {!isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress') && booking.type === 'walk' && (
             <WalkSecurityPass booking={booking} />
+          )}
+
+          {/* Hotel Stay Diary - for active hotel bookings */}
+          {isHotel && !isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'completed') && (
+            <HotelStayDiary booking={booking} />
           )}
 
           {/* Actions */}
