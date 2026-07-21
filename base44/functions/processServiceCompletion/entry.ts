@@ -137,8 +137,22 @@ Deno.serve(async (req) => {
 
     const professionalEmail = service[config.professionalEmailField];
     const clientEmail = service[config.ownerEmailField] || service.created_by;
-    if (professionalEmail !== user.email && clientEmail !== user.email && user.role !== 'admin') {
+    const isProfessional = professionalEmail === user.email;
+    const isClient = clientEmail === user.email;
+    const isAdmin = user.role === 'admin';
+
+    if (!isProfessional && !isClient && !isAdmin) {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Security: professionals must provide the client-authorized dropoff_token (or completion_code)
+    // to release payment — prevents unilateral payout without client confirmation.
+    if (isProfessional && !isAdmin) {
+      const expectedToken = service.dropoff_token || service.completion_code;
+      const providedToken = body.dropoff_token || body.completion_code;
+      if (!expectedToken || !providedToken || providedToken !== expectedToken) {
+        return Response.json({ error: 'Client confirmation required (dropoff_token)' }, { status: 403 });
+      }
     }
 
     if (service.status === config.completedStatus && service.payment_status === 'released') {
