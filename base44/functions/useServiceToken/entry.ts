@@ -31,8 +31,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'You do not have access to this booking' }, { status: 403 });
     }
 
-    // Get user wallet
-    const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
+    // Get user wallet — use service role so all wallet writes are privileged
+    const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: user.email });
 
     if (wallets.length === 0 || wallets[0].service_tokens < 1) {
       return Response.json({ error: 'No tokens available' }, { status: 400 });
@@ -93,15 +93,15 @@ Deno.serve(async (req) => {
       console.log(`Walker ${resolvedWalkerEmail} has no Stripe account — creating pending payout`);
     }
 
-    // Transfer succeeded (or pending) — now deduct the token
-    await base44.entities.UserWallet.update(wallet.id, {
+    // Transfer succeeded (or pending) — now deduct the token using service role
+    await base44.asServiceRole.entities.UserWallet.update(wallet.id, {
       service_tokens: wallet.service_tokens - 1,
       tokens_used_this_month: (wallet.tokens_used_this_month || 0) + 1,
       escrow_balance: (wallet.escrow_balance || 0) - TOKEN_VALUE
     });
 
     // Record token usage transaction
-    await base44.entities.WalletTransaction.create({
+    await base44.asServiceRole.entities.WalletTransaction.create({
       user_email: user.email,
       transaction_type: 'token_used',
       amount: TOKEN_VALUE,
@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
     });
 
     // Record escrow release transaction
-    await base44.entities.WalletTransaction.create({
+    await base44.asServiceRole.entities.WalletTransaction.create({
       user_email: user.email,
       transaction_type: 'escrow_released',
       amount: TOKEN_VALUE,

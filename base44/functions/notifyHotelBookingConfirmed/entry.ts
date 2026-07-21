@@ -11,18 +11,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    const { event, data, payload_too_large } = body || {};
+    const { event, payload_too_large } = body || {};
 
     if (!event || event.type !== 'update') {
       return Response.json({ message: 'Ignored — not an update event' });
     }
 
-    // If payload too large, fetch the entity
-    let booking = data;
-    if (payload_too_large || !booking) {
-      if (!event.entity_id) {
-        return Response.json({ error: 'No entity_id to fetch booking' }, { status: 400 });
-      }
+    // SECURITY: Always fetch the booking from the database by entity_id.
+    // Never trust a `data` object supplied in the request body — an attacker
+    // could craft a payload with arbitrary email content for spoofing/phishing.
+    if (!event.entity_id) {
+      return Response.json({ error: 'No entity_id to fetch booking' }, { status: 400 });
+    }
+
+    let booking;
+    if (payload_too_large) {
+      // Re-fetch even if data was provided, to ensure it matches the DB record
+      booking = await base44.asServiceRole.entities.HotelBooking.get(event.entity_id);
+    } else {
       booking = await base44.asServiceRole.entities.HotelBooking.get(event.entity_id);
     }
 
