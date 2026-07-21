@@ -33,7 +33,7 @@ export default function LayoutFooter() {
             <ul className="space-y-2 text-sm text-gray-600">
               <li><Link to="/?professional_type=walker" className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
               <li><Link to="/?professional_type=trainer" className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
-              <li><Link to="/?dogSittingService=boarding" className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
+              <li><Link to="/?professional_type=hotel" className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
             </ul>
           </div>
           <div>

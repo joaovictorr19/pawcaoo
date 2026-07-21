@@ -455,8 +455,9 @@ export default function Home() {
     if (filterProfessionalType !== "all") {
       result = result.filter(w => {
         const pt = w.professional_type;
-        if (filterProfessionalType === "walker") return pt === "walker" || pt === "both" || pt === "hotel";
+        if (filterProfessionalType === "walker") return pt === "walker" || pt === "both";
         if (filterProfessionalType === "trainer") return pt === "trainer" || pt === "both";
+        if (filterProfessionalType === "hotel") return pt === "hotel";
         return true;
       });
     }
