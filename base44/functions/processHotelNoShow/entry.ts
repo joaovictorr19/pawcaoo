@@ -33,11 +33,10 @@ Deno.serve(async (req) => {
     }
 
     const totalAmount = hb.total_amount || 0;
-    const serviceAmount = hb.service_amount || 0;
-    const platformFee = hb.platform_fee || 0;
 
-    // No-show split: hotel keeps 50% of service amount, platform keeps its commission, rest refunded
-    const hotelKeeps = Math.round(serviceAmount * 0.50 * 100) / 100;
+    // No-show split: hotel keeps 50% of total, platform keeps 10%, client refunded 40%
+    const hotelKeeps = Math.round(totalAmount * 0.50 * 100) / 100;
+    const platformFee = Math.round(totalAmount * 0.10 * 100) / 100;
     const refundAmount = Math.round((totalAmount - hotelKeeps - platformFee) * 100) / 100;
 
     // ── Issue partial refund via Stripe ──
@@ -79,8 +78,8 @@ Deno.serve(async (req) => {
           const currentPending = wallet.pending_balance || 0;
           const currentAvailable = wallet.available_balance || 0;
 
-          // Remove the full service_amount from pending (was credited on payment)
-          const newPending = Math.max(0, currentPending - serviceAmount);
+          // Remove the full total_amount from pending (was credited on payment)
+          const newPending = Math.max(0, currentPending - totalAmount);
           // Credit 50% as available
           const newAvailable = currentAvailable + hotelKeeps;
 
@@ -98,7 +97,7 @@ Deno.serve(async (req) => {
             balance_after: newAvailable,
           });
 
-          console.log(`✅ Hotel wallet adjusted: pending -€${serviceAmount}, available +€${hotelKeeps}`);
+          console.log(`✅ Hotel wallet adjusted: pending -€${totalAmount}, available +€${hotelKeeps}`);
         }
       } catch (walletErr) {
         console.error('Error adjusting hotel wallet:', walletErr.message);
