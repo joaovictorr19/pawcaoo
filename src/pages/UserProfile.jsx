@@ -215,7 +215,7 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
     refetchInterval: false
   });
 
-  const { data: walkerProfile } = useQuery({
+  const { data: walkerProfile, isLoading: loadingWalker } = useQuery({
     queryKey: ['walkerProfile', profileEmail, fixedType],
     queryFn: async () => {
       if (!profileEmail) return null;
@@ -233,7 +233,7 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
     refetchInterval: false,
   });
 
-  const { data: trainerProfile } = useQuery({
+  const { data: trainerProfile, isLoading: loadingTrainer } = useQuery({
     queryKey: ['trainerProfile', profileEmail],
     queryFn: async () => {
       if (!profileEmail) return null;
@@ -377,6 +377,17 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
   }, [loadingUser, profileUser?.id]);
 
   if (loadingUser) {
+    return <ProfileSkeleton />;
+  }
+
+  // Quando sabemos o tipo de profissional (hotel/walker/trainer), aguardar
+  // o perfil profissional carregar para evitar flash do nome pessoal do utilizador
+  const waitingForProProfile =
+    !!fixedType &&
+    !!profileUser &&
+    ((fixedType === 'trainer' && loadingTrainer) ||
+     (fixedType !== 'trainer' && loadingWalker));
+  if (waitingForProProfile) {
     return <ProfileSkeleton />;
   }
 
