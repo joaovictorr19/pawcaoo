@@ -98,7 +98,8 @@ export const AuthProvider = ({ children }) => {
         if (imp?.targetUserId && currentUser?.role === 'admin') {
            const targets = await base44.entities.User.filter({ id: imp.targetUserId });
            if (targets.length > 0) {
-             currentUser = { ...targets[0], isImpersonating: true };
+              // Preserve admin role so RLS admin conditions pass — full access to everything
+              currentUser = { ...targets[0], isImpersonating: true, role: 'admin', originalAdminEmail: currentUser.email };
            }
         } else if (imp && (!currentUser || currentUser.role !== 'admin')) {
            localStorage.removeItem('impersonation');
