@@ -11,6 +11,7 @@ import {
 import { format, differenceInCalendarDays } from "date-fns";
 import { pt } from "date-fns/locale";
 import { toast } from "sonner";
+import HotelStayDiary from "@/components/hotel/HotelStayDiary";
 
 const AVAILABLE_SERVICES = [
   { value: "bathing",      label: "Banho",       icon: Droplets,       defaultPrice: 15 },
@@ -327,6 +328,11 @@ export default function ClientActiveHotelStays({ user }) {
                 })}
               </div>
             )}
+
+            {/* Stay Diary */}
+            <div className="px-4 pb-2">
+              <HotelStayDiary booking={booking} />
+            </div>
 
             {/* Available services */}
             <div className="p-4">
