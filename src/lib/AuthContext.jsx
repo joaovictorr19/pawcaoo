@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
+import { getCurrentUser } from '@/utils/getCurrentUser';
 
 const AuthContext = createContext();
 
@@ -91,21 +92,10 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
-      let currentUser = await base44.auth.me();
-      
-      try {
-        const imp = JSON.parse(localStorage.getItem('impersonation') || 'null');
-        if (imp?.targetUserId && currentUser?.role === 'admin') {
-           const targets = await base44.entities.User.filter({ id: imp.targetUserId });
-           if (targets.length > 0) {
-              // Preserve admin role so RLS admin conditions pass — full access to everything
-              currentUser = { ...targets[0], isImpersonating: true, role: 'admin', originalAdminEmail: currentUser.email };
-           }
-        } else if (imp && (!currentUser || currentUser.role !== 'admin')) {
-           localStorage.removeItem('impersonation');
-        }
-      } catch(e) {}
-      
+      // Use the shared getCurrentUser utility so impersonation logic (originalRole,
+      // isImpersonating, role preservation) is consistent everywhere in the app.
+      let currentUser = await getCurrentUser();
+
       setUser(currentUser);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
