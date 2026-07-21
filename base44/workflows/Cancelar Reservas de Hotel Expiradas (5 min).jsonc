@@ -1,6 +1,5 @@
 {
   "name": "Cancelar Reservas de Hotel Expiradas (5 min)",
-  "description": "Cancela automaticamente reservas de hotel pendentes que n\u00e3o foram pagas em 5 minutos.",
   "trigger": {
     "condition": null,
     "config": {
@@ -10,9 +9,9 @@
       "cron_expression": null,
       "one_time_date": null,
       "timezone": "UTC",
-      "interval_value": 30,
+      "interval_value": 5,
       "interval_unit": "minutes",
-      "interval_anchor": "2026-07-14T20:40:22.429000",
+      "interval_anchor": "2026-07-21T17:00:00",
       "ends_type": "never",
       "ends_on_date": null,
       "ends_after_count": null
@@ -22,7 +21,7 @@
     "document": {
       "dsl": "1.0.0",
       "name": "cancelar_reservas_de_hotel_expiradas_5_min",
-      "version": "1.0",
+      "version": "1.1",
       "namespace": "base44"
     },
     "do": [
@@ -37,5 +36,6 @@
         }
       }
     ]
-  }
+  },
+  "description": "Cancela automaticamente reservas de hotel pendentes que n\u00e3o foram pagas em 5 minutos."
 }

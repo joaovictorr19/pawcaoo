@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Plus, Minus, CreditCard, Loader2, Link2, Copy, Check, Send,
   BedDouble, Sun, Scissors, PawPrint, GraduationCap, User, CalendarDays,
@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import HotelServiceAddons from "./HotelServiceAddons";
 import EmergencyContactFields from "./EmergencyContactFields";
+import ReturningGuestInfo from "./ReturningGuestInfo";
 import { calculateAddOnsTotal, buildBookingPayload } from "@/hooks/useHotelCapacity";
 
 const SERVICE_OPTIONS = [
@@ -34,6 +35,66 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const [copied, setCopied] = useState(false);
   const [addOns, setAddOns] = useState([]);
   const [directCheckin, setDirectCheckin] = useState(false);
+  const [guestProfile, setGuestProfile] = useState(null);
+  const [guestLoading, setGuestLoading] = useState(false);
+
+  // ── Lookup returning guest profile when email is typed ──
+  useEffect(() => {
+    const email = form.owner_email.trim().toLowerCase();
+    if (!email || !email.includes("@") || !hotelProfile?.id) {
+      setGuestProfile(null);
+      return;
+    }
+    setGuestLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const profiles = await base44.entities.HotelGuestProfile.filter({
+          hotel_profile_id: hotelProfile.id,
+          owner_email: email,
+        });
+        setGuestProfile(profiles.length > 0 ? profiles[0] : null);
+      } catch {
+        setGuestProfile(null);
+      } finally {
+        setGuestLoading(false);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [form.owner_email, hotelProfile?.id]);
+
+  // Prefill dog fields from guest profile data
+  const handlePrefillDog = (guestDog) => {
+    setForm(f => {
+      // Try to find a dog slot with the same name, or use the first empty one
+      let dogIdx = f.dogs.findIndex(d => d.dog_name.trim().toLowerCase() === (guestDog.dog_name || "").trim().toLowerCase());
+      if (dogIdx < 0) {
+        dogIdx = f.dogs.findIndex(d => !d.dog_name.trim());
+      }
+      if (dogIdx < 0) {
+        // Add a new dog slot
+        dogIdx = f.dogs.length;
+        f.dogs.push({ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "", vaccine_expiry: "", vaccine_document_url: "" });
+      }
+      const dogs = [...f.dogs];
+      const existing = dogs[dogIdx];
+      const combinedNotes = [
+        existing.special_notes,
+        guestDog.behavioral_profile ? `Comportamento: ${guestDog.behavioral_profile}` : "",
+        guestDog.persistent_medical_notes ? `Médico: ${guestDog.persistent_medical_notes}` : "",
+      ].filter(Boolean).join("\n");
+      dogs[dogIdx] = {
+        ...existing,
+        dog_name: existing.dog_name || guestDog.dog_name || "",
+        dog_breed: existing.dog_breed || guestDog.dog_breed || "",
+        dog_size: existing.dog_size || guestDog.dog_size || "medium",
+        dog_age: existing.dog_age || guestDog.dog_age || "",
+        special_notes: combinedNotes,
+        vaccine_expiry: existing.vaccine_expiry || guestDog.vaccine_expiry || "",
+      };
+      return { ...f, dogs };
+    });
+    toast.success(`Dados de ${guestDog.dog_name || "cão"} pré-preenchidos do perfil`);
+  };
 
   const [form, setForm] = useState({
     owner_name: "",
@@ -303,6 +364,14 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                     <input value={form.owner_email} onChange={e => set("owner_email", e.target.value)}
                       placeholder="Email" className={inputCls} />
                   </div>
+                  {guestLoading && (
+                    <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" /> A verificar histórico do cliente...
+                    </p>
+                  )}
+                  {guestProfile && (
+                    <ReturningGuestInfo guestProfile={guestProfile} onPrefillDog={handlePrefillDog} />
+                  )}
                 </div>
               </div>
 

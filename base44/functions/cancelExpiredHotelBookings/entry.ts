@@ -3,11 +3,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
 
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Unauthorized' }, { status: 403 });
-    }
+    // This function is triggered by a scheduled workflow — no authenticated user.
+    // Use asServiceRole directly to perform cleanup operations.
 
     const now = new Date().toISOString();
 
