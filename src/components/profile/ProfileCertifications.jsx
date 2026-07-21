@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Award, ExternalLink, ShieldCheck, Calendar, ImageIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Award, ExternalLink, ShieldCheck, Calendar, ImageIcon, X, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 function formatDate(raw) {
@@ -27,6 +27,13 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
   const certs = [];
   for (const c of detailed) {
     if (!c?.name) continue;
+    const explicitPhotos = Array.isArray(c.photos) ? c.photos : [];
+    // Garantir que o documento principal também aparece na galeria pública
+    const mainIsImage = c.certificate_url && /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)/i.test(c.certificate_url);
+    const mainIsPdf = c.certificate_url && /\.pdf/i.test(c.certificate_url);
+    const photos = mainIsImage && !explicitPhotos.includes(c.certificate_url)
+      ? [...explicitPhotos, c.certificate_url]
+      : explicitPhotos;
     certs.push({
       name: c.name,
       org: c.issuing_organization,
@@ -35,7 +42,9 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
       url: c.certificate_url,
       verify_url: c.verification_url,
       credential_id: c.credential_id,
-      photos: Array.isArray(c.photos) ? c.photos : (c.certificate_url && /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)/i.test(c.certificate_url) ? [c.certificate_url] : []),
+      photos,
+      hasPdf: !!mainIsPdf,
+      pdfUrl: mainIsPdf ? c.certificate_url : null,
     });
   }
   // Adicionar certificados legacy que não têm correspondência em detailed
@@ -56,12 +65,15 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
     }
   }
 
-  // Construir lista plana de fotos para a galeria
+  // Construir lista plana de fotos para a galeria (imagens + PDFs)
   const galleryPhotos = useMemo(() => {
     const items = [];
     for (const cert of certs) {
       for (const photo of (cert.photos || [])) {
-        items.push({ url: photo, certName: cert.name, certOrg: cert.org });
+        items.push({ url: photo, certName: cert.name, certOrg: cert.org, isPdf: false });
+      }
+      if (cert.hasPdf && cert.pdfUrl) {
+        items.push({ url: cert.pdfUrl, certName: cert.name, certOrg: cert.org, isPdf: true });
       }
     }
     return items;
@@ -72,6 +84,7 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
     : (language === "pt" ? "Certificações" : language === "es" ? "Certificaciones" : "Certifications");
 
   const hasPhotos = galleryPhotos.length > 0;
+  const hasAnyDoc = hasPhotos || certs.some(c => c.hasPdf);
 
   const openGallery = (idx) => {
     document.body.style.overflow = "hidden";
@@ -115,7 +128,7 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
         <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic flex items-center gap-1.5">
           <ShieldCheck className="w-3 h-3" /> {title}
         </h3>
-        {hasPhotos && (
+        {hasAnyDoc && (
           <button
             onClick={() => openGallery(0)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 text-teal-700 border border-teal-100 text-xs font-bold hover:bg-teal-100 transition-colors"
@@ -181,12 +194,15 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
             </>
           );
 
-          if (canOpenGallery) {
+          if (canOpenGallery || cert.hasPdf) {
+            const galleryStartIdx = cert.hasPdf && cert.pdfUrl
+              ? galleryPhotos.findIndex(p => p.url === cert.pdfUrl)
+              : certPhotoIdx;
             return (
               <button
                 key={idx}
                 type="button"
-                onClick={() => certPhotoIdx >= 0 && openGallery(certPhotoIdx)}
+                onClick={() => galleryStartIdx >= 0 && openGallery(galleryStartIdx)}
                 className="w-full text-left block p-3 rounded-2xl border border-slate-100 transition-all hover:border-teal-200 hover:bg-teal-50/40 hover:shadow-sm cursor-pointer"
               >
                 {content}
@@ -241,15 +257,24 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
             className="max-w-4xl max-h-[90vh] w-full px-12 flex flex-col items-center"
             onClick={e => e.stopPropagation()}
           >
-            <img
-              src={galleryPhotos[galleryIdx].url}
-              alt={galleryPhotos[galleryIdx].certName}
-              className="max-h-[80vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "https://images.unsplash.com/photo-1558944351-c3ad969c1a63?w=800&h=600&fit=crop";
-              }}
-            />
+            {galleryPhotos[galleryIdx].isPdf ? (
+              <iframe
+                src={galleryPhotos[galleryIdx].url}
+                title={galleryPhotos[galleryIdx].certName}
+                className="w-full max-w-3xl rounded-2xl shadow-2xl bg-white"
+                style={{ height: "75vh" }}
+              />
+            ) : (
+              <img
+                src={galleryPhotos[galleryIdx].url}
+                alt={galleryPhotos[galleryIdx].certName}
+                className="max-h-[80vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1558944351-c3ad969c1a63?w=800&h=600&fit=crop";
+                }}
+              />
+            )}
             <div className="mt-4 text-center text-white max-w-lg">
               <p className="font-semibold text-sm">{galleryPhotos[galleryIdx].certName}</p>
               {galleryPhotos[galleryIdx].certOrg && (
@@ -276,11 +301,18 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                 <button
                   key={i}
                   onClick={(e) => { e.stopPropagation(); setGalleryIdx(i); }}
-                  className={`w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+                  className={`relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all flex items-center justify-center bg-slate-800 ${
                     i === galleryIdx ? "border-white opacity-100" : "border-transparent opacity-40 hover:opacity-70"
                   }`}
                 >
-                  <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                  {photo.isPdf ? (
+                    <span className="text-[8px] font-black text-white/90 flex flex-col items-center gap-0.5">
+                      <FileText className="w-4 h-4" />
+                      PDF
+                    </span>
+                  ) : (
+                    <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                  )}
                 </button>
               ))}
             </div>
