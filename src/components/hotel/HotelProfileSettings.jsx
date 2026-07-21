@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
-  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check
+  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check, Instagram
 } from "lucide-react";
 import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
 import HotelPortfolioEditor from "@/components/hotel/HotelPortfolioEditor";
@@ -31,6 +31,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     hide_checkin_times: hotelProfile?.hotel_details?.hide_checkin_times || false,
     offers_pickup: hotelProfile?.hotel_details?.offers_pickup || false,
     blocked_dates: hotelProfile?.hotel_details?.blocked_dates || [],
+    instagram_url: hotelProfile?.instagram_url || "",
   });
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
@@ -109,6 +110,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
         bio: form.bio,
         photo_url: form.photo_url,
         cover_photo_url: form.cover_photo_url,
+        instagram_url: form.instagram_url,
         hotel_details: directHotelDetails,
       });
 
@@ -272,6 +274,20 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
               className="mt-1 rounded-lg min-h-[80px] resize-none"
               rows={3}
             />
+          </div>
+
+          {/* Instagram */}
+          <div>
+            <Label className="text-xs font-semibold text-slate-600">Instagram</Label>
+            <div className="relative mt-1">
+              <Instagram className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
+                value={form.instagram_url}
+                onChange={handleChange("instagram_url")}
+                placeholder="https://instagram.com/seuperfil"
+                className="rounded-lg pl-9"
+              />
+            </div>
           </div>
 
           {/* Check-in / Check-out */}
