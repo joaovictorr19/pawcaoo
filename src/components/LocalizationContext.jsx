@@ -70,17 +70,6 @@ const COUNTRY_CONFIG = {
     dateFormat: 'dd/MM/yyyy',
     distanceUnit: 'km'
   },
-  BR: {
-    code: 'BR',
-    name: 'Brasil',
-    currency: 'BRL',
-    currencySymbol: 'R$',
-    defaultLanguage: 'pt',
-    timezone: 'America/Sao_Paulo',
-    phonePrefix: '+55',
-    dateFormat: 'dd/MM/yyyy',
-    distanceUnit: 'km'
-  },
   US: {
     code: 'US',
     name: 'United States',
@@ -99,8 +88,7 @@ const COUNTRY_CONFIG = {
 const FALLBACK_EXCHANGE_RATES = {
   EUR: 1,
   GBP: 0.86,
-  USD: 1.10,
-  BRL: 5.35
+  USD: 1.10
 };
 
 const RATES_CACHE_KEY = 'pawcao_exchange_rates';
@@ -136,7 +124,7 @@ async function fetchExchangeRates() {
 
     try {
       // ECB publishes daily EUR-based rates (free, no API key)
-      const res = await fetch('https://api.exchangerate.host/latest?base=EUR&symbols=GBP,USD,BRL', {
+      const res = await fetch('https://api.exchangerate.host/latest?base=EUR&symbols=GBP,USD', {
         signal: AbortSignal.timeout(5000)
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -199,6 +187,10 @@ export const LocalizationProvider = ({ children }) => {
         setCountryState(COUNTRY_CONFIG[savedCountry]);
         setIsLoading(false);
         return;
+      }
+      // Clear stale preference for removed countries (e.g. BR)
+      if (savedCountry && !COUNTRY_CONFIG[savedCountry]) {
+        localStorage.removeItem('pawcao_country');
       }
 
       // 2. Try browser geolocation API
