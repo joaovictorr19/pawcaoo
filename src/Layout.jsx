@@ -59,6 +59,7 @@ import LayoutStyles from "@/components/layout/LayoutStyles";
 import LayoutFooter from "@/components/layout/LayoutFooter";
 import LayoutSEO from "@/components/layout/LayoutSEO";
 import NotificationManager from "@/components/notifications/NotificationManager";
+import InstallPrompt from "@/components/ui/InstallPrompt";
 
 import "./globals.css";
 
@@ -539,6 +540,7 @@ function LayoutContent({ children, currentPageName }) {
       <PushNotificationManager user={authUser} />
       <NotificationTriggers user={authUser} />
       <NotificationManager />
+      <InstallPrompt />
 
       <div className="flex flex-col w-full relative z-10 min-h-screen mt-0 md:mt-16">
         <div className="hidden md:block" style={{ height: '26px' }} />
