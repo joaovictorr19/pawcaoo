@@ -68,7 +68,15 @@ export default function PartnerHotelPanel() {
             const p = partnerships[0];
             try {
               const hp = await base44.entities.WalkerProfile.get(p.hotel_profile_id);
-              if (hp) return { ...hp, partnerRole: p.partner_role };
+              if (hp) {
+                // Always use the hotel's partner_walkers as the authoritative role source
+                // to prevent redirect loops caused by stale/inconsistent roles
+                const hotelPartners = hp.hotel_details?.partner_walkers || [];
+                const authoritative = hotelPartners.find(pw =>
+                  pw.walker_email?.toLowerCase() === authUser.email.toLowerCase()
+                );
+                return { ...hp, partnerRole: authoritative?.partner_role || p.partner_role };
+              }
             } catch {}
           }
         }
