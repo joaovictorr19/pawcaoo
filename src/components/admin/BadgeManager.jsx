@@ -17,7 +17,7 @@ function BadgeForm({ initial = {}, onSave, onCancel, isSaving }) {
     name: initial.name || '',
     description: initial.description || '',
     rarity: initial.rarity || 'common',
-    xp: initial.xp ?? 50,
+    xp: String(initial.xp ?? 50),
     category: initial.category || 'special',
     icon: initial.icon || '🏆',
     image_file: null,
@@ -28,6 +28,10 @@ function BadgeForm({ initial = {}, onSave, onCancel, isSaving }) {
   const handleFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem demasiado grande (máx 5MB).");
+      return;
+    }
     setForm(f => ({ ...f, image_file: file, preview: URL.createObjectURL(file), existing_image: null }));
   };
 
@@ -40,7 +44,7 @@ function BadgeForm({ initial = {}, onSave, onCancel, isSaving }) {
       toast.error("Adiciona uma imagem ao emblema.");
       return;
     }
-    onSave(form);
+    onSave({ ...form, xp: Number(form.xp) || 0 });
   };
 
   return (
@@ -97,7 +101,7 @@ function BadgeForm({ initial = {}, onSave, onCancel, isSaving }) {
             type="number"
             min={0}
             value={form.xp}
-            onChange={e => setForm(f => ({ ...f, xp: Number(e.target.value) }))}
+            onChange={e => setForm(f => ({ ...f, xp: e.target.value }))}
             className="w-full p-3 bg-slate-50 rounded-xl font-bold text-sm outline-none focus:ring-2 ring-orange-400"
           />
         </div>
@@ -146,8 +150,12 @@ export function BadgeManager() {
     let imageUrl = form.existing_image || null;
 
     if (form.image_file) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: form.image_file });
-      imageUrl = file_url;
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: form.image_file });
+        imageUrl = file_url;
+      } catch (uploadErr) {
+        throw new Error(`Falha no upload da imagem: ${uploadErr.message || 'erro desconhecido'}`);
+      }
     }
 
     const payload = {
