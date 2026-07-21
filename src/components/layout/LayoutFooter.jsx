@@ -31,9 +31,9 @@ export default function LayoutFooter() {
           <div>
             <h4 className="font-semibold text-gray-900 mb-3">{t('services', language)}</h4>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link to={createPageUrl("Home")} className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
-              <li><Link to={createPageUrl("Trainers")} className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
-              <li><Link to={createPageUrl("DogSittingServices")} className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
+              <li><Link to="/?professional_type=walker" className="hover:text-green-600 transition-colors">{t('findWalkers', language)}</Link></li>
+              <li><Link to="/?professional_type=trainer" className="hover:text-green-600 transition-colors">{t('findTrainers', language)}</Link></li>
+              <li><Link to="/?dogSittingService=boarding" className="hover:text-green-600 transition-colors">{t('dogSitting', language)}</Link></li>
             </ul>
           </div>
           <div>

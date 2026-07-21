@@ -37,6 +37,7 @@ export default function Home() {
   
   const urlParams = new URLSearchParams(window.location.search);
   const dogSittingServiceFilter = urlParams.get('dogSittingService');
+  const professionalTypeFilter = urlParams.get('professional_type');
   
   const [searchLocation, setSearchLocation] = useState("");
   const [filterSize, setFilterSize] = useState("all");
@@ -44,6 +45,7 @@ export default function Home() {
   const [filterAvailability, setFilterAvailability] = useState("all");
   const [filterDogSitting, setFilterDogSitting] = useState(dogSittingServiceFilter || "all");
   const [filterAnimalType, setFilterAnimalType] = useState("all");
+  const [filterProfessionalType, setFilterProfessionalType] = useState(professionalTypeFilter || "all");
   
   const [selectedServiceTypes, setSelectedServiceTypes] = useState([]);
   const [selectedSpecializations, setSelectedSpecializations] = useState([]);
@@ -450,6 +452,15 @@ export default function Home() {
       result = result.filter(w => (w.accepted_animals || ['dogs']).includes(filterAnimalType));
     }
 
+    if (filterProfessionalType !== "all") {
+      result = result.filter(w => {
+        const pt = w.professional_type;
+        if (filterProfessionalType === "walker") return pt === "walker" || pt === "both" || pt === "hotel";
+        if (filterProfessionalType === "trainer") return pt === "trainer" || pt === "both";
+        return true;
+      });
+    }
+
     if (filterDogSitting !== "all") {
       result = result.filter(w => {
         const services = w.services_offered || [];
@@ -465,7 +476,7 @@ export default function Home() {
       if (b.matchScore !== a.matchScore && a.matchScore > 0 && b.matchScore > 0) return b.matchScore - a.matchScore;
       return (b.rating || 0) - (a.rating || 0);
     });
-  }, [walkers, searchLocation, filterSize, filterTime, filterAnimalType, filterDogSitting, myDogs, favorites, activeBookings]);
+  }, [walkers, searchLocation, filterSize, filterTime, filterAnimalType, filterDogSitting, filterProfessionalType, myDogs, favorites, activeBookings]);
 
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
@@ -499,8 +510,14 @@ export default function Home() {
   }, [dogSittingServiceFilter]);
 
   useEffect(() => {
+    if (professionalTypeFilter) {
+      setFilterProfessionalType(professionalTypeFilter);
+    }
+  }, [professionalTypeFilter]);
+
+  useEffect(() => {
     setCurrentPage(1);
-  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, filterAnimalType, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
+  }, [searchLocation, filterSize, filterTime, filterAvailability, filterDogSitting, filterAnimalType, filterProfessionalType, selectedServiceTypes, selectedSpecializations, advancedFilters, activeTab]);
 
   const resetAdvancedFilters = () => {
     setAdvancedFilters({
