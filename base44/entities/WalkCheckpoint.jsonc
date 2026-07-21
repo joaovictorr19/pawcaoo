@@ -111,14 +111,7 @@
   ],
   "rls": {
     "create": {
-      "$or": [
-        {
-          "data.walker_email": "{{user.email}}"
-        },
-        {
-          "created_by_id": "{{user.id}}"
-        }
-      ]
+      "data.walker_email": "{{user.email}}"
     },
     "read": {
       "$or": [
@@ -126,7 +119,7 @@
           "data.walker_email": "{{user.email}}"
         },
         {
-          "created_by_id": "{{user.id}}"
+          "data.owner_email": "{{user.email}}"
         },
         {
           "user_condition": {
