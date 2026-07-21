@@ -38,7 +38,8 @@ Deno.serve(async (req) => {
       pickup_lng,
       owner_phone,
       share_whatsapp_live_location,
-      type
+      type,
+      is_exotic
     } = body;
 
     // Look up professional's custom commission rate
@@ -91,10 +92,15 @@ Deno.serve(async (req) => {
           }
         }
       }
-      // 2) Fallback to hourly_rate × duration_hours
-      if (serverServiceAmount == null && walkerProfile.hourly_rate != null) {
-        const hours = Number(duration_hours) || 1;
-        serverServiceAmount = Number(walkerProfile.hourly_rate) * hours;
+      // 2) Fallback to exotic_rate (for exotic animals) or hourly_rate × duration_hours
+      if (serverServiceAmount == null) {
+        const rate = is_exotic
+          ? (walkerProfile.exotic_rate != null ? Number(walkerProfile.exotic_rate) : null)
+          : (walkerProfile.hourly_rate != null ? Number(walkerProfile.hourly_rate) : null);
+        if (rate != null) {
+          const hours = Number(duration_hours) || 1;
+          serverServiceAmount = rate * hours;
+        }
       }
     }
 

@@ -232,16 +232,23 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   };
 
   // Calcular valores - NOVO MODELO: Cliente paga taxa ADICIONAL
+  const EXOTIC_TYPES = ["reptile", "arachnid", "rodent", "bird"];
   const calculateAmounts = () => {
-    // If service is selected, use service price, otherwise hourly rate
-    const baseRate = selectedService 
-      ? selectedService.price 
-      : (pro?.hourly_rate || 15) * formData.duration_hours;
-    
+    const selectedDog = myDogs.find(d => d.id === selectedDogId);
+    const isExotic = selectedDog && EXOTIC_TYPES.includes(selectedDog.animal_type);
+
+    // If service is selected, use service price, otherwise use exotic_rate for exotics or hourly_rate for dogs/cats
+    const fallbackRate = isExotic
+      ? (pro?.exotic_rate || pro?.hourly_rate || 20)
+      : (pro?.hourly_rate || 15);
+    const baseRate = selectedService
+      ? selectedService.price
+      : fallbackRate * formData.duration_hours;
+
     const discount = ownerSubscription?.booking_discount_percentage || 0;
     const discountAmount = baseRate * (discount / 100);
     const walkerReceives = baseRate - discountAmount;
-    
+
     const commissionRate = getEffectiveCommissionRate(pro);
     const platformFee = walkerReceives * (commissionRate / 100);
     const totalAmount = walkerReceives + platformFee;
@@ -253,7 +260,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       walkerReceives,
       platformFee,
       totalAmount,
-      serviceName: selectedService?.service_name || `Passeio ${formData.duration_hours}h`
+      serviceName: selectedService?.service_name || (isExotic ? `Cuidado ${formData.duration_hours}h` : `Passeio ${formData.duration_hours}h`),
+      isExotic,
     };
   };
 
@@ -393,6 +401,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         service_amount: amounts.walkerReceives,
         platform_fee: amounts.platformFee,
         total_amount: amounts.totalAmount,
+        is_exotic: amounts.isExotic,
         dog_name: formData.dog_name,
         dog_size: formData.dog_size,
         walk_date: format(formData.walk_date, 'yyyy-MM-dd'),
