@@ -146,8 +146,23 @@ export default function HotelRangeCalendar({
     );
   }
 
+  const instruction = !checkinDate
+    ? 'Toque para selecionar a data de entrada'
+    : !checkoutDate
+      ? 'Toque para selecionar a data de saída'
+      : 'Datas confirmadas ✓';
+
+  const instructionColor = !checkinDate
+    ? 'text-slate-500'
+    : !checkoutDate
+      ? 'text-slate-900 font-bold'
+      : 'text-emerald-600 font-bold';
+
   return (
     <div className={`w-full ${className}`}>
+      <div className={`text-center text-[11px] mb-2 transition-colors ${instructionColor}`}>
+        {instruction}
+      </div>
       <div className="flex items-center justify-between mb-2">
         <button onClick={handlePrevMonth} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors">
           <ChevronLeft className="w-4 h-4 text-slate-500" />

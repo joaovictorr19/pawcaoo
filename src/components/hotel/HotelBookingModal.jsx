@@ -438,10 +438,20 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
                           <ChevronLeft className="w-3 h-3 text-slate-400 rotate-180" />
                         </div>
-                        <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'}`}>
+                        <div className={`flex-1 rounded-xl border-2 p-2.5 text-center transition-all ${checkoutDate ? 'border-slate-900 bg-slate-50' : checkinDate ? 'border-slate-400 bg-amber-50 animate-pulse' : 'border-slate-200 bg-white'}`}>
                           <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Saída</p>
-                          <p className="text-xs font-black text-slate-900 mt-0.5">{checkoutDate ? formatDate(checkoutDate) : '—'}</p>
+                          <p className="text-xs font-black text-slate-900 mt-0.5">{checkoutDate ? formatDate(checkoutDate) : checkinDate ? 'Selecionar' : '—'}</p>
                         </div>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3 text-slate-500 flex-shrink-0" />
+                        <p className="text-[11px] text-slate-600 font-semibold">
+                          {checkinDate && !checkoutDate
+                            ? 'Toque na data de saída no calendário'
+                            : !checkinDate
+                            ? 'Toque na data de entrada no calendário'
+                            : 'Datas selecionadas — pode continuar'}
+                        </p>
                       </div>
                       {checkinPolicy !== 'all_days' && (
                         <div className="bg-blue-50/80 border border-blue-200/60 rounded-lg p-2 flex items-center gap-1.5">
@@ -719,16 +729,19 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         {!finalized && (
           (step === 0 && myDogs.length > 0 && selectedDogIds.length > 0) ||
           step === 1 ||
-          (step === 2 && checkinDate && (isOvernight ? !!checkoutDate : true)) ||
+          step === 2 ||
           step === 3
         ) && (
           <div className="px-5 pt-3 pb-5 bg-white border-t border-slate-100 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
             {step === 0 && (
               <Button
                 onClick={() => setStep(1)}
-                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
+                disabled={selectedDogIds.length === 0}
+                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Continuar com {selectedDogIds.length} {selectedDogIds.length === 1 ? 'animal' : 'animais'}
+                {selectedDogIds.length === 0
+                  ? 'Selecione um animal'
+                  : `Continuar com ${selectedDogIds.length} ${selectedDogIds.length === 1 ? 'animal' : 'animais'}`}
               </Button>
             )}
             {step === 1 && (
@@ -742,7 +755,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             {step === 2 && (
               <Button
                 onClick={() => setStep(3)}
-                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm"
+                disabled={!checkinDate || (isOvernight ? !checkoutDate : false)}
+                className="w-full h-12 bg-black hover:bg-slate-800 text-white font-bold rounded-xl text-sm disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Ver Resumo
               </Button>
