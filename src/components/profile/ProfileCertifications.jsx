@@ -148,7 +148,8 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
         {certs.map((cert, idx) => {
           const issueLabel = formatDate(cert.issue_date);
           const expiryLabel = formatDate(cert.expiry_date);
-          const isExpired = cert.expiry_date && new Date(cert.expiry_date) < new Date();
+          const todayStr = new Date().toISOString().split('T')[0];
+          const isExpired = cert.expiry_date && cert.expiry_date < todayStr;
           const hasLink = cert.url || cert.verify_url;
           const certPhotoIdx = galleryPhotos.findIndex(p => p.url === (cert.photos?.[0] || cert.url));
           const canOpenGallery = cert.photos?.length > 0;
