@@ -102,32 +102,32 @@ function BookingCard({ booking, onUpdate }) {
       {/* Status stripe */}
       <div className={`h-0.5 w-full ${cfg.dot}`} />
 
-      <button className="w-full text-left p-3.5" onClick={() => setExpanded(e => !e)}>
-        <div className="flex items-start justify-between gap-3">
+      <button className="w-full text-left p-3 sm:p-3.5" onClick={() => setExpanded(e => !e)}>
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
           <div className="min-w-0 flex-1">
             {/* Owner + dogs */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-semibold text-slate-900 text-sm">{booking.owner_name}</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="font-semibold text-slate-900 text-sm truncate">{booking.owner_name}</p>
               {booking.dogs?.length > 0 && (
-                <span className="flex items-center gap-0.5 text-[10px] text-slate-500 font-medium">
-                  <PawPrint className="w-2.5 h-2.5" />
-                  {booking.dogs.map(d => d.dog_name).join(", ")}
+                <span className="flex items-center gap-0.5 text-[10px] text-slate-500 font-medium truncate">
+                  <PawPrint className="w-2.5 h-2.5 shrink-0" />
+                  <span className="truncate">{booking.dogs.map(d => d.dog_name).join(", ")}</span>
                 </span>
               )}
               {isUpcoming && (
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 shrink-0">
                   em {daysUntil}d
                 </span>
               )}
               {booking.pickup_enabled && (
-                <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-200">
+                <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-200 shrink-0">
                   <MapPin className="w-2.5 h-2.5" /> Recolha
                 </span>
               )}
             </div>
 
             {/* Meta row */}
-            <div className="flex items-center gap-2.5 text-[10px] text-slate-400 mt-1.5 flex-wrap">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 text-[10px] text-slate-400 mt-1.5 flex-wrap">
               <span className="flex items-center gap-0.5 font-medium text-slate-500">
                 {SERVICE_LABELS[booking.service_type] || booking.service_type}
               </span>
@@ -450,18 +450,18 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
   return (
     <div className="space-y-4">
       {/* Revenue summary */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-white border border-slate-200 rounded-xl p-3 text-center">
-          <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">Total Filtrado</p>
-          <p className="text-base font-bold text-slate-900 mt-0.5">{revenueSummary.total.toFixed(0)}€</p>
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+        <div className="bg-white border border-slate-200 rounded-xl p-2 sm:p-3 text-center">
+          <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-slate-400">Total Filtrado</p>
+          <p className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">{revenueSummary.total.toFixed(0)}€</p>
         </div>
-        <div className="bg-white border border-emerald-200 rounded-xl p-3 text-center">
-          <p className="text-[9px] font-semibold uppercase tracking-wide text-emerald-500">Pago</p>
-          <p className="text-base font-bold text-emerald-600 mt-0.5">{revenueSummary.paid.toFixed(0)}€</p>
+        <div className="bg-white border border-emerald-200 rounded-xl p-2 sm:p-3 text-center">
+          <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-emerald-500">Pago</p>
+          <p className="text-sm sm:text-base font-bold text-emerald-600 mt-0.5">{revenueSummary.paid.toFixed(0)}€</p>
         </div>
-        <div className="bg-white border border-amber-200 rounded-xl p-3 text-center">
-          <p className="text-[9px] font-semibold uppercase tracking-wide text-amber-500">Pendente</p>
-          <p className="text-base font-bold text-amber-600 mt-0.5">{revenueSummary.pending.toFixed(0)}€</p>
+        <div className="bg-white border border-amber-200 rounded-xl p-2 sm:p-3 text-center">
+          <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-amber-500">Pendente</p>
+          <p className="text-sm sm:text-base font-bold text-amber-600 mt-0.5">{revenueSummary.pending.toFixed(0)}€</p>
         </div>
       </div>
 
@@ -509,16 +509,16 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
       </div>
 
       {/* Results count */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-400 font-medium">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-slate-400 font-medium truncate">
           {filtered.length} reserva{filtered.length !== 1 ? "s" : ""}
           {search && ` · "${search}"`}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {onRefresh && (
             <Button size="sm" variant="outline" className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs h-9"
               onClick={onRefresh}>
-              <RefreshCw className="w-3.5 h-3.5" /> Atualizar
+              <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Atualizar</span>
             </Button>
           )}
           <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5 text-xs h-9"

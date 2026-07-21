@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -46,9 +46,26 @@ export default function WalkerWallet({ walkerEmail }) {
     enabled: !!walkerEmail,
   });
 
-  const availableBalance = payouts
-    .filter(p => p.status === 'pending')
-    .reduce((sum, p) => sum + (p.net_amount || 0), 0);
+  const { data: userWallet } = useQuery({
+    queryKey: ['userWallet', walkerEmail],
+    queryFn: async () => {
+      const wallets = await base44.entities.UserWallet.filter({ user_email: walkerEmail });
+      return wallets[0] || null;
+    },
+    enabled: !!walkerEmail,
+  });
+
+  // Use UserWallet.pending_walker_payments as the authoritative source (maintained by backend
+  // functions processServiceCompletion and requestWalletWithdrawal). Falls back to calculating
+  // from pending payouts if the wallet record doesn't exist yet.
+  const availableBalance = useMemo(() => {
+    if (userWallet?.pending_walker_payments != null) {
+      return Number(userWallet.pending_walker_payments) || 0;
+    }
+    return payouts
+      .filter(p => p.status === 'pending')
+      .reduce((sum, p) => sum + (p.net_amount || 0), 0);
+  }, [userWallet, payouts]);
 
   const todayEarnings = completedBookings
     .filter(b => {
@@ -86,6 +103,7 @@ export default function WalkerWallet({ walkerEmail }) {
         setWithdrawAmount('');
         queryClient.invalidateQueries({ queryKey: ['walkerPayouts'] });
         queryClient.invalidateQueries({ queryKey: ['walkerEarnings'] });
+        queryClient.invalidateQueries({ queryKey: ['userWallet'] });
       } else {
         throw new Error(response?.data?.error || 'Erro ao processar');
       }
