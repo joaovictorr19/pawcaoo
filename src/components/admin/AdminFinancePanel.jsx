@@ -136,7 +136,7 @@ export default function AdminFinancePanel() {
     {
       icon: Percent, label: "Comissões Plataforma", value: euro(stats.totalPlatformFees),
       sub: `${stats.totalRevenue > 0 ? ((stats.totalPlatformFees / stats.totalRevenue) * 100).toFixed(1) : 0}% do volume`,
-      gradient: "from-blue-500 to-indigo-600", ring: "ring-blue-100",
+      gradient: "from-teal-500 to-cyan-600", ring: "ring-teal-100",
     },
     {
       icon: Wallet, label: "Ganhos Profissionais", value: euro(stats.totalProEarnings),
@@ -239,17 +239,12 @@ export default function AdminFinancePanel() {
                     <stop offset="0%" stopColor="#10b981" stopOpacity={0.35} />
                     <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="gradFees" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                  </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} className="capitalize" />
                 <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} tickFormatter={euroShort} width={45} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fill="url(#gradRevenue)" name="Faturação" />
-                <Area type="monotone" dataKey="fees" stroke="#6366f1" strokeWidth={2} fill="url(#gradFees)" name="Comissões" />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -259,10 +254,6 @@ export default function AdminFinancePanel() {
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-emerald-500" />
               <span className="text-[10px] font-semibold text-slate-500">Faturação</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-indigo-500" />
-              <span className="text-[10px] font-semibold text-slate-500">Comissões</span>
             </div>
           </div>
         </div>
