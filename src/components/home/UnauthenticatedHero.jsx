@@ -48,12 +48,12 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
   const card2Body =
     language === "pt"
-      ? "Transforme a sua paixão por animais numa fonte de rendimento flexível e junte-se à maior rede de profissionais pet."
+      ? "Transforme a sua paixão por animais numa fonte de rendimento flexível e junte-se a uma nova rede de profissionais pet."
       : language === "es"
-      ? "Convierte tu pasión por los animales en una fuente de ingresos flexible y únete a la mayor red de profesionales pet."
+      ? "Convierte tu pasión por los animales en una fuente de ingresos flexible y únete a una nueva red de profesionales pet."
       : language === "fr"
-      ? "Transformez votre passion pour les animaux en une source de revenus flexible et rejoignez le plus grand réseau de professionnels pet."
-      : "Turn your passion for animals into a flexible source of income and join the largest pet professional network.";
+      ? "Transformez votre passion pour les animaux en une source de revenus flexible et rejoignez un nouveau réseau de professionnels pet."
+      : "Turn your passion for animals into a flexible source of income and join a new pet professional network.";
 
   const card2ProLabel =
     language === "pt" ? "Sou Profissional" : language === "es" ? "Soy Profesional" : language === "fr" ? "Je suis Pro" : "I'm a Professional";
