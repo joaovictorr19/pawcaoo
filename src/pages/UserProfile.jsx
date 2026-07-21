@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, Suspense, lazy } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, Suspense, lazy } from "react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
@@ -191,6 +191,7 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
 
   const profileEmail = profileUser?.user_email || profileUser?.email;
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
+  const trackedProfileViewRef = useRef(null);
 
   const { data: earnedBadges = [], isLoading: loadingBadges } = useQuery({
     queryKey: ['userBadges', profileEmail],
@@ -244,6 +245,40 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
+
+  // Track professional profile views by service (analytics)
+  useEffect(() => {
+    const profile = walkerProfile || trainerProfile;
+    if (!profile || !profileEmail) return;
+    if (trackedProfileViewRef.current === profileEmail) return;
+    trackedProfileViewRef.current = profileEmail;
+
+    const isHotel = walkerProfile?.professional_type === "hotel";
+    const proType = walkerProfile?.professional_type || (trainerProfile ? "trainer" : "walker");
+
+    const services = [
+      ...(walkerProfile?.services_offered || []),
+      ...(walkerProfile?.hotel_details?.services || []),
+      ...(trainerProfile?.services_offered || []),
+    ];
+    const serviceNames = services.map(s => s.service_name).filter(Boolean).slice(0, 10);
+
+    try {
+      base44.analytics.track({
+        eventName: "professional_profile_viewed",
+        properties: {
+          professional_type: proType,
+          professional_email: profileEmail,
+          professional_name: walkerProfile?.walker_name || trainerProfile?.trainer_name || "",
+          city: walkerProfile?.location || trainerProfile?.location || "",
+          country: walkerProfile?.country_of_operation || trainerProfile?.country_of_operation || "",
+          is_hotel: isHotel,
+          services: serviceNames.join(", "),
+          is_own_profile: isOwnProfile,
+        },
+      });
+    } catch (e) {}
+  }, [walkerProfile, trainerProfile, profileEmail, isOwnProfile]);
 
   const { data: daysOff = [] } = useQuery({
     queryKey: ['walkerDaysOff', profileEmail],
