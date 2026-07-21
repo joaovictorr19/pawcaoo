@@ -1077,6 +1077,9 @@ export default function AdminDashboard() {
                 onToggleActive={(walker) => {
                   updateWalkerMutation.mutate({ id: walker.id, data: { is_active: !walker.is_active } });
                 }}
+                onToggleFeatured={(walker) => {
+                  updateWalkerMutation.mutate({ id: walker.id, data: { is_featured: !walker.is_featured } });
+                }}
               />
             )}
           </TabsContent>

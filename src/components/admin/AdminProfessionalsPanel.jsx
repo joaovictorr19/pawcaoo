@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Eye, Search, ToggleLeft, ToggleRight, RefreshCw, Settings } from "lucide-react";
+import { Trash2, Eye, Search, ToggleLeft, ToggleRight, RefreshCw, Settings, Star } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { ensureProfileSlug } from "@/utils/profileSlug";
 import AdminProfessionalManageModal from "@/components/admin/AdminProfessionalManageModal";
@@ -21,7 +21,7 @@ const VERIFICATION_COLORS = {
   requires_documents: "bg-yellow-100 text-yellow-700 border-yellow-200",
 };
 
-export default function AdminProfessionalsPanel({ walkers = [], onDelete, onToggleActive, onRefresh }) {
+export default function AdminProfessionalsPanel({ walkers = [], onDelete, onToggleActive, onToggleFeatured, onRefresh }) {
   const [search, setSearch] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [manageWalker, setManageWalker] = useState(null);
@@ -36,16 +36,21 @@ export default function AdminProfessionalsPanel({ walkers = [], onDelete, onTogg
     }
   };
 
-  const filtered = walkers.filter((w) => {
-    const q = search.toLowerCase();
-    return (
-      !q ||
-      w.walker_name?.toLowerCase().includes(q) ||
-      w.location?.toLowerCase().includes(q) ||
-      w.created_by?.toLowerCase().includes(q) ||
-      w.professional_type?.toLowerCase().includes(q)
-    );
-  });
+  const filtered = walkers
+    .filter((w) => {
+      const q = search.toLowerCase();
+      return (
+        !q ||
+        w.walker_name?.toLowerCase().includes(q) ||
+        w.location?.toLowerCase().includes(q) ||
+        w.created_by?.toLowerCase().includes(q) ||
+        w.professional_type?.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1;
+      return 0;
+    });
 
   return (
     <div className="mt-6 space-y-4">
@@ -85,6 +90,7 @@ export default function AdminProfessionalsPanel({ walkers = [], onDelete, onTogg
                   <th className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase">Tipo</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase">Verificação</th>
                   <th className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase">Estado</th>
+                  <th className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase">Destaque</th>
                   <th className="text-right px-4 py-3 font-semibold text-slate-600 text-xs uppercase">Ações</th>
                 </tr>
               </thead>
@@ -123,7 +129,22 @@ export default function AdminProfessionalsPanel({ walkers = [], onDelete, onTogg
                       </span>
                     </td>
                     <td className="px-4 py-3">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${w.is_featured ? "bg-amber-50 text-amber-700" : "bg-slate-50 text-slate-400"}`}>
+                        {w.is_featured ? "⭐ Destacado" : "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="flex gap-1 justify-end">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className={`h-7 w-7 p-0 rounded-full ${w.is_featured ? "hover:bg-amber-100" : "hover:bg-slate-100"}`}
+                          title={w.is_featured ? "Remover destaque" : "Destacar perfil (aparece em primeiro)"}
+                          onClick={() => onToggleFeatured?.(w)}
+                          disabled={!onToggleFeatured}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${w.is_featured ? "text-amber-500 fill-amber-400" : "text-slate-400"}`} />
+                        </Button>
                         <Button
                           size="sm"
                           variant="ghost"
