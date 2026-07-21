@@ -17,6 +17,7 @@ import { motion } from "framer-motion";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import PortfolioLightbox from "@/components/ui/PortfolioLightbox";
+import ProfileCertifications from "@/components/profile/ProfileCertifications";
 
 const SERVICE_ICONS = {
   walk: PawPrint,
@@ -228,6 +229,16 @@ export default function ProfileBentoGrid({
                   </button>
                 ))}
               </div>
+            </ProfileSection>
+          )}
+
+          {/* CERTIFICATIONS - Professionals & Hotels */}
+          {isProfessional && (
+            <ProfileSection delay={0.26}>
+              <ProfileCertifications
+                walkerProfile={walkerProfile}
+                trainerProfile={trainerProfile}
+              />
             </ProfileSection>
           )}
 
