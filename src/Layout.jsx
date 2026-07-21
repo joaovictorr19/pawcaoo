@@ -475,8 +475,12 @@ function LayoutContent({ children, currentPageName }) {
           <nav className="flex items-center gap-1">
             {/* Links de painel — só para utilizadores autenticados */}
             {authUser && (() => {
-              const role = authUser.role || 'user';
-              const isAdmin = role === 'admin';
+              // When impersonating, role is forced to 'admin' for RLS — use originalRole for UI routing
+              const role = authUser.isImpersonating
+                ? (authUser.originalRole || 'user')
+                : (authUser.role || 'user');
+              const isRealAdmin = authUser.role === 'admin' && !authUser.isImpersonating;
+              const isAdmin = isRealAdmin;
               const isHotel = role === 'hotel' || role === 'hotel_admin';
               const isPro = role === 'walker' || role === 'trainer' || role === 'professional';
 

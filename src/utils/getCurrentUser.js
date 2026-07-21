@@ -16,13 +16,16 @@ export async function getCurrentUser() {
       } else {
         const realUser = await base44.auth.me();
         if (realUser?.role === "admin") {
-          // Preserve admin role so RLS admin conditions still pass — full access to everything
+          // Preserve admin role so RLS admin conditions still pass — full access to everything.
+          // But keep originalRole so the UI can show the correct dashboard for the impersonated user.
           if (impersonation.targetUserData) {
-            return { ...impersonation.targetUserData, isImpersonating: true, role: 'admin', originalAdminEmail: realUser.email };
+            const origRole = impersonation.targetUserData.role || 'user';
+            return { ...impersonation.targetUserData, isImpersonating: true, role: 'admin', originalRole: origRole, originalAdminEmail: realUser.email };
           }
           const targets = await base44.entities.User.filter({ id: impersonation.targetUserId });
           if (targets.length > 0) {
-            return { ...targets[0], isImpersonating: true, role: 'admin', originalAdminEmail: realUser.email };
+            const origRole = targets[0].role || 'user';
+            return { ...targets[0], isImpersonating: true, role: 'admin', originalRole: origRole, originalAdminEmail: realUser.email };
           }
         } else {
           localStorage.removeItem("impersonation");

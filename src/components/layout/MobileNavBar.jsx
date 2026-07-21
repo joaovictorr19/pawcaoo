@@ -38,7 +38,9 @@ export default function MobileNavBar({ user, hasHotelPartnership = false, unread
   const isProf = user?.preferences?.current_mode === "professional";
   const isTutor = user?.preferences?.current_mode === "tutor";
   const isOnline = user?.pawgo_status?.is_online;
-  const isHotel = user?.role === 'hotel' || user?.role === 'hotel_admin';
+  // When impersonating, role is forced to 'admin' for RLS — use originalRole for UI
+  const effectiveRole = user?.isImpersonating ? (user?.originalRole || 'user') : (user?.role || 'user');
+  const isHotel = effectiveRole === 'hotel' || effectiveRole === 'hotel_admin';
 
   // Localized labels with safe fallbacks
   const labelDashboard = t('dashboard', language) || (language === 'pt' ? 'Painel' : language === 'es' ? 'Panel' : 'Dashboard');
