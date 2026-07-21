@@ -8,8 +8,10 @@ import {
   ClipboardList, Search, CalendarDays, Clock, Dog, Phone, Mail,
   CheckCircle2, X, ChevronDown, PawPrint, StickyNote, FileText,
   UserCheck, DoorOpen, XCircle, Euro, ListChecks, Filter, TrendingUp,
-  CreditCard, AlertCircle, RefreshCw
+  CreditCard, AlertCircle, RefreshCw, UserX
 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { toast } from "sonner";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500",  cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -53,6 +55,25 @@ function fmtDate(dateStr) {
 
 function BookingCard({ booking, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
+  const [noShowLoading, setNoShowLoading] = useState(false);
+
+  const handleNoShow = async () => {
+    if (!confirm(`Marcar como no-show?\n\nO cliente será reembolsado de 40% do valor.\nO hotel fica com 50% e a plataforma com 10%.`)) return;
+    setNoShowLoading(true);
+    try {
+      const res = await base44.functions.invoke("processHotelNoShow", { bookingId: booking.id });
+      if (res?.data?.error) {
+        toast.error(res.data.error);
+        return;
+      }
+      toast.success(`No-show processado. Reembolsado €${(res?.data?.refundAmount || 0).toFixed(2)} ao cliente.`);
+      onUpdate(booking.id, { status: "cancelled", payment_status: "partial", cancellation_reason: "no_show" });
+    } catch (err) {
+      toast.error("Erro ao processar no-show: " + err.message);
+    } finally {
+      setNoShowLoading(false);
+    }
+  };
   const cfg = STATUS_CONFIG[booking.status] || STATUS_CONFIG.completed;
   const payCfg = PAYMENT_CONFIG[booking.payment_status] || PAYMENT_CONFIG.pending;
   const addOns = booking.add_ons || [];
@@ -233,10 +254,21 @@ function BookingCard({ booking, onUpdate }) {
                   </>
                 )}
                 {booking.status === "confirmed" && (
-                  <Button size="sm" className="flex-1 h-9 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs"
-                    onClick={() => onUpdate(booking.id, { status: "checked_in", checkin_time: format(new Date(), "HH:mm") })}>
-                    <DoorOpen className="w-3.5 h-3.5 mr-1" /> Check-in
-                  </Button>
+                  <>
+                    <Button size="sm" className="flex-1 h-9 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs"
+                      onClick={() => onUpdate(booking.id, { status: "checked_in", checkin_time: format(new Date(), "HH:mm") })}>
+                      <DoorOpen className="w-3.5 h-3.5 mr-1" /> Check-in
+                    </Button>
+                    {booking.payment_status === "paid" && (
+                      <Button size="sm" variant="outline"
+                        className="h-9 border-orange-300 text-orange-600 hover:bg-orange-50 rounded-lg text-xs"
+                        disabled={noShowLoading}
+                        onClick={handleNoShow}>
+                        {noShowLoading ? <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" /> : <UserX className="w-3.5 h-3.5 mr-1" />}
+                        No-show
+                      </Button>
+                    )}
+                  </>
                 )}
                 {booking.status === "checked_in" && (
                   <Button size="sm" className="flex-1 h-9 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs"
