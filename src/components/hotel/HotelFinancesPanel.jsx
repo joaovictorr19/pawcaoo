@@ -140,13 +140,13 @@ export default function HotelFinancesPanel({ hotelProfile, bookings }) {
   const withdrawMutation = useMutation({
     mutationFn: async (amount) => {
       if (!selectedIban || !amount) throw new Error(tr.ibanErr);
-      return await base44.entities.IbanWithdrawalRequest.create({
-        user_email: hotelProfile.created_by, iban: selectedIban, amount: parseFloat(amount),
-        status: 'pending', notes: tr.withdrawNote(hotelProfile.walker_name)
+      const response = await base44.functions.invoke('requestWalletWithdrawal', {
+        amount: parseFloat(amount), iban: selectedIban
       });
+      return response.data;
     },
     onSuccess: () => { toast.success(tr.withdrawToast); setWithdrawAmount(''); setSelectedIban(''); },
-    onError: (error) => toast.error(tr.withdrawErr(error.message))
+    onError: (error) => toast.error(tr.withdrawErr(error?.response?.data?.error || error.message))
   });
 
   const handleRequestWithdraw = async () => {

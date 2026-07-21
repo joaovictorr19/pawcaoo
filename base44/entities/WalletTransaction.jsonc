@@ -20,7 +20,9 @@
         "escrow_released",
         "surcharge_paid",
         "walker_payment_pending",
-        "walker_payment_completed"
+        "walker_payment_completed",
+        "withdrawal_reserved",
+        "withdrawal_refunded"
       ],
       "description": "Tipo de transa\u00e7\u00e3o"
     },

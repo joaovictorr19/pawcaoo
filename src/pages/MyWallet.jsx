@@ -201,15 +201,12 @@ export default function MyWallet() {
 
   const withdrawMutation = useMutation({
     mutationFn: async (amount) => {
-      const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
-      const w = wallets[0];
-      const walletAvailable = (w?.available_balance || 0) + (w?.pending_walker_payments || 0);
-      if (amount > walletAvailable) throw new Error('Saldo insuficiente');
       const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
       const trainerProfiles = await base44.entities.TrainerProfile.filter({ created_by: user.email });
       const iban = profiles[0]?.bank_account_number || trainerProfiles[0]?.bank_account_number;
       if (!iban) throw new Error('Adicione o IBAN primeiro nas definições fiscais');
-      return base44.entities.IbanWithdrawalRequest.create({ user_email: user.email, iban, amount });
+      const response = await base44.functions.invoke('requestWalletWithdrawal', { amount, iban });
+      return response.data;
     },
     onSuccess: () => {
       toast.success('Pedido de saque enviado com sucesso');
@@ -218,7 +215,7 @@ export default function MyWallet() {
       queryClient.invalidateQueries({ queryKey: ['myWallet'] });
       queryClient.invalidateQueries({ queryKey: ['myWithdrawals'] });
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(error?.response?.data?.error || error.message || 'Erro ao processar saque')
   });
 
   const isProfessional = walkerProfile || trainerProfile;

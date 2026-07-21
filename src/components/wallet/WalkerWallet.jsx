@@ -78,16 +78,19 @@ export default function WalkerWallet({ walkerEmail }) {
         toast.error('Adicione o seu IBAN primeiro');
         return;
       }
-      await base44.entities.IbanWithdrawalRequest.create({
-        user_email: walkerEmail,
-        iban,
-        amount
+      const response = await base44.functions.invoke('requestWalletWithdrawal', {
+        amount, iban
       });
-      toast.success('Pedido de saque enviado');
-      setWithdrawAmount('');
-      queryClient.invalidateQueries({ queryKey: ['walkerPayouts'] });
+      if (response?.data?.success) {
+        toast.success('Pedido de saque enviado');
+        setWithdrawAmount('');
+        queryClient.invalidateQueries({ queryKey: ['walkerPayouts'] });
+        queryClient.invalidateQueries({ queryKey: ['walkerEarnings'] });
+      } else {
+        throw new Error(response?.data?.error || 'Erro ao processar');
+      }
     } catch (error) {
-      toast.error('Erro ao processar levantamento');
+      toast.error(error?.response?.data?.error || 'Erro ao processar levantamento');
     } finally {
       setIsWithdrawing(false);
     }

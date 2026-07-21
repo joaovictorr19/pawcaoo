@@ -3,12 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, TrendingUp, Wallet, Percent, Euro, RefreshCw, Users } from "lucide-react";
+import { DollarSign, TrendingUp, Wallet, Percent, Euro, RefreshCw, Users, Banknote } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import CompanyVaultPanel from "./CompanyVaultPanel";
 import AdminHotelCommissionManager from "./AdminHotelCommissionManager";
+import AdminWithdrawalsPanel from "./AdminWithdrawalsPanel";
 
 const euro = (v) => (v || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR", minimumFractionDigits: 2 });
 
@@ -192,6 +193,16 @@ export default function AdminFinancePanel() {
           <span className="text-xs text-slate-400">— a comissão é retirada do hotel; o cliente paga só o serviço</span>
         </div>
         <AdminHotelCommissionManager />
+      </div>
+
+      {/* Withdrawal Requests Management */}
+      <div className="mt-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Banknote className="w-4 h-4 text-teal-600" />
+          <h3 className="text-sm font-bold text-slate-900">Gestão de Saques</h3>
+          <span className="text-xs text-slate-400">— aprovar, rejeitar ou marcar como pago os pedidos de levantamento dos profissionais</span>
+        </div>
+        <AdminWithdrawalsPanel />
       </div>
     </div>
   );
