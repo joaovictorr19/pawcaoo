@@ -67,6 +67,11 @@ const ActiveWalkDashboard = lazy(() => import('./pages/ActiveWalkDashboard').cat
   return { default: () => <div>Erro ao carregar página</div> };
 }));
 
+const WalkerRecommenderChat = lazy(() => import('./pages/WalkerRecommenderChat').catch(e => {
+  console.error('Error loading WalkerRecommenderChat:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
+
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
@@ -194,6 +199,7 @@ const AuthenticatedApp = () => {
             <Route path="/HotelOnboarding" element={<Suspense fallback={<PageLoader />}><HotelOnboarding /></Suspense>} />
             <Route path="/WalkerOnboarding" element={<Suspense fallback={<PageLoader />}><WalkerOnboarding /></Suspense>} />
             <Route path="/ActiveWalkDashboard" element={<Suspense fallback={<PageLoader />}><ActiveWalkDashboard /></Suspense>} />
+            <Route path="/WalkerRecommenderChat" element={<Suspense fallback={<PageLoader />}><WalkerRecommenderChat /></Suspense>} />
 
             <Route path="/QRProfileTest" element={<QRProfileTest />} />
             <Route path="/portugal" element={<CountryLandingPage country="portugal" />} />
