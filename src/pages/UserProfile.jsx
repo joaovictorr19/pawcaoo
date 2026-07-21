@@ -13,6 +13,7 @@ import { createPageUrl } from "@/utils";
 import ProfileBentoGrid from "@/components/profile/ProfileBentoGrid";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 import ProfileManagementSection from "@/components/profile/ProfileManagementSection";
+import ProfessionalProfileSEO from "@/components/profile/ProfessionalProfileSEO";
 import GroupWalkEventsSection from "@/components/groupwalk/GroupWalkEventsSection";
 
 const BadgeSelectionModal = lazy(() => import("@/components/gamification/BadgeSelectionModal"));
@@ -369,6 +370,16 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
 
   return (
     <>
+    {(walkerProfile || trainerProfile) && (
+      <ProfessionalProfileSEO
+        profileUser={profileUser}
+        walkerProfile={walkerProfile}
+        trainerProfile={trainerProfile}
+        displayName={displayName}
+        displayCity={displayCity}
+        language={language}
+      />
+    )}
     <ProfileBentoGrid
       profileUser={profileUser}
       walkerProfile={walkerProfile}
