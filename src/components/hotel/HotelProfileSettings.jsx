@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
-  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check, Instagram
+  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check, Instagram, Award
 } from "lucide-react";
 import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
 import HotelPortfolioEditor from "@/components/hotel/HotelPortfolioEditor";
+import CertificationsEditor from "@/components/profile/CertificationsEditor";
 import SaveConfirmation from "@/components/ui/SaveConfirmation";
 
 export default function HotelProfileSettings({ hotelProfile, onSave }) {
@@ -32,6 +33,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     offers_pickup: hotelProfile?.hotel_details?.offers_pickup || false,
     blocked_dates: hotelProfile?.hotel_details?.blocked_dates || [],
     instagram_url: hotelProfile?.instagram_url || "",
+    certifications_detailed: hotelProfile?.certifications_detailed || [],
   });
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
@@ -112,6 +114,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
         cover_photo_url: form.cover_photo_url,
         instagram_url: form.instagram_url,
         hotel_details: directHotelDetails,
+        certifications_detailed: form.certifications_detailed,
       });
 
       // 2. If name/address/contact changed → create approval request
@@ -377,6 +380,18 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
 
           {/* Portfolio */}
           <HotelPortfolioEditor hotelProfile={hotelProfile} />
+
+          {/* Certifications */}
+          <div className="border-t border-slate-100 pt-4">
+            <div className="flex items-center gap-1.5 mb-3">
+              <Award className="w-3.5 h-3.5 text-slate-400" />
+              <Label className="text-xs font-semibold text-slate-600 m-0">Certificações & Licenças</Label>
+            </div>
+            <CertificationsEditor
+              value={form.certifications_detailed}
+              onChange={(certs) => setForm(prev => ({ ...prev, certifications_detailed: certs }))}
+            />
+          </div>
 
           <div className="flex justify-end pt-1">
             <Button
