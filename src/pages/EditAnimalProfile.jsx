@@ -67,6 +67,7 @@ export default function EditAnimalProfile() {
     vet_phone: "",
     medical_conditions: "",
     behavioral_notes: "",
+    accustomed_to_being_alone: false,
     special_care_notes: "",
     other_observations: "",
   });
@@ -99,6 +100,7 @@ export default function EditAnimalProfile() {
         vet_phone: animal.vet_phone || "",
         medical_conditions: animal.medical_conditions || "",
         behavioral_notes: animal.behavioral_notes || "",
+        accustomed_to_being_alone: animal.accustomed_to_being_alone ?? false,
         special_care_notes: animal.special_care_notes || "",
         reactive_to_dogs: animal.reactive_to_dogs ?? false,
         reactive_to_people: animal.reactive_to_people ?? false,
@@ -477,6 +479,26 @@ export default function EditAnimalProfile() {
             <div>
               <label className={labelCls}>Notas de Comportamento</label>
               <textarea value={formData.behavioral_notes} onChange={e => set('behavioral_notes', e.target.value)} placeholder="Ex: Gosta de brincar com outros cães..." rows={3} className={textareaCls} />
+            </div>
+
+            <div>
+              <label className={labelCls}>Habituado a estar sozinho?</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => set('accustomed_to_being_alone', true)}
+                  className={`flex-1 h-11 rounded-xl border-2 font-semibold text-sm transition-all ${formData.accustomed_to_being_alone === true ? 'border-green-400 bg-green-50 text-green-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                >
+                  Sim
+                </button>
+                <button
+                  type="button"
+                  onClick={() => set('accustomed_to_being_alone', false)}
+                  className={`flex-1 h-11 rounded-xl border-2 font-semibold text-sm transition-all ${formData.accustomed_to_being_alone === false ? 'border-red-400 bg-red-50 text-red-700' : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                >
+                  Não
+                </button>
+              </div>
             </div>
 
             <div>
