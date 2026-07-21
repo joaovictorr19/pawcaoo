@@ -114,14 +114,13 @@ export default function MyBookings() {
     cacheTime: 15 * 60 * 1000,
   });
 
-  // 1. Buscar Bookings de Passeio (Owner)
+  // 1. Buscar Bookings de Passeio (Owner) — inclui canceladas (refunded) e pendentes
   const { data: ownerWalks = [], isLoading: loadingOwnerWalks } = useQuery({
     queryKey: ['myWalks', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
       return await base44.entities.Booking.filter({ 
-        created_by: user.email,
-        payment_status: { '$in': ['held', 'released'] }
+        created_by: user.email
       }, '-created_date', 50);
     },
     enabled: !!user?.email,
@@ -171,6 +170,29 @@ export default function MyBookings() {
     refetchInterval: 60 * 1000,
   });
 
+  // 5. Buscar Reservas de Hotel (Owner)
+  const { data: ownerHotelBookings = [], isLoading: loadingHotelBookings } = useQuery({
+    queryKey: ['myHotelBookings', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      if (!base44.entities.HotelBooking) return [];
+      return await base44.entities.HotelBooking.filter({ owner_email: user.email }, '-created_date', 50);
+    },
+    enabled: !!user?.email,
+    staleTime: 30 * 1000,
+    cacheTime: 5 * 60 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+
+  // Normaliza status de hotel para corresponder aos filtros existentes
+  const normalizeHotelStatus = (status) => {
+    if (['confirmed'].includes(status)) return 'confirmed';
+    if (['checked_in', 'in_progress'].includes(status)) return 'in_progress';
+    if (['checked_out', 'completed'].includes(status)) return 'completed';
+    if (['cancelled', 'rejected'].includes(status)) return 'cancelled';
+    return status || 'pending';
+  };
+
   // Merge and Normalize Data
   const allBookings = useMemo(() => {
     const walks = [...ownerWalks, ...walkerWalks].map(b => ({ ...b, type: 'walk', date: b.walk_date, time: b.walk_time }));
@@ -186,13 +208,27 @@ export default function MyBookings() {
     // I will implement a lightweight fetch in BookingCard for the contact info if confirmed.
 
     const trainings = [...ownerTrainings, ...trainerTrainings].map(t => ({ ...t, type: 'training', date: t.session_date, time: t.session_time }));
-    
+
+    const hotels = (ownerHotelBookings || []).map(h => ({
+      ...h,
+      type: 'hotel',
+      date: h.checkin_date,
+      time: h.checkin_time || '',
+      status: normalizeHotelStatus(h.status),
+      dog_name: h.dogs?.[0]?.dog_name || (h.total_dogs > 1 ? `${h.total_dogs} cães` : '—'),
+      walker_name: h.hotel_name,
+      walker_email: h.hotel_email,
+      owner_name: h.owner_name,
+      owner_email: h.owner_email,
+      owner_phone: h.owner_phone,
+    }));
+
     // Remove duplicates if any (e.g. if I book myself, unlikely but possible)
     const uniqueMap = new Map();
-    [...walks, ...trainings].forEach(item => uniqueMap.set(item.id, item));
-    
+    [...walks, ...trainings, ...hotels].forEach(item => uniqueMap.set(`${item.type}_${item.id}`, item));
+
     return Array.from(uniqueMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [ownerWalks, walkerWalks, ownerTrainings, trainerTrainings]);
+  }, [ownerWalks, walkerWalks, ownerTrainings, trainerTrainings, ownerHotelBookings]);
 
   // Apply Filters
   const filteredBookings = useMemo(() => {
@@ -583,24 +619,27 @@ export default function MyBookings() {
   };
 
   const BookingCard = ({ booking }) => {
-    const isProfessional = booking.type === 'walk'
+    const isHotel = booking.type === 'hotel';
+    const isProfessional = !isHotel && (booking.type === 'walk'
       ? booking.walker_email === user?.email
-      : booking.trainer_email === user?.email;
+      : booking.trainer_email === user?.email);
 
-    const professionalName = booking.type === 'walk' ? booking.walker_name : booking.trainer_name;
-    const hasReview = myGivenReviews.some(r => r.booking_id === booking.id || r.training_booking_id === booking.id);
+    const professionalName = isHotel
+      ? booking.hotel_name
+      : (booking.type === 'walk' ? booking.walker_name : booking.trainer_name);
+    const hasReview = !isHotel && myGivenReviews.some(r => r.booking_id === booking.id || r.training_booking_id === booking.id);
 
     const { data: professionalContact } = useQuery({
       queryKey: ['profContact', booking.walker_id || booking.trainer_id],
       queryFn: async () => {
-        if (isProfessional || (booking.status !== 'confirmed' && booking.status !== 'in_progress')) return null;
+        if (isHotel || isProfessional || (booking.status !== 'confirmed' && booking.status !== 'in_progress')) return null;
         if (booking.type === 'walk' && booking.walker_id) {
           const w = await base44.entities.WalkerProfile.get(booking.walker_id);
           return w?.whatsapp_number;
         }
         return null;
       },
-      enabled: !isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress'),
+      enabled: !isHotel && !isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress'),
       staleTime: 10 * 60 * 1000,
       cacheTime: 30 * 60 * 1000,
     });
@@ -612,10 +651,10 @@ export default function MyBookings() {
           <div className="flex justify-between items-start">
             <div className="flex-1 min-w-0">
               <h3 className="font-black text-white truncate">
-                {isProfessional ? booking.owner_name : professionalName}
+                {isHotel ? booking.hotel_name : (isProfessional ? booking.owner_name : professionalName)}
               </h3>
               <p className="text-xs text-slate-500 font-bold mt-0.5">
-                {booking.type === 'walk' ? '🐕 Passeio' : '🎓 Treino'} · {booking.dog_name}
+                {isHotel ? '🏨 Hotel' : booking.type === 'walk' ? '🐕 Passeio' : '🎓 Treino'} · {booking.dog_name}
               </p>
             </div>
             <StatusBadge status={booking.status} />
@@ -639,7 +678,7 @@ export default function MyBookings() {
                 €{booking.total_amount.toFixed(2)}
               </div>
             )}
-            {!isProfessional && (booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'service_completed') && booking.walker_payment_contact && (
+            {!isProfessional && !isHotel && (booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'service_completed') && booking.walker_payment_contact && (
               <div className="w-full space-y-2">
                 <div className="text-[11px] text-slate-300 font-semibold">
                   Contacto do profissional: {booking.walker_payment_contact}
@@ -671,7 +710,7 @@ export default function MyBookings() {
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
             {(booking.status === 'pending' || booking.status === 'confirmed') && !isProfessional && (
               <button
                 onClick={() => handleCancelClick(booking)}
@@ -682,44 +721,54 @@ export default function MyBookings() {
               </button>
             )}
 
-            {(booking.status === 'confirmed' || booking.status === 'in_progress') && (
+            {(booking.status === 'confirmed' || booking.status === 'in_progress') && !isHotel && (
               <button
                 onClick={() => {
                   if (!booking.id) { toast.error('Erro: ID inválido'); return; }
-                  navigate(createPageUrl(isProfessional ? 'ActiveWalkDashboard' : 'LiveWalkTracking') + `?bookingId=${booking.id}`);
+                  navigate(createPageUrl('ActiveWalkDashboard') + `?bookingId=${booking.id}`);
                 }}
-                className="flex-1 h-9 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                className="flex-1 min-w-[100px] h-9 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
               >
                 <MapIcon className="w-3.5 h-3.5" />
-                Abrir
+                Acompanhar
               </button>
             )}
 
-            {booking.status === 'pending' && !isProfessional && (
+            {isHotel && (booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'completed') && (
+              <button
+                onClick={() => { setSelectedBooking(booking); setIsDetailsModalOpen(true); }}
+                className="flex-1 min-w-[100px] h-9 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
+              >
+                <CalendarDays className="w-3.5 h-3.5" />
+                Detalhes
+              </button>
+            )}
+
+            {booking.status === 'pending' && !isProfessional && !isHotel && (
               <button
                 onClick={() => { setCheckoutBooking({...booking, user}); setShowCheckoutModal(true); }}
-                className="flex-1 h-9 rounded-2xl bg-green-500 hover:bg-green-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                className="flex-1 min-w-[100px] h-9 rounded-2xl bg-green-500 hover:bg-green-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
               >
                 <CreditCard className="w-3.5 h-3.5" />
                 Pagar
               </button>
             )}
 
-            {booking.status === 'completed' && (
+            {booking.status === 'completed' && !isHotel && (
               <BookingReceiptButton booking={booking} />
             )}
 
-            {booking.status === 'completed' && !isProfessional && !hasReview && (
+            {booking.status === 'completed' && !isProfessional && !isHotel && !hasReview && (
               <button
                 onClick={() => handleReviewClick(booking, 'professional')}
-                className="flex-1 h-9 rounded-2xl bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                className="flex-1 min-w-[100px] h-9 rounded-2xl bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
               >
                 <Star className="w-3.5 h-3.5" />
                 Avaliar
               </button>
             )}
 
-            {(professionalContact || booking.walker_payment_contact) && (
+            {(professionalContact || booking.walker_payment_contact) && !isHotel && (
               <>
                 {!isProfessional && booking.status === 'confirmed' && (
                   <button
@@ -728,7 +777,7 @@ export default function MyBookings() {
                       const text = encodeURIComponent(`Olá ${professionalName || ''}! Gostaria que partilhasse a sua localização em tempo real pelo WhatsApp durante o serviço, se possível.`);
                       window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
                     }}
-                    className="flex-1 h-9 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 text-[11px] font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                    className="flex-1 min-w-[100px] h-9 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 text-[11px] font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
                     title="Pedir localização"
                   >
                     <LocateFixed className="w-3.5 h-3.5" />
@@ -745,7 +794,7 @@ export default function MyBookings() {
               </>
             )}
 
-            {booking.status !== 'in_progress' && !(booking.status === 'completed' && !hasReview) && (
+            {!(isHotel && booking.status === 'confirmed') && booking.status !== 'in_progress' && !(booking.status === 'completed' && !hasReview && !isHotel) && (
               <button
                 onClick={() => { setSelectedBooking(booking); setIsDetailsModalOpen(true); }}
                 className="w-9 h-9 rounded-2xl bg-slate-800 border border-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-all active:scale-95"
@@ -754,7 +803,7 @@ export default function MyBookings() {
               </button>
             )}
 
-            {booking.status === 'confirmed' && (
+            {booking.status === 'confirmed' && !isHotel && (
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="w-9 h-9 rounded-2xl bg-slate-800 border border-white/5 text-slate-400 hover:text-purple-400 flex items-center justify-center transition-all active:scale-95">
@@ -785,7 +834,7 @@ export default function MyBookings() {
     );
   };
 
-  if (loadingUser || loadingOwnerWalks || loadingWalkerWalks || loadingOwnerTrainings || loadingTrainerTrainings) {
+  if (loadingUser || loadingOwnerWalks || loadingWalkerWalks || loadingOwnerTrainings || loadingTrainerTrainings || loadingHotelBookings) {
     return (
       <div className="min-h-screen bg-slate-950 p-6">
         <div className="max-w-lg mx-auto space-y-4">

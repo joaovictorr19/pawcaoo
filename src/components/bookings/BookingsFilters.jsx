@@ -26,11 +26,11 @@ export default function BookingsFilters({ filters, setFilters, setCurrentPage })
       </div>
 
       <div className="flex gap-2">
-        {[{v:'all',l:'🐾 Todos'},{v:'walk',l:'🐕 Passeios'},{v:'training',l:'🎓 Treinos'}].map(({v,l}) => (
+        {[{v:'all',l:'🐾 Todos'},{v:'walk',l:'🐕 Passeios'},{v:'training',l:'🎓 Treinos'},{v:'hotel',l:'🏨 Hotel'}].map(({v,l}) => (
           <button
             key={v}
             onClick={() => { setFilters({...filters, type: v}); setCurrentPage(1); }}
-            className={`flex-1 py-2 rounded-2xl text-xs font-bold transition-all active:scale-95 ${
+            className={`flex-1 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
               filters.type === v
                 ? 'bg-white text-slate-900'
                 : 'bg-slate-900 border border-white/5 text-slate-400'
