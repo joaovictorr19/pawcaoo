@@ -1,0 +1,34 @@
+{
+  "name": "Notificar Hotel \u2014 Reserva Confirmada",
+  "description": "Envia email autom\u00e1tico ao hotel com dados do cliente e pet quando uma reserva \u00e9 confirmada",
+  "trigger": {
+    "condition": "${ ((.trigger.changed_fields | index(\"status\") != null) and (.trigger.data.status == \"confirmed\")) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "HotelBooking"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "notificar_hotel_reserva_confirmada",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyHotelBookingConfirmed",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
