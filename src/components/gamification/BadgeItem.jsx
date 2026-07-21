@@ -15,15 +15,29 @@ const RARITY_BG = {
   common:    'bg-white',
 };
 
-export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, size = 'md' }) {
+const RARITY_LABEL = {
+  legendary: 'Lendário',
+  epic: 'Épico',
+  rare: 'Raro',
+  common: 'Comum',
+};
+
+const RARITY_TEXT = {
+  legendary: 'text-yellow-600',
+  epic: 'text-purple-600',
+  rare: 'text-blue-600',
+  common: 'text-gray-500',
+};
+
+export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, size = 'md', expanded = false }) {
   const sizeClass = size === 'sm' ? 'w-12 h-12' : size === 'lg' ? 'w-24 h-24' : 'w-16 h-16 md:w-20 md:h-20';
   const imgClass  = size === 'sm' ? 'w-8 h-8'  : size === 'lg' ? 'w-16 h-16' : 'w-10 h-10 md:w-14 md:h-14';
 
   const rarity = badge.rarity || 'common';
   const imageUrl = badge.image_png_file || badge.image_url;
 
-  return (
-    <div className={`relative ${sizeClass} rounded-2xl flex items-center justify-center shadow-md overflow-hidden group cursor-default ${RARITY_GLOW[rarity]} ${RARITY_BG[rarity]}`}>
+  const badgeIcon = (
+    <div className={`relative ${sizeClass} rounded-2xl flex items-center justify-center shadow-md overflow-hidden group cursor-default ${RARITY_GLOW[rarity]} ${RARITY_BG[rarity]} flex-shrink-0`}>
 
       {imageUrl ? (
         <img
@@ -59,4 +73,25 @@ export default function BadgeItem({ badge, isPinned, onPin, isOwner, isEarned, s
       )}
     </div>
   );
+
+  if (expanded) {
+    return (
+      <div className="flex items-center gap-3">
+        {badgeIcon}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="font-bold text-sm text-slate-900 truncate">{badge.name}</p>
+            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full border ${RARITY_BG[rarity]} ${RARITY_TEXT[rarity]}`}>
+              {RARITY_LABEL[rarity]}
+            </span>
+          </div>
+          {badge.description && (
+            <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">{badge.description}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return badgeIcon;
 }
