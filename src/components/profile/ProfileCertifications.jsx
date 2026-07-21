@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Award, ExternalLink, ShieldCheck, Calendar, ImageIcon, X, ChevronLeft, ChevronRight, FileText, ScrollText, Infinity as InfinityIcon } from "lucide-react";
+import { Award, ExternalLink, ShieldCheck, Calendar, ImageIcon, X, ChevronLeft, ChevronRight, FileText, ScrollText, Infinity as InfinityIcon, ZoomIn, ZoomOut, Maximize2, Download } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 function formatDate(raw) {
@@ -17,6 +17,10 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
   const { language } = useLanguage();
   const isHotel = walkerProfile?.professional_type === "hotel";
   const [galleryIdx, setGalleryIdx] = useState(null);
+  const [zoomed, setZoomed] = useState(false);
+  const [panned, setPanned] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = React.useRef({ x: 0, y: 0 });
 
   // TrainerProfile tem `certifications` (legacy) + `certifications_detailed`
   // WalkerProfile tem apenas `certifications_detailed`
@@ -91,19 +95,61 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
   const openGallery = (idx) => {
     document.body.style.overflow = "hidden";
     setGalleryIdx(idx);
+    setZoomed(false);
+    setPanned({ x: 0, y: 0 });
   };
 
   const closeGallery = () => {
     document.body.style.overflow = "";
     setGalleryIdx(null);
+    setZoomed(false);
+    setPanned({ x: 0, y: 0 });
+  };
+
+  const toggleZoom = (e) => {
+    e?.stopPropagation?.();
+    setZoomed(z => !z);
+    if (zoomed) setPanned({ x: 0, y: 0 });
+  };
+
+  const handleDragStart = (e) => {
+    if (!zoomed) return;
+    e.stopPropagation();
+    const touch = e.touches?.[0] || e;
+    setIsDragging(true);
+    dragStart.current = { x: touch.clientX - panned.x, y: touch.clientY - panned.y };
+  };
+
+  const handleDragMove = (e) => {
+    if (!isDragging || !zoomed) return;
+    e.stopPropagation();
+    const touch = e.touches?.[0] || e;
+    setPanned({ x: touch.clientX - dragStart.current.x, y: touch.clientY - dragStart.current.y });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  const downloadImage = (e, url, name) => {
+    e.stopPropagation();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name || "certificado";
+    a.target = "_blank";
+    a.click();
   };
 
   const nextPhoto = (e) => {
     e?.stopPropagation?.();
+    setZoomed(false);
+    setPanned({ x: 0, y: 0 });
     setGalleryIdx(i => (i === null ? null : (i + 1) % galleryPhotos.length));
   };
   const prevPhoto = (e) => {
     e?.stopPropagation?.();
+    setZoomed(false);
+    setPanned({ x: 0, y: 0 });
     setGalleryIdx(i => (i === null ? null : (i - 1 + galleryPhotos.length) % galleryPhotos.length));
   };
 
@@ -252,75 +298,130 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
       {/* Lightbox Galeria de Certificados */}
       {galleryIdx !== null && galleryPhotos.length > 0 && (
         <div
-          className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-sm flex items-center justify-center"
+          className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-md flex items-center justify-center"
           onClick={closeGallery}
         >
-          <button
-            onClick={closeGallery}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors z-10"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {/* Top bar */}
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/60 to-transparent z-20 pointer-events-none">
+            <div className="text-white/80 text-xs font-semibold pointer-events-auto">
+              {galleryIdx + 1} / {galleryPhotos.length}
+            </div>
+            <div className="flex items-center gap-2 pointer-events-auto">
+              {!galleryPhotos[galleryIdx].isPdf && (
+                <>
+                  <button
+                    onClick={toggleZoom}
+                    className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
+                    title={zoomed ? "Reduzir zoom" : "Ampliar"}
+                  >
+                    {zoomed ? <ZoomOut className="w-4.5 h-4.5" /> : <ZoomIn className="w-4.5 h-4.5" />}
+                  </button>
+                  <button
+                    onClick={(e) => downloadImage(e, galleryPhotos[galleryIdx].url, galleryPhotos[galleryIdx].certName)}
+                    className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
+                    title="Descarregar"
+                  >
+                    <Download className="w-4.5 h-4.5" />
+                  </button>
+                </>
+              )}
+              <button
+                onClick={closeGallery}
+                className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
+                title="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
 
+          {/* Prev arrow */}
           {galleryPhotos.length > 1 && (
             <button
               onClick={prevPhoto}
-              className="absolute left-3 sm:left-6 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors z-10"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors z-20"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           )}
 
+          {/* Center content */}
           <div
-            className="max-w-4xl max-h-[90vh] w-full px-12 flex flex-col items-center"
+            className="flex flex-col items-center justify-center w-full h-full max-w-[95vw] max-h-[100vh] px-2 pt-14 pb-20 sm:px-4"
             onClick={e => e.stopPropagation()}
           >
             {galleryPhotos[galleryIdx].isPdf ? (
-              <iframe
-                src={galleryPhotos[galleryIdx].url}
-                title={galleryPhotos[galleryIdx].certName}
-                className="w-full max-w-3xl rounded-2xl shadow-2xl bg-white"
-                style={{ height: "75vh" }}
-              />
+              <div className="w-full max-w-3xl flex flex-col items-center">
+                <iframe
+                  src={galleryPhotos[galleryIdx].url}
+                  title={galleryPhotos[galleryIdx].certName}
+                  className="w-full rounded-2xl shadow-2xl bg-white"
+                  style={{ height: "70vh" }}
+                />
+              </div>
             ) : (
-              <img
-                src={galleryPhotos[galleryIdx].url}
-                alt={galleryPhotos[galleryIdx].certName}
-                className="max-h-[80vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = "https://images.unsplash.com/photo-1558944351-c3ad969c1a63?w=800&h=600&fit=crop";
-                }}
-              />
+              <div
+                className={`flex items-center justify-center w-full h-full ${zoomed ? "overflow-hidden cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+                onClick={!zoomed ? toggleZoom : undefined}
+                onMouseDown={handleDragStart}
+                onMouseMove={handleDragMove}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+                onTouchStart={handleDragStart}
+                onTouchMove={handleDragMove}
+                onTouchEnd={handleDragEnd}
+              >
+                <img
+                  src={galleryPhotos[galleryIdx].url}
+                  alt={galleryPhotos[galleryIdx].certName}
+                  className={`select-none rounded-2xl shadow-2xl transition-transform duration-200 ${
+                    zoomed ? "cursor-grab" : "object-contain"
+                  }`}
+                  style={{
+                    maxHeight: zoomed ? "none" : "80vh",
+                    maxWidth: zoomed ? "none" : "95%",
+                    transform: zoomed
+                      ? `scale(2) translate(${panned.x / 2}px, ${panned.y / 2}px)`
+                      : "scale(1)",
+                    transformOrigin: "center center",
+                  }}
+                  draggable={false}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1558944351-c3ad969c1a63?w=800&h=600&fit=crop";
+                  }}
+                />
+              </div>
             )}
-            <div className="mt-4 text-center text-white max-w-lg">
-              <p className="font-semibold text-sm">{galleryPhotos[galleryIdx].certName}</p>
+
+            {/* Caption */}
+            <div className="absolute bottom-16 left-0 right-0 text-center px-4 pointer-events-none">
+              <p className="font-semibold text-sm text-white drop-shadow-lg">{galleryPhotos[galleryIdx].certName}</p>
               {galleryPhotos[galleryIdx].certOrg && (
-                <p className="text-xs text-white/60 mt-0.5">{galleryPhotos[galleryIdx].certOrg}</p>
+                <p className="text-xs text-white/60 mt-0.5 drop-shadow">{galleryPhotos[galleryIdx].certOrg}</p>
               )}
             </div>
-            <p className="mt-3 text-xs text-white/40 font-medium">
-              {galleryIdx + 1} / {galleryPhotos.length}
-            </p>
           </div>
 
+          {/* Next arrow */}
           {galleryPhotos.length > 1 && (
             <button
               onClick={nextPhoto}
-              className="absolute right-3 sm:right-6 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors z-10"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors z-20"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           )}
 
+          {/* Thumbnails */}
           {galleryPhotos.length > 1 && (
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 px-4 overflow-x-auto pb-1">
+            <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-1.5 px-4 py-3 bg-gradient-to-t from-black/70 to-transparent overflow-x-auto z-20">
               {galleryPhotos.map((photo, i) => (
                 <button
                   key={i}
                   onClick={(e) => { e.stopPropagation(); setGalleryIdx(i); }}
-                  className={`relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all flex items-center justify-center bg-slate-800 ${
-                    i === galleryIdx ? "border-white opacity-100" : "border-transparent opacity-40 hover:opacity-70"
+                  className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all flex items-center justify-center bg-slate-800 ${
+                    i === galleryIdx ? "border-white opacity-100 scale-105" : "border-transparent opacity-40 hover:opacity-70"
                   }`}
                 >
                   {photo.isPdf ? (
