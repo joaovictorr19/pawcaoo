@@ -208,10 +208,10 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
       return Array.from(uniqueBadges.values());
     },
     enabled: !!profileEmail,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchInterval: false
   });
 
