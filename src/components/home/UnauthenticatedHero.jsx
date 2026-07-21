@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { PawPrint, Bone, Heart, Star, Sparkles, Euro, ArrowRight, Search } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
+import PolaroidCarousel from "@/components/home/PolaroidCarousel";
 
 const TEAL = "#00a699";
 const ORANGE = "#ff6633";
@@ -94,14 +95,7 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
             {/* Soft glow behind */}
             <div className="absolute inset-0 rounded-[2.5rem] blur-3xl opacity-25" style={{ background: `radial-gradient(circle at 50% 40%, ${TEAL}, transparent 70%)` }} />
 
-            {/* Transparent glass frame */}
-            <div className="relative overflow-hidden rounded-[1.75rem] md:rounded-[2.5rem] aspect-[4/3] md:aspect-[5/4] w-full max-w-md mx-auto border border-white/40" style={{ background: "#ffffff", boxShadow: "0 6px 24px rgba(0,0,0,0.06)" }}>
-              <img
-                src={dogImageUrl || "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/6f5a681b3_generated_image.png"}
-                alt="Cão cool PawCão"
-                className="w-full h-full object-contain mix-blend-multiply"
-              />
-            </div>
+            <PolaroidCarousel />
 
           </motion.div>
 
