@@ -38,6 +38,26 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const [guestProfile, setGuestProfile] = useState(null);
   const [guestLoading, setGuestLoading] = useState(false);
 
+  const [form, setForm] = useState({
+    owner_name: "",
+    owner_email: "",
+    owner_phone: "",
+    service_type: "boarding",
+    checkin_date: defaultDate ? format(defaultDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+    checkout_date: "",
+    checkin_time: hotelProfile?.hotel_details?.checkin_time || "09:00",
+    checkout_time: hotelProfile?.hotel_details?.checkout_time || "18:00",
+    dogs: [{ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "", vaccine_expiry: "", vaccine_document_url: "" }],
+    special_requests: "",
+    assigned_walker_email: "",
+    assigned_walker_name: "",
+    total_amount: "",
+    emergency_contact_name: "",
+    emergency_contact_phone: "",
+    veterinarian_name: "",
+    veterinarian_phone: "",
+  });
+
   // ── Lookup returning guest profile when email is typed ──
   useEffect(() => {
     const email = form.owner_email.trim().toLowerCase();
@@ -95,26 +115,6 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     });
     toast.success(`Dados de ${guestDog.dog_name || "cão"} pré-preenchidos do perfil`);
   };
-
-  const [form, setForm] = useState({
-    owner_name: "",
-    owner_email: "",
-    owner_phone: "",
-    service_type: "boarding",
-    checkin_date: defaultDate ? format(defaultDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
-    checkout_date: "",
-    checkin_time: hotelProfile?.hotel_details?.checkin_time || "09:00",
-    checkout_time: hotelProfile?.hotel_details?.checkout_time || "18:00",
-    dogs: [{ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "", vaccine_expiry: "", vaccine_document_url: "" }],
-    special_requests: "",
-    assigned_walker_email: "",
-    assigned_walker_name: "",
-    total_amount: "",
-    emergency_contact_name: "",
-    emergency_contact_phone: "",
-    veterinarian_name: "",
-    veterinarian_phone: "",
-  });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
