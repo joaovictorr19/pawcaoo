@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Award, Plus, Trash2, Upload, Eye } from "lucide-react";
+import { Award, Plus, Trash2, Upload, Eye, X, ImagePlus } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
@@ -10,6 +10,7 @@ const inputCls = "w-full h-10 px-3 bg-white border border-slate-200 rounded-lg t
 
 export default function CertificationsEditor({ value = [], onChange }) {
   const [uploadingIdx, setUploadingIdx] = useState(null);
+  const [uploadingPhotosIdx, setUploadingPhotosIdx] = useState(null);
 
   const certs = Array.isArray(value) ? value : [];
 
@@ -19,7 +20,7 @@ export default function CertificationsEditor({ value = [], onChange }) {
   };
 
   const add = () => {
-    onChange([...certs, { name: "", issuing_organization: "", issue_date: "", expiry_date: "", certificate_url: "", verification_url: "", credential_id: "" }]);
+    onChange([...certs, { name: "", issuing_organization: "", issue_date: "", expiry_date: "", certificate_url: "", verification_url: "", credential_id: "", photos: [] }]);
   };
 
   const remove = (idx) => {
@@ -33,6 +34,12 @@ export default function CertificationsEditor({ value = [], onChange }) {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       update(idx, "certificate_url", file_url);
+      // Se for imagem, adicionar também ao gallery de fotos
+      if (file.type.startsWith("image/")) {
+        const cert = certs[idx];
+        const photos = Array.isArray(cert?.photos) ? cert.photos : [];
+        update(idx, "photos", [...photos, file_url]);
+      }
       toast.success("Certificado carregado!");
     } catch {
       toast.error("Erro ao carregar ficheiro.");
@@ -40,6 +47,34 @@ export default function CertificationsEditor({ value = [], onChange }) {
       setUploadingIdx(null);
       e.target.value = "";
     }
+  };
+
+  const handleUploadPhotos = async (idx, e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setUploadingPhotosIdx(idx);
+    try {
+      const cert = certs[idx];
+      const existingPhotos = Array.isArray(cert?.photos) ? cert.photos : [];
+      const uploaded = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push(file_url);
+      }
+      update(idx, "photos", [...existingPhotos, ...uploaded]);
+      toast.success(`${uploaded.length} foto(s) adicionada(s)!`);
+    } catch {
+      toast.error("Erro ao carregar fotos.");
+    } finally {
+      setUploadingPhotosIdx(null);
+      e.target.value = "";
+    }
+  };
+
+  const removePhoto = (idx, photoIdx) => {
+    const cert = certs[idx];
+    const photos = Array.isArray(cert?.photos) ? cert.photos : [];
+    update(idx, "photos", photos.filter((_, i) => i !== photoIdx));
   };
 
   return (
@@ -121,7 +156,7 @@ export default function CertificationsEditor({ value = [], onChange }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label className="text-[11px] font-semibold text-slate-500">Documento (PDF/Imagem)</Label>
+              <Label className="text-[11px] font-semibold text-slate-500">Documento principal (PDF/Imagem)</Label>
               <div className="flex items-center gap-2 mt-1">
                 <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-50 text-teal-700 border border-teal-100 text-xs font-bold hover:bg-teal-100 cursor-pointer transition-colors">
                   {uploadingIdx === idx ? "A carregar..." : (
@@ -138,7 +173,7 @@ export default function CertificationsEditor({ value = [], onChange }) {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200"
                   >
-                    <Eye className="w-3 h-3" /> Ver
+                    <Eye className="w-3 h-3" /> Ver doc
                   </a>
                 )}
               </div>
@@ -152,6 +187,43 @@ export default function CertificationsEditor({ value = [], onChange }) {
                 className="mt-1 h-9 rounded-lg text-sm"
               />
             </div>
+          </div>
+
+          {/* Galeria de fotos do certificado */}
+          <div>
+            <Label className="text-[11px] font-semibold text-slate-500">Fotos do certificado (visíveis no perfil público)</Label>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {(cert.photos || []).map((photo, pIdx) => (
+                <div key={pIdx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 group">
+                  <img src={photo} alt={`cert-${pIdx}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(idx, pIdx)}
+                    className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              <label className="w-20 h-20 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center cursor-pointer hover:border-teal-300 hover:bg-teal-50/40 transition-all">
+                {uploadingPhotosIdx === idx ? (
+                  <span className="text-[9px] text-slate-400 font-semibold">A carregar...</span>
+                ) : (
+                  <ImagePlus className="w-5 h-5 text-slate-300" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => handleUploadPhotos(idx, e)}
+                  disabled={uploadingPhotosIdx === idx}
+                />
+              </label>
+            </div>
+            {(!cert.photos || cert.photos.length === 0) && (
+              <p className="text-[10px] text-slate-400 italic mt-1">Adicione fotos para exibir no perfil público</p>
+            )}
           </div>
         </div>
       ))}

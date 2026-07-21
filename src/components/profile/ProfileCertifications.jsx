@@ -1,5 +1,5 @@
-import React from "react";
-import { Award, ExternalLink, ShieldCheck, Calendar } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Award, ExternalLink, ShieldCheck, Calendar, ImageIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 
 function formatDate(raw) {
@@ -16,6 +16,7 @@ function formatDate(raw) {
 export default function ProfileCertifications({ walkerProfile, trainerProfile }) {
   const { language } = useLanguage();
   const isHotel = walkerProfile?.professional_type === "hotel";
+  const [galleryIdx, setGalleryIdx] = useState(null);
 
   // TrainerProfile tem `certifications` (legacy) + `certifications_detailed`
   // WalkerProfile tem apenas `certifications_detailed`
@@ -34,6 +35,7 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
       url: c.certificate_url,
       verify_url: c.verification_url,
       credential_id: c.credential_id,
+      photos: Array.isArray(c.photos) ? c.photos : (c.certificate_url && /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)/i.test(c.certificate_url) ? [c.certificate_url] : []),
     });
   }
   // Adicionar certificados legacy que não têm correspondência em detailed
@@ -49,27 +51,92 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
         url: c.certificate_url,
         verify_url: null,
         credential_id: null,
+        photos: c.certificate_url && /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)/i.test(c.certificate_url) ? [c.certificate_url] : [],
       });
     }
   }
 
-  if (certs.length === 0) return null;
+  // Construir lista plana de fotos para a galeria
+  const galleryPhotos = useMemo(() => {
+    const items = [];
+    for (const cert of certs) {
+      for (const photo of (cert.photos || [])) {
+        items.push({ url: photo, certName: cert.name, certOrg: cert.org });
+      }
+    }
+    return items;
+  }, [certs]);
 
   const title = isHotel
     ? (language === "pt" ? "Certificações & Licenças" : "Certifications & Licenses")
     : (language === "pt" ? "Certificações" : language === "es" ? "Certificaciones" : "Certifications");
 
+  const hasPhotos = galleryPhotos.length > 0;
+
+  const openGallery = (idx) => {
+    document.body.style.overflow = "hidden";
+    setGalleryIdx(idx);
+  };
+
+  const closeGallery = () => {
+    document.body.style.overflow = "";
+    setGalleryIdx(null);
+  };
+
+  const nextPhoto = (e) => {
+    e?.stopPropagation?.();
+    setGalleryIdx(i => (i === null ? null : (i + 1) % galleryPhotos.length));
+  };
+  const prevPhoto = (e) => {
+    e?.stopPropagation?.();
+    setGalleryIdx(i => (i === null ? null : (i - 1 + galleryPhotos.length) % galleryPhotos.length));
+  };
+
+  useEffect(() => {
+    if (galleryIdx === null) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") closeGallery();
+      if (e.key === "ArrowRight") nextPhoto();
+      if (e.key === "ArrowLeft") prevPhoto();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+    // eslint-disable-next-line
+  }, [galleryIdx, galleryPhotos.length]);
+
+  if (certs.length === 0) return null;
+
   return (
     <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-      <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic flex items-center gap-1.5">
-        <ShieldCheck className="w-3 h-3" /> {title}
-      </h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic flex items-center gap-1.5">
+          <ShieldCheck className="w-3 h-3" /> {title}
+        </h3>
+        {hasPhotos && (
+          <button
+            onClick={() => openGallery(0)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 text-teal-700 border border-teal-100 text-xs font-bold hover:bg-teal-100 transition-colors"
+          >
+            <ImageIcon className="w-3.5 h-3.5" />
+            {language === "pt" ? "Ver Certificados" : "View Certificates"}
+            <span className="bg-teal-100 text-teal-700 text-[9px] font-black px-1.5 py-0.5 rounded-full ml-0.5">
+              {galleryPhotos.length}
+            </span>
+          </button>
+        )}
+      </div>
+
       <div className="space-y-2">
         {certs.map((cert, idx) => {
           const issueLabel = formatDate(cert.issue_date);
           const expiryLabel = formatDate(cert.expiry_date);
           const isExpired = cert.expiry_date && new Date(cert.expiry_date) < new Date();
           const hasLink = cert.url || cert.verify_url;
+          const certPhotoIdx = galleryPhotos.findIndex(p => p.url === (cert.photos?.[0] || cert.url));
+          const canOpenGallery = cert.photos?.length > 0;
 
           const content = (
             <>
@@ -100,14 +167,32 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                         {language === "pt" ? "Expirado" : "Expired"}
                       </span>
                     )}
+                    {canOpenGallery && (
+                      <span className="text-[9px] font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                        <ImageIcon className="w-2.5 h-2.5" /> {cert.photos.length}
+                      </span>
+                    )}
                   </div>
                 </div>
-                {hasLink && (
+                {hasLink && !canOpenGallery && (
                   <ExternalLink className="w-3.5 h-3.5 text-slate-300 flex-shrink-0 mt-1" />
                 )}
               </div>
             </>
           );
+
+          if (canOpenGallery) {
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => certPhotoIdx >= 0 && openGallery(certPhotoIdx)}
+                className="w-full text-left block p-3 rounded-2xl border border-slate-100 transition-all hover:border-teal-200 hover:bg-teal-50/40 hover:shadow-sm cursor-pointer"
+              >
+                {content}
+              </button>
+            );
+          }
 
           if (hasLink) {
             return (
@@ -129,6 +214,79 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
           );
         })}
       </div>
+
+      {/* Lightbox Galeria de Certificados */}
+      {galleryIdx !== null && galleryPhotos.length > 0 && (
+        <div
+          className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-sm flex items-center justify-center"
+          onClick={closeGallery}
+        >
+          <button
+            onClick={closeGallery}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors z-10"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {galleryPhotos.length > 1 && (
+            <button
+              onClick={prevPhoto}
+              className="absolute left-3 sm:left-6 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors z-10"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+
+          <div
+            className="max-w-4xl max-h-[90vh] w-full px-12 flex flex-col items-center"
+            onClick={e => e.stopPropagation()}
+          >
+            <img
+              src={galleryPhotos[galleryIdx].url}
+              alt={galleryPhotos[galleryIdx].certName}
+              className="max-h-[80vh] w-auto max-w-full rounded-2xl object-contain shadow-2xl"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "https://images.unsplash.com/photo-1558944351-c3ad969c1a63?w=800&h=600&fit=crop";
+              }}
+            />
+            <div className="mt-4 text-center text-white max-w-lg">
+              <p className="font-semibold text-sm">{galleryPhotos[galleryIdx].certName}</p>
+              {galleryPhotos[galleryIdx].certOrg && (
+                <p className="text-xs text-white/60 mt-0.5">{galleryPhotos[galleryIdx].certOrg}</p>
+              )}
+            </div>
+            <p className="mt-3 text-xs text-white/40 font-medium">
+              {galleryIdx + 1} / {galleryPhotos.length}
+            </p>
+          </div>
+
+          {galleryPhotos.length > 1 && (
+            <button
+              onClick={nextPhoto}
+              className="absolute right-3 sm:right-6 w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors z-10"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+
+          {galleryPhotos.length > 1 && (
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 px-4 overflow-x-auto pb-1">
+              {galleryPhotos.map((photo, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setGalleryIdx(i); }}
+                  className={`w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+                    i === galleryIdx ? "border-white opacity-100" : "border-transparent opacity-40 hover:opacity-70"
+                  }`}
+                >
+                  <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
