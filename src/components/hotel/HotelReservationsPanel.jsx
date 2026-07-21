@@ -58,7 +58,7 @@ function BookingCard({ booking, onUpdate }) {
   const [noShowLoading, setNoShowLoading] = useState(false);
 
   const handleNoShow = async () => {
-    if (!confirm(`Marcar como no-show?\n\nO cliente será reembolsado de 40% do valor.\nO hotel fica com 50% e a plataforma com 10%.`)) return;
+    if (!confirm(`Marcar como no-show?\n\nO cliente será reembolsado de 40% do valor.`)) return;
     setNoShowLoading(true);
     try {
       const res = await base44.functions.invoke("processHotelNoShow", { bookingId: booking.id });
@@ -153,7 +153,7 @@ function BookingCard({ booking, onUpdate }) {
           {/* Right side: value + status */}
           <div className="flex flex-col items-end gap-1 shrink-0">
             {booking.total_amount > 0 && (
-              <span className="text-sm font-bold text-slate-800">{booking.total_amount.toFixed(2)}€</span>
+              <span className="text-sm font-bold text-slate-800">{((booking.total_amount || 0) - (booking.platform_fee || 0)).toFixed(2)}€</span>
             )}
             <Badge variant="outline" className={`text-[9px] border ${cfg.cls} py-0`}>
               <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1`} />
@@ -440,10 +440,11 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
 
   // Revenue summary for filtered set
   const revenueSummary = useMemo(() => {
+    const netAmount = (b) => (b.total_amount || 0) - (b.platform_fee || 0);
     const active = filtered.filter(b => !["cancelled", "rejected"].includes(b.status));
-    const total = active.reduce((s, b) => s + (b.total_amount || 0), 0);
-    const paid = active.filter(b => b.payment_status === "paid").reduce((s, b) => s + (b.total_amount || 0), 0);
-    const pending = active.filter(b => b.payment_status !== "paid").reduce((s, b) => s + (b.total_amount || 0), 0);
+    const total = active.reduce((s, b) => s + netAmount(b), 0);
+    const paid = active.filter(b => b.payment_status === "paid").reduce((s, b) => s + netAmount(b), 0);
+    const pending = active.filter(b => b.payment_status !== "paid").reduce((s, b) => s + netAmount(b), 0);
     return { total, paid, pending };
   }, [filtered]);
 

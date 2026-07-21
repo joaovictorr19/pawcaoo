@@ -267,9 +267,13 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-teal-400" />
-                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Valor Total</span>
+                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                      {isOwner ? 'Valor Pago' : 'Valor a Receber'}
+                    </span>
                   </div>
-                  <span className="text-lg font-extrabold text-teal-300">€{Number(booking.total_amount).toFixed(2)}</span>
+                  <span className="text-lg font-extrabold text-teal-300">
+                    €{Number(isOwner ? booking.total_amount : (booking.service_amount || (booking.total_amount - (booking.platform_fee || 0)))).toFixed(2)}
+                  </span>
                 </div>
                 {booking.payment_status && (
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-teal-500/10">

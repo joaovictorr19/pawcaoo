@@ -46,7 +46,7 @@ export default function HotelSalesInsights({ bookings, hotelProfile, onNewBookin
     const thisMonth = today.substring(0, 7);
     const monthRevenue = bookings
       .filter(b => !["cancelled", "rejected"].includes(b.status) && b.checkin_date?.startsWith(thisMonth))
-      .reduce((s, b) => s + (b.total_amount || 0), 0);
+      .reduce((s, b) => s + ((b.total_amount || 0) - (b.platform_fee || 0)), 0);
 
     return {
       currentGuests: currentGuests.length,
