@@ -737,10 +737,10 @@ export default function MyBookings() {
             {isHotel && (booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'completed') && (
               <button
                 onClick={() => { setSelectedBooking(booking); setIsDetailsModalOpen(true); }}
-                className="flex-1 min-w-[100px] h-9 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                className="group relative flex-1 min-w-[120px] h-10 rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white text-xs font-bold tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-teal-900/40 hover:shadow-teal-700/50 hover:from-teal-500 hover:to-teal-400 transition-all duration-200 active:scale-[0.97]"
               >
-                <CalendarDays className="w-3.5 h-3.5" />
-                Detalhes
+                <CalendarDays className="w-4 h-4 transition-transform group-hover:scale-110" />
+                Ver Detalhes
               </button>
             )}
 
