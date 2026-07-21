@@ -219,7 +219,7 @@ Deno.serve(async (req) => {
       },
       success_url: `${origin}/CheckoutSuccess?session_id={CHECKOUT_SESSION_ID}&type=booking`,
       cancel_url: `${origin}/MyBookings?cancelled=true`,
-      locale: body.locale || 'auto',
+      locale: 'pt',
       payment_intent_data: {
         capture_method: 'automatic', // Immediate capture
         metadata: {

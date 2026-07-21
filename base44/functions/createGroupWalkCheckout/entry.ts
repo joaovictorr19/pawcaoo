@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
       },
       success_url: `${origin}/CheckoutSuccess?type=group_walk&session_id={CHECKOUT_SESSION_ID}&event_id=${event_id}`,
       cancel_url: `${origin}/UserProfile?email=${encodeURIComponent(event.professional_email)}`,
-      locale: body.locale || 'auto',
+      locale: 'pt',
       payment_intent_data: {
         capture_method: 'automatic',
         metadata: {

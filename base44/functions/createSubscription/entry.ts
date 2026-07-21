@@ -88,6 +88,7 @@ Deno.serve(async (req) => {
                 quantity: 1,
             }],
             mode: 'subscription',
+            locale: 'pt',
             success_url: `${req.headers.get('origin')}/AccountSettings?subscription=success`,
             cancel_url: `${req.headers.get('origin')}/OwnerSubscriptions?cancelled=true`,
             metadata: {

@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
         quantity: 1,
       }],
       mode: 'payment',
+      locale: 'pt',
       success_url: successUrl || `${origin}/ClientDashboard?addon=success`,
       cancel_url: cancelUrl || `${origin}/ClientDashboard?addon=cancelled`,
       customer_email: customerEmail,

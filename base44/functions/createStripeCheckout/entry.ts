@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
+        locale: 'pt',
         line_items: [
           {
             price_data: {
@@ -136,6 +137,7 @@ Deno.serve(async (req) => {
         },
       ],
       mode: 'payment',
+      locale: 'pt',
       success_url: successUrl,
       cancel_url: cancelUrl,
       customer_email: user.email,
