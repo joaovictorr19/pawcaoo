@@ -42,7 +42,8 @@ Deno.serve(async (req) => {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + MAX_IMPERSONATION_MINUTES * 60 * 1000);
 
-    // Create audit log record (best-effort — does not block impersonation)
+    // SECURITY: Audit log is MANDATORY — if it cannot be created, impersonation is blocked.
+    // This ensures an immutable record exists for every impersonation session.
     let auditLogId = null;
     try {
       const auditLog = await base44.asServiceRole.entities.ImpersonationLog.create({
@@ -59,7 +60,10 @@ Deno.serve(async (req) => {
       });
       auditLogId = auditLog.id;
     } catch (auditError) {
-      console.warn('Audit log unavailable (non-blocking):', auditError?.message || auditError);
+      console.error('Audit log creation FAILED — impersonation blocked:', auditError?.message || auditError);
+      return Response.json({
+        error: 'Audit log could not be created — impersonation blocked for security'
+      }, { status: 500 });
     }
 
     const impersonationData = {

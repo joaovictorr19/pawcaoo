@@ -31,6 +31,25 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'You do not have access to this booking' }, { status: 403 });
     }
 
+    // SECURITY: Validate booking status and payment_status — token can only be used
+    // on a booking that is confirmed and not already paid via token.
+    if (!['confirmed', 'pending'].includes(bookingRecord.status)) {
+      return Response.json({ error: 'Token cannot be used on this booking status' }, { status: 400 });
+    }
+    if (bookingRecord.payment_status === 'released' || bookingRecord.paid_via_subscription === true) {
+      return Response.json({ error: 'This booking has already been paid' }, { status: 400 });
+    }
+
+    // SECURITY: Prevent double-use — check if a token was already redeemed for this booking
+    const existingTokenUsage = await base44.asServiceRole.entities.WalletTransaction.filter({
+      user_email: user.email,
+      transaction_type: 'token_used',
+      related_booking_id: booking_id
+    });
+    if (existingTokenUsage && existingTokenUsage.length > 0) {
+      return Response.json({ error: 'A token has already been used for this booking' }, { status: 400 });
+    }
+
     // Get user wallet — use service role so all wallet writes are privileged
     const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: user.email });
 

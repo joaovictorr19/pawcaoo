@@ -21,8 +21,28 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Use updateMe for self-updates' }, { status: 400 });
     }
 
-    // Update the target user's record via service role
-    const updated = await base44.asServiceRole.entities.User.update(targetUserId, updateData);
+    // SECURITY: Allowlist of fields an admin may update. Sensitive fields like
+    // 'role', 'email', 'id', and auth-related fields are NEVER accepted from input.
+    const ALLOWED_FIELDS = new Set([
+      'full_name', 'username', 'city', 'bio', 'profile_photo_url',
+      'cover_photo_url', 'is_verified', 'pawgo_status', 'account_type',
+      'gamification_xp', 'gamification_level', 'profile_stats',
+      'followers_count', 'following_count', 'total_posts', 'achievements_badges'
+    ]);
+
+    const safeUpdateData = {};
+    for (const [key, value] of Object.entries(updateData)) {
+      if (ALLOWED_FIELDS.has(key)) {
+        safeUpdateData[key] = value;
+      }
+    }
+
+    if (Object.keys(safeUpdateData).length === 0) {
+      return Response.json({ error: 'No allowed fields to update' }, { status: 400 });
+    }
+
+    // Update the target user's record via service role with sanitized data only
+    const updated = await base44.asServiceRole.entities.User.update(targetUserId, safeUpdateData);
 
     return Response.json({ success: true, user: updated });
   } catch (error) {

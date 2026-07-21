@@ -14,10 +14,39 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const { amount_euro, booking_id, activity_type } = await req.json();
+    const { booking_id, activity_type } = await req.json();
 
-    if (!amount_euro) {
-      return Response.json({ error: 'Amount required' }, { status: 400 });
+    if (!booking_id) {
+      return Response.json({ error: 'booking_id is required' }, { status: 400 });
+    }
+
+    // SECURITY: Derive amount_euro from the verified booking record — never trust
+    // client-supplied euro values to prevent point inflation.
+    const bookingRecords = await base44.asServiceRole.entities.Booking.filter({ id: booking_id });
+    if (!bookingRecords || bookingRecords.length === 0) {
+      return Response.json({ error: 'Booking not found' }, { status: 404 });
+    }
+    const verifiedBooking = bookingRecords[0];
+    const bookingOwnerEmail = verifiedBooking.owner_email || verifiedBooking.created_by;
+    if (bookingOwnerEmail !== user.email && user.role !== 'admin') {
+      return Response.json({ error: 'Not authorized for this booking' }, { status: 403 });
+    }
+    if (!['completed', 'service_completed'].includes(verifiedBooking.status)) {
+      return Response.json({ error: 'Booking must be completed to award points' }, { status: 400 });
+    }
+    // Prevent double-awarding for the same booking
+    const existingAward = await base44.asServiceRole.entities.PointsTransaction.filter({
+      user_email: user.email,
+      related_booking_id: booking_id,
+      transaction_type: 'earned'
+    });
+    if (existingAward && existingAward.length > 0) {
+      return Response.json({ error: 'Points already awarded for this booking' }, { status: 400 });
+    }
+
+    const amount_euro = Number(verifiedBooking.service_amount || verifiedBooking.total_amount || 0);
+    if (amount_euro <= 0) {
+      return Response.json({ error: 'Invalid booking amount' }, { status: 400 });
     }
 
     // Buscar pontos de fidelidade do usuário

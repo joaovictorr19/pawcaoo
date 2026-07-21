@@ -150,10 +150,21 @@ Deno.serve(async (req) => {
       </div>
     `;
 
+    // SECURITY: Defense-in-depth — strip any remaining dangerous HTML patterns
+    // (script tags, event handlers, javascript: URIs) from the final body.
+    const sanitizedBody = htmlBody
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^>]*>/gi, '')
+      .replace(/<\/iframe>/gi, '')
+      .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+      .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/data:text\/html/gi, '');
+
     await base44.asServiceRole.integrations.Core.SendEmail({
       to: hotelEmail,
       subject,
-      body: htmlBody,
+      body: sanitizedBody,
       from_name: 'PawCão — Reservas',
     });
 
