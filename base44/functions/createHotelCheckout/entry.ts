@@ -37,7 +37,13 @@ Deno.serve(async (req) => {
       add_ons_total,
       pickup_address,
       delivery_method,
+      insurance_enabled,
     } = body;
+
+    // Optional pet insurance — flat fee for basic veterinary coverage during stay
+    const INSURANCE_FEE = 4.99;
+    const INSURANCE_COVERAGE = 500;
+    const hasInsurance = insurance_enabled === true;
 
     if (!hotel_profile_id) {
       return Response.json({ error: 'Dados inválidos para o pagamento.' }, { status: 400 });
@@ -112,6 +118,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não foi possível calcular o preço do serviço.' }, { status: 400 });
     }
 
+    // Add optional insurance fee to the total
+    const insuranceFee = hasInsurance ? INSURANCE_FEE : 0;
+    const finalTotalAmount = Math.round((serverTotalAmount + insuranceFee) * 100) / 100;
+
     // ── Validate blocked dates ──
     const blockedDates = hotelDetails.blocked_dates || [];
     if (blockedDates.length > 0 && checkin_date) {
@@ -180,7 +190,7 @@ Deno.serve(async (req) => {
       total_nights: total_nights || 1,
       total_dogs: total_dogs || (dogs?.length || 1),
       price_per_night: safePricePerNight,
-      total_amount: safeTotalAmount,
+      total_amount: finalTotalAmount,
       platform_fee: safePlatformFee,
       service_amount: safeServiceAmount,
       special_requests: special_requests || '',
@@ -238,6 +248,17 @@ Deno.serve(async (req) => {
           },
           quantity: 1,
         },
+        ...(hasInsurance ? [{
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: 'Seguro Pet — Cobertura Básica',
+              description: `Cobertura até €${INSURANCE_COVERAGE} para despesas veterinárias durante a estadia`,
+            },
+            unit_amount: Math.round(INSURANCE_FEE * 100),
+          },
+          quantity: 1,
+        }] : []),
       ],
       metadata: {
         type: 'hotel_booking',
@@ -246,9 +267,11 @@ Deno.serve(async (req) => {
         hotel_email: hotel_email || '',
         owner_email: user.email,
         service_type,
-        total_amount: safeTotalAmount.toString(),
+        total_amount: finalTotalAmount.toString(),
         platform_fee: safePlatformFee.toString(),
         service_amount: safeServiceAmount.toString(),
+        insurance_enabled: hasInsurance.toString(),
+        insurance_fee: insuranceFee.toString(),
       },
       payment_intent_data: {
         capture_method: 'automatic',

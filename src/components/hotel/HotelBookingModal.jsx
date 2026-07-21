@@ -26,6 +26,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [isCreating, setIsCreating] = useState(false);
   const [finalized, setFinalized] = useState(false);
   const [preferredTime, setPreferredTime] = useState('10:00');
+  const [insuranceEnabled, setInsuranceEnabled] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,6 +42,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setPreferredTime('10:00');
       setStep(0);
       setFinalized(false);
+      setInsuranceEnabled(false);
     }
   }, [isOpen, hotel, initialDate, initialCheckout]);
 
@@ -78,14 +80,15 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const commissionBorneBy = getCommissionBearer(hotel);
   const baseAmount = Math.round(servicePrice * pricingUnits * selectedDogs.length * 100) / 100;
   const platformFee = Math.round(baseAmount * (commissionRate / 100) * 100) / 100;
+  const INSURANCE_FEE = 4.99;
   let totalAmount, hotelReceives;
   if (commissionBorneBy === 'client') {
     // Commission added on top — client pays base + fee, hotel receives full base
-    totalAmount = Math.round((baseAmount + platformFee) * 100) / 100;
+    totalAmount = Math.round((baseAmount + platformFee + (insuranceEnabled ? INSURANCE_FEE : 0)) * 100) / 100;
     hotelReceives = baseAmount;
   } else {
     // Commission included — client pays base, hotel receives base - fee
-    totalAmount = baseAmount;
+    totalAmount = Math.round((baseAmount + (insuranceEnabled ? INSURANCE_FEE : 0)) * 100) / 100;
     hotelReceives = Math.round((baseAmount - platformFee) * 100) / 100;
   }
 
@@ -154,6 +157,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         special_requests: specialRequests,
         pickup_address: deliveryMethod === 'pickup' ? pickupAddress : '',
         delivery_method: deliveryMethod,
+        insurance_enabled: insuranceEnabled,
       });
 
       // Verificar se o link de pagamento foi gerado com sucesso
@@ -687,6 +691,36 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       />
                     </div>
 
+                    {/* Optional Insurance */}
+                    <div className="pt-2.5 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setInsuranceEnabled(!insuranceEnabled)}
+                        className={`w-full p-3 rounded-lg border-2 text-left transition-all flex items-start gap-2.5 ${
+                          insuranceEnabled
+                            ? 'border-emerald-400 bg-emerald-50'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                          insuranceEnabled ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300 bg-white'
+                        }`}>
+                          {insuranceEnabled && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Seguro Pet
+                            </p>
+                            <span className="text-sm font-black text-emerald-600">+{INSURANCE_FEE}€</span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            Cobertura até €500 para despesas veterinárias durante a estadia
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+
                     {/* Price breakdown */}
                     <div className="pt-2.5 border-t border-slate-100 space-y-1.5">
                       <div className="flex justify-between text-xs">
@@ -695,6 +729,12 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         </span>
                         <span className="font-bold text-slate-700">{baseAmount}€</span>
                       </div>
+                      {insuranceEnabled && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500">Seguro Pet (cobertura básica)</span>
+                          <span className="font-bold text-emerald-600">+{INSURANCE_FEE}€</span>
+                        </div>
+                      )}
                       {commissionBorneBy === 'client' && (
                         <div className="flex justify-between text-xs">
                           <span className="text-slate-500">
