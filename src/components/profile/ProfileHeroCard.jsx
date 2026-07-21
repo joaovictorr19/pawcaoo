@@ -197,12 +197,12 @@ export default function ProfileHeroCard({
         )}
         <div className={`absolute inset-0 ${isHotel ? "bg-gradient-to-t from-purple-900/40 via-purple-900/10 to-transparent" : "bg-gradient-to-t from-slate-900/30 via-transparent to-transparent"}`} />
 
-        {/* Favorite button — bottom left of cover (avoids overlap with fixed back button on mobile) */}
+        {/* Favorite button — bottom right of cover */}
         {!isOwnProfile && isProfessional && (
           <button
             onClick={() => toggleFavoriteMutation.mutate()}
             disabled={toggleFavoriteMutation.isPending}
-            className="absolute bottom-3 left-3 w-9 h-9 rounded-full backdrop-blur-md bg-white/25 border border-white/40 flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+            className="absolute bottom-3 right-3 w-9 h-9 rounded-full backdrop-blur-md bg-white/25 border border-white/40 flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
             title={isFavorited ? (language === 'pt' ? 'Remover dos favoritos' : 'Remove from favorites') : (language === 'pt' ? 'Adicionar aos favoritos' : 'Add to favorites')}
           >
             <Heart className={`w-4 h-4 transition-all ${isFavorited ? 'text-red-500 fill-red-500' : 'text-white'}`} />
