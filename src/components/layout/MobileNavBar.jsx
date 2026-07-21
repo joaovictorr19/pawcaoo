@@ -207,7 +207,7 @@ export default function MobileNavBar({ user, hasHotelPartnership = false, unread
           style={isTab2Active ? { boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
         >
           <Calendar size={18} />
-          <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">{isProf ? (language === 'pt' ? 'Agenda' : language === 'es' ? 'Calendario' : 'Calendar') : labelSchedule}</span>
+          <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">{language === 'pt' ? 'Reservas' : language === 'es' ? 'Reservas' : 'Bookings'}</span>
         </button>
 
         {/* ABA 3: NOTIFICAÇÕES */}
