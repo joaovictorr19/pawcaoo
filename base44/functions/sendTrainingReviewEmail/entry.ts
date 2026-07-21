@@ -4,6 +4,13 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    // SECURITY: Require authentication — only the workflow system (invoke_backend_function)
+    // or authenticated users may trigger review emails. Blocks external spam/abuse.
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json().catch(() => ({}));
     const { booking_id, email_type } = body;
 

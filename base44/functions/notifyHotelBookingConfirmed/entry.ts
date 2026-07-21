@@ -61,17 +61,25 @@ Deno.serve(async (req) => {
 
     const serviceLabel = serviceTypeLabels[booking.service_type] || booking.service_type || '—';
 
+    // SECURITY: Escape HTML to prevent injection via user-supplied fields (dog names, notes, etc.)
+    const esc = (str) => String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
     const formatDog = (dog, idx) => {
       const lines = [];
-      lines.push(`  ${idx + 1}. ${dog.dog_name || 'Cão sem nome'}`);
-      if (dog.dog_breed) lines.push(`     Raça: ${dog.dog_breed}`);
-      if (dog.dog_size) lines.push(`     Porte: ${sizeLabels[dog.dog_size] || dog.dog_size}`);
-      if (dog.dog_age !== undefined && dog.dog_age !== null) lines.push(`     Idade: ${dog.dog_age} ano(s)`);
-      if (dog.diet) lines.push(`     Dieta: ${dog.diet}`);
-      if (dog.medications) lines.push(`     Medicação: ${dog.medications}`);
-      if (dog.routine) lines.push(`     Rotina: ${dog.routine}`);
-      if (dog.special_notes) lines.push(`     Notas especiais: ${dog.special_notes}`);
-      if (dog.vaccine_expiry) lines.push(`     Validade vacina: ${dog.vaccine_expiry}`);
+      lines.push(`  ${idx + 1}. ${esc(dog.dog_name || 'Cão sem nome')}`);
+      if (dog.dog_breed) lines.push(`     Raça: ${esc(dog.dog_breed)}`);
+      if (dog.dog_size) lines.push(`     Porte: ${esc(sizeLabels[dog.dog_size] || dog.dog_size)}`);
+      if (dog.dog_age !== undefined && dog.dog_age !== null) lines.push(`     Idade: ${esc(dog.dog_age)} ano(s)`);
+      if (dog.diet) lines.push(`     Dieta: ${esc(dog.diet)}`);
+      if (dog.medications) lines.push(`     Medicação: ${esc(dog.medications)}`);
+      if (dog.routine) lines.push(`     Rotina: ${esc(dog.routine)}`);
+      if (dog.special_notes) lines.push(`     Notas especiais: ${esc(dog.special_notes)}`);
+      if (dog.vaccine_expiry) lines.push(`     Validade vacina: ${esc(dog.vaccine_expiry)}`);
       if (dog.vaccine_verified) lines.push(`     Vacina verificada: Sim`);
       return lines.join('\n');
     };
@@ -82,11 +90,11 @@ Deno.serve(async (req) => {
 
     const addOnsSection = (booking.add_ons && booking.add_ons.length > 0)
       ? booking.add_ons.map((a, i) => {
-          const parts = [`  ${i + 1}. ${a.service_name}`];
-          if (a.quantity) parts.push(`     Quantidade: ${a.quantity}`);
-          if (a.total_price !== undefined) parts.push(`     Preço: €${a.total_price}`);
-          if (a.assigned_walker_name) parts.push(`     Parceiro: ${a.assigned_walker_name}`);
-          if (a.due_time) parts.push(`     Horário: ${a.due_time}`);
+          const parts = [`  ${i + 1}. ${esc(a.service_name)}`];
+          if (a.quantity) parts.push(`     Quantidade: ${esc(a.quantity)}`);
+          if (a.total_price !== undefined) parts.push(`     Preço: €${esc(a.total_price)}`);
+          if (a.assigned_walker_name) parts.push(`     Parceiro: ${esc(a.assigned_walker_name)}`);
+          if (a.due_time) parts.push(`     Horário: ${esc(a.due_time)}`);
           return parts.join('\n');
         }).join('\n')
       : 'Nenhum serviço adicional.';
@@ -97,13 +105,13 @@ Deno.serve(async (req) => {
       <div style="font-family: 'Poppins', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0;">
         <div style="background: linear-gradient(135deg, #0d9483, #207373); padding: 24px; text-align: center;">
           <h1 style="color: #ffffff; font-size: 22px; margin: 0; font-weight: 800;">🐾 Nova Reserva Confirmada</h1>
-          <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">${hotelName}</p>
+          <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0; font-size: 14px;">${esc(hotelName)}</p>
         </div>
 
         <div style="padding: 24px;">
           <h2 style="color: #0f766e; font-size: 16px; margin: 0 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">📋 Detalhes do Serviço</h2>
           <table style="width: 100%; font-size: 14px; color: #1e293b;">
-            <tr><td style="padding: 4px 0; font-weight: 600; width: 45%;">Tipo de Serviço:</td><td>${serviceLabel}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600; width: 45%;">Tipo de Serviço:</td><td>${esc(serviceLabel)}</td></tr>
             <tr><td style="padding: 4px 0; font-weight: 600;">Check-in:</td><td>${booking.checkin_date || '—'}${booking.checkin_time ? ' às ' + booking.checkin_time : ''}</td></tr>
             <tr><td style="padding: 4px 0; font-weight: 600;">Check-out:</td><td>${booking.checkout_date || '—'}${booking.checkout_time ? ' às ' + booking.checkout_time : ''}</td></tr>
             <tr><td style="padding: 4px 0; font-weight: 600;">Noites:</td><td>${booking.total_nights || '—'}</td></tr>
@@ -113,11 +121,11 @@ Deno.serve(async (req) => {
 
           <h2 style="color: #0f766e; font-size: 16px; margin: 20px 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">👤 Cliente</h2>
           <table style="width: 100%; font-size: 14px; color: #1e293b;">
-            <tr><td style="padding: 4px 0; font-weight: 600; width: 45%;">Nome:</td><td>${booking.owner_name || '—'}</td></tr>
-            <tr><td style="padding: 4px 0; font-weight: 600;">Email:</td><td>${booking.owner_email || '—'}</td></tr>
-            <tr><td style="padding: 4px 0; font-weight: 600;">Telefone:</td><td>${booking.owner_phone || '—'}</td></tr>
-            ${booking.emergency_contact_name ? `<tr><td style="padding: 4px 0; font-weight: 600;">Contacto emergência:</td><td>${booking.emergency_contact_name} — ${booking.emergency_contact_phone || ''}</td></tr>` : ''}
-            ${booking.veterinarian_name ? `<tr><td style="padding: 4px 0; font-weight: 600;">Veterinário:</td><td>${booking.veterinarian_name} — ${booking.veterinarian_phone || ''}</td></tr>` : ''}
+            <tr><td style="padding: 4px 0; font-weight: 600; width: 45%;">Nome:</td><td>${esc(booking.owner_name || '—')}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Email:</td><td>${esc(booking.owner_email || '—')}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Telefone:</td><td>${esc(booking.owner_phone || '—')}</td></tr>
+            ${booking.emergency_contact_name ? `<tr><td style="padding: 4px 0; font-weight: 600;">Contacto emergência:</td><td>${esc(booking.emergency_contact_name)} — ${esc(booking.emergency_contact_phone || '')}</td></tr>` : ''}
+            ${booking.veterinarian_name ? `<tr><td style="padding: 4px 0; font-weight: 600;">Veterinário:</td><td>${esc(booking.veterinarian_name)} — ${esc(booking.veterinarian_phone || '')}</td></tr>` : ''}
           </table>
 
           <h2 style="color: #0f766e; font-size: 16px; margin: 20px 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">🐶 Cães</h2>
@@ -128,7 +136,7 @@ Deno.serve(async (req) => {
 
           ${booking.special_requests ? `
           <h2 style="color: #0f766e; font-size: 16px; margin: 20px 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">📝 Pedidos Especiais</h2>
-          <p style="font-size: 14px; color: #1e293b; background: #fef3c7; padding: 12px; border-radius: 8px;">${booking.special_requests}</p>
+          <p style="font-size: 14px; color: #1e293b; background: #fef3c7; padding: 12px; border-radius: 8px;">${esc(booking.special_requests)}</p>
           ` : ''}
 
           <div style="margin-top: 24px; text-align: center;">
