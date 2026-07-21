@@ -89,7 +89,7 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[92vh] overflow-y-auto bg-slate-950 border border-white/10 rounded-3xl p-0 gap-0">
+      <DialogContent className="max-w-md max-h-[92vh] overflow-y-auto bg-slate-950 border border-white/10 rounded-3xl p-0 gap-0 z-[10002]">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-gradient-to-br from-slate-900 to-slate-950 px-5 py-4 border-b border-white/5 rounded-t-3xl">
           <div className="flex items-center justify-between gap-3">
