@@ -220,7 +220,7 @@ export default function NotificationArea({ isOpen, onClose }) {
                       <Icon className={`w-4 h-4 ${cfg.color}`} />
                     </div>
 
-                    <div className="flex-1 min-w-0 pr-12">
+                    <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-1">
                         <p className={`text-xs font-bold leading-tight truncate ${!n.is_read ? 'text-slate-900' : 'text-slate-600'}`}>
                           {n.title}
@@ -228,27 +228,27 @@ export default function NotificationArea({ isOpen, onClose }) {
                         <span className="text-[9px] text-slate-400 flex-shrink-0">{formatDate(n.created_date)}</span>
                       </div>
                       <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5">{n.message}</p>
-                      <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full mt-1 bg-slate-100/80 text-slate-500">
-                        {cfg.label}
-                      </span>
-                    </div>
-
-                    {/* Ações */}
-                    <div className="absolute bottom-2 right-2 flex gap-1">
-                      {!n.is_read && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); markRead.mutate(n.id); }}
-                          className="w-5 h-5 flex items-center justify-center rounded-full bg-teal-100 hover:bg-teal-200 text-teal-600 transition-colors"
-                        >
-                          <Check className="w-2.5 h-2.5" />
-                        </button>
-                      )}
-                      <button
-                        onClick={(e) => { e.stopPropagation(); deleteNotif.mutate(n.id); }}
-                        className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-100 hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"
-                      >
-                        <X className="w-2.5 h-2.5" />
-                      </button>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100/80 text-slate-500">
+                          {cfg.label}
+                        </span>
+                        <div className="flex gap-1">
+                          {!n.is_read && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); markRead.mutate(n.id); }}
+                              className="w-5 h-5 flex items-center justify-center rounded-full bg-teal-100 hover:bg-teal-200 text-teal-600 transition-colors"
+                            >
+                              <Check className="w-2.5 h-2.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteNotif.mutate(n.id); }}
+                            className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-100 hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"
+                          >
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
                 );
