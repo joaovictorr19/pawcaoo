@@ -72,10 +72,44 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Override platform_fee with the correct calculated value
-    const calculatedFee = Math.round((Number(service_amount) * commissionRate / 100) * 100) / 100;
-    const effectivePlatformFee = calculatedFee;
-    const effectiveTotalAmount = Number(service_amount) + effectivePlatformFee;
+    // SECURITY: Derive service_amount from the professional's profile — never trust client-supplied pricing.
+    // An attacker could otherwise send service_amount=0.01 and pay nearly nothing.
+    let serverServiceAmount: number | null = null;
+
+    if (walkerProfile) {
+      // 1) Try to match the requested service_name in services_offered
+      if (service_name && Array.isArray(walkerProfile.services_offered)) {
+        const matched = walkerProfile.services_offered.find(
+          (s: any) => s.service_name === service_name && s.is_active !== false
+        );
+        if (matched) {
+          if (matched.price != null && !matched.custom_pricing) {
+            serverServiceAmount = Number(matched.price);
+          } else if (matched.price_per_day != null) {
+            const days = Math.max(1, Number(duration_hours) || 1);
+            serverServiceAmount = Number(matched.price_per_day) * days;
+          }
+        }
+      }
+      // 2) Fallback to hourly_rate × duration_hours
+      if (serverServiceAmount == null && walkerProfile.hourly_rate != null) {
+        const hours = Number(duration_hours) || 1;
+        serverServiceAmount = Number(walkerProfile.hourly_rate) * hours;
+      }
+    }
+
+    if (serverServiceAmount == null || serverServiceAmount <= 0 || !isFinite(serverServiceAmount)) {
+      return Response.json({
+        error: 'Não foi possível determinar o preço do serviço a partir do perfil do profissional.'
+      }, { status: 400 });
+    }
+
+    // Round to 2 decimal places
+    const effectiveServiceAmount = Math.round(serverServiceAmount * 100) / 100;
+
+    // Calculate platform fee from the server-derived amount
+    const effectivePlatformFee = Math.round((effectiveServiceAmount * commissionRate / 100) * 100) / 100;
+    const effectiveTotalAmount = Math.round((effectiveServiceAmount + effectivePlatformFee) * 100) / 100;
 
     // CRITICAL SECURITY: Validate date is not blocked (day-off or fully booked)
     const availabilityRecords = await base44.asServiceRole.entities.CalendarAvailability.filter({
@@ -166,7 +200,7 @@ Deno.serve(async (req) => {
         professional_name,
         professional_type,
         service_name,
-        service_amount: service_amount.toString(),
+        service_amount: effectiveServiceAmount.toString(),
         platform_fee: effectivePlatformFee.toString(),
         total_amount: effectiveTotalAmount.toString(),
         commission_rate: commissionRate.toString(),
