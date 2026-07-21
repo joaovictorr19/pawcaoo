@@ -347,21 +347,21 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
 
           {/* Center content */}
           <div
-            className="flex flex-col items-center justify-center w-full h-full max-w-[95vw] max-h-[100vh] px-2 pt-14 pb-20 sm:px-4"
+            className="flex items-center justify-center w-full h-full px-2 py-16 sm:px-4"
             onClick={e => e.stopPropagation()}
           >
             {galleryPhotos[galleryIdx].isPdf ? (
-              <div className="w-full max-w-3xl flex flex-col items-center">
+              <div className="w-full max-w-3xl flex flex-col items-center" style={{ height: "calc(100vh - 8rem)" }}>
                 <iframe
                   src={galleryPhotos[galleryIdx].url}
                   title={galleryPhotos[galleryIdx].certName}
-                  className="w-full rounded-2xl shadow-2xl bg-white"
-                  style={{ height: "70vh" }}
+                  className="w-full h-full rounded-2xl shadow-2xl bg-white"
                 />
               </div>
             ) : (
               <div
                 className={`flex items-center justify-center w-full h-full ${zoomed ? "overflow-hidden cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+                style={{ minHeight: 0 }}
                 onClick={!zoomed ? toggleZoom : undefined}
                 onMouseDown={handleDragStart}
                 onMouseMove={handleDragMove}
@@ -374,12 +374,10 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                 <img
                   src={galleryPhotos[galleryIdx].url}
                   alt={galleryPhotos[galleryIdx].certName}
-                  className={`select-none rounded-2xl shadow-2xl transition-transform duration-200 ${
-                    zoomed ? "cursor-grab" : "object-contain"
-                  }`}
+                  className="select-none rounded-2xl shadow-2xl transition-transform duration-200 object-contain cursor-grab"
                   style={{
-                    maxHeight: zoomed ? "none" : "80vh",
-                    maxWidth: zoomed ? "none" : "95%",
+                    maxHeight: zoomed ? "none" : "calc(100vh - 8rem)",
+                    maxWidth: zoomed ? "none" : "calc(100vw - 2rem)",
                     transform: zoomed
                       ? `scale(2) translate(${panned.x / 2}px, ${panned.y / 2}px)`
                       : "scale(1)",
@@ -393,14 +391,14 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                 />
               </div>
             )}
+          </div>
 
-            {/* Caption */}
-            <div className="absolute bottom-16 left-0 right-0 text-center px-4 pointer-events-none">
-              <p className="font-semibold text-sm text-white drop-shadow-lg">{galleryPhotos[galleryIdx].certName}</p>
-              {galleryPhotos[galleryIdx].certOrg && (
-                <p className="text-xs text-white/60 mt-0.5 drop-shadow">{galleryPhotos[galleryIdx].certOrg}</p>
-              )}
-            </div>
+          {/* Caption */}
+          <div className="absolute bottom-20 left-0 right-0 text-center px-4 pointer-events-none z-20">
+            <p className="font-semibold text-sm text-white drop-shadow-lg">{galleryPhotos[galleryIdx].certName}</p>
+            {galleryPhotos[galleryIdx].certOrg && (
+              <p className="text-xs text-white/60 mt-0.5 drop-shadow">{galleryPhotos[galleryIdx].certOrg}</p>
+            )}
           </div>
 
           {/* Next arrow */}
