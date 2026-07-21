@@ -8,7 +8,7 @@ import {
   ClipboardList, Search, CalendarDays, Clock, Dog, Phone, Mail,
   CheckCircle2, X, ChevronDown, PawPrint, StickyNote, FileText,
   UserCheck, DoorOpen, XCircle, Euro, ListChecks, Filter, TrendingUp,
-  CreditCard, AlertCircle, RefreshCw, UserX
+  CreditCard, AlertCircle, RefreshCw, UserX, MapPin, Syringe, Bone, Pill, Heart
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -119,6 +119,11 @@ function BookingCard({ booking, onUpdate }) {
                   em {daysUntil}d
                 </span>
               )}
+              {booking.pickup_enabled && (
+                <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-200">
+                  <MapPin className="w-2.5 h-2.5" /> Recolha
+                </span>
+              )}
             </div>
 
             {/* Meta row */}
@@ -176,6 +181,10 @@ function BookingCard({ booking, onUpdate }) {
             <div className="p-3.5 pt-3 space-y-2.5 bg-slate-50/50">
               {/* Contact */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">Cliente</p>
+                  <p className="font-semibold text-slate-900">{booking.owner_name}</p>
+                </div>
                 {booking.owner_phone && (
                   <a href={`tel:${booking.owner_phone}`} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 hover:border-slate-300">
                     <Phone className="w-3 h-3 text-slate-400" /> {booking.owner_phone}
@@ -187,6 +196,92 @@ function BookingCard({ booking, onUpdate }) {
                   </a>
                 )}
               </div>
+
+              {/* Pickup at home — full address + client info */}
+              {booking.pickup_enabled && (
+                <div className="bg-teal-50 border border-teal-200 rounded-lg px-3 py-2.5">
+                  <p className="text-[10px] font-bold text-teal-700 uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> Recolha ao Domicílio
+                  </p>
+                  <div className="space-y-1 text-xs text-teal-900">
+                    {booking.pickup_address && (
+                      <p className="font-semibold">{booking.pickup_address}</p>
+                    )}
+                    <div className="flex items-center gap-3 flex-wrap text-[11px]">
+                      {booking.pickup_city && <span>{booking.pickup_city}</span>}
+                      {booking.pickup_postal_code && <span>{booking.pickup_postal_code}</span>}
+                      {booking.pickup_time && (
+                        <span className="flex items-center gap-0.5 font-semibold">
+                          <Clock className="w-3 h-3" /> {booking.pickup_time}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 pt-1 mt-1 border-t border-teal-200 text-[11px]">
+                      <span className="font-semibold text-teal-700">Contacto:</span>
+                      <span>{booking.owner_name}</span>
+                      {booking.owner_phone && (
+                        <a href={`tel:${booking.owner_phone}`} className="flex items-center gap-0.5 font-semibold text-teal-700 hover:underline">
+                          <Phone className="w-3 h-3" /> {booking.owner_phone}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Complete dog info */}
+              {booking.dogs?.length > 0 && (
+                <div className="bg-white border border-slate-200 rounded-lg p-2.5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                    <PawPrint className="w-3 h-3" /> Cães ({booking.dogs.length})
+                  </p>
+                  <div className="space-y-2">
+                    {booking.dogs.map((dog, i) => (
+                      <div key={i} className="border border-slate-100 rounded-lg p-2 bg-slate-50/50">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-xs font-bold text-slate-900">{dog.dog_name || `Cão ${i+1}`}</span>
+                          {dog.dog_breed && <span className="text-[10px] text-slate-500">{dog.dog_breed}</span>}
+                          {dog.dog_size && (
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600">
+                              {dog.dog_size === "small" ? "Peq" : dog.dog_size === "medium" ? "Méd" : dog.dog_size === "large" ? "Grd" : "XGrd"}
+                            </span>
+                          )}
+                          {dog.dog_age != null && <span className="text-[10px] text-slate-400">{dog.dog_age} ano(s)</span>}
+                        </div>
+                        {(dog.diet || dog.medications || dog.routine || dog.special_notes) && (
+                          <div className="space-y-1 text-[11px] text-slate-600">
+                            {dog.diet && (
+                              <p className="flex items-start gap-1">
+                                <Bone className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" /> {dog.diet}
+                              </p>
+                            )}
+                            {dog.medications && (
+                              <p className="flex items-start gap-1">
+                                <Pill className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" /> {dog.medications}
+                              </p>
+                            )}
+                            {dog.routine && (
+                              <p className="flex items-start gap-1">
+                                <Heart className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" /> {dog.routine}
+                              </p>
+                            )}
+                            {dog.special_notes && (
+                              <p className="flex items-start gap-1 text-amber-700">
+                                <StickyNote className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" /> {dog.special_notes}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {dog.vaccine_expiry && (
+                          <p className="flex items-center gap-1 text-[10px] text-slate-500 mt-1 pt-1 border-t border-slate-100">
+                            <Syringe className="w-3 h-3" /> Vacina válida até {fmtDate(dog.vaccine_expiry)}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Add-ons summary */}
               {addOns.length > 0 && (

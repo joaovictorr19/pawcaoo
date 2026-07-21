@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Plus, Minus, CreditCard, Loader2, Link2, Copy, Check, Send,
   BedDouble, Sun, Scissors, PawPrint, GraduationCap, User, CalendarDays,
-  Dog, ClipboardList, Banknote, LogIn, Syringe } from "lucide-react";
+  Dog, ClipboardList, Banknote, LogIn, Syringe, MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -56,6 +56,11 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     emergency_contact_phone: "",
     veterinarian_name: "",
     veterinarian_phone: "",
+    pickup_enabled: false,
+    pickup_address: "",
+    pickup_city: "",
+    pickup_postal_code: "",
+    pickup_time: "",
   });
 
   // ── Lookup returning guest profile when email is typed ──
@@ -377,6 +382,45 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
 
               {/* Emergency & Vet */}
               <EmergencyContactFields form={form} set={set} />
+
+              {/* Pickup at home option */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={form.pickup_enabled}
+                      onChange={e => set("pickup_enabled", e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-200 rounded-full peer-checked:bg-teal-500 transition-colors" />
+                    <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-teal-500" />
+                    <span className="text-xs font-semibold text-slate-700">
+                      Recolha ao domicílio
+                    </span>
+                  </div>
+                </label>
+                {form.pickup_enabled && (
+                  <div className="space-y-2 pt-1">
+                    <input value={form.pickup_address} onChange={e => set("pickup_address", e.target.value)}
+                      placeholder="Morada completa de recolha *" className={inputCls} />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input value={form.pickup_city} onChange={e => set("pickup_city", e.target.value)}
+                        placeholder="Cidade" className={inputCls} />
+                      <input value={form.pickup_postal_code} onChange={e => set("pickup_postal_code", e.target.value)}
+                        placeholder="Código postal" className={inputCls} />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <input type="time" value={form.pickup_time} onChange={e => set("pickup_time", e.target.value)}
+                        className={`${inputCls} flex-1`} />
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Dates */}
               <div>

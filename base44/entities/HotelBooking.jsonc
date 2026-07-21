@@ -35,6 +35,27 @@
     "veterinarian_phone": {
       "type": "string"
     },
+    "pickup_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o hotel oferece recolha ao domicilio para esta reserva"
+    },
+    "pickup_address": {
+      "type": "string",
+      "description": "Morada completa de recolha (quando pickup_enabled=true)"
+    },
+    "pickup_city": {
+      "type": "string",
+      "description": "Cidade de recolha"
+    },
+    "pickup_postal_code": {
+      "type": "string",
+      "description": "Codigo postal de recolha"
+    },
+    "pickup_time": {
+      "type": "string",
+      "description": "Hora de recolha combinada (HH:MM)"
+    },
     "dogs": {
       "type": "array",
       "items": {
