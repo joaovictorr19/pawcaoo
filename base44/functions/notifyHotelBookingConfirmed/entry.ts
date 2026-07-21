@@ -112,8 +112,8 @@ Deno.serve(async (req) => {
           <h2 style="color: #0f766e; font-size: 16px; margin: 0 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">📋 Detalhes do Serviço</h2>
           <table style="width: 100%; font-size: 14px; color: #1e293b;">
             <tr><td style="padding: 4px 0; font-weight: 600; width: 45%;">Tipo de Serviço:</td><td>${esc(serviceLabel)}</td></tr>
-            <tr><td style="padding: 4px 0; font-weight: 600;">Check-in:</td><td>${booking.checkin_date || '—'}${booking.checkin_time ? ' às ' + booking.checkin_time : ''}</td></tr>
-            <tr><td style="padding: 4px 0; font-weight: 600;">Check-out:</td><td>${booking.checkout_date || '—'}${booking.checkout_time ? ' às ' + booking.checkout_time : ''}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Check-in:</td><td>${esc(booking.checkin_date || '—')}${booking.checkin_time ? ' às ' + esc(booking.checkin_time) : ''}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Check-out:</td><td>${esc(booking.checkout_date || '—')}${booking.checkout_time ? ' às ' + esc(booking.checkout_time) : ''}</td></tr>
             <tr><td style="padding: 4px 0; font-weight: 600;">Noites:</td><td>${booking.total_nights || '—'}</td></tr>
             <tr><td style="padding: 4px 0; font-weight: 600;">Nº de cães:</td><td>${booking.total_dogs || '—'}</td></tr>
             <tr><td style="padding: 4px 0; font-weight: 600;">Valor Total:</td><td><strong>€${(booking.total_amount || 0).toFixed(2)}</strong></td></tr>
@@ -149,35 +149,6 @@ Deno.serve(async (req) => {
         </div>
       </div>
     `;
-
-    const textBody = `
-NOVA RESERVA CONFIRMADA — ${hotelName}
-
-=== DETALHES DO SERVIÇO ===
-Tipo: ${serviceLabel}
-Check-in: ${booking.checkin_date || '—'}${booking.checkin_time ? ' às ' + booking.checkin_time : ''}
-Check-out: ${booking.checkout_date || '—'}${booking.checkout_time ? ' às ' + booking.checkout_time : ''}
-Noites: ${booking.total_nights || '—'}
-Nº de cães: ${booking.total_dogs || '—'}
-Valor Total: €${(booking.total_amount || 0).toFixed(2)}
-
-=== CLIENTE ===
-Nome: ${booking.owner_name || '—'}
-Email: ${booking.owner_email || '—'}
-Telefone: ${booking.owner_phone || '—'}
-${booking.emergency_contact_name ? 'Contacto emergência: ' + booking.emergency_contact_name + ' — ' + (booking.emergency_contact_phone || '') : ''}
-${booking.veterinarian_name ? 'Veterinário: ' + booking.veterinarian_name + ' — ' + (booking.veterinarian_phone || '') : ''}
-
-=== CÃES ===
-${dogsSection}
-
-=== SERVIÇOS ADICIONAIS ===
-${addOnsSection}
-
-${booking.special_requests ? '=== PEDIDOS ESPECIAIS ===\n' + booking.special_requests : ''}
-
-— PawCão • Notificação automática
-    `.trim();
 
     await base44.asServiceRole.integrations.Core.SendEmail({
       to: hotelEmail,
