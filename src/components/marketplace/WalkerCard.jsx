@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Star, DollarSign, Shield, Heart, User, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { ensureProfileSlug } from "@/utils/profileSlug";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -266,10 +265,12 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
                       key={idx} 
                       variant="outline" 
                       className={`text-[9px] px-1.5 py-0.5 whitespace-nowrap ${isQuick ? 'border-blue-300 text-blue-700 bg-blue-50' : 'border-gray-200'}`}
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         if (isQuick) {
                           e.stopPropagation();
-                          navigate(createPageUrl(`UserProfile?id=${walker.id}&service=${service.service_type}`));
+                          window.scrollTo({ top: 0, behavior: 'instant' });
+                          const link = await ensureProfileSlug(profileName, walker?.created_by, walker?.professional_type === 'hotel' ? 'hotel' : 'walker');
+                          navigate(link);
                         }
                       }}
                     >

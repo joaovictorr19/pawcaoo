@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, Award, Video, User as UserIcon, ShieldCheck, Clock, Crown, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { ensureProfileSlug } from "@/utils/profileSlug";
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/ThemeContext";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
@@ -83,8 +83,10 @@ const TrainerCard = React.memo(({ trainer, distance, showMatchScore, matchScore 
     return <Video className="w-4 h-4" />;
   };
 
-  const handleClick = () => {
-    navigate(createPageUrl(`TrainerDetails?id=${trainer.id}`));
+  const handleClick = async () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    const link = await ensureProfileSlug(trainer.trainer_name, trainer.created_by, 'trainer');
+    navigate(link);
   };
 
   return (
