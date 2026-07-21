@@ -199,7 +199,7 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
     },
     onSuccess: () => {
       toast.success("Emblema revogado.");
-      refetchUserBadges();
+      queryClient.invalidateQueries(['userBadges']);
       queryClient.invalidateQueries(['allUsers']);
       queryClient.invalidateQueries(['allWalkersAdmin']);
       queryClient.invalidateQueries(['allTrainersAdmin']);
@@ -402,9 +402,13 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
 
           {tab === 'revoke' && (
             <>
-              {userBadges.length === 0 && activeRevokeEmail ? (
+              {!activeRevokeEmail ? (
                 <p className="text-center text-slate-400 text-sm py-4">
-                  {activeRevokeEmail ? 'Nenhum emblema encontrado para este utilizador.' : 'Introduz um email para ver os emblemas.'}
+                  Seleciona um utilizador acima para ver os seus emblemas.
+                </p>
+              ) : userBadges.length === 0 ? (
+                <p className="text-center text-slate-400 text-sm py-4">
+                  Nenhum emblema encontrado para este utilizador.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -422,15 +426,16 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
                         <p className="text-[10px] text-slate-400">{ub.rarity} • {ub.xp || 0} XP</p>
                       </div>
                       <button
-                        onClick={() => {
-                          if (confirm(`Revogar o emblema "${ub.name}" deste utilizador?`)) {
-                            revokeMutation.mutate(ub);
-                          }
-                        }}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        onClick={() => revokeMutation.mutate(ub)}
+                        disabled={revokeMutation.isPending}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                         title="Revogar"
                       >
-                        <Trash2 size={14} />
+                        {revokeMutation.isPending && revokeMutation.variables?.id === ub.id ? (
+                          <div className="w-3.5 h-3.5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 size={14} />
+                        )}
                       </button>
                     </div>
                   ))}
