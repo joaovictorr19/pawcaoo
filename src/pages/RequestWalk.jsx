@@ -104,7 +104,7 @@ export default function RequestWalk() {
     setDetails((prev) => ({ ...prev, [key]: value }));
   };
 
-  // Booking creation
+  // Booking creation + Stripe checkout redirect
   const { mutate: createBooking, isLoading: isSubmitting } = useMutation({
     mutationFn: async () => {
       const primaryDog = selectedDogs[0];
@@ -114,7 +114,7 @@ export default function RequestWalk() {
       const platformFee = parseFloat((serviceAmount * 0.15).toFixed(2));
       const totalAmount = parseFloat((serviceAmount + platformFee).toFixed(2));
 
-      return base44.entities.Booking.create({
+      const booking = await base44.entities.Booking.create({
         owner_name: user.full_name || user.email,
         owner_email: user.email,
         owner_phone: user.phone || "",
@@ -151,10 +151,26 @@ export default function RequestWalk() {
         payment_status: "pending",
         type: "walk"
       });
-    },
-    onSuccess: async (booking) => {
-      queryClient.invalidateQueries(["userBookings"]);
+
+      // For PawGo immediate mode, skip Stripe — walker hasn't been assigned yet
       if (immediateMode && selectedWalker.email) {
+        return { booking, skipPayment: true };
+      }
+
+      // Redirect to Stripe Checkout for payment
+      const response = await base44.functions.invoke('createStripeCheckout', {
+        bookingId: booking.id,
+        successUrl: `${window.location.origin}/CheckoutSuccess?booking_id=${booking.id}`,
+        cancelUrl: `${window.location.origin}/MyBookings?cancelled=true`,
+      });
+
+      return { booking, checkoutUrl: response?.data?.url, skipPayment: false };
+    },
+    onSuccess: async (result) => {
+      const { booking, checkoutUrl, skipPayment } = result;
+      queryClient.invalidateQueries(["userBookings"]);
+
+      if (skipPayment && immediateMode && selectedWalker.email) {
         try {
           await base44.entities.Notification.create({
             recipient_email: selectedWalker.email,
@@ -173,8 +189,20 @@ export default function RequestWalk() {
         } catch (e) {
           console.error('Erro ao enviar notificação/email PawGo:', e);
         }
+        setSubmitted(true);
+      } else if (checkoutUrl) {
+        // Redirect to Stripe Checkout
+        window.location.href = checkoutUrl;
+      } else {
+        // No checkout URL — show error, booking was created but payment failed to initialize
+        console.error('No checkout URL returned from createStripeCheckout');
+        alert('Erro ao gerar link de pagamento. A tua reserva foi criada — podes pagar em "As Minhas Reservas".');
+        setSubmitted(true);
       }
-      setSubmitted(true);
+    },
+    onError: (error) => {
+      console.error('Booking creation error:', error);
+      alert(`Erro ao criar reserva: ${error?.message || 'tente novamente'}`);
     }
   });
 
