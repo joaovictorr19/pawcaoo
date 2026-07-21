@@ -18,6 +18,7 @@ import AssignTaskModal from '@/components/hotel/AssignTaskModal';
 import HotelReservationsPanel from '@/components/hotel/HotelReservationsPanel';
 import HotelTasksPanel from '@/components/hotel/HotelTasksPanel';
 import BackButton from '@/components/ui/BackButton';
+import { getCurrentUser } from '@/utils/getCurrentUser';
 
 const SERVICE_LABELS = {
   walk: 'Passeio', bathing: 'Banho', grooming: 'Grooming',
@@ -52,7 +53,7 @@ export default function PartnerHotelPanel() {
 
   const { data: authUser, isLoading: isLoadingUser } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: async () => await base44.auth.me(),
+    queryFn: async () => await getCurrentUser(),
   });
 
   const { data: hotel, isLoading } = useQuery({

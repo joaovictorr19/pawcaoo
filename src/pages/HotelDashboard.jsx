@@ -42,6 +42,7 @@ import AddServiceToStayModal from "@/components/hotel/AddServiceToStayModal";
 import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 import BackButton from "@/components/ui/BackButton";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -105,19 +106,7 @@ export default function HotelDashboard() {
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
-    queryFn: async () => {
-      try {
-        let u = await base44.auth.me();
-        const imp = JSON.parse(localStorage.getItem("impersonation") || "null");
-        if (imp?.targetUserId && u?.role === "admin") {
-          const t = await base44.entities.User.filter({ id: imp.targetUserId });
-          if (t.length > 0) u = { ...t[0], isImpersonating: true };
-        }
-        return u;
-      } catch {
-        return null;
-      }
-    },
+    queryFn: async () => await getCurrentUser(),
     staleTime: 10 * 60 * 1000,
   });
 
