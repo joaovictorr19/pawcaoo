@@ -1,45 +1,63 @@
 import React from "react";
 
 export default function BookingsFilters({ filters, setFilters, setCurrentPage }) {
+  const statusFilters = [
+    { value: 'all', label: 'Todos' },
+    { value: 'confirmed', label: 'Confirmados' },
+    { value: 'in_progress', label: 'Ativos' },
+    { value: 'completed', label: 'Concluídos' },
+    { value: 'cancelled', label: 'Cancelados' },
+  ];
+
+  const typeFilters = [
+    { value: 'all', label: 'Todos', icon: '🐾' },
+    { value: 'walk', label: 'Passeios', icon: '🐕' },
+    { value: 'training', label: 'Treinos', icon: '🎓' },
+    { value: 'hotel', label: 'Hotel', icon: '🏨' },
+  ];
+
   return (
-    <>
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {[
-          { value: 'all', label: 'Todos' },
-          { value: 'confirmed', label: 'Confirmados' },
-          { value: 'in_progress', label: 'Ativos' },
-          { value: 'completed', label: 'Concluídos' },
-          { value: 'cancelled', label: 'Cancelados' },
-        ].map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => { setFilters({...filters, status: value}); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-2xl text-[11px] font-black uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 ${
-              filters.status === value
-                ? 'bg-orange-500 text-white'
-                : 'bg-slate-900 border border-white/5 text-slate-400 hover:text-white'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+    <div className="space-y-3">
+      {/* Status filters - horizontal scroll on mobile, wrap on desktop */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+        {statusFilters.map(({ value, label }) => {
+          const active = filters.status === value;
+          return (
+            <button
+              key={value}
+              onClick={() => { setFilters({...filters, status: value}); setCurrentPage(1); }}
+              className={`shrink-0 px-3.5 py-1.5 rounded-lg text-[11px] font-bold tracking-wide whitespace-nowrap transition-all duration-200 active:scale-95 ${
+                active
+                  ? 'bg-teal-500 text-white shadow-sm shadow-teal-900/30'
+                  : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700/80'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex gap-2">
-        {[{v:'all',l:'🐾 Todos'},{v:'walk',l:'🐕 Passeios'},{v:'training',l:'🎓 Treinos'},{v:'hotel',l:'🏨 Hotel'}].map(({v,l}) => (
-          <button
-            key={v}
-            onClick={() => { setFilters({...filters, type: v}); setCurrentPage(1); }}
-            className={`flex-1 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all active:scale-95 ${
-              filters.type === v
-                ? 'bg-white text-slate-900'
-                : 'bg-slate-900 border border-white/5 text-slate-400'
-            }`}
-          >
-            {l}
-          </button>
-        ))}
+      {/* Type filters - grid 4 columns */}
+      <div className="grid grid-cols-4 gap-1.5">
+        {typeFilters.map(({ value, label, icon }) => {
+          const active = filters.type === value;
+          return (
+            <button
+              key={value}
+              onClick={() => { setFilters({...filters, type: value}); setCurrentPage(1); }}
+              className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-lg transition-all duration-200 active:scale-95 ${
+                active
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700/80'
+              }`}
+            >
+              <span className="text-sm leading-none">{icon}</span>
+              <span className="text-[10px] font-bold leading-none">{label}</span>
+            </button>
+          );
+        })}
       </div>
-    </>
+    </div>
   );
 }
