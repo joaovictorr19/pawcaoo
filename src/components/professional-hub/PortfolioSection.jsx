@@ -199,7 +199,7 @@ function CertificationsManager({ profile, isWalker }) {
 }
 
 // ─── Main PortfolioSection ─────────────────────────────────────────────────────
-export default function PortfolioSection({ professionalProfile }) {
+export default function PortfolioSection({ professionalProfile, hideCertifications = false }) {
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
 
@@ -251,10 +251,12 @@ export default function PortfolioSection({ professionalProfile }) {
         )}
       </div>
 
-      {/* Certifications */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <CertificationsManager profile={professionalProfile} isWalker={isWalker} />
-      </div>
+      {/* Certifications — hidden when a dedicated CertificationsEditor is already present (e.g. HotelProfileSettings) */}
+      {!hideCertifications && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <CertificationsManager profile={professionalProfile} isWalker={isWalker} />
+        </div>
+      )}
 
       {showAdd && <AddPortfolioModal onClose={() => setShowAdd(false)} onAdd={(item) => addMutation.mutate(item)} />}
     </div>

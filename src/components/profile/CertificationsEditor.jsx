@@ -33,13 +33,19 @@ export default function CertificationsEditor({ value = [], onChange }) {
     setUploadingIdx(idx);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      update(idx, "certificate_url", file_url);
-      // Se for imagem, adicionar também ao gallery de fotos
-      if (file.type.startsWith("image/")) {
-        const cert = certs[idx];
-        const photos = Array.isArray(cert?.photos) ? cert.photos : [];
-        update(idx, "photos", [...photos, file_url]);
-      }
+      // Single onChange call to avoid stale-closure overwrite between sequential updates
+      const isImage = file.type.startsWith("image/");
+      const existingPhotos = Array.isArray(certs[idx]?.photos) ? certs[idx].photos : [];
+      const next = certs.map((c, i) =>
+        i === idx
+          ? {
+              ...c,
+              certificate_url: file_url,
+              photos: isImage ? [...existingPhotos, file_url] : existingPhotos,
+            }
+          : c
+      );
+      onChange(next);
       toast.success("Certificado carregado!");
     } catch {
       toast.error("Erro ao carregar ficheiro.");

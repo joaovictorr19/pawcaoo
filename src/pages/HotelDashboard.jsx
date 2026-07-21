@@ -677,7 +677,7 @@ export default function HotelDashboard() {
               <HotelDigitalPass hotelProfile={hotelProfile} />
               <div>
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Portfólio</p>
-                <PortfolioSection professionalProfile={hotelProfile} />
+                <PortfolioSection professionalProfile={hotelProfile} hideCertifications />
               </div>
             </motion.div>
           )}
