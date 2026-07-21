@@ -22,6 +22,14 @@ const SERVICE_TYPE_CONFIG = {
   other: { label: 'Serviço', icon: Zap, accent: 'bg-slate-100 text-slate-600', ring: 'ring-slate-100' },
 };
 
+const PRICE_SUFFIX = {
+  boarding: '/noite',
+  daycare: '/dia',
+  grooming: '/sessão',
+  training: '/sessão',
+  other: '',
+};
+
 const SIZE_LABELS = {
   small: 'Pequeno',
   medium: 'Médio',
@@ -146,8 +154,8 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
                 <span className="text-2xl font-black text-slate-900 tracking-tight">
                   {service.price_per_day != null ? `${service.price_per_day}€` : '—'}
                 </span>
-                {service.price_per_day != null && (
-                  <span className="text-xs font-medium text-slate-400">/noite</span>
+                {service.price_per_day != null && PRICE_SUFFIX[service.service_type] && (
+                  <span className="text-xs font-medium text-slate-400">{PRICE_SUFFIX[service.service_type]}</span>
                 )}
               </div>
 
