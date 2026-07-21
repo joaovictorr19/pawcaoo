@@ -6,7 +6,7 @@ const IMAGES = [
   "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/879a5e393_IMG_3917-removebg-preview.png",
 ];
 
-const INTERVAL_MS = 4000;
+const INTERVAL_MS = 7000;
 
 export default function PolaroidCarousel() {
   const [index, setIndex] = useState(0);
