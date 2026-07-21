@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Gift, X, Zap, Search, Trash2, CheckCircle } from "lucide-react";
+import { Gift, X, Zap, Search, Trash2, CheckCircle, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,7 +15,8 @@ const RARITY_CONFIG = {
 export function GrantBadgeModal({ onClose, onSuccess }) {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState('grant'); // 'grant' | 'revoke'
-  const [userEmail, setUserEmail] = useState('');
+  const [selectedEmails, setSelectedEmails] = useState([]); // multi-select for grant
+  const [revokeEmail, setRevokeEmail] = useState(''); // single for revoke
   const [selectedBadgeId, setSelectedBadgeId] = useState('');
   const [badgeSearch, setBadgeSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
@@ -30,10 +31,12 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
     queryFn: () => base44.entities.User.list('-created_date', 1000),
   });
 
+  const activeRevokeEmail = revokeEmail;
+
   const { data: userBadges = [], refetch: refetchUserBadges } = useQuery({
-    queryKey: ['userBadges', userEmail],
-    queryFn: () => base44.entities.UserBadge.filter({ user_email: userEmail }, '-earned_date'),
-    enabled: !!userEmail && tab === 'revoke',
+    queryKey: ['userBadges', activeRevokeEmail],
+    queryFn: () => base44.entities.UserBadge.filter({ user_email: activeRevokeEmail }, '-earned_date'),
+    enabled: !!activeRevokeEmail && tab === 'revoke',
   });
 
   const filteredBadges = badgeDefinitions.filter(b =>
@@ -51,78 +54,105 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
   }, [allUsers, userSearch]);
 
   const selectedBadge = badgeDefinitions.find(b => b.id === selectedBadgeId);
-  const selectedUser = allUsers.find((user) => user.email === userEmail);
+
+  const toggleUser = (email) => {
+    if (tab === 'grant') {
+      setSelectedEmails(prev =>
+        prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]
+      );
+    } else {
+      setRevokeEmail(email === revokeEmail ? '' : email);
+    }
+  };
 
   const grantMutation = useMutation({
     mutationFn: async () => {
-      if (!userEmail || !selectedBadge) throw new Error("Preenche todos os campos.");
+      if (selectedEmails.length === 0 || !selectedBadge) throw new Error("Seleciona pelo menos um utilizador e um emblema.");
 
-      const existing = await base44.entities.UserBadge.filter({
-        user_email: userEmail,
-        badge_definition_id: selectedBadge.id
-      });
-      if (existing.length > 0) throw new Error("Este utilizador já tem este emblema.");
-
-      await base44.entities.UserBadge.create({
-        user_email: userEmail,
-        badge_definition_id: selectedBadge.id,
-        badge_id: selectedBadge.id,
-        name: selectedBadge.name,
-        description: selectedBadge.description,
-        icon: selectedBadge.icon || '🏆',
-        image_png_file: selectedBadge.image_png_file || selectedBadge.image_url || null,
-        rarity: selectedBadge.rarity || 'common',
-        xp: selectedBadge.xp || 0,
-        earned_date: new Date().toISOString(),
-        granted_by: 'admin',
-      });
-
-      const profiles = await base44.entities.UserProfile.filter({ user_email: userEmail });
-      const walkers = await base44.entities.WalkerProfile.filter({ created_by: userEmail });
-      const trainers = await base44.entities.TrainerProfile.filter({ created_by: userEmail });
+      let successCount = 0;
+      let skippedCount = 0;
       const feeExempt = (selectedBadge.name || '').toLowerCase().includes('ouro') || (selectedBadge.name || '').toLowerCase().includes('gold');
 
-      if (profiles.length > 0) {
-        const p = profiles[0];
-        const newXP = (p.gamification_xp || 0) + (selectedBadge.xp || 0);
-        const newLevel = 1 + Math.floor(newXP / 1000);
-        await base44.entities.UserProfile.update(p.id, {
-          gamification_xp: newXP,
-          gamification_level: newLevel,
-          is_verified: selectedBadge.rarity === 'legendary' ? true : (p.is_verified || false),
-          pawcao_seal: feeExempt ? true : (p.pawcao_seal || false)
-        });
+      for (const email of selectedEmails) {
+        try {
+          const existing = await base44.entities.UserBadge.filter({
+            user_email: email,
+            badge_definition_id: selectedBadge.id
+          });
+          if (existing.length > 0) {
+            skippedCount++;
+            continue;
+          }
+
+          await base44.entities.UserBadge.create({
+            user_email: email,
+            badge_definition_id: selectedBadge.id,
+            badge_id: selectedBadge.id,
+            name: selectedBadge.name,
+            description: selectedBadge.description,
+            icon: selectedBadge.icon || '🏆',
+            image_png_file: selectedBadge.image_png_file || selectedBadge.image_url || null,
+            rarity: selectedBadge.rarity || 'common',
+            xp: selectedBadge.xp || 0,
+            earned_date: new Date().toISOString(),
+            granted_by: 'admin',
+          });
+
+          const profiles = await base44.entities.UserProfile.filter({ user_email: email });
+          const walkers = await base44.entities.WalkerProfile.filter({ created_by: email });
+          const trainers = await base44.entities.TrainerProfile.filter({ created_by: email });
+
+          if (profiles.length > 0) {
+            const p = profiles[0];
+            const newXP = (p.gamification_xp || 0) + (selectedBadge.xp || 0);
+            const newLevel = 1 + Math.floor(newXP / 1000);
+            await base44.entities.UserProfile.update(p.id, {
+              gamification_xp: newXP,
+              gamification_level: newLevel,
+              is_verified: selectedBadge.rarity === 'legendary' ? true : (p.is_verified || false),
+              pawcao_seal: feeExempt ? true : (p.pawcao_seal || false)
+            });
+          }
+
+          if (walkers.length > 0) {
+            await Promise.all(walkers.map((walker) =>
+              base44.entities.WalkerProfile.update(walker.id, {
+                has_pawcao_seal: feeExempt ? true : (walker.has_pawcao_seal || false),
+                exempt_from_platform_fees: feeExempt ? true : (walker.exempt_from_platform_fees || false)
+              })
+            ));
+          }
+
+          if (trainers.length > 0) {
+            await Promise.all(trainers.map((trainer) =>
+              base44.entities.TrainerProfile.update(trainer.id, {
+                is_pawcao_employee: feeExempt ? true : (trainer.is_pawcao_employee || false)
+              })
+            ));
+          }
+
+          await base44.entities.Notification.create({
+            recipient_email: email,
+            title: `🏆 Novo Emblema: ${selectedBadge.name}`,
+            message: selectedBadge.description + (selectedBadge.xp > 0 ? ` (+${selectedBadge.xp} XP)` : ''),
+            type: 'system',
+            icon: selectedBadge.icon || '🏆',
+          });
+
+          successCount++;
+        } catch (err) {
+          console.error(`Error granting badge to ${email}:`, err);
+        }
       }
 
-      if (walkers.length > 0) {
-        await Promise.all(walkers.map((walker) =>
-          base44.entities.WalkerProfile.update(walker.id, {
-            has_pawcao_seal: feeExempt ? true : (walker.has_pawcao_seal || false),
-            exempt_from_platform_fees: feeExempt ? true : (walker.exempt_from_platform_fees || false)
-          })
-        ));
-      }
-
-      if (trainers.length > 0) {
-        await Promise.all(trainers.map((trainer) =>
-          base44.entities.TrainerProfile.update(trainer.id, {
-            is_pawcao_employee: feeExempt ? true : (trainer.is_pawcao_employee || false)
-          })
-        ));
-      }
-
-      await base44.entities.Notification.create({
-        recipient_email: userEmail,
-        title: `🏆 Novo Emblema: ${selectedBadge.name}`,
-        message: selectedBadge.description + (selectedBadge.xp > 0 ? ` (+${selectedBadge.xp} XP)` : ''),
-        type: 'system',
-        icon: selectedBadge.icon || '🏆',
-      });
+      return { successCount, skippedCount };
     },
-    onSuccess: () => {
-      toast.success(`Emblema "${selectedBadge?.name}" atribuído com sucesso!`);
+    onSuccess: ({ successCount, skippedCount }) => {
+      let msg = `Emblema "${selectedBadge?.name}" atribuído a ${successCount} utilizador(es)!`;
+      if (skippedCount > 0) msg += ` (${skippedCount} já tinham este emblema)`;
+      toast.success(msg);
       setSelectedBadgeId('');
-      setUserEmail('');
+      setSelectedEmails([]);
       setUserSearch('');
       queryClient.invalidateQueries(['userBadges']);
       if (onSuccess) onSuccess();
@@ -134,9 +164,9 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
     mutationFn: async (badge) => {
       await base44.entities.UserBadge.delete(badge.id);
 
-      const profiles = await base44.entities.UserProfile.filter({ user_email: userEmail });
-      const walkers = await base44.entities.WalkerProfile.filter({ created_by: userEmail });
-      const trainers = await base44.entities.TrainerProfile.filter({ created_by: userEmail });
+      const profiles = await base44.entities.UserProfile.filter({ user_email: activeRevokeEmail });
+      const walkers = await base44.entities.WalkerProfile.filter({ created_by: activeRevokeEmail });
+      const trainers = await base44.entities.TrainerProfile.filter({ created_by: activeRevokeEmail });
       const feeExempt = (badge.name || '').toLowerCase().includes('ouro') || (badge.name || '').toLowerCase().includes('gold');
 
       if (profiles.length > 0) {
@@ -177,11 +207,13 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
     onError: (err) => toast.error(err.message),
   });
 
+  const selectedCount = selectedEmails.length;
+
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-[2rem] shadow-2xl border border-slate-100 w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-[2rem] shadow-2xl border border-slate-100 w-full max-w-lg max-h-[88vh] flex flex-col overflow-hidden my-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100 flex-shrink-0">
           <h2 className="text-lg font-black text-slate-900 uppercase italic flex items-center gap-2">
             <Gift size={20} className="text-orange-500" /> Gerir Emblemas de Utilizador
           </h2>
@@ -193,7 +225,7 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-100">
+        <div className="flex border-b border-slate-100 flex-shrink-0">
           {[['grant', 'Atribuir'], ['revoke', 'Revogar']].map(([key, label]) => (
             <button
               key={key}
@@ -208,7 +240,16 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
         <div className="overflow-y-auto flex-1 p-5 space-y-4">
           {/* Utilizador */}
           <div className="space-y-2">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Escolher Utilizador</label>
+            <div className="flex items-center justify-between">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500">
+                {tab === 'grant' ? 'Escolher Utilizadores' : 'Escolher Utilizador'}
+              </label>
+              {tab === 'grant' && selectedCount > 0 && (
+                <span className="flex items-center gap-1 text-[10px] font-black uppercase text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+                  <Users size={10} /> {selectedCount} selecionado{selectedCount > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -224,25 +265,53 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
                 <p className="p-3 text-sm text-slate-400">Nenhum utilizador encontrado.</p>
               ) : (
                 filteredUsers.map((user) => {
-                  const isSelected = userEmail === user.email;
+                  const isSelected = tab === 'grant'
+                    ? selectedEmails.includes(user.email)
+                    : revokeEmail === user.email;
                   return (
                     <button
                       key={user.id}
-                      onClick={() => setUserEmail(user.email)}
-                      className={`w-full px-3 py-2.5 text-left border-b last:border-b-0 transition-all ${isSelected ? 'bg-orange-50' : 'hover:bg-slate-50'}`}
+                      onClick={() => toggleUser(user.email)}
+                      className={`w-full px-3 py-2.5 text-left border-b last:border-b-0 transition-all flex items-center gap-2 ${isSelected ? 'bg-orange-50' : 'hover:bg-slate-50'}`}
                     >
-                      <p className="text-sm font-bold text-slate-900 truncate">{user.full_name || 'Sem nome'}</p>
-                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-orange-500 border-orange-500' : 'border-slate-300'}`}>
+                        {isSelected && <CheckCircle size={12} className="text-white" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 truncate">{user.full_name || 'Sem nome'}</p>
+                        <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                      </div>
                     </button>
                   );
                 })
               )}
             </div>
-            {selectedUser && (
+            {tab === 'grant' && selectedCount > 0 && (
               <div className="rounded-xl border border-orange-200 bg-orange-50 p-3">
-                <p className="text-xs font-black uppercase tracking-widest text-orange-600">Selecionado</p>
-                <p className="text-sm font-bold text-slate-900 mt-1">{selectedUser.full_name || 'Sem nome'}</p>
-                <p className="text-xs text-slate-500">{selectedUser.email}</p>
+                <p className="text-xs font-black uppercase tracking-widest text-orange-600 mb-1">
+                  {selectedCount} utilizador(es) selecionado(s)
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {selectedEmails.slice(0, 5).map(email => {
+                    const u = allUsers.find(usr => usr.email === email);
+                    return (
+                      <span key={email} className="text-[10px] font-bold bg-white px-2 py-0.5 rounded-full text-slate-700 border border-orange-200">
+                        {u?.full_name || email}
+                      </span>
+                    );
+                  })}
+                  {selectedEmails.length > 5 && (
+                    <span className="text-[10px] font-bold text-orange-600 px-1">
+                      +{selectedEmails.length - 5} mais
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setSelectedEmails([])}
+                  className="text-[10px] text-slate-500 hover:text-red-500 mt-1 underline"
+                >
+                  Limpar seleção
+                </button>
               </div>
             )}
           </div>
@@ -263,7 +332,7 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
                 </div>
 
                 {/* Badge grid selector */}
-                <div className="grid grid-cols-3 gap-2 max-h-52 overflow-y-auto p-1">
+                <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1">
                   {filteredBadges.map(badge => {
                     const rarity = RARITY_CONFIG[badge.rarity] || RARITY_CONFIG.common;
                     const isSelected = selectedBadgeId === badge.id;
@@ -319,13 +388,13 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
 
               <Button
                 onClick={() => grantMutation.mutate()}
-                disabled={grantMutation.isPending || !userEmail || !selectedBadgeId}
+                disabled={grantMutation.isPending || selectedCount === 0 || !selectedBadgeId}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black uppercase text-[10px] tracking-widest h-12"
               >
                 {grantMutation.isPending ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <><Gift size={14} className="mr-1" /> Atribuir Emblema</>
+                  <><Gift size={14} className="mr-1" /> Atribuir a {selectedCount > 0 ? `${selectedCount} utilizador(es)` : 'utilizador(es)'}</>
                 )}
               </Button>
             </>
@@ -333,9 +402,9 @@ export function GrantBadgeModal({ onClose, onSuccess }) {
 
           {tab === 'revoke' && (
             <>
-              {userBadges.length === 0 && userEmail ? (
+              {userBadges.length === 0 && activeRevokeEmail ? (
                 <p className="text-center text-slate-400 text-sm py-4">
-                  {userEmail ? 'Nenhum emblema encontrado para este utilizador.' : 'Introduz um email para ver os emblemas.'}
+                  {activeRevokeEmail ? 'Nenhum emblema encontrado para este utilizador.' : 'Introduz um email para ver os emblemas.'}
                 </p>
               ) : (
                 <div className="space-y-2">
