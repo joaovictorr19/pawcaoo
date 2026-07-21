@@ -157,23 +157,29 @@ export default function CertificationsEditor({ value = [], onChange }) {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <Label className="text-[11px] font-semibold text-slate-500">Data de emissão</Label>
-              <Input
-                type="date"
-                value={cert.issue_date || ""}
-                onChange={(e) => update(idx, "issue_date", e.target.value)}
-                className="mt-1 h-9 rounded-lg text-sm"
-              />
-            </div>
-            <div>
-              <Label className="text-[11px] font-semibold text-slate-500">Data de validade</Label>
-              <Input
-                type="date"
-                value={cert.expiry_date || ""}
-                onChange={(e) => update(idx, "expiry_date", e.target.value)}
-                disabled={cert.no_expiry}
-                className="mt-1 h-9 rounded-lg text-sm disabled:opacity-40"
-              />
+               <Label className="text-[11px] font-semibold text-slate-500">Data de emissão</Label>
+               <Input
+                 type="text"
+                 inputMode="numeric"
+                 value={cert.issue_date || ""}
+                 onChange={(e) => update(idx, "issue_date", e.target.value)}
+                 placeholder="AAAA-MM-DD"
+                 pattern="\d{4}-\d{2}-\d{2}"
+                 className="mt-1 h-9 rounded-lg text-sm font-mono"
+               />
+             </div>
+             <div>
+               <Label className="text-[11px] font-semibold text-slate-500">Data de validade</Label>
+               <Input
+                 type="text"
+                 inputMode="numeric"
+                 value={cert.expiry_date || ""}
+                 onChange={(e) => update(idx, "expiry_date", e.target.value)}
+                 disabled={cert.no_expiry}
+                 placeholder="AAAA-MM-DD"
+                 pattern="\d{4}-\d{2}-\d{2}"
+                 className="mt-1 h-9 rounded-lg text-sm font-mono disabled:opacity-40"
+               />
               <label className="flex items-center gap-1.5 mt-1.5 cursor-pointer select-none">
                 <input
                   type="checkbox"
