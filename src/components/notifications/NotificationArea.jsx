@@ -234,7 +234,7 @@ export default function NotificationArea({ isOpen, onClose }) {
                     </div>
 
                     {/* Ações */}
-                    <div className="absolute top-2 right-2 flex gap-1">
+                    <div className="absolute bottom-2 right-2 flex gap-1">
                       {!n.is_read && (
                         <button
                           onClick={(e) => { e.stopPropagation(); markRead.mutate(n.id); }}
