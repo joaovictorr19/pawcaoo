@@ -171,12 +171,34 @@ export function BadgeManager() {
 
     if (existingId) {
       await base44.entities.BadgeDefinition.update(existingId, payload);
+
+      // Sincronizar todos os UserBadge já atribuídos com os novos valores
+      try {
+        const existingBadges = await base44.entities.UserBadge.filter({ badge_definition_id: existingId });
+        if (existingBadges.length > 0) {
+          await base44.entities.UserBadge.bulkUpdate(
+            existingBadges.map(ub => ({
+              id: ub.id,
+              name: form.name,
+              description: form.description,
+              icon: form.icon,
+              image_png_file: imageUrl,
+              rarity: form.rarity,
+              xp: form.xp,
+            }))
+          );
+        }
+      } catch (syncErr) {
+        console.error('Erro ao sincronizar UserBadges:', syncErr);
+      }
+
       toast.success(`Emblema "${form.name}" atualizado!`);
     } else {
       await base44.entities.BadgeDefinition.create(payload);
       toast.success(`Emblema "${form.name}" criado!`);
     }
     queryClient.invalidateQueries(['badgeDefinitions']);
+    queryClient.invalidateQueries(['userBadges']);
     setView('list');
     setEditingBadge(null);
   };
