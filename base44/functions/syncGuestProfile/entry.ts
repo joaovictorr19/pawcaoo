@@ -30,25 +30,33 @@ Deno.serve(async (req) => {
     let profile;
     const stayDate = booking.checkout_date || booking.checkin_date || new Date().toISOString().split('T')[0];
 
+    // Fetch DogProfile data for richer behavioral info
+    const dogProfiles = booking.owner_email
+      ? await base44.asServiceRole.entities.DogProfile.filter({ owner_email: booking.owner_email })
+      : [];
+
     if (existing.length > 0) {
       profile = existing[0];
       // Update existing profile with accumulated data
       const updatedDogs = (booking.dogs || []).map(bookingDog => {
         const existingDog = (profile.dogs || []).find(d => d.dog_name === bookingDog.dog_name);
+        const dogProfile = dogProfiles.find(dp => dp.dog_name === bookingDog.dog_name);
         const behavioralProfile = [
           existingDog?.behavioral_profile,
           booking.behavioral_notes,
+          dogProfile?.behavioral_notes,
         ].filter(Boolean).join(' | ');
 
         return {
           dog_name: bookingDog.dog_name,
-          dog_breed: bookingDog.dog_breed || existingDog?.dog_breed,
-          dog_size: bookingDog.dog_size || existingDog?.dog_size,
-          dog_age: bookingDog.dog_age || existingDog?.dog_age,
-          photo_url: existingDog?.photo_url,
-          persistent_medical_notes: existingDog?.persistent_medical_notes || bookingDog.special_notes || '',
+          dog_breed: bookingDog.dog_breed || existingDog?.dog_breed || dogProfile?.breed,
+          dog_size: bookingDog.dog_size || existingDog?.dog_size || dogProfile?.size,
+          dog_age: bookingDog.dog_age || existingDog?.dog_age || dogProfile?.age,
+          photo_url: existingDog?.photo_url || dogProfile?.photo_url,
+          persistent_medical_notes: existingDog?.persistent_medical_notes || bookingDog.special_notes || dogProfile?.medical_conditions || '',
           behavioral_profile: behavioralProfile || '',
-          vaccine_expiry: bookingDog.vaccine_expiry || existingDog?.vaccine_expiry,
+          accustomed_to_being_alone: dogProfile?.accustomed_to_being_alone ?? existingDog?.accustomed_to_being_alone ?? false,
+          vaccine_expiry: bookingDog.vaccine_expiry || existingDog?.vaccine_expiry || dogProfile?.vaccination_date,
           vaccine_document_url: bookingDog.vaccine_document_url || existingDog?.vaccine_document_url,
         };
       });
@@ -81,16 +89,21 @@ Deno.serve(async (req) => {
         emergency_contact_phone: booking.emergency_contact_phone,
         veterinarian_name: booking.veterinarian_name,
         veterinarian_phone: booking.veterinarian_phone,
-        dogs: (booking.dogs || []).map(d => ({
-          dog_name: d.dog_name,
-          dog_breed: d.dog_breed,
-          dog_size: d.dog_size,
-          dog_age: d.dog_age,
-          persistent_medical_notes: d.special_notes || '',
-          behavioral_profile: booking.behavioral_notes || '',
-          vaccine_expiry: d.vaccine_expiry,
-          vaccine_document_url: d.vaccine_document_url,
-        })),
+        dogs: (booking.dogs || []).map(d => {
+          const dogProfile = dogProfiles.find(dp => dp.dog_name === d.dog_name);
+          return {
+            dog_name: d.dog_name,
+            dog_breed: d.dog_breed || dogProfile?.breed,
+            dog_size: d.dog_size || dogProfile?.size,
+            dog_age: d.dog_age || dogProfile?.age,
+            photo_url: dogProfile?.photo_url,
+            persistent_medical_notes: d.special_notes || dogProfile?.medical_conditions || '',
+            behavioral_profile: booking.behavioral_notes || dogProfile?.behavioral_notes || '',
+            accustomed_to_being_alone: dogProfile?.accustomed_to_being_alone ?? false,
+            vaccine_expiry: d.vaccine_expiry || dogProfile?.vaccination_date,
+            vaccine_document_url: d.vaccine_document_url,
+          };
+        }),
         total_stays: 1,
         total_spent: booking.total_amount || 0,
         first_stay_date: stayDate,

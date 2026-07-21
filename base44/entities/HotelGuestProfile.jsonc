@@ -65,6 +65,11 @@
             "type": "string",
             "description": "Perfil comportamental acumulado de estadias anteriores"
           },
+          "accustomed_to_being_alone": {
+            "type": "boolean",
+            "default": false,
+            "description": "Se o c\u00e3o est\u00e1 habituado a estar sozinho"
+          },
           "vaccine_expiry": {
             "type": "string",
             "format": "date"

@@ -103,6 +103,14 @@ export default function ClientPetsSection({ userEmail }) {
               </div>
             )}
 
+            {/* Accustomed to being alone */}
+            {pet.accustomed_to_being_alone !== undefined && (
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-md border text-xs ${pet.accustomed_to_being_alone ? 'bg-green-50 border-green-200 text-green-700' : 'bg-orange-50 border-orange-200 text-orange-700'}`}>
+                <span className="font-semibold">🏠 Habituado a estar sozinho:</span>
+                <span className="font-bold">{pet.accustomed_to_being_alone ? 'Sim' : 'Não'}</span>
+              </div>
+            )}
+
             {/* Socialization */}
             <div className="flex gap-2 text-xs">
               <div className={`px-2 py-1 rounded border ${pet.gets_along_with?.dogs ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>

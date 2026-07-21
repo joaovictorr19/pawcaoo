@@ -214,6 +214,18 @@ function GuestProfileDetail({ profile, hotelEmail, tr, lang, dateLocale, onBack,
                     <p className="text-xs text-blue-800">{dog.behavioral_profile}</p>
                   </div>
                 )}
+                {dog.accustomed_to_being_alone !== undefined && (
+                  <div className={`rounded-lg px-2.5 py-1.5 mb-1.5 border ${dog.accustomed_to_being_alone ? 'bg-emerald-50 border-emerald-100' : 'bg-amber-50 border-amber-100'}`}>
+                    <p className={`text-[9px] font-bold uppercase tracking-wide mb-0.5 ${dog.accustomed_to_being_alone ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      {lang === 'es' ? '¿Acostumbrado a estar solo?' : lang === 'fr' ? "Habitué à être seul ?" : 'Habituado a estar sozinho?'}
+                    </p>
+                    <p className={`text-xs font-semibold ${dog.accustomed_to_being_alone ? 'text-emerald-800' : 'text-amber-800'}`}>
+                      {dog.accustomed_to_being_alone
+                        ? (lang === 'es' ? 'Sí' : lang === 'fr' ? 'Oui' : 'Sim')
+                        : (lang === 'es' ? 'No' : lang === 'fr' ? 'Non' : 'Não')}
+                    </p>
+                  </div>
+                )}
                 {dog.vaccine_expiry && (
                   <p className="text-[10px] text-slate-400">{tr.vaccineExpiry} {format(parseISO(dog.vaccine_expiry), "dd/MM/yyyy", { locale: dateLocale })}</p>
                 )}
