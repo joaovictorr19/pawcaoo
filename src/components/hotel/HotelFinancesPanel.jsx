@@ -87,20 +87,21 @@ export default function HotelFinancesPanel({ hotelProfile, bookings }) {
   const now = new Date();
   const validBookings = (bookings || []).filter(b => !['cancelled', 'rejected'].includes(b.status));
 
-  const { currentMonthRevenue, currentMonthEarnings, pendingReceivable, totalEarnings, totalRevenue, platformFeeTotal } = useMemo(() => {
+  const { currentMonthEarnings, pendingReceivable, totalEarnings, currentMonthCount } = useMemo(() => {
     const completed = validBookings.filter(b => b.status === 'completed');
     const currentMonthCompleted = completed.filter(b => {
       try { return isSameMonth(parseISO(b.checkin_date), now); } catch { return false; }
     });
     const currentMonthRevenue = currentMonthCompleted.reduce((s, b) => s + (b.total_amount || 0), 0);
-    const currentMonthEarnings = currentMonthRevenue - currentMonthCompleted.reduce((s, b) => s + (b.platform_fee || 0), 0);
+    const currentMonthEarnings = currentMonthCompleted.reduce((s, b) => s + ((b.total_amount || 0) - (b.platform_fee || 0)), 0);
     const pendingReceivable = validBookings
       .filter(b => ['pending', 'partial'].includes(b.payment_status) && ['confirmed', 'checked_in', 'in_progress', 'checked_out', 'completed'].includes(b.status))
       .reduce((s, b) => s + ((b.total_amount || 0) - (b.payment_status === 'partial' ? (b.service_amount || 0) : 0)), 0);
     const totalRevenue = completed.reduce((s, b) => s + (b.total_amount || 0), 0);
     const platformFeeTotal = completed.reduce((s, b) => s + (b.platform_fee || 0), 0);
     const totalEarnings = totalRevenue - platformFeeTotal;
-    return { currentMonthRevenue, currentMonthEarnings, pendingReceivable, totalEarnings, totalRevenue, platformFeeTotal };
+    const currentMonthCount = currentMonthCompleted.length;
+    return { currentMonthEarnings, pendingReceivable, totalEarnings, platformFeeTotal, currentMonthCount };
   }, [bookings]);
 
   const monthlyData = useMemo(() => {
@@ -110,7 +111,7 @@ export default function HotelFinancesPanel({ hotelProfile, bookings }) {
       const monthBookings = validBookings.filter(b => {
         try { return isSameMonth(parseISO(b.checkin_date), monthDate); } catch { return false; }
       });
-      const revenue = monthBookings.reduce((s, b) => s + (b.total_amount || 0), 0);
+      const revenue = monthBookings.reduce((s, b) => s + ((b.total_amount || 0) - (b.platform_fee || 0)), 0);
       months.push({ label: format(monthDate, 'MMM', { locale: dateLocale }), revenue, count: monthBookings.length });
     }
     return months;
@@ -158,11 +159,11 @@ export default function HotelFinancesPanel({ hotelProfile, bookings }) {
   const statusCfg = PAYMENT_STATUS_CONFIG(tr);
 
   const kpiCards = [
-    { label: tr.monthEarnings, value: `${currentMonthEarnings.toFixed(2)}€`, sub: `${currentMonthRevenue.toFixed(2)}€ ${tr.grossRev}`,
+    { label: tr.monthEarnings, value: `${currentMonthEarnings.toFixed(2)}€`, sub: `${currentMonthCount} ${tr.res}`,
       icon: TrendingUp, iconCls: 'text-emerald-500', valueCls: 'text-emerald-700', bgCls: 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200' },
     { label: tr.toReceive, value: `${pendingReceivable.toFixed(2)}€`, sub: tr.pendingPays,
       icon: Clock, iconCls: 'text-amber-500', valueCls: 'text-amber-700', bgCls: 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200' },
-    { label: tr.totalEarnings, value: `${totalEarnings.toFixed(2)}€`, sub: tr.afterFees(`${platformFeeTotal.toFixed(2)}€`),
+    { label: tr.totalEarnings, value: `${totalEarnings.toFixed(2)}€`, sub: lang === 'pt' ? 'líquido recebido' : lang === 'es' ? 'neto recibido' : 'net reçu',
       icon: Wallet, iconCls: 'text-blue-500', valueCls: 'text-blue-700', bgCls: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200' },
   ];
 
@@ -239,26 +240,20 @@ export default function HotelFinancesPanel({ hotelProfile, bookings }) {
           </div>
         ) : (
           <div className="space-y-1.5">
-            <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px_90px] gap-2 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wide text-slate-400">
+            <div className="hidden md:grid grid-cols-[1fr_100px_90px] gap-2 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wide text-slate-400">
               <span>{tr.client}</span>
-              <span className="text-right">{tr.gross}</span>
-              <span className="text-right">{tr.fee}</span>
               <span className="text-right">{tr.net}</span>
               <span className="text-center">{tr.payment}</span>
             </div>
             {paymentBookings.map(b => {
               const payCfg = statusCfg[b.payment_status] || statusCfg.pending;
-              const gross = b.total_amount || 0;
-              const fee = b.platform_fee || 0;
-              const net = gross - fee;
+              const net = (b.total_amount || 0) - (b.platform_fee || 0);
               return (
-                <div key={b.id} className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_80px_80px_80px_90px] gap-2 items-center px-3 py-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                <div key={b.id} className="grid grid-cols-[1fr_auto] md:grid-cols-[1fr_100px_90px] gap-2 items-center px-3 py-2.5 bg-slate-50 rounded-lg border border-slate-100">
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-slate-900 truncate">{b.owner_name}</p>
                     <p className="text-[10px] text-slate-400">{tr.services[b.service_type] || b.service_type} · {b.checkin_date}</p>
                   </div>
-                  <p className="text-xs font-semibold text-slate-700 text-right hidden md:block">{gross.toFixed(2)}€</p>
-                  <p className="text-xs text-slate-400 text-right hidden md:block">{fee.toFixed(2)}€</p>
                   <p className="text-xs font-bold text-emerald-600 text-right hidden md:block">{net.toFixed(2)}€</p>
                   <div className="flex justify-end md:justify-center">
                     <Badge variant="outline" className={`text-[9px] border ${payCfg.cls}`}>
