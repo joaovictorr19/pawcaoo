@@ -195,8 +195,25 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.dog_name || !formData.animal_type) {
-      toast.error("Preencha os campos obrigatórios (Nome do Pet, Tipo de Animal)");
+    const missing = [];
+    if (!formData.dog_name) missing.push("Nome do pet");
+    if (!formData.animal_type) missing.push("Tipo de animal");
+    if (!formData.photo_url) missing.push("Foto do pet");
+    if (!formData.owner_phone) missing.push("Telefone do dono");
+    if (!formData.default_pickup_address) missing.push("Endereço de recolha");
+    if (!formData.breed) missing.push(isExoticAnimal ? "Espécie" : "Raça");
+    if (!formData.age && formData.age !== 0 && !formData.date_of_birth) missing.push("Idade ou data de nascimento");
+    if (!formData.weight && formData.weight !== 0) missing.push("Peso");
+    if (!isExoticAnimal && !formData.size) missing.push("Tamanho");
+    if (!formData.gender) missing.push("Sexo");
+    if (!formData.color) missing.push("Cor");
+    if (!formData.emergency_contact_name) missing.push("Contacto de emergência");
+    if (!formData.emergency_contact_phone) missing.push("Telefone de emergência");
+
+    if (missing.length > 0) {
+      toast.error(`Preencha os campos obrigatórios: ${missing.join(", ")}`, {
+        description: "Todos os dados do pet e do dono devem estar preenchidos antes de guardar."
+      });
       return;
     }
 
@@ -229,7 +246,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
         <form onSubmit={handleSubmit} className="space-y-6"> {/* Added form tag here */}
           {/* Photo Principal */}
           <div>
-            <Label className="mb-3 block text-sm md:text-base font-semibold">Foto Principal *</Label>
+            <Label className="mb-3 block text-sm md:text-base font-semibold">Foto Principal * (obrigatória)</Label>
             <div className="flex flex-col md:flex-row items-start gap-4">
               {formData.photo_url ? (
                 <div className="relative">
@@ -269,7 +286,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
               )}
               <div className="flex-1">
                 <p className="text-xs md:text-sm text-gray-600">
-                  Foto principal do seu pet que aparecerá no perfil
+                  Foto principal do seu pet — obrigatória para guardar o perfil
                 </p>
                 <p className="text-[10px] md:text-xs text-gray-500 mt-1">
                   💡 Otimizada automaticamente para &lt;500KB
@@ -321,12 +338,13 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                   </div>
 
                   <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="owner_phone" className="text-sm">Celular do Dono *</Label>
+                    <Label htmlFor="owner_phone" className="text-sm">Telefone do Dono *</Label>
                     <Input
                       id="owner_phone"
                       value={formData.owner_phone}
                       onChange={(e) => setFormData({ ...formData, owner_phone: e.target.value })}
                       placeholder="+351 XXX XXX XXX"
+                      required
                     />
                   </div>
 
@@ -352,7 +370,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                   </div>
 
                   <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="breed" className="text-sm">{isExoticAnimal ? 'Espécie' : 'Raça'}</Label>
+                    <Label htmlFor="breed" className="text-sm">{isExoticAnimal ? 'Espécie' : 'Raça'} *</Label>
                     <Input
                       id="breed"
                       value={formData.breed}
@@ -365,11 +383,12 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                         formData.animal_type === 'rodent' ? "Ex: Hamster, Coelho..." :
                         "Espécie ou variedade"
                       }
+                      required
                     />
                   </div>
 
                   <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="age" className="text-sm">Idade (anos)</Label>
+                    <Label htmlFor="age" className="text-sm">Idade (anos) *</Label>
                     <Input
                       id="age"
                       type="number"
@@ -377,6 +396,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                       value={formData.age}
                       onChange={(e) => setFormData({ ...formData, age: e.target.value === '' ? '' : parseInt(e.target.value) })}
                       placeholder="0"
+                      required
                     />
                   </div>
 
@@ -404,19 +424,20 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                   </div>
 
                   <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="weight" className="text-sm">Peso (kg)</Label>
+                    <Label htmlFor="weight" className="text-sm">Peso (kg) *</Label>
                     <Input
                       id="weight"
                       type="number"
                       value={formData.weight}
                       onChange={(e) => setFormData({ ...formData, weight: parseFloat(e.target.value) || "" })}
                       placeholder="0"
+                      required
                     />
                   </div>
 
                   {!isExoticAnimal && (
                     <div className="space-y-1 md:space-y-2">
-                      <Label htmlFor="size" className="text-sm">Tamanho</Label>
+                      <Label htmlFor="size" className="text-sm">Tamanho *</Label>
                       <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
                         <SelectTrigger>
                           <SelectValue />
@@ -432,7 +453,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                   )}
 
                   <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="gender" className="text-sm">Sexo</Label>
+                    <Label htmlFor="gender" className="text-sm">Sexo *</Label>
                     <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
                       <SelectTrigger>
                         <SelectValue />
@@ -445,12 +466,13 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                   </div>
 
                   <div className="space-y-1 md:space-y-2">
-                    <Label htmlFor="color" className="text-sm">Cor</Label>
+                    <Label htmlFor="color" className="text-sm">Cor *</Label>
                     <Input
                       id="color"
                       value={formData.color}
                       onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                       placeholder="Ex: Preto, Dourado..."
+                      required
                     />
                   </div>
 
@@ -468,7 +490,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                 {/* Pickup Address */}
                 <div className="border-2 border-purple-200 rounded-xl p-3 md:p-4 bg-purple-50">
                   <Label htmlFor="default_pickup_address" className="text-sm md:text-base font-semibold text-purple-900 mb-2 block">
-                    Local de Recolha Padrao
+                    Endereço de Recolha *
                   </Label>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
@@ -489,6 +511,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                       onChange={(e) => setFormData({ ...formData, default_pickup_address: e.target.value })}
                       placeholder="Ex: Rua das Flores, 123, Lisboa"
                       className="bg-white"
+                      required
                     />
                     <p className="text-xs text-purple-700">
                       Este endereco sera usado automaticamente ao agendar passeios
@@ -859,22 +882,24 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <Label htmlFor="emergency_contact_name" className="text-sm">Contato de Emergência</Label>
+                  <Label htmlFor="emergency_contact_name" className="text-sm">Contato de Emergência *</Label>
                   <Input
                     id="emergency_contact_name"
                     value={formData.emergency_contact_name}
                     onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
                     placeholder="Nome completo"
+                    required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="emergency_contact_phone" className="text-sm">Telefone de Emergência</Label>
+                  <Label htmlFor="emergency_contact_phone" className="text-sm">Telefone de Emergência *</Label>
                   <Input
                     id="emergency_contact_phone"
                     value={formData.emergency_contact_phone}
                     onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
                     placeholder="+351 XXX XXX XXX"
+                    required
                   />
                 </div>
 
