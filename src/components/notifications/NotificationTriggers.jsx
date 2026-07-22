@@ -297,6 +297,19 @@ export default function NotificationTriggers({ user }) {
         }
       }
 
+      // Rejected → notify owner that the professional refused
+      if (b.status === 'rejected' && allowInApp('booking')) {
+        await base44.entities.Notification.create({
+          recipient_email: user.email,
+          title: 'Reserva recusada',
+          message: `${b.walker_name || 'Profissional'} não pode aceitar o seu pedido para ${b.walk_date || ''}.`,
+          type: 'booking',
+          related_id: b.id,
+          link: '/MyBookings'
+        });
+        if (allowPush('booking')) notifyBrowser('Reserva recusada', 'O profissional nao esta disponivel.', `booking_${b.id}_rejected`);
+      }
+
       // Canceled → notify professional
       if (isWalker && b.status === 'cancelled') {
         try {
@@ -421,6 +434,68 @@ export default function NotificationTriggers({ user }) {
     checkPendingHotelPayments();
     // Re-verificar a cada 30s para apanhar countdown
     const interval = setInterval(checkPendingHotelPayments, 30000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [user?.email, notifPrefs]);
+
+  // ─── Reservas de passeio/treino com pagamento pendente — aviso global ─────────
+  useEffect(() => {
+    if (!user?.email) return;
+
+    let active = true;
+
+    const checkPendingBookings = async () => {
+      try {
+        const pending = await base44.entities.Booking.filter({
+          owner_email: user.email,
+          payment_status: 'pending',
+          status: 'pending'
+        }, '-created_date', 10);
+
+        if (!active || !pending || pending.length === 0) return;
+
+        for (const booking of pending) {
+          const sessionKey = `booking_pay_notified_${booking.id}`;
+          if (sessionStorage.getItem(sessionKey)) continue;
+          sessionStorage.setItem(sessionKey, '1');
+
+          if (allowInApp('payment')) {
+            try {
+              await base44.entities.Notification.create({
+                recipient_email: user.email,
+                title: 'Pagamento pendente — reserva por concluir',
+                message: `Tens uma reserva com ${booking.walker_name || 'profissional'} (${booking.total_amount}€) por pagar. Conclui o pagamento para confirmar a reserva.`,
+                type: 'payment',
+                is_read: false,
+                link: '/MyBookings',
+                icon: '⏰',
+                related_id: booking.id
+              });
+            } catch {}
+          }
+
+          if (allowPush('payment') && 'Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification('Pagamento pendente', {
+                body: `Reserva com ${booking.walker_name || 'profissional'} — pagamento por concluir.`,
+                tag: `booking_pay_${booking.id}`,
+                icon: '/logo.png',
+                badge: '/favicon.png',
+                requireInteraction: true
+              });
+            } catch {}
+          }
+        }
+      } catch (err) {
+        // silencioso
+      }
+    };
+
+    checkPendingBookings();
+    const interval = setInterval(checkPendingBookings, 30000);
 
     return () => {
       active = false;
