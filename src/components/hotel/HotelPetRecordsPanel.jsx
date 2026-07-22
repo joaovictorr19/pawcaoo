@@ -638,11 +638,11 @@ export default function HotelPetRecordsPanel({ hotelProfile }) {
       </div>
 
       {/* Filter */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <button onClick={() => setFilterType("all")} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filterType === "all" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>{language === "pt" ? "Todos" : "All"}</button>
+      <div className="flex flex-wrap items-center gap-2 pb-1">
+        <button onClick={() => setFilterType("all")} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filterType === "all" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>{language === "pt" ? "Todos" : "All"}</button>
         {RECORD_TYPES.map((r) => (
-          <button key={r.key} onClick={() => setFilterType(r.key)} className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1 transition-colors ${filterType === r.key ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
-            <r.icon className="w-3 h-3" /> {tr(r.label, language)}
+          <button key={r.key} onClick={() => setFilterType(r.key)} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap inline-flex items-center gap-1.5 transition-colors ${filterType === r.key ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+            <r.icon className="w-3.5 h-3.5 shrink-0" /> {tr(r.label, language)}
           </button>
         ))}
       </div>
