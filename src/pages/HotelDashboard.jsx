@@ -556,15 +556,6 @@ export default function HotelDashboard() {
           </div>
         </div>
 
-        {/* Sales Insights */}
-        {!loadingBookings && hotelProfile && (
-          <HotelSalesInsights
-            bookings={bookings}
-            hotelProfile={hotelProfile}
-            onNewBooking={() => setShowAddService(true)}
-          />
-        )}
-
         {/* Tab Content */}
         <AnimatePresence mode="wait">
 
@@ -676,6 +667,13 @@ export default function HotelDashboard() {
           {activeTab === "financas" && (
             <motion.div key="financas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4">
+              {!loadingBookings && hotelProfile && (
+                <HotelSalesInsights
+                  bookings={bookings}
+                  hotelProfile={hotelProfile}
+                  onNewBooking={() => setShowAddService(true)}
+                />
+              )}
               <HotelFinancesPanel bookings={bookings} hotelProfile={hotelProfile} />
               <HotelAddOnSalesPanel bookings={bookings} />
             </motion.div>
