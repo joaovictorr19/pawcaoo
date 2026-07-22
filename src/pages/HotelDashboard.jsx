@@ -241,6 +241,28 @@ export default function HotelDashboard() {
       if (["pending", "confirmed", "checked_in"].includes(newBooking.status) && newBooking.service_type) {
         await adjustServiceCapacity(newBooking.service_type, -(newBooking.total_dogs || 1));
       }
+      // ── Notificar a equipa se o cliente é VIP ──
+      try {
+        if (hotelProfile?.id && newBooking.owner_email) {
+          const profiles = await base44.entities.HotelGuestProfile.filter({
+            hotel_profile_id: hotelProfile.id,
+            owner_email: newBooking.owner_email,
+          });
+          if (profiles.length > 0 && profiles[0].is_vip) {
+            const notifyEmail = hotelProfile.created_by || newBooking.hotel_email;
+            if (notifyEmail) {
+              await base44.entities.Notification.create({
+                recipient_email: notifyEmail,
+                title: '👑 Cliente VIP — Nova Reserva',
+                message: `${newBooking.owner_name} é um cliente VIP. Reserva criada para ${newBooking.checkin_date}.`,
+                type: 'booking',
+                related_id: newBooking.id,
+                icon: '👑'
+              });
+            }
+          }
+        }
+      } catch (e) { console.error('VIP check error:', e); }
       toast.success(newBooking.status === "checked_in" ? "Check-in registado" : "Reserva criada com sucesso");
     },
     onError: () => toast.error("Erro ao criar reserva"),

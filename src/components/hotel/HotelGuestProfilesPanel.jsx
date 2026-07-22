@@ -64,7 +64,11 @@ export default function HotelGuestProfilesPanel({ hotelProfile }) {
 
   const toggleVip = useMutation({
     mutationFn: ({ id, is_vip }) => base44.entities.HotelGuestProfile.update(id, { is_vip }),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["hotelGuestProfiles"] }); toast.success(tr.vipToast); },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["hotelGuestProfiles"] });
+      if (data) setSelected(prev => prev ? { ...prev, is_vip: data.is_vip } : prev);
+      toast.success(tr.vipToast);
+    },
   });
 
   const filtered = profiles.filter(p =>

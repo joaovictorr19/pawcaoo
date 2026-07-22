@@ -263,6 +263,29 @@ Deno.serve(async (req) => {
       locale: 'pt',
     });
 
+    // ── Notify hotel if the owner is a VIP guest ──
+    try {
+      const guestProfiles = await base44.asServiceRole.entities.HotelGuestProfile.filter({
+        hotel_profile_id,
+        owner_email: owner_email || user.email,
+      });
+      if (guestProfiles.length > 0 && guestProfiles[0].is_vip) {
+        const notifyEmail = hotel_email || hotelProfile.created_by;
+        if (notifyEmail) {
+          await base44.asServiceRole.entities.Notification.create({
+            recipient_email: notifyEmail,
+            title: '👑 Cliente VIP — Nova Reserva',
+            message: `${owner_name || user.full_name || 'Cliente'} é um cliente VIP e acabou de fazer uma reserva para ${checkin_date}. Trate com atenção especial!`,
+            type: 'booking',
+            related_id: newBooking.id,
+            icon: '👑'
+          });
+        }
+      }
+    } catch (vipErr) {
+      console.error('VIP notification error:', vipErr.message);
+    }
+
     return Response.json({ url: session.url, session_id: session.id, booking_id: newBooking.id });
 
   } catch (error) {

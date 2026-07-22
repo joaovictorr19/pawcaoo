@@ -1,20 +1,21 @@
 import React, { useState } from "react";
-import { AlertCircle, History, Euro, Calendar, PawPrint, FileText, HeartPulse } from "lucide-react";
+import { AlertCircle, History, Euro, Calendar, PawPrint, FileText, HeartPulse, Crown } from "lucide-react";
 
 export default function ReturningGuestInfo({ guestProfile, onPrefillDog }) {
   const [expanded, setExpanded] = useState(true);
 
   if (!guestProfile) return null;
 
+  const isVip = guestProfile.is_vip === true;
   const totalStays = guestProfile.total_stays || 0;
   const totalSpent = guestProfile.total_spent || 0;
   const lastStay = guestProfile.last_stay_date;
   const generalNotes = guestProfile.general_notes;
   const dogs = guestProfile.dogs || [];
 
-  // Only show if there's meaningful recurring data
+  // Only show if there's meaningful recurring data OR VIP
   const hasDogNotes = dogs.some(d => d.behavioral_profile || d.persistent_medical_notes);
-  if (totalStays === 0 && !generalNotes && !hasDogNotes) return null;
+  if (!isVip && totalStays === 0 && !generalNotes && !hasDogNotes) return null;
 
   const formatDate = (d) => {
     if (!d) return null;
@@ -26,15 +27,22 @@ export default function ReturningGuestInfo({ guestProfile, onPrefillDog }) {
   };
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2.5">
+    <div className={`rounded-xl p-3 space-y-2.5 border ${isVip ? "bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-300" : "bg-amber-50 border-amber-200"}`}>
+      {/* VIP Banner */}
+      {isVip && (
+        <div className="flex items-center gap-2 bg-amber-100 border border-amber-300 rounded-lg px-3 py-2">
+          <Crown className="w-4 h-4 text-amber-600" />
+          <p className="text-xs font-bold text-amber-800">👑 Cliente VIP</p>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 bg-amber-100 rounded-full flex items-center justify-center">
-            <History className="w-3.5 h-3.5 text-amber-600" />
+            {isVip ? <Crown className="w-3.5 h-3.5 text-amber-600" /> : <History className="w-3.5 h-3.5 text-amber-600" />}
           </div>
           <div>
-            <p className="text-xs font-bold text-amber-900">Cliente Recorrente</p>
+            <p className="text-xs font-bold text-amber-900">{isVip ? "Cliente VIP" : "Cliente Recorrente"}</p>
             <p className="text-[10px] text-amber-600">
               {totalStays} {totalStays === 1 ? "estadia anterior" : "estadias anteriores"}
               {lastStay && ` · última em ${formatDate(lastStay)}`}
