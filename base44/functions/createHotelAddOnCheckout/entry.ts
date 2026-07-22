@@ -14,6 +14,13 @@ const SERVICE_LABELS = {
   medication: 'Medicação',
   playtime: 'Brincadeira',
   general_care: 'Cuidados Gerais',
+  pet_food: 'Ração / Alimento',
+  treats: 'Petiscos',
+  toys: 'Brinquedos',
+  accessories: 'Acessórios',
+  bed: 'Cama / Conforto',
+  hygiene: 'Higiene / Shampoo',
+  other_product: 'Produto',
 };
 
 Deno.serve(async (req) => {
@@ -66,6 +73,8 @@ Deno.serve(async (req) => {
     const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
     const dogNames = (booking.dogs || []).map(d => d.dog_name).join(', ') || '—';
     const serviceLabel = SERVICE_LABELS[addOn.service_name] || addOn.service_name;
+    const productName = addOn.item_name || serviceLabel;
+    const isProduct = addOn.item_category === 'product';
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -73,8 +82,12 @@ Deno.serve(async (req) => {
         price_data: {
           currency: 'eur',
           product_data: {
-            name: `${serviceLabel} — ${dogNames}`,
-            description: `Serviço extra no hotel ${booking.hotel_name || ''}`,
+            name: isProduct
+              ? `${productName} — ${dogNames}`
+              : `${serviceLabel} — ${dogNames}`,
+            description: isProduct
+              ? `Produto vendido no hotel ${booking.hotel_name || ''}`
+              : `Serviço extra no hotel ${booking.hotel_name || ''}`,
           },
           unit_amount: Math.round(amount * 100),
         },

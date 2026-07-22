@@ -164,12 +164,32 @@
               "feeding",
               "medication",
               "playtime",
-              "general_care"
+              "general_care",
+              "pet_food",
+              "treats",
+              "toys",
+              "accessories",
+              "bed",
+              "hygiene",
+              "other_product"
             ]
+          },
+          "item_category": {
+            "type": "string",
+            "enum": [
+              "service",
+              "product"
+            ],
+            "default": "service",
+            "description": "Categoria: service=servico, product=produto vendido"
+          },
+          "item_name": {
+            "type": "string",
+            "description": "Nome personalizado do produto/servico (ex: Racao Royal Canin 5kg, Brinquedo Kong)"
           },
           "quantity": {
             "type": "number",
-            "description": "Numero de sessoes/passeios"
+            "description": "Numero de sessoes/passeios ou unidades de produto"
           },
           "price_per_unit": {
             "type": "number"
@@ -214,7 +234,7 @@
         }
       },
       "default": [],
-      "description": "Servicos adicionais durante a estadia"
+      "description": "Servicos adicionais e produtos vendidos durante a estadia"
     },
     "add_ons_total": {
       "type": "number",

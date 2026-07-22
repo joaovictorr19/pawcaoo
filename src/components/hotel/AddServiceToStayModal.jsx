@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   X, Dog, Droplets, Scissors, Star, Utensils, Pill, Smile,
-  HeartHandshake, Banknote, Check, PawPrint, Loader2, AlertCircle, CreditCard
+  HeartHandshake, Banknote, Check, PawPrint, Loader2, AlertCircle, CreditCard,
+  Package, Bone, ShoppingBag, BedDouble, ShowerHead, Gift,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,12 +12,22 @@ const SERVICE_OPTIONS = [
   { value: "bathing",      label: "Banho",       icon: Droplets,       defaultPrice: 15 },
   { value: "grooming",     label: "Grooming",    icon: Scissors,       defaultPrice: 25 },
   { value: "walk",         label: "Passeio",     icon: PawPrint,       defaultPrice: 10 },
-  { value: "nail_trim",    label: "Unhas",       icon: Scissors,       defaultPrice: 8 },
-  { value: "training",     label: "Treino",      icon: Star,           defaultPrice: 20 },
-  { value: "feeding",      label: "Alimentação", icon: Utensils,       defaultPrice: 5 },
-  { value: "medication",   label: "Medicação",   icon: Pill,           defaultPrice: 5 },
-  { value: "playtime",     label: "Brincar",     icon: Smile,          defaultPrice: 8 },
+  { value: "nail_trim",   label: "Unhas",       icon: Scissors,       defaultPrice: 8 },
+  { value: "training",    label: "Treino",      icon: Star,           defaultPrice: 20 },
+  { value: "feeding",     label: "Alimentação", icon: Utensils,       defaultPrice: 5 },
+  { value: "medication",  label: "Medicação",   icon: Pill,           defaultPrice: 5 },
+  { value: "playtime",    label: "Brincar",     icon: Smile,          defaultPrice: 8 },
   { value: "general_care", label: "Cuidados",    icon: HeartHandshake, defaultPrice: 10 },
+];
+
+const PRODUCT_OPTIONS = [
+  { value: "pet_food",    label: "Ração",       icon: ShoppingBag,   defaultPrice: 12 },
+  { value: "treats",      label: "Petiscos",    icon: Bone,          defaultPrice: 4 },
+  { value: "toys",        label: "Brinquedos",  icon: Gift,           defaultPrice: 8 },
+  { value: "accessories", label: "Acessórios",  icon: ShoppingBag,    defaultPrice: 10 },
+  { value: "bed",         label: "Cama",        icon: BedDouble,      defaultPrice: 25 },
+  { value: "hygiene",     label: "Higiene",     icon: ShowerHead,     defaultPrice: 6 },
+  { value: "other_product", label: "Outro",     icon: Package,        defaultPrice: 5 },
 ];
 
 export default function AddServiceToStayModal({
@@ -27,7 +38,9 @@ export default function AddServiceToStayModal({
   onClose,
 }) {
   const [selectedBooking, setSelectedBooking] = useState("");
+  const [activeTab, setActiveTab] = useState("services");
   const [serviceName, setServiceName] = useState("bathing");
+  const [itemName, setItemName] = useState("");
   const [selectedPartner, setSelectedPartner] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [pricePerUnit, setPricePerUnit] = useState(15);
@@ -35,7 +48,6 @@ export default function AddServiceToStayModal({
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [saving, setSaving] = useState(false);
 
-  // Only bookings where the dog is currently at the hotel
   const activeStays = useMemo(() => {
     return bookings.filter(b => ["checked_in", "in_progress"].includes(b.status));
   }, [bookings]);
@@ -44,13 +56,10 @@ export default function AddServiceToStayModal({
     return activeStays.find(b => b.id === selectedBooking);
   }, [activeStays, selectedBooking]);
 
-  // Check availability for the service type
   const availability = useMemo(() => {
     if (!selectedBookingObj || !hotelProfile?.hotel_details) return { hasCapacity: true, available: null, total: null };
     const services = hotelProfile.hotel_details.services || [];
     const svc = services.find(s => s.service_type === "daycare" || s.service_type === "boarding");
-    // For add-on services like bath/grooming, there's no strict capacity tracking
-    // but we check if the hotel is operational
     return { hasCapacity: true, available: svc?.capacity_available, total: svc?.capacity_total };
   }, [selectedBookingObj, hotelProfile]);
 
@@ -60,6 +69,22 @@ export default function AddServiceToStayModal({
     setServiceName(val);
     const opt = SERVICE_OPTIONS.find(o => o.value === val);
     if (opt) setPricePerUnit(opt.defaultPrice);
+  };
+
+  const handleProductChange = (val) => {
+    setServiceName(val);
+    setItemName("");
+    const opt = PRODUCT_OPTIONS.find(o => o.value === val);
+    if (opt) setPricePerUnit(opt.defaultPrice);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === "services") {
+      handleServiceChange("bathing");
+    } else {
+      handleProductChange("pet_food");
+    }
   };
 
   const handleSubmit = async () => {
@@ -76,10 +101,13 @@ export default function AddServiceToStayModal({
       const partner = selectedPartner
         ? partners.find(p => p.walker_email === selectedPartner)
         : null;
+      const isProduct = activeTab === "products";
       await onConfirm({
         bookingId: selectedBooking,
         addOn: {
           service_name: serviceName,
+          item_category: isProduct ? "product" : "service",
+          item_name: isProduct ? itemName.trim() : undefined,
           quantity: Number(quantity) || 1,
           price_per_unit: Number(pricePerUnit) || 0,
           total_price: total,
@@ -95,11 +123,14 @@ export default function AddServiceToStayModal({
       });
       onClose();
     } catch (e) {
-      toast.error("Erro ao adicionar serviço");
+      toast.error("Erro ao adicionar item");
     } finally {
       setSaving(false);
     }
   };
+
+  const currentOptions = activeTab === "services" ? SERVICE_OPTIONS : PRODUCT_OPTIONS;
+  const handleItemChange = activeTab === "services" ? handleServiceChange : handleProductChange;
 
   return (
     <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
@@ -117,8 +148,8 @@ export default function AddServiceToStayModal({
               <PawPrint className="w-4 h-4 text-teal-600" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-sm">Serviço Extra</h3>
-              <p className="text-[10px] text-slate-400">Adicionar a estadia ativa · pagamento na hora</p>
+              <h3 className="font-bold text-slate-900 text-sm">Serviço Extra / Produto</h3>
+              <p className="text-[10px] text-slate-400">Adicionar à estadia · pagamento na hora ou via app</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg">
@@ -132,7 +163,7 @@ export default function AddServiceToStayModal({
               <Dog className="w-5 h-5 text-slate-300" />
             </div>
             <p className="text-sm font-semibold text-slate-700">Sem cães no hotel</p>
-            <p className="text-xs text-slate-400 mt-1">Faz o check-in de uma reserva primeiro para adicionar serviços extra.</p>
+            <p className="text-xs text-slate-400 mt-1">Faz o check-in de uma reserva primeiro para adicionar serviços ou produtos.</p>
           </div>
         ) : (
           <div className="p-4 space-y-4">
@@ -163,17 +194,39 @@ export default function AddServiceToStayModal({
               )}
             </div>
 
-            {/* Service type */}
+            {/* Tabs: Serviços vs Produtos */}
+            <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
+              <button
+                onClick={() => handleTabChange("services")}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  activeTab === "services" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"
+                }`}
+              >
+                <HeartHandshake className="w-3.5 h-3.5" /> Serviços
+              </button>
+              <button
+                onClick={() => handleTabChange("products")}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  activeTab === "products" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"
+                }`}
+              >
+                <Package className="w-3.5 h-3.5" /> Produtos
+              </button>
+            </div>
+
+            {/* Item type */}
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Serviço</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                {activeTab === "services" ? "Serviço" : "Tipo de produto"}
+              </label>
               <div className="grid grid-cols-3 gap-1.5">
-                {SERVICE_OPTIONS.map(opt => {
+                {currentOptions.map(opt => {
                   const Icon = opt.icon;
                   const isSelected = serviceName === opt.value;
                   return (
                     <button
                       key={opt.value}
-                      onClick={() => handleServiceChange(opt.value)}
+                      onClick={() => handleItemChange(opt.value)}
                       className={`flex flex-col items-center gap-1 py-2 rounded-lg border transition-all ${
                         isSelected ? "bg-teal-600 border-teal-600 text-white" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
                       }`}
@@ -186,10 +239,28 @@ export default function AddServiceToStayModal({
               </div>
             </div>
 
+            {/* Product name (only for products) */}
+            {activeTab === "products" && (
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                  Nome do produto (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={itemName}
+                  onChange={e => setItemName(e.target.value)}
+                  placeholder="Ex: Ração Royal Canin 5kg, Brinquedo Kong..."
+                  className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-200 placeholder:text-slate-300"
+                />
+              </div>
+            )}
+
             {/* Quantity + Price */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Quantidade</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">
+                  {activeTab === "services" ? "Sessões" : "Quantidade"}
+                </label>
                 <input
                   type="number"
                   min="1"
@@ -211,8 +282,8 @@ export default function AddServiceToStayModal({
               </div>
             </div>
 
-            {/* Partner (optional) */}
-            {partners.length > 0 && (
+            {/* Partner (optional, services only) */}
+            {activeTab === "services" && partners.length > 0 && (
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Parceiro responsável (opcional)</label>
                 <select
@@ -237,7 +308,7 @@ export default function AddServiceToStayModal({
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 rows={2}
-                placeholder="Ex: Banho antes do check-out, shampoo especial..."
+                placeholder={activeTab === "services" ? "Ex: Banho antes do check-out, shampoo especial..." : "Ex: Tamanho M, cor azul..."}
                 className="w-full px-3 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-200 resize-none placeholder:text-slate-300"
               />
             </div>
@@ -260,12 +331,14 @@ export default function AddServiceToStayModal({
                     paymentMethod === "card" ? "bg-teal-600 border-teal-600 text-white" : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
                   }`}
                 >
-                  <CreditCard className="w-3.5 h-3.5" /> Pedir ao Cliente
+                  <CreditCard className="w-3.5 h-3.5" /> Via App
                 </button>
               </div>
               {paymentMethod === "card" && (
                 <p className="text-[9px] text-teal-600 font-medium mt-1.5 leading-tight">
-                  Gera link Stripe + notifica o cliente no site (cartão ou saldo PawCão)
+                  {activeTab === "products"
+                    ? "Gera cobrança Stripe · comissão da plataforma aplicada · cliente paga no app"
+                    : "Gera link Stripe + notifica o cliente no site (cartão ou saldo PawCão)"}
                 </p>
               )}
             </div>
@@ -273,9 +346,15 @@ export default function AddServiceToStayModal({
             {/* Total preview */}
             <div className="bg-slate-50 rounded-xl px-3 py-2.5 flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wide block">Total a receber</span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-wide block">
+                  {activeTab === "products" ? "Total a pagar" : "Total a receber"}
+                </span>
                 <span className="text-[10px] text-emerald-600 font-medium">
-                  {paymentMethod === "cash" ? "Pago presencial" : "Pedido enviado ao cliente"}
+                  {paymentMethod === "cash"
+                    ? "Pago presencial"
+                    : activeTab === "products"
+                      ? "Cobrança enviada ao cliente"
+                      : "Pedido enviado ao cliente"}
                 </span>
               </div>
               <span className="text-lg font-bold text-slate-900">{total.toFixed(2)}€</span>
