@@ -70,6 +70,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Valor inválido' }, { status: 400 });
     }
 
+    // Fetch global commission rate for hotel add-ons
+    let commissionRate = 2; // default 2%
+    try {
+      const settings = await base44.asServiceRole.entities.PlatformSetting.filter({
+        key: 'hotel_addon_commission_rate',
+      });
+      if (settings?.length > 0 && settings[0].value != null) {
+        commissionRate = Number(settings[0].value);
+      }
+    } catch (e) {
+      console.warn('Could not fetch commission rate, using default 2%:', e.message);
+    }
+    const commissionAmount = Math.round((amount * commissionRate / 100) * 100) / 100;
+    const hotelNetAmount = Math.round((amount - commissionAmount) * 100) / 100;
+
     const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
     const dogNames = (booking.dogs || []).map(d => d.dog_name).join(', ') || '—';
     const serviceLabel = SERVICE_LABELS[addOn.service_name] || addOn.service_name;
@@ -107,6 +122,9 @@ Deno.serve(async (req) => {
         service_name: addOn.service_name,
         type: 'hotel_addon',
         initiated_by: initiatedBy || 'client',
+        commission_rate: String(commissionRate),
+        commission_amount: String(commissionAmount),
+        hotel_net_amount: String(hotelNetAmount),
       },
     });
 

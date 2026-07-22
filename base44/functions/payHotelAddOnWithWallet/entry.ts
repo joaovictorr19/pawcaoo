@@ -72,6 +72,21 @@ Deno.serve(async (req) => {
     // Update the wallet (service role since wallet updates are admin-only)
     await base44.asServiceRole.entities.UserWallet.update(wallet.id, updates);
 
+    // Fetch global commission rate for hotel add-ons
+    let commissionRate = 2; // default 2%
+    try {
+      const settings = await base44.asServiceRole.entities.PlatformSetting.filter({
+        key: 'hotel_addon_commission_rate',
+      });
+      if (settings?.length > 0 && settings[0].value != null) {
+        commissionRate = Number(settings[0].value);
+      }
+    } catch (e) {
+      console.warn('Could not fetch commission rate, using default 2%:', e.message);
+    }
+    const commissionAmount = Math.round((amount * commissionRate / 100) * 100) / 100;
+    const hotelNetAmount = Math.round((amount - commissionAmount) * 100) / 100;
+
     // Mark the add-on as paid
     const newAddOns = [...addOns];
     newAddOns[addOnIndex] = {
@@ -80,13 +95,17 @@ Deno.serve(async (req) => {
       payment_status: 'paid',
       payment_method: 'pawcao_wallet',
       paid_at: new Date().toISOString(),
+      commission_rate: commissionRate,
+      commission_amount: commissionAmount,
+      hotel_net_amount: hotelNetAmount,
     };
 
     const newAddOnsTotal = newAddOns.reduce((sum, a) => sum + (a.total_price || 0), 0);
     const bookingUpdates = {
       add_ons: newAddOns,
       add_ons_total: newAddOnsTotal,
-      service_amount: (booking.service_amount || 0) + amount,
+      service_amount: (booking.service_amount || 0) + hotelNetAmount,
+      platform_fee: (booking.platform_fee || 0) + commissionAmount,
     };
 
     await base44.entities.HotelBooking.update(bookingId, bookingUpdates);
@@ -105,13 +124,31 @@ Deno.serve(async (req) => {
       console.error('WalletTransaction create error:', e);
     }
 
+    // Record platform commission revenue
+    if (commissionAmount > 0) {
+      try {
+        await base44.asServiceRole.entities.PlatformRevenue.create({
+          revenue_type: 'commission',
+          source_id: bookingId,
+          user_email: booking.hotel_email || '',
+          gross_amount: amount,
+          cost_amount: hotelNetAmount,
+          net_profit: commissionAmount,
+          description: `Comissão ${commissionRate}% — produto/serviço "${addOn.service_name}" (carteira PawCão)`,
+          period_month: new Date().toISOString().slice(0, 7),
+        });
+      } catch (e) {
+        console.error('PlatformRevenue create error:', e);
+      }
+    }
+
     // Notify the hotel
     if (booking.hotel_email) {
       try {
         await base44.asServiceRole.entities.Notification.create({
           recipient_email: booking.hotel_email,
           title: '✅ Serviço Extra Pago (Saldo PawCão)',
-          message: `O cliente pagou ${amount.toFixed(2)}€ pelo serviço "${addOn.service_name}" usando saldo PawCão.`,
+          message: `O cliente pagou ${amount.toFixed(2)}€ pelo serviço "${addOn.service_name}" usando saldo PawCão. Comissão: ${commissionAmount}€ · Líquido: ${hotelNetAmount}€.`,
           type: 'payment',
           related_id: bookingId,
           icon: '✅',

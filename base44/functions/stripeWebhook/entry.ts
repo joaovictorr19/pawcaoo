@@ -680,6 +680,111 @@ async function handleCheckoutCompleted(base44, session) {
         return;
     }
 
+    // ── HOTEL ADD-ON: marcar como pago e creditar hotel com valor líquido ──
+    if (session.metadata?.type === 'hotel_addon') {
+        const hotelBookingId = session.metadata?.booking_id;
+        const addOnIndexStr = session.metadata?.add_on_index;
+        if (hotelBookingId && addOnIndexStr !== undefined) {
+            try {
+                const addOnIndex = parseInt(addOnIndexStr, 10);
+                const hotelBookings = await base44.asServiceRole.entities.HotelBooking.filter({ id: hotelBookingId });
+                if (hotelBookings.length > 0) {
+                    const hb = hotelBookings[0];
+                    const addOns = hb.add_ons || [];
+                    const addOn = addOns[addOnIndex];
+
+                    if (addOn) {
+                        const grossAmount = addOn.total_price || 0;
+                        const commissionRate = parseFloat(session.metadata?.commission_rate) || 0;
+                        const commissionAmount = parseFloat(session.metadata?.commission_amount) || 0;
+                        const hotelNetAmount = parseFloat(session.metadata?.hotel_net_amount) || (grossAmount - commissionAmount);
+
+                        // Mark add-on as paid
+                        const newAddOns = [...addOns];
+                        newAddOns[addOnIndex] = {
+                            ...addOn,
+                            paid: true,
+                            payment_status: 'paid',
+                            payment_method: 'stripe',
+                            paid_at: new Date().toISOString(),
+                            commission_rate: commissionRate || undefined,
+                            commission_amount: commissionAmount || undefined,
+                            hotel_net_amount: hotelNetAmount,
+                        };
+
+                        await base44.asServiceRole.entities.HotelBooking.update(hotelBookingId, {
+                            add_ons: newAddOns,
+                            add_ons_total: newAddOns.reduce((s, a) => s + (a.total_price || 0), 0),
+                            service_amount: (hb.service_amount || 0) + hotelNetAmount,
+                            platform_fee: (hb.platform_fee || 0) + commissionAmount,
+                        });
+                        console.log('✅ Hotel add-on marked as paid:', hotelBookingId, 'index', addOnIndex);
+
+                        // Credit hotel wallet (pending)
+                        if (hb.hotel_email && hotelNetAmount > 0) {
+                            try {
+                                const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: hb.hotel_email });
+                                let wallet = wallets[0];
+                                if (!wallet) {
+                                    wallet = await base44.asServiceRole.entities.UserWallet.create({
+                                        user_email: hb.hotel_email,
+                                        cashback_balance: 0, service_tokens: 0, total_points: 0,
+                                        available_balance: 0, pending_balance: 0, total_earnings: 0
+                                    });
+                                }
+                                const newPending = (wallet.pending_balance || 0) + hotelNetAmount;
+                                const newTotalEarnings = (wallet.total_earnings || 0) + hotelNetAmount;
+                                await base44.asServiceRole.entities.UserWallet.update(wallet.id, {
+                                    pending_balance: newPending,
+                                    total_earnings: newTotalEarnings
+                                });
+                                await base44.asServiceRole.entities.WalletTransaction.create({
+                                    user_email: hb.hotel_email,
+                                    transaction_type: 'walker_payment_pending',
+                                    amount: hotelNetAmount,
+                                    description: `Serviço/Produto extra — ${addOn.service_name} (${hb.hotel_name || 'hotel'})`,
+                                    related_booking_id: hotelBookingId,
+                                    balance_after: newPending
+                                });
+                            } catch (e) { console.error('Error crediting hotel wallet for add-on:', e); }
+                        }
+
+                        // Record platform commission revenue
+                        if (commissionAmount > 0) {
+                            try {
+                                await base44.asServiceRole.entities.PlatformRevenue.create({
+                                    revenue_type: 'commission',
+                                    source_id: hotelBookingId,
+                                    user_email: hb.hotel_email || '',
+                                    gross_amount: grossAmount,
+                                    cost_amount: hotelNetAmount,
+                                    net_profit: commissionAmount,
+                                    description: `Comissão ${commissionRate}% — produto/serviço "${addOn.service_name}" (Stripe)`,
+                                    period_month: new Date().toISOString().slice(0, 7),
+                                });
+                            } catch (e) { console.error('PlatformRevenue create error (add-on):', e); }
+                        }
+
+                        // Notify hotel
+                        if (hb.hotel_email) {
+                            await base44.asServiceRole.entities.Notification.create({
+                                recipient_email: hb.hotel_email,
+                                title: '✅ Serviço/Produto Pago',
+                                message: `Cliente pagou ${grossAmount.toFixed(2)}€ por "${addOn.service_name}". Comissão: ${commissionAmount.toFixed(2)}€ · Líquido: ${hotelNetAmount.toFixed(2)}€.`,
+                                type: 'payment',
+                                related_id: hotelBookingId,
+                                icon: '✅'
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Error processing hotel add-on payment:', e);
+            }
+        }
+        return;
+    }
+
     const bookingId = session.metadata?.booking_id;
     const subscriptionType = session.metadata?.subscription_type;
 

@@ -9,12 +9,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
   Euro, Percent, Wallet, TrendingDown, TrendingUp, RefreshCw, Users,
-  Receipt, Banknote, ChevronRight, ArrowDownRight
+  Receipt, Banknote, ChevronRight, ArrowDownRight, Package
 } from "lucide-react";
 import { format, isAfter, subMonths, startOfMonth } from "date-fns";
 import { pt } from "date-fns/locale";
 import CompanyVaultPanel from "./CompanyVaultPanel";
 import AdminHotelCommissionManager from "./AdminHotelCommissionManager";
+import AdminAddonCommissionManager from "./AdminAddonCommissionManager";
 import AdminWithdrawalsPanel from "./AdminWithdrawalsPanel";
 
 const euro = (v) =>
@@ -379,6 +380,20 @@ export default function AdminFinancePanel() {
             </div>
           </div>
           <AdminHotelCommissionManager />
+        </div>
+
+        {/* Add-on Products & Services Commission */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+              <Package className="w-4 h-4 text-violet-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Comissão de Produtos & Serviços</h3>
+              <p className="text-[10px] text-slate-400">Taxa global sobre vendas extras em estadias de hotel</p>
+            </div>
+          </div>
+          <AdminAddonCommissionManager />
         </div>
 
         {/* Withdrawals */}
