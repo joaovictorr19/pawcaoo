@@ -1132,7 +1132,7 @@ export default function Home() {
                 </h2>
                 <p className="text-sm md:text-base text-white/85 mb-7 max-w-2xl mx-auto leading-relaxed">
                   {language === 'pt'
-                    ? 'Ganhe dinheiro fazendo o que ama. Torne-se um passeador ou treinador certificado.'
+                    ? 'Ganhe dinheiro fazendo o que ama. Torne-se um Dog Walker ou treinador certificado.'
                     : 'Earn money doing what you love. Become a certified walker or trainer.'}
                 </p>
 

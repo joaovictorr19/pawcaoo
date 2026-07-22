@@ -11,7 +11,7 @@ const TITLE_OPTIONS = [
   'Funcionário',
   'Treinador',
   'Veterinário',
-  'Passeador',
+  'Dog Walker',
   'Groomer',
   'Rececionista',
   'Gerente',

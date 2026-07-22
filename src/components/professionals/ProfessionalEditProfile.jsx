@@ -13,7 +13,7 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
   const [formData, setFormData] = useState({
     full_name: user?.full_name || "",
     bio: user?.professional_profile?.bio || "",
-    category: user?.professional_profile?.category || "Passeador",
+    category: user?.professional_profile?.category || "Dog Walker",
     gallery: user?.professional_profile?.gallery || [],
     avatarPreview: user?.photo_url || user?.professional_profile?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + (user?.full_name || "pawgo"),
     coverPreview: user?.professional_profile?.cover_url || "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=1000",
@@ -158,10 +158,10 @@ export function ProfessionalEditProfile({ user, onUpdate, onClose }) {
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400"
             >
-              <option value="Passeador">Passeador</option>
+              <option value="Dog Walker">Dog Walker</option>
               <option value="Treinador">Treinador</option>
               <option value="Pet Sitter">Pet Sitter</option>
-              <option value="Passeador & Treinador">Passeador & Treinador</option>
+              <option value="Dog Walker & Treinador">Dog Walker & Treinador</option>
             </select>
           </div>
         </div>

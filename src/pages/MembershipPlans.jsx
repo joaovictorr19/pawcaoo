@@ -31,7 +31,7 @@ const PLANS = [
     notIncluded: [
       'Seguro incluído',
       'Banho grátis mensal',
-      'Passeadores VIP'
+      'Dog Walkers VIP'
     ]
   },
   {
@@ -52,7 +52,7 @@ const PLANS = [
     notIncluded: [
       'Seguro incluído',
       'Banho grátis mensal',
-      'Passeadores VIP'
+      'Dog Walkers VIP'
     ]
   },
   {
@@ -74,7 +74,7 @@ const PLANS = [
     ],
     notIncluded: [
       'Banho grátis mensal',
-      'Passeadores VIP'
+      'Dog Walkers VIP'
     ]
   },
   {
@@ -94,7 +94,7 @@ const PLANS = [
       { text: 'Reembolso 100%', included: true },
       { text: 'Seguro incluído', included: true },
       { text: '1 banho grátis/mês', included: true, highlight: true },
-      { text: 'Acesso a passeadores VIP', included: true, highlight: true },
+      { text: 'Acesso a Dog Walkers VIP', included: true, highlight: true },
     ],
     notIncluded: []
   }

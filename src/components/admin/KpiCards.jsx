@@ -43,7 +43,7 @@ export default function KpiCards({
       desc: t("Agendados para hoje", "Scheduled for today"),
     },
     {
-      title: t("Passeadores Ativos", "Active Walkers"),
+      title: t("Dog Walkers Ativos", "Active Walkers"),
       value: stats.activeWalkers,
       icon: UserCheck,
       iconColor: "text-teal-600",

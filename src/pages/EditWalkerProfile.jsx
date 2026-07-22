@@ -235,7 +235,7 @@ export default function EditWalkerProfile() {
           <CardContent className="p-6 text-center">
             <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Perfil não encontrado</h2>
-            <p className="text-gray-600 mb-4 text-sm">Você ainda não tem um perfil de passeador.</p>
+            <p className="text-gray-600 mb-4 text-sm">Você ainda não tem um perfil de Dog Walker.</p>
             <Button onClick={() => navigate(createPageUrl('BecomeProfessional'))} className="w-full">
               Criar Perfil
             </Button>
@@ -267,7 +267,7 @@ export default function EditWalkerProfile() {
           </Button>
           <div className="flex-1 min-w-0">
             <h1 className="font-semibold text-gray-900 truncate">Editar Perfil</h1>
-            <p className="text-xs text-gray-500">Passeador Profissional</p>
+            <p className="text-xs text-gray-500">Dog Walker Profissional</p>
           </div>
           <Badge variant="outline" className="text-orange-600 border-orange-200 bg-orange-50 text-xs shrink-0">
             Requer Aprovação

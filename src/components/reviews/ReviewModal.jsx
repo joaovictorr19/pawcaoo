@@ -80,7 +80,7 @@ export default function ReviewModal({ booking, isOpen, onClose }) {
           animate={{ opacity: 1, y: 0 }}
           className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-3 rounded-lg text-center text-sm font-medium shadow-md mb-4"
         >
-          ✨ Avalie o passeador e ganhe <span className="font-bold text-yellow-300">+50 XP!</span>
+          ✨ Avalie o Dog Walker e ganhe <span className="font-bold text-yellow-300">+50 XP!</span>
         </motion.div>
 
         <div className="flex flex-col items-center space-y-6 py-4 overflow-y-auto flex-1">

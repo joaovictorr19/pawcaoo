@@ -66,7 +66,7 @@ export default function ShortProfile() {
             const s = slugify(name);
             return s === slug || s === baseSlug;
           });
-          // Priorizar hotéis se houver múltiplos matches (evita hotel → passeador)
+          // Priorizar hotéis se houver múltiplos matches (evita hotel → Dog Walker)
           const match = matches.find(w => w.professional_type === 'hotel') || matches[0];
           if (match && match.created_by) {
             const type = match.professional_type === 'hotel' ? 'hotel' : 'walker';

@@ -11,20 +11,20 @@ export default function StaticExport() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passeadores de Cães Verificados em Porto, Portugal | Agendamento Fácil | PawCão</title>
-    <meta name="description" content="Encontre passeadores de cães de confiança em Porto. Plataforma #1 com Seguro Veterinário Incluído, perfis verificados e avaliações reais. Reserve e comece agora!">
+    <title>Dog Walkers Verificados em Porto, Portugal | Agendamento Fácil | PawCão</title>
+    <meta name="description" content="Encontre Dog Walkers de confiança em Porto. Plataforma #1 com Seguro Veterinário Incluído, perfis verificados e avaliações reais. Reserve e comece agora!">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://pawcao.base44.app/">
-    <meta property="og:title" content="PawCão - Passeadores de Cães Verificados">
-    <meta property="og:description" content="Encontre o passeador ideal para o seu cão. Profissionais verificados, seguro incluído e muito amor.">
+    <meta property="og:title" content="PawCão - Dog Walkers Verificados">
+    <meta property="og:description" content="Encontre o Dog Walker ideal para o seu cão. Profissionais verificados, seguro incluído e muito amor.">
     <meta property="og:image" content="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="PawCão - Passeadores de Cães Verificados">
-    <meta property="twitter:description" content="Encontre o passeador ideal para o seu cão. Profissionais verificados.">
+    <meta property="twitter:title" content="PawCão - Dog Walkers Verificados">
+    <meta property="twitter:description" content="Encontre o Dog Walker ideal para o seu cão. Profissionais verificados.">
     <meta property="twitter:image" content="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?q=80&w=1200&auto=format&fit=crop">
 
     <!-- Tailwind CSS (CDN for static file) -->
@@ -73,7 +73,7 @@ export default function StaticExport() {
                     <a href="#beneficios" class="text-gray-600 hover:text-green-600 transition-colors">Benefícios</a>
                     <a href="#como-funciona" class="text-gray-600 hover:text-green-600 transition-colors">Como Funciona</a>
                     <a href="#depoimentos" class="text-gray-600 hover:text-green-600 transition-colors">Avaliações</a>
-                    <a href="https://pawcao.base44.app/becomewalker" class="text-green-600 font-semibold hover:text-green-700 transition-colors">Seja um Passeador</a>
+                    <a href="https://pawcao.base44.app/becomewalker" class="text-green-600 font-semibold hover:text-green-700 transition-colors">Seja um Dog Walker</a>
                 </div>
 
                 <a href="https://pawcao.base44.app/home" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full font-semibold text-sm transition-all shadow-lg hover:shadow-green-200 transform hover:-translate-y-0.5">
@@ -95,7 +95,7 @@ export default function StaticExport() {
             </div>
 
             <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 leading-tight">
-                Encontre Passeadores de Cães <br class="hidden md:block" />
+                Encontre Dog Walkers <br class="hidden md:block" />
                 <span class="gradient-text">Verificados e de Confiança</span> <br class="hidden md:block" />
                 Perto de Você
             </h1>
@@ -108,7 +108,7 @@ export default function StaticExport() {
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="https://pawcao.base44.app/home" class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold rounded-xl text-white bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1">
                     <i data-lucide="search" class="w-5 h-5 mr-2"></i>
-                    Encontrar Passeador
+                    Encontrar Dog Walker
                 </a>
                 <a href="#como-funciona" class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold rounded-xl text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all">
                     Como Funciona
@@ -143,7 +143,7 @@ export default function StaticExport() {
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-3">100% Verificado</h3>
                     <p class="text-gray-600 leading-relaxed">
-                        Cada passeador passa por uma rigorosa verificação de identidade e antecedentes criminais. Apenas os melhores entram.
+                        Cada Dog Walker passa por uma rigorosa verificação de identidade e antecedentes criminais. Apenas os melhores entram.
                     </p>
                 </div>
 
@@ -191,7 +191,7 @@ export default function StaticExport() {
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Buscar</h3>
                     <p class="text-gray-600 px-4">
-                        Navegue por perfis de passeadores na sua área. Filtre por preço, experiência e serviços.
+                        Navegue por perfis de Dog Walkers na sua área. Filtre por preço, experiência e serviços.
                     </p>
                 </div>
 
@@ -202,7 +202,7 @@ export default function StaticExport() {
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Conversar</h3>
                     <p class="text-gray-600 px-4">
-                        Converse diretamente com o passeador. Faça perguntas e conheça-o antes de reservar.
+                        Converse diretamente com o Dog Walker. Faça perguntas e conheça-o antes de reservar.
                     </p>
                 </div>
 

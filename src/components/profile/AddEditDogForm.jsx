@@ -867,7 +867,7 @@ export default function AddEditDogForm({ dog, onClose, onSave }) {
                   Publicar Passeio de Emergencia
                 </Button>
                 <p className="text-xs text-red-700 mt-2 text-center">
-                  Precisa de um passeador urgente? Crie um pedido de emergencia!
+                  Precisa de um Dog Walker urgente? Crie um pedido de emergencia!
                 </p>
               </div>
               </TabsContent>

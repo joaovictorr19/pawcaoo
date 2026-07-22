@@ -7,7 +7,7 @@ const COUNTRY_DATA = {
     code: "PT",
     name: { pt: "Portugal", es: "Portugal", en: "Portugal", fr: "Portugal" },
     keywords: {
-      pt: ["passeador de cães", "dog walker Portugal", "pet sitter Portugal", "creche canina Portugal", "hotel canino Portugal", "reserva hotel canino Portugal", "alojamento para cães Portugal"],
+      pt: ["Dog Walker", "dog walker Portugal", "pet sitter Portugal", "creche canina Portugal", "hotel canino Portugal", "reserva hotel canino Portugal", "alojamento para cães Portugal"],
       es: ["paseador de perros Portugal", "dog walker Portugal", "guardería canina Portugal", "hotel canino Portugal", "reserva hotel canino Portugal"],
       en: ["dog walker Portugal", "pet sitter Portugal", "dog boarding Portugal", "dog hotel Portugal", "dog daycare Portugal", "book dog hotel Portugal"],
       fr: ["promeneur de chien Portugal", "pet sitter Portugal", "pension pour chien Portugal", "hôtel pour chien Portugal", "garde d'animaux Portugal"],
@@ -23,7 +23,7 @@ const COUNTRY_DATA = {
     code: "ES",
     name: { pt: "Espanha", es: "España", en: "Spain", fr: "Espagne" },
     keywords: {
-      pt: ["passeador de cães Espanha", "dog walker Espanha", "hotel canino Espanha", "creche canina Espanha"],
+      pt: ["Dog Walker Espanha", "dog walker Espanha", "hotel canino Espanha", "creche canina Espanha"],
       es: ["paseador de perros", "dog walker España", "guardería canina", "hotel canino España", "pet sitter España", "residencia canina España", "alojamiento para perros España"],
       en: ["dog walker Spain", "pet sitter Spain", "dog boarding Spain", "dog hotel Spain", "dog daycare Spain"],
       fr: ["promeneur de chien Espagne", "pet sitter Espagne", "pension pour chien Espagne", "hôtel pour chien Espagne"],
@@ -39,7 +39,7 @@ const COUNTRY_DATA = {
     code: "FR",
     name: { pt: "França", es: "Francia", en: "France", fr: "France" },
     keywords: {
-      pt: ["passeador de cães França", "dog walker França", "hotel canino França"],
+      pt: ["Dog Walker França", "dog walker França", "hotel canino França"],
       es: ["paseador de perros Francia", "dog walker Francia", "hotel canino Francia"],
       en: ["dog walker France", "pet sitter France", "dog boarding France", "dog hotel France", "dog daycare France"],
       fr: ["promeneur de chien", "dog walker France", "garde d'animaux", "pension pour chien", "pet sitter France", "hôtel pour chien France", "garde d'animaux France"],
@@ -54,9 +54,9 @@ const COUNTRY_DATA = {
 };
 
 const PRO_TYPE_LABEL = {
-  walker: { pt: "Passeador de Cães", es: "Paseador de Perros", en: "Dog Walker", fr: "Promeneur de Chien" },
+  walker: { pt: "Dog Walker", es: "Paseador de Perros", en: "Dog Walker", fr: "Promeneur de Chien" },
   trainer: { pt: "Treinador de Cães", es: "Adiestrador Canino", en: "Dog Trainer", fr: "Dresseur Canin" },
-  both: { pt: "Passeador e Treinador de Cães", es: "Paseador y Adiestrador", en: "Dog Walker & Trainer", fr: "Promeneur et Dresseur" },
+  both: { pt: "Dog Walker e Treinador de Cães", es: "Paseador y Adiestrador", en: "Dog Walker & Trainer", fr: "Promeneur et Dresseur" },
   hotel: { pt: "Hotel Canino", es: "Hotel Canino", en: "Dog Hotel", fr: "Hôtel Canin" },
 };
 
@@ -132,7 +132,7 @@ export default function ProfessionalProfileSEO({ profileUser, walkerProfile, tra
         ]
       : [];
     const cityWalkerKw = city
-      ? [`dog walker ${city}`, `passeador de cães ${city}`, `paseador de perros ${city}`, `promeneur de chien ${city}`]
+      ? [`dog walker ${city}`, `Dog Walker ${city}`, `paseador de perros ${city}`, `promeneur de chien ${city}`]
       : [];
 
     const baseKw = [

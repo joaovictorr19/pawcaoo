@@ -331,7 +331,7 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="walker">Passeador (Walker)</SelectItem>
+                    <SelectItem value="walker">Dog Walker (Walker)</SelectItem>
                     <SelectItem value="trainer">Treinador</SelectItem>
                     <SelectItem value="both">Ambos</SelectItem>
                     <SelectItem value="owner">Apenas Cliente (Downgrade)</SelectItem>
@@ -500,7 +500,7 @@ export default function AdminProfessionalManager({ isOpen, onClose, userToEdit =
           {userToEdit?.account_type === 'hotel' && (
             <TabsContent value="partners" className="space-y-4 py-4">
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-900 font-semibold mb-2">👥 Passeadores Parceiros</p>
+                <p className="text-sm text-blue-900 font-semibold mb-2">👥 Dog Walkers Parceiros</p>
                 <p className="text-xs text-blue-700">Os parceiros adicionados aqui aparecem no formulário de nova reserva e no perfil do hotel.</p>
               </div>
 

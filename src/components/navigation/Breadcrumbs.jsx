@@ -31,7 +31,7 @@ export default function Breadcrumbs() {
     // Professional
     'ProfessionalDashboard': { pt: 'Painel Profissional', es: 'Panel Profesional', en: 'Professional Dashboard' },
     'BecomeProfessional': { pt: 'Tornar-me Profissional', es: 'Hacerse Profesional', en: 'Become Professional' },
-    'WalkerDetails': { pt: 'Detalhes do Passeador', es: 'Detalles del Paseador', en: 'Walker Details' },
+    'WalkerDetails': { pt: 'Detalhes do Dog Walker', es: 'Detalles del Paseador', en: 'Walker Details' },
     'TrainerDetails': { pt: 'Detalhes do Treinador', es: 'Detalles del Entrenador', en: 'Trainer Details' },
     'EditWalkerProfile': { pt: 'Editar Perfil', es: 'Editar Perfil', en: 'Edit Profile' },
     'ManageAvailability': { pt: 'Disponibilidade', es: 'Disponibilidad', en: 'Availability' },

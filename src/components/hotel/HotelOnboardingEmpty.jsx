@@ -113,10 +113,10 @@ export default function HotelOnboardingEmpty({ userName }) {
           />
           <OptionCard
             icon={Dog}
-            title="Passeador / Treinador"
+            title="Dog Walker / Treinador"
             desc="Passeios, visitas ao domicílio, treino e serviços personalizados para cães."
             features={WALKER_FEATURES}
-            cta="Criar Conta de Passeador"
+            cta="Criar Conta de Dog Walker"
             onClick={() => navigate(createPageUrl("WalkerOnboarding"))}
           />
         </div>

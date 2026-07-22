@@ -623,9 +623,9 @@ export default function ProfessionalSetup() {
               </div>
               <div className="space-y-3">
                 {[
-                  { value: "walker", label: "Passeador 🦮", desc: "Passeios, guarda, visitas domiciliárias" },
+                  { value: "walker", label: "Dog Walker 🦮", desc: "Passeios, guarda, visitas domiciliárias" },
                   { value: "trainer", label: "Treinador 🎓", desc: "Adestramento, treino comportamental" },
-                  { value: "both", label: "Passeador + Treinador 🌟", desc: "Oferece ambos os serviços" },
+                  { value: "both", label: "Dog Walker + Treinador 🌟", desc: "Oferece ambos os serviços" },
                   { value: "hotel", label: "Hotel Canino 🏨", desc: "Alojamento, creche e serviços de hotel para cães" },
                 ].map(opt => (
                   <button
@@ -1042,9 +1042,9 @@ export default function ProfessionalSetup() {
                   <div>
                     <p className="text-slate-500 text-xs uppercase tracking-widest">Tipo</p>
                     <p className="text-white font-bold text-sm">
-                      {form.professional_type === 'walker' ? '🦮 Passeador' :
+                      {form.professional_type === 'walker' ? '🦮 Dog Walker' :
                        form.professional_type === 'trainer' ? '🎓 Treinador' :
-                       form.professional_type === 'both' ? '🌟 Passeador+Treinador' :
+                       form.professional_type === 'both' ? '🌟 Dog Walker+Treinador' :
                        '🏨 Hotel Canino'}
                     </p>
                   </div>

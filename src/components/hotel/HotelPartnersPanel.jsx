@@ -10,7 +10,7 @@ const TITLE_OPTIONS = [
   "Funcionário",
   "Treinador",
   "Veterinário",
-  "Passeador",
+  "Dog Walker",
   "Groomer",
   "Rececionista",
   "Gerente",
@@ -75,7 +75,7 @@ export default function HotelPartnersPanel({ partners = [], bookings = [], onTog
         <div className="bg-white rounded-2xl border border-dashed border-purple-200 py-12 text-center">
           <Users className="w-12 h-12 mx-auto mb-3 text-purple-200" />
           <p className="text-slate-500 font-medium text-sm">Sem profissionais parceiros</p>
-          <p className="text-slate-400 text-xs mt-1">Adiciona passeadores, groomers e treinadores ao teu hotel</p>
+          <p className="text-slate-400 text-xs mt-1">Adiciona Dog Walkers, groomers e treinadores ao teu hotel</p>
           <Button size="sm" className="mt-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-1.5"
             onClick={onAddPartner}>
             <Plus className="w-3.5 h-3.5" /> Adicionar Profissional

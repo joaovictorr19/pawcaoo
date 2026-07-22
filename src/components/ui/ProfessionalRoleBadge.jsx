@@ -5,7 +5,7 @@ import { GraduationCap, Dog } from "lucide-react";
 /**
  * Badge de Cargo Profissional - Exibe automaticamente o cargo correto
  * Se for Treinador: Badge dourado/premium "Treinador PawCão" (implica funcionário)
- * Se for Passeador: Badge verde/laranja "Passeador PawCão"
+ * Se for Dog Walker: Badge verde/laranja "Dog Walker PawCão"
  */
 export default function ProfessionalRoleBadge({ 
   isTrainer = false, 
@@ -25,7 +25,7 @@ export default function ProfessionalRoleBadge({
     lg: "w-4 h-4"
   };
 
-  // Lógica de prioridade: Treinador > Passeador
+  // Lógica de prioridade: Treinador > Dog Walker
   // Se for treinador, não precisa mostrar "funcionário" separadamente
   if (isTrainer) {
     return (
@@ -52,7 +52,7 @@ export default function ProfessionalRoleBadge({
     );
   }
 
-  // Se for passeador (com ou sem ser funcionário)
+  // Se for Dog Walker (com ou sem ser funcionário)
   if (isWalker || isPawcaoEmployee) {
     return (
       <TooltipProvider>
@@ -66,11 +66,11 @@ export default function ProfessionalRoleBadge({
               }}
             >
               <Dog className={`${iconSizes[size]} drop-shadow-md`} strokeWidth={2.5} />
-              <span className="drop-shadow-sm">Passeador PawCão</span>
+              <span className="drop-shadow-sm">Dog Walker PawCão</span>
             </div>
           </TooltipTrigger>
           <TooltipContent className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-green-400">
-            <p className="font-bold text-sm">🐕 Passeador Verificado</p>
+            <p className="font-bold text-sm">🐕 Dog Walker Verificado</p>
             <p className="text-xs">Profissional oficial da equipa PawCão</p>
           </TooltipContent>
         </Tooltip>

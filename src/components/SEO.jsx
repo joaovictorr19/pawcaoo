@@ -6,7 +6,7 @@ export default function SEO({ title, description, keywords, image, url, type = '
   const { language } = useLanguage();
   const siteTitle = 'PawCão';
   const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
-  const metaDescription = description ? description.substring(0, 160) : 'Passeador de cães, Treinador de cães, Pet Sitter Portugal | Paseador de perros España | Promeneur de chien France';
+  const metaDescription = description ? description.substring(0, 160) : 'Dog Walker, Treinador de cães, Pet Sitter Portugal | Paseador de perros España | Promeneur de chien France';
   // Garantir URL absoluta para imagens OG
   const getAbsoluteUrl = (path) => {
     if (!path) return `${window.location.protocol}//${window.location.host}/social-preview.jpg`;
@@ -25,7 +25,7 @@ export default function SEO({ title, description, keywords, image, url, type = '
       {/* Standard metadata */}
       <title>{fullTitle}</title>
       <meta name='description' content={metaDescription} />
-      <meta name='keywords' content={keywords || 'Passeador de cães, Treinador de cães, Pet Sitter Portugal, Cuidador de animais exóticos, Paseador de perros, Adiestrador canino, Cuidadores de mascotas España, Promeneur de chien, Garde d\'animaux, Pet Sitter France, Dressage canin, Pension pour animaux'} />
+      <meta name='keywords' content={keywords || 'Dog Walker, Treinador de cães, Pet Sitter Portugal, Cuidador de animais exóticos, Paseador de perros, Adiestrador canino, Cuidadores de mascotas España, Promeneur de chien, Garde d\'animaux, Pet Sitter France, Dressage canin, Pension pour animaux'} />
 
       {/* Open Graph */}
       <meta property='og:title' content={fullTitle} />

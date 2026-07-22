@@ -21,7 +21,7 @@ import HotelPartnersStep from "./HotelPartnersStep";
 import SaveConfirmation from "@/components/ui/SaveConfirmation";
 
 const STEPS_DEFAULT = ["Perfil", "Serviços", "Preferências", "Documentos"];
-const STEPS_HOTEL = ["Hotel", "Serviços", "Passeadores", "Documentos"];
+const STEPS_HOTEL = ["Hotel", "Serviços", "Dog Walkers", "Documentos"];
 
 const ANIMALS = [
   { value: "dogs", label: "Cães", icon: "🐕" },
@@ -479,7 +479,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
                 <label className={labelCls}>Tipo de Profissional *</label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { value: "walker", label: "Passeador", icon: <Dog className="w-6 h-6 text-emerald-500 mx-auto mb-1.5" /> },
+                    { value: "walker", label: "Dog Walker", icon: <Dog className="w-6 h-6 text-emerald-500 mx-auto mb-1.5" /> },
                     { value: "trainer", label: "Treinador", icon: <GraduationCap className="w-6 h-6 text-blue-500 mx-auto mb-1.5" /> },
                     { value: "both", label: "Ambos", icon: <div className="flex justify-center gap-1 mb-1.5"><Dog className="w-5 h-5 text-emerald-500" /><GraduationCap className="w-5 h-5 text-blue-500" /></div> },
                     { value: "hotel", label: "Hotel Canino", icon: <span className="text-2xl block mb-1.5 text-center">🏨</span> },
@@ -646,7 +646,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
             </motion.div>
           )}
 
-          {/* STEP 2: Passeadores Parceiros (hotel) */}
+          {/* STEP 2: Dog Walkers Parceiros (hotel) */}
           {currentStep === 2 && isHotelType && (
             <HotelPartnersStep formData={formData} set={set} onBack={() => setCurrentStep(1)} onNext={() => setCurrentStep(3)} />
           )}

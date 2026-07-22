@@ -375,7 +375,7 @@ export default function RecurringBookingModal({ walker, dog, onClose, onSuccess 
                         <p className="font-semibold">Benefícios Inclusos:</p>
                         <ul className="text-xs space-y-1 mt-1">
                           <li>✓ Prioridade no agendamento</li>
-                          <li>✓ Mesmo passeador sempre</li>
+                          <li>✓ Mesmo Dog Walker sempre</li>
                           <li>✓ Cancelamento grátis até 24h antes</li>
                           <li>✓ Ajustes flexíveis de horário</li>
                         </ul>

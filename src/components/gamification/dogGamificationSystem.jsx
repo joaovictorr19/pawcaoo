@@ -90,7 +90,7 @@ export const dogAchievements = [
   // Behavior Achievements
   {
     achievement_id: "perfect_walker",
-    name: "Passeador Perfeito",
+    name: "Dog Walker Perfeito",
     description: "Teve 5 passeios perfeitos (5 estrelas)",
     icon: "⭐",
     category: "behavior",

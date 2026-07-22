@@ -355,12 +355,12 @@ export const translations = {
   // ============ EXISTING TRANSLATIONS CONTINUE BELOW ============
   pt: {
     // SEO
-    seoTitle: "PawCão - Passeadores de Cães em Portugal e Espanha",
+    seoTitle: "PawCão - Dog Walkers em Portugal e Espanha",
     seoDescription: "Encontre Dog Walkers verificados e Pet Sitters em todo o Portugal e Espanha. Seguro incluído.",
 
     // Navigation - Simplified
     dashboard: "Painel",
-    findWalkers: "Passeadores",
+    findWalkers: "Dog Walkers",
     findTrainers: "Treinadores",
     postEmergency: "Passeio Emergência",
     dogSitting: "Dog Sitting",
@@ -373,10 +373,10 @@ export const translations = {
     messages: "Mensagens",
     notifications: "Notificações",
     loyaltyRewards: "Recompensas",
-    becomeWalker: "Seja um Passeador",
+    becomeWalker: "Seja um Dog Walker",
     becomeTrainer: "Seja um Treinador",
     manageAvailability: "Gerir Disponibilidade",
-    walkerSubscriptions: "Assinaturas de Passeador",
+    walkerSubscriptions: "Assinaturas de Dog Walker",
     ownerMembership: "Membros Proprietários",
     partnerDashboard: "Painel de Parceiros",
     myProfile: "Meu Perfil",
@@ -400,7 +400,7 @@ export const translations = {
     analytics: "Analítica",
     accounts: "Contas",
     verifications: "Verificações",
-    activeWalkers: "Passeadores Ativos",
+    activeWalkers: "Dog Walkers Ativos",
     adoptions: "Adoções",
     // badges: "Emblemas",
     companies: "Empresas",
@@ -418,7 +418,7 @@ export const translations = {
     actions: "Ações",
     viewPublicProfile: "Ver Perfil Público",
     grantBadge: "Conceder Badge",
-    activeWalkersManagement: "Gestão de Passeadores Ativos",
+    activeWalkersManagement: "Gestão de Dog Walkers Ativos",
     earnings: "Ganhos",
     pause: "Pausar",
     activate: "Ativar",
@@ -426,7 +426,7 @@ export const translations = {
     noAdoptions: "Nenhuma candidatura de adoção recente",
     pendingApplications: "Candidaturas Pendentes",
     updateList: "Atualizar Lista",
-    walkers: "Passeadores",
+    walkers: "Dog Walkers",
     trainers: "Treinadores",
     shelters: "Abrigos",
     approve: "Aprovar",
@@ -607,7 +607,7 @@ export const translations = {
     peaceOfMind: "Tranquilidade",
     peaceOfMindDesc: "Seguro grátis e suporte prioritário",
     vipAccess: "Acesso VIP",
-    vipAccessDesc: "Passeadores exclusivos e eventos",
+    vipAccessDesc: "Dog Walkers exclusivos e eventos",
     premiumPayoff: "O plano Premium paga-se após apenas 3 reservas!",
     professionalProfiles: "Perfis Profissionais",
     totalWalks: "Total de Paseios",
@@ -616,7 +616,7 @@ export const translations = {
     viewAll: "Ver Todas",
     redeemPoints: "Resgatar Pontos",
     quickActions: "Ações Rápidas",
-    findWalker: "Encontrar Passeador",
+    findWalker: "Encontrar Dog Walker",
     logout: "Terminar Sessão",
     upgradePlan: "Melhorar Plano",
     managePlan: "Gerir Plano",
@@ -781,23 +781,23 @@ export const translations = {
     elitePlanDetails: "Plano Elite Partner - Detalhes",
     
     // Home Page
-    homeTitle: "Encontre o Passeador Perfeito em Portugal e Espanha",
-    homeSubtitle: "Passeadores confiáveis e experientes no seu bairro",
+    homeTitle: "Encontre o Dog Walker Perfeito em Portugal e Espanha",
+    homeSubtitle: "Dog Walkers confiáveis e experientes no seu bairro",
     searchPlaceholder: "Digite a sua localização...",
-    browseWalkers: "Procurar Passeadores",
+    browseWalkers: "Procurar Dog Walkers",
     emergencyWalks: "Passeios de Emergência",
-    availableWalkers: "Passeadores Disponíveis",
-    walkersFound: "passeadores encontrados",
+    availableWalkers: "Dog Walkers Disponíveis",
+    walkersFound: "Dog Walkers encontrados",
     dogsNeedingHelp: "cães precisam de ajuda agora",
     // available: "Disponível", // Duplicate removed
     unavailable: "Indisponível",
-    allWalkers: "Todos os Passeadores",
+    allWalkers: "Todos os Dog Walkers",
     
     // Favorites
-    myFavoriteWalkers: "Meus Passeadores Favoritos",
-    quickAccessTrusted: "Acesso rápido aos seus passeadores de confiança",
+    myFavoriteWalkers: "Meus Dog Walkers Favoritos",
+    quickAccessTrusted: "Acesso rápido aos seus Dog Walkers de confiança",
     noFavorites: "Ainda sem favoritos",
-    startAdding: "Comece a adicionar os seus passeadores favoritos para acesso rápido",
+    startAdding: "Comece a adicionar os seus Dog Walkers favoritos para acesso rápido",
     favorite: "Favorito",
     
     // Booking
@@ -821,7 +821,7 @@ export const translations = {
     cancelled: "Cancelado",
     
     // Walker Details
-    verifiedWalker: "Passeador Verificado",
+    verifiedWalker: "Dog Walker Verificado",
     experienceYears: "anos de experiência",
     completedWalks: "Passeios Concluídos",
     aboutMe: "Sobre Mim",
@@ -945,7 +945,7 @@ export const translations = {
     walkPhotos: "Fotos do Passeio",
     walkTimeline: "Cronologia do Passeio",
     noUpdatesYet: "Ainda sem atualizações",
-    walkerWillStart: "O passeador começará a atualizar em breve!",
+    walkerWillStart: "O Dog Walker começará a atualizar em breve!",
     behaviorUpdate: "Atualização de Comportamento",
     bathroomBreaks: "Pausas para necessidades",
     
@@ -990,11 +990,11 @@ export const translations = {
     
     // Dog Sitting Services
     dogSittingTitle: "Serviços de Dog Sitting",
-    dogSittingSubtitle: "Vai de férias? Precisa de cuidados prolongados para o seu amigo peludo? Os nossos passeadores verificados oferecem serviços profissionais de dog sitting.",
+    dogSittingSubtitle: "Vai de férias? Precisa de cuidados prolongados para o seu amigo peludo? Os nossos Dog Walkers verificados oferecem serviços profissionais de dog sitting.",
     
     // Boarding
     dogBoarding: "Alojamento para Cães",
-    boardingDesc: "O seu cão fica na casa do passeador com cuidados e atenção 24/7",
+    boardingDesc: "O seu cão fica na casa do Dog Walker com cuidados e atenção 24/7",
     boardingFeature1: "Supervisão e cuidados 24/7",
     boardingFeature2: "Ambiente como em casa",
     boardingFeature3: "Passeios e brincadeiras regulares",
@@ -1003,7 +1003,7 @@ export const translations = {
     
     // House Sitting
     houseSitting: "Casa-Sitting",
-    houseSittingDesc: "Passeador fica na sua casa para cuidar do seu cão no ambiente familiar",
+    houseSittingDesc: "Dog Walker fica na sua casa para cuidar do seu cão no ambiente familiar",
     houseSittingFeature1: "Cão fica em casa",
     houseSittingFeature2: "Segurança da casa incluída",
     houseSittingFeature3: "Cuidado do correio e plantas",
@@ -1012,7 +1012,7 @@ export const translations = {
     
     // Drop-in Visits
     dropInVisits: "Visitas de Controlo",
-    dropInVisitsDesc: "Passeador visita a sua casa para alimentar, passear e verificar o seu cão",
+    dropInVisitsDesc: "Dog Walker visita a sua casa para alimentar, passear e verificar o seu cão",
     dropInFeature1: "Visitas de 30-60 minutos",
     dropInFeature2: "Alimentação e água fresca",
     dropInFeature3: "Passeios rápidos ou brincadeiras",
@@ -1031,7 +1031,7 @@ export const translations = {
     insuranceCoverageDesc: "Todos os serviços cobertos pela nossa política de seguros",
     
     // Become Walker
-    becomeWalkerTitle: "Torne-se um Passeador",
+    becomeWalkerTitle: "Torne-se um Dog Walker",
     becomeWalkerSubtitle: "Junte-se ao PawCão e comece a ganhar fazendo o que ama — cuidar de cães",
     step1Profile: "Passo 1: Perfil",
     step2Documents: "Passo 2: Documentos",
@@ -1177,30 +1177,30 @@ export const translations = {
     radius: "Raio",
     breedsWorkWith: "Raças com que Trabalho",
     specialization: "Especialização",
-    bookThisWalker: "Reservar este Passeador",
+    bookThisWalker: "Reservar este Dog Walker",
     verificationPending: "Verificação Pendente",
     noReviewsYet: "Ainda sem avaliações",
     beFirstReview: "Seja o primeiro a avaliar!",
     recurringWalks: "Passeios Recorrentes",
     saveUpTo: "Economize até",
-    sameWalkerAlways: "Mesmo passeador sempre",
+    sameWalkerAlways: "Mesmo Dog Walker sempre",
     flexibleCancellation: "Cancelamento flexível",
     selectPet: "Selecione seu pet",
     setupSchedule: "Configurar Agendamento",
     recurringBookingCreated: "Agendamento recorrente criado!",
     recurringBookingSuccess: "Seu agendamento recorrente foi configurado com sucesso.",
-    walkerNotFound: "Passeador não encontrado",
+    walkerNotFound: "Dog Walker não encontrado",
     redirectingHome: "Redirecionando para a página inicial em 3 segundos...",
     backHome: "Voltar ao Início Agora",
-    backToWalkers: "Voltar para Passeadores",
+    backToWalkers: "Voltar para Dog Walkers",
     message: "Enviar Mensagem",
     
     // New keys added for full translation
-    findWalkerBtn: "Procurar um Passeador", // Updated per user request
-    findewalkerbtn: "Procurar um Passeador", // Fix ID typo usage
+    findWalkerBtn: "Procurar um Dog Walker", // Updated per user request
+    findewalkerbtn: "Procurar um Dog Walker", // Fix ID typo usage
     myDashboard: "Meu Painel",
     emergency: "Emergência",
-    connectOwners: "Conectamos donos de pets a passeadores, treinadores e veterinários de confiança. Seguro, rápido e com muito amor.",
+    connectOwners: "Conectamos donos de pets a Dog Walkers, treinadores e veterinários de confiança. Seguro, rápido e com muito amor.",
     // securePayment: "Pagamento Seguro",
     support247: "Suporte 24/7",
     list: "Lista",
@@ -1208,17 +1208,17 @@ export const translations = {
     showAdvancedFilters: "Mostrar Filtros Avançados",
     showadvancedfilterls: "Mostrar Filtros Avançados", // Fix ID typo usage
     hideAdvancedFilters: "Ocultar Filtros Avançados",
-    walkersWithBoarding: "Passeadores com Alojamento",
-    walkersForHouseSitting: "Passeadores para Casa-Sitting",
-    walkersForDropIn: "Passeadores para Visitas",
-    availableWalkersTitle: "Passeadores Disponíveis",
+    walkersWithBoarding: "Dog Walkers com Alojamento",
+    walkersForHouseSitting: "Dog Walkers para Casa-Sitting",
+    walkersForDropIn: "Dog Walkers para Visitas",
+    availableWalkersTitle: "Dog Walkers Disponíveis",
     found: "encontrados",
     serviceCount: "serviço(s)",
     specializationCount: "especialização(ões)",
     sortedByMatch: "Ordenado por Match",
     sortedByDistance: "ordenado por distância",
     upToDistance: "até",
-    noWalkersFound: "Nenhum passeador encontrado",
+    noWalkersFound: "Nenhum Dog Walker encontrado",
     tryAdjustingFilters: "Tente ajustar os filtros",
     clearServices: "Limpar Serviços",
     clearSpecializations: "Limpar Especializações",
@@ -1240,7 +1240,7 @@ export const translations = {
     nextPage: "Próximo",
     // Post Emergency
     emergencyWalkRequest: "Pedido de Passeio de Emergência",
-    findWalkerNow: "Encontre um passeador para o seu cão agora mesmo",
+    findWalkerNow: "Encontre um Dog Walker para o seu cão agora mesmo",
     dogPhoto: "Foto do Cão",
     uploadClearPhoto: "Carregue uma foto nítida do seu cão",
     breed: "Raça",
@@ -1254,10 +1254,10 @@ export const translations = {
     durationHours: "Duração (horas)",
     offeredPayment: "Pagamento Oferecido (€)",
     specialNotesOptional: "Notas Especiais (Opcional)",
-    specialNotesPlaceholder: "Qualquer informação importante que os passeadores devam saber (comportamento, saúde, rotas, etc.)",
-    emergencyWalkDisclaimer: "O seu pedido ficará visível para todos os passeadores disponíveis imediatamente. Eles entrarão em contato diretamente pelo número fornecido.",
+    specialNotesPlaceholder: "Qualquer informação importante que os Dog Walkers devam saber (comportamento, saúde, rotas, etc.)",
+    emergencyWalkDisclaimer: "O seu pedido ficará visível para todos os Dog Walkers disponíveis imediatamente. Eles entrarão em contato diretamente pelo número fornecido.",
     posting: "A publicar...",
-    emergencyPostedSuccess: "Pedido de emergência publicado! Os passeadores próximos estão a ser notificados.",
+    emergencyPostedSuccess: "Pedido de emergência publicado! Os Dog Walkers próximos estão a ser notificados.",
     emergencyPostFailed: "Falha ao publicar pedido de emergência",
     uploadFailed: "Falha ao carregar foto",
     
@@ -2257,7 +2257,7 @@ export const translations = {
     noAdoptions: "Ninguna solicitud de adopción reciente",
     pendingApplications: "Solicitudes Pendientes",
     updateList: "Actualizar Lista",
-    walkers: "Passeadores",
+    walkers: "Dog Walkers",
     trainers: "Entrenadores",
     shelters: "Refugios",
     approve: "Aprobar",

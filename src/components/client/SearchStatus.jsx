@@ -38,7 +38,7 @@ export default function SearchStatus({ onCancel }) {
         </div>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">A procurar Passeadores{dots}</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">A procurar Dog Walkers{dots}</h2>
       <p className="text-gray-500 text-center mb-6">A notificar profissionais num raio de 5km.</p>
       
       <div className="bg-gray-100 px-4 py-2 rounded-full font-mono text-gray-700 font-medium tracking-widest mb-8">

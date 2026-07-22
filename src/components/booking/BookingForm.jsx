@@ -354,7 +354,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
     } else if (step === 2) {
       if (!pickupAddress?.trim()) {
         toast.error('⚠️ Indique o local de recolha', {
-          description: 'A morada é obrigatória para o passeador ir buscar o cão',
+          description: 'A morada é obrigatória para o Dog Walker ir buscar o cão',
           duration: 4000
         });
         // Scroll para o campo de morada
@@ -369,7 +369,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
       }
       if (!formData.owner_phone?.trim()) {
         toast.error('⚠️ Indique o número de telefone', {
-          description: 'Precisamos de um contacto para o passeador',
+          description: 'Precisamos de um contacto para o Dog Walker',
           duration: 4000
         });
         // Scroll para o campo de telefone

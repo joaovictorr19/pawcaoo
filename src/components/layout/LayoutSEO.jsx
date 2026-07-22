@@ -21,13 +21,13 @@ export default function LayoutSEO() {
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
       <link rel="apple-touch-icon" href="/logo.png" />
       <meta name="description" content={description} />
-      <meta name="keywords" content="Passeador de caes, Treinador de caes, Pet Sitter Portugal, Paseador de perros, Adiestrador canino, Promeneur de chien, Garde d'animaux, Pet Sitter France" />
+      <meta name="keywords" content="Dog Walker de caes, Treinador de caes, Pet Sitter Portugal, Paseador de perros, Adiestrador canino, Promeneur de chien, Garde d'animaux, Pet Sitter France" />
       <meta name="author" content="PawCao" />
       <link rel="canonical" href="https://pawcao.net" />
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="PawCao" />
       <meta property="og:title" content="PawCao - O melhor cuidado para o seu animal" />
-      <meta property="og:description" content="Encontre passeadores, treinadores e cuidadores de exoticos de confianca em Portugal, Espanha e Franca. Rastreamento GPS e pagamentos seguros." />
+      <meta property="og:description" content="Encontre Dog Walkers, treinadores e cuidadores de exoticos de confianca em Portugal, Espanha e Franca. Rastreamento GPS e pagamentos seguros." />
       <meta property="og:url" content={`${window.location.protocol}//${window.location.host}${window.location.pathname}`} />
       <meta property="og:locale" content="pt_PT" />
       <meta property="og:locale:alternate" content="es_ES" />

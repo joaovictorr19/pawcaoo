@@ -184,7 +184,7 @@ export default function SaveRouteModal({
           <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
             <div>
               <Label className="text-sm font-semibold text-blue-900">Tornar Pública</Label>
-              <p className="text-xs text-blue-700">Outros passeadores poderão usar esta rota</p>
+              <p className="text-xs text-blue-700">Outros Dog Walkers poderão usar esta rota</p>
             </div>
             <Switch
               checked={formData.is_public}

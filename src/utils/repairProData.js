@@ -23,7 +23,7 @@ export async function runProRepair() {
               is_trained: false,
               is_pawcao: false,
               bio: "Profissional PawGo em verificação.",
-              category: 'Passeador',
+              category: 'Dog Walker',
               avatar_url: pro.photo_url || pro.profile_photo_url || "", // Recupera a foto antiga se existir
               cover_url: ""
             },

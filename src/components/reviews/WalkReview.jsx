@@ -12,7 +12,7 @@ export default function WalkReview({ isOpen, booking, onSubmit, onClose }) {
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const walkerName = booking?.walker_name || "Passeador";
+  const walkerName = booking?.walker_name || "Dog Walker";
   const walkerImage = booking?.walker_photo_url || "https://via.placeholder.com/150";
   const dogName = booking?.dog_name || "seu cão";
 

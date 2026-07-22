@@ -65,7 +65,7 @@ export default function FiscalSettings() {
               <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
               <h2 className="text-xl font-bold mb-2">Área Exclusiva para Profissionais</h2>
               <p className="text-gray-600 mb-6">
-                Esta secção está disponível apenas para passeadores e treinadores registados.
+                Esta secção está disponível apenas para Dog Walkers e treinadores registados.
               </p>
               <Button onClick={() => navigate(createPageUrl('BecomeProfessional'))}>
                 Tornar-me Profissional

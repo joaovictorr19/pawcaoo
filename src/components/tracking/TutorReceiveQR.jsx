@@ -7,7 +7,7 @@ export function TutorReceiveQR({ booking }) {
   return (
     <div className="p-8 bg-white rounded-[3rem] shadow-xl text-center">
       <h4 className="font-black text-slate-900 mb-6 uppercase tracking-widest text-xs">
-        Mostra este código ao passeador
+        Mostra este código ao Dog Walker
       </h4>
       <div className="bg-slate-50 p-6 rounded-[2rem] inline-block mb-6 border-2 border-slate-100">
         <QRCode value={qrValue} size={200} />

@@ -105,7 +105,7 @@ export default function EmployeeManager({ company }) {
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-2">Sem funcionários registados</p>
-            <p className="text-sm text-gray-500">Adicione passeadores/treinadores à sua equipa</p>
+            <p className="text-sm text-gray-500">Adicione Dog Walkers/treinadores à sua equipa</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -193,7 +193,7 @@ export default function EmployeeManager({ company }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="walker">🐕 Passeador</SelectItem>
+                  <SelectItem value="walker">🐕 Dog Walker</SelectItem>
                   <SelectItem value="trainer">🎓 Treinador</SelectItem>
                   <SelectItem value="both">⭐ Ambos</SelectItem>
                 </SelectContent>

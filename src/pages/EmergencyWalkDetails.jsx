@@ -78,7 +78,7 @@ export default function EmergencyWalkDetails() {
       // 4. Notify owner
       await base44.entities.Notification.create({
         recipient_email: walk.created_by,
-        title: '✅ Passeador Encontrado!',
+        title: '✅ Dog Walker Encontrado!',
         message: `${user.full_name || user.email} aceitou o passeio de emergência de ${walk.dog_name}. Entre em contacto: ${user.email}`,
         type: 'emergency',
         related_id: booking.id,

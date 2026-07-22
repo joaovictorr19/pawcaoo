@@ -110,7 +110,7 @@ export default function AIMatchSuggestions({ dogProfile, preferences, onMatchSel
             Matches Perfeitos com IA
           </CardTitle>
           <p className="text-sm text-gray-600 mt-1">
-            Analisámos {matches.total_analyzed} passeadores para encontrar o match ideal para {dogProfile.dog_name}
+            Analisámos {matches.total_analyzed} Dog Walkers para encontrar o match ideal para {dogProfile.dog_name}
           </p>
         </CardHeader>
       </Card>

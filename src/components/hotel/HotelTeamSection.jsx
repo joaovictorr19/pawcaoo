@@ -68,7 +68,7 @@ export default function HotelTeamSection({ hotelEmail }) {
       <div className="flex items-center gap-2 mb-4">
         <Users className="w-5 h-5 text-primary" />
         <h3 className="font-bold text-slate-900">Equipa de Parceiros</h3>
-        <span className="ml-auto text-xs font-bold text-slate-400">{partners.length} passeadores</span>
+        <span className="ml-auto text-xs font-bold text-slate-400">{partners.length} Dog Walkers</span>
       </div>
 
       <div className="space-y-3">

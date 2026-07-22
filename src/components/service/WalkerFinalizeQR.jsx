@@ -22,7 +22,7 @@ export default function WalkerFinalizeQR({ booking, onClientNotified }) {
         await base44.entities.Notification.create({
           recipient_email: booking.owner_email || booking.created_by,
           title: '🐾 Passeio pronto para finalizar',
-          message: `${booking.walker_name || 'O passeador'} está a aguardar a sua confirmação. Abra o seu Painel e leia o QR Code para liberar o pagamento.`,
+          message: `${booking.walker_name || 'O Dog Walker'} está a aguardar a sua confirmação. Abra o seu Painel e leia o QR Code para liberar o pagamento.`,
           type: 'booking',
           icon: '🔍',
           link: '/ClientDashboard',

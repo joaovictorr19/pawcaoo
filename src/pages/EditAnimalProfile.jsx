@@ -550,7 +550,7 @@ export default function EditAnimalProfile() {
             {/* Outras Observações */}
             <div>
               <label className={labelCls}>📝 Outras Observações</label>
-              <p className="text-xs text-slate-400 mb-1.5">Comportamentos específicos que o passeador deve saber</p>
+              <p className="text-xs text-slate-400 mb-1.5">Comportamentos específicos que o Dog Walker deve saber</p>
               <textarea
                 value={formData.other_observations}
                 onChange={e => set('other_observations', e.target.value)}

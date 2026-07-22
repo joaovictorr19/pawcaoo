@@ -338,7 +338,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                         <SelectTrigger className="rounded-xl bg-white/50"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="owner">Cliente</SelectItem>
-                          <SelectItem value="walker">Passeador</SelectItem>
+                          <SelectItem value="walker">Dog Walker</SelectItem>
                           <SelectItem value="trainer">Treinador</SelectItem>
                           <SelectItem value="both">Ambos</SelectItem>
                         </SelectContent>

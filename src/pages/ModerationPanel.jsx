@@ -182,8 +182,8 @@ export default function ModerationPanel() {
     },
     {
       badge_id: 'trusted_walker',
-      name: 'Passeador Confiável',
-      description: 'Passeador com excelente histórico',
+      name: 'Dog Walker Confiável',
+      description: 'Dog Walker com excelente histórico',
       icon: '💚',
       color: 'teal'
     },

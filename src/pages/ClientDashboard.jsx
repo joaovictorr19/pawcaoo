@@ -264,7 +264,7 @@ export default function ClientDashboard() {
                 <button onClick={() => navigate(createPageUrl('Home'))} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
                   <Award className="w-6 h-6 text-blue-400" />
                   <p className="text-sm font-bold text-white">Encontrar Profissional</p>
-                  <p className="text-xs text-slate-500">Passeadores e treinadores</p>
+                  <p className="text-xs text-slate-500">Dog Walkers e treinadores</p>
                 </button>
                 <button onClick={() => setActiveTab('client_data')} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
                   <User className="w-6 h-6 text-slate-400" />

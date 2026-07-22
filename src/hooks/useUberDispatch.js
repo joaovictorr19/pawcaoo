@@ -50,7 +50,7 @@ async function sendRequestToPro(pro, requestData) {
     await base44.entities.Notification.create({
       recipient_email: pro.created_by,
       title: "Novo pedido de passeio! 🐾",
-      message: `${requestData.owner_name} precisa de um passeador agora. Tens 30 segundos para aceitar.`,
+      message: `${requestData.owner_name} precisa de um Dog Walker agora. Tens 30 segundos para aceitar.`,
       type: "booking",
       related_id: booking.id,
       priority: "urgent",
@@ -87,7 +87,7 @@ export async function requestServiceWithRetry(getAllOnlineWalkers, requestData, 
     if (onlineNow.length === 0) {
       attempts++;
       if (attempts < maxAttempts) {
-        toast.info("Nenhum passeador online. A reiniciar procura...");
+        toast.info("Nenhum Dog Walker online. A reiniciar procura...");
         await new Promise((r) => setTimeout(r, 5000));
       }
       continue;
@@ -95,7 +95,7 @@ export async function requestServiceWithRetry(getAllOnlineWalkers, requestData, 
 
     // Despacha sequencialmente (reutiliza lógica interna)
     for (const pro of onlineNow) {
-      const proName = pro.walker_name?.split(" ")[0] || "Passeador";
+      const proName = pro.walker_name?.split(" ")[0] || "Dog Walker";
       const bookingId = await sendRequestToPro(pro, requestData);
       if (!bookingId) continue;
 
@@ -122,7 +122,7 @@ export async function requestServiceWithRetry(getAllOnlineWalkers, requestData, 
   }
 
   if (!accepted) {
-    toast.error("Infelizmente todos os passeadores estão ocupados. Tenta de novo em instantes.");
+    toast.error("Infelizmente todos os Dog Walkers estão ocupados. Tenta de novo em instantes.");
   }
 }
 
@@ -131,15 +131,15 @@ export function useUberDispatch() {
 
   async function dispatch(walkersInRange, requestData, onAccepted) {
     if (!walkersInRange?.length) {
-      toast.error("Não há passeadores disponíveis na tua zona.");
+      toast.error("Não há Dog Walkers disponíveis na tua zona.");
       return;
     }
 
     setIsDispatching(true);
-    toast.info("A procurar o melhor passeador para ti...");
+    toast.info("A procurar o melhor Dog Walker para ti...");
 
     for (const pro of walkersInRange) {
-      const proName = pro.walker_name?.split(" ")[0] || "Passeador";
+      const proName = pro.walker_name?.split(" ")[0] || "Dog Walker";
 
       const bookingId = await sendRequestToPro(pro, requestData);
       if (!bookingId) continue;

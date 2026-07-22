@@ -16,7 +16,7 @@ export default function HotelPartnersStep({ formData, set, onBack, onNext }) {
     if (!searchEmail.trim()) return;
     const email = searchEmail.trim().toLowerCase();
     if (partners.some(p => p.walker_email === email)) {
-      toast.error("Este passeador já está adicionado.");
+      toast.error("Este Dog Walker já está adicionado.");
       return;
     }
     setSearching(true);
@@ -24,7 +24,7 @@ export default function HotelPartnersStep({ formData, set, onBack, onNext }) {
       const profiles = await base44.entities.WalkerProfile.filter({ walker_email: email });
       const walkerProfile = profiles[0];
       if (!walkerProfile) {
-        toast.error("Nenhum passeador encontrado com este email.");
+        toast.error("Nenhum Dog Walker encontrado com este email.");
         setSearching(false);
         return;
       }
@@ -43,7 +43,7 @@ export default function HotelPartnersStep({ formData, set, onBack, onNext }) {
       setSearchEmail("");
       toast.success(`${newPartner.walker_name} adicionado como parceiro!`);
     } catch {
-      toast.error("Erro ao procurar passeador.");
+      toast.error("Erro ao procurar Dog Walker.");
     }
     setSearching(false);
   };
@@ -67,8 +67,8 @@ export default function HotelPartnersStep({ formData, set, onBack, onNext }) {
   return (
     <motion.div key="s2h" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-24">
       <div>
-        <h2 className="text-3xl font-black text-white tracking-tighter">Passeadores Parceiros</h2>
-        <p className="text-slate-400 text-sm mt-1">Adiciona passeadores que trabalham com o hotel. Aparecerão no teu perfil público.</p>
+        <h2 className="text-3xl font-black text-white tracking-tighter">Dog Walkers Parceiros</h2>
+        <p className="text-slate-400 text-sm mt-1">Adiciona Dog Walkers que trabalham com o hotel. Aparecerão no teu perfil público.</p>
       </div>
 
       {/* Adicionar por email */}
@@ -79,7 +79,7 @@ export default function HotelPartnersStep({ formData, set, onBack, onNext }) {
             value={searchEmail}
             onChange={e => setSearchEmail(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddPartner())}
-            placeholder="email@passeador.com"
+            placeholder="email@Dog Walker.com"
             className="flex-1 h-10 px-3 bg-slate-900 text-white rounded-xl border border-slate-700 outline-none text-sm"
           />
           <Button type="button" onClick={handleAddPartner} disabled={searching || !searchEmail.trim()}
@@ -87,14 +87,14 @@ export default function HotelPartnersStep({ formData, set, onBack, onNext }) {
             {searching ? "..." : <><Plus className="w-4 h-4 mr-1" /> Adicionar</>}
           </Button>
         </div>
-        <p className="text-xs text-slate-500">O passeador já deve estar registado na plataforma.</p>
+        <p className="text-xs text-slate-500">O Dog Walker já deve estar registado na plataforma.</p>
       </div>
 
       {/* Lista de parceiros */}
       {partners.length === 0 ? (
         <div className="text-center py-8 text-slate-500">
           <Search className="w-8 h-8 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">Nenhum passeador parceiro adicionado ainda.</p>
+          <p className="text-sm">Nenhum Dog Walker parceiro adicionado ainda.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -123,7 +123,7 @@ export default function HotelPartnersStep({ formData, set, onBack, onNext }) {
               </button>
             </div>
           ))}
-          <p className="text-xs text-slate-500">O ícone verde indica que o passeador está disponível hoje no hotel.</p>
+          <p className="text-xs text-slate-500">O ícone verde indica que o Dog Walker está disponível hoje no hotel.</p>
         </div>
       )}
 

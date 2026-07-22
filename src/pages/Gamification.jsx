@@ -19,7 +19,7 @@ import { getLevelFromXP, getLevelProgress, getXPToNextLevel } from "@/components
 const MISSIONS = [
   {
     id: 'night_walker',
-    title: 'O Passeador Noturno',
+    title: 'O Dog Walker Noturno',
     description: 'Completa 3 passeios após as 20h',
     icon: Moon,
     reward: 500,

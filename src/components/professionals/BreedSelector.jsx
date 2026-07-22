@@ -93,7 +93,7 @@ export default function BreedSelector({ selectedBreeds = [], onChange, specializ
     setLoadingSuggestions(true);
     try {
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Baseado nestas raças de cães: ${selectedBreeds.join(", ")}, sugere 8 outras raças semelhantes que um passeador/treinador profissional possa ter interesse em trabalhar. Inclui raças portuguesas se relevante (Serra da Estrela, Podengo Português, etc). RESPONDE APENAS com um objeto JSON válido contendo um array "breeds" com nomes de raças em português, sem texto adicional.`,
+        prompt: `Baseado nestas raças de cães: ${selectedBreeds.join(", ")}, sugere 8 outras raças semelhantes que um Dog Walker/treinador profissional possa ter interesse em trabalhar. Inclui raças portuguesas se relevante (Serra da Estrela, Podengo Português, etc). RESPONDE APENAS com um objeto JSON válido contendo um array "breeds" com nomes de raças em português, sem texto adicional.`,
         response_json_schema: {
           type: "object",
           properties: {

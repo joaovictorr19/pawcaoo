@@ -116,7 +116,7 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
           {/* Professional / Hotel */}
           <section>
             <h3 className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">
-              {isHotel ? 'Hotel' : isTraining ? 'Treinador' : 'Passeador'}
+              {isHotel ? 'Hotel' : isTraining ? 'Treinador' : 'Dog Walker'}
             </h3>
             <div className="bg-slate-900/60 border border-white/5 rounded-2xl px-4 py-3">
               <div className="flex items-center gap-3">

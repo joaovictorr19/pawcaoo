@@ -15,7 +15,7 @@ export function BecomeProMobile() {
     full_name: "",
     phone: "",
     city: "Porto",
-    category: "Passeador",
+    category: "Dog Walker",
     experience_years: "1",
     bio: "",
     nif: "",
@@ -164,7 +164,7 @@ export function BecomeProMobile() {
               onChange={e => setFormData({ ...formData, category: e.target.value })}
               className="w-full bg-slate-50 p-4 rounded-2xl text-sm font-bold outline-none"
             >
-              <option value="Passeador">Passeador de Cães</option>
+              <option value="Dog Walker">Dog Walker</option>
               <option value="Pet Sitter">Pet Sitter</option>
               <option value="Treinador">Treinador</option>
             </select>

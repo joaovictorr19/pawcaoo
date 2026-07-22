@@ -578,7 +578,7 @@ export default function AdminDashboard() {
     if (type === 'walker') {
       updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true } });
       syncUserVerification(item.created_by, 'verified', null);
-      toast.success("Passeador aprovado!");
+      toast.success("Dog Walker aprovado!");
     } else if (type === 'trainer') {
       base44.entities.TrainerProfile.update(item.id, { verification_status: 'verified', is_active: true }).then(async () => {
         await syncUserVerification(item.created_by, 'verified', null);
@@ -877,7 +877,7 @@ export default function AdminDashboard() {
                   <div className="bg-gradient-to-br from-[#1D8A82] to-[#2DB0A6] rounded-2xl p-5 shadow-lg">
                     <p className="text-white/80 text-sm font-bold">Verificações Pendentes</p>
                     <p className="text-white text-4xl font-extrabold mt-1">{walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length}</p>
-                    <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold">Passeadores, Hotéis, Treinadores, Abrigos</span>
+                    <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold">Dog Walkers, Hotéis, Treinadores, Abrigos</span>
                   </div>
                   <div className="bg-gradient-to-br from-[#1D8A82] to-[#2DB0A6] rounded-2xl p-5 shadow-lg">
                     <p className="text-white/80 text-sm font-bold">Edições de Perfil</p>

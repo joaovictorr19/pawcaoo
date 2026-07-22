@@ -156,7 +156,7 @@ export default function ProfessionalCalendar() {
         <div className="text-center max-w-sm">
           <CalendarDays className="w-12 h-12 mx-auto text-gray-300 mb-4" />
           <h2 className="text-xl font-bold mb-2">Calendário Profissional</h2>
-          <p className="text-gray-500 mb-4">Esta página é exclusiva para profissionais (passeadores/treinadores).</p>
+          <p className="text-gray-500 mb-4">Esta página é exclusiva para profissionais (Dog Walkers/treinadores).</p>
           <Button onClick={() => navigate(createPageUrl('ProfessionalSetup'))}>Tornar-me Profissional</Button>
         </div>
       </div>

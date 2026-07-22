@@ -36,7 +36,7 @@ export default function WalkerWalletPage() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Acesso Negado</h2>
           <p className="text-gray-600 mb-6">
-            Esta área é exclusiva para passeadores. Torne-se um profissional para aceder à carteira.
+            Esta área é exclusiva para Dog Walkers. Torne-se um profissional para aceder à carteira.
           </p>
           <button
             onClick={() => navigate(createPageUrl('BecomeProfessional'))}

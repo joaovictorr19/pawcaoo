@@ -37,7 +37,7 @@ const AccordionItem = ({ item, type, onApprove, onReject, onViewDetails, languag
   const [docUrl, setDocUrl] = React.useState(null);
 
   const getTypeBadge = () => {
-    if (type === 'walker') return { label: 'Passeador', cls: 'bg-blue-100 text-blue-700' };
+    if (type === 'walker') return { label: 'Dog Walker', cls: 'bg-blue-100 text-blue-700' };
     if (type === 'hotel') return { label: 'Hotel', cls: 'bg-violet-100 text-violet-700' };
     if (type === 'trainer') return { label: 'Treinador', cls: 'bg-amber-100 text-amber-700' };
     return { label: 'Abrigo', cls: 'bg-pink-100 text-pink-700' };
@@ -235,7 +235,7 @@ export default function AdminVerificationQueue({
 
   const filterChips = [
     { key: 'all', label: 'Todos', count: allItems.length },
-    { key: 'walker', label: 'Passeadores', count: walkers.length },
+    { key: 'walker', label: 'Dog Walkers', count: walkers.length },
     { key: 'hotel', label: 'Hotéis', count: hotels.length },
     { key: 'trainer', label: 'Treinadores', count: trainers.length },
     { key: 'shelter', label: 'Abrigos', count: shelters.length },

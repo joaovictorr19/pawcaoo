@@ -322,9 +322,9 @@ export default function WalkerOnboarding() {
             </div>
             <div className="space-y-3">
               {[
-                { value: "walker", label: "Passeador", desc: "Passeios, guarda, visitas domiciliárias", icon: "🦮" },
+                { value: "walker", label: "Dog Walker", desc: "Passeios, guarda, visitas domiciliárias", icon: "🦮" },
                 { value: "trainer", label: "Treinador", desc: "Adestramento, treino comportamental", icon: "🎓" },
-                { value: "both", label: "Passeador + Treinador", desc: "Oferece ambos os serviços", icon: "🌟" },
+                { value: "both", label: "Dog Walker + Treinador", desc: "Oferece ambos os serviços", icon: "🌟" },
               ].map(opt => (
                 <button key={opt.value} onClick={() => set("professional_type", opt.value)} className={`w-full p-4 rounded-2xl border-2 text-left transition-all relative ${form.professional_type === opt.value ? "border-orange-500 bg-orange-500/10" : "border-slate-800 bg-slate-900 hover:border-slate-700"}`}>
                   <p className="text-white font-bold">{opt.icon} {opt.label}</p>
@@ -565,7 +565,7 @@ export default function WalkerOnboarding() {
               <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700">
                 <div>
                   <p className="text-slate-500 text-xs uppercase tracking-widest">Tipo</p>
-                  <p className="text-white font-bold text-sm">{form.professional_type === "walker" ? "🦮 Passeador" : form.professional_type === "trainer" ? "🎓 Treinador" : "🌟 Passeador+Treinador"}</p>
+                  <p className="text-white font-bold text-sm">{form.professional_type === "walker" ? "🦮 Dog Walker" : form.professional_type === "trainer" ? "🎓 Treinador" : "🌟 Dog Walker+Treinador"}</p>
                 </div>
                 <div>
                   <p className="text-slate-500 text-xs uppercase tracking-widest">Preço/hora</p>

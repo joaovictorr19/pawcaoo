@@ -77,7 +77,7 @@ export default function ProfileManagementSection({
           <ShieldCheck className="w-4 h-4 text-slate-500 shrink-0" />
           <h3 className="text-sm font-bold text-slate-800">Gestão do Perfil</h3>
           <span className="ml-auto text-[10px] font-medium text-slate-400 uppercase tracking-wide">
-            {profileType === "walker" ? "Passeador/Treinador" : "Treinador"}
+            {profileType === "walker" ? "Dog Walker/Treinador" : "Treinador"}
           </span>
         </div>
 

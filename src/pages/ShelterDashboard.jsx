@@ -397,7 +397,7 @@ export default function ShelterDashboard() {
                       <Select value={newVolunteer.role} onValueChange={v => setNewVolunteer({...newVolunteer, role: v})}>
                         <SelectTrigger><SelectValue placeholder="Função" /></SelectTrigger>
                         <SelectContent>
-                           <SelectItem value="walker">Passeador</SelectItem>
+                           <SelectItem value="walker">Dog Walker</SelectItem>
                            <SelectItem value="cleaner">Limpeza</SelectItem>
                            <SelectItem value="foster">Família de Acolhimento</SelectItem>
                            <SelectItem value="admin">Administrativo</SelectItem>

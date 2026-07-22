@@ -52,7 +52,7 @@ function ProfileCard({ profile, onApprove, onReject, approving, rejecting }) {
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-bold text-slate-900">{name}</h3>
             <Badge className={isTrainer ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-blue-100 text-blue-700 border-blue-200"}>
-              {isTrainer ? "🎓 Treinador" : "🦮 Passeador"}
+              {isTrainer ? "🎓 Treinador" : "🦮 Dog Walker"}
             </Badge>
             <Badge className="bg-orange-100 text-orange-700 border-orange-200">
               <Clock className="w-3 h-3 mr-1" />
@@ -418,7 +418,7 @@ function EditRequestCard({ request, onApprove, onReject, processing }) {
             <h3 className="font-bold text-slate-900">{displayName}</h3>
             <Badge className="bg-orange-100 text-orange-700 border-orange-200">
               <Edit3 className="w-3 h-3 mr-1" />
-              {request.profile_type === 'trainer' ? '🎓 Treinador' : isHotel ? '🏨 Hotel' : '🦮 Passeador'}
+              {request.profile_type === 'trainer' ? '🎓 Treinador' : isHotel ? '🏨 Hotel' : '🦮 Dog Walker'}
             </Badge>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">{request.professional_email}</p>

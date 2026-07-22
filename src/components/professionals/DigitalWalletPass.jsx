@@ -41,7 +41,7 @@ export default function DigitalWalletPass({
 
   const getTitle = () => {
     if (user?.professional_type === "hotel") return "Hotel Parceiro";
-    const typeLabel = profileType === "trainer" ? "Treinador" : "Passeador";
+    const typeLabel = profileType === "trainer" ? "Treinador" : "Dog Walker";
     return `${typeLabel} • Nível ${tier.level}`;
   };
 

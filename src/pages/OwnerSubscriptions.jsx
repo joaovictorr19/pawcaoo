@@ -235,7 +235,7 @@ export default function OwnerSubscriptions() {
         "1 banho grátis/mês",
         "Prioridade máxima",
         "Suporte dedicado",
-        "Passeadores VIP"
+        "Dog Walkers VIP"
       ]
     }
   ];

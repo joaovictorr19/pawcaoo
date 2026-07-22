@@ -8,9 +8,9 @@ import { ensureProfileSlug } from "@/utils/profileSlug";
 import AdminProfessionalManageModal from "@/components/admin/AdminProfessionalManageModal";
 
 const TYPE_LABELS = {
-  walker: "Passeador",
+  walker: "Dog Walker",
   trainer: "Treinador",
-  both: "Passeador + Treinador",
+  both: "Dog Walker + Treinador",
   hotel: "Hotel",
 };
 

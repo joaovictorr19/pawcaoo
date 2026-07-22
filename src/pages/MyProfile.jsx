@@ -648,7 +648,7 @@ export default function MyProfile() {
                       Serviços Salvos
                     </CardTitle>
                     <p className="text-sm text-gray-600 mt-1">
-                      Seus passeadores e treinadores favoritos
+                      Seus Dog Walkers e treinadores favoritos
                     </p>
                   </CardHeader>
                   <CardContent>

@@ -21,8 +21,8 @@ export function WalkSecurityPass({ booking, onCodeShown }) {
   const tokenToShow = isPickup ? pickupToken : dropoffToken;
   const title = isPickup ? "🟢 QR de Recolha (Início)" : "🔴 QR de Entrega (Final)";
   const description = isPickup 
-    ? "Mostre este código ao passeador para autorizar o início do passeio." 
-    : "Mostre este código ao passeador para confirmar a entrega do seu cão.";
+    ? "Mostre este código ao Dog Walker para autorizar o início do passeio." 
+    : "Mostre este código ao Dog Walker para confirmar a entrega do seu cão.";
   const buttonColor = isPickup ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700";
   const buttonText = isPickup ? "🔓 Autorizar Recolha" : "✅ Confirmar Entrega";
 

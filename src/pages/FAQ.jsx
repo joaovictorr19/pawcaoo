@@ -33,7 +33,7 @@ export default function FAQ() {
         {
           category: "general",
           question: "O que é o PawCão?",
-          answer: "O PawCão é a plataforma de cuidados caninos que opera em Portugal, Espanha e França. Conectamos donos de cães com passeadores, treinadores e hotéis caninos profissionais verificados. Oferecemos passeios, treino, alojamento (boarding), creche (daycare), tosquia e muito mais."
+          answer: "O PawCão é a plataforma de cuidados caninos que opera em Portugal, Espanha e França. Conectamos donos de cães com Dog Walkers, treinadores e hotéis caninos profissionais verificados. Oferecemos passeios, treino, alojamento (boarding), creche (daycare), tosquia e muito mais."
         },
         {
           category: "general",
@@ -43,7 +43,7 @@ export default function FAQ() {
         {
           category: "general",
           question: "Como funciona o PawCão?",
-          answer: "É simples! 1) Crie uma conta gratuita, 2) Procure profissionais na sua área (passeadores, treinadores ou hotéis), 3) Reserve o serviço que precisa, 4) Pague de forma segura através da plataforma, 5) Aproveite o serviço! O pagamento fica retido até à conclusão do serviço para sua segurança."
+          answer: "É simples! 1) Crie uma conta gratuita, 2) Procure profissionais na sua área (Dog Walkers, treinadores ou hotéis), 3) Reserve o serviço que precisa, 4) Pague de forma segura através da plataforma, 5) Aproveite o serviço! O pagamento fica retido até à conclusão do serviço para sua segurança."
         },
         {
           category: "booking",
@@ -78,7 +78,7 @@ export default function FAQ() {
         {
           category: "hotel",
           question: "Posso adicionar serviços extra durante a estadia?",
-          answer: "Sim! Pode adicionar passeios, sessões de treino, tosquia, banhos e outros cuidados diretamente no hotel. O hotel pode também atribuir estas tarefas a parceiros (passeadores colaboradores) e o pagamento é processado de forma segura na plataforma."
+          answer: "Sim! Pode adicionar passeios, sessões de treino, tosquia, banhos e outros cuidados diretamente no hotel. O hotel pode também atribuir estas tarefas a parceiros (Dog Walkers colaboradores) e o pagamento é processado de forma segura na plataforma."
         },
         {
           category: "pawgo",
@@ -128,7 +128,7 @@ export default function FAQ() {
         {
           category: "professional",
           question: "Como me torno um profissional?",
-          answer: "Escolha o tipo de profissional (passeador, treinador ou hotel), complete o onboarding, faça upload dos documentos e aguarde aprovação. É gratuito começar — a comissão da plataforma aplica-se apenas quando recebe pagamentos."
+          answer: "Escolha o tipo de profissional (Dog Walker, treinador ou hotel), complete o onboarding, faça upload dos documentos e aguarde aprovação. É gratuito começar — a comissão da plataforma aplica-se apenas quando recebe pagamentos."
         },
         {
           category: "professional",

@@ -8,10 +8,10 @@ export const COUNTRY_CONFIG = {
     content: {
       pt: {
         title: "Serviços para Pets em Portugal - PawCão",
-        meta: "Passeadores, pet sitters e hotéis para cães e gatos em Lisboa, Porto, Algarve e mais. Profissionais verificados, reserva online com segurança.",
+        meta: "Dog Walkers, pet sitters e hotéis para cães e gatos em Lisboa, Porto, Algarve e mais. Profissionais verificados, reserva online com segurança.",
         hero: "Cuidado de confiança para o seu animal em Portugal",
-        heroSub: "Passeadores de cães, pet sitters e hotéis para pets verificados em Lisboa, Porto, Algarve e em todo o país. Reserve online com segurança.",
-        intro: "Encontre profissionais validados perto de si. Todos os passeadores, pet sitters e hotéis da PawCão em Portugal passam por verificação de identidade e documentos.",
+        heroSub: "Dog Walkers, pet sitters e hotéis para pets verificados em Lisboa, Porto, Algarve e em todo o país. Reserve online com segurança.",
+        intro: "Encontre profissionais validados perto de si. Todos os Dog Walkers, pet sitters e hotéis da PawCão em Portugal passam por verificação de identidade e documentos.",
         citiesTitle: "Serviços por cidade em Portugal",
       },
       es: {
@@ -46,9 +46,9 @@ export const COUNTRY_CONFIG = {
     content: {
       pt: {
         title: "Serviços para Pets em Espanha - PawCão",
-        meta: "Passeadores, pet sitters e hotéis para cães e gatos em Madrid, Barcelona, Valencia e mais. Profissionais verificados, reserva online com segurança.",
+        meta: "Dog Walkers, pet sitters e hotéis para cães e gatos em Madrid, Barcelona, Valencia e mais. Profissionais verificados, reserva online com segurança.",
         hero: "Cuidado de confiança para o seu animal em Espanha",
-        heroSub: "Passeadores de cães, pet sitters e hotéis para pets verificados em Madrid, Barcelona, Valencia e em todo o país.",
+        heroSub: "Dog Walkers, pet sitters e hotéis para pets verificados em Madrid, Barcelona, Valencia e em todo o país.",
         intro: "Encontre profissionais validados perto de si. Todos os serviços da PawCão em Espanha passam por verificação de identidade e documentos.",
         citiesTitle: "Serviços por cidade em Espanha",
       },
@@ -84,9 +84,9 @@ export const COUNTRY_CONFIG = {
     content: {
       pt: {
         title: "Serviços para Pets em França - PawCão",
-        meta: "Passeadores, pet sitters e hotéis para cães e gatos em Paris, Lyon, Marselha e mais. Profissionais verificados, reserva online com segurança.",
+        meta: "Dog Walkers, pet sitters e hotéis para cães e gatos em Paris, Lyon, Marselha e mais. Profissionais verificados, reserva online com segurança.",
         hero: "Cuidado de confiança para o seu animal em França",
-        heroSub: "Passeadores de cães, pet sitters e hotéis para pets verificados em Paris, Lyon, Marselha e em todo o país.",
+        heroSub: "Dog Walkers, pet sitters e hotéis para pets verificados em Paris, Lyon, Marselha e em todo o país.",
         intro: "Encontre profissionais validados perto de si. Todos os serviços da PawCão em França passam por verificação de identidade e documentos.",
         citiesTitle: "Serviços por cidade em França",
       },

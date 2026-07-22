@@ -47,15 +47,15 @@ export default function ClientFinalizeWalk({ booking }) {
                     <div className="mt-3 space-y-2 text-xs text-white/90">
                       <div className="flex gap-2">
                         <span className="font-bold text-white">1.</span>
-                        <span>O passeador vai apresentar um <strong>QR Code de Finalização</strong> no telemóvel dele.</span>
+                        <span>O Dog Walker vai apresentar um <strong>QR Code de Finalização</strong> no telemóvel dele.</span>
                       </div>
                       <div className="flex gap-2">
                         <span className="font-bold text-white">2.</span>
-                        <span>Toque em <strong>"Ler QR do Passeador"</strong> abaixo e aponte a câmara para o código.</span>
+                        <span>Toque em <strong>"Ler QR do Dog Walker"</strong> abaixo e aponte a câmara para o código.</span>
                       </div>
                       <div className="flex gap-2">
                         <span className="font-bold text-white">3.</span>
-                        <span>O pagamento é <strong>automaticamente transferido</strong> para o passeador apenas após a leitura.</span>
+                        <span>O pagamento é <strong>automaticamente transferido</strong> para o Dog Walker apenas após a leitura.</span>
                       </div>
                       <div className="flex gap-2">
                         <span className="font-bold text-white">4.</span>
@@ -70,7 +70,7 @@ export default function ClientFinalizeWalk({ booking }) {
             <WalkScanner
               booking={booking}
               type="END"
-              scannerLabel="📱 Ler QR do Passeador"
+              scannerLabel="📱 Ler QR do Dog Walker"
             />
 
             <div className="flex items-center gap-2 text-xs text-white/70">
@@ -83,7 +83,7 @@ export default function ClientFinalizeWalk({ booking }) {
         {isCompleted && (
           <div className="flex items-center gap-2 bg-white/10 rounded-lg p-2 text-xs text-white/90">
             <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-            <span>Pagamento transferido para o passeador. Obrigado!</span>
+            <span>Pagamento transferido para o Dog Walker. Obrigado!</span>
           </div>
         )}
       </CardContent>

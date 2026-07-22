@@ -5,14 +5,14 @@ export function OnlineWalkersRibbon({ walkers }) {
     <div className="py-4">
       <div className="flex items-center justify-between px-4 mb-4">
         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-          Passeadores Online Agora
+          Dog Walkers Online Agora
         </h3>
         <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
       </div>
 
       <div className="flex gap-4 overflow-x-auto px-4 pb-2 no-scrollbar">
         {onlineOnly.length === 0 ? (
-          <p className="text-[10px] font-medium text-slate-400 italic">Nenhum passeador online na tua zona...</p>
+          <p className="text-[10px] font-medium text-slate-400 italic">Nenhum Dog Walker online na tua zona...</p>
         ) : (
           onlineOnly.map((pro) => (
             <div key={pro.id} className="flex flex-col items-center gap-2 shrink-0">

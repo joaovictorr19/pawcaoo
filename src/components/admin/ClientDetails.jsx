@@ -152,7 +152,7 @@ export default function ClientDetails({ user, onClose }) {
   const updateWalkerBadgesMutation = useMutation({
     mutationFn: async () => {
       if (!walkerProfile?.id) {
-        toast.error("Perfil de passeador não encontrado!");
+        toast.error("Perfil de Dog Walker não encontrado!");
         return;
       }
       await base44.entities.WalkerProfile.update(walkerProfile.id, {
@@ -166,7 +166,7 @@ export default function ClientDetails({ user, onClose }) {
       setTimeout(() => onClose(), 800);
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar passeador: " + error.message);
+      toast.error("Erro ao atualizar Dog Walker: " + error.message);
     }
   });
 

@@ -97,7 +97,7 @@ export default function Landing() {
   const services = [
     {
       title: "Passeios de Cães",
-      description: "Passeadores verificados para o seu melhor amigo",
+      description: "Dog Walkers verificados para o seu melhor amigo",
       icon: "🐕"
     },
     {

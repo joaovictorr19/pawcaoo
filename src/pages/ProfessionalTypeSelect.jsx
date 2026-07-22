@@ -52,7 +52,7 @@ export default function ProfessionalTypeSelect() {
   const options = [
     {
       type: "walker",
-      title: "Passeador / Treinador",
+      title: "Dog Walker / Treinador",
       desc: "Passeios, treino, visitas ao domicílio",
       icon: Dog,
       color: "orange",

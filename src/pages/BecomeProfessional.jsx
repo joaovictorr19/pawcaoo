@@ -99,7 +99,7 @@ export default function BecomeProfessional() {
         verification_status: "pending",
         is_trained: isAlsoTrainer,
         is_pawcao: false,
-        category: professionalType === 'trainer' ? 'Treinador' : professionalType === 'both' ? 'Passeador & Treinador' : 'Passeador',
+        category: professionalType === 'trainer' ? 'Treinador' : professionalType === 'both' ? 'Dog Walker & Treinador' : 'Dog Walker',
         bio: data.bio || "Profissional PawGo em verificação.",
         avatar_url: data.photo_url || user.profile_photo_url || ("https://api.dicebear.com/7.x/avataaars/svg?seed=" + encodeURIComponent(data.name)),
         cover_url: data.cover_photo_url || "",
@@ -369,7 +369,7 @@ export default function BecomeProfessional() {
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Torne-se um Profissional</h1>
           <p className="text-gray-600 text-lg">
-            Passeador, Treinador ou Ambos - Você Escolhe!
+            Dog Walker, Treinador ou Ambos - Você Escolhe!
           </p>
           
           <div className="max-w-2xl mx-auto mt-6">
@@ -458,7 +458,7 @@ export default function BecomeProfessional() {
                               setProfessionalType('walker');
                             }}>
                             <Dog className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                            <h3 className="font-bold text-lg mb-2">Passeador</h3>
+                            <h3 className="font-bold text-lg mb-2">Dog Walker</h3>
                             <p className="text-sm text-gray-600">Passeios e cuidados com cães</p>
                           </div>
 
@@ -484,7 +484,7 @@ export default function BecomeProfessional() {
                               <GraduationCap className="w-10 h-10 text-blue-600" />
                             </div>
                             <h3 className="font-bold text-lg mb-2">Ambos</h3>
-                            <p className="text-sm text-gray-600">Passeador & Treinador</p>
+                            <p className="text-sm text-gray-600">Dog Walker & Treinador</p>
                           </div>
                         </div>
                       </RadioGroup>

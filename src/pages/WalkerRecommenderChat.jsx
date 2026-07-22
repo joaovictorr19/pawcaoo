@@ -38,7 +38,7 @@ export default function WalkerRecommenderChat() {
         if (!conv) {
           conv = await base44.agents.createConversation({
             agent_name: AGENT_NAME,
-            metadata: { name: "Recomendação de Passeadores" },
+            metadata: { name: "Recomendação de Dog Walkers" },
           });
           sessionStorage.setItem(STORAGE_KEY, conv.id);
         }
@@ -118,7 +118,7 @@ export default function WalkerRecommenderChat() {
           </div>
           <div>
             <h1 className="font-heading font-bold text-slate-900 text-sm leading-tight">Assistente de Recomendação</h1>
-            <p className="text-xs text-slate-500">Encontra o passeador ideal para o teu cão</p>
+            <p className="text-xs text-slate-500">Encontra o Dog Walker ideal para o teu cão</p>
           </div>
         </div>
       </div>
@@ -195,7 +195,7 @@ export default function WalkerRecommenderChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ex: Preciso de um passeador em Lisboa para um cão médio, manhãs..."
+            placeholder="Ex: Preciso de um Dog Walker em Lisboa para um cão médio, manhãs..."
             disabled={isStreaming}
             className="flex-1 px-4 py-2.5 rounded-full border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 disabled:opacity-50"
           />

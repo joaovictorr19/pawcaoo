@@ -188,7 +188,7 @@ export default function UserSearchAdvanced({ onSearch, usersSource = [], classNa
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       {user.username && <span className="font-medium text-blue-600">@{user.username}</span>}
                       {user.username && <span>•</span>}
-                      <span className="truncate">{user.role === 'walker' ? 'Passeador' : user.role === 'trainer' ? 'Treinador' : 'Cliente'}</span>
+                      <span className="truncate">{user.role === 'walker' ? 'Dog Walker' : user.role === 'trainer' ? 'Treinador' : 'Cliente'}</span>
                     </div>
                     
                     {(user.gamification_level > 1 || user.badges_count > 0) && (
@@ -234,7 +234,7 @@ export default function UserSearchAdvanced({ onSearch, usersSource = [], classNa
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="owner">Clientes</SelectItem>
-                    <SelectItem value="walker">Passeadores</SelectItem>
+                    <SelectItem value="walker">Dog Walkers</SelectItem>
                     <SelectItem value="trainer">Treinadores</SelectItem>
                     <SelectItem value="company">Empresas</SelectItem>
                   </SelectContent>
@@ -390,7 +390,7 @@ export default function UserSearchAdvanced({ onSearch, usersSource = [], classNa
             <Input 
               value={saveName} 
               onChange={(e) => setSaveName(e.target.value)} 
-              placeholder="Ex: Passeadores em Lisboa"
+              placeholder="Ex: Dog Walkers em Lisboa"
               className="mt-2"
             />
           </div>

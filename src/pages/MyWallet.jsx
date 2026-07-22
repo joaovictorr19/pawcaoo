@@ -307,7 +307,7 @@ export default function MyWallet() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-slate-700">Cofre de Reserva</p>
-                  <p className="text-xs text-slate-400">Valor cativo para pagar passeadores</p>
+                  <p className="text-xs text-slate-400">Valor cativo para pagar Dog Walkers</p>
                 </div>
                 <p className="text-lg font-bold text-blue-600">€{(wallet?.escrow_balance || 0).toFixed(2)}</p>
               </div>

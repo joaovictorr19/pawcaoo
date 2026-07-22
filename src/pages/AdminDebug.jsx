@@ -15,7 +15,7 @@ const ENTITIES_TO_CHECK = [
   { name: "Booking", label: "Reservas" },
   { name: "EmergencyWalk", label: "Emergências" },
   { name: "HotelBooking", label: "Reservas Hotel" },
-  { name: "WalkerProfile", label: "Passeadores" },
+  { name: "WalkerProfile", label: "Dog Walkers" },
   { name: "TrainerProfile", label: "Treinadores" },
   { name: "UserProfile", label: "Utilizadores" },
   { name: "UserWallet", label: "Carteiras" },
@@ -214,7 +214,7 @@ export default function AdminDebug() {
           pickup_lng: -9.153,
           type: "walk",
           walker_email: currentUserEmail,
-          walker_name: "Passeador Teste",
+          walker_name: "Dog Walker Teste",
           special_notes: DEBUG_FLAG,
         }),
       "✅ Passeio Ativo criado"

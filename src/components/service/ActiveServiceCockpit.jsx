@@ -427,7 +427,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
       // Send system message to chat
       if (conversation?.id) {
         await sendMessageMutation.mutateAsync({ 
-          content: '📍 Localização atualizada manualmente pelo passeador.', 
+          content: '📍 Localização atualizada manualmente pelo Dog Walker.', 
           type: 'system' 
         });
       }
@@ -678,7 +678,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
               <WalkScanner
                 booking={booking}
                 type="END"
-                scannerLabel="📱 Ler QR do Passeador"
+                scannerLabel="📱 Ler QR do Dog Walker"
                 onScanSuccess={async () => {
                   await base44.entities.Booking.update(bookingId, {
                     distance_km: distanceKm

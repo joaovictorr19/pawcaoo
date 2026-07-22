@@ -295,7 +295,7 @@ export default function ProfileHeroCard({
             <span className="text-sm font-bold text-slate-600">
               {walkerProfile?.professional_type === 'trainer' || trainerProfile
                 ? (language === 'pt' ? 'Treinador' : 'Trainer')
-                : (language === 'pt' ? 'Passeador' : 'Walker')}
+                : (language === 'pt' ? 'Dog Walker' : 'Walker')}
             </span>
           )}
           {isHotel && (

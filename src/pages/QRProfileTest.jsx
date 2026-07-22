@@ -11,7 +11,7 @@ import {
 
 /**
  * QRProfileTest — Fluxo de teste que valida se cada QR Code de perfil
- * (hotel, passeador, treinador) resolve para o perfil público correto,
+ * (hotel, Dog Walker, treinador) resolve para o perfil público correto,
  * detectando sobreposições de slug entre diferentes tipos de conta.
  */
 export default function QRProfileTest() {
@@ -173,7 +173,7 @@ export default function QRProfileTest() {
               Teste de QR Codes de Perfil
             </h1>
             <p className="text-sm text-slate-500 mt-1">
-              Valida se cada QR de hotel/passeador/treinador resolve para o perfil correto, sem sobreposição de tipos.
+              Valida se cada QR de hotel/Dog Walker/treinador resolve para o perfil correto, sem sobreposição de tipos.
             </p>
           </div>
           <Button onClick={runTest} disabled={running} size="lg">
@@ -312,7 +312,7 @@ export default function QRProfileTest() {
 function TypeBadge({ type }) {
   const config = {
     hotel:   { icon: Building2,       label: 'Hotel',     cls: 'bg-purple-100 text-purple-700' },
-    walker:  { icon: User,            label: 'Passeador',  cls: 'bg-blue-100 text-blue-700' },
+    walker:  { icon: User,            label: 'Dog Walker',  cls: 'bg-blue-100 text-blue-700' },
     trainer: { icon: GraduationCap,  label: 'Treinador',  cls: 'bg-teal-100 text-teal-700' },
   };
   const c = config[type] || config.walker;

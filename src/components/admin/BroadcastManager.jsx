@@ -181,7 +181,7 @@ export default function BroadcastManager() {
                       </div>
                     </SelectItem>
                     <SelectItem value="walkers">
-                      🚶 Passeadores Ativos ({walkers.length})
+                      🚶 Dog Walkers Ativos ({walkers.length})
                     </SelectItem>
                     <SelectItem value="trainers">
                       🎓 Treinadores Ativos ({trainers.length})
@@ -364,7 +364,7 @@ export default function BroadcastManager() {
               <Users className="w-8 h-8 text-green-600" />
               <div>
                 <p className="text-2xl font-bold text-gray-900">{walkers.length}</p>
-                <p className="text-xs text-gray-600">Passeadores Ativos</p>
+                <p className="text-xs text-gray-600">Dog Walkers Ativos</p>
               </div>
             </div>
           </CardContent>

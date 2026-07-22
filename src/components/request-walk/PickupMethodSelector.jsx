@@ -7,7 +7,7 @@ const methods = [
     id: "walker_pickup",
     icon: MapPin,
     title: "Recolha em Casa",
-    description: "O passeador vai buscar o(s) teu(s) animal(ais) à tua morada.",
+    description: "O Dog Walker vai buscar o(s) teu(s) animal(ais) à tua morada.",
     color: "green"
   },
   {

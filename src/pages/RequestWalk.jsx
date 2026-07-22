@@ -214,7 +214,7 @@ export default function RequestWalk() {
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Pedido Enviado!</h2>
           <p className="text-gray-600 mb-6 text-sm leading-relaxed">
-            O teu pedido de passeio foi submetido com sucesso. Serás notificado assim que um passeador aceitar.
+            O teu pedido de passeio foi submetido com sucesso. Serás notificado assim que um Dog Walker aceitar.
           </p>
           <div className="space-y-3">
             <button
