@@ -24,7 +24,14 @@ Deno.serve(async (req) => {
         : (booking.created_date ? new Date(new Date(booking.created_date).getTime() + 5 * 60 * 1000) : null);
 
       if (expiresAt && expiresAt < new Date(now)) {
-        await base44.asServiceRole.entities.HotelBooking.delete(booking.id);
+        // ── Não apagar: marcar como cancelada para preservar o registo ──
+        // Se o webhook do Stripe chegar atrasado (race condition), o handler
+        // pode detetar que a reserva foi cancelada e reembolsar o cliente.
+        await base44.asServiceRole.entities.HotelBooking.update(booking.id, {
+          status: 'cancelled',
+          payment_status: 'cancelled',
+          cancellation_reason: 'payment_timeout_5min'
+        });
         cancelledCount++;
 
         // ── Libertar vagas que estavam reservadas durante o período de pagamento ──

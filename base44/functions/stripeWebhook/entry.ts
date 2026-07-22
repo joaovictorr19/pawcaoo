@@ -508,7 +508,33 @@ async function handleCheckoutCompleted(base44, session) {
                 if (hotelBookings.length > 0) {
                     const hb = hotelBookings[0];
 
-                    // ── SECURITY: Verify paid amount matches hotel booking total before confirming ──
+                // ── RACE CONDITION: Reserva cancelada por timeout mas pagamento chegou ──
+                // O cliente pagou, mas a reserva foi auto-cancelada pelos 5 min.
+                // Reembolsar automaticamente para não ficar com dinheiro sem serviço.
+                if (hb.status === 'cancelled' || hb.payment_status === 'cancelled') {
+                    console.log('⚠️ Hotel booking was auto-cancelled but payment arrived — refunding:', hotelBookingId);
+                    try {
+                        const refund = await stripe.refunds.create({
+                            payment_intent: session.payment_intent || '',
+                            reason: 'duplicate',
+                            metadata: { hotel_booking_id: hotelBookingId, auto_refund: 'timeout_race' }
+                        });
+                        await base44.asServiceRole.entities.Notification.create({
+                            recipient_email: hb.owner_email,
+                            title: 'Reembolso Automático — Reserva Expirada',
+                            message: `O pagamento chegou após o tempo limite da reserva no ${hb.hotel_name || 'hotel'}. Foi processado um reembolso automático de ${hb.total_amount}€. Faça uma nova reserva se pretender.`,
+                            type: 'payment',
+                            related_id: hotelBookingId,
+                            icon: '🔄'
+                        });
+                        console.log('✅ Auto-refund processed for timed-out hotel booking:', refund.id);
+                    } catch (refundErr) {
+                        console.error('Auto-refund failed:', refundErr.message);
+                    }
+                    return;
+                }
+
+                // ── SECURITY: Verify paid amount matches hotel booking total before confirming ──
                     const expectedHotelAmountCents = Math.round((hb.total_amount || 0) * 100);
                     if ((session.amount_total || 0) < expectedHotelAmountCents) {
                         console.error(`❌ Hotel booking amount mismatch: paid ${session.amount_total} cents, expected ${expectedHotelAmountCents} cents for booking ${hotelBookingId}. Aborting.`);
