@@ -17,6 +17,7 @@ const WalletSection = React.lazy(() => import("@/components/professional-hub/Wal
 const FinancesSection = React.lazy(() => import("@/components/professional-hub/FinancesSection").then(m => ({ default: m.FinancesSection })));
 const DayOffManager = React.lazy(() => import("@/components/professional-hub/DayOffManager").then(m => ({ default: m.DayOffManager })));
 const ServiceOfferingsEditor = React.lazy(() => import("@/components/professional-hub/ServiceOfferingsEditor"));
+const HotelServiceManager = React.lazy(() => import("@/components/hotel/HotelServiceManager"));
 const ReviewsManagementSection = React.lazy(() => import("@/components/professional-hub/ReviewsManagementSection"));
 const PortfolioSection = React.lazy(() => import("@/components/professional-hub/PortfolioSection"));
 const DocumentsVerificationSection = React.lazy(() => import("@/components/professional-hub/DocumentsVerificationSection"));
@@ -603,7 +604,13 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
               className="space-y-8"
             >
-              <ServiceOfferingsEditor professionalProfile={professionalProfile} />
+              {isHotelProfile ? (
+                <Suspense fallback={<Loader2 className="w-6 h-6 text-orange-500 animate-spin mx-auto" />}>
+                  <HotelServiceManager hotelProfile={professionalProfile} />
+                </Suspense>
+              ) : (
+                <ServiceOfferingsEditor professionalProfile={professionalProfile} />
+              )}
             </motion.div>
           )}
 
