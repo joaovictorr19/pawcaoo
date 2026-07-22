@@ -55,11 +55,28 @@
   html {
     @apply text-foreground;
     overflow-x: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
   }
 
   body {
     @apply text-foreground;
-    background: transparent;
+    background-color: #ffffff;
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
   }
 
   input, textarea, select, [role="dialog"], [role="combobox"], [data-radix-popper-content-wrapper], [data-radix-dialog-content] {
