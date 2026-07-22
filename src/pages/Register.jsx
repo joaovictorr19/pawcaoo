@@ -38,12 +38,20 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     try {
-      await base44.auth.verifyOtp({ email, otpCode });
-      toast.success("Conta verificada! Faça login para continuar.");
+      const result = await base44.auth.verifyOtp({ email, otpCode });
+      // verifyOtp retorna access_token — definir e redirecionar diretamente
+      // (não enviar para /login — o utilizador já fica autenticado)
+      if (result?.access_token) {
+        if (typeof base44.auth.setToken === 'function') {
+          base44.auth.setToken(result.access_token);
+        } else {
+          localStorage.setItem('base44_access_token', result.access_token);
+        }
+      }
+      toast.success("Conta verificada! A redirecionar...");
       const params = new URLSearchParams(window.location.search);
-      const from = params.get('from');
-      const loginUrl = from ? `/login?from=${encodeURIComponent(from)}` : '/login';
-      setTimeout(() => { window.location.href = loginUrl; }, 1200);
+      const from = params.get('from') || '/ProfessionalTypeSelect';
+      setTimeout(() => { window.location.href = from; }, 800);
     } catch (error) {
       toast.error(error.message || "Código inválido");
     } finally {

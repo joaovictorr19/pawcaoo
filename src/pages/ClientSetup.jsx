@@ -53,7 +53,7 @@ export default function ClientSetup() {
 
   const [form, setForm] = useState(() => {
     try {
-      const saved = sessionStorage.getItem("client_setup_form");
+      const saved = localStorage.getItem("client_setup_form");
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return {
@@ -103,19 +103,21 @@ export default function ClientSetup() {
     }
 
     setFormInitialized(true);
+    // Só preencher campos que estão vazios — preserva dados já preenchidos
+    // pelo utilizador antes do login (vindos do localStorage)
     setForm(prev => ({
       ...prev,
-      full_name: userProfile?.full_name || user.full_name || "",
-      photo_url: userProfile?.profile_photo_url || user.profile_photo_url || "",
-      bio: userProfile?.bio || "",
-      city: userProfile?.city || "",
-      owned_dogs: userProfile?.owned_dogs?.length ? userProfile.owned_dogs : [],
+      full_name: prev.full_name || userProfile?.full_name || user.full_name || "",
+      photo_url: prev.photo_url || userProfile?.profile_photo_url || user.profile_photo_url || "",
+      bio: prev.bio || userProfile?.bio || "",
+      city: prev.city || userProfile?.city || "",
+      owned_dogs: prev.owned_dogs?.length ? prev.owned_dogs : (userProfile?.owned_dogs?.length ? userProfile.owned_dogs : []),
     }));
   }, [userProfile, user, formInitialized, userError, profileError]);
 
   const set = (key, val) => setForm(prev => {
     const updated = { ...prev, [key]: val };
-    try { sessionStorage.setItem("client_setup_form", JSON.stringify(updated)); } catch (e) {}
+    try { localStorage.setItem("client_setup_form", JSON.stringify(updated)); } catch (e) {}
     return updated;
   });
 
@@ -276,7 +278,7 @@ export default function ClientSetup() {
         }
       }
 
-      sessionStorage.removeItem("client_setup_form");
+      localStorage.removeItem("client_setup_form");
       queryClient.invalidateQueries(["currentUser"]);
       queryClient.invalidateQueries(["clientSetupProfile"]);
       queryClient.invalidateQueries(["dogProfiles"]);

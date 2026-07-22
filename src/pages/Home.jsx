@@ -578,6 +578,11 @@ export default function Home() {
     }
   };
 
+  // Ambos os botões (Sou Profissional / Sou Cliente) iniciam pelo ProfessionalTypeSelect
+  const handleStartOnboarding = () => {
+    navigate(createPageUrl('ProfessionalTypeSelect'));
+  };
+
   const handleClientRegister = () => {
     if (user) {
       navigate(createPageUrl('ClientSetup'));
@@ -882,7 +887,7 @@ export default function Home() {
           ) : (
             /* --- CONTEÚDO PARA USUÁRIOS NÃO LOGADOS (HERO PREMIUM) --- */
             <UnauthenticatedHero
-              onEntrar={handleLogin}
+              onEntrar={handleStartOnboarding}
               onEncontrar={handleScrollToProfessionals}
               onRegistar={handleBecomePro}
               dogImageUrl="https://media.base44.com/images/public/6907b3be1ec43db5676a2085/6f5a681b3_generated_image.png"
