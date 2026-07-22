@@ -20,6 +20,8 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
   const [zoomed, setZoomed] = useState(false);
   const [panned, setPanned] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [pdfError, setPdfError] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const dragStart = React.useRef({ x: 0, y: 0 });
 
   // TrainerProfile tem `certifications` (legacy) + `certifications_detailed`
@@ -97,6 +99,8 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
     setGalleryIdx(idx);
     setZoomed(false);
     setPanned({ x: 0, y: 0 });
+    setPdfError(false);
+    setPdfLoading(galleryPhotos[idx]?.isPdf || false);
   };
 
   const closeGallery = () => {
@@ -104,6 +108,8 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
     setGalleryIdx(null);
     setZoomed(false);
     setPanned({ x: 0, y: 0 });
+    setPdfError(false);
+    setPdfLoading(false);
   };
 
   const toggleZoom = (e) => {
@@ -144,13 +150,25 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
     e?.stopPropagation?.();
     setZoomed(false);
     setPanned({ x: 0, y: 0 });
-    setGalleryIdx(i => (i === null ? null : (i + 1) % galleryPhotos.length));
+    setPdfError(false);
+    setGalleryIdx(i => {
+      if (i === null) return null;
+      const ni = (i + 1) % galleryPhotos.length;
+      setPdfLoading(galleryPhotos[ni]?.isPdf || false);
+      return ni;
+    });
   };
   const prevPhoto = (e) => {
     e?.stopPropagation?.();
     setZoomed(false);
     setPanned({ x: 0, y: 0 });
-    setGalleryIdx(i => (i === null ? null : (i - 1 + galleryPhotos.length) % galleryPhotos.length));
+    setPdfError(false);
+    setGalleryIdx(i => {
+      if (i === null) return null;
+      const ni = (i - 1 + galleryPhotos.length) % galleryPhotos.length;
+      setPdfLoading(galleryPhotos[ni]?.isPdf || false);
+      return ni;
+    });
   };
 
   useEffect(() => {
@@ -325,6 +343,15 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                   </button>
                 </>
               )}
+              {galleryPhotos[galleryIdx].isPdf && (
+                <button
+                  onClick={(e) => downloadImage(e, galleryPhotos[galleryIdx].url, galleryPhotos[galleryIdx].certName)}
+                  className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
+                  title="Descarregar PDF"
+                >
+                  <Download className="w-4.5 h-4.5" />
+                </button>
+              )}
               <button
                 onClick={closeGallery}
                 className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
@@ -347,16 +374,42 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
 
           {/* Center content */}
           <div
-            className="flex items-center justify-center w-full h-full px-2 py-16 sm:px-4"
+            className="flex items-center justify-center w-full h-full px-2 pt-12 pb-16 sm:px-4 sm:pt-14 sm:pb-20"
             onClick={e => e.stopPropagation()}
           >
             {galleryPhotos[galleryIdx].isPdf ? (
-              <div className="w-full max-w-3xl flex flex-col items-center" style={{ height: "calc(100vh - 8rem)" }}>
-                <iframe
-                  src={galleryPhotos[galleryIdx].url}
-                  title={galleryPhotos[galleryIdx].certName}
-                  className="w-full h-full rounded-2xl shadow-2xl bg-white"
-                />
+              <div className="w-full max-w-3xl flex flex-col items-center justify-center" style={{ height: "100%", maxHeight: "calc(100vh - 7rem)" }}>
+                {pdfLoading && !pdfError && (
+                  <div className="flex flex-col items-center gap-3 text-white/70">
+                    <div className="w-8 h-8 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
+                    <span className="text-xs font-semibold">A carregar PDF...</span>
+                  </div>
+                )}
+                {pdfError ? (
+                  <div className="flex flex-col items-center gap-4 text-center px-6">
+                    <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center">
+                      <FileText className="w-8 h-8 text-white/60" />
+                    </div>
+                    <p className="text-sm text-white/80 font-semibold max-w-xs">Não foi possível pré-visualizar o PDF no navegador.</p>
+                    <a
+                      href={galleryPhotos[galleryIdx].url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-slate-900 text-sm font-bold hover:bg-white/90 transition-colors"
+                    >
+                      <Download className="w-4 h-4" /> Abrir / Descarregar
+                    </a>
+                  </div>
+                ) : (
+                  <iframe
+                    src={galleryPhotos[galleryIdx].url}
+                    title={galleryPhotos[galleryIdx].certName}
+                    className="w-full h-full rounded-xl shadow-2xl bg-white"
+                    style={{ border: "none", minHeight: "300px", opacity: pdfLoading ? 0 : 1 }}
+                    onLoad={() => setPdfLoading(false)}
+                    onError={() => { setPdfError(true); setPdfLoading(false); }}
+                  />
+                )}
               </div>
             ) : (
               <div
@@ -374,9 +427,9 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                 <img
                   src={galleryPhotos[galleryIdx].url}
                   alt={galleryPhotos[galleryIdx].certName}
-                  className="select-none rounded-2xl shadow-2xl transition-transform duration-200 object-contain cursor-grab"
+                  className="select-none rounded-xl shadow-2xl transition-transform duration-200 object-contain"
                   style={{
-                    maxHeight: zoomed ? "none" : "calc(100vh - 8rem)",
+                    maxHeight: zoomed ? "none" : "calc(100vh - 7rem)",
                     maxWidth: zoomed ? "none" : "calc(100vw - 2rem)",
                     transform: zoomed
                       ? `scale(2) translate(${panned.x / 2}px, ${panned.y / 2}px)`
@@ -417,7 +470,7 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
               {galleryPhotos.map((photo, i) => (
                 <button
                   key={i}
-                  onClick={(e) => { e.stopPropagation(); setGalleryIdx(i); }}
+                  onClick={(e) => { e.stopPropagation(); setPdfError(false); setPdfLoading(photo.isPdf || false); setGalleryIdx(i); }}
                   className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all flex items-center justify-center bg-slate-800 ${
                     i === galleryIdx ? "border-white opacity-100 scale-105" : "border-transparent opacity-40 hover:opacity-70"
                   }`}
