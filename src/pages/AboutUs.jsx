@@ -484,4 +484,4 @@ export default function AboutUs() {
       </section>
     </div>
   );
-}
+} 
