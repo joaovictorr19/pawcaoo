@@ -506,7 +506,7 @@ export default function HotelDashboard() {
             { label: "Hóspedes agora", value: occupancyToday, sub: `de ${capacityTotal} vagas`, icon: Dog, iconCls: "text-slate-500" },
             { label: "Pendentes", value: pendingBookings.length, sub: "a responder", icon: Clock, iconCls: "text-amber-500" },
             { label: "Chegadas hoje", value: todayCheckins.length, sub: "check-in", icon: ArrowRight, iconCls: "text-emerald-500" },
-            { label: "Receita 30d", value: `${revenue30d.toFixed(0)}€`, sub: "estimada", icon: TrendingUp, iconCls: "text-blue-500" },
+            ...(activeTab === "financas" ? [{ label: "Receita 30d", value: `${revenue30d.toFixed(0)}€`, sub: "estimada", icon: TrendingUp, iconCls: "text-blue-500" }] : []),
           ].map(kpi => {
             const Icon = kpi.icon;
             return (
