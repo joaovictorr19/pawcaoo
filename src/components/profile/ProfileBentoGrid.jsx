@@ -198,8 +198,8 @@ export default function ProfileBentoGrid({
             </ProfileSection>
           )}
 
-          {/* PORTFOLIO - Medium card */}
-          {allPortfolioItems.length > 0 && (
+          {/* PORTFOLIO - Medium card (hotéis já mostram o portfólio no HotelProfileDisplay) */}
+          {allPortfolioItems.length > 0 && !isHotel && (
             <ProfileSection delay={0.26} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest italic flex items-center gap-1.5">
                 <ImageIcon className="w-3 h-3" /> {language === 'pt' ? 'Portefólio' : 'Portfolio'}
