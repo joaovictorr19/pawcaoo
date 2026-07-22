@@ -88,10 +88,35 @@ Deno.serve(async (req) => {
     const serverDogs = total_dogs || (dogs?.length || 1);
     const serverBaseAmount = serverPricePerUnit * serverNights * serverDogs;
 
-    // Recompute add_ons total from the array (don't trust client-supplied add_ons_total)
-    const serverAddOnsTotal = (add_ons || []).reduce((sum, a) => {
-      return sum + ((a.total_price || 0) > 0 ? (a.total_price || 0) : (a.price_per_unit || 0) * (a.quantity || 1));
-    }, 0);
+    // ── SECURITY: Recompute add_ons total from server-side hotel profile pricing ──
+    // Never trust client-supplied total_price or price_per_unit for add-ons.
+    // Pricing source: hotelDetails.services[].price_per_day (matched by service_type or service_id).
+    const hotelServices = hotelDetails.services || [];
+    const findAddOnPrice = (addon) => {
+      // Match by service_id first, then by service_type, then by service_name
+      let svc = null;
+      if (addon.service_id) {
+        svc = hotelServices.find(s => s.service_id === addon.service_id);
+      }
+      if (!svc && addon.service_type) {
+        svc = hotelServices.find(s => s.service_type === addon.service_type);
+      }
+      if (!svc && addon.service_name) {
+        svc = hotelServices.find(s =>
+          s.service_name?.toLowerCase?.() === String(addon.service_name).toLowerCase()
+        );
+      }
+      return svc?.price_per_day || svc?.price_per_unit || 0;
+    };
+
+    const safeAddOns = (add_ons || []).map(a => {
+      const unitPrice = findAddOnPrice(a);
+      const qty = Math.max(1, Math.floor(Number(a.quantity) || 1));
+      const lineTotal = Math.round(unitPrice * qty * 100) / 100;
+      return { ...a, price_per_unit: unitPrice, quantity: qty, total_price: lineTotal };
+    });
+
+    const serverAddOnsTotal = safeAddOns.reduce((sum, a) => sum + (a.total_price || 0), 0);
 
     // Determine who bears the commission: "hotel" (deducted from hotel) or "client" (added on top)
     const commissionBorneBy = hotelProfile.commission_borne_by || 'hotel';
@@ -188,7 +213,7 @@ Deno.serve(async (req) => {
       delivery_method: delivery_method || 'dropoff',
       assigned_walker_email: assigned_walker_email || '',
       assigned_walker_name: assigned_walker_name || '',
-      add_ons: add_ons || [],
+      add_ons: safeAddOns,
       add_ons_total: serverAddOnsTotal,
       status: 'pending',
       payment_status: 'pending',
