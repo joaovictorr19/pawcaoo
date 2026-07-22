@@ -32,9 +32,12 @@ Deno.serve(async (req) => {
     if (walletTopup && amount) {
       const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
       const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
         mode: 'payment',
         locale: 'pt',
+        payment_method_types: ['card'],
+        payment_method_options: {
+          card: { request_three_d_secure: 'automatic' },
+        },
         line_items: [
           {
             price_data: {

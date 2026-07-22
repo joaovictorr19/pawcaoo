@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import BankCard from "@/components/wallet/BankCard";
 import TransactionItem from "@/components/wallet/TransactionItem";
 import WithdrawalHistory from "@/components/wallet/WithdrawalHistory";
+import TopUpModal from "@/components/wallet/TopUpModal";
 
 const TX_FILTERS = [
   { key: "all", label: "Todas" },
@@ -495,52 +496,13 @@ export default function MyWallet() {
         </Tabs>
       </div>
 
-      {/* Add Credits Modal */}
-      <Dialog open={showAddCredits} onOpenChange={setShowAddCredits}>
-        <DialogContent className="max-w-md rounded-3xl border border-slate-200 bg-white p-0 shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-5 text-white">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-3 text-xl font-bold text-white">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20">
-                  <CreditCard className="w-5 h-5" />
-                </div>
-                Adicionar fundos
-              </DialogTitle>
-            </DialogHeader>
-            <p className="mt-2 text-sm text-white/85">Escolha um valor para carregar a sua carteira.</p>
-          </div>
-          <div className="space-y-5 p-6">
-            <div className="grid grid-cols-3 gap-3">
-              {[10, 25, 50].map((v) => (
-                <button key={v} type="button" onClick={() => setCredits(v.toString())}
-                  className={`rounded-2xl border px-4 py-4 text-center transition-all ${credits === v.toString() ? 'border-teal-500 bg-teal-50 text-teal-600 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300'}`}>
-                  <div className="text-xs font-medium text-slate-400">Adicionar</div>
-                  <div className="mt-1 text-lg font-bold">€{v}</div>
-                </button>
-              ))}
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-900">Outro valor</label>
-              <Input type="number" placeholder="Ex: 30" value={credits} onChange={(e) => setCredits(e.target.value)}
-                min="5" step="1" className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus-visible:ring-teal-400" />
-              <p className="text-xs text-slate-400">Valor mínimo: €5</p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 flex items-center justify-between">
-              <span className="text-sm text-slate-500">Total a pagar</span>
-              <span className="text-lg font-bold text-slate-900">€{(parseFloat(credits) || 0).toFixed(2)}</span>
-            </div>
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <Button variant="outline" onClick={() => setShowAddCredits(false)} className="rounded-2xl border-slate-200">Fechar</Button>
-              <Button onClick={() => {
-                if (!credits || parseFloat(credits) < 5) { toast.error('Mínimo €5'); return; }
-                addCreditsMutation.mutate(parseFloat(credits));
-              }} disabled={addCreditsMutation.isPending} className="rounded-2xl bg-teal-600 hover:bg-teal-700 text-white">
-                {addCreditsMutation.isPending ? 'A abrir pagamento...' : 'Continuar para pagamento'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Top Up Modal */}
+      <TopUpModal
+        open={showAddCredits}
+        onOpenChange={setShowAddCredits}
+        onConfirm={(amount) => addCreditsMutation.mutate(amount)}
+        isLoading={addCreditsMutation.isPending}
+      />
 
       {/* Withdraw Modal */}
       <Dialog open={showWithdraw} onOpenChange={setShowWithdraw}>
