@@ -328,6 +328,62 @@ export default function NotificationTriggers({ user }) {
     return () => unsubscribe();
   }, [user?.email, notifPrefs]);
 
+  // ─── Nova reserva de hotel → notificar o hotel (in-app + push Android/iOS) ──
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const serviceLabels = {
+      boarding: 'Estadia',
+      daycare: 'Creche',
+      grooming: 'Banho & Tosa',
+      walk_with_partner: 'Passeio com Parceiro',
+      training: 'Treino',
+    };
+
+    const unsubscribe = base44.entities.HotelBooking.subscribe(async (event) => {
+      if (event.type !== 'create') return;
+      const hb = event.data;
+      if (!hb || hb.hotel_email !== user.email) return;
+
+      const serviceLabel = serviceLabels[hb.service_type] || hb.service_type || 'Servico';
+      const checkin = hb.checkin_date || '';
+      const ownerName = hb.owner_name || 'Cliente';
+      const totalDogs = hb.total_dogs || (hb.dogs?.length || 1);
+
+      // Notificacao in-app
+      if (allowInApp('booking')) {
+        try {
+          await base44.entities.Notification.create({
+            recipient_email: user.email,
+            title: 'Nova reserva de hotel',
+            message: `${ownerName} reservou ${serviceLabel} para ${checkin} (${totalDogs} cao${totalDogs > 1 ? 'es' : ''}).`,
+            type: 'booking',
+            link: '/HotelDashboard',
+            icon: 'hotel',
+            related_id: hb.id
+          });
+        } catch {}
+      }
+
+      // Push notification (Android/iOS via PWA)
+      if (allowPush('booking') && 'Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification('Nova reserva de hotel', {
+            body: `${ownerName} — ${serviceLabel} em ${checkin}. Abra para confirmar.`,
+            tag: `hotel_booking_${hb.id}`,
+            icon: '/logo.png',
+            badge: '/favicon.png',
+            requireInteraction: true,
+            vibrate: [200, 100, 200],
+            silent: false
+          });
+        } catch {}
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user?.email, notifPrefs]);
+
   // ─── Atrasos: alerta se passou 10 min do horário e não iniciou ───────────────
   useEffect(() => {
     if (!user?.email) return;
