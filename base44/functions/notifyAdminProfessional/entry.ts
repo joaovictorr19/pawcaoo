@@ -16,7 +16,9 @@ Deno.serve(async (req) => {
     // Sanitize user-supplied fields to prevent XSS in admin notifications
     const sanitize = (str) => String(str || '').replace(/[<>"'&]/g, '').trim().slice(0, 100);
     const professional_name = sanitize(data.walker_name || data.trainer_name) || 'Unknown';
-    const professional_type = event.entity_name === 'WalkerProfile' ? 'Walker' : 'Trainer';
+    const professional_type = event.entity_name === 'WalkerProfile'
+      ? (data.professional_type === 'hotel' ? 'Hotel' : 'Walker')
+      : 'Trainer';
     const professional_email = data.created_by || data.walker_email || data.trainer_email;
 
     // Dedupe: se já foi enviada notificação para este profissional nos últimos 5 minutos
@@ -28,7 +30,7 @@ Deno.serve(async (req) => {
     );
     const fiveMinAgo = Date.now() - 5 * 60 * 1000;
     const alreadyNotified = recent.some(n =>
-      String(n.message || '').startsWith(`${professional_name} (`) &&
+      String(n.message || '').includes(`${professional_name} (${professional_type})`) &&
       new Date(n.created_date).getTime() > fiveMinAgo
     );
     if (alreadyNotified) {
