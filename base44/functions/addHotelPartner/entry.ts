@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { hotel_profile_id, partner_email, partner_role, partner_name } = body;
+    const { hotel_profile_id, partner_email, partner_role, partner_name, custom_title } = body;
 
     if (!hotel_profile_id || !partner_email) {
       return Response.json({ error: 'Dados insuficientes' }, { status: 400 });
@@ -41,6 +41,7 @@ Deno.serve(async (req) => {
       is_available_today: false,
       services: [],
       partner_role: partner_role || 'simple',
+      custom_title: custom_title || '',
       status: 'pending',
     };
 

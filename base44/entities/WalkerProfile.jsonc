@@ -348,6 +348,10 @@
               "full"
             ],
             "default": "simple"
+          },
+          "custom_title": {
+            "type": "string",
+            "description": "Titulo personalizado do colaborador (ex: Funcionario, Treinador, Veterinario)"
           }
         }
       },
@@ -579,6 +583,10 @@
                   "full"
                 ],
                 "default": "simple"
+              },
+              "custom_title": {
+                "type": "string",
+                "description": "Titulo personalizado do colaborador (ex: Funcionario, Treinador, Veterinario)"
               },
               "is_available_today": {
                 "type": "boolean",

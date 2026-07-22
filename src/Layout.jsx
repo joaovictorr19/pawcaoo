@@ -186,6 +186,7 @@ function LayoutContent({ children, currentPageName }) {
               hotel_name: h.hotel_details?.hotel_name || h.walker_name || 'Hotel',
               hotel_photo_url: h.photo_url || '',
               partner_role: found.partner_role || 'simple',
+              custom_title: found.custom_title || '',
             });
           }
         }

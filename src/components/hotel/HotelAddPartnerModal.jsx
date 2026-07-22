@@ -7,10 +7,21 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
+const TITLE_OPTIONS = [
+  'Funcionário',
+  'Treinador',
+  'Veterinário',
+  'Passeador',
+  'Groomer',
+  'Rececionista',
+  'Gerente',
+  'Voluntário',
+];
 
 export default function HotelAddPartnerModal({ isOpen, onClose, hotelProfile }) {
   const [partnerEmail, setPartnerEmail] = useState('');
-  const [selectedRole, setSelectedRole] = useState('limited'); // 'simple', 'limited', 'full'
+  const [selectedRole, setSelectedRole] = useState('limited');
+  const [customTitle, setCustomTitle] = useState('Funcionário');
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddPartner = async () => {
@@ -26,6 +37,7 @@ export default function HotelAddPartnerModal({ isOpen, onClose, hotelProfile }) 
         partner_email: partnerEmail,
         partner_role: selectedRole,
         partner_name: partnerEmail.split('@')[0],
+        custom_title: customTitle,
       });
 
       if (res.data?.error) {
@@ -36,6 +48,7 @@ export default function HotelAddPartnerModal({ isOpen, onClose, hotelProfile }) 
       toast.success(`Parceiro ${partnerEmail} adicionado!`);
       setPartnerEmail('');
       setSelectedRole('limited');
+      setCustomTitle('Funcionário');
       onClose();
     } catch (error) {
       toast.error(`Erro ao adicionar parceiro: ${error.message}`);
@@ -52,6 +65,26 @@ export default function HotelAddPartnerModal({ isOpen, onClose, hotelProfile }) 
         </DrawerHeader>
 
         <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
+          {/* Custom Title Selection */}
+          <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+            <p className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">Título / Cargo</p>
+            <div className="flex flex-wrap gap-2">
+              {TITLE_OPTIONS.map((title) => (
+                <button
+                  key={title}
+                  onClick={() => setCustomTitle(title)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                    customTitle === title
+                      ? 'bg-purple-600 border-purple-600 text-white'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-purple-300'
+                  }`}
+                >
+                  {title}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Role Selection */}
           <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
             <p className="text-xs font-bold text-slate-900 mb-3 uppercase tracking-wide">Tipo de Acesso</p>
