@@ -4,11 +4,12 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Users, Search, Crown, PawPrint, Phone, Mail, Calendar, Euro, Stethoscope, ShieldAlert, Star } from "lucide-react";
+import { Users, Search, Crown, PawPrint, Phone, Mail, Calendar, Euro, Stethoscope, ShieldAlert, Star, RefreshCw, AlertCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pt, es, fr } from "date-fns/locale";
 import { useLanguage } from "@/components/LanguageContext";
 import GuestBookingHistory from "./GuestBookingHistory";
+import OwnerDataComparison from "./OwnerDataComparison";
 
 const LOCALES = { pt, es, fr };
 
@@ -55,6 +56,7 @@ export default function HotelGuestProfilesPanel({ hotelProfile }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
+  const [compareDog, setCompareDog] = useState(null);
 
   const { data: profiles = [], isLoading } = useQuery({
     queryKey: ["hotelGuestProfiles", hotelProfile?.id],
@@ -81,9 +83,23 @@ export default function HotelGuestProfilesPanel({ hotelProfile }) {
 
   if (selected) {
     return (
-      <GuestProfileDetail profile={selected} hotelEmail={hotelProfile?.created_by} tr={tr} lang={lang}
-        dateLocale={dateLocale} onBack={() => setSelected(null)}
-        onToggleVip={() => toggleVip.mutate({ id: selected.id, is_vip: !selected.is_vip })} />
+      <>
+        <GuestProfileDetail profile={selected} hotelEmail={hotelProfile?.created_by} tr={tr} lang={lang}
+          dateLocale={dateLocale} onBack={() => setSelected(null)}
+          onToggleVip={() => toggleVip.mutate({ id: selected.id, is_vip: !selected.is_vip })}
+          onCheckOwnerUpdates={(dogName) => setCompareDog(dogName)} />
+        {compareDog && (
+          <OwnerDataComparison
+            guestProfileId={selected.id}
+            dogName={compareDog}
+            onClose={() => setCompareDog(null)}
+            onAccepted={() => {
+              queryClient.invalidateQueries({ queryKey: ["hotelGuestProfiles"] });
+              setCompareDog(null);
+            }}
+          />
+        )}
+      </>
     );
   }
 
@@ -140,7 +156,7 @@ export default function HotelGuestProfilesPanel({ hotelProfile }) {
   );
 }
 
-function GuestProfileDetail({ profile, hotelEmail, tr, lang, dateLocale, onBack, onToggleVip }) {
+function GuestProfileDetail({ profile, hotelEmail, tr, lang, dateLocale, onBack, onToggleVip, onCheckOwnerUpdates }) {
   return (
     <div className="space-y-4">
       <button onClick={onBack} className="text-xs text-slate-500 font-semibold hover:text-slate-700">{tr.back}</button>
@@ -200,11 +216,22 @@ function GuestProfileDetail({ profile, hotelEmail, tr, lang, dateLocale, onBack,
           <div className="space-y-2">
             {profile.dogs.map((dog, i) => (
               <div key={i} className="bg-white border border-slate-200 rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <PawPrint className="w-4 h-4 text-slate-400" />
                   <p className="font-semibold text-slate-800 text-sm">{dog.dog_name}</p>
                   {dog.dog_size && <Badge variant="outline" className="text-[10px] border-slate-200 text-slate-500">{SIZE_LABELS[dog.dog_size]?.[lang] || dog.dog_size}</Badge>}
                   {dog.dog_breed && <span className="text-[10px] text-slate-400">{dog.dog_breed}</span>}
+                  {dog.has_owner_updates && (
+                    <Badge className="bg-amber-100 text-amber-700 border border-amber-200 text-[10px] animate-pulse">
+                      <AlertCircle className="w-3 h-3 mr-0.5" /> Dono atualizou dados
+                    </Badge>
+                  )}
+                  <button
+                    onClick={() => onCheckOwnerUpdates?.(dog.dog_name)}
+                    className="ml-auto flex items-center gap-1 text-[10px] font-semibold text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg px-2 py-1 transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Ver alterações do dono
+                  </button>
                 </div>
                 {dog.persistent_medical_notes && (
                   <div className="bg-rose-50 border border-rose-100 rounded-lg px-2.5 py-1.5 mb-1.5">

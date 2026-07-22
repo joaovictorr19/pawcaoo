@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
+import { createOwnerSnapshot } from "../../shared/dogSnapshot.ts";
 
 Deno.serve(async (req) => {
   try {
@@ -7,21 +8,16 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    // Support both manual calls ({ booking_id }) and automation events ({ event, data })
     const booking_id = body.booking_id || body.event?.entity_id;
     if (!booking_id) return Response.json({ error: 'booking_id required' }, { status: 400 });
 
-    // Always fetch the booking from the database — never trust body.data
-    // to prevent IDOR via user-supplied payload injection.
     const booking = await base44.asServiceRole.entities.HotelBooking.get(booking_id);
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
-    // Authorization: only the hotel owner or the pet owner may sync the guest profile.
     if (user.email !== booking.hotel_email && user.email !== booking.owner_email) {
       return Response.json({ error: 'Forbidden: not authorized for this booking' }, { status: 403 });
     }
 
-    // Find or create guest profile
     const existing = await base44.asServiceRole.entities.HotelGuestProfile.filter({
       hotel_profile_id: booking.hotel_profile_id,
       owner_email: booking.owner_email,
@@ -29,18 +25,23 @@ Deno.serve(async (req) => {
 
     let profile;
     const stayDate = booking.checkout_date || booking.checkin_date || new Date().toISOString().split('T')[0];
+    const nowIso = new Date().toISOString();
 
-    // Fetch DogProfile data for richer behavioral info
     const dogProfiles = booking.owner_email
       ? await base44.asServiceRole.entities.DogProfile.filter({ owner_email: booking.owner_email })
       : [];
 
     if (existing.length > 0) {
       profile = existing[0];
-      // Update existing profile with accumulated data
       const updatedDogs = (booking.dogs || []).map(bookingDog => {
         const existingDog = (profile.dogs || []).find(d => d.dog_name === bookingDog.dog_name);
         const dogProfile = dogProfiles.find(dp => dp.dog_name === bookingDog.dog_name);
+        const newSnapshot = createOwnerSnapshot(dogProfile);
+
+        // Preserve hotel-edited fields; only update owner_snapshot if data changed
+        const oldSnapshot = existingDog?.owner_snapshot || null;
+        const snapshotChanged = JSON.stringify(oldSnapshot) !== JSON.stringify(newSnapshot);
+
         const behavioralProfile = [
           existingDog?.behavioral_profile,
           booking.behavioral_notes,
@@ -49,20 +50,26 @@ Deno.serve(async (req) => {
 
         return {
           dog_name: bookingDog.dog_name,
-          dog_breed: bookingDog.dog_breed || existingDog?.dog_breed || dogProfile?.breed,
-          dog_size: bookingDog.dog_size || existingDog?.dog_size || dogProfile?.size,
-          dog_age: bookingDog.dog_age || existingDog?.dog_age || dogProfile?.age,
+          dog_breed: existingDog?.dog_breed || bookingDog.dog_breed || dogProfile?.breed,
+          dog_size: existingDog?.dog_size || bookingDog.dog_size || dogProfile?.size,
+          dog_age: existingDog?.dog_age || bookingDog.dog_age || dogProfile?.age,
           photo_url: existingDog?.photo_url || dogProfile?.photo_url,
           persistent_medical_notes: existingDog?.persistent_medical_notes || bookingDog.special_notes || dogProfile?.medical_conditions || '',
           behavioral_profile: behavioralProfile || '',
-          accustomed_to_being_alone: dogProfile?.accustomed_to_being_alone ?? existingDog?.accustomed_to_being_alone ?? false,
-          vaccine_expiry: bookingDog.vaccine_expiry || existingDog?.vaccine_expiry || dogProfile?.vaccination_date,
-          vaccine_document_url: bookingDog.vaccine_document_url || existingDog?.vaccine_document_url,
+          accustomed_to_being_alone: existingDog?.accustomed_to_being_alone ?? (dogProfile?.accustomed_to_being_alone ?? false),
+          vaccine_expiry: existingDog?.vaccine_expiry || bookingDog.vaccine_expiry || dogProfile?.vaccination_date,
+          vaccine_document_url: existingDog?.vaccine_document_url || bookingDog.vaccine_document_url,
+          // Snapshot do dono — só atualiza se mudou
+          owner_snapshot: newSnapshot || oldSnapshot || {},
+          owner_snapshot_date: snapshotChanged ? nowIso : (existingDog?.owner_snapshot_date || nowIso),
+          has_owner_updates: false,
         };
       });
 
-      // Merge: keep existing dogs not in this booking, update/add dogs from this booking
-      const mergedDogs = [...(profile.dogs || []).filter(d => !booking.dogs?.some(bd => bd.dog_name === d.dog_name)), ...updatedDogs];
+      const mergedDogs = [
+        ...(profile.dogs || []).filter(d => !booking.dogs?.some(bd => bd.dog_name === d.dog_name)),
+        ...updatedDogs,
+      ];
 
       await base44.asServiceRole.entities.HotelGuestProfile.update(profile.id, {
         owner_name: booking.owner_name,
@@ -78,7 +85,6 @@ Deno.serve(async (req) => {
         first_stay_date: profile.first_stay_date || stayDate,
       });
     } else {
-      // Create new profile
       profile = await base44.asServiceRole.entities.HotelGuestProfile.create({
         hotel_profile_id: booking.hotel_profile_id,
         hotel_email: booking.hotel_email,
@@ -91,6 +97,7 @@ Deno.serve(async (req) => {
         veterinarian_phone: booking.veterinarian_phone,
         dogs: (booking.dogs || []).map(d => {
           const dogProfile = dogProfiles.find(dp => dp.dog_name === d.dog_name);
+          const snapshot = createOwnerSnapshot(dogProfile);
           return {
             dog_name: d.dog_name,
             dog_breed: d.dog_breed || dogProfile?.breed,
@@ -102,6 +109,9 @@ Deno.serve(async (req) => {
             accustomed_to_being_alone: dogProfile?.accustomed_to_being_alone ?? false,
             vaccine_expiry: d.vaccine_expiry || dogProfile?.vaccination_date,
             vaccine_document_url: d.vaccine_document_url,
+            owner_snapshot: snapshot || {},
+            owner_snapshot_date: nowIso,
+            has_owner_updates: false,
           };
         }),
         total_stays: 1,

@@ -32,7 +32,7 @@
     },
     "dogs": {
       "type": "array",
-      "description": "C\u00e3es recorrentes do h\u00f3spede com info persistente",
+      "description": "C\u00e3es recorrentes do h\u00f3spede com info persistente (vers\u00e3o do hotel edit\u00e1vel)",
       "items": {
         "type": "object",
         "properties": {
@@ -59,11 +59,11 @@
           },
           "persistent_medical_notes": {
             "type": "string",
-            "description": "Notas m\u00e9dicas persistentes (alergias, condi\u00e7\u00f5es)"
+            "description": "Notas m\u00e9dicas persistentes (alergias, condi\u00e7\u00f5es) \u2014 vers\u00e3o edit\u00e1vel pelo hotel"
           },
           "behavioral_profile": {
             "type": "string",
-            "description": "Perfil comportamental acumulado de estadias anteriores"
+            "description": "Perfil comportamental acumulado \u2014 vers\u00e3o edit\u00e1vel pelo hotel"
           },
           "accustomed_to_being_alone": {
             "type": "boolean",
@@ -76,6 +76,103 @@
           },
           "vaccine_document_url": {
             "type": "string"
+          },
+          "owner_snapshot": {
+            "type": "object",
+            "description": "Snapshot dos dados fornecidos pelo dono (DogProfile) na \u00faltima sincroniza\u00e7\u00e3o. N\u00e3o \u00e9 editado pelo hotel \u2014 serve como refer\u00eancia para detetar atualiza\u00e7\u00f5es do dono.",
+            "properties": {
+              "breed": {
+                "type": "string"
+              },
+              "age": {
+                "type": "number"
+              },
+              "weight": {
+                "type": "number"
+              },
+              "size": {
+                "type": "string"
+              },
+              "gender": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "photo_url": {
+                "type": "string"
+              },
+              "medical_conditions": {
+                "type": "string"
+              },
+              "medications": {
+                "type": "string"
+              },
+              "allergies": {
+                "type": "string"
+              },
+              "behavioral_notes": {
+                "type": "string"
+              },
+              "energy_level": {
+                "type": "string"
+              },
+              "socialization": {
+                "type": "string"
+              },
+              "accustomed_to_being_alone": {
+                "type": "boolean"
+              },
+              "vet_name": {
+                "type": "string"
+              },
+              "vet_phone": {
+                "type": "string"
+              },
+              "vet_clinic_name": {
+                "type": "string"
+              },
+              "vet_address": {
+                "type": "string"
+              },
+              "vaccination_date": {
+                "type": "string"
+              },
+              "is_vaccinated": {
+                "type": "boolean"
+              },
+              "is_neutered": {
+                "type": "boolean"
+              },
+              "feeding_instructions": {
+                "type": "string"
+              },
+              "special_care_notes": {
+                "type": "string"
+              },
+              "microchip_number": {
+                "type": "string"
+              },
+              "emergency_contact_name": {
+                "type": "string"
+              },
+              "emergency_contact_phone": {
+                "type": "string"
+              },
+              "date_of_birth": {
+                "type": "string"
+              }
+            }
+          },
+          "owner_snapshot_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Quando o snapshot do dono foi atualizado pela \u00faltima vez"
+          },
+          "has_owner_updates": {
+            "type": "boolean",
+            "default": false,
+            "description": "Se o dono atualizou dados do DogProfile ap\u00f3s o \u00faltimo snapshot"
           }
         }
       },
