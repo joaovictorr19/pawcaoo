@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, MapPin, Clock, Car, MapPinned, CalendarDays, Euro } from "lucide-react";
-import { format, parseISO, isPast } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import GroupWalkBookingModal from "./GroupWalkBookingModal";
 
@@ -18,6 +18,7 @@ export default function GroupWalkEventsSection({ professionalEmail, currentUser 
     queryKey: ["groupWalkEventsPublic", professionalEmail],
     queryFn: () => base44.entities.GroupWalkEvent.filter({ professional_email: professionalEmail }, "event_date", 50),
     enabled: !!professionalEmail,
+    refetchInterval: 30000, // atualiza vagas em tempo real
   });
 
   const upcomingEvents = events.filter(e => {
@@ -38,7 +39,9 @@ export default function GroupWalkEventsSection({ professionalEmail, currentUser 
 
       <div className="grid gap-3 sm:grid-cols-2">
         {upcomingEvents.map((event) => {
-          const spotsLeft = (event.max_dogs || 5) - (event.dogs_booked || 0);
+          const capTotal = event.capacity_total ?? event.max_dogs ?? 5;
+          const capAvailable = event.capacity_available ?? capTotal;
+          const spotsLeft = capAvailable;
           const isFull = spotsLeft <= 0;
           return (
             <Card key={event.id} className="rounded-3xl border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
@@ -49,8 +52,24 @@ export default function GroupWalkEventsSection({ professionalEmail, currentUser 
                     {event.description && <p className="text-xs text-slate-500 mt-0.5">{event.description}</p>}
                   </div>
                   <Badge className={isFull ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}>
-                    {isFull ? "Completo" : `${spotsLeft} ${spotsLeft === 1 ? "vaga" : "vagas"}`}
+                    {isFull ? "Esgotado" : `${spotsLeft} ${spotsLeft === 1 ? "vaga" : "vagas"}`}
                   </Badge>
+                </div>
+
+                {/* Barra de lotação (igual ao hotel) */}
+                <div className="bg-slate-50 rounded-xl p-2.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lotação</span>
+                    <span className={`text-xs font-black ${isFull ? 'text-red-500' : 'text-green-500'}`}>
+                      {capTotal - spotsLeft}/{capTotal} ocupadas
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${isFull ? 'bg-red-500' : spotsLeft <= capTotal * 0.3 ? 'bg-orange-500' : 'bg-green-500'}`}
+                      style={{ width: `${capTotal > 0 ? ((capTotal - spotsLeft) / capTotal) * 100 : 0}%` }}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-1.5 text-xs text-slate-600">

@@ -36,16 +36,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Este passeio foi cancelado' }, { status: 400 });
     }
 
-    // Check capacity
-    const currentBooked = event.dogs_booked || 0;
-    const maxDogs = event.max_dogs || 5;
-    if (currentBooked >= maxDogs) {
-      return Response.json({ error: 'Este passeio já está completo' }, { status: 400 });
+    // ── CAPACITY CHECK (igual ao hotel: capacity_available) ──
+    const capacityAvailable = event.capacity_available ?? 0;
+    if (capacityAvailable <= 0) {
+      return Response.json({ error: 'Este passeio já está completo (sem vagas)' }, { status: 400 });
     }
 
-    // Check if user already joined
+    // Check if user already joined (paid or pending)
     const existingParticipant = (event.participants || []).find(
-      p => p.owner_email === user.email && p.dog_id === dog_id
+      p => p.owner_email === user.email && p.dog_id === dog_id && p.payment_status !== 'expired'
     );
     if (existingParticipant) {
       return Response.json({ error: 'Já te inscreveste neste passeio com este cão' }, { status: 400 });
@@ -57,6 +56,31 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'O tamanho do teu cão não é aceite neste passeio' }, { status: 400 });
       }
     }
+
+    // ── RESERVAR VAGA IMEDIATAMENTE (decrementar capacity_available) ──
+    // Mesmo padrão do createHotelCheckout: reserva a vaga agora, se não pagar em 5 min é libertada.
+    const paymentExpiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    const newParticipant = {
+      owner_email: user.email,
+      owner_name: user.full_name || '',
+      dog_id: dog_id || '',
+      dog_name,
+      dog_size: dog_size || 'medium',
+      payment_status: 'pending' as const,
+      payment_expires_at: paymentExpiresAt,
+      booking_id: '',
+    };
+
+    const updatedParticipants = [...(event.participants || []).filter(p => p.payment_status !== 'expired'), newParticipant];
+    const updatedCapacity = Math.max(0, capacityAvailable - 1);
+    const updatedStatus = updatedCapacity === 0 ? 'full' : event.status;
+
+    await base44.asServiceRole.entities.GroupWalkEvent.update(event_id, {
+      participants: updatedParticipants,
+      capacity_available: updatedCapacity,
+      status: updatedStatus,
+    });
+    console.log(`🐕 Vaga reservada (pendente): -1 para ${event.title} | vagas restantes: ${updatedCapacity}`);
 
     // Look up professional's commission rate
     let walkerProfile = null;
@@ -134,10 +158,6 @@ Deno.serve(async (req) => {
           product_data: {
             name: `${event.title} com ${event.professional_name}`,
             description: `${dog_name} - ${event.event_date} às ${event.event_time}. ${pickupLabel}`,
-            metadata: {
-              event_id,
-              dog_name,
-            }
           },
           unit_amount: Math.round(effectiveTotalAmount * 100),
         },

@@ -29,7 +29,7 @@ export default function GroupWalksManager({ user, professionalProfile }) {
     event_time: "",
     duration_minutes: 60,
     price_per_dog: professionalProfile?.hourly_rate || 15,
-    max_dogs: 5,
+    capacity_total: 5,
     accepted_sizes: professionalProfile?.dog_sizes || ["small", "medium"],
   });
 
@@ -48,15 +48,16 @@ export default function GroupWalksManager({ user, professionalProfile }) {
     queryFn: () => base44.entities.GroupWalkEvent.filter({ professional_email: user.email }, "event_date", 100),
     enabled: !!user?.email,
     initialData: [],
+    refetchInterval: 30000, // Atualiza a cada 30s para refletir vagas em tempo real
   });
 
   const createMutation = useMutation({
     mutationFn: () => base44.entities.GroupWalkEvent.create({
       ...form,
+      capacity_available: form.capacity_total, // vagas disponíveis = total no início
       professional_email: user.email,
       professional_name: professionalProfile?.walker_name || user.full_name,
       professional_profile_id: professionalProfile?.id || "",
-      dogs_booked: 0,
       participants: [],
       status: "open",
     }),
@@ -138,7 +139,7 @@ export default function GroupWalksManager({ user, professionalProfile }) {
             <Input type="time" value={form.event_time} onChange={(e) => setForm({ ...form, event_time: e.target.value })} className="bg-slate-800 border-slate-700 text-white" />
             <Input type="number" value={form.duration_minutes} onChange={(e) => setForm({ ...form, duration_minutes: Number(e.target.value) })} placeholder="Duração (min)" className="bg-slate-800 border-slate-700 text-white" />
             <Input type="number" value={form.price_per_dog} onChange={(e) => setForm({ ...form, price_per_dog: Number(e.target.value) })} placeholder="Preço por cão (€)" className="bg-slate-800 border-slate-700 text-white" />
-            <Input type="number" min="1" value={form.max_dogs} onChange={(e) => setForm({ ...form, max_dogs: Number(e.target.value) })} placeholder="Máx. cães" className="bg-slate-800 border-slate-700 text-white" />
+            <Input type="number" min="1" value={form.capacity_total} onChange={(e) => setForm({ ...form, capacity_total: Number(e.target.value) })} placeholder="Lotação (máx. cães)" className="bg-slate-800 border-slate-700 text-white" />
           </div>
 
           <div>
@@ -171,52 +172,87 @@ export default function GroupWalksManager({ user, professionalProfile }) {
         {sortedEvents.length === 0 && (
           <p className="text-center text-slate-400 text-sm py-6">Ainda não tens passeios em grupo criados.</p>
         )}
-        {sortedEvents.map((event) => (
-          <Card key={event.id} className={`border rounded-[2rem] overflow-hidden ${event.status === 'cancelled' ? 'bg-slate-900/30 border-red-500/20 opacity-60' : 'bg-slate-900/60 border-white/5'}`}>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h4 className="text-white font-bold">{event.title}</h4>
-                  <p className="text-slate-400 text-sm">{event.description}</p>
+        {sortedEvents.map((event) => {
+          const capTotal = event.capacity_total ?? event.max_dogs ?? 5;
+          const capAvailable = event.capacity_available ?? capTotal;
+          const spotsLeft = capAvailable;
+          const isFull = spotsLeft <= 0;
+          const paidCount = (event.participants || []).filter(p => p.payment_status === 'paid').length;
+          const pendingCount = (event.participants || []).filter(p => p.payment_status === 'pending').length;
+
+          return (
+            <Card key={event.id} className={`border rounded-[2rem] overflow-hidden ${event.status === 'cancelled' ? 'bg-slate-900/30 border-red-500/20 opacity-60' : 'bg-slate-900/60 border-white/5'}`}>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="text-white font-bold">{event.title}</h4>
+                    <p className="text-slate-400 text-sm">{event.description}</p>
+                  </div>
+                  <Badge className={isFull ? 'bg-red-500/20 text-red-300' : event.status === 'open' ? 'bg-green-500/20 text-green-300' : event.status === 'cancelled' ? 'bg-red-500/20 text-red-300' : 'bg-slate-500/20 text-slate-300'}>
+                    {isFull ? 'Esgotado' : event.status === 'open' ? 'Aberto' : event.status === 'cancelled' ? 'Cancelado' : 'Concluído'}
+                  </Badge>
                 </div>
-                <Badge className={event.status === 'open' ? 'bg-green-500/20 text-green-300' : event.status === 'full' ? 'bg-orange-500/20 text-orange-300' : event.status === 'cancelled' ? 'bg-red-500/20 text-red-300' : 'bg-slate-500/20 text-slate-300'}>
-                  {event.status === 'open' ? 'Aberto' : event.status === 'full' ? 'Completo' : event.status === 'cancelled' ? 'Cancelado' : 'Concluído'}
-                </Badge>
-              </div>
-              <div className="grid gap-2 text-xs text-slate-300">
-                <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-orange-400" />{event.location}</div>
-                <div className="flex items-center gap-2">
-                  {event.pickup_method === 'walker_pickup' ? <Car className="w-3.5 h-3.5 text-orange-400" /> : <MapPinned className="w-3.5 h-3.5 text-orange-400" />}
-                  {event.pickup_method === 'walker_pickup' ? 'Profissional vai buscar' : `Ponto de encontro: ${event.meeting_point_address || '—'}`}
+
+                {/* Barra de lotação (igual ao hotel) */}
+                <div className="bg-slate-800/50 rounded-xl p-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Lotação</span>
+                    <span className={`text-sm font-black ${isFull ? 'text-red-400' : 'text-green-400'}`}>
+                      {spotsLeft} / {capTotal} vagas
+                    </span>
+                  </div>
+                  <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${isFull ? 'bg-red-500' : spotsLeft <= capTotal * 0.3 ? 'bg-orange-500' : 'bg-green-500'}`}
+                      style={{ width: `${capTotal > 0 ? (spotsLeft / capTotal) * 100 : 0}%` }}
+                    />
+                  </div>
+                  {pendingCount > 0 && (
+                    <p className="text-[10px] text-slate-500 mt-1.5">
+                      {paidCount} confirmado{paidCount !== 1 ? 's' : ''} · {pendingCount} a aguardar pagamento
+                    </p>
+                  )}
                 </div>
-                <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-orange-400" />{event.event_date} às {event.event_time} • {event.duration_minutes}min</div>
-                <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-orange-400" />{event.dogs_booked}/{event.max_dogs} cães • €{event.price_per_dog} por cão</div>
-              </div>
-              {event.participants?.length > 0 && (
-                <div className="pt-2 border-t border-white/5">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Participantes</p>
-                  {event.participants.map((p, i) => (
-                    <div key={i} className="text-xs text-slate-300 flex items-center justify-between">
-                      <span>🐕 {p.dog_name} ({p.dog_size}) — {p.owner_name}</span>
-                      {p.payment_status === 'paid' && <Badge className="bg-green-500/20 text-green-300 text-[9px]">Pago</Badge>}
-                    </div>
-                  ))}
+
+                <div className="grid gap-2 text-xs text-slate-300">
+                  <div className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-orange-400" />{event.location}</div>
+                  <div className="flex items-center gap-2">
+                    {event.pickup_method === 'walker_pickup' ? <Car className="w-3.5 h-3.5 text-orange-400" /> : <MapPinned className="w-3.5 h-3.5 text-orange-400" />}
+                    {event.pickup_method === 'walker_pickup' ? 'Profissional vai buscar' : `Ponto de encontro: ${event.meeting_point_address || '—'}`}
+                  </div>
+                  <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-orange-400" />{event.event_date} às {event.event_time} • {event.duration_minutes}min</div>
+                  <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-orange-400" />€{event.price_per_dog} por cão</div>
                 </div>
-              )}
-              {event.status !== 'cancelled' && event.status !== 'completed' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-red-400 border-red-500/30 hover:bg-red-500/10"
-                  onClick={() => { if (confirm('Cancelar este passeio?')) cancelMutation.mutate(event.id); }}
-                  disabled={cancelMutation.isPending}
-                >
-                  <Trash2 className="w-3.5 h-3.5 mr-2" /> Cancelar passeio
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+
+                {event.participants?.length > 0 && (
+                  <div className="pt-2 border-t border-white/5">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Participantes</p>
+                    {event.participants.filter(p => p.payment_status !== 'expired').map((p, i) => (
+                      <div key={i} className="text-xs text-slate-300 flex items-center justify-between">
+                        <span>🐕 {p.dog_name} ({p.dog_size}) — {p.owner_name}</span>
+                        {p.payment_status === 'paid'
+                          ? <Badge className="bg-green-500/20 text-green-300 text-[9px]">Pago</Badge>
+                          : <Badge className="bg-orange-500/20 text-orange-300 text-[9px]">A pagar...</Badge>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {event.status !== 'cancelled' && event.status !== 'completed' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-red-400 border-red-500/30 hover:bg-red-500/10"
+                    onClick={() => { if (confirm('Cancelar este passeio?')) cancelMutation.mutate(event.id); }}
+                    disabled={cancelMutation.isPending}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-2" /> Cancelar passeio
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

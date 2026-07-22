@@ -47,33 +47,56 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Passeio não encontrado' }, { status: 404 });
     }
 
-    // Check if already a participant (idempotency)
-    const existing = (event.participants || []).find(
-      p => p.owner_email === user.email && p.dog_id === dogId
+    // Find the pending participant (was reserved at checkout time)
+    const participantIdx = (event.participants || []).findIndex(
+      p => p.owner_email === user.email && p.dog_id === dogId && p.payment_status === 'pending'
     );
-    if (existing && existing.payment_status === 'paid') {
+
+    // Idempotency: already confirmed
+    const alreadyPaid = (event.participants || []).find(
+      p => p.owner_email === user.email && p.dog_id === dogId && p.payment_status === 'paid'
+    );
+    if (alreadyPaid) {
       return Response.json({ success: true, already_joined: true, event });
     }
 
-    // Add participant
-    const newParticipant = {
-      owner_email: user.email,
-      owner_name: meta.owner_name || user.full_name || '',
-      dog_id: dogId,
-      dog_name: dogName,
-      dog_size: dogSize,
-      payment_status: 'paid' as const,
-      booking_id: '',
-    };
-
-    const updatedParticipants = [...(event.participants || []), newParticipant];
-    const updatedDogsBooked = updatedParticipants.length;
-
-    await base44.asServiceRole.entities.GroupWalkEvent.update(event_id, {
-      participants: updatedParticipants,
-      dogs_booked: updatedDogsBooked,
-      status: updatedDogsBooked >= (event.max_dogs || 5) ? 'full' : 'open',
-    });
+    if (participantIdx < 0) {
+      // Participant was not found as pending — capacity may have been restored by timeout.
+      // Check if there's still capacity to re-reserve.
+      const cap = event.capacity_available ?? 0;
+      if (cap <= 0) {
+        return Response.json({ error: 'A sua vaga expirou por tempo limite de pagamento. O passeio está completo.' }, { status: 400 });
+      }
+      // Re-reserve and confirm
+      const newParticipant = {
+        owner_email: user.email,
+        owner_name: meta.owner_name || user.full_name || '',
+        dog_id: dogId,
+        dog_name: dogName,
+        dog_size: dogSize,
+        payment_status: 'paid' as const,
+        payment_expires_at: '',
+        booking_id: '',
+      };
+      const updatedParticipants = [...(event.participants || []), newParticipant];
+      await base44.asServiceRole.entities.GroupWalkEvent.update(event_id, {
+        participants: updatedParticipants,
+        capacity_available: Math.max(0, cap - 1),
+        status: cap - 1 === 0 ? 'full' : event.status,
+      });
+    } else {
+      // Update the pending participant to paid
+      const updatedParticipants = (event.participants || []).map((p, i) =>
+        i === participantIdx
+          ? { ...p, payment_status: 'paid' as const, payment_expires_at: '' }
+          : p
+      );
+      // Capacity was already decremented at checkout — just update participant status
+      await base44.asServiceRole.entities.GroupWalkEvent.update(event_id, {
+        participants: updatedParticipants,
+        status: event.capacity_available === 0 ? 'full' : event.status,
+      });
+    }
 
     // Create a Booking record for the walk
     const booking = await base44.asServiceRole.entities.Booking.create({
@@ -99,15 +122,18 @@ Deno.serve(async (req) => {
     });
 
     // Update the participant with the booking_id
-    newParticipant.booking_id = booking.id;
-    const finalParticipants = updatedParticipants.map(p =>
-      p.owner_email === user.email && p.dog_id === dogId
-        ? { ...p, booking_id: booking.id }
-        : p
-    );
-    await base44.asServiceRole.entities.GroupWalkEvent.update(event_id, {
-      participants: finalParticipants,
-    });
+    const finalEvents = await base44.asServiceRole.entities.GroupWalkEvent.filter({ id: event_id });
+    const finalEvent = finalEvents[0];
+    if (finalEvent) {
+      const finalParticipants = (finalEvent.participants || []).map(p =>
+        p.owner_email === user.email && p.dog_id === dogId && p.payment_status === 'paid'
+          ? { ...p, booking_id: booking.id }
+          : p
+      );
+      await base44.asServiceRole.entities.GroupWalkEvent.update(event_id, {
+        participants: finalParticipants,
+      });
+    }
 
     // Notify the professional
     await base44.asServiceRole.entities.Notification.create({

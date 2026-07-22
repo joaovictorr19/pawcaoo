@@ -31,7 +31,10 @@ export default function GroupWalkBookingModal({ isOpen, onClose, event, currentU
   });
 
   const selectedDog = myDogs.find(d => d.id === selectedDogId);
-  const spotsLeft = (event?.max_dogs || 5) - (event?.dogs_booked || 0);
+  const capTotal = event?.capacity_total ?? event?.max_dogs ?? 5;
+  const capAvailable = event?.capacity_available ?? capTotal;
+  const spotsLeft = capAvailable;
+  const isFull = spotsLeft <= 0;
 
   const handleBook = async () => {
     if (!currentUser?.email) {
@@ -56,7 +59,7 @@ export default function GroupWalkBookingModal({ isOpen, onClose, event, currentU
       if (checkoutUrl) {
         window.location.href = checkoutUrl;
       } else {
-        toast.error("Erro ao gerar link de pagamento.");
+        toast.error(response?.data?.error || "Erro ao gerar link de pagamento.");
         setIsProcessing(false);
       }
     } catch (error) {
@@ -88,7 +91,23 @@ export default function GroupWalkBookingModal({ isOpen, onClose, event, currentU
                 {event.pickup_method === 'walker_pickup' ? <Car className="w-3.5 h-3.5 text-orange-500" /> : <MapPinned className="w-3.5 h-3.5 text-orange-500" />}
                 {event.pickup_method === 'walker_pickup' ? 'Profissional vai buscar' : event.meeting_point_address || event.location}
               </div>
-              <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-orange-500" />{event.dogs_booked}/{event.max_dogs} cães inscritos • {spotsLeft} {spotsLeft === 1 ? "vaga" : "vagas"}</div>
+              <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-orange-500" />{spotsLeft} {spotsLeft === 1 ? "vaga" : "vagas"} de {capTotal}</div>
+            </div>
+          </div>
+
+          {/* Capacity bar (igual ao hotel) */}
+          <div className="bg-slate-50 rounded-2xl p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Vagas disponíveis</span>
+              <span className={`text-sm font-black ${isFull ? 'text-red-500' : 'text-green-500'}`}>
+                {isFull ? 'Esgotado' : `${spotsLeft} / ${capTotal}`}
+              </span>
+            </div>
+            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${isFull ? 'bg-red-500' : spotsLeft <= capTotal * 0.3 ? 'bg-orange-500' : 'bg-green-500'}`}
+                style={{ width: `${capTotal > 0 ? (spotsLeft / capTotal) * 100 : 0}%` }}
+              />
             </div>
           </div>
 
@@ -135,17 +154,26 @@ export default function GroupWalkBookingModal({ isOpen, onClose, event, currentU
             <span className="text-xl font-black text-green-600">€{event.price_per_dog}</span>
           </div>
 
-          <Button
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-12"
-            disabled={!selectedDogId || isProcessing || spotsLeft <= 0}
-            onClick={handleBook}
-          >
-            {isProcessing ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> A processar...</>
-            ) : (
-              <><Euro className="w-4 h-4 mr-2" /> Pagar e inscrever</>
-            )}
-          </Button>
+          {isFull ? (
+            <div className="w-full bg-red-50 text-red-600 text-center py-3 rounded-xl font-bold text-sm">
+              ⛔ Esgotado — sem vagas disponíveis
+            </div>
+          ) : (
+            <Button
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-12"
+              disabled={!selectedDogId || isProcessing}
+              onClick={handleBook}
+            >
+              {isProcessing ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> A reservar vaga...</>
+              ) : (
+                <><Euro className="w-4 h-4 mr-2" /> Pagar e inscrever</>
+              )}
+            </Button>
+          )}
+          <p className="text-center text-[10px] text-slate-400 leading-relaxed">
+            A vaga é reservada imediatamente. Se não pagares em 5 minutos, a vaga será libertada automaticamente.
+          </p>
         </div>
       </DrawerContent>
     </Drawer>

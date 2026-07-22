@@ -58,15 +58,15 @@
       "default": 0,
       "description": "Pre\u00e7o por c\u00e3o"
     },
-    "max_dogs": {
+    "capacity_total": {
       "type": "number",
       "default": 5,
-      "description": "N\u00famero m\u00e1ximo de c\u00e3es permitidos"
+      "description": "N\u00famero m\u00e1ximo de c\u00e3es permitidos (lota\u00e7\u00e3o total)"
     },
-    "dogs_booked": {
+    "capacity_available": {
       "type": "number",
-      "default": 0,
-      "description": "N\u00famero atual de c\u00e3es agendados"
+      "default": 5,
+      "description": "Vagas dispon\u00edveis \u2014 decrementado imediatamente no checkout, restaurado se pagamento expirar"
     },
     "accepted_sizes": {
       "type": "array",
@@ -123,9 +123,15 @@
             "type": "string",
             "enum": [
               "pending",
-              "paid"
+              "paid",
+              "expired"
             ],
             "default": "pending"
+          },
+          "payment_expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data/hora limite para pagamento (5 min ap\u00f3s in\u00edcio do checkout). Se n\u00e3o pagar, vaga \u00e9 libertada."
           },
           "booking_id": {
             "type": "string",
@@ -134,7 +140,7 @@
         }
       },
       "default": [],
-      "description": "Participantes inscritos"
+      "description": "Participantes inscritos (pending = a pagar, paid = confirmado)"
     }
   },
   "required": [
