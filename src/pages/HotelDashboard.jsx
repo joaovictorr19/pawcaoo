@@ -33,6 +33,7 @@ import HotelCheckinPolicyConfig from "@/components/hotel/HotelCheckinPolicyConfi
 import HotelProfileSettings from "@/components/hotel/HotelProfileSettings";
 import HotelReservationsPanel from "@/components/hotel/HotelReservationsPanel";
 import HotelSalesInsights from "@/components/hotel/HotelSalesInsights";
+import HotelAddOnSalesPanel from "@/components/hotel/HotelAddOnSalesPanel";
 import HotelWaitlistPanel from "@/components/hotel/HotelWaitlistPanel";
 import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel";
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
@@ -641,6 +642,7 @@ export default function HotelDashboard() {
             <motion.div key="financas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="space-y-4">
               <HotelFinancesPanel bookings={bookings} hotelProfile={hotelProfile} />
+              <HotelAddOnSalesPanel bookings={bookings} />
             </motion.div>
           )}
 
