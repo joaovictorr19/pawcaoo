@@ -128,9 +128,7 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
     };
   }
 
-  // ─── EDIT MODE: Create ProfileEditRequest for admin approval ───
-  // When editing, do NOT update the live WalkerProfile directly.
-  // Instead, store the proposed changes in ProfileEditRequest for admin to review.
+  // ─── EDIT MODE: Update display fields directly, only request approval for sensitive data ───
   if (isEditing) {
     const existing = await base44.entities.WalkerProfile.filter({ created_by: user.email });
     if (existing.length === 0) {
@@ -138,58 +136,144 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
     }
     const existingProfile = existing[0];
 
-    const profileTypeForRequest =
-      form.professional_type === "hotel"
-        ? "hotel"
-        : form.professional_type === "trainer" || form.professional_type === "both"
-        ? "trainer"
-        : "walker";
+    // Non-sensitive display fields — update directly on the live profile
+    const directUpdateData = {
+      walker_name: form.walker_name || user.full_name,
+      location: form.location,
+      bio: form.bio,
+      photo_url: form.photo_url || user.profile_photo_url || "",
+      cover_photo_url: form.cover_photo_url || "",
+      whatsapp_number: form.whatsapp_number || "",
+      phone: form.whatsapp_number || "",
+      hourly_rate: parseFloat(form.hourly_rate) || 15,
+      exotic_rate: parseFloat(form.exotic_rate) || 0,
+      services_offered: form.services_offered || [],
+      accepted_animals: form.accepted_animals || ["dogs"],
+      dog_sizes: form.dog_sizes || ["small", "medium", "large"],
+      availability: form.availability || [],
+      portfolio: form.portfolio || [],
+      instant_booking: form.professional_type === "hotel" ? false : form.instant_booking,
+      service_areas: [{
+        area_name: form.location,
+        radius_km: form.work_radius_km || 5,
+        latitude: lat,
+        longitude: lng,
+      }],
+      latitude: lat,
+      longitude: lng,
+    };
 
-    // Create the edit request
-    await base44.entities.ProfileEditRequest.create({
-      profile_id: existingProfile.id,
-      profile_type: profileTypeForRequest,
-      professional_name: form.walker_name || user.full_name,
-      professional_email: user.email,
-      requested_changes: profileData,
-      original_data: existingProfile,
-      status: "pending",
-    });
-
-    // Notify all admins about the pending edit request
-    try {
-      const admins = await base44.entities.User.filter({ role: "admin" });
-      const proName = form.walker_name || user.full_name || "Profissional";
-      for (const admin of admins) {
-        try {
-          await base44.entities.Notification.create({
-            recipient_email: admin.email,
-            title: "Alteração de Perfil Pendente",
-            message: `${proName} solicitou alteração do perfil profissional e aguarda aprovação.`,
-            type: "system",
-            link: "/AdminProfessionalApprovals",
-            related_id: existingProfile.id,
-          });
-        } catch (err) {
-          console.warn(`Erro ao notificar admin ${admin.email}:`, err);
-        }
-      }
-    } catch (err) {
-      console.warn("Erro ao obter lista de admins:", err);
+    // Hotel-specific display fields — update directly
+    if (form.professional_type === "hotel") {
+      directUpdateData.hotel_details = {
+        ...(existingProfile.hotel_details || {}),
+        hotel_name: form.hotel_name || form.walker_name,
+        hotel_description: form.bio,
+        full_address: form.hotel_full_address || existingProfile.hotel_details?.full_address || "",
+        checkin_time: form.hotel_checkin_time || existingProfile.hotel_details?.checkin_time || "09:00",
+        checkout_time: form.hotel_checkout_time || existingProfile.hotel_details?.checkout_time || "18:00",
+        capacity_total: parseInt(form.hotel_capacity_total) || existingProfile.hotel_details?.capacity_total || 5,
+        capacity_available: parseInt(form.hotel_capacity_total) || existingProfile.hotel_details?.capacity_available || 5,
+        amenities: form.hotel_amenities || existingProfile.hotel_details?.amenities || [],
+        accepted_dog_sizes: form.hotel_accepted_sizes || existingProfile.hotel_details?.accepted_dog_sizes || ["small", "medium", "large"],
+        services: form.hotel_services || existingProfile.hotel_details?.services || [],
+      };
     }
 
-    // Update only safe auth fields (name, photo, city) — not professional data
+    await base44.entities.WalkerProfile.update(existingProfile.id, directUpdateData);
+
+    // Sensitive fields — only need approval if they changed
+    const sensitiveFields = {
+      id_document_url: form.id_document_url,
+      proof_of_address_url: form.proof_of_address_url,
+      country_of_operation: form.country_of_operation,
+      tax_id_portugal: form.tax_id_portugal,
+      tax_id_spain: form.tax_id_spain,
+      tax_id_france: form.tax_id_france,
+      france_professional_type: form.france_professional_type,
+      professional_type: form.professional_type,
+    };
+
+    const hasSensitiveChanges = Object.keys(sensitiveFields).some(key => {
+      const oldVal = existingProfile[key];
+      const newVal = sensitiveFields[key];
+      return JSON.stringify(oldVal || "") !== JSON.stringify(newVal || "");
+    });
+
+    if (hasSensitiveChanges) {
+      const profileTypeForRequest =
+        form.professional_type === "hotel"
+          ? "hotel"
+          : form.professional_type === "trainer" || form.professional_type === "both"
+          ? "trainer"
+          : "walker";
+
+      await base44.entities.ProfileEditRequest.create({
+        profile_id: existingProfile.id,
+        profile_type: profileTypeForRequest,
+        professional_name: form.walker_name || user.full_name,
+        professional_email: user.email,
+        requested_changes: sensitiveFields,
+        original_data: {
+          id_document_url: existingProfile.id_document_url,
+          proof_of_address_url: existingProfile.proof_of_address_url,
+          country_of_operation: existingProfile.country_of_operation,
+          tax_id_portugal: existingProfile.tax_id_portugal,
+          tax_id_spain: existingProfile.tax_id_spain,
+          tax_id_france: existingProfile.tax_id_france,
+          france_professional_type: existingProfile.france_professional_type,
+          professional_type: existingProfile.professional_type,
+        },
+        status: "pending",
+      });
+
+      // Notify admins only about sensitive data changes
+      try {
+        const admins = await base44.entities.User.filter({ role: "admin" });
+        const proName = form.walker_name || user.full_name || "Profissional";
+        for (const admin of admins) {
+          try {
+            await base44.entities.Notification.create({
+              recipient_email: admin.email,
+              title: "Dados Sensíveis Pendentes de Aprovação",
+              message: `${proName} atualizou dados sensíveis (documentos/fiscais) e aguarda aprovação.`,
+              type: "system",
+              link: "/AdminProfessionalApprovals",
+              related_id: existingProfile.id,
+            });
+          } catch (err) {
+            console.warn(`Erro ao notificar admin ${admin.email}:`, err);
+          }
+        }
+      } catch (err) {
+        console.warn("Erro ao obter lista de admins:", err);
+      }
+    }
+
+    // Update auth fields (name, photo, city)
     await base44.auth.updateMe({
       full_name: form.walker_name || user.full_name,
       profile_photo_url: form.photo_url || user.profile_photo_url,
       city: form.location,
     });
 
+    // Update UserProfile entity
+    const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+    if (userProfiles.length > 0) {
+      await base44.entities.UserProfile.update(userProfiles[0].id, {
+        full_name: form.walker_name || user.full_name,
+        profile_photo_url: form.photo_url || user.profile_photo_url,
+        city: form.location,
+        bio: form.bio,
+      });
+    }
+
     queryClient.invalidateQueries(["currentUser"]);
     queryClient.invalidateQueries(["myProfessionalProfile"]);
     queryClient.invalidateQueries(["existingWalkerProfile"]);
     queryClient.invalidateQueries(["existingHotelProfile"]);
     queryClient.invalidateQueries(["myWalkerProfile"]);
+    queryClient.invalidateQueries(["allWalkers"]);
 
     return existingProfile;
   }
