@@ -39,7 +39,6 @@ import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel"
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
 import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
 import AssignTaskModal from "@/components/hotel/AssignTaskModal";
-import HotelDashboardTabs from "@/components/hotel/HotelDashboardTabs";
 import AddServiceToStayModal from "@/components/hotel/AddServiceToStayModal";
 import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
@@ -462,19 +461,34 @@ export default function HotelDashboard() {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="max-w-5xl mx-auto px-4 flex gap-1 overflow-x-auto flex-nowrap" style={{ scrollbarWidth: "none" }}>
+          <style>{`div::-webkit-scrollbar{display:none}`}</style>
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const count = tab.key === "hospedes" ? activeBookings.length + pendingBookings.length
+                         : tab.key === "parceiros" ? partners.length : 0;
+            return (
+              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-1.5 px-3 py-3 text-xs font-semibold whitespace-nowrap border-b-2 transition-all shrink-0 min-h-[40px] ${
+                  activeTab === tab.key
+                    ? "border-slate-900 text-slate-900"
+                    : "border-transparent text-slate-400 hover:text-slate-600"
+                }`}>
+                <Icon className="w-3.5 h-3.5" />
+                {tab.label}
+                {count > 0 && (
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                    activeTab === tab.key ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500"
+                  }`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </header>
-
-      {/* Professional sticky tab bar */}
-      <HotelDashboardTabs
-        tabs={TABS}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        getCount={(key) =>
-          key === "hospedes" ? activeBookings.length + pendingBookings.length
-          : key === "parceiros" ? partners.length
-          : 0
-        }
-      />
 
       <div className="max-w-5xl mx-auto px-4 pt-4 pb-28 md:pb-8 space-y-4">
         {/* Capacity Alert */}
