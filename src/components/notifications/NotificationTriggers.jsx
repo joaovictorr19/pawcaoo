@@ -423,6 +423,60 @@ export default function NotificationTriggers({ user }) {
     return () => clearInterval(timer);
   }, [user?.email, notifPrefs]);
 
+  // ─── Diário do cão: notificar tutor quando hotel atualiza o diário ───────────
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const recordLabels = {
+      health: 'Saude', behavior: 'Comportamento', feeding: 'Alimentacao',
+      medication: 'Medicacao', incident: 'Incidente', observation: 'Observacao',
+      elimination: 'Eliminacao', exercise: 'Exercicio', grooming: 'Grooming', veterinary: 'Veterinario'
+    };
+
+    const unsubscribe = base44.entities.HotelPetRecord.subscribe(async (event) => {
+      if (event.type !== 'create') return;
+      const rec = event.data;
+      if (!rec || rec.owner_email !== user.email) return;
+      if (rec.notify_owner === false) return;
+
+      const typeLabel = recordLabels[rec.record_type] || 'Registo';
+      const dogName = rec.dog_name || 'o seu cao';
+      const title = rec.title || `Atualizacao do diario de ${dogName}`;
+
+      // Notificacao in-app
+      if (allowInApp('booking')) {
+        try {
+          await base44.entities.Notification.create({
+            recipient_email: user.email,
+            title: `Diario de ${dogName} — ${typeLabel}`,
+            message: `${title}${rec.description ? ': ' + rec.description.substring(0, 120) : ''}`,
+            type: 'booking',
+            link: '/MyBookings',
+            icon: 'diary',
+            related_id: rec.booking_id || rec.id
+          });
+        } catch {}
+      }
+
+      // Push notification (Android/iOS via PWA)
+      if (allowPush('booking') && 'Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification(`Diario de ${dogName} atualizado`, {
+            body: `${typeLabel}: ${title}. Toque para ver os detalhes.`,
+            tag: `diary_${rec.id}`,
+            icon: '/logo.png',
+            badge: '/favicon.png',
+            requireInteraction: false,
+            vibrate: [200, 100, 200],
+            silent: false
+          });
+        } catch {}
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user?.email, notifPrefs]);
+
   // ─── Lembrete: reservas pendentes à espera de resposta (hotel/profissional) ──
   useEffect(() => {
     if (!user?.email) return;
