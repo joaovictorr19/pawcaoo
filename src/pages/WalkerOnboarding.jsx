@@ -193,7 +193,11 @@ export default function WalkerOnboarding() {
     try {
       await submitProfessionalProfile(user, form, isEditing, queryClient, navigate);
       sessionStorage.removeItem("walker_onboarding_form");
-      toast.success("Perfil submetido para aprovação! 🎉");
+      if (isEditing) {
+        toast.success("Alterações enviadas para aprovação do admin! ⏳");
+      } else {
+        toast.success("Perfil submetido para aprovação! 🎉");
+      }
       navigate(createPageUrl("ProfessionalHubV2"), { replace: true });
     } catch (e) {
       console.error(e);

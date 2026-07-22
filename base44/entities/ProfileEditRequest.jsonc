@@ -10,7 +10,8 @@
       "type": "string",
       "enum": [
         "walker",
-        "trainer"
+        "trainer",
+        "hotel"
       ],
       "description": "Tipo de perfil profissional"
     },
@@ -38,7 +39,7 @@
         "rejected"
       ],
       "default": "pending",
-      "description": "Estado da solicita\u00e7\u00e3o"
+      "description": "Estado da solicitacao"
     },
     "admin_notes": {
       "type": "string",

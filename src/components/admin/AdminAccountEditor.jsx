@@ -243,7 +243,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="glass-admin-dialog w-[calc(100vw-20px)] max-w-3xl rounded-3xl p-0 overflow-hidden max-h-[92vh]">
+      <DialogContent className="glass-admin-dialog w-[calc(100vw-20px)] max-w-3xl rounded-3xl p-0 overflow-hidden max-h-[92vh] flex flex-col">
         {/* Header */}
         <DialogHeader className="relative px-6 pt-6 pb-5 border-b border-white/40">
           <div className="flex items-center gap-4">
@@ -281,7 +281,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
             <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
           </div>
         ) : (
-          <div className="px-6 py-5 overflow-y-auto" style={{ maxHeight: "calc(92vh - 200px)" }}>
+          <div className="px-6 py-5 overflow-y-auto flex-1 min-h-0">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className={"grid w-full h-auto mb-5 " + (isProfessional ? "grid-cols-5" : "grid-cols-3") + " bg-white/40 border border-white/30 rounded-2xl p-1"}>
                 <TabsTrigger value="profile" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">

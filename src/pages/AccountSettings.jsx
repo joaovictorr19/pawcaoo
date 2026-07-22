@@ -547,6 +547,32 @@ export default function AccountSettings() {
                     <p className="text-sm text-muted-foreground">Informações visíveis para todos</p>
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    <div className="text-center py-8">
+                      <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                        <User className="w-7 h-7 text-blue-500" />
+                      </div>
+                      <h3 className="text-lg font-bold mb-1">Editor de Perfil Centralizado</h3>
+                      <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+                        Editaste o teu perfil, morada e animais no novo editor centralizado da PawCão. Clica abaixo para continuar.
+                      </p>
+                      <Button
+                        onClick={() => navigate("/ClientSetup")}
+                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold px-6 h-11"
+                      >
+                        Ir para Editor de Perfil
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {false && activeSection === "profile_legacy_hidden" && (
+                <Card className="border-border shadow-sm">
+                  <CardHeader>
+                    <CardTitle>Perfil Público</CardTitle>
+                    <p className="text-sm text-muted-foreground">Informações visíveis para todos</p>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
                     <div>
                       <Label className="mb-3 block text-center font-medium">Foto de Perfil</Label>
                       <CenteredAvatarUpload 

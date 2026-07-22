@@ -21,7 +21,7 @@ const ReviewsManagementSection = React.lazy(() => import("@/components/professio
 const PortfolioSection = React.lazy(() => import("@/components/professional-hub/PortfolioSection"));
 const DocumentsVerificationSection = React.lazy(() => import("@/components/professional-hub/DocumentsVerificationSection"));
 import PendingApproval from "@/components/professional-hub/PendingApproval";
-import ProfessionalProfileForm from "@/components/professional-hub/ProfessionalProfileForm";
+// ProfessionalProfileForm replaced by centralized WalkerOnboarding redirect
 const HotelManagementPanel = React.lazy(() => import("@/components/professional-hub/HotelManagementPanel"));
 const PendingRequestsList = React.lazy(() => import("@/components/professional-hub/PendingRequestsList"));
 import ProOverview from "@/components/professional-hub/ProOverview";
@@ -457,14 +457,23 @@ export default function ProfessionalHubV2() {
 
   if (needsSetup) {
     return (
-      <ProfessionalProfileForm
-        user={user}
-        professionalProfile={null}
-        onDone={() => {
-          queryClient.invalidateQueries(['currentUser']);
-          queryClient.invalidateQueries(['myProfessionalProfile']);
-        }}
-      />
+      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold mb-2">Configura o teu perfil</h2>
+          <p className="text-slate-400 text-sm mb-6">Completa o teu perfil profissional no editor centralizado para começar a receber pedidos.</p>
+          <Button
+            onClick={() => navigate("/WalkerOnboarding")}
+            className="bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-semibold px-6 h-11"
+          >
+            Criar Perfil Profissional
+          </Button>
+        </div>
+      </div>
     );
   }
 
@@ -559,22 +568,29 @@ export default function ProfessionalHubV2() {
           )}
 
           {activeTab === "profile" && (
-            <motion.div 
-              key="profile" 
-              initial={{ opacity: 0, x: 20 }} 
+            <motion.div
+              key="profile"
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
+              className="space-y-4"
             >
-              <ProfessionalProfileForm
-                user={user}
-                professionalProfile={professionalProfile}
-                onDone={() => {
-                  queryClient.invalidateQueries(['currentUser']);
-                  queryClient.invalidateQueries(['myProfessionalProfile']);
-                  setActiveTab('overview');
-                }}
-              />
+              <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-bold text-white mb-1">Editar Perfil Profissional</h2>
+                <p className="text-slate-400 text-sm mb-4">As alterações serão enviadas para aprovação da equipa PawCão antes de serem publicadas.</p>
+                <Button
+                  onClick={() => navigate("/WalkerOnboarding")}
+                  className="bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-semibold px-6 h-11"
+                >
+                  Ir para Editor de Perfil
+                </Button>
+              </div>
             </motion.div>
           )}
 

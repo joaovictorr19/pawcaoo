@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Eye, RefreshCw, Clock, MapPin, Euro, User } from "lucide-react";
+import { CheckCircle2, XCircle, Eye, RefreshCw, Clock, MapPin, Euro, User, Edit3, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -151,6 +151,74 @@ export default function AdminProfessionalApprovals() {
     }
   });
 
+  const { data: pendingEditRequests = [], isLoading: loadingEdits } = useQuery({
+    queryKey: ['pendingEditRequests'],
+    queryFn: async () => {
+      return base44.entities.ProfileEditRequest.filter(
+        { status: "pending" },
+        '-created_date'
+      );
+    }
+  });
+
+  const approveEditMutation = useMutation({
+    mutationFn: async (request) => {
+      const entity = request.profile_type === 'trainer'
+        ? base44.entities.TrainerProfile
+        : base44.entities.WalkerProfile; // "walker" and "hotel" both use WalkerProfile
+      const changes = request.requested_changes || {};
+      await entity.update(request.profile_id, {
+        ...changes,
+        verification_status: changes.verification_status || 'verified',
+        is_active: changes.is_active !== undefined ? changes.is_active : true,
+        is_verified: true,
+      });
+      await base44.entities.ProfileEditRequest.update(request.id, { status: 'approved' });
+      await base44.entities.Notification.create({
+        recipient_email: request.professional_email,
+        title: '✅ Alteração Aprovada',
+        message: `A tua alteração de perfil foi aprovada pela equipa PawCão!`,
+        type: 'system',
+        icon: '✅',
+        link: '/ProfessionalHubV2',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['pendingEditRequests']);
+      queryClient.invalidateQueries(['pendingProfessionals']);
+      queryClient.invalidateQueries(['allWalkers']);
+      queryClient.invalidateQueries(['allWalkersAdmin']);
+      toast.success("Alteração aprovada e aplicada ao perfil!");
+      setProcessingId(null);
+    },
+    onError: (e) => {
+      toast.error("Erro ao aprovar alteração: " + e.message);
+      setProcessingId(null);
+    }
+  });
+
+  const rejectEditMutation = useMutation({
+    mutationFn: async (request) => {
+      await base44.entities.ProfileEditRequest.update(request.id, { status: 'rejected' });
+      await base44.entities.Notification.create({
+        recipient_email: request.professional_email,
+        title: '❌ Alteração Rejeitada',
+        message: `A tua alteração de perfil foi rejeitada. Contacta o suporte para mais informações.`,
+        type: 'system',
+        icon: '❌',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['pendingEditRequests']);
+      toast.success("Alteração rejeitada e profissional notificado.");
+      setProcessingId(null);
+    },
+    onError: (e) => {
+      toast.error("Erro ao rejeitar: " + e.message);
+      setProcessingId(null);
+    }
+  });
+
   const approveMutation = useMutation({
     mutationFn: async ({ profile, type }) => {
       const entity = type === 'trainer' ? base44.entities.TrainerProfile : base44.entities.WalkerProfile;
@@ -282,11 +350,128 @@ export default function AdminProfessionalApprovals() {
         </div>
       )}
 
+      {pendingEditRequests.length > 0 && (
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Edit3 className="w-5 h-5 text-orange-500" />
+            <h2 className="text-xl font-black text-slate-900">Alterações de Perfis Existentes</h2>
+            <Badge className="bg-orange-100 text-orange-700 border-orange-200">{pendingEditRequests.length}</Badge>
+          </div>
+          <p className="text-slate-500 text-sm -mt-1">Profissionais que editaram o seu perfil e aguardam aprovação das alterações.</p>
+          <div className="space-y-3">
+            {pendingEditRequests.map(req => (
+              <EditRequestCard
+                key={req.id}
+                request={req}
+                onApprove={() => {
+                  setProcessingId(req.id);
+                  approveEditMutation.mutate(req);
+                }}
+                onReject={() => {
+                  setProcessingId(req.id);
+                  rejectEditMutation.mutate(req);
+                }}
+                processing={processingId === req.id}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       <RejectModal
         open={!!rejectTarget}
         onClose={() => setRejectTarget(null)}
         onConfirm={handleRejectConfirm}
       />
+    </div>
+  );
+}
+
+function EditRequestCard({ request, onApprove, onReject, processing }) {
+  const changes = request.requested_changes || {};
+  const original = request.original_data || {};
+  const isHotel = changes.professional_type === 'hotel';
+  const displayName = request.professional_name || changes.walker_name || 'Profissional';
+
+  const fields = [
+    { label: 'Nome', key: 'walker_name' },
+    { label: 'Localização', key: 'location' },
+    { label: 'Bio', key: 'bio' },
+    { label: 'WhatsApp', key: 'whatsapp_number' },
+    { label: 'Preço/hora', key: 'hourly_rate', suffix: '€' },
+    { label: 'Documento ID', key: 'id_document_url', isDoc: true },
+    { label: 'Comprovativo Morada', key: 'proof_of_address_url', isDoc: true },
+    { label: 'NIF', key: 'tax_id_portugal' },
+  ];
+
+  return (
+    <div className="bg-white rounded-2xl border border-orange-200 shadow-sm p-5 space-y-3">
+      <div className="flex items-center gap-3">
+        <Avatar className="w-12 h-12 border-2 border-slate-100">
+          <AvatarImage src={changes.photo_url || original.photo_url} />
+          <AvatarFallback className="bg-orange-100 text-orange-700 font-bold">
+            {displayName[0]?.toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-bold text-slate-900">{displayName}</h3>
+            <Badge className="bg-orange-100 text-orange-700 border-orange-200">
+              <Edit3 className="w-3 h-3 mr-1" />
+              {request.profile_type === 'trainer' ? '🎓 Treinador' : isHotel ? '🏨 Hotel' : '🦮 Passeador'}
+            </Badge>
+          </div>
+          <p className="text-xs text-slate-500 mt-0.5">{request.professional_email}</p>
+        </div>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-2 bg-slate-50 rounded-xl p-3">
+        {fields.filter(f => changes[f.key] !== undefined).map(f => {
+          const newVal = changes[f.key];
+          const oldVal = original[f.key];
+          const changed = JSON.stringify(newVal) !== JSON.stringify(oldVal);
+          return (
+            <div key={f.key} className={`text-xs p-2 rounded-lg ${changed ? 'bg-amber-50 border border-amber-200' : 'bg-white border border-slate-100'}`}>
+              <p className="font-bold text-slate-500 uppercase tracking-wider mb-0.5">{f.label}</p>
+              {f.isDoc ? (
+                newVal ? (
+                  <a href={newVal} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                    <Eye className="w-3 h-3" /> Ver documento
+                  </a>
+                ) : (
+                  <span className="text-slate-400">—</span>
+                )
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  {changed && oldVal && <span className="text-slate-400 line-through truncate">{String(oldVal).slice(0, 30)}</span>}
+                  {changed && <ArrowRight className="w-3 h-3 text-amber-500 flex-shrink-0" />}
+                  <span className="text-slate-800 font-medium truncate">{String(newVal || '—').slice(0, 30)}{f.suffix || ''}</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex gap-2 pt-2 border-t border-slate-100">
+        <Button
+          onClick={onApprove}
+          disabled={processing}
+          className="flex-1 bg-green-600 hover:bg-green-700 text-white h-9 text-sm"
+        >
+          <CheckCircle2 className="w-4 h-4 mr-1" />
+          Aprovar Alterações
+        </Button>
+        <Button
+          onClick={onReject}
+          disabled={processing}
+          variant="outline"
+          className="flex-1 text-red-600 border-red-200 hover:bg-red-50 h-9 text-sm"
+        >
+          <XCircle className="w-4 h-4 mr-1" />
+          Rejeitar
+        </Button>
+      </div>
     </div>
   );
 }

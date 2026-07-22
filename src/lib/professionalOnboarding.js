@@ -128,6 +128,74 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
     };
   }
 
+  // ─── EDIT MODE: Create ProfileEditRequest for admin approval ───
+  // When editing, do NOT update the live WalkerProfile directly.
+  // Instead, store the proposed changes in ProfileEditRequest for admin to review.
+  if (isEditing) {
+    const existing = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+    if (existing.length === 0) {
+      throw new Error("Perfil não encontrado para edição.");
+    }
+    const existingProfile = existing[0];
+
+    const profileTypeForRequest =
+      form.professional_type === "hotel"
+        ? "hotel"
+        : form.professional_type === "trainer" || form.professional_type === "both"
+        ? "trainer"
+        : "walker";
+
+    // Create the edit request
+    await base44.entities.ProfileEditRequest.create({
+      profile_id: existingProfile.id,
+      profile_type: profileTypeForRequest,
+      professional_name: form.walker_name || user.full_name,
+      professional_email: user.email,
+      requested_changes: profileData,
+      original_data: existingProfile,
+      status: "pending",
+    });
+
+    // Notify all admins about the pending edit request
+    try {
+      const admins = await base44.entities.User.filter({ role: "admin" });
+      const proName = form.walker_name || user.full_name || "Profissional";
+      for (const admin of admins) {
+        try {
+          await base44.entities.Notification.create({
+            recipient_email: admin.email,
+            title: "Alteração de Perfil Pendente",
+            message: `${proName} solicitou alteração do perfil profissional e aguarda aprovação.`,
+            type: "system",
+            link: "/AdminProfessionalApprovals",
+            related_id: existingProfile.id,
+          });
+        } catch (err) {
+          console.warn(`Erro ao notificar admin ${admin.email}:`, err);
+        }
+      }
+    } catch (err) {
+      console.warn("Erro ao obter lista de admins:", err);
+    }
+
+    // Update only safe auth fields (name, photo, city) — not professional data
+    await base44.auth.updateMe({
+      full_name: form.walker_name || user.full_name,
+      profile_photo_url: form.photo_url || user.profile_photo_url,
+      city: form.location,
+    });
+
+    queryClient.invalidateQueries(["currentUser"]);
+    queryClient.invalidateQueries(["myProfessionalProfile"]);
+    queryClient.invalidateQueries(["existingWalkerProfile"]);
+    queryClient.invalidateQueries(["existingHotelProfile"]);
+    queryClient.invalidateQueries(["myWalkerProfile"]);
+
+    return existingProfile;
+  }
+
+  // ─── CREATE MODE: Create new profile with pending status ───
+  // The entity automation on WalkerProfile.create triggers notifyAdminProfessional automatically.
   const existing = await base44.entities.WalkerProfile.filter({ created_by: user.email });
   let profile;
   if (existing.length > 0) {
@@ -180,18 +248,6 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
       city: form.location,
       bio: form.bio,
     });
-  }
-
-  if (!isEditing) {
-    try {
-      await base44.functions.invoke("notifyAdminNewProfile", {
-        professional_name: form.walker_name || user.full_name,
-        professional_type: form.professional_type,
-        professional_email: user.email,
-      });
-    } catch (err) {
-      console.warn("Erro ao notificar admin:", err);
-    }
   }
 
   queryClient.invalidateQueries(["currentUser"]);

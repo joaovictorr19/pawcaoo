@@ -106,7 +106,10 @@ export default function ProfessionalTypeSelect() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                onClick={() => navigate(opt.route)}
+                onClick={() => {
+                  localStorage.setItem("pawcao_signup_intent", opt.type);
+                  navigate(opt.route);
+                }}
                 className={`w-full p-6 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${
                   opt.color === "orange"
                     ? "border-slate-800 bg-slate-900 hover:border-orange-500/50 hover:bg-orange-500/5"

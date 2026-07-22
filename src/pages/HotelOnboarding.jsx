@@ -177,7 +177,11 @@ export default function HotelOnboarding() {
     try {
       await submitProfessionalProfile(user, form, isEditing, queryClient, navigate);
       sessionStorage.removeItem("hotel_onboarding_form");
-      toast.success("Perfil de hotel submetido para aprovação! 🏨");
+      if (isEditing) {
+        toast.success("Alterações do hotel enviadas para aprovação do admin! ⏳");
+      } else {
+        toast.success("Perfil de hotel submetido para aprovação! 🏨");
+      }
       navigate(createPageUrl("HotelDashboard"), { replace: true });
     } catch (e) {
       console.error(e);
