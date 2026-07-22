@@ -183,6 +183,6 @@ export default function DynamicBackground() {
   }
 
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-transparent w-screen h-screen" style={{ minHeight: '100vh', minWidth: '100vw' }} />
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-transparent w-screen" style={{ minHeight: '100dvh', minWidth: '100vw' }} />
   );
 }

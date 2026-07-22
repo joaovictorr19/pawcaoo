@@ -1,12 +1,14 @@
 {
   "name": "PawCão — Dog Care Platform",
   "short_name": "PawCão",
-  "description": "Plataforma que conecta donos de cães com profissionais de serviços caninos.",
+  "description": "Plataforma que liga donos de cães a profissionais de serviços caninos.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "orientation": "portrait",
-  "background_color": "#4A9E96",
-  "theme_color": "#4A9E96",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "lang": "pt",
   "categories": ["lifestyle", "pets"],
   "icons": [
@@ -15,12 +17,6 @@
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "any"
-    },
-    {
-      "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/58cad35d5_37581B35-5C27-4772-B599-CF9FD8421908.jpg",
-      "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "maskable"
     },
     {
       "src": "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/58cad35d5_37581B35-5C27-4772-B599-CF9FD8421908.jpg",
