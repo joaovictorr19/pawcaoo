@@ -167,48 +167,60 @@ export default function PushNotificationManager({ user }) {
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
             className="fixed bottom-20 md:bottom-6 left-3 right-3 md:left-auto md:right-6 z-[99998] md:w-full md:max-w-sm"
           >
-            <Card className="border border-gray-100 shadow-xl backdrop-blur-xl bg-white/95 rounded-2xl overflow-hidden">
-              <CardContent className="p-3 md:p-4">
-                {/* Botão fechar */}
+            <div
+              className="rounded-2xl overflow-hidden relative"
+              style={{
+                background: 'rgba(255, 255, 255, 0.72)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.5)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              <div className="p-3 md:p-4">
                 <button
                   onClick={dismissBanner}
-                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100 p-1.5 z-10"
+                  className="absolute top-2 right-2 text-slate-400 hover:text-slate-700 transition-colors rounded-full hover:bg-white/60 p-1.5 z-10"
                 >
                   <X className="w-4 h-4" />
                 </button>
-                
-                {/* Layout horizontal compacto */}
+
                 <div className="flex items-start gap-3 pr-6">
-                  <div className="bg-blue-100 p-1.5 rounded-lg flex-shrink-0 mt-0.5">
-                    <Bell className="w-4 h-4 text-blue-600" />
+                  <div
+                    className="p-2 rounded-xl flex-shrink-0 mt-0.5"
+                    style={{
+                      background: 'rgba(13, 148, 131, 0.12)',
+                    }}
+                  >
+                    <Bell className="w-4 h-4 text-teal-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-gray-900 mb-0.5">
+                    <h3 className="font-heading font-bold text-sm text-slate-900 mb-0.5">
                       Ativar notificações?
                     </h3>
-                    <p className="text-xs text-gray-500 leading-snug mb-2">
-                      Receba alertas sobre seus passeios e mensagens importantes.
+                    <p className="text-xs text-slate-600 leading-snug mb-2.5">
+                      Receba alertas sobre os seus passeios, reservas e mensagens importantes.
                     </p>
-                    
+
                     <div className="flex items-center gap-2">
-                      <Button
+                      <button
                         onClick={dismissBanner}
-                        variant="ghost"
-                        className="h-7 px-3 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+                        className="h-8 px-4 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-full transition-all active:scale-95"
+                        style={{ background: 'rgba(255, 255, 255, 0.5)' }}
                       >
                         Agora não
-                      </Button>
-                      <Button
+                      </button>
+                      <button
                         onClick={requestPermission}
-                        className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-sm rounded-lg"
+                        className="hero-cta-teal h-8 px-5 text-xs font-bold text-white rounded-full transition-all active:scale-95"
                       >
                         Ativar
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
