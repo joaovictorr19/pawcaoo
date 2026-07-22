@@ -92,23 +92,16 @@ const MainPage = mainPageKey && Pages[mainPageKey] ? Pages[mainPageKey] : () => 
 setupIframeMessaging();
 
 // Suppress benign ResizeObserver loop warning (browser quirk, not an app bug)
+// Root cause is patched in main.jsx (rAF-deferred observe); this is a backup filter.
 if (typeof window !== 'undefined') {
-  const _resizeObserverHandler = (e) => {
-    if (e.message === 'ResizeObserver loop completed with undelivered notifications.' ||
-        e.message === 'ResizeObserver loop limit exceeded') {
+  window.addEventListener('error', (e) => {
+    if (e?.message === 'ResizeObserver loop completed with undelivered notifications.' ||
+        e?.message === 'ResizeObserver loop limit exceeded') {
       e.stopImmediatePropagation();
       e.stopPropagation();
       e.preventDefault();
     }
-  };
-  window.addEventListener('error', _resizeObserverHandler);
-  window.addEventListener('unhandledrejection', (e) => {
-    const msg = e?.reason?.message || String(e?.reason || '');
-    if (msg.includes('ResizeObserver loop')) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  });
+  }, true);
 }
 
 const ErrorBoundaryWrapper = ({ children }) => {
