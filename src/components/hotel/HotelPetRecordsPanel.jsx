@@ -186,7 +186,7 @@ function NewRecordDrawer({ open, onOpenChange, hotelProfile, booking, dogName, u
     }
     createMutation.mutate({
       hotel_profile_id: hotelProfile?.id,
-      hotel_email: hotelProfile?.created_by,
+      hotel_email: user?.email,
       booking_id: booking?.id,
       owner_name: booking?.owner_name,
       owner_email: booking?.owner_email,
