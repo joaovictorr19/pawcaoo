@@ -304,6 +304,19 @@ export default function HotelDashboard() {
     toast.success(`Nível de acesso alterado para ${roleLabels[newRole] || newRole}`);
   };
 
+  const updatePartnerTitle = async (partnerEmail, newTitle) => {
+    if (!hotelProfile) return;
+    const partners = hotelProfile.hotel_details?.partner_walkers || [];
+    const updated = partners.map(p =>
+      p.walker_email === partnerEmail ? { ...p, custom_title: newTitle } : p
+    );
+    await base44.entities.WalkerProfile.update(hotelProfile.id, {
+      hotel_details: { ...hotelProfile.hotel_details, partner_walkers: updated },
+    });
+    queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
+    toast.success(`Título alterado para ${newTitle}`);
+  };
+
   const handleSyncGoogleCalendar = async () => {
     if (!hotelProfile) return;
     setIsSyncing(true);
@@ -676,6 +689,7 @@ export default function HotelDashboard() {
                 onToggleAvailability={togglePartnerAvailability}
                 onAddPartner={() => setShowAddPartner(true)}
                 onUpdatePartnerRole={updatePartnerRole}
+                onUpdatePartnerTitle={updatePartnerTitle}
               />
             </motion.div>
           )}

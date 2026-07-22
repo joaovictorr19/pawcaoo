@@ -3,8 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Users, ToggleLeft, ToggleRight, Plus, ChevronDown, ChevronUp,
-  Shield, ShieldCheck, ShieldAlert
+  Shield, ShieldCheck, ShieldAlert, Pencil
 } from "lucide-react";
+
+const TITLE_OPTIONS = [
+  "Funcionário",
+  "Treinador",
+  "Veterinário",
+  "Passeador",
+  "Groomer",
+  "Rececionista",
+  "Gerente",
+  "Voluntário",
+];
 
 const SERVICE_LABELS = {
   walk: "Passeio",
@@ -40,7 +51,7 @@ const ROLE_CONFIG = {
   },
 };
 
-export default function HotelPartnersPanel({ partners = [], bookings = [], onToggleAvailability, onAddPartner, onUpdatePartnerRole }) {
+export default function HotelPartnersPanel({ partners = [], bookings = [], onToggleAvailability, onAddPartner, onUpdatePartnerRole, onUpdatePartnerTitle }) {
   const [expandedPartner, setExpandedPartner] = useState(null);
 
   const partnerBookingCount = (email) =>
@@ -98,6 +109,11 @@ export default function HotelPartnersPanel({ partners = [], bookings = [], onTog
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-bold text-slate-900 text-sm">{partner.walker_name}</p>
+                      {partner.custom_title && (
+                        <Badge className="bg-purple-100 text-purple-700 text-[9px] border-0 px-1.5 font-bold">
+                          {partner.custom_title}
+                        </Badge>
+                      )}
                       {activeJobs > 0 && (
                         <Badge className="bg-orange-100 text-orange-700 text-[9px] border-0 px-1.5">{activeJobs} ativas</Badge>
                       )}
@@ -132,6 +148,29 @@ export default function HotelPartnersPanel({ partners = [], bookings = [], onTog
                 {/* Expanded: role management + bookings assigned */}
                 {isExpanded && (
                   <div className="border-t border-slate-50 bg-slate-50 px-4 pb-3 pt-3 space-y-3">
+                    {/* Title Selector */}
+                    <div>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2 flex items-center gap-1.5">
+                        <Pencil className="w-3 h-3" /> Título / Cargo
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {TITLE_OPTIONS.map(title => {
+                          const isActive = (partner.custom_title || "Funcionário") === title;
+                          return (
+                            <button key={title}
+                              onClick={() => onUpdatePartnerTitle?.(partner.walker_email, title)}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold border-2 transition-all ${
+                                isActive
+                                  ? "border-purple-500 bg-purple-100 text-purple-700"
+                                  : "border-slate-100 bg-white/50 text-slate-400 hover:border-purple-200"
+                              }`}>
+                              {title}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                     {/* Role Selector */}
                     <div>
                       <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide mb-2 flex items-center gap-1.5">
