@@ -133,9 +133,6 @@
           "data.hotel_email": "{{user.email}}"
         },
         {
-          "data.owner_email": "{{user.email}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
