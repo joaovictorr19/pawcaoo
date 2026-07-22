@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Save, Send, FileText, Percent, User2, ShieldCheck, Mail } from "lucide-react";
+import { Loader2, Save, Send, FileText, Percent, User2, ShieldCheck, Mail, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import AdminCommissionManager from "./AdminCommissionManager";
 
@@ -111,42 +111,23 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
     mutationFn: async () => {
       if (!form || !userToEdit) return;
 
-      // 1. Update user profile fields via admin backend function (role is stripped for security)
-      const profileUpdateData = {
-        full_name: form.full_name,
-        city: form.city,
-        profile_photo_url: form.profile_photo_url,
-        account_type: form.account_type
-      };
-
-      try {
-        const res = await base44.functions.invoke("updateUserAsAdmin", {
-          targetUserId: userToEdit.id,
-          updateData: profileUpdateData
-        });
-        if (res?.data?.error) throw new Error(res.data.error);
-      } catch (e) {
-        // Fallback to direct SDK if function unavailable
-        console.warn("updateUserAsAdmin unavailable, using direct SDK:", e?.message);
-        await base44.entities.User.update(userToEdit.id, {
+      // 1. Update user profile fields via admin backend function
+      await base44.functions.invoke("updateUserAsAdmin", {
+        targetUserId: userToEdit.id,
+        updateData: {
           full_name: form.full_name,
           city: form.city,
           profile_photo_url: form.profile_photo_url,
           account_type: form.account_type
-        });
-      }
-
-      // 2. Update role via dedicated backend function (handles security checks)
-      if (form.role !== userToEdit.role) {
-        try {
-          const res = await base44.functions.invoke("updateUserRole", {
-            email: userToEdit.email,
-            newRole: form.role
-          });
-          if (res?.data?.error) throw new Error(res.data.error);
-        } catch (e) {
-          throw new Error("Erro ao atualizar permissão: " + (e.message || "função indisponível"));
         }
+      });
+
+      // 2. Update role via dedicated backend function (if changed)
+      if (form.role !== userToEdit.role) {
+        await base44.functions.invoke("updateUserRole", {
+          email: userToEdit.email,
+          newRole: form.role
+        });
       }
 
       // 3. Update UserProfile entity
@@ -170,7 +151,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
         });
       }
 
-      // 4. Update professional profile (WalkerProfile / TrainerProfile)
+      // 4. Update professional profile
       if (linked?.professionalProfile?.id) {
         const payload = {
           location: form.location,
@@ -189,13 +170,13 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
           tax_id_spain: form.tax_id_spain,
           france_professional_type: form.france_professional_type,
           tax_id_france: form.tax_id_france,
-          ...(linked.professionalType === "walker" ? { walker_name: form.full_name } : { trainer_name: form.full_name })
+          ...(linked.professionalType === "walker" ? { walker_name: form.full_name } : { trainer_name: form.full_name }),
+          commission_rate_mode: commissionMode,
+          custom_commission_rate: commissionMode === "custom_percent" ? Number(customRate) : null,
+          commission_rate_expiry: commissionMode === "zero_temporary" ? expiryDate : null,
+          exempt_from_platform_fees: (commissionMode === "zero" || commissionMode === "zero_temporary"),
+          commission_borne_by: borneBy
         };
-        payload.commission_rate_mode = commissionMode;
-        payload.custom_commission_rate = commissionMode === "custom_percent" ? Number(customRate) : null;
-        payload.commission_rate_expiry = commissionMode === "zero_temporary" ? expiryDate : null;
-        payload.exempt_from_platform_fees = (commissionMode === "zero" || commissionMode === "zero_temporary");
-        payload.commission_borne_by = borneBy;
 
         if (linked.professionalType === "walker") {
           await base44.entities.WalkerProfile.update(linked.professionalProfile.id, payload);
@@ -212,7 +193,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
       toast.success("Conta sincronizada com sucesso.");
       onClose();
     },
-    onError: (e) => toast.error(e.message || "Erro ao guardar.")
+    onError: (e) => toast.error(e?.response?.data?.error || e?.message || "Erro ao guardar.")
   });
 
   const requestMutation = useMutation({
@@ -255,25 +236,27 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
       setRequestFields([]);
       setRequestMessage("");
     },
-    onError: (e) => toast.error(e.message || "Erro ao enviar.")
+    onError: (e) => toast.error(e?.message || "Erro ao enviar.")
   });
 
   const set = (key, val) => setForm((p) => ({ ...p, [key]: val }));
 
   return (
     <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="w-[calc(100vw-20px)] max-w-3xl rounded-2xl border border-slate-200 bg-white p-0 overflow-hidden shadow-xl max-h-[92vh]">
-        <DialogHeader className="px-6 pt-6 pb-5 border-b border-slate-100">
+      <DialogContent className="glass-admin-dialog w-[calc(100vw-20px)] max-w-3xl rounded-3xl p-0 overflow-hidden max-h-[92vh]">
+        {/* Header */}
+        <DialogHeader className="relative px-6 pt-6 pb-5 border-b border-white/40">
           <div className="flex items-center gap-4">
-            <Avatar className="w-14 h-14 ring-2 ring-slate-100 shadow-sm">
+            <Avatar className="w-14 h-14 ring-2 ring-white/70 shadow-lg shrink-0">
               <AvatarImage src={form?.profile_photo_url || userToEdit?.profile_photo_url} />
               <AvatarFallback className="bg-teal-100 text-teal-700 font-black text-lg">
                 {(form?.full_name || userToEdit?.full_name || "U")[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <DialogTitle className="text-xl font-black text-slate-900 truncate">
+              <DialogTitle className="text-xl font-black text-slate-900 truncate flex items-center gap-2">
                 {form?.full_name || userToEdit?.full_name || "Sem nome"}
+                {isProfessional && <Sparkles className="w-4 h-4 text-teal-500 shrink-0" />}
               </DialogTitle>
               <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500">
                 <Mail className="w-3 h-3 shrink-0" />
@@ -281,11 +264,11 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
               </div>
             </div>
             <div className="flex flex-col items-end gap-1.5 shrink-0">
-              <Badge className={isProfessional ? "bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1" : "bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1"}>
+              <Badge className={isProfessional ? "bg-teal-100/80 text-teal-700 text-xs font-bold px-3 py-1 border border-teal-200/50" : "bg-slate-100/80 text-slate-600 text-xs font-bold px-3 py-1"}>
                 {isProfessional ? "Profissional" : "Cliente"}
               </Badge>
               {isProfessional && (
-                <Badge className={"text-xs font-bold px-3 py-1 " + (form?.verification_status === "verified" ? "bg-green-100 text-green-700" : form?.verification_status === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700")}>
+                <Badge className={"text-xs font-bold px-3 py-1 border " + (form?.verification_status === "verified" ? "bg-green-100/80 text-green-700 border-green-200/50" : form?.verification_status === "rejected" ? "bg-red-100/80 text-red-700 border-red-200/50" : "bg-amber-100/80 text-amber-700 border-amber-200/50")}>
                   {form?.verification_status === "verified" ? "Verificado" : form?.verification_status === "rejected" ? "Rejeitado" : "Pendente"}
                 </Badge>
               )}
@@ -300,108 +283,119 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
         ) : (
           <div className="px-6 py-5 overflow-y-auto" style={{ maxHeight: "calc(92vh - 200px)" }}>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className={"grid w-full h-auto mb-5 " + (isProfessional ? "grid-cols-4" : "grid-cols-2") + " bg-slate-100 rounded-xl p-1"}>
-                <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
+              <TabsList className={"grid w-full h-auto mb-5 " + (isProfessional ? "grid-cols-4" : "grid-cols-2") + " bg-white/40 border border-white/30 rounded-2xl p-1"}>
+                <TabsTrigger value="profile" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
                   <User2 className="w-3.5 h-3.5 mr-1 inline" />Perfil
                 </TabsTrigger>
-                <TabsTrigger value="account" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
+                <TabsTrigger value="account" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
                   <ShieldCheck className="w-3.5 h-3.5 mr-1 inline" />Conta
                 </TabsTrigger>
                 {isProfessional && (
-                  <TabsTrigger value="commission" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
+                  <TabsTrigger value="commission" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
                     <Percent className="w-3.5 h-3.5 mr-1 inline" />Comissão
                   </TabsTrigger>
                 )}
                 {isProfessional && (
-                  <TabsTrigger value="documents" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
+                  <TabsTrigger value="documents" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
                     <FileText className="w-3.5 h-3.5 mr-1 inline" />Dados
                   </TabsTrigger>
                 )}
               </TabsList>
 
               <TabsContent value="profile" className="space-y-4 mt-0">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <Field label="Nome completo" value={form.full_name} onChange={(v) => set("full_name", v)} />
-                  <Field label="Telefone" value={form.phone} onChange={(v) => set("phone", v)} />
-                  <Field label="Cidade" value={form.city} onChange={(v) => set("city", v)} />
-                  <Field label="Foto de perfil (URL)" value={form.profile_photo_url} onChange={(v) => set("profile_photo_url", v)} />
+                <div className="glass-admin-section rounded-2xl p-4 space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <Field label="Nome completo" value={form.full_name} onChange={(v) => set("full_name", v)} />
+                    <Field label="Telefone" value={form.phone} onChange={(v) => set("phone", v)} />
+                    <Field label="Cidade" value={form.city} onChange={(v) => set("city", v)} />
+                    <Field label="Foto de perfil (URL)" value={form.profile_photo_url} onChange={(v) => set("profile_photo_url", v)} />
+                  </div>
                 </div>
                 {isProfessional && (
-                  <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                    <Field label="Localização profissional" value={form.location} onChange={(v) => set("location", v)} />
-                    <Field label="Preço/hora (€)" type="number" value={form.hourly_rate} onChange={(v) => set("hourly_rate", v)} />
-                    <Field label="WhatsApp" value={form.whatsapp_number} onChange={(v) => set("whatsapp_number", v)} />
+                  <div className="glass-admin-section rounded-2xl p-4 space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <Field label="Localização profissional" value={form.location} onChange={(v) => set("location", v)} />
+                      <Field label="Preço/hora (€)" type="number" value={form.hourly_rate} onChange={(v) => set("hourly_rate", v)} />
+                      <Field label="WhatsApp" value={form.whatsapp_number} onChange={(v) => set("whatsapp_number", v)} />
+                    </div>
                   </div>
                 )}
                 <div className="space-y-2">
                   <Label className="text-xs font-bold text-slate-600">Bio</Label>
-                  <Textarea rows={4} value={form.bio} onChange={(e) => set("bio", e.target.value)} className="rounded-xl resize-none" />
+                  <Textarea rows={4} value={form.bio} onChange={(e) => set("bio", e.target.value)} className="rounded-xl bg-white/50 border-white/40" />
                 </div>
               </TabsContent>
 
               <TabsContent value="account" className="space-y-4 mt-0">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-slate-600">Tipo de conta</Label>
-                    <Select value={form.account_type} onValueChange={(v) => set("account_type", v)}>
-                      <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="owner">Cliente</SelectItem>
-                        <SelectItem value="walker">Passeador</SelectItem>
-                        <SelectItem value="trainer">Treinador</SelectItem>
-                        <SelectItem value="both">Ambos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-slate-600">Permissão</Label>
-                    <Select value={form.role} onValueChange={(v) => set("role", v)}>
-                      <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="user">Utilizador</SelectItem>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {isProfessional && (
+                <div className="glass-admin-section rounded-2xl p-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-slate-600">Estado de verificação</Label>
-                      <Select value={form.verification_status} onValueChange={(v) => set("verification_status", v)}>
-                        <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                      <Label className="text-xs font-bold text-slate-600">Tipo de conta</Label>
+                      <Select value={form.account_type} onValueChange={(v) => set("account_type", v)}>
+                        <SelectTrigger className="rounded-xl bg-white/50"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pendente</SelectItem>
-                          <SelectItem value="verified">Verificado</SelectItem>
-                          <SelectItem value="rejected">Rejeitado</SelectItem>
-                          <SelectItem value="requires_documents">Requer documentos</SelectItem>
+                          <SelectItem value="owner">Cliente</SelectItem>
+                          <SelectItem value="walker">Passeador</SelectItem>
+                          <SelectItem value="trainer">Treinador</SelectItem>
+                          <SelectItem value="both">Ambos</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-slate-600">Permissão</Label>
+                      <Select value={form.role} onValueChange={(v) => set("role", v)}>
+                        <SelectTrigger className="rounded-xl bg-white/50"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">Utilizador</SelectItem>
+                          <SelectItem value="admin">Administrador</SelectItem>
+                          {form.role && !["user", "admin"].includes(form.role) && (
+                            <SelectItem value={form.role}>(atual: {form.role})</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {isProfessional && (
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold text-slate-600">Estado de verificação</Label>
+                        <Select value={form.verification_status} onValueChange={(v) => set("verification_status", v)}>
+                          <SelectTrigger className="rounded-xl bg-white/50"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pendente</SelectItem>
+                            <SelectItem value="verified">Verificado</SelectItem>
+                            <SelectItem value="rejected">Rejeitado</SelectItem>
+                            <SelectItem value="requires_documents">Requer documentos</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
 
               {isProfessional && (
                 <TabsContent value="commission" className="mt-0">
-                  <AdminCommissionManager
-                    professionalProfile={linked.professionalProfile}
-                    mode={commissionMode}
-                    setMode={setCommissionMode}
-                    customRate={customRate}
-                    setCustomRate={setCustomRate}
-                    expiryDate={expiryDate}
-                    setExpiryDate={setExpiryDate}
-                    zeroMonths={zeroMonths}
-                    setZeroMonths={setZeroMonths}
-                    borneBy={borneBy}
-                    setBorneBy={setBorneBy}
-                  />
+                  <div className="glass-admin-section rounded-2xl p-4">
+                    <AdminCommissionManager
+                      professionalProfile={linked.professionalProfile}
+                      mode={commissionMode}
+                      setMode={setCommissionMode}
+                      customRate={customRate}
+                      setCustomRate={setCustomRate}
+                      expiryDate={expiryDate}
+                      setExpiryDate={setExpiryDate}
+                      zeroMonths={zeroMonths}
+                      setZeroMonths={setZeroMonths}
+                      borneBy={borneBy}
+                      setBorneBy={setBorneBy}
+                    />
+                  </div>
                 </TabsContent>
               )}
 
               {isProfessional && (
                 <TabsContent value="documents" className="space-y-4 mt-0">
                   {missingFields.length > 0 && (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <div className="glass-admin-section rounded-2xl border border-amber-200/50 p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <FileText className="w-4 h-4 text-amber-600" />
                         <p className="font-bold text-slate-900 text-sm">Campos em falta ({missingFields.length})</p>
@@ -412,7 +406,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                           const sel = requestFields.includes(f.key);
                           const cls = sel
                             ? "bg-teal-600 text-white border-teal-600"
-                            : "bg-white text-slate-600 border-slate-200 hover:border-teal-300";
+                            : "bg-white/60 text-slate-600 border-slate-200/50 hover:border-teal-300";
                           return (
                             <button
                               key={f.key}
@@ -427,20 +421,20 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                     </div>
                   )}
 
-                  <Separator />
+                  <Separator className="bg-slate-200/50" />
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {REQUEST_FIELDS.map((f) => (
-                      <Field key={f.key} label={f.label} value={form[f.key] || ""} onChange={(v) => set(f.key, v)} />
-                    ))}
+                  <div className="glass-admin-section rounded-2xl p-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {REQUEST_FIELDS.map((f) => (
+                        <Field key={f.key} label={f.label} value={form[f.key] || ""} onChange={(v) => set(f.key, v)} />
+                      ))}
+                    </div>
                   </div>
-
-                  <Separator />
 
                   <div className="space-y-2">
                     <Label className="text-xs font-bold text-slate-600">Mensagem adicional</Label>
                     <Textarea rows={3} value={requestMessage} onChange={(e) => setRequestMessage(e.target.value)}
-                      placeholder="Ex: por favor complete estes dados para concluir a verificação." className="rounded-xl resize-none" />
+                      placeholder="Ex: por favor complete estes dados para concluir a verificação." className="rounded-xl resize-none bg-white/50 border-white/40" />
                   </div>
 
                   <div className="flex justify-end">
@@ -456,10 +450,10 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
           </div>
         )}
 
-        <DialogFooter className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex-row gap-3">
-          <Button variant="outline" onClick={onClose} className="rounded-xl flex-1 sm:flex-initial">Cancelar</Button>
+        <DialogFooter className="px-6 py-4 border-t border-white/40 flex-row gap-3">
+          <Button variant="outline" onClick={onClose} className="rounded-xl bg-white/50 border-white/40 flex-1 sm:flex-initial">Cancelar</Button>
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || isLoading}
-            className="rounded-xl bg-teal-600 hover:bg-teal-700 flex-1 sm:flex-initial">
+            className="rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 flex-1 sm:flex-initial shadow-lg">
             {saveMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Guardar alterações
           </Button>
@@ -473,7 +467,7 @@ function Field({ label, value, onChange, type = "text" }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-xs font-bold text-slate-600">{label}</Label>
-      <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="rounded-xl" />
+      <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="rounded-xl bg-white/50 border-white/40" />
     </div>
   );
 }
