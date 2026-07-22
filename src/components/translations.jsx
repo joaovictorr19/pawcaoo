@@ -1061,7 +1061,7 @@ export const translations = {
     servicesOfferedDesc: "Defina os seus pacotes de serviços e preços",
     serviceNumber: "Serviço #",
     commonServices: "Sugestões Rápidas:",
-    groomingService: "Banho e Tosa",
+    groomingService: "Banho & tosquias",
     groomingDesc: "Banho completo, tosa higiênica, corte de unhas e limpeza.",
     walkService: "Passeio",
     walkDesc: "Passeio individual ou em grupo para gastar energia.",

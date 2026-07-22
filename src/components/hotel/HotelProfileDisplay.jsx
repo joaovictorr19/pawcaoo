@@ -17,7 +17,7 @@ import HotelPortfolioGallery from '@/components/hotel/HotelPortfolioGallery';
 const SERVICE_TYPE_CONFIG = {
   boarding: { label: 'Alojamento', icon: BedDouble, accent: 'bg-indigo-50 text-indigo-600', ring: 'ring-indigo-100' },
   daycare: { label: 'Creche', icon: Sun, accent: 'bg-amber-50 text-amber-600', ring: 'ring-amber-100' },
-  grooming: { label: 'Grooming', icon: Scissors, accent: 'bg-pink-50 text-pink-600', ring: 'ring-pink-100' },
+  grooming: { label: 'Banho & tosquias', icon: Scissors, accent: 'bg-pink-50 text-pink-600', ring: 'ring-pink-100' },
   training: { label: 'Treino', icon: GraduationCap, accent: 'bg-emerald-50 text-emerald-600', ring: 'ring-emerald-100' },
   other: { label: 'Serviço', icon: Zap, accent: 'bg-slate-100 text-slate-600', ring: 'ring-slate-100' },
 };

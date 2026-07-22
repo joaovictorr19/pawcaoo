@@ -15,7 +15,7 @@ import {
 const ADDON_SERVICES = [
   { id: 'walk', name: 'Passeio Extra', price: 20, icon: '🚶' },
   { id: 'training', name: 'Treino', price: 35, icon: '🎓' },
-  { id: 'grooming', name: 'Grooming', price: 45, icon: '✨' },
+  { id: 'grooming', name: 'Banho & tosquias', price: 45, icon: '✨' },
   { id: 'bathing', name: 'Banho', price: 30, icon: '🚿' },
   { id: 'nail_trim', name: 'Corte de Unhas', price: 15, icon: '✂️' },
 ];

@@ -14,7 +14,7 @@ import ServiceIconPicker, { getServiceIcon } from '@/components/professionals/Se
 const SERVICE_TYPES = [
   { value: 'boarding', label: 'Alojamento', desc: 'Estadia com pernoita — cliente escolhe intervalo de datas, preço por noite' },
   { value: 'daycare', label: 'Creche Diária', desc: 'Dia completo sem pernoita — cliente escolhe data, horário do hotel aplica' },
-  { value: 'grooming', label: 'Banho & Tosa', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
+  { value: 'grooming', label: 'Banho & tosquias', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
   { value: 'training', label: 'Treino', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
   { value: 'other', label: 'Outro', desc: 'Sessão única — cliente escolhe data e horário preferido' }
 ];
