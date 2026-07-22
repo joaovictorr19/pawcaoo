@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     }
 
     // ── SECURITY: Whitelist of assignable roles; 'admin' cannot be assigned via this endpoint ──
-    const ALLOWED_ROLES = ['user', 'walker', 'trainer', 'both', 'hotel'];
+    const ALLOWED_ROLES = ['user', 'walker', 'trainer', 'both', 'hotel', 'admin'];
     if (!ALLOWED_ROLES.includes(newRole)) {
       return Response.json({ error: 'Invalid or forbidden role' }, { status: 400 });
     }

@@ -37,7 +37,7 @@ function buildForm(user, userProfile, pro) {
     profile_photo_url: user?.profile_photo_url || user?.photo_url || userProfile?.profile_photo_url || pro?.photo_url || "",
     account_type: user?.account_type || "owner",
     role: user?.role || "user",
-    verification_status: pro?.verification_status || user?.professional_profile?.verification_status || "pending",
+    verification_status: pro?.verification_status || "pending",
     location: pro?.location || user?.city || "",
     hourly_rate: pro?.hourly_rate || "",
     whatsapp_number: pro?.whatsapp_number || "",
@@ -110,16 +110,46 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!form || !userToEdit) return;
-      await base44.entities.User.update(userToEdit.id, {
-        full_name: form.full_name,
-        phone: form.phone,
-        city: form.city,
-        account_type: form.account_type,
-        role: form.role,
-        profile_photo_url: form.profile_photo_url,
-        professional_profile: { ...(userToEdit.professional_profile || {}), verification_status: form.verification_status }
-      });
 
+      // 1. Update user profile fields via admin backend function (role is stripped for security)
+      const profileUpdateData = {
+        full_name: form.full_name,
+        city: form.city,
+        profile_photo_url: form.profile_photo_url,
+        account_type: form.account_type
+      };
+
+      try {
+        const res = await base44.functions.invoke("updateUserAsAdmin", {
+          targetUserId: userToEdit.id,
+          updateData: profileUpdateData
+        });
+        if (res?.data?.error) throw new Error(res.data.error);
+      } catch (e) {
+        // Fallback to direct SDK if function unavailable
+        console.warn("updateUserAsAdmin unavailable, using direct SDK:", e?.message);
+        await base44.entities.User.update(userToEdit.id, {
+          full_name: form.full_name,
+          city: form.city,
+          profile_photo_url: form.profile_photo_url,
+          account_type: form.account_type
+        });
+      }
+
+      // 2. Update role via dedicated backend function (handles security checks)
+      if (form.role !== userToEdit.role) {
+        try {
+          const res = await base44.functions.invoke("updateUserRole", {
+            email: userToEdit.email,
+            newRole: form.role
+          });
+          if (res?.data?.error) throw new Error(res.data.error);
+        } catch (e) {
+          throw new Error("Erro ao atualizar permissão: " + (e.message || "função indisponível"));
+        }
+      }
+
+      // 3. Update UserProfile entity
       if (linked?.userProfile?.id) {
         await base44.entities.UserProfile.update(linked.userProfile.id, {
           full_name: form.full_name,
@@ -140,6 +170,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
         });
       }
 
+      // 4. Update professional profile (WalkerProfile / TrainerProfile)
       if (linked?.professionalProfile?.id) {
         const payload = {
           location: form.location,
@@ -231,10 +262,10 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="w-[calc(100vw-20px)] max-w-3xl rounded-3xl border border-white/60 bg-white/90 backdrop-blur-2xl p-0 overflow-hidden shadow-2xl max-h-[92vh]">
-        <DialogHeader className="relative px-6 pt-6 pb-5 bg-gradient-to-br from-teal-50 via-white to-sky-50 border-b border-slate-100">
+      <DialogContent className="w-[calc(100vw-20px)] max-w-3xl rounded-2xl border border-slate-200 bg-white p-0 overflow-hidden shadow-xl max-h-[92vh]">
+        <DialogHeader className="px-6 pt-6 pb-5 border-b border-slate-100">
           <div className="flex items-center gap-4">
-            <Avatar className="w-14 h-14 ring-2 ring-white shadow-lg">
+            <Avatar className="w-14 h-14 ring-2 ring-slate-100 shadow-sm">
               <AvatarImage src={form?.profile_photo_url || userToEdit?.profile_photo_url} />
               <AvatarFallback className="bg-teal-100 text-teal-700 font-black text-lg">
                 {(form?.full_name || userToEdit?.full_name || "U")[0]?.toUpperCase()}
@@ -250,7 +281,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
               </div>
             </div>
             <div className="flex flex-col items-end gap-1.5 shrink-0">
-              <Badge className={isProfessional ? "bg-teal-100 text-teal-700" : "bg-slate-100 text-slate-600" + " text-xs font-bold px-3 py-1"}>
+              <Badge className={isProfessional ? "bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1" : "bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1"}>
                 {isProfessional ? "Profissional" : "Cliente"}
               </Badge>
               {isProfessional && (
@@ -370,7 +401,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
               {isProfessional && (
                 <TabsContent value="documents" className="space-y-4 mt-0">
                   {missingFields.length > 0 && (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <FileText className="w-4 h-4 text-amber-600" />
                         <p className="font-bold text-slate-900 text-sm">Campos em falta ({missingFields.length})</p>
