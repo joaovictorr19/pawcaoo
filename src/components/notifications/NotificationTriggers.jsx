@@ -423,6 +423,102 @@ export default function NotificationTriggers({ user }) {
     return () => clearInterval(timer);
   }, [user?.email, notifPrefs]);
 
+  // ─── Lembrete: reservas pendentes à espera de resposta (hotel/profissional) ──
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const REMINDER_DELAY_MS = 15 * 60 * 1000; // 15 min após criação
+
+    const checkPendingRequests = async () => {
+      try {
+        // Reservas de hotel pendentes (hotel_email = utilizador)
+        const hotelPending = await base44.entities.HotelBooking.filter({
+          hotel_email: user.email,
+          status: 'pending'
+        }, '-created_date', 20);
+
+        const serviceLabels = {
+          boarding: 'Estadia', daycare: 'Creche', grooming: 'Banho & Tosa',
+          walk_with_partner: 'Passeio', training: 'Treino'
+        };
+
+        for (const hb of hotelPending) {
+          const created = new Date(hb.created_date).getTime();
+          if ((Date.now() - created) < REMINDER_DELAY_MS) continue;
+          const key = `reminder_hotel_${hb.id}`;
+          if (sessionStorage.getItem(key)) continue;
+          sessionStorage.setItem(key, '1');
+
+          const svc = serviceLabels[hb.service_type] || 'Servico';
+          if (allowInApp('booking')) {
+            try {
+              await base44.entities.Notification.create({
+                recipient_email: user.email,
+                title: 'Reserva pendente à espera de confirmação',
+                message: `${hb.owner_name || 'Cliente'} tem uma reserva de ${svc} para ${hb.checkin_date || ''} por confirmar há mais de 15 min.`,
+                type: 'booking',
+                link: '/HotelDashboard',
+                icon: 'hotel',
+                related_id: hb.id
+              });
+            } catch {}
+          }
+          if (allowPush('booking') && 'Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification('Reserva pendente', {
+                body: `${hb.owner_name || 'Cliente'} — ${svc} em ${hb.checkin_date || ''}. Confirme ja.`,
+                tag: `reminder_hotel_${hb.id}`,
+                icon: '/logo.png', badge: '/favicon.png',
+                requireInteraction: true, vibrate: [200, 100, 200]
+              });
+            } catch {}
+          }
+        }
+
+        // Reservas de passeio/treino pendentes (walker_email = utilizador)
+        const walkPending = await base44.entities.Booking.filter({
+          walker_email: user.email,
+          status: 'pending'
+        }, '-created_date', 20);
+
+        for (const b of walkPending) {
+          const created = new Date(b.created_date).getTime();
+          if ((Date.now() - created) < REMINDER_DELAY_MS) continue;
+          const key = `reminder_walk_${b.id}`;
+          if (sessionStorage.getItem(key)) continue;
+          sessionStorage.setItem(key, '1');
+
+          if (allowInApp('booking')) {
+            try {
+              await base44.entities.Notification.create({
+                recipient_email: user.email,
+                title: 'Reserva pendente à espera de resposta',
+                message: `${b.owner_name || 'Cliente'} aguarda resposta para o passeio de ${b.dog_name || 'cao'} (${b.walk_date || ''}).`,
+                type: 'booking',
+                link: '/ProfessionalHubV2',
+                related_id: b.id
+              });
+            } catch {}
+          }
+          if (allowPush('booking') && 'Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification('Reserva pendente', {
+                body: `${b.owner_name || 'Cliente'} — passeio em ${b.walk_date || ''}. Responda ja.`,
+                tag: `reminder_walk_${b.id}`,
+                icon: '/logo.png', badge: '/favicon.png',
+                requireInteraction: true, vibrate: [200, 100, 200]
+              });
+            } catch {}
+          }
+        }
+      } catch {}
+    };
+
+    checkPendingRequests();
+    const interval = setInterval(checkPendingRequests, 5 * 60 * 1000); // a cada 5 min
+    return () => clearInterval(interval);
+  }, [user?.email, notifPrefs]);
+
   // ─── Reservas de hotel com pagamento pendente (5 min) — aviso global ─────────
   useEffect(() => {
     if (!user?.email) return;
