@@ -49,12 +49,12 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
   const card2Body =
     language === "pt"
-      ? "Transforme a sua paixão por animais numa fonte de rendimento flexível e junte-se a uma nova rede de profissionais pet. Sem mínimo para levantar os seus ganhos."
+      ? "Transforme a sua paixão por animais numa fonte de rendimento flexível como Dog Walker e junte-se a uma rede de profissionais pet. Sem mínimo para levantar os seus ganhos."
       : language === "es"
-      ? "Convierte tu pasión por los animales en una fuente de ingresos flexible y únete a una nueva red de profesionales pet. Sin mínimo para retirar tus ganancias."
+      ? "Convierte tu pasión por los animales en una fuente de ingresos flexible como Dog Walker y únete a una red de profesionales pet. Sin mínimo para retirar tus ganancias."
       : language === "fr"
-      ? "Transformez votre passion pour les animaux en une source de revenus flexible et rejoignez un nouveau réseau de professionnels pet. Sans minimum pour retirer vos gains."
-      : "Turn your passion for animals into a flexible source of income and join a new pet professional network. No minimum to withdraw your earnings.";
+      ? "Transformez votre passion pour les animaux en une source de revenus flexible en tant que Dog Walker et rejoignez un réseau de professionnels pet. Sans minimum pour retirer vos gains."
+      : "Turn your passion for animals into a flexible source of income as a Dog Walker and join a pet professional network. No minimum to withdraw your earnings.";
 
   const card2ProLabel =
     language === "pt" ? "Sou Profissional" : language === "es" ? "Soy Profesional" : language === "fr" ? "Je suis Pro" : "I'm a Professional";
@@ -63,12 +63,12 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
   const card2ProFeatures =
     language === "pt"
-      ? ["Gestão de reservas integrada", "Pagamentos seguros via Stripe", "Visibilidade para milhares de clientes"]
+      ? ["Gestão de reservas integrada", "Pagamentos seguros via Stripe", "Crescimento com qualidade e confiança"]
       : language === "es"
-      ? ["Gestión de reservas integrada", "Pagos seguros vía Stripe", "Visibilidad para miles de clientes"]
+      ? ["Gestión de reservas integrada", "Pagos seguros vía Stripe", "Crecimiento con calidad y confianza"]
       : language === "fr"
-      ? ["Gestion des réservations intégrée", "Paiements sécurisés via Stripe", "Visibilité auprès de milliers de clients"]
-      : ["Integrated booking management", "Secure Stripe payments", "Visibility to thousands of clients"];
+      ? ["Gestion des réservations intégrée", "Paiements sécurisés via Stripe", "Croissance avec qualité et confiance"]
+      : ["Integrated booking management", "Secure Stripe payments", "Growth with quality and trust"];
 
   return (
     <motion.section
