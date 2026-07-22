@@ -566,7 +566,7 @@ export default function HotelDashboard() {
                   onClick={() => setShowAddService(true)}
                   className="w-full sm:w-auto h-10 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold gap-1.5"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Serviço Extra (pagar na hora)
+                  <Plus className="w-3.5 h-3.5" /> Serviço Extra / Produto
                 </Button>
                 {partners.length > 0 && (
                   <Button
