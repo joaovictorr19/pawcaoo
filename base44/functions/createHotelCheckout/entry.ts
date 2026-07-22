@@ -173,7 +173,18 @@ Deno.serve(async (req) => {
       customerId = customer.id;
     }
 
-    const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
+    // SECURITY: Validate Origin against a strict whitelist to prevent open redirects.
+    const ALLOWED_ORIGINS = [
+      'https://pawcao.base44.app',
+      'https://app.pawcao.pt',
+      'https://pawcao.pt',
+      'https://www.pawcao.pt'
+    ];
+    const requestOrigin = req.headers.get('origin') || '';
+    const origin = (ALLOWED_ORIGINS.includes(requestOrigin) ||
+      /^https:\/\/[a-z0-9-]*pawcao[a-z0-9-]*\.base44\.app$/.test(requestOrigin))
+      ? requestOrigin
+      : 'https://pawcao.base44.app';
 
     const SERVICE_LABELS = {
       boarding: "Alojamento",

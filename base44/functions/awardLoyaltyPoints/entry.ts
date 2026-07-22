@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     }
     // Prevent double-awarding for the same booking
     const existingAward = await base44.asServiceRole.entities.PointsTransaction.filter({
-      user_email: user.email,
+      user_email: bookingOwnerEmail,
       related_booking_id: booking_id,
       transaction_type: 'earned'
     });
@@ -49,9 +49,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid booking amount' }, { status: 400 });
     }
 
-    // Buscar pontos de fidelidade do usuário
+    // Buscar pontos de fidelidade do dono da reserva (não do admin que executa)
     const loyaltyRecords = await base44.asServiceRole.entities.LoyaltyPoints.filter({
-      user_email: user.email
+      user_email: bookingOwnerEmail
     });
 
     let loyaltyRecord = loyaltyRecords[0];
@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     // Criar registo se não existir
     if (!loyaltyRecord) {
       loyaltyRecord = await base44.asServiceRole.entities.LoyaltyPoints.create({
-        user_email: user.email,
+        user_email: bookingOwnerEmail,
         points_balance: 0,
         total_earned: 0,
         total_redeemed: 0,
@@ -105,9 +105,9 @@ Deno.serve(async (req) => {
       lifetime_bookings: newLifetimeBookings
     });
 
-    // Registar transação
+    // Registar transação para o dono da reserva
     await base44.asServiceRole.entities.PointsTransaction.create({
-      user_email: user.email,
+      user_email: bookingOwnerEmail,
       transaction_type: 'earned',
       points_amount: pointsEarned,
       description: `Ganhou ${pointsEarned} pontos por ${activity_type || 'serviço'} (€${amount_euro})`,
