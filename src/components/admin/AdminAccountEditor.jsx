@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Save, Send, FileText, Percent, User2, ShieldCheck, Mail, Sparkles } from "lucide-react";
+import { Loader2, Save, Send, FileText, Percent, User2, ShieldCheck, Mail, Sparkles, Fingerprint, CalendarDays, Copy } from "lucide-react";
 import { toast } from "sonner";
 import AdminCommissionManager from "./AdminCommissionManager";
 
@@ -283,12 +283,15 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
         ) : (
           <div className="px-6 py-5 overflow-y-auto" style={{ maxHeight: "calc(92vh - 200px)" }}>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className={"grid w-full h-auto mb-5 " + (isProfessional ? "grid-cols-4" : "grid-cols-2") + " bg-white/40 border border-white/30 rounded-2xl p-1"}>
+              <TabsList className={"grid w-full h-auto mb-5 " + (isProfessional ? "grid-cols-5" : "grid-cols-3") + " bg-white/40 border border-white/30 rounded-2xl p-1"}>
                 <TabsTrigger value="profile" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
                   <User2 className="w-3.5 h-3.5 mr-1 inline" />Perfil
                 </TabsTrigger>
                 <TabsTrigger value="account" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
                   <ShieldCheck className="w-3.5 h-3.5 mr-1 inline" />Conta
+                </TabsTrigger>
+                <TabsTrigger value="identity" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
+                  <Fingerprint className="w-3.5 h-3.5 mr-1 inline" />Identidade
                 </TabsTrigger>
                 {isProfessional && (
                   <TabsTrigger value="commission" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs font-bold data-[state=active]:text-teal-700">
@@ -369,6 +372,32 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                       </div>
                     )}
                   </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="identity" className="space-y-4 mt-0">
+                <div className="glass-admin-section rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Fingerprint className="w-4 h-4 text-teal-600" />
+                    <p className="font-bold text-slate-900 text-sm">Dados de Identidade</p>
+                  </div>
+                  <IdentityRow icon={Mail} label="Email" value={userToEdit?.email} copyable />
+                  <IdentityRow icon={Fingerprint} label="ID de Utilizador" value={userToEdit?.id} copyable mono />
+                  <IdentityRow icon={CalendarDays} label="Data de Registo" value={userToEdit?.created_date ? new Date(userToEdit.created_date).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'} />
+                  <IdentityRow icon={ShieldCheck} label="Role atual" value={userToEdit?.role || 'user'} />
+                  <IdentityRow icon={User2} label="Tipo de conta" value={userToEdit?.account_type || 'owner'} />
+                  {linked?.userProfile?.id && (
+                    <IdentityRow icon={Fingerprint} label="ID do Perfil" value={linked.userProfile.id} copyable mono />
+                  )}
+                  {isProfessional && linked?.professionalProfile?.id && (
+                    <IdentityRow icon={Fingerprint} label="ID do Perfil Profissional" value={linked.professionalProfile.id} copyable mono />
+                  )}
+                </div>
+                <div className="glass-admin-section rounded-2xl border border-amber-200/50 p-4">
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    ⚠️ O email e o ID são campos protegidos do sistema de autenticação e não podem ser alterados diretamente.
+                    Para alterar o email, o utilizador deve contactar o suporte. O ID é gerado automaticamente pelo sistema.
+                  </p>
                 </div>
               </TabsContent>
 
@@ -468,6 +497,30 @@ function Field({ label, value, onChange, type = "text" }) {
     <div className="space-y-1.5">
       <Label className="text-xs font-bold text-slate-600">{label}</Label>
       <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="rounded-xl bg-white/50 border-white/40" />
+    </div>
+  );
+}
+
+function IdentityRow({ icon: Icon, label, value, copyable, mono }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    if (!value) return;
+    navigator.clipboard?.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <div className="flex items-center gap-3 py-2 border-b border-white/30 last:border-0">
+      <Icon className="w-4 h-4 text-slate-400 shrink-0" />
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
+        <p className={"text-sm text-slate-800 truncate " + (mono ? "font-mono" : "font-medium")}>{value || 'N/A'}</p>
+      </div>
+      {copyable && value && (
+        <button onClick={handleCopy} className="p-1.5 rounded-lg hover:bg-white/60 transition shrink-0" title="Copiar">
+          {copied ? <span className="text-[10px] font-bold text-green-600">✓</span> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
+        </button>
+      )}
     </div>
   );
 }

@@ -1,40 +1,37 @@
 import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { ChevronRight, ShieldCheck, Award, UserCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-export function AdminUserCard({ user, onClick }) {
+export function AdminUserCard({ user, onClick, profilesByEmail = {} }) {
+  const prof = profilesByEmail[user.email];
   return (
-    <motion.div 
-      whileTap={{ scale: 0.98 }}
+    <div
       onClick={() => onClick(user)}
-      className="bg-white p-4 rounded-[1.5rem] flex items-center justify-between border border-transparent active:border-orange-200 shadow-sm cursor-pointer mb-3"
+      className="glass-admin-section p-4 rounded-2xl flex items-center justify-between cursor-pointer mb-3 transition-all hover:shadow-md active:scale-[0.98]"
     >
-      <div className="flex items-center gap-4">
-        <div className="relative">
-          <Avatar className="w-12 h-12 rounded-2xl">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="relative shrink-0">
+          <Avatar className="w-12 h-12 rounded-2xl ring-2 ring-white/60">
             <AvatarImage src={user.photo_url || user.profile_photo_url} />
-            <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">{user.full_name?.[0] || 'U'}</AvatarFallback>
+            <AvatarFallback className="bg-teal-100 text-teal-700 font-black">{user.full_name?.[0] || 'U'}</AvatarFallback>
           </Avatar>
-          {/* Indicador de Status (Online/Offline) */}
-          <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${user.pawgo_status?.is_online ? 'bg-green-500' : 'bg-slate-300'}`} />
+          <div className={"absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white " + (user.pawgo_status?.is_online ? 'bg-green-500' : 'bg-slate-300')} />
         </div>
-        
-        <div>
-          <h4 className="font-bold text-slate-900 text-sm leading-none mb-1">{user.full_name || 'Sem Nome'}</h4>
-          {/* OS MINI-SELOS */}
-          <div className="flex items-center gap-1.5 mt-1.5">
-            {user.professional_profile?.verification_status === 'verified' && <div className="w-2 h-2 bg-blue-500 rounded-full" title="Verificado" />}
-            {user.professional_profile?.is_trained && <div className="w-2 h-2 bg-purple-500 rounded-full" title="Treinador Certificado" />}
-            {user.professional_profile?.is_pawcao && <div className="w-2 h-2 bg-orange-500 rounded-full" title="Selo PawCão" />}
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider ml-1">
-              {user.account_type === 'walker' ? 'Profissional' : user.account_type === 'trainer' ? 'Treinador' : user.account_type === 'both' ? 'Prof. Misto' : 'Cliente'}
-            </span>
+        <div className="min-w-0 flex-1">
+          <h4 className="font-bold text-slate-900 text-sm leading-none mb-1.5 truncate">{user.full_name || 'Sem Nome'}</h4>
+          <p className="text-[10px] text-slate-400 truncate mb-1.5">{user.email}</p>
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className={"w-3.5 h-3.5 " + (prof?.is_verified ? 'text-blue-500' : 'text-slate-200')} />
+            <Award className={"w-3.5 h-3.5 " + (prof?.trainer_verified ? 'text-purple-500' : 'text-slate-200')} />
+            <UserCircle className={"w-3.5 h-3.5 " + (prof?.pawcao_seal ? 'text-orange-500' : 'text-slate-200')} />
+            <Badge className={"ml-1 text-[9px] h-4 px-1.5 font-bold " + (user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500')}>
+              {user.role === 'admin' ? 'Admin' : (user.account_type === 'walker' ? 'Pro' : user.account_type === 'trainer' ? 'Trein.' : user.account_type === 'both' ? 'Misto' : 'Cliente')}
+            </Badge>
           </div>
         </div>
       </div>
-      
-      <ChevronRight size={18} className="text-slate-200" />
-    </motion.div>
+      <ChevronRight size={18} className="text-slate-300 shrink-0" />
+    </div>
   );
 }
