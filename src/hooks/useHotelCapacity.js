@@ -126,6 +126,7 @@ export function buildBookingPayload(formData, hotelProfile, addOns = []) {
     special_requests: formData.special_requests,
     assigned_walker_email: formData.assigned_walker_email,
     assigned_walker_name: formData.assigned_walker_name,
+    walk_duration: formData.walk_duration,
     add_ons: addOns,
     add_ons_total: addOnsTotal,
   };

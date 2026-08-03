@@ -26,6 +26,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [isCreating, setIsCreating] = useState(false);
   const [finalized, setFinalized] = useState(false);
   const [preferredTime, setPreferredTime] = useState('10:00');
+  const [walkDuration, setWalkDuration] = useState(30);
 
   useEffect(() => {
     if (isOpen) {
@@ -39,6 +40,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setDeliveryMethod(hotel?.hotel_details?.offers_pickup ? 'dropoff' : 'dropoff');
       setDogCare({});
       setPreferredTime('10:00');
+      setWalkDuration(30);
       setStep(0);
       setFinalized(false);
     }
@@ -71,6 +73,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const bookingMode = selectedService.service_type === 'boarding' ? 'overnight' : selectedService.service_type === 'daycare' ? 'daily' : 'appointment';
   const isOvernight = bookingMode === 'overnight';
   const isAppointment = bookingMode === 'appointment';
+  const isWalk = selectedService.service_type === 'walk_with_partner';
+  const needsCareInfo = ['boarding', 'daycare'].includes(selectedService.service_type);
   const totalNights = isOvernight && checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
   const servicePrice = selectedService.price_per_day || 0;
   const pricingUnits = isOvernight ? totalNights : 1;
@@ -154,6 +158,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         special_requests: specialRequests,
         pickup_address: deliveryMethod === 'pickup' ? pickupAddress : '',
         delivery_method: deliveryMethod,
+        walk_duration: isWalk ? walkDuration : undefined,
       });
 
       // Verificar se o link de pagamento foi gerado com sucesso
@@ -348,6 +353,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
               {/* STEP 1 — Cuidados do Animal */}
               {step === 1 && (
                 <div className="space-y-3">
+                  {needsCareInfo ? (
+                  <>
                   <div>
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">
                       Cuidados do Animal
@@ -422,6 +429,34 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       </div>
                     );
                   })}
+                  </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center py-12 space-y-4">
+                      <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
+                        <PawPrint className="w-8 h-8 text-slate-400" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <p className="font-bold text-slate-800 text-base">Sem informações de cuidado necessárias</p>
+                        <p className="text-sm text-slate-500 max-w-xs">
+                          {isWalk
+                            ? 'Para o passeio, apenas precisa de escolher a data e duração no próximo passo.'
+                            : 'Para este serviço, apenas precisa de escolher a data e horário no próximo passo.'}
+                        </p>
+                      </div>
+                      {selectedDogs.map(dog => (
+                        <div key={dog.id} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
+                          {dog.photo_url ? (
+                            <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} />
+                          ) : (
+                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center">
+                              <PawPrint className="w-3.5 h-3.5 text-orange-400" />
+                            </div>
+                          )}
+                          <span className="text-sm font-semibold text-slate-700">{dog.dog_name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -524,6 +559,37 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           <p className="text-[10px] text-slate-400 mt-1">O hotel confirmará a disponibilidade do horário</p>
                         </div>
                       )}
+                      {isWalk && (
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1.5 tracking-wider">
+                            <Clock className="w-3 h-3" /> Duração do Passeio
+                          </label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setWalkDuration(30)}
+                              className={`p-3 rounded-lg border-2 text-center transition-all ${
+                                walkDuration === 30
+                                  ? 'border-slate-900 bg-slate-50'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <p className="text-sm font-black text-slate-900">30 min</p>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setWalkDuration(60)}
+                              className={`p-3 rounded-lg border-2 text-center transition-all ${
+                                walkDuration === 60
+                                  ? 'border-slate-900 bg-slate-50'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <p className="text-sm font-black text-slate-900">1 hora</p>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                       {!isAppointment && checkinDate && (
                         <div className="grid grid-cols-2 gap-2.5">
                           <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center">
@@ -608,7 +674,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       )}
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">Duração</span>
-                        <span className="font-bold text-slate-900">{isOvernight ? `${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isAppointment ? 'Sessão única' : '1 dia'}</span>
+                        <span className="font-bold text-slate-900">{isOvernight ? `${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isWalk ? `${walkDuration} min` : isAppointment ? 'Sessão única' : '1 dia'}</span>
                       </div>
                     </div>
 

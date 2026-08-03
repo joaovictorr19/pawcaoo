@@ -123,6 +123,10 @@
       ],
       "description": "Tipo de servico reservado"
     },
+    "walk_duration": {
+      "type": "number",
+      "description": "Duracao do passeio em minutos (30 ou 60) \u2014 apenas para walk_with_partner"
+    },
     "checkin_date": {
       "type": "string",
       "format": "date"

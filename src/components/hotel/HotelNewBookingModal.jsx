@@ -47,6 +47,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     checkout_date: "",
     checkin_time: hotelProfile?.hotel_details?.checkin_time || "09:00",
     checkout_time: hotelProfile?.hotel_details?.checkout_time || "18:00",
+    walk_duration: 30,
     dogs: [{ dog_name: "", dog_breed: "", dog_size: "medium", dog_age: "", special_notes: "", diet: "", medications: "", routine: "", vaccine_expiry: "", vaccine_document_url: "" }],
     special_requests: "",
     assigned_walker_email: "",
@@ -355,6 +356,31 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                 </div>
               </div>
 
+              {/* Walk Duration */}
+              {form.service_type === "walk_with_partner" && (
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                    Duração do Passeio
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" onClick={() => set("walk_duration", 30)}
+                      className={`flex items-center justify-center gap-1.5 p-2.5 rounded-lg border transition-all ${
+                        form.walk_duration === 30 ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:border-slate-300"
+                      }`}>
+                      <Clock className="w-3.5 h-3.5 text-slate-500" />
+                      <span className="text-xs font-semibold text-slate-900">30 minutos</span>
+                    </button>
+                    <button type="button" onClick={() => set("walk_duration", 60)}
+                      className={`flex items-center justify-center gap-1.5 p-2.5 rounded-lg border transition-all ${
+                        form.walk_duration === 60 ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:border-slate-300"
+                      }`}>
+                      <Clock className="w-3.5 h-3.5 text-slate-500" />
+                      <span className="text-xs font-semibold text-slate-900">1 hora</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Owner Data */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
@@ -480,21 +506,27 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                       <input value={dog.special_notes || ""} onChange={e => updateDog(i, "special_notes", e.target.value)}
                         placeholder="Notas especiais (alergias, medicação, comportamento)"
                         className="w-full h-9 px-2.5 mt-2 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
-                      <input value={dog.diet || ""} onChange={e => updateDog(i, "diet", e.target.value)}
-                        placeholder="Dieta (ração, quantidade, horários)"
-                        className="w-full h-9 px-2.5 mt-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
-                      <input value={dog.medications || ""} onChange={e => updateDog(i, "medications", e.target.value)}
-                        placeholder="Medicamentos (nome, dosagem, horários)"
-                        className="w-full h-9 px-2.5 mt-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
-                      <input value={dog.routine || ""} onChange={e => updateDog(i, "routine", e.target.value)}
-                        placeholder="Rotina (passeios, sonecas, hábitos)"
-                        className="w-full h-9 px-2.5 mt-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
-                      <div className="flex items-center gap-1.5 mt-1.5">
-                        <Syringe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <input type="date" value={dog.vaccine_expiry || ""} onChange={e => updateDog(i, "vaccine_expiry", e.target.value)}
-                          title="Validade da vacina da raiva"
-                          className="flex-1 h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
-                      </div>
+                      {["boarding", "daycare"].includes(form.service_type) && (
+                        <>
+                        <input value={dog.diet || ""} onChange={e => updateDog(i, "diet", e.target.value)}
+                          placeholder="Dieta (ração, quantidade, horários)"
+                          className="w-full h-9 px-2.5 mt-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                        <input value={dog.medications || ""} onChange={e => updateDog(i, "medications", e.target.value)}
+                          placeholder="Medicamentos (nome, dosagem, horários)"
+                          className="w-full h-9 px-2.5 mt-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                        <input value={dog.routine || ""} onChange={e => updateDog(i, "routine", e.target.value)}
+                          placeholder="Rotina (passeios, sonecas, hábitos)"
+                          className="w-full h-9 px-2.5 mt-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                        </>
+                      )}
+                      {["boarding", "daycare"].includes(form.service_type) && (
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <Syringe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <input type="date" value={dog.vaccine_expiry || ""} onChange={e => updateDog(i, "vaccine_expiry", e.target.value)}
+                            title="Validade da vacina da raiva"
+                            className="flex-1 h-9 px-2.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-slate-400 bg-white" />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
