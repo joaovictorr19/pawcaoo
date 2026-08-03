@@ -229,10 +229,24 @@ const WalkerCard = React.memo(({ walker, distance, matchScore, showMatchScore })
                 <span className="font-semibold text-gray-900">{walker.total_walks || 0}</span> passeios
               </div>
               <div className="flex flex-col items-end gap-0.5">
-                <div className="flex items-center gap-0.5 text-green-600 font-bold flex-shrink-0">
-                  <span className="text-base">€{walker.hourly_rate}</span>
-                  <span className="text-[10px] text-gray-500">/h</span>
-                </div>
+                {walker.professional_type === 'hotel' ? (() => {
+                  const ppn = walker?.hotel_details?.price_per_night;
+                  const services = walker?.hotel_details?.services || [];
+                  const prices = services.map(s => s.price_per_day).filter(p => p > 0);
+                  const minServicePrice = prices.length > 0 ? Math.min(...prices) : null;
+                  const displayPrice = ppn || minServicePrice;
+                  return displayPrice ? (
+                    <div className="flex items-center gap-0.5 text-purple-600 font-bold flex-shrink-0">
+                      <span className="text-base">€{displayPrice}</span>
+                      <span className="text-[10px] text-gray-500">/noite</span>
+                    </div>
+                  ) : null;
+                })() : (
+                  <div className="flex items-center gap-0.5 text-green-600 font-bold flex-shrink-0">
+                    <span className="text-base">€{walker.hourly_rate}</span>
+                    <span className="text-[10px] text-gray-500">/h</span>
+                  </div>
+                )}
                 {walker.exotic_rate && (walker.accepted_animals || []).some(a => ['reptiles', 'arachnids', 'rodents', 'birds'].includes(a)) && (
                   <div className="flex items-center gap-0.5 text-purple-600 font-semibold flex-shrink-0">
                     <span className="text-xs">€{walker.exotic_rate}</span>

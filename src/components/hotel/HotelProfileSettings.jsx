@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
-  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check, Instagram, Award
+  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check, Instagram, Award, Euro
 } from "lucide-react";
 import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
 import HotelPortfolioEditor from "@/components/hotel/HotelPortfolioEditor";
@@ -26,6 +26,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     hotel_name: hotelProfile?.hotel_details?.hotel_name || "",
     hotel_description: hotelProfile?.hotel_details?.hotel_description || "",
     full_address: hotelProfile?.hotel_details?.full_address || "",
+    price_per_night: hotelProfile?.hotel_details?.price_per_night || "",
+    price_daycare: hotelProfile?.hotel_details?.price_daycare || "",
     checkin_time: hotelProfile?.hotel_details?.checkin_time || "",
     checkout_time: hotelProfile?.hotel_details?.checkout_time || "",
     checkin_description: hotelProfile?.hotel_details?.checkin_description || "",
@@ -97,6 +99,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
         hotel_name: origName,
         hotel_description: form.hotel_description,
         full_address: origAddress,
+        price_per_night: form.price_per_night ? parseFloat(form.price_per_night) : null,
+        price_daycare: form.price_daycare ? parseFloat(form.price_daycare) : null,
         checkin_time: form.checkin_time,
         checkout_time: form.checkout_time,
         checkin_description: form.checkin_description,
@@ -266,6 +270,40 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
               placeholder="Rua, número, código postal"
               className="mt-1 rounded-lg"
             />
+          </div>
+
+          {/* Preços */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs font-semibold text-slate-600">Preço por Noite (Alojamento)</Label>
+              <div className="relative mt-1">
+                <Euro className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={form.price_per_night}
+                  onChange={handleChange("price_per_night")}
+                  placeholder="25.00"
+                  className="rounded-lg pl-9"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Preço base mostrado no card da página inicial</p>
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-slate-600">Preço por Dia (Creche)</Label>
+              <div className="relative mt-1">
+                <Euro className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={form.price_daycare}
+                  onChange={handleChange("price_daycare")}
+                  placeholder="15.00"
+                  className="rounded-lg pl-9"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Preço para dia completo sem pernoita</p>
+            </div>
           </div>
 
           <div>

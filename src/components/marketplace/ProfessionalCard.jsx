@@ -103,11 +103,13 @@ export function ProfessionalCard({ walker }) {
       <div className="shrink-0 flex flex-col items-end gap-1">
         {profileData.isHotel ? (
           (() => {
+            const ppn = walker?.hotel_details?.price_per_night;
             const services = walker?.hotel_details?.services || [];
             const prices = services.map(s => s.price_per_day).filter(p => p > 0);
-            const minPrice = prices.length > 0 ? Math.min(...prices) : null;
-            return minPrice ? (
-              <span className="text-xs font-black text-purple-600">{minPrice}€<span className="text-[9px] text-slate-400">/noite</span></span>
+            const minServicePrice = prices.length > 0 ? Math.min(...prices) : null;
+            const displayPrice = ppn || minServicePrice;
+            return displayPrice ? (
+              <span className="text-xs font-black text-purple-600">{displayPrice}€<span className="text-[9px] text-slate-400">/noite</span></span>
             ) : null;
           })()
         ) : (
