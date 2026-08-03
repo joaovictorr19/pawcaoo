@@ -2,7 +2,7 @@ import React from "react";
 import {
   PawPrint, Footprints, Bone, Heart, Award, Trophy, BedDouble, Home,
   Calendar, Clock, Sparkles, Scissors, Bath, Droplet, Dumbbell, Baby,
-  ShieldCheck, Stethoscope, Sun, Moon, Zap, Camera, Coffee,
+  ShieldCheck, Stethoscope, Sun, Moon, Zap, Camera, Coffee, Car,
 } from "lucide-react";
 
 const SERVICE_ICONS = [
@@ -29,6 +29,7 @@ const SERVICE_ICONS = [
   { name: "Zap", Icon: Zap },
   { name: "Camera", Icon: Camera },
   { name: "Coffee", Icon: Coffee },
+  { name: "Car", Icon: Car },
 ];
 
 export const SERVICE_ICON_MAP = Object.fromEntries(

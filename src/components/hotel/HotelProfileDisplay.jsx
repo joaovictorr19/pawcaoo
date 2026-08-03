@@ -11,6 +11,7 @@ import {
   Zap,
   Home,
   CalendarPlus,
+  Car,
 } from 'lucide-react';
 import { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
 import HotelPortfolioGallery from '@/components/hotel/HotelPortfolioGallery';
@@ -22,7 +23,7 @@ const SERVICE_TYPE_CONFIG = {
   training: { label: 'Treino', icon: GraduationCap, accent: 'bg-emerald-50 text-emerald-600', ring: 'ring-emerald-100' },
   walk_with_partner: { label: 'Passeio', icon: Zap, accent: 'bg-cyan-50 text-cyan-600', ring: 'ring-cyan-100' },
   dropin: { label: 'Assistência em Casa', icon: Home, accent: 'bg-teal-50 text-teal-600', ring: 'ring-teal-100' },
-  other: { label: 'Serviço', icon: Zap, accent: 'bg-slate-100 text-slate-600', ring: 'ring-slate-100' },
+  other: { label: 'Serviço', icon: Car, accent: 'bg-slate-100 text-slate-600', ring: 'ring-slate-100' },
 };
 
 const PRICE_SUFFIX = {
