@@ -635,7 +635,8 @@ async function handleCheckoutCompleted(base44, session) {
                         try {
                             const svcLabels = {
                                 boarding: 'Alojamento', daycare: 'Creche Diurna', grooming: 'Grooming',
-                                walk_with_partner: 'Passeio com Parceiro', training: 'Treino'
+                                walk_with_partner: 'Passeio com Parceiro', training: 'Treino',
+                                dropin: 'Assistência em Casa'
                             };
                             const svcLabel = svcLabels[hb.service_type] || hb.service_type;
                             const dogNames = (hb.dogs || []).map(d => d.dog_name).filter(Boolean).join(', ') || 'animal';

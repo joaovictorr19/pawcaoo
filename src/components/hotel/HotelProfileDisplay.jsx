@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Sun,
   Zap,
+  Home,
   CalendarPlus,
 } from 'lucide-react';
 import { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
@@ -19,6 +20,8 @@ const SERVICE_TYPE_CONFIG = {
   daycare: { label: 'Creche', icon: Sun, accent: 'bg-amber-50 text-amber-600', ring: 'ring-amber-100' },
   grooming: { label: 'Banho & tosquias', icon: Scissors, accent: 'bg-pink-50 text-pink-600', ring: 'ring-pink-100' },
   training: { label: 'Treino', icon: GraduationCap, accent: 'bg-emerald-50 text-emerald-600', ring: 'ring-emerald-100' },
+  walk_with_partner: { label: 'Passeio', icon: Zap, accent: 'bg-cyan-50 text-cyan-600', ring: 'ring-cyan-100' },
+  dropin: { label: 'Assistência em Casa', icon: Home, accent: 'bg-teal-50 text-teal-600', ring: 'ring-teal-100' },
   other: { label: 'Serviço', icon: Zap, accent: 'bg-slate-100 text-slate-600', ring: 'ring-slate-100' },
 };
 
@@ -27,6 +30,8 @@ const PRICE_SUFFIX = {
   daycare: '/dia',
   grooming: '/sessão',
   training: '/sessão',
+  walk_with_partner: '',
+  dropin: '/visita',
   other: '',
 };
 
@@ -150,14 +155,36 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
               )}
 
               {/* Price */}
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-slate-900 tracking-tight">
-                  {service.price_per_day != null ? `${service.price_per_day}€` : '—'}
-                </span>
-                {service.price_per_day != null && PRICE_SUFFIX[service.service_type] && (
-                  <span className="text-xs font-medium text-slate-400">{PRICE_SUFFIX[service.service_type]}</span>
-                )}
-              </div>
+              {service.service_type === 'walk_with_partner' ? (
+                <div className="flex items-baseline gap-2">
+                  {service.price_30min != null && (
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-black text-slate-900 tracking-tight">{service.price_30min}€</span>
+                      <span className="text-xs font-medium text-slate-400">30min</span>
+                    </div>
+                  )}
+                  {service.price_60min != null && (
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-black text-slate-900 tracking-tight">{service.price_60min}€</span>
+                      <span className="text-xs font-medium text-slate-400">1h</span>
+                    </div>
+                  )}
+                  {!service.price_30min && !service.price_60min && service.price_per_day != null && (
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-black text-slate-900 tracking-tight">{service.price_per_day}€</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-black text-slate-900 tracking-tight">
+                    {service.price_per_day != null ? `${service.price_per_day}€` : '—'}
+                  </span>
+                  {service.price_per_day != null && PRICE_SUFFIX[service.service_type] && (
+                    <span className="text-xs font-medium text-slate-400">{PRICE_SUFFIX[service.service_type]}</span>
+                  )}
+                </div>
+              )}
 
               {/* Sizes */}
               {service.accepted_dog_sizes && service.accepted_dog_sizes.length > 0 && (
