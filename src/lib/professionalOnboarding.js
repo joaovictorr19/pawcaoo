@@ -130,7 +130,7 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
 
   // ─── EDIT MODE: Update display fields directly, only request approval for sensitive data ───
   if (isEditing) {
-    const existing = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+    const existing = await base44.entities.WalkerProfile.filter({ user_id: user.id });
     if (existing.length === 0) {
       throw new Error("Perfil não encontrado para edição.");
     }
@@ -280,7 +280,7 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
 
   // ─── CREATE MODE: Create new profile with pending status ───
   // The entity automation on WalkerProfile.create triggers notifyAdminProfessional automatically.
-  const existing = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+  const existing = await base44.entities.WalkerProfile.filter({ user_id: user.id });
   let profile;
   if (existing.length > 0) {
     profile = await base44.entities.WalkerProfile.update(existing[0].id, profileData);
@@ -289,7 +289,7 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
   }
 
   if (form.professional_type === "trainer" || form.professional_type === "both") {
-    const existingTrainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+    const existingTrainers = await base44.entities.TrainerProfile.filter({ user_id: user.id });
     const trainerData = {
       trainer_name: form.walker_name || user.full_name,
       location: form.location,

@@ -202,16 +202,16 @@ export default function ProfessionalHubV2() {
   // O Hook useRealTimeRequests foi movido para dentro do ActiveRequestsList
 
   const { data: professionalProfile } = useQuery({
-    queryKey: ['myProfessionalProfile', user?.email],
+    queryKey: ['myProfessionalProfile', user?.id],
     queryFn: async () => {
-      if (!user?.email) return null;
-      let profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email }, '-created_date');
+      if (!user?.id) return null;
+      let profiles = await base44.entities.WalkerProfile.filter({ user_id: user.id }, '-created_date');
       if (profiles.length === 0) {
-        profiles = await base44.entities.TrainerProfile.filter({ created_by: user.email }, '-created_date');
+        profiles = await base44.entities.TrainerProfile.filter({ user_id: user.id }, '-created_date');
       }
       return profiles[0] || null;
     },
-    enabled: !!user?.email,
+    enabled: !!user?.id,
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,

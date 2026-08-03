@@ -375,7 +375,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
           training_specializations: data.training_specializations,
           consultation_options: data.consultation_options,
         };
-        const existingTrainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+        const existingTrainers = await base44.entities.TrainerProfile.filter({ user_id: user.id });
         if (existingTrainers.length > 0) {
           await base44.entities.TrainerProfile.update(existingTrainers[0].id, trainerData);
         } else {

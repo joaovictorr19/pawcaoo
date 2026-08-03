@@ -127,11 +127,11 @@ export default function ProfessionalSetup() {
   const { data: existingProfile } = useQuery({
     queryKey: ['existingProfessionalProfile', user?.email],
     queryFn: async () => {
-      if (!user?.email) return null;
-      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      if (!user?.id) return null;
+      const profiles = await base44.entities.WalkerProfile.filter({ user_id: user.id });
       return profiles[0] || null;
     },
-    enabled: !!user?.email,
+    enabled: !!user?.id,
     staleTime: 0,
   });
 
@@ -360,7 +360,7 @@ export default function ProfessionalSetup() {
        };
 
       // Verificar se já existe
-      const existing = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      const existing = await base44.entities.WalkerProfile.filter({ user_id: user.id });
       let profile;
       if (existing.length > 0) {
         profile = await base44.entities.WalkerProfile.update(existing[0].id, profileData);
@@ -370,7 +370,7 @@ export default function ProfessionalSetup() {
 
       // Se for trainer ou both, criar/atualizar TrainerProfile também
       if (form.professional_type === 'trainer' || form.professional_type === 'both') {
-        const existingTrainers = await base44.entities.TrainerProfile.filter({ created_by: user.email });
+        const existingTrainers = await base44.entities.TrainerProfile.filter({ user_id: user.id });
         const trainerData = {
           trainer_name: form.walker_name || user.full_name,
           location: form.location,

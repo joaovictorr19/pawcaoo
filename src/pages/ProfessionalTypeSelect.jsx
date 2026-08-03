@@ -15,7 +15,7 @@ export default function ProfessionalTypeSelect() {
         if (!user?.email) { setChecking(false); return; }
 
         // Verificar se já tem perfil de walker/trainer/hotel
-        const walkers = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+        const walkers = await base44.entities.WalkerProfile.filter({ user_id: user.id });
         if (walkers.length > 0 && walkers[0].walker_name && walkers[0].verification_status === "verified") {
           // Já tem perfil verificado — redirecionar para o dashboard apropriado
           const wp = walkers[0];

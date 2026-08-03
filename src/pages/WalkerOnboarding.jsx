@@ -69,12 +69,12 @@ export default function WalkerOnboarding() {
   const { data: existingProfile, isError: profileError } = useQuery({
     queryKey: ["existingWalkerProfile", user?.email],
     queryFn: async () => {
-      if (!user?.email) return null;
-      const profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email });
+      if (!user?.id) return null;
+      const profiles = await base44.entities.WalkerProfile.filter({ user_id: user.id });
       const walkerProfile = profiles.find(p => p.professional_type !== "hotel") || profiles[0];
       return walkerProfile || null;
     },
-    enabled: !!user?.email,
+    enabled: !!user?.id,
     staleTime: 0,
     retry: 1,
   });

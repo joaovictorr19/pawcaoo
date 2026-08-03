@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Name of the dog trainer"
     },
+    "user_id": {
+      "type": "string",
+      "description": "Auth User ID linked to this profile"
+    },
     "photo_url": {
       "type": "string",
       "description": "Profile photo URL"
