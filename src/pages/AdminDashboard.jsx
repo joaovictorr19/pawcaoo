@@ -28,6 +28,7 @@ import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import PendingHotelsPanel from "../components/admin/PendingHotelsPanel";
+import HotelBookingStatusPanel from "../components/admin/HotelBookingStatusPanel";
 import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
 
@@ -243,6 +244,17 @@ export default function AdminDashboard() {
     enabled: isAdmin && (activeTab === 'users' || activeTab === 'approvals'),
     initialData: [],
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: allHotelBookings = [] } = useQuery({
+    queryKey: ['allHotelBookingsAdmin'],
+    placeholderData: keepPreviousData,
+    queryFn: () => base44.entities.HotelBooking.list('-created_date', 2000),
+    enabled: isAdmin && activeTab === 'approvals',
+    initialData: [],
+    staleTime: 30 * 1000,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
 
@@ -931,6 +943,16 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 )}
+
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                  <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-[#1D8A82]" />
+                    <h3 className="text-sm font-extrabold text-slate-900">Hotéis Ativos — Reservas Aceites/Recusadas</h3>
+                  </div>
+                  <div className="p-4">
+                    <HotelBookingStatusPanel hotels={allWalkers} hotelBookings={allHotelBookings} />
+                  </div>
+                </div>
               </div>
             )}
           </TabsContent>
