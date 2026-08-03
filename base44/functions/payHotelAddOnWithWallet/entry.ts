@@ -31,6 +31,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Serviço não encontrado' }, { status: 404 });
     }
 
+    // Idempotência: rejeitar se o add-on já foi pago
+    if (addOn.paid === true || addOn.payment_status === 'paid') {
+      return Response.json({ error: 'Este serviço extra já foi pago' }, { status: 409 });
+    }
+
     const amount = addOn.total_price || 0;
     if (amount <= 0) {
       return Response.json({ error: 'Valor inválido' }, { status: 400 });

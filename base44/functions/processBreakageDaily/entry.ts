@@ -16,18 +16,14 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verificar autorização (API key ou admin)
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      // Tentar validar como admin
-      try {
-        const user = await base44.auth.me();
-        if (user?.role !== 'admin') {
-          return Response.json({ error: 'Admin access required' }, { status: 403 });
-        }
-      } catch {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verificar autorização — sempre validar o utilizador chamador
+    try {
+      const user = await base44.auth.me();
+      if (user?.role !== 'admin') {
+        return Response.json({ error: 'Admin access required' }, { status: 403 });
       }
+    } catch {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const today = new Date().toISOString().split('T')[0];

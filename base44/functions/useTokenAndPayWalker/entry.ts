@@ -61,6 +61,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autorizado: esta reserva não pertence ao utilizador' }, { status: 403 });
     }
 
+    // Idempotência: rejeitar se a reserva já foi paga via token de subscrição
+    if (booking.paid_via_subscription) {
+      return Response.json({ error: 'Esta reserva já foi paga com um token de subscrição' }, { status: 409 });
+    }
+
     // Usar walker_email e walker_name do registro da reserva, não do corpo da requisição
     const walker_email = booking.walker_email;
     const walker_name = booking.walker_name;
