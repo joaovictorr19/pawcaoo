@@ -178,7 +178,8 @@ export default function AdminDashboard() {
           verifiedTrainers: allTrainers?.filter(t => t.verification_status === 'verified')?.length || 0,
           pendingBookings: pendingBookings?.length || 0,
           completedBookings: completedBookings?.length || 0,
-          pendingWalkers: allWalkers?.filter(w => w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status)?.length || 0,
+          pendingWalkers: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type !== 'hotel')?.length || 0,
+          pendingHotels: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'hotel')?.length || 0,
           pendingTrainers: allTrainers?.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status)?.length || 0
         };
       } catch (error) {
@@ -389,9 +390,9 @@ export default function AdminDashboard() {
     refetchOnWindowFocus: false,
   });
 
-  const walkerApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || w.verification_status === 'rejected' || !w.verification_status || (w.verification_status === 'verified' && w.is_active === false)) && w.professional_type !== 'hotel');
-  const hotelApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || w.verification_status === 'rejected' || !w.verification_status || (w.verification_status === 'verified' && w.is_active === false)) && w.professional_type === 'hotel');
-  const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || t.verification_status === 'rejected' || !t.verification_status || (t.verification_status === 'verified' && t.is_active === false));
+  const walkerApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type !== 'hotel');
+  const hotelApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'hotel');
+  const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status);
   const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || s.verification_status === 'requires_documents' || s.verification_status === 'rejected' || !s.verification_status);
   const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified' || w.is_active === true);
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
