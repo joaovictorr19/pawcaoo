@@ -737,6 +737,10 @@
                 ],
                 "description": "Tipo de servico"
               },
+              "icon": {
+                "type": "string",
+                "description": "Icon name from ServiceIconPicker"
+              },
               "capacity_total": {
                 "type": "number",
                 "description": "Capacidade maxima para este servico"
