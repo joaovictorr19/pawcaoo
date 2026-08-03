@@ -128,6 +128,13 @@ export function buildBookingPayload(formData, hotelProfile, addOns = []) {
     assigned_walker_email: formData.assigned_walker_email,
     assigned_walker_name: formData.assigned_walker_name,
     walk_duration: formData.walk_duration,
+    grooming_type: formData.grooming_type || undefined,
+    training_goal: formData.training_goal || undefined,
+    service_address: formData.service_address || undefined,
+    service_duration_minutes: formData.service_duration_minutes || undefined,
+    pickup_enabled: formData.pickup_enabled || false,
+    pickup_address: formData.pickup_enabled ? formData.pickup_address : undefined,
+    pickup_fee: pickupFee > 0 ? pickupFee : undefined,
     add_ons: addOns,
     add_ons_total: addOnsTotal,
   };

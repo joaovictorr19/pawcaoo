@@ -123,13 +123,36 @@
         "daycare",
         "grooming",
         "walk_with_partner",
-        "training"
+        "training",
+        "dropin"
       ],
       "description": "Tipo de servico reservado"
     },
     "walk_duration": {
       "type": "number",
       "description": "Duracao do passeio em minutos (30 ou 60) \u2014 apenas para walk_with_partner"
+    },
+    "grooming_type": {
+      "type": "string",
+      "enum": [
+        "bath_only",
+        "bath_and_grooming",
+        "grooming_only",
+        "full_grooming"
+      ],
+      "description": "Tipo de servico de grooming"
+    },
+    "training_goal": {
+      "type": "string",
+      "description": "Objetivo do treino"
+    },
+    "service_address": {
+      "type": "string",
+      "description": "Morada para assistencia em casa (dropin)"
+    },
+    "service_duration_minutes": {
+      "type": "number",
+      "description": "Duracao da visita em minutos (dropin)"
     },
     "checkin_date": {
       "type": "string",

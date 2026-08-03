@@ -17,6 +17,7 @@ const SERVICE_TYPES = [
   { value: 'grooming', label: 'Banho & tosquias', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
   { value: 'walk_with_partner', label: 'Passeio', desc: 'Passeio com parceiro — cliente escolhe duração (30 min ou 1 hora)' },
   { value: 'training', label: 'Treino', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
+  { value: 'dropin', label: 'Assistência em Casa', desc: 'Visita ao domicílio — cliente indica morada, hora e duração' },
   { value: 'other', label: 'Outro', desc: 'Sessão única — cliente escolhe data e horário preferido' }
 ];
 
@@ -299,7 +300,7 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                 ) : (
                   <div>
                     <label className="text-xs font-bold text-slate-600 uppercase mb-2 block">
-                      Preço {formData.service_type === 'boarding' ? 'por Noite' : formData.service_type === 'daycare' ? 'por Dia' : 'por Sessão'} (€)
+                      Preço {formData.service_type === 'boarding' ? 'por Noite' : formData.service_type === 'daycare' ? 'por Dia' : formData.service_type === 'dropin' ? 'por Visita' : 'por Sessão'} (€)
                     </label>
                     <Input
                       type="number"
@@ -423,7 +424,7 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                       {service.price_60min > 0 && <span className="font-bold text-purple-600">€{service.price_60min?.toFixed(2)}/1h</span>}
                     </>
                   ) : (
-                    <span className="font-bold text-purple-600">€{service.price_per_day?.toFixed(2)}{service.service_type === 'boarding' ? '/noite' : service.service_type === 'daycare' ? '/dia' : '/sessão'}</span>
+                    <span className="font-bold text-purple-600">€{service.price_per_day?.toFixed(2)}{service.service_type === 'boarding' ? '/noite' : service.service_type === 'daycare' ? '/dia' : service.service_type === 'dropin' ? '/visita' : '/sessão'}</span>
                   )}
                   <span className="text-slate-600">
                     Capacidade: <strong>{service.capacity_available || 0}/{service.capacity_total}</strong>

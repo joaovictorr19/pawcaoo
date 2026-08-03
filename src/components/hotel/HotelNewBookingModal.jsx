@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Plus, Minus, CreditCard, Loader2, Link2, Copy, Check, Send,
   BedDouble, Sun, Scissors, PawPrint, GraduationCap, User, CalendarDays,
-  Dog, ClipboardList, Banknote, LogIn, Syringe, MapPin, Clock } from "lucide-react";
+  Dog, ClipboardList, Banknote, LogIn, Syringe, MapPin, Clock, Home } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ const SERVICE_OPTIONS = [
   { value: "grooming", label: "Grooming", sub: "sessão", icon: Scissors },
   { value: "walk_with_partner", label: "Passeio", sub: "com parceiro", icon: PawPrint },
   { value: "training", label: "Treino", sub: "sessão", icon: GraduationCap },
+  { value: "dropin", label: "Assistência em Casa", sub: "visita ao domicílio", icon: Home },
 ];
 
 const DOG_SIZES = [
@@ -62,6 +63,10 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
     pickup_city: "",
     pickup_postal_code: "",
     pickup_time: "",
+    grooming_type: "bath_and_grooming",
+    training_goal: "",
+    service_address: "",
+    service_duration_minutes: 60,
   });
 
   // ── Lookup returning guest profile when email is typed ──
@@ -382,6 +387,75 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                 </div>
               )}
 
+              {/* Grooming Type */}
+              {form.service_type === "grooming" && (
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                    Tipo de Corte / Serviço
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: "bath_only", label: "Banho apenas" },
+                      { value: "bath_and_grooming", label: "Banho & Tosquias" },
+                      { value: "grooming_only", label: "Tosquias apenas" },
+                      { value: "full_grooming", label: "Corte completo" },
+                    ].map(opt => (
+                      <button key={opt.value} type="button"
+                        onClick={() => set("grooming_type", opt.value)}
+                        className={`p-2.5 rounded-lg border text-left transition-all ${
+                          form.grooming_type === opt.value ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:border-slate-300"
+                        }`}>
+                        <span className="text-xs font-semibold text-slate-900">{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Training Goal */}
+              {form.service_type === "training" && (
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                    Objetivo do Treino
+                  </label>
+                  <textarea value={form.training_goal} onChange={e => set("training_goal", e.target.value)}
+                    placeholder="Ex: Comportamento na trela, socialização, obediência básica..."
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-slate-400 resize-none bg-white" />
+                </div>
+              )}
+
+              {/* Dropin: Home Address + Duration */}
+              {form.service_type === "dropin" && (
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                      <MapPin className="w-3 h-3" /> Morada da Assistência
+                    </label>
+                    <textarea value={form.service_address} onChange={e => set("service_address", e.target.value)}
+                      placeholder="Rua, número, andar, código postal, cidade..."
+                      rows={2}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-slate-400 resize-none bg-white" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                      Duração da Visita
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[30, 60, 90].map(d => (
+                        <button key={d} type="button"
+                          onClick={() => set("service_duration_minutes", d)}
+                          className={`p-2.5 rounded-lg border text-center transition-all ${
+                            form.service_duration_minutes === d ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:border-slate-300"
+                          }`}>
+                          <span className="text-xs font-semibold text-slate-900">{d} min</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Owner Data */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
@@ -411,6 +485,7 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
               <EmergencyContactFields form={form} set={set} />
 
               {/* Pickup at home option */}
+              {form.service_type !== "dropin" && (
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
                 <label className="flex items-center gap-2.5 cursor-pointer select-none">
                   <div className="relative flex items-center">
@@ -448,11 +523,12 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                   </div>
                 )}
               </div>
+              )}
 
               {/* Dates */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
-                  <CalendarDays className="w-3 h-3" /> Datas de Estadia
+                  <CalendarDays className="w-3 h-3" /> {form.service_type === "boarding" ? "Datas de Estadia" : "Data e Hora"}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1.5">
@@ -461,12 +537,21 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                     <input type="time" value={form.checkin_time} onChange={e => set("checkin_time", e.target.value)}
                       className={inputCls} />
                   </div>
-                  <div className="space-y-1.5">
-                    <input type="date" value={form.checkout_date} onChange={e => set("checkout_date", e.target.value)}
-                      className={inputCls} />
-                    <input type="time" value={form.checkout_time} onChange={e => set("checkout_time", e.target.value)}
-                      className={inputCls} />
-                  </div>
+                  {form.service_type === "boarding" ? (
+                    <div className="space-y-1.5">
+                      <input type="date" value={form.checkout_date} onChange={e => set("checkout_date", e.target.value)}
+                        className={inputCls} />
+                      <input type="time" value={form.checkout_time} onChange={e => set("checkout_time", e.target.value)}
+                        className={inputCls} />
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {["daycare"].includes(form.service_type) && (
+                        <input type="time" value={form.checkout_time} onChange={e => set("checkout_time", e.target.value)}
+                          className={inputCls} />
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

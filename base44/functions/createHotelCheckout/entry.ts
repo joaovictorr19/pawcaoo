@@ -39,6 +39,10 @@ Deno.serve(async (req) => {
       delivery_method,
       walk_duration,
       pickup_fee,
+      grooming_type,
+      training_goal,
+      service_address,
+      service_duration_minutes,
     } = body;
 
     if (!hotel_profile_id) {
@@ -92,6 +96,8 @@ Deno.serve(async (req) => {
       } else {
         serverPricePerUnit = svc?.price_per_day || svc?.price_60min || svc?.price_30min || 0;
       }
+    } else if (service_type === 'dropin') {
+      serverPricePerUnit = findServicePrice('dropin') || 0;
     } else {
       serverPricePerUnit = findServicePrice(service_type);
     }
@@ -210,6 +216,7 @@ Deno.serve(async (req) => {
       grooming: "Grooming",
       walk_with_partner: "Passeio com Parceiro",
       training: "Treino",
+      dropin: "Assistência em Casa",
     };
     const serviceLabel = SERVICE_LABELS[service_type] || service_type;
     const dogNames = (dogs || []).map(d => d.dog_name).filter(Boolean).join(", ") || "cão";
@@ -229,6 +236,10 @@ Deno.serve(async (req) => {
       service_type,
       walk_duration: walk_duration || undefined,
       pickup_fee: serverPickupFee > 0 ? serverPickupFee : undefined,
+      grooming_type: grooming_type || undefined,
+      training_goal: training_goal || undefined,
+      service_address: service_address || undefined,
+      service_duration_minutes: service_duration_minutes || undefined,
       checkin_date,
       checkout_date: checkout_date || checkin_date,
       checkin_time: checkin_time || '',

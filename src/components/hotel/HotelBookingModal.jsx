@@ -27,6 +27,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [finalized, setFinalized] = useState(false);
   const [preferredTime, setPreferredTime] = useState('10:00');
   const [walkDuration, setWalkDuration] = useState(30);
+  const [groomingType, setGroomingType] = useState('bath_and_grooming');
+  const [trainingGoal, setTrainingGoal] = useState('');
+  const [serviceAddress, setServiceAddress] = useState('');
+  const [serviceDuration, setServiceDuration] = useState(60);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,6 +45,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setDogCare({});
       setPreferredTime('10:00');
       setWalkDuration(30);
+      setGroomingType('bath_and_grooming');
+      setTrainingGoal('');
+      setServiceAddress('');
+      setServiceDuration(60);
       setStep(0);
       setFinalized(false);
     }
@@ -74,6 +82,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const isOvernight = bookingMode === 'overnight';
   const isAppointment = bookingMode === 'appointment';
   const isWalk = selectedService.service_type === 'walk_with_partner';
+  const isGrooming = selectedService.service_type === 'grooming';
+  const isTraining = selectedService.service_type === 'training';
+  const isDropin = selectedService.service_type === 'dropin';
   const needsCareInfo = ['boarding', 'daycare'].includes(selectedService.service_type);
   const totalNights = isOvernight && checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
   const servicePrice = isWalk
@@ -109,6 +120,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     } else {
       if (!checkinDate) { toast.error('Escolha a data'); return; }
     }
+    if (isDropin && !serviceAddress.trim()) { toast.error('Indique a morada para a assistência em casa'); return; }
     if (deliveryMethod === 'pickup' && !pickupAddress.trim()) { toast.error('Indique o endereço de recolha'); return; }
     if (deliveryMethod === 'dropoff' && !hotelAddress.trim()) { toast.error('O hotel não tem endereço definido. Contacte o hotel.'); return; }
 
@@ -163,6 +175,10 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         delivery_method: deliveryMethod,
         pickup_fee: pickupFee > 0 ? pickupFee : undefined,
         walk_duration: isWalk ? walkDuration : undefined,
+        grooming_type: isGrooming ? groomingType : undefined,
+        training_goal: isTraining ? trainingGoal : undefined,
+        service_address: isDropin ? serviceAddress : undefined,
+        service_duration_minutes: isDropin ? serviceDuration : undefined,
       });
 
       // Verificar se o link de pagamento foi gerado com sucesso
@@ -188,7 +204,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
 
   const steps = [
     { title: 'Animais', icon: PawPrint },
-    { title: 'Cuidados', icon: Utensils },
+    { title: 'Detalhes', icon: Utensils },
     { title: isOvernight ? 'Datas' : isAppointment ? 'Agendamento' : 'Data', icon: Calendar },
     { title: 'Resumo', icon: CheckCircle2 },
   ];
@@ -434,28 +450,110 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     );
                   })}
                   </>
+                  ) : isGrooming ? (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Tipo de Corte / Serviço</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Escolha o tipo de banho e tosquias</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { value: 'bath_only', label: 'Banho apenas' },
+                          { value: 'bath_and_grooming', label: 'Banho & Tosquias' },
+                          { value: 'grooming_only', label: 'Tosquias apenas' },
+                          { value: 'full_grooming', label: 'Corte completo' },
+                        ].map(opt => (
+                          <button key={opt.value} type="button"
+                            onClick={() => setGroomingType(opt.value)}
+                            className={`p-3 rounded-lg border-2 text-center transition-all ${
+                              groomingType === opt.value ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white hover:border-slate-300'
+                            }`}>
+                            <p className="text-xs font-bold text-slate-900">{opt.label}</p>
+                          </button>
+                        ))}
+                      </div>
+                      {selectedDogs.map(dog => (
+                        <div key={dog.id} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
+                          {dog.photo_url ? <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} /> : <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center"><PawPrint className="w-3.5 h-3.5 text-orange-400" /></div>}
+                          <span className="text-sm font-semibold text-slate-700">{dog.dog_name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : isTraining ? (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Objetivo do Treino</p>
+                        <p className="text-xs text-slate-400 mt-0.5">Descreva o que pretende trabalhar com o seu animal</p>
+                      </div>
+                      <textarea
+                        value={trainingGoal}
+                        onChange={e => setTrainingGoal(e.target.value)}
+                        placeholder="Ex: Comportamento na trela, socialização, obediência básica, ansiedade de separação..."
+                        rows={4}
+                        className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none resize-none transition-colors"
+                      />
+                      {selectedDogs.map(dog => (
+                        <div key={dog.id} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
+                          {dog.photo_url ? <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} /> : <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center"><PawPrint className="w-3.5 h-3.5 text-orange-400" /></div>}
+                          <span className="text-sm font-semibold text-slate-700">{dog.dog_name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : isDropin ? (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Assistência em Casa</p>
+                        <p className="text-xs text-slate-400 mt-0.5">O profissional desloca-se a sua casa</p>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1.5 tracking-wider">
+                          <MapPin className="w-3 h-3" /> Morada completa
+                        </label>
+                        <textarea
+                          value={serviceAddress}
+                          onChange={e => setServiceAddress(e.target.value)}
+                          placeholder="Rua, número, andar, código postal, cidade..."
+                          rows={3}
+                          className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none resize-none transition-colors"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-500 uppercase mb-1.5 flex items-center gap-1.5 tracking-wider">
+                          <Clock className="w-3 h-3" /> Duração da visita
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[30, 60, 90].map(d => (
+                            <button key={d} type="button"
+                              onClick={() => setServiceDuration(d)}
+                              className={`p-3 rounded-lg border-2 text-center transition-all ${
+                                serviceDuration === d ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white hover:border-slate-300'
+                              }`}>
+                              <p className="text-sm font-bold text-slate-900">{d} min</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {selectedDogs.map(dog => (
+                        <div key={dog.id} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
+                          {dog.photo_url ? <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} /> : <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center"><PawPrint className="w-3.5 h-3.5 text-orange-400" /></div>}
+                          <span className="text-sm font-semibold text-slate-700">{dog.dog_name}</span>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center text-center py-12 space-y-4">
                       <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
                         <PawPrint className="w-8 h-8 text-slate-400" />
                       </div>
                       <div className="space-y-1.5">
-                        <p className="font-bold text-slate-800 text-base">Sem informações de cuidado necessárias</p>
+                        <p className="font-bold text-slate-800 text-base">Sem informações necessárias</p>
                         <p className="text-sm text-slate-500 max-w-xs">
-                          {isWalk
-                            ? 'Para o passeio, apenas precisa de escolher a data e duração no próximo passo.'
-                            : 'Para este serviço, apenas precisa de escolher a data e horário no próximo passo.'}
+                          Para o passeio, apenas precisa de escolher a data e duração no próximo passo.
                         </p>
                       </div>
                       {selectedDogs.map(dog => (
                         <div key={dog.id} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
-                          {dog.photo_url ? (
-                            <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} />
-                          ) : (
-                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center">
-                              <PawPrint className="w-3.5 h-3.5 text-orange-400" />
-                            </div>
-                          )}
+                          {dog.photo_url ? <img src={dog.photo_url} className="w-7 h-7 rounded-lg object-cover" alt={dog.dog_name} /> : <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center"><PawPrint className="w-3.5 h-3.5 text-orange-400" /></div>}
                           <span className="text-sm font-semibold text-slate-700">{dog.dog_name}</span>
                         </div>
                       ))}
@@ -678,11 +776,32 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       )}
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">Duração</span>
-                        <span className="font-bold text-slate-900">{isOvernight ? `${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isWalk ? `${walkDuration} min` : isAppointment ? 'Sessão única' : '1 dia'}</span>
+                        <span className="font-bold text-slate-900">{isOvernight ? `${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isWalk ? `${walkDuration} min` : isDropin ? `${serviceDuration} min` : isAppointment ? 'Sessão única' : '1 dia'}</span>
                       </div>
+                      {isGrooming && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-500">Tipo de corte</span>
+                          <span className="font-bold text-slate-900">{
+                            { bath_only: 'Banho apenas', bath_and_grooming: 'Banho & Tosquias', grooming_only: 'Tosquias apenas', full_grooming: 'Corte completo' }[groomingType]
+                          }</span>
+                        </div>
+                      )}
+                      {isTraining && trainingGoal && (
+                        <div className="flex justify-between items-start text-sm">
+                          <span className="text-slate-500">Objetivo</span>
+                          <span className="font-bold text-slate-900 text-right max-w-[60%]">{trainingGoal}</span>
+                        </div>
+                      )}
+                      {isDropin && serviceAddress && (
+                        <div className="flex justify-between items-start text-sm">
+                          <span className="text-slate-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> Morada</span>
+                          <span className="font-bold text-slate-900 text-right max-w-[60%]">{serviceAddress}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Delivery method */}
+                    {!isDropin && (
                     <div className="pt-2.5 border-t border-slate-100">
                       <label className="text-[10px] font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1 tracking-wider">
                         <MapPin className="w-2.5 h-2.5" /> Entrega do Animal
@@ -744,6 +863,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         )
                       )}
                     </div>
+                    )}
 
                     {/* Special requests */}
                     <div className="pt-2.5 border-t border-slate-100">

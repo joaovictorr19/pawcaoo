@@ -351,7 +351,7 @@
           },
           "custom_title": {
             "type": "string",
-            "description": "Titulo personalizado do colaborador (ex: Funcionario, Treinador, Veterinario)"
+            "description": "Titulo personalizado do colaborador"
           }
         }
       },
@@ -531,7 +531,7 @@
             "no_sundays_holidays"
           ],
           "default": "all_days",
-          "description": "Politica de check-in/out: all_days, no_sundays, no_sundays_holidays"
+          "description": "Politica de check-in/out"
         },
         "blocked_dates": {
           "type": "array",
@@ -540,7 +540,7 @@
             "format": "date"
           },
           "default": [],
-          "description": "Datas bloqueadas pelo hotel (folgas) - nao aceita reservas nestes dias"
+          "description": "Datas bloqueadas pelo hotel (folgas)"
         },
         "amenities": {
           "type": "array",
@@ -590,7 +590,7 @@
               },
               "custom_title": {
                 "type": "string",
-                "description": "Titulo personalizado do colaborador (ex: Funcionario, Treinador, Veterinario)"
+                "description": "Titulo personalizado do colaborador"
               },
               "is_available_today": {
                 "type": "boolean",
@@ -732,6 +732,7 @@
                   "grooming",
                   "training",
                   "walk_with_partner",
+                  "dropin",
                   "other"
                 ],
                 "description": "Tipo de servico"
