@@ -18,7 +18,8 @@ const SERVICE_TYPES = [
   { value: 'walk_with_partner', label: 'Passeio', desc: 'Passeio com parceiro — cliente escolhe duração (30 min ou 1 hora)' },
   { value: 'training', label: 'Treino', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
   { value: 'dropin', label: 'Assistência em Casa', desc: 'Visita ao domicílio — cliente indica morada, hora e duração' },
-  { value: 'other', label: 'Outro', desc: 'Sessão única — cliente escolhe data e horário preferido' }
+  { value: 'other', label: 'Outro', desc: 'Sessão única — cliente escolhe data e horário preferido' },
+  { value: 'transport', label: 'Transporte', desc: 'Recolha e entrega ao domicílio — cliente escolhe data e horário' }
 ];
 
 const DOG_SIZES = [

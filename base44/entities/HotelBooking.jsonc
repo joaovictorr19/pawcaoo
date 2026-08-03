@@ -124,7 +124,8 @@
         "grooming",
         "walk_with_partner",
         "training",
-        "dropin"
+        "dropin",
+        "transport"
       ],
       "description": "Tipo de servico reservado"
     },

@@ -733,6 +733,7 @@
                   "training",
                   "walk_with_partner",
                   "dropin",
+                  "transport",
                   "other"
                 ],
                 "description": "Tipo de servico"

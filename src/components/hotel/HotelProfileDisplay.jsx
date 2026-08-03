@@ -24,6 +24,7 @@ const SERVICE_TYPE_CONFIG = {
   walk_with_partner: { label: 'Passeio', icon: Zap, accent: 'bg-cyan-50 text-cyan-600', ring: 'ring-cyan-100' },
   dropin: { label: 'Assistência em Casa', icon: Home, accent: 'bg-teal-50 text-teal-600', ring: 'ring-teal-100' },
   other: { label: 'Serviço', icon: Car, accent: 'bg-slate-100 text-slate-600', ring: 'ring-slate-100' },
+  transport: { label: 'Transporte', icon: Car, accent: 'bg-blue-50 text-blue-600', ring: 'ring-blue-100' },
 };
 
 const PRICE_SUFFIX = {
@@ -34,6 +35,7 @@ const PRICE_SUFFIX = {
   walk_with_partner: '',
   dropin: '/visita',
   other: '',
+  transport: '/viagem',
 };
 
 const SIZE_LABELS = {
