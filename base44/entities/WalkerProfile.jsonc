@@ -504,6 +504,10 @@
           "type": "number",
           "description": "Preco por dia de creche"
         },
+        "pickup_fee": {
+          "type": "number",
+          "description": "Valor extra cobrado pela recolha ao domicilio"
+        },
         "checkin_time": {
           "type": "string"
         },
@@ -727,6 +731,7 @@
                   "boarding",
                   "grooming",
                   "training",
+                  "walk_with_partner",
                   "other"
                 ],
                 "description": "Tipo de servico"
@@ -742,6 +747,14 @@
               "price_per_day": {
                 "type": "number",
                 "description": "Preco por dia/noite"
+              },
+              "price_30min": {
+                "type": "number",
+                "description": "Preco para passeio de 30 minutos"
+              },
+              "price_60min": {
+                "type": "number",
+                "description": "Preco para passeio de 60 minutos (1 hora)"
               },
               "is_active": {
                 "type": "boolean",

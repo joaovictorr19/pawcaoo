@@ -134,8 +134,9 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
   const removeDog = (i) => setForm(f => ({ ...f, dogs: f.dogs.filter((_, idx) => idx !== i) }));
 
   const addOnsTotal = calculateAddOnsTotal(addOns);
+  const pickupFee = (form.pickup_enabled && hotelProfile?.hotel_details?.pickup_fee) ? parseFloat(hotelProfile.hotel_details.pickup_fee) : 0;
   const baseAmount = parseFloat(form.total_amount) || 0;
-  const grandTotal = baseAmount + addOnsTotal;
+  const grandTotal = baseAmount + addOnsTotal + pickupFee;
 
   const buildPayload = (overrides = {}) => ({
     ...buildBookingPayload(form, hotelProfile, addOns),
@@ -571,6 +572,14 @@ export default function HotelNewBookingModal({ isOpen, onClose, onSave, hotelPro
                     <div className="flex justify-between">
                       <span className="text-slate-500">Serviços adicionais ({addOns.length})</span>
                       <span className="font-semibold text-slate-700">€{addOnsTotal.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {pickupFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> Recolha ao domicílio
+                      </span>
+                      <span className="font-semibold text-slate-700">€{pickupFee.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="border-t border-slate-200 pt-1.5 flex justify-between">

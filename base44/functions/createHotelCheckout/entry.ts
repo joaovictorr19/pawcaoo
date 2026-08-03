@@ -37,6 +37,8 @@ Deno.serve(async (req) => {
       add_ons_total,
       pickup_address,
       delivery_method,
+      walk_duration,
+      pickup_fee,
     } = body;
 
     if (!hotel_profile_id) {
@@ -80,13 +82,29 @@ Deno.serve(async (req) => {
       serverPricePerUnit = hotelDetails.price_per_night || findServicePrice('boarding') || 0;
     } else if (service_type === 'daycare') {
       serverPricePerUnit = hotelDetails.price_daycare || findServicePrice('daycare') || 0;
+    } else if (service_type === 'walk_with_partner') {
+      // For walks, use duration-based pricing (price_30min or price_60min)
+      const svc = (hotelDetails.services || []).find(s => s.service_type === 'walk_with_partner');
+      if (walk_duration === 60 && svc?.price_60min) {
+        serverPricePerUnit = svc.price_60min;
+      } else if (walk_duration === 30 && svc?.price_30min) {
+        serverPricePerUnit = svc.price_30min;
+      } else {
+        serverPricePerUnit = svc?.price_per_day || svc?.price_60min || svc?.price_30min || 0;
+      }
     } else {
       serverPricePerUnit = findServicePrice(service_type);
     }
 
     const serverNights = total_nights || 1;
     const serverDogs = total_dogs || (dogs?.length || 1);
-    const serverBaseAmount = serverPricePerUnit * serverNights * serverDogs;
+    let serverBaseAmount = serverPricePerUnit * serverNights * serverDogs;
+
+    // Add pickup fee if applicable
+    const serverPickupFee = (pickup_fee && pickup_fee > 0) ? Number(pickup_fee) : 0;
+    if (serverPickupFee > 0) {
+      serverBaseAmount += serverPickupFee;
+    }
 
     // ── SECURITY: Recompute add_ons total from server-side hotel profile pricing ──
     // Never trust client-supplied total_price or price_per_unit for add-ons.
@@ -209,6 +227,8 @@ Deno.serve(async (req) => {
       owner_phone: owner_phone || '',
       dogs: dogs || [],
       service_type,
+      walk_duration: walk_duration || undefined,
+      pickup_fee: serverPickupFee > 0 ? serverPickupFee : undefined,
       checkin_date,
       checkout_date: checkout_date || checkin_date,
       checkin_time: checkin_time || '',

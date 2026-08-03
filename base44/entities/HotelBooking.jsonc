@@ -40,6 +40,10 @@
       "default": false,
       "description": "Se o hotel oferece recolha ao domicilio para esta reserva"
     },
+    "pickup_fee": {
+      "type": "number",
+      "description": "Valor extra cobrado pela recolha ao domicilio"
+    },
     "pickup_address": {
       "type": "string",
       "description": "Morada completa de recolha (quando pickup_enabled=true)"

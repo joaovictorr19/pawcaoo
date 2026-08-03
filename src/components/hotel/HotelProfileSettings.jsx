@@ -33,6 +33,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     checkin_description: hotelProfile?.hotel_details?.checkin_description || "",
     hide_checkin_times: hotelProfile?.hotel_details?.hide_checkin_times || false,
     offers_pickup: hotelProfile?.hotel_details?.offers_pickup || false,
+    pickup_fee: hotelProfile?.hotel_details?.pickup_fee || "",
     blocked_dates: hotelProfile?.hotel_details?.blocked_dates || [],
     instagram_url: hotelProfile?.instagram_url || "",
     certifications_detailed: hotelProfile?.certifications_detailed || [],
@@ -106,6 +107,7 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
         checkin_description: form.checkin_description,
         hide_checkin_times: form.hide_checkin_times,
         offers_pickup: form.offers_pickup,
+        pickup_fee: form.pickup_fee ? parseFloat(form.pickup_fee) : null,
         blocked_dates: form.blocked_dates,
       };
 
@@ -405,6 +407,23 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
                   <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${form.offers_pickup ? 'translate-x-4' : 'translate-x-0.5'}`} />
                 </div>
               </button>
+              {form.offers_pickup && (
+                <div className="mt-3 ml-6">
+                  <Label className="text-[11px] font-medium text-slate-500">Valor da Recolha (€)</Label>
+                  <div className="relative mt-1">
+                    <Euro className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={form.pickup_fee}
+                      onChange={handleChange("pickup_fee")}
+                      placeholder="5.00"
+                      className="rounded-lg pl-9 max-w-[200px]"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1">Valor extra cobrado ao cliente pela recolha ao domicílio</p>
+                </div>
+              )}
             </div>
           </div>
 

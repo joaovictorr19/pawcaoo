@@ -76,21 +76,24 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const isWalk = selectedService.service_type === 'walk_with_partner';
   const needsCareInfo = ['boarding', 'daycare'].includes(selectedService.service_type);
   const totalNights = isOvernight && checkinDate && checkoutDate ? Math.ceil((new Date(checkoutDate) - new Date(checkinDate)) / (1000 * 60 * 60 * 24)) : 0;
-  const servicePrice = selectedService.price_per_day || 0;
+  const servicePrice = isWalk
+    ? (walkDuration === 60 ? (selectedService.price_60min || selectedService.price_per_day || 0) : (selectedService.price_30min || selectedService.price_per_day || 0))
+    : (selectedService.price_per_day || 0);
   const pricingUnits = isOvernight ? totalNights : 1;
   const commissionRate = getEffectiveCommissionRate(hotel);
   const commissionBorneBy = getCommissionBearer(hotel);
+  const pickupFee = (deliveryMethod === 'pickup' && hotelOffersPickup) ? (hotel?.hotel_details?.pickup_fee || 0) : 0;
   const baseAmount = Math.round(servicePrice * pricingUnits * selectedDogs.length * 100) / 100;
   const platformFee = Math.round(baseAmount * (commissionRate / 100) * 100) / 100;
   let totalAmount, hotelReceives;
   if (commissionBorneBy === 'client') {
     // Commission added on top — client pays base + fee, hotel receives full base
-    totalAmount = Math.round((baseAmount + platformFee) * 100) / 100;
-    hotelReceives = baseAmount;
+    totalAmount = Math.round((baseAmount + platformFee + pickupFee) * 100) / 100;
+    hotelReceives = baseAmount + pickupFee;
   } else {
     // Commission included — client pays base, hotel receives base - fee
-    totalAmount = baseAmount;
-    hotelReceives = Math.round((baseAmount - platformFee) * 100) / 100;
+    totalAmount = Math.round((baseAmount + pickupFee) * 100) / 100;
+    hotelReceives = Math.round((baseAmount - platformFee + pickupFee) * 100) / 100;
   }
 
   const handleCreateBooking = async () => {
@@ -158,6 +161,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         special_requests: specialRequests,
         pickup_address: deliveryMethod === 'pickup' ? pickupAddress : '',
         delivery_method: deliveryMethod,
+        pickup_fee: pickupFee > 0 ? pickupFee : undefined,
         walk_duration: isWalk ? walkDuration : undefined,
       });
 
@@ -757,10 +761,18 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     <div className="pt-2.5 border-t border-slate-100 space-y-1.5">
                       <div className="flex justify-between text-xs">
                         <span className="text-slate-500">
-                          {servicePrice}€ {isOvernight ? `× ${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isAppointment ? '/ sessão' : '/ dia'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
+                          {servicePrice}€ {isOvernight ? `× ${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isWalk ? `/ ${walkDuration} min` : isAppointment ? '/ sessão' : '/ dia'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
                         </span>
                         <span className="font-bold text-slate-700">{baseAmount}€</span>
                       </div>
+                      {pickupFee > 0 && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500 flex items-center gap-1">
+                            <Truck className="w-3 h-3" /> Recolha ao domicílio
+                          </span>
+                          <span className="font-bold text-slate-700">+{pickupFee}€</span>
+                        </div>
+                      )}
                       {commissionBorneBy === 'client' && (
                         <div className="flex justify-between text-xs">
                           <span className="text-slate-500">

@@ -99,7 +99,8 @@ export function calculateAddOnsTotal(addOns = []) {
 export function buildBookingPayload(formData, hotelProfile, addOns = []) {
   const amount = parseFloat(formData.total_amount) || 0;
   const addOnsTotal = calculateAddOnsTotal(addOns);
-  const totalAmount = amount + addOnsTotal;
+  const pickupFee = (formData.pickup_enabled && hotelProfile?.hotel_details?.pickup_fee) ? parseFloat(hotelProfile.hotel_details.pickup_fee) : 0;
+  const totalAmount = amount + addOnsTotal + pickupFee;
   const finance = calculateBookingFinance(totalAmount);
 
   return {

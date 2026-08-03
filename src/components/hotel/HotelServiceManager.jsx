@@ -15,6 +15,7 @@ const SERVICE_TYPES = [
   { value: 'boarding', label: 'Alojamento', desc: 'Estadia com pernoita — cliente escolhe intervalo de datas, preço por noite' },
   { value: 'daycare', label: 'Creche Diária', desc: 'Dia completo sem pernoita — cliente escolhe data, horário do hotel aplica' },
   { value: 'grooming', label: 'Banho & tosquias', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
+  { value: 'walk_with_partner', label: 'Passeio', desc: 'Passeio com parceiro — cliente escolhe duração (30 min ou 1 hora)' },
   { value: 'training', label: 'Treino', desc: 'Sessão única — cliente escolhe data e horário preferido, preço fixo' },
   { value: 'other', label: 'Outro', desc: 'Sessão única — cliente escolhe data e horário preferido' }
 ];
@@ -35,6 +36,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
     service_type: 'boarding',
     description: '',
     price_per_day: '',
+    price_30min: '',
+    price_60min: '',
     capacity_total: '',
     accepted_dog_sizes: [],
     icon: ''
@@ -48,6 +51,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       service_type: 'boarding',
       description: '',
       price_per_day: '',
+      price_30min: '',
+      price_60min: '',
       capacity_total: '',
       accepted_dog_sizes: [],
       icon: ''
@@ -59,6 +64,8 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
   const handleEdit = (service) => {
     setFormData({
       ...service,
+      price_30min: service.price_30min || '',
+      price_60min: service.price_60min || '',
       accepted_dog_sizes: service.accepted_dog_sizes || [],
       icon: service.icon || ''
     });
@@ -85,7 +92,12 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       toast.error('Nome do serviço é obrigatório');
       return;
     }
-    if (!formData.price_per_day) {
+    if (formData.service_type === 'walk_with_partner') {
+      if (!formData.price_30min && !formData.price_60min) {
+        toast.error('Defina pelo menos o preço de 30 min ou 1 hora');
+        return;
+      }
+    } else if (!formData.price_per_day) {
       toast.error('Preço é obrigatório');
       return;
     }
@@ -106,7 +118,9 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                 service_name: formData.service_name,
                 service_type: formData.service_type,
                 description: formData.description,
-                price_per_day: parseFloat(formData.price_per_day),
+                price_per_day: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || parseFloat(formData.price_30min) || 0) : parseFloat(formData.price_per_day),
+                price_30min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_30min) || 0) : undefined,
+                price_60min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || 0) : undefined,
                 capacity_total: parseInt(formData.capacity_total),
                 capacity_available: Math.min(parseInt(formData.capacity_total), s.capacity_available || parseInt(formData.capacity_total)),
                 accepted_dog_sizes: formData.accepted_dog_sizes,
@@ -121,7 +135,9 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
           service_name: formData.service_name,
           service_type: formData.service_type,
           description: formData.description,
-          price_per_day: parseFloat(formData.price_per_day),
+          price_per_day: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || parseFloat(formData.price_30min) || 0) : parseFloat(formData.price_per_day),
+          price_30min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_30min) || 0) : undefined,
+          price_60min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || 0) : undefined,
           capacity_total: parseInt(formData.capacity_total),
           capacity_available: parseInt(formData.capacity_total),
           is_active: true,
@@ -251,20 +267,51 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase mb-2 block">
-                    Preço {formData.service_type === 'boarding' ? 'por Noite' : formData.service_type === 'daycare' ? 'por Dia' : 'por Sessão'} (€)
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.price_per_day}
-                    onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
-                    placeholder="0.00"
-                    className="rounded-xl"
-                  />
-                </div>
-                <div>
+                {formData.service_type === 'walk_with_partner' ? (
+                  <>
+                    <div>
+                      <label className="text-xs font-bold text-slate-600 uppercase mb-2 block">
+                        Preço 30 min (€)
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={formData.price_30min}
+                        onChange={(e) => setFormData({ ...formData, price_30min: e.target.value })}
+                        placeholder="10.00"
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-600 uppercase mb-2 block">
+                        Preço 1 hora (€)
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={formData.price_60min}
+                        onChange={(e) => setFormData({ ...formData, price_60min: e.target.value })}
+                        placeholder="18.00"
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="text-xs font-bold text-slate-600 uppercase mb-2 block">
+                      Preço {formData.service_type === 'boarding' ? 'por Noite' : formData.service_type === 'daycare' ? 'por Dia' : 'por Sessão'} (€)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.price_per_day}
+                      onChange={(e) => setFormData({ ...formData, price_per_day: e.target.value })}
+                      placeholder="0.00"
+                      className="rounded-xl"
+                    />
+                  </div>
+                )}
+                <div className={formData.service_type === 'walk_with_partner' ? '' : 'md:col-span-1'}>
                   <label className="text-xs font-bold text-slate-600 uppercase mb-2 block">
                     Capacidade Máxima
                   </label>
@@ -370,7 +417,14 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                   <Badge variant="secondary" className="font-semibold">
                     {SERVICE_TYPES.find(t => t.value === service.service_type)?.label}
                   </Badge>
-                  <span className="font-bold text-purple-600">€{service.price_per_day?.toFixed(2)}/noite</span>
+                  {service.service_type === 'walk_with_partner' ? (
+                    <>
+                      {service.price_30min > 0 && <span className="font-bold text-purple-600">€{service.price_30min?.toFixed(2)}/30min</span>}
+                      {service.price_60min > 0 && <span className="font-bold text-purple-600">€{service.price_60min?.toFixed(2)}/1h</span>}
+                    </>
+                  ) : (
+                    <span className="font-bold text-purple-600">€{service.price_per_day?.toFixed(2)}{service.service_type === 'boarding' ? '/noite' : service.service_type === 'daycare' ? '/dia' : '/sessão'}</span>
+                  )}
                   <span className="text-slate-600">
                     Capacidade: <strong>{service.capacity_available || 0}/{service.capacity_total}</strong>
                   </span>
