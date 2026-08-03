@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Users, Shield, Clock, Ban, AlertCircle,
-  Award, Gift, Zap, AlertTriangle
+  Award, Gift, Zap, AlertTriangle, Building2
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,6 +27,7 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
+import PendingHotelsPanel from "../components/admin/PendingHotelsPanel";
 import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
 
@@ -918,6 +919,18 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
+
+                {hotelApplications.length > 0 && (
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-[#1D8A82]" />
+                      <h3 className="text-sm font-extrabold text-slate-900">Hotéis Pendentes — Tempo de Espera</h3>
+                    </div>
+                    <div className="p-4">
+                      <PendingHotelsPanel hotels={hotelApplications} />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>
