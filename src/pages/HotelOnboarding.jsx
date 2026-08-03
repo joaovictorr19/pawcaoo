@@ -159,7 +159,7 @@ export default function HotelOnboarding() {
     set("hotel_services", services);
   };
 
-  const isEditing = formInitialized;
+  const isEditing = !!(formInitialized && existingProfile);
 
   const canProceed = () => {
     if (step === 0) return form.hotel_name.trim() && form.location.trim();

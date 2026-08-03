@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
           title: 'Novo Profissional Pendente',
           message: `${professional_name} (${professional_type}) se registrou e aguarda verificacao.`,
           type: 'system',
-          link: '/AdminProfessionalApprovals',
+          link: '/AdminDashboard?tab=approvals',
           related_id: data.id,
         });
       } catch (err) {

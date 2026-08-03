@@ -215,20 +215,22 @@ export default function AdminDashboard() {
   const { data: allWalkers = [] } = useQuery({
     queryKey: ['allWalkersAdmin'],
     placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.WalkerProfile.list('-created_date', 1000),
+    queryFn: () => base44.entities.WalkerProfile.list('-created_date', 5000),
     enabled: isAdmin && (activeTab === 'users' || activeTab === 'approvals' || activeTab === 'professionals'),
     initialData: [],
-    staleTime: 2 * 60 * 1000,
+    staleTime: 30 * 1000,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
 
   const { data: allTrainers = [] } = useQuery({
     queryKey: ['allTrainersAdmin'],
     placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.TrainerProfile.list('-created_date', 1000),
+    queryFn: () => base44.entities.TrainerProfile.list('-created_date', 5000),
     enabled: isAdmin && (activeTab === 'users' || activeTab === 'approvals'),
     initialData: [],
-    staleTime: 2 * 60 * 1000,
+    staleTime: 30 * 1000,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
 

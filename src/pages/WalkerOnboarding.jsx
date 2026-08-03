@@ -175,7 +175,7 @@ export default function WalkerOnboarding() {
     setUploading(false);
   };
 
-  const isEditing = formInitialized;
+  const isEditing = !!(formInitialized && existingProfile && existingProfile.professional_type !== "hotel");
 
   const canProceed = () => {
     if (step === 0) return form.walker_name.trim() && form.location.trim();
