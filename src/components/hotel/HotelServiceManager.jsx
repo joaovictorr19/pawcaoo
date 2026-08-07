@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2, Edit2, X, Check } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, Check, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import ServiceIconPicker, { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
@@ -42,7 +42,10 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
     price_60min: '',
     capacity_total: '',
     accepted_dog_sizes: [],
-    icon: ''
+    icon: '',
+    transport_enabled: false,
+    transport_price: '',
+    transport_coverage_areas: '',
   });
 
   const services = hotelProfile?.hotel_details?.services || [];
@@ -57,7 +60,10 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       price_60min: '',
       capacity_total: '',
       accepted_dog_sizes: [],
-      icon: ''
+      icon: '',
+      transport_enabled: false,
+      transport_price: '',
+      transport_coverage_areas: '',
     });
     setEditingServiceId(null);
     setIsAddingService(true);
@@ -69,7 +75,10 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       price_30min: service.price_30min || '',
       price_60min: service.price_60min || '',
       accepted_dog_sizes: service.accepted_dog_sizes || [],
-      icon: service.icon || ''
+      icon: service.icon || '',
+      transport_enabled: service.transport_enabled || false,
+      transport_price: service.transport_price != null ? String(service.transport_price) : '',
+      transport_coverage_areas: service.transport_coverage_areas || '',
     });
     setEditingServiceId(service.service_id);
     setIsAddingService(true);
@@ -126,7 +135,10 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                 capacity_total: parseInt(formData.capacity_total),
                 capacity_available: Math.min(parseInt(formData.capacity_total), s.capacity_available || parseInt(formData.capacity_total)),
                 accepted_dog_sizes: formData.accepted_dog_sizes,
-                icon: formData.icon || ''
+                icon: formData.icon || '',
+                transport_enabled: formData.service_type === 'grooming' ? formData.transport_enabled : false,
+                transport_price: formData.service_type === 'grooming' && formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
+                transport_coverage_areas: formData.service_type === 'grooming' && formData.transport_enabled ? formData.transport_coverage_areas : undefined,
               }
             : s
         );
@@ -144,7 +156,10 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
           capacity_available: parseInt(formData.capacity_total),
           is_active: true,
           accepted_dog_sizes: formData.accepted_dog_sizes,
-          icon: formData.icon || ''
+          icon: formData.icon || '',
+          transport_enabled: formData.service_type === 'grooming' ? formData.transport_enabled : false,
+          transport_price: formData.service_type === 'grooming' && formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
+          transport_coverage_areas: formData.service_type === 'grooming' && formData.transport_enabled ? formData.transport_coverage_areas : undefined,
         });
       }
 
@@ -354,6 +369,61 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                 onChange={(icon) => setFormData({ ...formData, icon })}
               />
 
+              {/* Transporte para banho e tosquia */}
+              {formData.service_type === 'grooming' && (
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 space-y-3">
+                  <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                    <div className="relative flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.transport_enabled}
+                        onChange={e => setFormData({ ...formData, transport_enabled: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-200 rounded-full peer-checked:bg-blue-500 transition-colors" />
+                      <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm" />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Truck className="w-4 h-4 text-blue-500" />
+                      <span className="text-sm font-bold text-slate-700">
+                        Oferecer transporte (recolha e entrega)
+                      </span>
+                    </div>
+                  </label>
+                  {formData.transport_enabled && (
+                    <div className="space-y-3 pt-1">
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 uppercase mb-1.5 block">
+                          Preço do Transporte (€)
+                        </label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.transport_price}
+                          onChange={(e) => setFormData({ ...formData, transport_price: e.target.value })}
+                          placeholder="5.00"
+                          className="rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 uppercase mb-1.5 block">
+                          Áreas de Cobertura
+                        </label>
+                        <Textarea
+                          value={formData.transport_coverage_areas}
+                          onChange={(e) => setFormData({ ...formData, transport_coverage_areas: e.target.value })}
+                          placeholder="Ex: Lisboa centro, até 10km do hotel. Caso o cliente esteja fora desta área, o transporte será recusado."
+                          className="rounded-xl text-sm h-20"
+                        />
+                        <p className="text-[11px] text-slate-500 mt-1">
+                          Descreva as zonas onde oferece recolha e entrega. O cliente verá esta informação ao reservar.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center gap-2 justify-end pt-4 border-t border-purple-100">
                 <Button
                   onClick={handleCancel}
@@ -431,6 +501,18 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                     Capacidade: <strong>{service.capacity_available || 0}/{service.capacity_total}</strong>
                   </span>
                 </div>
+
+                {service.transport_enabled && (
+                  <div className="flex items-center gap-1.5 bg-blue-50 rounded-lg px-2.5 py-1.5">
+                    <Truck className="w-3.5 h-3.5 text-blue-500" />
+                    <span className="text-xs font-semibold text-blue-700">
+                      Transporte: €{(service.transport_price || 0).toFixed(2)}
+                    </span>
+                    {service.transport_coverage_areas && (
+                      <span className="text-[10px] text-blue-500 truncate">· {service.transport_coverage_areas}</span>
+                    )}
+                  </div>
+                )}
 
                 {service.accepted_dog_sizes && service.accepted_dog_sizes.length > 0 && (
                   <div className="flex flex-wrap gap-1">

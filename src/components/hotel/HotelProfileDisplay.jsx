@@ -12,6 +12,7 @@ import {
   Home,
   CalendarPlus,
   Car,
+  Truck,
 } from 'lucide-react';
 import { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
 import HotelPortfolioGallery from '@/components/hotel/HotelPortfolioGallery';
@@ -186,6 +187,21 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
                   {service.price_per_day != null && PRICE_SUFFIX[service.service_type] && (
                     <span className="text-xs font-medium text-slate-400">{PRICE_SUFFIX[service.service_type]}</span>
                   )}
+                </div>
+              )}
+
+              {/* Transport */}
+              {service.transport_enabled && (
+                <div className="flex items-start gap-1.5 bg-blue-50 rounded-lg px-2.5 py-1.5">
+                  <Truck className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-blue-700">
+                      Transporte disponível: +{service.transport_price}€
+                    </p>
+                    {service.transport_coverage_areas && (
+                      <p className="text-[10px] text-blue-500 leading-tight">{service.transport_coverage_areas}</p>
+                    )}
+                  </div>
                 </div>
               )}
 

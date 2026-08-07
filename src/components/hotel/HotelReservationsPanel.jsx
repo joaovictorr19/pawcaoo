@@ -8,7 +8,7 @@ import {
   ClipboardList, Search, CalendarDays, Clock, Dog, Phone, Mail,
   CheckCircle2, X, ChevronDown, PawPrint, StickyNote, FileText,
   UserCheck, DoorOpen, XCircle, Euro, ListChecks, Filter, TrendingUp,
-  CreditCard, AlertCircle, RefreshCw, UserX, MapPin, Syringe, Bone, Pill, Heart
+  CreditCard, AlertCircle, RefreshCw, UserX, MapPin, Syringe, Bone, Pill, Heart, Truck
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -119,9 +119,18 @@ function BookingCard({ booking, onUpdate }) {
                   em {daysUntil}d
                 </span>
               )}
-              {booking.pickup_enabled && (
+              {booking.pickup_enabled && !booking.transport_requested && (
                 <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-200 shrink-0">
                   <MapPin className="w-2.5 h-2.5" /> Recolha
+                </span>
+              )}
+              {booking.transport_requested && (
+                <span className={`flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ${
+                  booking.transport_status === 'accepted' ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                  : booking.transport_status === 'denied' ? 'bg-red-50 text-red-600 border-red-200'
+                  : 'bg-blue-50 text-blue-600 border-blue-200'
+                }`}>
+                  <Truck className="w-2.5 h-2.5" /> Transporte
                 </span>
               )}
             </div>
@@ -197,8 +206,67 @@ function BookingCard({ booking, onUpdate }) {
                 )}
               </div>
 
+              {/* Transport requested — grooming transport with accept/deny */}
+              {booking.transport_requested && (
+                <div className={`border rounded-lg px-3 py-2.5 ${
+                  booking.transport_status === 'accepted' ? 'bg-emerald-50 border-emerald-200'
+                  : booking.transport_status === 'denied' ? 'bg-red-50 border-red-200'
+                  : 'bg-blue-50 border-blue-200'
+                }`}>
+                  <p className="text-[10px] font-bold uppercase tracking-wide mb-1.5 flex items-center gap-1">
+                    <Truck className="w-3 h-3" /> Transporte (Banho & Tosquia)
+                    <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                      booking.transport_status === 'accepted' ? 'bg-emerald-100 text-emerald-700'
+                      : booking.transport_status === 'denied' ? 'bg-red-100 text-red-700'
+                      : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {booking.transport_status === 'accepted' ? 'Aceite' : booking.transport_status === 'denied' ? 'Recusado' : 'Pendente'}
+                    </span>
+                  </p>
+                  <div className="space-y-1 text-xs">
+                    <p><span className="font-semibold text-slate-600">Preço:</span> €{(booking.transport_price || 0).toFixed(2)}</p>
+                    {booking.pickup_address && <p><span className="font-semibold text-slate-600">Morada:</span> {booking.pickup_address}</p>}
+                    {booking.transport_coverage_areas && <p><span className="font-semibold text-slate-600">Áreas de cobertura:</span> {booking.transport_coverage_areas}</p>}
+                  </div>
+                  {booking.transport_status === 'pending' && (
+                    <div className="flex gap-2 mt-2 pt-2 border-t border-blue-200">
+                      <Button size="sm" className="flex-1 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const res = await base44.functions.invoke("handleHotelTransportDecision", { booking_id: booking.id, decision: "accepted" });
+                            if (res?.data?.error) { toast.error(res.data.error); return; }
+                            toast.success("Transporte aceite — cliente notificado");
+                            onUpdate(booking.id, { transport_status: "accepted" });
+                          } catch (err) { toast.error("Erro: " + err.message); }
+                        }}>
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Aceitar
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1 h-8 border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm("Recusar transporte? O cliente será notificado de que terá de levar o animal ao estabelecimento.")) return;
+                          try {
+                            const res = await base44.functions.invoke("handleHotelTransportDecision", { booking_id: booking.id, decision: "denied" });
+                            if (res?.data?.error) { toast.error(res.data.error); return; }
+                            toast.success("Transporte recusado — cliente notificado");
+                            onUpdate(booking.id, { transport_status: "denied" });
+                          } catch (err) { toast.error("Erro: " + err.message); }
+                        }}>
+                        <X className="w-3 h-3 mr-1" /> Recusar
+                      </Button>
+                    </div>
+                  )}
+                  {booking.transport_status === 'denied' && (
+                    <p className="text-[11px] text-red-600 font-medium mt-1.5 pt-1.5 border-t border-red-200">
+                      Cliente notificado — terá de levar o animal ao estabelecimento
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Pickup at home — full address + client info */}
-              {booking.pickup_enabled && (
+              {booking.pickup_enabled && !booking.transport_requested && (
                 <div className="bg-teal-50 border border-teal-200 rounded-lg px-3 py-2.5">
                   <p className="text-[10px] font-bold text-teal-700 uppercase tracking-wide mb-1.5 flex items-center gap-1">
                     <MapPin className="w-3 h-3" /> Recolha ao Domicílio

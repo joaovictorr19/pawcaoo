@@ -134,6 +134,23 @@ Deno.serve(async (req) => {
           <h2 style="color: #0f766e; font-size: 16px; margin: 20px 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">➕ Serviços Adicionais</h2>
           <div style="font-size: 14px; color: #1e293b; white-space: pre-line;">${addOnsSection}</div>
 
+          ${booking.transport_requested ? `
+          <h2 style="color: #0f766e; font-size: 16px; margin: 20px 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">🚐 Transporte Solicitado</h2>
+          <table style="width: 100%; font-size: 14px; color: #1e293b;">
+            <tr><td style="padding: 4px 0; font-weight: 600; width: 45%;">Preço do transporte:</td><td>€${esc((booking.transport_price || 0).toFixed(2))}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Morada de recolha:</td><td>${esc(booking.pickup_address || '—')}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Áreas de cobertura:</td><td>${esc(booking.transport_coverage_areas || '—')}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Estado:</td><td><strong>${booking.transport_status === 'accepted' ? '✅ Aceite' : booking.transport_status === 'denied' ? '❌ Recusado' : '⏳ Pendente — valide a morada'}</strong></td></tr>
+          </table>
+          ${booking.transport_status === 'pending' ? `
+          <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; margin-top: 12px;">
+            <p style="font-size: 13px; color: #92400e; margin: 0;">
+              ⚠️ <strong>Ação necessária:</strong> Verifique se a morada do cliente está dentro da área de cobertura. Caso esteja fora, recuse o transporte no painel de reservas para que o cliente seja notificado.
+            </p>
+          </div>
+          ` : ''}
+          ` : ''}
+
           ${booking.special_requests ? `
           <h2 style="color: #0f766e; font-size: 16px; margin: 20px 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">📝 Pedidos Especiais</h2>
           <p style="font-size: 14px; color: #1e293b; background: #fef3c7; padding: 12px; border-radius: 8px;">${esc(booking.special_requests)}</p>

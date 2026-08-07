@@ -43,6 +43,9 @@ Deno.serve(async (req) => {
       training_goal,
       service_address,
       service_duration_minutes,
+      transport_requested,
+      transport_price,
+      transport_coverage_areas,
     } = body;
 
     if (!hotel_profile_id) {
@@ -110,6 +113,12 @@ Deno.serve(async (req) => {
     const serverPickupFee = (pickup_fee && pickup_fee > 0) ? Number(pickup_fee) : 0;
     if (serverPickupFee > 0) {
       serverBaseAmount += serverPickupFee;
+    }
+
+    // Add transport fee if applicable (grooming transport — recolha e entrega)
+    const serverTransportFee = (transport_requested && transport_price && transport_price > 0) ? Number(transport_price) : 0;
+    if (serverTransportFee > 0) {
+      serverBaseAmount += serverTransportFee;
     }
 
     // ── SECURITY: Recompute add_ons total from server-side hotel profile pricing ──
@@ -240,6 +249,10 @@ Deno.serve(async (req) => {
       training_goal: training_goal || undefined,
       service_address: service_address || undefined,
       service_duration_minutes: service_duration_minutes || undefined,
+      transport_requested: transport_requested || false,
+      transport_price: serverTransportFee > 0 ? serverTransportFee : undefined,
+      transport_coverage_areas: transport_coverage_areas || undefined,
+      transport_status: transport_requested ? 'pending' : undefined,
       checkin_date,
       checkout_date: checkout_date || checkin_date,
       checkin_time: checkin_time || '',
@@ -299,7 +312,7 @@ Deno.serve(async (req) => {
             currency: 'eur',
             product_data: {
               name: `${serviceLabel} — ${hotel_name}`,
-              description: `${dogNames} · ${dateRange}${total_nights > 1 ? ` (${total_nights} noites)` : ''}`,
+              description: `${dogNames} · ${dateRange}${total_nights > 1 ? ` (${total_nights} noites)` : ''}${serverTransportFee > 0 ? ' · Transporte incluído' : ''}`,
             },
             unit_amount: Math.round(safeTotalAmount * 100),
           },

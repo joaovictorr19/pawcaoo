@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Utensils, Pill, Repeat, Calendar, Sparkles, Home, Truck } from 'lucide-react';
+import { X, ChevronLeft, PlusCircle, Clock, CreditCard, ShieldCheck, PawPrint, MapPin, Mail, CheckCircle2, Utensils, Pill, Repeat, Calendar, Sparkles, Home, Truck, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
@@ -31,6 +31,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [trainingGoal, setTrainingGoal] = useState('');
   const [serviceAddress, setServiceAddress] = useState('');
   const [serviceDuration, setServiceDuration] = useState(60);
+  const [transportRequested, setTransportRequested] = useState(false);
+  const [transportAddress, setTransportAddress] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -49,6 +51,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setTrainingGoal('');
       setServiceAddress('');
       setServiceDuration(60);
+      setTransportRequested(false);
+      setTransportAddress('');
       setStep(0);
       setFinalized(false);
     }
@@ -83,6 +87,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const isAppointment = bookingMode === 'appointment';
   const isWalk = selectedService.service_type === 'walk_with_partner';
   const isGrooming = selectedService.service_type === 'grooming';
+  const serviceHasTransport = isGrooming && selectedService.transport_enabled === true;
+  const transportPrice = serviceHasTransport ? (selectedService.transport_price || 0) : 0;
+  const transportFee = (transportRequested && serviceHasTransport) ? transportPrice : 0;
   const isTraining = selectedService.service_type === 'training';
   const isDropin = selectedService.service_type === 'dropin';
   const needsCareInfo = ['boarding', 'daycare'].includes(selectedService.service_type);
@@ -99,12 +106,12 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   let totalAmount, hotelReceives;
   if (commissionBorneBy === 'client') {
     // Commission added on top — client pays base + fee, hotel receives full base
-    totalAmount = Math.round((baseAmount + platformFee + pickupFee) * 100) / 100;
-    hotelReceives = baseAmount + pickupFee;
+    totalAmount = Math.round((baseAmount + platformFee + pickupFee + transportFee) * 100) / 100;
+    hotelReceives = baseAmount + pickupFee + transportFee;
   } else {
     // Commission included — client pays base, hotel receives base - fee
-    totalAmount = Math.round((baseAmount + pickupFee) * 100) / 100;
-    hotelReceives = Math.round((baseAmount - platformFee + pickupFee) * 100) / 100;
+    totalAmount = Math.round((baseAmount + pickupFee + transportFee) * 100) / 100;
+    hotelReceives = Math.round((baseAmount - platformFee + pickupFee + transportFee) * 100) / 100;
   }
 
   const handleCreateBooking = async () => {
@@ -122,6 +129,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     }
     if (isDropin && !serviceAddress.trim()) { toast.error('Indique a morada para a assistência em casa'); return; }
     if (deliveryMethod === 'pickup' && !pickupAddress.trim()) { toast.error('Indique o endereço de recolha'); return; }
+    if (transportRequested && serviceHasTransport && !transportAddress.trim()) { toast.error('Indique a morada de recolha para o transporte'); return; }
     if (deliveryMethod === 'dropoff' && !hotelAddress.trim()) { toast.error('O hotel não tem endereço definido. Contacte o hotel.'); return; }
 
     setIsCreating(true);
@@ -171,14 +179,18 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         platform_fee: platformFee,
         service_amount: hotelReceives,
         special_requests: specialRequests,
-        pickup_address: deliveryMethod === 'pickup' ? pickupAddress : '',
+        pickup_address: transportRequested && serviceHasTransport ? transportAddress : (deliveryMethod === 'pickup' ? pickupAddress : ''),
         delivery_method: deliveryMethod,
         pickup_fee: pickupFee > 0 ? pickupFee : undefined,
+        pickup_enabled: transportRequested && serviceHasTransport ? true : (deliveryMethod === 'pickup'),
         walk_duration: isWalk ? walkDuration : undefined,
         grooming_type: isGrooming ? groomingType : undefined,
         training_goal: isTraining ? trainingGoal : undefined,
         service_address: isDropin ? serviceAddress : undefined,
         service_duration_minutes: isDropin ? serviceDuration : undefined,
+        transport_requested: transportRequested && serviceHasTransport,
+        transport_price: transportRequested && serviceHasTransport ? transportPrice : undefined,
+        transport_coverage_areas: transportRequested && serviceHasTransport ? selectedService.transport_coverage_areas : undefined,
       });
 
       // Verificar se o link de pagamento foi gerado com sucesso
@@ -806,7 +818,68 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       <label className="text-[10px] font-bold text-slate-500 uppercase mb-2 block flex items-center gap-1 tracking-wider">
                         <MapPin className="w-2.5 h-2.5" /> Entrega do Animal
                       </label>
-                      {hotelOffersPickup ? (
+                      {serviceHasTransport ? (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { setDeliveryMethod('dropoff'); setTransportRequested(false); }}
+                              className={`p-2.5 rounded-lg border-2 text-left transition-all ${
+                                !transportRequested
+                                  ? 'border-slate-900 bg-slate-50'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <Home className="w-3.5 h-3.5 text-slate-600 mb-1" />
+                              <p className="text-xs font-bold text-slate-900">Levar ao hotel</p>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setTransportRequested(true); setDeliveryMethod('dropoff'); }}
+                              className={`p-2.5 rounded-lg border-2 text-left transition-all ${
+                                transportRequested
+                                  ? 'border-slate-900 bg-slate-50'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <Truck className="w-3.5 h-3.5 text-blue-500 mb-1" />
+                              <p className="text-xs font-bold text-slate-900">Transporte</p>
+                              <p className="text-[10px] text-blue-500 font-semibold">+{transportPrice}€</p>
+                            </button>
+                          </div>
+                          {transportRequested ? (
+                            <div className="space-y-2">
+                              {selectedService.transport_coverage_areas && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+                                  <p className="text-[10px] font-bold text-blue-600 uppercase mb-0.5">Áreas de Cobertura</p>
+                                  <p className="text-[11px] text-blue-700">{selectedService.transport_coverage_areas}</p>
+                                </div>
+                              )}
+                              <input
+                                type="text"
+                                value={transportAddress}
+                                onChange={(e) => setTransportAddress(e.target.value)}
+                                placeholder="Morada completa de recolha e entrega *"
+                                className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
+                              />
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-start gap-1.5">
+                                <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                                <p className="text-[10px] text-amber-700 leading-relaxed">
+                                  O hotel validará se a sua morada está na área de cobertura. Caso esteja fora, o transporte será recusado e terá de levar o animal ao estabelecimento.
+                                </p>
+                              </div>
+                            </div>
+                          ) : hotelAddress && (
+                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex items-start gap-2">
+                              <MapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Endereço do Hotel</p>
+                                <p className="text-xs text-slate-700 mt-0.5">{hotelAddress}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : hotelOffersPickup ? (
                         <div className="grid grid-cols-2 gap-2 mb-2">
                           <button
                             type="button"
@@ -852,7 +925,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                           className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50/50 text-slate-900 text-sm focus:border-slate-400 focus:bg-white focus:outline-none transition-colors"
                         />
                       ) : (
-                        hotelAddress && (
+                        !serviceHasTransport && hotelAddress && (
                           <div className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex items-start gap-2">
                             <MapPin className="w-3.5 h-3.5 text-slate-500 flex-shrink-0 mt-0.5" />
                             <div>
@@ -891,6 +964,14 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             <Truck className="w-3 h-3" /> Recolha ao domicílio
                           </span>
                           <span className="font-bold text-slate-700">+{pickupFee}€</span>
+                        </div>
+                      )}
+                      {transportFee > 0 && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-500 flex items-center gap-1">
+                            <Truck className="w-3 h-3" /> Transporte (recolha e entrega)
+                          </span>
+                          <span className="font-bold text-slate-700">+{transportFee}€</span>
                         </div>
                       )}
                       {commissionBorneBy === 'client' && (
