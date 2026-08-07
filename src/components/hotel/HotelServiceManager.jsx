@@ -136,9 +136,9 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                 capacity_available: Math.min(parseInt(formData.capacity_total), s.capacity_available || parseInt(formData.capacity_total)),
                 accepted_dog_sizes: formData.accepted_dog_sizes,
                 icon: formData.icon || '',
-                transport_enabled: formData.service_type === 'grooming' ? formData.transport_enabled : false,
-                transport_price: formData.service_type === 'grooming' && formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
-                transport_coverage_areas: formData.service_type === 'grooming' && formData.transport_enabled ? formData.transport_coverage_areas : undefined,
+                transport_enabled: formData.transport_enabled || false,
+                transport_price: formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
+                transport_coverage_areas: formData.transport_enabled ? formData.transport_coverage_areas : undefined,
               }
             : s
         );
@@ -157,9 +157,9 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
           is_active: true,
           accepted_dog_sizes: formData.accepted_dog_sizes,
           icon: formData.icon || '',
-          transport_enabled: formData.service_type === 'grooming' ? formData.transport_enabled : false,
-          transport_price: formData.service_type === 'grooming' && formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
-          transport_coverage_areas: formData.service_type === 'grooming' && formData.transport_enabled ? formData.transport_coverage_areas : undefined,
+          transport_enabled: formData.transport_enabled || false,
+          transport_price: formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
+          transport_coverage_areas: formData.transport_enabled ? formData.transport_coverage_areas : undefined,
         });
       }
 
@@ -369,8 +369,13 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                 onChange={(icon) => setFormData({ ...formData, icon })}
               />
 
-              {/* Transporte para banho e tosquia */}
-              {formData.service_type === 'grooming' && (
+              {/* Transporte (recolha e entrega) */}
+              {(formData.service_type === 'grooming' ||
+                formData.service_type === 'boarding' ||
+                formData.service_type === 'daycare' ||
+                formData.service_type === 'walk_with_partner' ||
+                formData.service_type === 'training' ||
+                formData.service_type === 'dropin') && (
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 space-y-3">
                   <label className="flex items-center gap-2.5 cursor-pointer select-none">
                     <div className="relative flex items-center">

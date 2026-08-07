@@ -87,7 +87,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const isAppointment = bookingMode === 'appointment';
   const isWalk = selectedService.service_type === 'walk_with_partner';
   const isGrooming = selectedService.service_type === 'grooming';
-  const serviceHasTransport = isGrooming && selectedService.transport_enabled === true;
+  const serviceHasTransport = selectedService.transport_enabled === true;
   const transportPrice = serviceHasTransport ? (selectedService.transport_price || 0) : 0;
   const transportFee = (transportRequested && serviceHasTransport) ? transportPrice : 0;
   const isTraining = selectedService.service_type === 'training';
