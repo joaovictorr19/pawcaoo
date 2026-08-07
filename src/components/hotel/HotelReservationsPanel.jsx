@@ -214,7 +214,7 @@ function BookingCard({ booking, onUpdate }) {
                   : 'bg-blue-50 border-blue-200'
                 }`}>
                   <p className="text-[10px] font-bold uppercase tracking-wide mb-1.5 flex items-center gap-1">
-                    <Truck className="w-3 h-3" /> Transporte (Banho & Tosquia)
+                    <Truck className="w-3 h-3" /> Transporte
                     <span className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                       booking.transport_status === 'accepted' ? 'bg-emerald-100 text-emerald-700'
                       : booking.transport_status === 'denied' ? 'bg-red-100 text-red-700'
@@ -224,7 +224,8 @@ function BookingCard({ booking, onUpdate }) {
                     </span>
                   </p>
                   <div className="space-y-1 text-xs">
-                    <p><span className="font-semibold text-slate-600">Preço:</span> €{(booking.transport_price || 0).toFixed(2)}</p>
+                    <p><span className="font-semibold text-slate-600">Tipo:</span> <span className="font-bold text-slate-900">{booking.transport_type === 'round_trip' ? 'Ida e Volta' : booking.transport_type === 'pickup_only' ? 'Só Ida (Recolha)' : booking.transport_type === 'dropoff_only' ? 'Só Volta (Entrega)' : 'Ida e Volta'}</span></p>
+                    <p><span className="font-semibold text-slate-600">Preço pago:</span> <span className="font-bold text-emerald-600">€{(booking.transport_price || 0).toFixed(2)}</span></p>
                     {booking.pickup_address && <p><span className="font-semibold text-slate-600">Morada:</span> {booking.pickup_address}</p>}
                     {booking.transport_coverage_areas && <p><span className="font-semibold text-slate-600">Áreas de cobertura:</span> {booking.transport_coverage_areas}</p>}
                   </div>

@@ -135,11 +135,13 @@ Deno.serve(async (req) => {
           <div style="font-size: 14px; color: #1e293b; white-space: pre-line;">${addOnsSection}</div>
 
           ${booking.transport_requested ? `
-          <h2 style="color: #0f766e; font-size: 16px; margin: 20px 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">🚐 Transporte Solicitado</h2>
+          <h2 style="color: #0f766e; font-size: 16px; margin: 20px 0 12px; border-bottom: 2px solid #ccfbf1; padding-bottom: 8px;">🚐 Transporte Solicitado e Pago</h2>
           <table style="width: 100%; font-size: 14px; color: #1e293b;">
-            <tr><td style="padding: 4px 0; font-weight: 600; width: 45%;">Preço do transporte:</td><td>€${esc((booking.transport_price || 0).toFixed(2))}</td></tr>
-            <tr><td style="padding: 4px 0; font-weight: 600;">Morada de recolha:</td><td>${esc(booking.pickup_address || '—')}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600; width: 45%;">Tipo de transporte:</td><td><strong>${booking.transport_type === 'round_trip' ? '🔄 Ida e Volta' : booking.transport_type === 'pickup_only' ? '➡️ Só Ida (Recolha)' : booking.transport_type === 'dropoff_only' ? '⬅️ Só Volta (Entrega)' : 'Ida e Volta'}</strong></td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Preço pago pelo transporte:</td><td><strong>€${esc((booking.transport_price || 0).toFixed(2))}</strong></td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Morada de recolha/entrega:</td><td>${esc(booking.pickup_address || '—')}</td></tr>
             <tr><td style="padding: 4px 0; font-weight: 600;">Áreas de cobertura:</td><td>${esc(booking.transport_coverage_areas || '—')}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: 600;">Pagamento:</td><td><strong style="color: #059669;">✅ Transporte pago pelo cliente</strong></td></tr>
             <tr><td style="padding: 4px 0; font-weight: 600;">Estado:</td><td><strong>${booking.transport_status === 'accepted' ? '✅ Aceite' : booking.transport_status === 'denied' ? '❌ Recusado' : '⏳ Pendente — valide a morada'}</strong></td></tr>
           </table>
           ${booking.transport_status === 'pending' ? `

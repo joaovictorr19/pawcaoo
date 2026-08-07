@@ -32,6 +32,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [serviceAddress, setServiceAddress] = useState('');
   const [serviceDuration, setServiceDuration] = useState(60);
   const [transportRequested, setTransportRequested] = useState(false);
+  const [transportType, setTransportType] = useState('round_trip');
   const [transportAddress, setTransportAddress] = useState('');
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setServiceAddress('');
       setServiceDuration(60);
       setTransportRequested(false);
+      setTransportType('round_trip');
       setTransportAddress('');
       setStep(0);
       setFinalized(false);
@@ -89,7 +91,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const isGrooming = selectedService.service_type === 'grooming';
   const serviceHasTransport = selectedService.transport_enabled === true;
   const transportPrice = serviceHasTransport ? (selectedService.transport_price || 0) : 0;
-  const transportFee = (transportRequested && serviceHasTransport) ? transportPrice : 0;
+  const transportMultiplier = transportType === 'round_trip' ? 2 : 1;
+  const transportFee = (transportRequested && serviceHasTransport) ? transportPrice * transportMultiplier : 0;
   const isTraining = selectedService.service_type === 'training';
   const isDropin = selectedService.service_type === 'dropin';
   const needsCareInfo = ['boarding', 'daycare'].includes(selectedService.service_type);
@@ -189,7 +192,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         service_address: isDropin ? serviceAddress : undefined,
         service_duration_minutes: isDropin ? serviceDuration : undefined,
         transport_requested: transportRequested && serviceHasTransport,
-        transport_price: transportRequested && serviceHasTransport ? transportPrice : undefined,
+        transport_type: transportRequested && serviceHasTransport ? transportType : undefined,
+        transport_price: transportRequested && serviceHasTransport ? transportFee : undefined,
         transport_coverage_areas: transportRequested && serviceHasTransport ? selectedService.transport_coverage_areas : undefined,
       });
 
@@ -855,6 +859,52 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                   <p className="text-[11px] text-blue-700">{selectedService.transport_coverage_areas}</p>
                                 </div>
                               )}
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block tracking-wider flex items-center gap-1">
+                                  <Truck className="w-3 h-3" /> Tipo de Transporte
+                                </label>
+                                <div className="grid grid-cols-3 gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setTransportType('pickup_only')}
+                                    className={`p-2.5 rounded-lg border-2 text-center transition-all ${
+                                      transportType === 'pickup_only'
+                                        ? 'border-slate-900 bg-slate-50'
+                                        : 'border-slate-200 bg-white hover:border-slate-300'
+                                    }`}
+                                  >
+                                    <p className="text-[10px] font-bold text-slate-900">Só Ida</p>
+                                    <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice}€</p>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setTransportType('dropoff_only')}
+                                    className={`p-2.5 rounded-lg border-2 text-center transition-all ${
+                                      transportType === 'dropoff_only'
+                                        ? 'border-slate-900 bg-slate-50'
+                                        : 'border-slate-200 bg-white hover:border-slate-300'
+                                    }`}
+                                  >
+                                    <p className="text-[10px] font-bold text-slate-900">Só Volta</p>
+                                    <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice}€</p>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setTransportType('round_trip')}
+                                    className={`p-2.5 rounded-lg border-2 text-center transition-all ${
+                                      transportType === 'round_trip'
+                                        ? 'border-slate-900 bg-slate-50'
+                                        : 'border-slate-200 bg-white hover:border-slate-300'
+                                    }`}
+                                  >
+                                    <p className="text-[10px] font-bold text-slate-900">Ida e Volta</p>
+                                    <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice * 2}€</p>
+                                  </button>
+                                </div>
+                                <p className="text-[9px] text-slate-400 mt-1">
+                                  {transportType === 'pickup_only' ? 'O hotel vai buscar o animal a sua casa' : transportType === 'dropoff_only' ? 'O hotel leva o animal de volta a sua casa' : 'O hotel recolhe e entrega o animal em casa'}
+                                </p>
+                              </div>
                               <input
                                 type="text"
                                 value={transportAddress}
@@ -969,7 +1019,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       {transportFee > 0 && (
                         <div className="flex justify-between text-xs">
                           <span className="text-slate-500 flex items-center gap-1">
-                            <Truck className="w-3 h-3" /> Transporte (recolha e entrega)
+                            <Truck className="w-3 h-3" /> Transporte ({transportType === 'round_trip' ? 'ida e volta' : transportType === 'pickup_only' ? 'só recolha' : 'só entrega'})
                           </span>
                           <span className="font-bold text-slate-700">+{transportFee}€</span>
                         </div>

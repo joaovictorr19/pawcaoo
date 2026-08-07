@@ -155,6 +155,38 @@
       "type": "number",
       "description": "Duracao da visita em minutos (dropin)"
     },
+    "transport_requested": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o cliente solicitou transporte (recolha e/ou entrega)"
+    },
+    "transport_type": {
+      "type": "string",
+      "enum": [
+        "round_trip",
+        "pickup_only",
+        "dropoff_only"
+      ],
+      "description": "Tipo de transporte: round_trip=ida e volta, pickup_only=s\u00f3 ida (recolha), dropoff_only=s\u00f3 volta (entrega)"
+    },
+    "transport_price": {
+      "type": "number",
+      "description": "Preco total do transporte pago (inclui ida e/ou volta conforme transport_type)"
+    },
+    "transport_coverage_areas": {
+      "type": "string",
+      "description": "Areas de cobertura para o transporte definidas pelo hotel"
+    },
+    "transport_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "denied"
+      ],
+      "default": "pending",
+      "description": "Estado da solicitacao de transporte: pending=pendente, accepted=aceite pelo hotel, denied=recusado"
+    },
     "checkin_date": {
       "type": "string",
       "format": "date"

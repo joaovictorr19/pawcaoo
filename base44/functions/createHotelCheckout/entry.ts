@@ -44,6 +44,7 @@ Deno.serve(async (req) => {
       service_address,
       service_duration_minutes,
       transport_requested,
+      transport_type,
       transport_price,
       transport_coverage_areas,
     } = body;
@@ -115,8 +116,11 @@ Deno.serve(async (req) => {
       serverBaseAmount += serverPickupFee;
     }
 
-    // Add transport fee if applicable (grooming transport — recolha e entrega)
-    const serverTransportFee = (transport_requested && transport_price && transport_price > 0) ? Number(transport_price) : 0;
+    // Add transport fee if applicable — multiply by type (round_trip = 2x, one-way = 1x)
+    const VALID_TRANSPORT_TYPES = ['round_trip', 'pickup_only', 'dropoff_only'];
+    const safeTransportType = VALID_TRANSPORT_TYPES.includes(transport_type) ? transport_type : 'round_trip';
+    const transportMultiplier = (transport_requested && transport_type === 'round_trip') ? 2 : 1;
+    const serverTransportFee = (transport_requested && transport_price && transport_price > 0) ? Number(transport_price) * transportMultiplier : 0;
     if (serverTransportFee > 0) {
       serverBaseAmount += serverTransportFee;
     }
@@ -250,6 +254,7 @@ Deno.serve(async (req) => {
       service_address: service_address || undefined,
       service_duration_minutes: service_duration_minutes || undefined,
       transport_requested: transport_requested || false,
+      transport_type: transport_requested ? safeTransportType : undefined,
       transport_price: serverTransportFee > 0 ? serverTransportFee : undefined,
       transport_coverage_areas: transport_coverage_areas || undefined,
       transport_status: transport_requested ? 'pending' : undefined,
@@ -312,7 +317,7 @@ Deno.serve(async (req) => {
             currency: 'eur',
             product_data: {
               name: `${serviceLabel} — ${hotel_name}`,
-              description: `${dogNames} · ${dateRange}${total_nights > 1 ? ` (${total_nights} noites)` : ''}${serverTransportFee > 0 ? ' · Transporte incluído' : ''}`,
+              description: `${dogNames} · ${dateRange}${total_nights > 1 ? ` (${total_nights} noites)` : ''}${serverTransportFee > 0 ? ` · Transporte incluído (${safeTransportType === 'round_trip' ? 'ida e volta' : safeTransportType === 'pickup_only' ? 'só recolha' : 'só entrega'})` : ''}`,
             },
             unit_amount: Math.round(safeTotalAmount * 100),
           },
