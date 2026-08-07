@@ -56,6 +56,9 @@ function fmtDate(dateStr) {
 function BookingCard({ booking, onUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const [noShowLoading, setNoShowLoading] = useState(false);
+  const [showDenyForm, setShowDenyForm] = useState(false);
+  const [alternativeAddress, setAlternativeAddress] = useState('');
+  const [denyLoading, setDenyLoading] = useState(false);
 
   const handleNoShow = async () => {
     if (!confirm(`Marcar como no-show?\n\nO cliente será reembolsado de 40% do valor.`)) return;
@@ -229,7 +232,7 @@ function BookingCard({ booking, onUpdate }) {
                     {booking.pickup_address && <p><span className="font-semibold text-slate-600">Morada:</span> {booking.pickup_address}</p>}
                     {booking.transport_coverage_areas && <p><span className="font-semibold text-slate-600">Áreas de cobertura:</span> {booking.transport_coverage_areas}</p>}
                   </div>
-                  {booking.transport_status === 'pending' && (
+                  {booking.transport_status === 'pending' && !showDenyForm && (
                     <div className="flex gap-2 mt-2 pt-2 border-t border-blue-200">
                       <Button size="sm" className="flex-1 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs"
                         onClick={async (e) => {
@@ -244,18 +247,52 @@ function BookingCard({ booking, onUpdate }) {
                         <CheckCircle2 className="w-3 h-3 mr-1" /> Aceitar
                       </Button>
                       <Button size="sm" variant="outline" className="flex-1 h-8 border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs"
-                        onClick={async (e) => {
+                        onClick={(e) => {
                           e.stopPropagation();
-                          if (!confirm("Recusar transporte? O cliente será notificado de que terá de levar o animal ao estabelecimento.")) return;
-                          try {
-                            const res = await base44.functions.invoke("handleHotelTransportDecision", { booking_id: booking.id, decision: "denied" });
-                            if (res?.data?.error) { toast.error(res.data.error); return; }
-                            toast.success("Transporte recusado — cliente notificado");
-                            onUpdate(booking.id, { transport_status: "denied" });
-                          } catch (err) { toast.error("Erro: " + err.message); }
+                          setShowDenyForm(true);
                         }}>
                         <X className="w-3 h-3 mr-1" /> Recusar
                       </Button>
+                    </div>
+                  )}
+                  {booking.transport_status === 'pending' && showDenyForm && (
+                    <div className="mt-2 pt-2 border-t border-blue-200 space-y-2">
+                      <p className="text-[10px] font-bold text-red-600 uppercase tracking-wide">Recusar Transporte</p>
+                      <p className="text-[10px] text-slate-500">Pode sugerir uma morada ou ponto de encontro alternativo para o cliente (opcional):</p>
+                      <input
+                        type="text"
+                        value={alternativeAddress}
+                        onChange={(e) => setAlternativeAddress(e.target.value)}
+                        placeholder="Ex: Estação de comboio de Cascais, ou morada alternativa..."
+                        className="w-full p-2 rounded-lg border border-slate-200 bg-white text-slate-900 text-xs focus:border-slate-400 focus:outline-none"
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" className="flex-1 h-8 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs"
+                          disabled={denyLoading}
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            setDenyLoading(true);
+                            try {
+                              const res = await base44.functions.invoke("handleHotelTransportDecision", {
+                                booking_id: booking.id,
+                                decision: "denied",
+                                alternative_address: alternativeAddress.trim() || undefined,
+                              });
+                              if (res?.data?.error) { toast.error(res.data.error); return; }
+                              toast.success("Transporte recusado — cliente notificado");
+                              onUpdate(booking.id, { transport_status: "denied" });
+                              setShowDenyForm(false);
+                              setAlternativeAddress('');
+                            } catch (err) { toast.error("Erro: " + err.message); }
+                            finally { setDenyLoading(false); }
+                          }}>
+                          {denyLoading ? "A enviar..." : "Confirmar Recusa"}
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs"
+                          onClick={(e) => { e.stopPropagation(); setShowDenyForm(false); setAlternativeAddress(''); }}>
+                          Cancelar
+                        </Button>
+                      </div>
                     </div>
                   )}
                   {booking.transport_status === 'denied' && (

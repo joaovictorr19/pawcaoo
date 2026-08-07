@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { booking_id, decision } = body;
+    const { booking_id, decision, alternative_address } = body;
 
     if (!booking_id || !['accepted', 'denied'].includes(decision)) {
       return Response.json({ error: 'booking_id e decision (accepted/denied) são obrigatórios' }, { status: 400 });
@@ -103,6 +103,19 @@ Deno.serve(async (req) => {
                 A sua reserva mantém-se ativa — apenas terá de levar o animal ao estabelecimento na data e hora confirmadas.
               </p>
             </div>
+            ${alternative_address ? `
+            <div style="background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 12px; margin: 16px 0;">
+              <p style="font-size: 14px; color: #065f46; margin: 0 0 6px;">
+                📍 <strong>Morada / ponto de encontro alternativo sugerido pelo hotel:</strong>
+              </p>
+              <p style="font-size: 14px; color: #065f46; margin: 0; font-weight: 600;">
+                ${esc(alternative_address)}
+              </p>
+              <p style="font-size: 12px; color: #047857; margin: 8px 0 0;">
+                O hotel sugere que leve o animal a este endereço em vez da morada principal do estabelecimento.
+              </p>
+            </div>
+            ` : ''}
             <p style="font-size: 14px; color: #1e293b; margin: 0;">Se tem dúvidas, contacte o hotel diretamente.</p>
           </div>
           <div style="background: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b;">PawCão • Notificação de transporte</div>
