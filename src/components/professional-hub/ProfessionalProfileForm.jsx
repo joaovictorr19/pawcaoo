@@ -314,7 +314,6 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
         tax_id_spain: data.tax_id_spain, tax_id_france: data.tax_id_france,
         france_professional_type: data.france_professional_type, mbway_number: data.mbway_number,
         latitude: lat, longitude: lng, service_areas: serviceAreas, user_id: user.id,
-        verification_status: "pending", is_active: false,
       };
 
       const services = [];
@@ -346,8 +345,6 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
         await updateMe({ account_type: 'hotel', profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, full_name: data.name });
         const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
         if (userProfiles.length > 0) await base44.entities.UserProfile.update(userProfiles[0].id, { full_name: data.name, profile_photo_url: data.photo_url, city: data.location });
-        await base44.entities.ProfileEditRequest.create({ profile_id: savedProfileId, profile_type: 'hotel', professional_name: data.name, professional_email: user.email, requested_changes: { hotel_details: data.hotel_details }, original_data: professionalProfile || {}, status: 'pending' });
-        if (!isEditing) { try { await base44.functions.invoke('notifyAdminProfessional', { professional_name: data.name, professional_type: 'hotel', professional_email: user.email }); } catch {} }
         return;
       }
 
@@ -390,18 +387,20 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
       const profileUpdate = { full_name: data.name, profile_photo_url: data.photo_url || user?.profile_photo_url, city: data.location, bio: data.bio };
       if (userProfiles.length > 0) await base44.entities.UserProfile.update(userProfiles[0].id, profileUpdate);
 
-      await base44.entities.ProfileEditRequest.create({
-        profile_id: savedProfileId,
-        profile_type: professionalType,
-        professional_name: data.name,
-        professional_email: user.email,
-        requested_changes: { name: data.name, location: data.location, hourly_rate: data.hourly_rate, bio: data.bio },
-        original_data: professionalProfile || {},
-        status: 'pending',
-      });
-
-      if (!isEditing) {
-        try { await base44.functions.invoke('notifyAdminProfessional', { professional_name: data.name, professional_type: professionalType, professional_email: user.email }); } catch {}
+      // Só cria pedido de aprovação se for um perfil novo (isEditing=false)
+      // Em modo edição, os campos de exibição já foram atualizados diretamente acima
+      if (!isEditing && savedProfileId) {
+        try {
+          await base44.entities.ProfileEditRequest.create({
+            profile_id: savedProfileId,
+            profile_type: professionalType,
+            professional_name: data.name,
+            professional_email: user.email,
+            requested_changes: { name: data.name, location: data.location, hourly_rate: data.hourly_rate, bio: data.bio },
+            original_data: professionalProfile || {},
+            status: 'pending',
+          });
+        } catch (e) { console.warn('ProfileEditRequest creation skipped:', e?.message); }
       }
     },
     onSuccess: () => {

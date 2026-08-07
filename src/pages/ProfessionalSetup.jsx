@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Camera, MapPin, Euro, Dog, Clock, ChevronRight, ChevronLeft, CheckCircle, Upload, Phone, Zap } from "lucide-react";
+import { submitProfessionalProfile } from "@/lib/professionalOnboarding";
 
 const STEPS = ["Perfil", "Tipo", "Serviços", "Preferências", "Conclusão"];
 
@@ -281,169 +282,25 @@ export default function ProfessionalSetup() {
    if (!user) return;
    setLoading(true);
    try {
-     // Geolocalizar baseado no nome da localização
-     let lat = form.latitude;
-     let lng = form.longitude;
-
-     if (!lat || !lng) {
-       try {
-         const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(form.location)}`);
-         const data = await response.json();
-         if (data.length > 0) {
-           lat = parseFloat(data[0].lat);
-           lng = parseFloat(data[0].lon);
-         } else {
-           // Fallback: Lisboa
-           lat = 38.7223;
-           lng = -9.1393;
-         }
-       } catch (e) {
-         lat = 38.7223;
-         lng = -9.1393;
-       }
+     const formForSubmit = {
+       ...form,
+       // Map hotel price fields to the shared function's expected names
+       hotel_price_per_night: form.hotel_price_per_night,
+       hotel_price_daycare: form.hotel_price_daycare,
+     };
+     const profile = await submitProfessionalProfile(user, formForSubmit, isEditing, queryClient, navigate);
+     if (isEditing) {
+       toast.success("Alterações guardadas! ✅");
+     } else {
+       toast.success("Perfil submetido para aprovação! Aguarda verificação da equipa PawCão. 🎉");
      }
-
-     // Criar WalkerProfile
-      const profileData = {
-       walker_name: form.walker_name || user.full_name,
-       location: form.location,
-       latitude: lat,
-       longitude: lng,
-       bio: form.bio,
-       photo_url: form.photo_url || user.profile_photo_url || "",
-       cover_photo_url: form.cover_photo_url || "",
-       hourly_rate: parseFloat(form.hourly_rate) || 15,
-       whatsapp_number: form.whatsapp_number || "",
-       phone: form.whatsapp_number || "",
-       services_offered: form.services_offered,
-       accepted_animals: form.accepted_animals,
-       dog_sizes: form.dog_sizes,
-       availability: form.availability,
-       portfolio: form.portfolio || [],
-       id_document_url: form.id_document_url || "",
-       proof_of_address_url: form.proof_of_address_url || "",
-       country_of_operation: form.country_of_operation,
-       tax_id_portugal: form.tax_id_portugal || "",
-       tax_id_spain: form.tax_id_spain || "",
-       tax_id_france: form.tax_id_france || "",
-       france_professional_type: form.france_professional_type || "professional",
-       is_active: false,
-        is_online: false,
-        is_verified: false,
-        verification_status: "pending",
-        instant_booking: form.professional_type === 'hotel' ? false : form.instant_booking,
-        service_areas: [{
-          area_name: form.location,
-          radius_km: form.work_radius_km,
-          latitude: lat,
-          longitude: lng,
-        }],
-        user_id: user.id,
-        professional_type: form.professional_type,
-        is_verified_trainer: form.professional_type === 'trainer' || form.professional_type === 'both',
-        ...(form.professional_type === 'hotel' ? {
-          hotel_details: {
-            hotel_name: form.hotel_name || form.walker_name,
-            hotel_description: form.bio,
-            full_address: form.hotel_full_address,
-            price_per_night: parseFloat(form.hotel_price_per_night) || 30,
-            price_daycare: parseFloat(form.hotel_price_daycare) || 15,
-            checkin_time: form.hotel_checkin_time,
-            checkout_time: form.hotel_checkout_time,
-            capacity_total: parseInt(form.hotel_capacity_total) || 5,
-            capacity_available: parseInt(form.hotel_capacity_total) || 5,
-            amenities: form.hotel_amenities || [],
-            accepted_dog_sizes: form.hotel_accepted_sizes || ["small", "medium", "large"],
-            partner_walkers: [],
-          }
-        } : {}),
-       };
-
-      // Verificar se já existe
-      const existing = await base44.entities.WalkerProfile.filter({ user_id: user.id });
-      let profile;
-      if (existing.length > 0) {
-        profile = await base44.entities.WalkerProfile.update(existing[0].id, profileData);
-      } else {
-        profile = await base44.entities.WalkerProfile.create(profileData);
-      }
-
-      // Se for trainer ou both, criar/atualizar TrainerProfile também
-      if (form.professional_type === 'trainer' || form.professional_type === 'both') {
-        const existingTrainers = await base44.entities.TrainerProfile.filter({ user_id: user.id });
-        const trainerData = {
-          trainer_name: form.walker_name || user.full_name,
-          location: form.location,
-          hourly_rate: parseFloat(form.hourly_rate) || 15,
-          bio: form.bio,
-          photo_url: form.photo_url || user.profile_photo_url || "",
-          phone: form.whatsapp_number || "",
-          availability: form.availability,
-          accepted_animals: form.accepted_animals,
-          country_of_operation: form.country_of_operation,
-          tax_id_portugal: form.tax_id_portugal || "",
-          tax_id_spain: form.tax_id_spain || "",
-          tax_id_france: form.tax_id_france || "",
-          france_professional_type: form.france_professional_type || "professional",
-          is_active: false,
-          is_verified: false,
-          verification_status: "pending",
-          user_id: user.id,
-        };
-        if (existingTrainers.length > 0) {
-          await base44.entities.TrainerProfile.update(existingTrainers[0].id, trainerData);
-        } else {
-          await base44.entities.TrainerProfile.create(trainerData);
-        }
-      }
-
-      // Atualizar User Auth
-       await base44.auth.updateMe({
-         account_type: form.professional_type,
-         profile_photo_url: form.photo_url || user.profile_photo_url,
-         city: form.location,
-         role: form.professional_type === 'hotel' ? 'hotel' : form.professional_type === 'both' ? 'both' : form.professional_type,
-       });
-
-      // Sincronizar UserProfile
-      const userProfiles = await base44.entities.UserProfile.filter({ user_email: user.email });
-      if (userProfiles.length > 0) {
-        await base44.entities.UserProfile.update(userProfiles[0].id, {
-          full_name: form.walker_name || user.full_name,
-          profile_photo_url: form.photo_url || user.profile_photo_url,
-          city: form.location,
-          bio: form.bio,
-        });
-      }
-
-      // Notificação ao admin (apenas se novo perfil, não em edições)
-      if (!isEditing) {
-        try {
-          // Cria notificação para admins via função backend
-          await base44.functions.invoke('notifyAdminNewProfile', {
-            professional_name: form.walker_name || user.full_name,
-            professional_type: form.professional_type,
-            professional_email: user.email,
-          });
-        } catch (err) {
-          console.warn('Erro ao notificar admin:', err);
-        }
-      }
-
-      queryClient.invalidateQueries(['currentUser']);
-      queryClient.invalidateQueries(['myProfessionalProfile']);
-      queryClient.invalidateQueries(['allWalkers']);
-      queryClient.invalidateQueries(['featuredWalkers']);
-      queryClient.invalidateQueries(['existingProfessionalProfile']);
-      queryClient.invalidateQueries(['myWalkerProfile']);
-      toast.success("Perfil submetido para aprovação! Aguarda verificação da equipa PawCão. 🎉");
-      navigate(createPageUrl("ProfessionalHubV2"), { replace: true });
-    } catch (e) {
-      console.error(e);
-      toast.error("Erro ao criar perfil: " + e.message);
-    } finally {
-      setLoading(false);
-    }
+     navigate(createPageUrl("ProfessionalHubV2"), { replace: true });
+   } catch (e) {
+     console.error(e);
+     toast.error("Erro ao guardar perfil: " + e.message);
+   } finally {
+     setLoading(false);
+   }
   };
 
   if (isLoadingData) {

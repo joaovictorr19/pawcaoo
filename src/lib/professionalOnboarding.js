@@ -113,18 +113,26 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
   };
 
   if (form.professional_type === "hotel") {
+    const capacityTotal = parseInt(form.hotel_capacity_total) || 5;
+    const pricePerNight = parseFloat(form.hotel_price_per_night) || 25;
+    const priceDaycare = parseFloat(form.hotel_price_daycare) || 15;
     profileData.hotel_details = {
       hotel_name: form.hotel_name || form.walker_name,
       hotel_description: form.bio,
       full_address: form.hotel_full_address || "",
+      price_per_night: pricePerNight,
+      price_daycare: priceDaycare,
       checkin_time: form.hotel_checkin_time || "09:00",
       checkout_time: form.hotel_checkout_time || "18:00",
-      capacity_total: parseInt(form.hotel_capacity_total) || 5,
-      capacity_available: parseInt(form.hotel_capacity_total) || 5,
+      capacity_total: capacityTotal,
+      capacity_available: capacityTotal,
       amenities: form.hotel_amenities || [],
       accepted_dog_sizes: form.hotel_accepted_sizes || ["small", "medium", "large"],
       partner_walkers: [],
-      services: form.hotel_services || [],
+      services: form.hotel_services?.length ? form.hotel_services : [
+        { service_id: "boarding", service_name: "Alojamento", service_type: "boarding", capacity_total: capacityTotal, price_per_day: pricePerNight, is_active: true },
+        { service_id: "daycare", service_name: "Creche Diária", service_type: "daycare", capacity_total: capacityTotal, price_per_day: priceDaycare, is_active: true },
+      ],
     };
   }
 
@@ -165,18 +173,26 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
 
     // Hotel-specific display fields — update directly
     if (form.professional_type === "hotel") {
+      const capacityTotal = parseInt(form.hotel_capacity_total) || existingProfile.hotel_details?.capacity_total || 5;
+      const pricePerNight = parseFloat(form.hotel_price_per_night) || existingProfile.hotel_details?.price_per_night || 25;
+      const priceDaycare = parseFloat(form.hotel_price_daycare) || existingProfile.hotel_details?.price_daycare || 15;
       directUpdateData.hotel_details = {
         ...(existingProfile.hotel_details || {}),
         hotel_name: form.hotel_name || form.walker_name,
         hotel_description: form.bio,
         full_address: form.hotel_full_address || existingProfile.hotel_details?.full_address || "",
+        price_per_night: pricePerNight,
+        price_daycare: priceDaycare,
         checkin_time: form.hotel_checkin_time || existingProfile.hotel_details?.checkin_time || "09:00",
         checkout_time: form.hotel_checkout_time || existingProfile.hotel_details?.checkout_time || "18:00",
-        capacity_total: parseInt(form.hotel_capacity_total) || existingProfile.hotel_details?.capacity_total || 5,
-        capacity_available: parseInt(form.hotel_capacity_total) || existingProfile.hotel_details?.capacity_available || 5,
+        capacity_total: capacityTotal,
+        capacity_available: capacityTotal,
         amenities: form.hotel_amenities || existingProfile.hotel_details?.amenities || [],
         accepted_dog_sizes: form.hotel_accepted_sizes || existingProfile.hotel_details?.accepted_dog_sizes || ["small", "medium", "large"],
-        services: form.hotel_services || existingProfile.hotel_details?.services || [],
+        services: form.hotel_services?.length ? form.hotel_services : (existingProfile.hotel_details?.services || [
+          { service_id: "boarding", service_name: "Alojamento", service_type: "boarding", capacity_total: capacityTotal, price_per_day: pricePerNight, is_active: true },
+          { service_id: "daycare", service_name: "Creche Diária", service_type: "daycare", capacity_total: capacityTotal, price_per_day: priceDaycare, is_active: true },
+        ]),
       };
     }
 

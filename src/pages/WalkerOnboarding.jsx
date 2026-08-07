@@ -194,7 +194,7 @@ export default function WalkerOnboarding() {
       await submitProfessionalProfile(user, form, isEditing, queryClient, navigate);
       sessionStorage.removeItem("walker_onboarding_form");
       if (isEditing) {
-        toast.success("Alterações enviadas para aprovação do admin! ⏳");
+        toast.success("Perfil atualizado com sucesso! ✅");
       } else {
         toast.success("Perfil submetido para aprovação! 🎉");
       }
