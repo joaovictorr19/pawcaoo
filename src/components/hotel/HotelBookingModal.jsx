@@ -92,7 +92,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const serviceHasTransport = selectedService.transport_enabled === true;
   const transportPrice = serviceHasTransport ? (selectedService.transport_price || 0) : 0;
   const transportMultiplier = transportType === 'round_trip' ? 2 : 1;
-  const transportFee = (transportRequested && serviceHasTransport) ? transportPrice * transportMultiplier : 0;
+  const transportFee = (transportRequested && serviceHasTransport) ? Math.round(transportPrice * transportMultiplier * selectedDogs.length * 100) / 100 : 0;
   const isTraining = selectedService.service_type === 'training';
   const isDropin = selectedService.service_type === 'dropin';
   const needsCareInfo = ['boarding', 'daycare'].includes(selectedService.service_type);
@@ -848,7 +848,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                             >
                               <Truck className="w-3.5 h-3.5 text-blue-500 mb-1" />
                               <p className="text-xs font-bold text-slate-900">Transporte</p>
-                              <p className="text-[10px] text-blue-500 font-semibold">+{transportPrice}€</p>
+                              <p className="text-[10px] text-blue-500 font-semibold">+{transportPrice}€/animal</p>
                             </button>
                           </div>
                           {transportRequested ? (
@@ -874,7 +874,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                     }`}
                                   >
                                     <p className="text-[10px] font-bold text-slate-900">Só Ida</p>
-                                    <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice}€</p>
+                                    <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice}€/animal</p>
                                   </button>
                                   <button
                                     type="button"
@@ -886,7 +886,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                     }`}
                                   >
                                     <p className="text-[10px] font-bold text-slate-900">Só Volta</p>
-                                    <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice}€</p>
+                                    <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice}€/animal</p>
                                   </button>
                                   <button
                                     type="button"
@@ -898,7 +898,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                                     }`}
                                   >
                                     <p className="text-[10px] font-bold text-slate-900">Ida e Volta</p>
-                                    <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice * 2}€</p>
+                                    <p className="text-[9px] text-blue-500 font-semibold mt-0.5">+{transportPrice * 2}€/animal</p>
                                   </button>
                                 </div>
                                 <p className="text-[9px] text-slate-400 mt-1">
@@ -1019,7 +1019,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                       {transportFee > 0 && (
                         <div className="flex justify-between text-xs">
                           <span className="text-slate-500 flex items-center gap-1">
-                            <Truck className="w-3 h-3" /> Transporte ({transportType === 'round_trip' ? 'ida e volta' : transportType === 'pickup_only' ? 'só recolha' : 'só entrega'})
+                            <Truck className="w-3 h-3" /> Transporte ({transportType === 'round_trip' ? 'ida e volta' : transportType === 'pickup_only' ? 'só recolha' : 'só entrega'}){selectedDogs.length > 1 ? ` × ${selectedDogs.length} animais` : ''}
                           </span>
                           <span className="font-bold text-slate-700">+{transportFee}€</span>
                         </div>

@@ -116,11 +116,17 @@ Deno.serve(async (req) => {
       serverBaseAmount += serverPickupFee;
     }
 
-    // Add transport fee if applicable — multiply by type (round_trip = 2x, one-way = 1x)
+    // Add transport fee if applicable — price is PER ANIMAL, multiplied by type (round_trip = 2x, one-way = 1x)
+    // Source of truth: hotel service's transport_price (server-side), NOT client-supplied value
     const VALID_TRANSPORT_TYPES = ['round_trip', 'pickup_only', 'dropoff_only'];
     const safeTransportType = VALID_TRANSPORT_TYPES.includes(transport_type) ? transport_type : 'round_trip';
+    const matchedServiceForTransport = (hotelDetails.services || []).find(s => s.service_type === service_type);
+    const serverTransportUnitPrice = (transport_requested && matchedServiceForTransport?.transport_enabled && Number(matchedServiceForTransport?.transport_price) > 0)
+      ? Number(matchedServiceForTransport.transport_price) : 0;
     const transportMultiplier = (transport_requested && transport_type === 'round_trip') ? 2 : 1;
-    const serverTransportFee = (transport_requested && transport_price && transport_price > 0) ? Number(transport_price) * transportMultiplier : 0;
+    const serverTransportFee = serverTransportUnitPrice > 0
+      ? Math.round(serverTransportUnitPrice * transportMultiplier * serverDogs * 100) / 100
+      : 0;
     if (serverTransportFee > 0) {
       serverBaseAmount += serverTransportFee;
     }
