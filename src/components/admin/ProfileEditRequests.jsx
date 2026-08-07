@@ -47,21 +47,29 @@ export default function ProfileEditRequests() {
         throw new Error('ID do perfil não encontrado');
       }
 
+      // Campos válidos por tipo de entidade — evita erro de validação ao aplicar
+      // campos que só existem no WalkerProfile (ex: professional_type, tax_id_*)
+      // num entidade TrainerProfile.
+      const WALKER_ONLY_FIELDS = new Set([
+        'professional_type', 'country_of_operation',
+        'tax_id_portugal', 'tax_id_spain', 'tax_id_france',
+        'france_professional_type', 'hotel_details',
+      ]);
+
       const changes = { ...request.requested_changes };
 
-      if (request.profile_type === 'hotel' || request.profile_type === 'walker' || request.walker_id) {
-        await base44.entities.WalkerProfile.update(profileId, {
-          ...changes,
-          verification_status: 'verified',
-          is_active: true,
-        });
-      } else if (request.profile_type === 'trainer' || request.trainer_id) {
+      if (request.profile_type === 'trainer' || request.trainer_id) {
+        // TrainerProfile não tem campos fiscais/de país — filtrar
+        const trainerChanges = Object.fromEntries(
+          Object.entries(changes).filter(([key]) => !WALKER_ONLY_FIELDS.has(key))
+        );
         await base44.entities.TrainerProfile.update(profileId, {
-          ...changes,
+          ...trainerChanges,
           verification_status: 'verified',
           is_active: true,
         });
       } else {
+        // walker e hotel usam WalkerProfile — todos os campos são válidos
         await base44.entities.WalkerProfile.update(profileId, {
           ...changes,
           verification_status: 'verified',

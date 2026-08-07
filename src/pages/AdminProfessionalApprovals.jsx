@@ -163,14 +163,26 @@ export default function AdminProfessionalApprovals() {
 
   const approveEditMutation = useMutation({
     mutationFn: async (request) => {
-      const entity = request.profile_type === 'trainer'
+      const isTrainer = request.profile_type === 'trainer';
+      const entity = isTrainer
         ? base44.entities.TrainerProfile
         : base44.entities.WalkerProfile; // "walker" and "hotel" both use WalkerProfile
       const changes = request.requested_changes || {};
+      // TrainerProfile não tem campos fiscais/de país (professional_type, tax_id_*,
+      // country_of_operation, france_professional_type, hotel_details) — filtrar
+      // para evitar erro de validação do schema ao aprovar.
+      const WALKER_ONLY_FIELDS = new Set([
+        'professional_type', 'country_of_operation',
+        'tax_id_portugal', 'tax_id_spain', 'tax_id_france',
+        'france_professional_type', 'hotel_details',
+      ]);
+      const safeChanges = isTrainer
+        ? Object.fromEntries(Object.entries(changes).filter(([k]) => !WALKER_ONLY_FIELDS.has(k)))
+        : changes;
       await entity.update(request.profile_id, {
-        ...changes,
-        verification_status: changes.verification_status || 'verified',
-        is_active: changes.is_active !== undefined ? changes.is_active : true,
+        ...safeChanges,
+        verification_status: safeChanges.verification_status || 'verified',
+        is_active: safeChanges.is_active !== undefined ? safeChanges.is_active : true,
         is_verified: true,
       });
       await base44.entities.ProfileEditRequest.update(request.id, { status: 'approved' });
