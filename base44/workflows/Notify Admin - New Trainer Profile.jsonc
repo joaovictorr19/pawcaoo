@@ -1,6 +1,6 @@
 {
   "name": "Notify Admin - New Trainer Profile",
-  "description": "",
+  "description": "Notifica admins quando um novo TrainerProfile \u00e9 criado",
   "trigger": {
     "condition": null,
     "config": {
@@ -24,7 +24,12 @@
           "call": "invoke_backend_function",
           "with": {
             "function_name": "notifyAdminProfessional",
-            "args": {}
+            "args": {
+              "event": {
+                "entity_name": "${ .trigger.entity_name }"
+              },
+              "data": "${ .trigger.data }"
+            }
           },
           "then": "end"
         }
