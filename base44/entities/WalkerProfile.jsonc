@@ -782,6 +782,19 @@
                   ]
                 },
                 "default": []
+              },
+              "transport_enabled": {
+                "type": "boolean",
+                "default": false,
+                "description": "Se o hotel oferece transporte (recolha e entrega) para este servico"
+              },
+              "transport_price": {
+                "type": "number",
+                "description": "Preco do transporte (recolha e entrega) para este servico"
+              },
+              "transport_coverage_areas": {
+                "type": "string",
+                "description": "Areas de cobertura para o transporte (ex: Lisboa centro, ate 10km)"
               }
             },
             "required": [
