@@ -405,15 +405,16 @@ function EditRequestCard({ request, onApprove, onReject, processing }) {
   const isHotel = changes.professional_type === 'hotel';
   const displayName = request.professional_name || changes.walker_name || 'Profissional';
 
+  // All sensitive fields that can appear in a ProfileEditRequest (from professionalOnboarding.js)
   const fields = [
-    { label: 'Nome', key: 'walker_name' },
-    { label: 'Localização', key: 'location' },
-    { label: 'Bio', key: 'bio' },
-    { label: 'WhatsApp', key: 'whatsapp_number' },
-    { label: 'Preço/hora', key: 'hourly_rate', suffix: '€' },
     { label: 'Documento ID', key: 'id_document_url', isDoc: true },
     { label: 'Comprovativo Morada', key: 'proof_of_address_url', isDoc: true },
-    { label: 'NIF', key: 'tax_id_portugal' },
+    { label: 'País de Operação', key: 'country_of_operation' },
+    { label: 'NIF (PT)', key: 'tax_id_portugal' },
+    { label: 'NIF/NIE (ES)', key: 'tax_id_spain' },
+    { label: 'Nº Fiscal (FR)', key: 'tax_id_france' },
+    { label: 'Tipo Prestador (FR)', key: 'france_professional_type' },
+    { label: 'Tipo Profissional', key: 'professional_type' },
   ];
 
   return (

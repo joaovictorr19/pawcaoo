@@ -150,10 +150,11 @@ export default function ProfileEditRequests() {
 
     const rows = [];
 
-    // Helpers para extrair valores legíveis
+    // Helpers para extrair valores legíveis — inclui campos sensíveis (edições) e de exibição
     const extractItems = (obj) => {
       if (!obj) return [];
       const items = [];
+      // Display fields
       if (obj.hourly_rate !== undefined) items.push({ label: 'Tarifa base', value: formatCurrency(obj.hourly_rate) });
       if (obj.bio !== undefined) items.push({ label: 'Descrição', value: obj.bio });
       if (obj.location !== undefined) items.push({ label: 'Localização', value: obj.location });
@@ -164,6 +165,15 @@ export default function ProfileEditRequests() {
         const names = (obj.services_offered || []).map(s => `${s.service_name || 'Serviço'}: ${formatCurrency(s.price)}`).join(', ');
         items.push({ label: 'Serviços', value: names || '—' });
       }
+      // Sensitive fields (documentos/fiscais) — these are what edit requests actually contain
+      if (obj.id_document_url !== undefined) items.push({ label: 'Documento ID', value: obj.id_document_url ? 'Enviado' : '—' });
+      if (obj.proof_of_address_url !== undefined) items.push({ label: 'Comprovativo Morada', value: obj.proof_of_address_url ? 'Enviado' : '—' });
+      if (obj.country_of_operation !== undefined) items.push({ label: 'País de Operação', value: obj.country_of_operation || '—' });
+      if (obj.tax_id_portugal !== undefined) items.push({ label: 'NIF (PT)', value: obj.tax_id_portugal || '—' });
+      if (obj.tax_id_spain !== undefined) items.push({ label: 'NIF/NIE (ES)', value: obj.tax_id_spain || '—' });
+      if (obj.tax_id_france !== undefined) items.push({ label: 'Nº Fiscal (FR)', value: obj.tax_id_france || '—' });
+      if (obj.france_professional_type !== undefined) items.push({ label: 'Tipo Prestador (FR)', value: obj.france_professional_type || '—' });
+      if (obj.professional_type !== undefined) items.push({ label: 'Tipo Profissional', value: obj.professional_type || '—' });
       return items;
     };
 
@@ -207,6 +217,14 @@ export default function ProfileEditRequests() {
     if (changes.walker_name !== undefined) chips.push('Nome');
     if (changes.phone !== undefined) chips.push('Telefone');
     if (changes.hotel_details?.full_address !== undefined) chips.push('Morada');
+    if (changes.id_document_url !== undefined) chips.push('Documento ID');
+    if (changes.proof_of_address_url !== undefined) chips.push('Comprovativo Morada');
+    if (changes.country_of_operation !== undefined) chips.push('País');
+    if (changes.tax_id_portugal !== undefined) chips.push('NIF (PT)');
+    if (changes.tax_id_spain !== undefined) chips.push('NIF (ES)');
+    if (changes.tax_id_france !== undefined) chips.push('Nº Fiscal (FR)');
+    if (changes.france_professional_type !== undefined) chips.push('Tipo Prestador');
+    if (changes.professional_type !== undefined) chips.push('Tipo Profissional');
     return chips;
   };
 

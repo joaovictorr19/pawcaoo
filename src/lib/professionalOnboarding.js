@@ -243,17 +243,41 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
         status: "pending",
       });
 
-      // Notify admins only about sensitive data changes
+      // Notify admins only about sensitive data changes — list specific changed fields
       try {
         const admins = await base44.entities.User.filter({ role: "admin" });
         const proName = form.walker_name || user.full_name || "Profissional";
+
+        // Map field keys to readable labels and detect which actually changed
+        const FIELD_LABELS = {
+          id_document_url: "Documento ID",
+          proof_of_address_url: "Comprovativo Morada",
+          country_of_operation: "País de operação",
+          tax_id_portugal: "NIF (PT)",
+          tax_id_spain: "NIF/NIE (ES)",
+          tax_id_france: "Nº Fiscal (FR)",
+          france_professional_type: "Tipo de prestador (FR)",
+          professional_type: "Tipo de profissional",
+        };
+        const changedFields = Object.keys(sensitiveFields)
+          .filter(key => {
+            const oldVal = existingProfile[key];
+            const newVal = sensitiveFields[key];
+            return JSON.stringify(oldVal || "") !== JSON.stringify(newVal || "");
+          })
+          .map(key => FIELD_LABELS[key] || key);
+
+        const changesSummary = changedFields.length > 0 ? changedFields.join(", ") : "dados sensíveis";
+        const message = `${proName} atualizou: ${changesSummary}. Aguarda aprovação.`;
+
         for (const admin of admins) {
           try {
             await base44.entities.Notification.create({
               recipient_email: admin.email,
-              title: "Dados Sensíveis Pendentes de Aprovação",
-              message: `${proName} atualizou dados sensíveis (documentos/fiscais) e aguarda aprovação.`,
+              title: "Alteração Pendente de Aprovação",
+              message,
               type: "system",
+              icon: "✏️",
               link: "/AdminProfessionalApprovals",
               related_id: existingProfile.id,
             });
