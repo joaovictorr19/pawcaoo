@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import HotelPriceProposalSection from "@/components/hotel/HotelPriceProposalSection";
 
 const STATUS_CONFIG = {
   pending:     { label: "Pendente",    dot: "bg-amber-500",  cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -333,6 +334,11 @@ function BookingCard({ booking, onUpdate }) {
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* Price proposal section — grooming only */}
+              {booking.service_type === 'grooming' && (
+                <HotelPriceProposalSection booking={booking} onUpdate={onUpdate} />
               )}
 
               {/* Complete dog info */}

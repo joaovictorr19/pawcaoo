@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { getEffectiveCommissionRate, resolveOrigin } from '../../shared/hotelPricing.ts';
 
 export default async function(req) {
   try {
@@ -40,20 +41,7 @@ export default async function(req) {
     if (!hotelProfiles || hotelProfiles.length === 0) return Response.json({ error: 'Hotel não encontrado' }, { status: 404 });
     const hotel = hotelProfiles[0];
 
-    const DEFAULT_RATE = 10;
-    let commissionRate = DEFAULT_RATE;
-    const commissionMode = hotel.commission_rate_mode || 'default';
-    if (hotel.exempt_from_platform_fees === true || commissionMode === 'zero') {
-      commissionRate = 0;
-    } else if (commissionMode === 'zero_temporary') {
-      if (hotel.commission_rate_expiry && new Date() > new Date(hotel.commission_rate_expiry)) {
-        commissionRate = DEFAULT_RATE;
-      } else {
-        commissionRate = 0;
-      }
-    } else if (commissionMode === 'custom_percent') {
-      commissionRate = hotel.custom_commission_rate != null ? Number(hotel.custom_commission_rate) : DEFAULT_RATE;
-    }
+    const commissionRate = getEffectiveCommissionRate(hotel);
 
     const commissionBorneBy = hotel.commission_borne_by || 'hotel';
     // Calculate transport fee — keep existing transport fee
@@ -93,17 +81,7 @@ export default async function(req) {
 
     // Notify the client about the price proposal
     if (action !== 'no_adjustment') {
-      const ALLOWED_ORIGINS = [
-        'https://pawcao.base44.app',
-        'https://app.pawcao.pt',
-        'https://pawcao.pt',
-        'https://www.pawcao.pt'
-      ];
-      const requestOrigin = req.headers.get('origin') || '';
-      const origin = (ALLOWED_ORIGINS.includes(requestOrigin) ||
-        /^https:\/\/[a-z0-9-]*pawcao[a-z0-9-]*\.base44\.app$/.test(requestOrigin))
-        ? requestOrigin
-        : 'https://pawcao.base44.app';
+      const origin = resolveOrigin(req);
 
       await base44.asServiceRole.entities.Notification.create({
         recipient_email: booking.owner_email,

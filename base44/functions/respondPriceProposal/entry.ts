@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.14.0';
+import { resolveOrigin, adjustHotelCapacity } from '../../shared/hotelPricing.ts';
 
 export default async function(req) {
   try {
@@ -38,23 +39,7 @@ export default async function(req) {
 
       // Restore hotel capacity
       try {
-        const hotelProfiles = await base44.asServiceRole.entities.WalkerProfile.filter({ id: booking.hotel_profile_id });
-        if (hotelProfiles.length > 0) {
-          const capProfile = hotelProfiles[0];
-          const capHd = capProfile.hotel_details || {};
-          const dogsCount = booking.total_dogs || 1;
-          const capServices = (capHd.services || []).map(s => {
-            if (s.service_type === booking.service_type) {
-              const current = s.capacity_available ?? 0;
-              return { ...s, capacity_available: current + dogsCount };
-            }
-            return s;
-          });
-          const topCurrent = capHd.capacity_available ?? 0;
-          await base44.asServiceRole.entities.WalkerProfile.update(capProfile.id, {
-            hotel_details: { ...capHd, capacity_available: topCurrent + dogsCount, services: capServices }
-          });
-        }
+        await adjustHotelCapacity(base44, booking.hotel_profile_id, booking.service_type, booking.total_dogs || 1, 'restore');
       } catch (capErr) {
         console.error('Erro ao restaurar vagas:', capErr.message);
       }
@@ -94,17 +79,7 @@ export default async function(req) {
     }
 
     // Validate Origin
-    const ALLOWED_ORIGINS = [
-      'https://pawcao.base44.app',
-      'https://app.pawcao.pt',
-      'https://pawcao.pt',
-      'https://www.pawcao.pt'
-    ];
-    const requestOrigin = req.headers.get('origin') || '';
-    const origin = (ALLOWED_ORIGINS.includes(requestOrigin) ||
-      /^https:\/\/[a-z0-9-]*pawcao[a-z0-9-]*\.base44\.app$/.test(requestOrigin))
-      ? requestOrigin
-      : 'https://pawcao.base44.app';
+    const origin = resolveOrigin(req);
 
     const safeTotalAmount = booking.total_amount || booking.proposed_amount || 0;
     if (safeTotalAmount <= 0) {

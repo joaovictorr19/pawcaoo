@@ -276,6 +276,11 @@ Deno.serve(async (req) => {
       status: 'pending',
       payment_status: 'pending',
       payment_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+      // Grooming: initialize price proposal workflow
+      ...(service_type === 'grooming' ? {
+        price_proposal_status: 'pending_review',
+        original_amount: serverTotalAmount,
+      } : {}),
     });
 
     // ── Reservar vagas imediatamente (ficam ocupadas durante os 5 min de pagamento) ──

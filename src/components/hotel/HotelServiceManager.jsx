@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2, Edit2, X, Check, Truck } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, Check, Truck, Scissors } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import ServiceIconPicker, { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
@@ -46,9 +46,16 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
     transport_enabled: false,
     transport_price: '',
     transport_coverage_areas: '',
+    size_prices: { small: '', medium: '', large: '', extra_large: '' },
+    breed_prices: [],
   });
 
   const services = hotelProfile?.hotel_details?.services || [];
+
+  const emptyGroomingPricing = () => ({
+    size_prices: { small: '', medium: '', large: '', extra_large: '' },
+    breed_prices: [],
+  });
 
   const handleAddNew = () => {
     setFormData({
@@ -64,6 +71,7 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       transport_enabled: false,
       transport_price: '',
       transport_coverage_areas: '',
+      ...emptyGroomingPricing(),
     });
     setEditingServiceId(null);
     setIsAddingService(true);
@@ -79,9 +87,51 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       transport_enabled: service.transport_enabled || false,
       transport_price: service.transport_price != null ? String(service.transport_price) : '',
       transport_coverage_areas: service.transport_coverage_areas || '',
+      size_prices: {
+        small: service.size_prices?.small != null ? String(service.size_prices.small) : '',
+        medium: service.size_prices?.medium != null ? String(service.size_prices.medium) : '',
+        large: service.size_prices?.large != null ? String(service.size_prices.large) : '',
+        extra_large: service.size_prices?.extra_large != null ? String(service.size_prices.extra_large) : '',
+      },
+      breed_prices: Array.isArray(service.breed_prices) ? service.breed_prices.map(bp => ({ breed: bp.breed || '', price: bp.price != null ? String(bp.price) : '' })) : [],
     });
     setEditingServiceId(service.service_id);
     setIsAddingService(true);
+  };
+
+  const updateSizePrice = (size, value) => {
+    setFormData(prev => ({ ...prev, size_prices: { ...prev.size_prices, [size]: value } }));
+  };
+
+  const addBreedPrice = () => {
+    setFormData(prev => ({ ...prev, breed_prices: [...prev.breed_prices, { breed: '', price: '' }] }));
+  };
+
+  const updateBreedPrice = (idx, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      breed_prices: prev.breed_prices.map((bp, i) => i === idx ? { ...bp, [field]: value } : bp),
+    }));
+  };
+
+  const removeBreedPrice = (idx) => {
+    setFormData(prev => ({ ...prev, breed_prices: prev.breed_prices.filter((_, i) => i !== idx) }));
+  };
+
+  // Build the cleaned grooming pricing object (only filled values)
+  const buildGroomingPricing = () => {
+    const sizePrices = {};
+    let hasSizePrice = false;
+    for (const [k, v] of Object.entries(formData.size_prices)) {
+      if (v !== '' && v != null) {
+        sizePrices[k] = parseFloat(v);
+        hasSizePrice = true;
+      }
+    }
+    const breedPrices = formData.breed_prices
+      .filter(bp => bp.breed.trim() && bp.price !== '')
+      .map(bp => ({ breed: bp.breed.trim(), price: parseFloat(bp.price) || 0 }));
+    return { size_prices: hasSizePrice ? sizePrices : undefined, breed_prices: breedPrices.length > 0 ? breedPrices : undefined };
   };
 
   const handleCancel = () => {
@@ -121,29 +171,35 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       let updatedServices = [...services];
 
       if (editingServiceId) {
-        // Editar serviço existente
-        updatedServices = updatedServices.map(s =>
-          s.service_id === editingServiceId
-            ? {
-                ...s,
-                service_name: formData.service_name,
-                service_type: formData.service_type,
-                description: formData.description,
-                price_per_day: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || parseFloat(formData.price_30min) || 0) : parseFloat(formData.price_per_day),
-                price_30min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_30min) || 0) : undefined,
-                price_60min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || 0) : undefined,
-                capacity_total: parseInt(formData.capacity_total),
-                capacity_available: Math.min(parseInt(formData.capacity_total), s.capacity_available || parseInt(formData.capacity_total)),
-                accepted_dog_sizes: formData.accepted_dog_sizes,
-                icon: formData.icon || '',
-                transport_enabled: formData.transport_enabled || false,
-                transport_price: formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
-                transport_coverage_areas: formData.transport_enabled ? formData.transport_coverage_areas : undefined,
-              }
-            : s
-        );
+      // Editar serviço existente
+      const groomingPricingEdit = formData.service_type === 'grooming' ? buildGroomingPricing() : {};
+      updatedServices = updatedServices.map(s =>
+        s.service_id === editingServiceId
+          ? {
+              ...s,
+              service_name: formData.service_name,
+              service_type: formData.service_type,
+              description: formData.description,
+              price_per_day: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || parseFloat(formData.price_30min) || 0) : parseFloat(formData.price_per_day),
+              price_30min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_30min) || 0) : undefined,
+              price_60min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || 0) : undefined,
+              capacity_total: parseInt(formData.capacity_total),
+              capacity_available: Math.min(parseInt(formData.capacity_total), s.capacity_available || parseInt(formData.capacity_total)),
+              accepted_dog_sizes: formData.accepted_dog_sizes,
+              icon: formData.icon || '',
+              transport_enabled: formData.transport_enabled || false,
+              transport_price: formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
+              transport_coverage_areas: formData.transport_enabled ? formData.transport_coverage_areas : undefined,
+              ...(formData.service_type === 'grooming' ? {
+                size_prices: groomingPricingEdit.size_prices,
+                breed_prices: groomingPricingEdit.breed_prices,
+              } : {}),
+            }
+          : s
+      );
       } else {
         // Criar novo serviço
+        const groomingPricing = formData.service_type === 'grooming' ? buildGroomingPricing() : {};
         updatedServices.push({
           service_id: `service_${Date.now()}`,
           service_name: formData.service_name,
@@ -160,6 +216,10 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
           transport_enabled: formData.transport_enabled || false,
           transport_price: formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
           transport_coverage_areas: formData.transport_enabled ? formData.transport_coverage_areas : undefined,
+          ...(formData.service_type === 'grooming' ? {
+            size_prices: groomingPricing.size_prices,
+            breed_prices: groomingPricing.breed_prices,
+          } : {}),
         });
       }
 
@@ -363,6 +423,82 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                 </div>
               </div>
 
+              {/* Preços por tamanho e raça — apenas grooming */}
+              {formData.service_type === 'grooming' && (
+                <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Scissors className="w-4 h-4 text-purple-600" />
+                    <p className="text-sm font-bold text-slate-700">Preços Dinâmicos (Banho & Tosquias)</p>
+                  </div>
+                  <p className="text-[11px] text-slate-500 -mt-2">
+                    Defina preços por tamanho do cão e/ou por raça. O sistema usa prioridade: <strong>raça específica</strong> {'→'} <strong>tamanho</strong> {'→'} <strong>preço base</strong>. Deixe vazio para usar o preço base.
+                  </p>
+
+                  {/* Preços por tamanho */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-600 uppercase mb-2 block">Preço por Tamanho (€)</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {DOG_SIZES.map(size => (
+                        <div key={size.value}>
+                          <p className="text-[10px] font-semibold text-slate-500 mb-1">{size.label}</p>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={formData.size_prices[size.value] || ''}
+                            onChange={(e) => updateSizePrice(size.value, e.target.value)}
+                            placeholder="—"
+                            className="rounded-lg text-sm h-9"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Preços por raça */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-bold text-slate-600 uppercase">Preço por Raça (€)</label>
+                      <button
+                        onClick={addBreedPrice}
+                        className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Adicionar raça
+                      </button>
+                    </div>
+                    {formData.breed_prices.length === 0 ? (
+                      <p className="text-[11px] text-slate-400 italic">Nenhuma raça específica definida. Adicione para preços personalizados (ex: Poodle, Yorkshire).</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {formData.breed_prices.map((bp, idx) => (
+                          <div key={idx} className="flex gap-2">
+                            <Input
+                              value={bp.breed}
+                              onChange={(e) => updateBreedPrice(idx, 'breed', e.target.value)}
+                              placeholder="Ex: Poodle"
+                              className="rounded-lg text-sm h-9 flex-1"
+                            />
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={bp.price}
+                              onChange={(e) => updateBreedPrice(idx, 'price', e.target.value)}
+                              placeholder="25.00"
+                              className="rounded-lg text-sm h-9 w-28"
+                            />
+                            <button
+                              onClick={() => removeBreedPrice(idx)}
+                              className="w-9 h-9 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-600 shrink-0"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Ícone do Serviço */}
               <ServiceIconPicker
                 value={formData.icon}
@@ -515,6 +651,24 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
                     </span>
                     {service.transport_coverage_areas && (
                       <span className="text-[10px] text-blue-500 truncate">· {service.transport_coverage_areas}</span>
+                    )}
+                  </div>
+                )}
+
+                {service.service_type === 'grooming' && ((service.size_prices && Object.values(service.size_prices).some(v => v != null && v > 0)) || (service.breed_prices && service.breed_prices.length > 0)) && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Badge variant="outline" className="text-[10px] bg-purple-50 border-purple-200 text-purple-600">
+                      <Scissors className="w-3 h-3 mr-1" /> Preço dinâmico
+                    </Badge>
+                    {service.size_prices && Object.entries(service.size_prices).filter(([,v]) => v != null && v > 0).length > 0 && (
+                      <span className="text-[10px] text-slate-500">
+                        {Object.entries(service.size_prices).filter(([,v]) => v != null && v > 0).length} tamanhos
+                      </span>
+                    )}
+                    {service.breed_prices && service.breed_prices.length > 0 && (
+                      <span className="text-[10px] text-slate-500">
+                        {service.breed_prices.length} raça{service.breed_prices.length > 1 ? 's' : ''}
+                      </span>
                     )}
                   </div>
                 )}
