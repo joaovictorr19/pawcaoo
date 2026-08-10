@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 import Stripe from 'npm:stripe@14.14.0';
+import { resolveOrigin, getEffectiveCommissionRate, calcGroomingTotal } from '../../shared/hotelPricing.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -62,29 +63,14 @@ Deno.serve(async (req) => {
     const hotelProfile = hotelProfiles[0];
     const hotelDetails = hotelProfile.hotel_details || {};
 
-    // ── Determine commission rate from hotel profile (same logic as createBookingCheckout) ──
-    const DEFAULT_RATE = 10; // 10%
-    let commissionRate = DEFAULT_RATE;
-    const commissionMode = hotelProfile.commission_rate_mode || 'default';
-    if (hotelProfile.exempt_from_platform_fees === true || commissionMode === 'zero') {
-      commissionRate = 0;
-    } else if (commissionMode === 'zero_temporary') {
-      if (hotelProfile.commission_rate_expiry && new Date() > new Date(hotelProfile.commission_rate_expiry)) {
-        commissionRate = DEFAULT_RATE; // expired, revert to default
-      } else {
-        commissionRate = 0;
-      }
-    } else if (commissionMode === 'custom_percent') {
-      commissionRate = hotelProfile.custom_commission_rate != null ? Number(hotelProfile.custom_commission_rate) : DEFAULT_RATE;
-    }
+    // ── Determine commission rate from hotel profile ──
+    const commissionRate = getEffectiveCommissionRate(hotelProfile);
     const PLATFORM_FEE_RATE = commissionRate / 100;
     let serverPricePerUnit = 0;
 
-    // Helper: find price in services array as fallback
-    const findServicePrice = (svcType) => {
-      const svc = (hotelDetails.services || []).find(s => s.service_type === svcType);
-      return svc?.price_per_day || 0;
-    };
+    // Helper: find service in services array
+    const findService = (svcType) => (hotelDetails.services || []).find(s => s.service_type === svcType);
+    const findServicePrice = (svcType) => findService(svcType)?.price_per_day || 0;
 
     if (service_type === 'boarding') {
       serverPricePerUnit = hotelDetails.price_per_night || findServicePrice('boarding') || 0;
@@ -92,7 +78,7 @@ Deno.serve(async (req) => {
       serverPricePerUnit = hotelDetails.price_daycare || findServicePrice('daycare') || 0;
     } else if (service_type === 'walk_with_partner') {
       // For walks, use duration-based pricing (price_30min or price_60min)
-      const svc = (hotelDetails.services || []).find(s => s.service_type === 'walk_with_partner');
+      const svc = findService('walk_with_partner');
       if (walk_duration === 60 && svc?.price_60min) {
         serverPricePerUnit = svc.price_60min;
       } else if (walk_duration === 30 && svc?.price_30min) {
@@ -102,13 +88,29 @@ Deno.serve(async (req) => {
       }
     } else if (service_type === 'dropin') {
       serverPricePerUnit = findServicePrice('dropin') || 0;
+    } else if (service_type === 'grooming') {
+      // Grooming: calculate price per dog based on breed_prices, then size_prices, then price_per_day
+      const groomService = findService('grooming');
+      serverPricePerUnit = groomService?.price_per_day || 0; // fallback per-unit for display
     } else {
       serverPricePerUnit = findServicePrice(service_type);
     }
 
     const serverNights = total_nights || 1;
     const serverDogs = total_dogs || (dogs?.length || 1);
-    let serverBaseAmount = serverPricePerUnit * serverNights * serverDogs;
+
+    // ── Grooming: per-dog pricing by breed/size (server-side) ──
+    let serverBaseAmount;
+    if (service_type === 'grooming') {
+      const groomService = findService('grooming');
+      if (groomService && (groomService.size_prices || (groomService.breed_prices && groomService.breed_prices.length > 0))) {
+        serverBaseAmount = calcGroomingTotal(groomService, dogs || []);
+      } else {
+        serverBaseAmount = serverPricePerUnit * serverNights * serverDogs;
+      }
+    } else {
+      serverBaseAmount = serverPricePerUnit * serverNights * serverDogs;
+    }
 
     // Add pickup fee if applicable
     const serverPickupFee = (pickup_fee && pickup_fee > 0) ? Number(pickup_fee) : 0;
@@ -217,17 +219,7 @@ Deno.serve(async (req) => {
     }
 
     // SECURITY: Validate Origin against a strict whitelist to prevent open redirects.
-    const ALLOWED_ORIGINS = [
-      'https://pawcao.base44.app',
-      'https://app.pawcao.pt',
-      'https://pawcao.pt',
-      'https://www.pawcao.pt'
-    ];
-    const requestOrigin = req.headers.get('origin') || '';
-    const origin = (ALLOWED_ORIGINS.includes(requestOrigin) ||
-      /^https:\/\/[a-z0-9-]*pawcao[a-z0-9-]*\.base44\.app$/.test(requestOrigin))
-      ? requestOrigin
-      : 'https://pawcao.base44.app';
+    const origin = resolveOrigin(req);
 
     const SERVICE_LABELS = {
       boarding: "Alojamento",

@@ -795,6 +795,40 @@
               "transport_coverage_areas": {
                 "type": "string",
                 "description": "Areas de cobertura para o transporte (ex: Lisboa centro, ate 10km)"
+              },
+              "size_prices": {
+                "type": "object",
+                "description": "Precos por tamanho do cao para servicos de grooming (ex: {small: 15, medium: 20, large: 25, extra_large: 30}). Sobrescreve price_per_day quando definido.",
+                "properties": {
+                  "small": {
+                    "type": "number"
+                  },
+                  "medium": {
+                    "type": "number"
+                  },
+                  "large": {
+                    "type": "number"
+                  },
+                  "extra_large": {
+                    "type": "number"
+                  }
+                }
+              },
+              "breed_prices": {
+                "type": "array",
+                "description": "Precos especificos por raca para servicos de grooming. Sobrescreve size_prices quando a raca coincide.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "breed": {
+                      "type": "string"
+                    },
+                    "price": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "default": []
               }
             },
             "required": [

@@ -55,6 +55,45 @@
       },
       "default": []
     },
+    "categorized_photos": {
+      "type": "object",
+      "description": "Fotos categorizadas do animal para avaliacao de grooming e hotel",
+      "properties": {
+        "full_body": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Corpo completo"
+        },
+        "head_face": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Focinho/cabe\u00e7a"
+        },
+        "coat_condition": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "P\u00ealo/pelagem"
+        },
+        "problem_areas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "\u00c1reas problem\u00e1ticas"
+        }
+      },
+      "default": {}
+    },
     "breed": {
       "type": "string"
     },

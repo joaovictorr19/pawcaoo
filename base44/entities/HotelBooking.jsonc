@@ -354,6 +354,30 @@
       "format": "date-time",
       "description": "Data/hora limite para pagamento (5 min apos criacao). Se nao pago, reserva e cancelada automaticamente."
     },
+    "price_proposal_status": {
+      "type": "string",
+      "enum": [
+        "pending_review",
+        "awaiting_client",
+        "accepted",
+        "rejected",
+        "no_adjustment"
+      ],
+      "default": "pending_review",
+      "description": "Estado da proposta de preco para grooming: pending_review=aguarda analise do hotel, awaiting_client=enviada ao cliente, accepted=aceite, rejected=recusada, no_adjustment=sem ajuste necessario"
+    },
+    "proposed_amount": {
+      "type": "number",
+      "description": "Valor proposto pelo hotel apos analise do perfil do animal"
+    },
+    "proposed_justification": {
+      "type": "string",
+      "description": "Justificacao do ajuste de preco enviado ao cliente"
+    },
+    "original_amount": {
+      "type": "number",
+      "description": "Valor original calculado automaticamente (antes do ajuste)"
+    },
     "internal_notes": {
       "type": "string"
     },
