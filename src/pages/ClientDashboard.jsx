@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import WalkReport from "@/components/client/WalkReport";
 import PendingHotelBookings from "@/components/client/PendingHotelBookings";
 import ClientActiveHotelStays from "@/components/client/ClientActiveHotelStays";
+import ClientHotelDiary from "@/components/client/ClientHotelDiary";
 import MyDogsManager from "@/components/profile/MyDogsManager";
 import ClientDataSettings from "@/components/client/ClientDataSettings";
 import ClientNotificationsWidget from "@/components/client/ClientNotificationsWidget";
@@ -272,6 +273,13 @@ export default function ClientDashboard() {
                   <p className="text-xs text-slate-500">Editar dados pessoais</p>
                 </button>
               </div>
+            </motion.div>
+          )}
+
+          {/* ─── DIÁRIO DAS ESTADIAS ─── */}
+          {activeTab === 'diary' && (
+            <motion.div key="dy" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <ClientHotelDiary user={user} />
             </motion.div>
           )}
 

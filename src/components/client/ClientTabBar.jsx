@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, CalendarDays, PawPrint, Settings, Bell, ChevronDown } from "lucide-react";
+import { BarChart3, CalendarDays, PawPrint, Settings, Bell, ChevronDown, BookOpen } from "lucide-react";
 
 export function ClientTabBar({ active, onChange, unreadCount = 0 }) {
   const [open, setOpen] = useState(false);
 
   const tabs = [
     { id: "overview", label: "Resumo", icon: BarChart3 },
+    { id: "diary", label: "Diário", icon: BookOpen },
     { id: "bookings", label: "Reservas", icon: CalendarDays },
     { id: "dogs", label: "Animais", icon: PawPrint },
     { id: "notifications", label: "Avisos", icon: Bell, badge: unreadCount },
