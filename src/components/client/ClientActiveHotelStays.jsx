@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Hotel, Dog, CalendarDays, Clock, CheckCircle2, XCircle,
   Droplets, Scissors, PawPrint, Star, Utensils, Pill, Smile,
-  HeartHandshake, Loader2, Plus, CreditCard, Bell, Wallet
+  HeartHandshake, Loader2, Plus, CreditCard, Bell, Wallet, Cookie
 } from "lucide-react";
 import { format, differenceInCalendarDays } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -14,15 +14,16 @@ import { toast } from "sonner";
 import HotelStayDiary from "@/components/hotel/HotelStayDiary";
 
 const AVAILABLE_SERVICES = [
-  { value: "bathing",      label: "Banho",       icon: Droplets,       defaultPrice: 15 },
-  { value: "grooming",     label: "Grooming",    icon: Scissors,       defaultPrice: 25 },
-  { value: "walk",         label: "Passeio",     icon: PawPrint,       defaultPrice: 10 },
-  { value: "nail_trim",    label: "Unhas",       icon: Scissors,       defaultPrice: 8 },
-  { value: "training",     label: "Treino",      icon: Star,           defaultPrice: 20 },
-  { value: "playtime",     label: "Brincar",     icon: Smile,          defaultPrice: 8 },
-  { value: "feeding",      label: "Alimentação", icon: Utensils,       defaultPrice: 5 },
-  { value: "medication",   label: "Medicação",   icon: Pill,           defaultPrice: 5 },
-  { value: "general_care", label: "Cuidados",    icon: HeartHandshake, defaultPrice: 10 },
+  { value: "bathing",      label: "Banho",       icon: Droplets,       defaultPrice: 15, category: "service" },
+  { value: "grooming",     label: "Grooming",    icon: Scissors,       defaultPrice: 25, category: "service" },
+  { value: "walk",         label: "Passeio",     icon: PawPrint,       defaultPrice: 10, category: "service" },
+  { value: "nail_trim",    label: "Unhas",       icon: Scissors,       defaultPrice: 8,  category: "service" },
+  { value: "training",     label: "Treino",      icon: Star,           defaultPrice: 20, category: "service" },
+  { value: "playtime",     label: "Brincar",     icon: Smile,          defaultPrice: 8,  category: "service" },
+  { value: "feeding",      label: "Alimentação", icon: Utensils,       defaultPrice: 5,  category: "service" },
+  { value: "medication",   label: "Medicação",   icon: Pill,           defaultPrice: 5,  category: "service" },
+  { value: "general_care", label: "Cuidados",    icon: HeartHandshake, defaultPrice: 10, category: "service" },
+  { value: "treats",       label: "Petiscos",    icon: Cookie,         defaultPrice: 3,  category: "product" },
 ];
 
 const SERVICE_LABELS = Object.fromEntries(AVAILABLE_SERVICES.map(s => [s.value, s.label]));
@@ -88,6 +89,8 @@ export default function ClientActiveHotelStays({ user }) {
     try {
       const newAddOn = {
         service_name: service.value,
+        item_category: service.category || 'service',
+        item_name: service.category === 'product' ? service.label : undefined,
         quantity: 1,
         price_per_unit: service.defaultPrice,
         total_price: service.defaultPrice,
