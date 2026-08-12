@@ -10,6 +10,7 @@ import {
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import HotelCollaboratorBadge from "@/components/profile/HotelCollaboratorBadge";
+import { animalConfig } from "@/components/professionals/AnimalIcons";
 
 const AVAILABILITY_LABELS = {
   morning:   { pt: "Manhã",      en: "Morning",   es: "Mañana" },
@@ -43,15 +44,6 @@ const SLOT_THEMES = {
   afternoon: "bg-gradient-to-br from-amber-400 to-orange-500 shadow-md shadow-orange-300/60",
   evening:   "bg-gradient-to-br from-rose-400 to-orange-500 shadow-md shadow-rose-300/60",
   night:     "bg-gradient-to-br from-indigo-900 to-slate-900 shadow-md shadow-indigo-800/60",
-};
-
-const ANIMAL_ICONS = {
-  dogs: PawPrint,
-  cats: Heart,
-  reptiles: Zap,
-  arachnids: Zap,
-  rodents: Heart,
-  birds: Globe,
 };
 
 function StatPill({ icon: Icon, label, value, color = "slate" }) {
@@ -104,7 +96,7 @@ export default function ProfileHeroCard({
   const languagesSpoken = walkerProfile?.languages_spoken || trainerProfile?.languages_spoken || [];
   const specializations = walkerProfile?.specializations || trainerProfile?.specializations || [];
   const availability = walkerProfile?.availability || trainerProfile?.availability || [];
-  const acceptedAnimals = walkerProfile?.accepted_animals || [];
+  const acceptedAnimals = walkerProfile?.accepted_animals || trainerProfile?.accepted_animals || [];
   const isVerified = walkerProfile?.is_verified || trainerProfile?.is_verified || profileUser?.is_verified;
   const hasPawcaoSeal = walkerProfile?.has_pawcao_seal;
   const isPawcaoEmployee = walkerProfile?.is_pawcao_employee;
@@ -440,14 +432,16 @@ export default function ProfileHeroCard({
           </div>
         )}
 
-        {/* Accepted animals (walkers) */}
-        {!isHotel && acceptedAnimals.length > 0 && (
-          <div className="flex items-center justify-center gap-1.5 mt-3">
-            {acceptedAnimals.slice(0, 4).map((animal) => {
-              const Icon = ANIMAL_ICONS[animal] || PawPrint;
+        {/* Accepted animals (walkers, trainers, hotels) */}
+        {acceptedAnimals.length > 0 && (
+          <div className="flex items-center justify-center gap-1.5 mt-3 flex-wrap">
+            {acceptedAnimals.slice(0, 6).map((animal) => {
+              const config = animalConfig[animal];
+              if (!config) return null;
+              const Icon = config.Icon;
               return (
-                <span key={animal} className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100 capitalize">
-                  <Icon className="w-3 h-3" /> {animal}
+                <span key={animal} className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+                  <Icon className="w-3 h-3 text-slate-600" /> {config.label[language] || config.label.pt}
                 </span>
               );
             })}
