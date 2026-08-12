@@ -10,7 +10,7 @@ import {
   XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, Settings, RefreshCw,
   ClipboardList, Wallet, UserCheck, Phone, Mail, StickyNote, FileText, DoorOpen,
   BedDouble, Sun, Scissors, GraduationCap, PawPrint, ArrowRight, ArrowLeft,
-  CircleDot, X, ChevronDown, Stethoscope, ListChecks
+  CircleDot, X, ChevronDown, Stethoscope, ListChecks, BookOpen
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +38,7 @@ import HotelWaitlistPanel from "@/components/hotel/HotelWaitlistPanel";
 import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel";
 import HotelCaninoProfiles from "@/components/hotel/HotelCaninoProfiles";
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
+import HotelBulkMessagePanel from "@/components/hotel/HotelBulkMessagePanel";
 import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
 import AssignTaskModal from "@/components/hotel/AssignTaskModal";
 import AddServiceToStayModal from "@/components/hotel/AddServiceToStayModal";
@@ -74,6 +75,7 @@ const SERVICE_LABELS = {
 };
 
 const TABS = [
+  { key: "diario",    label: "Diário",            icon: BookOpen },
   { key: "tarefas",   label: "Tarefas",           icon: ListChecks },
   { key: "hospedes",  label: "Hóspedes",          icon: Users },
   { key: "reservas",  label: "Reservas",          icon: ClipboardList },
@@ -560,6 +562,12 @@ export default function HotelDashboard() {
 
         {/* Tab Content */}
         <AnimatePresence mode="wait">
+
+          {activeTab === "diario" && (
+            <motion.div key="diario" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelBulkMessagePanel hotelProfile={hotelProfile} bookings={bookings} />
+            </motion.div>
+          )}
 
           {activeTab === "tarefas" && (
             <motion.div key="tarefas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
