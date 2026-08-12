@@ -6,7 +6,6 @@ export default function PullToRefresh({ children, onRefresh }) {
   const queryClient = useQueryClient();
   const [distance, setDistance] = useState(0);
   const [loading, setLoading] = useState(false);
-  const containerRef = useRef(null);
   const startYRef = useRef(0);
   const startXRef = useRef(0);
   const currentDistanceRef = useRef(0);
@@ -32,9 +31,6 @@ export default function PullToRefresh({ children, onRefresh }) {
   }, [onRefresh, queryClient]);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
     const handleTouchStart = (e) => {
       const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
       if (scrollTop <= 0 && !loading) {
@@ -62,7 +58,7 @@ export default function PullToRefresh({ children, onRefresh }) {
         return;
       }
       if (diffY > 0) {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         const newDistance = Math.min(diffY * 0.4, MAX_PULL);
         currentDistanceRef.current = newDistance;
         setDistance(newDistance);
@@ -83,14 +79,14 @@ export default function PullToRefresh({ children, onRefresh }) {
       }
     };
 
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [loading, doRefresh]);
 
@@ -98,17 +94,17 @@ export default function PullToRefresh({ children, onRefresh }) {
   const reached = distance >= THRESHOLD;
 
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative">
       {/* PawCão Refresh Indicator */}
       <div
-        className="fixed left-1/2 -translate-x-1/2 z-[9999] pointer-events-none flex flex-col items-center"
+        className="fixed left-1/2 z-[9999] pointer-events-none flex flex-col items-center"
         style={{
           top: '52px',
           opacity: distance > 6 || loading ? 1 : 0,
-          transform: `translateY(${Math.min(distance, 56)}px) scale(${0.6 + progress * 0.4})`,
+          transform: `translateX(-50%) translateY(${Math.min(distance, 56)}px) scale(${0.6 + progress * 0.4})`,
           transition: isPullingRef.current
             ? 'opacity 0.15s'
-            : 'all 0.35s cubic-bezier(0.22, 1, 0.36, 1)'
+            : 'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s',
         }}
       >
         <div
@@ -125,17 +121,24 @@ export default function PullToRefresh({ children, onRefresh }) {
               : '0 2px 12px rgba(0,0,0,0.08)',
           }}
         >
-          <PawPrint
-            size={20}
-            strokeWidth={2.5}
-            style={{
-              color: reached ? '#ffffff' : '#0d9488',
-              transform: loading ? 'rotate(360deg)' : `rotate(${progress * 165}deg)`,
-              transition: loading
-                ? 'transform 0.8s linear infinite'
-                : 'transform 0.2s ease-out, color 0.2s ease-out',
-            }}
-          />
+          {loading ? (
+            <div
+              className="ptr-spinner"
+              style={{ width: 20, height: 20 }}
+            >
+              <PawPrint size={20} strokeWidth={2.5} style={{ color: '#ffffff' }} />
+            </div>
+          ) : (
+            <PawPrint
+              size={20}
+              strokeWidth={2.5}
+              style={{
+                color: reached ? '#ffffff' : '#0d9488',
+                transform: `rotate(${progress * 165}deg)`,
+                transition: 'transform 0.2s ease-out, color 0.2s ease-out',
+              }}
+            />
+          )}
         </div>
         {distance > 28 && !loading && (
           <span
@@ -146,6 +149,19 @@ export default function PullToRefresh({ children, onRefresh }) {
           </span>
         )}
       </div>
+
+      <style>{`
+        .ptr-spinner {
+          animation: ptr-spin 0.8s linear infinite;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        @keyframes ptr-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
 
       {/* Content */}
       <div
