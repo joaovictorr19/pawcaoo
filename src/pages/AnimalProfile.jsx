@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import HealthDiary from "@/components/animals/HealthDiary";
+import ServicePhotosGallery from "@/components/animal/view/ServicePhotosGallery";
 import { motion } from "framer-motion";
 
 const animalEmojis = {
@@ -201,6 +202,22 @@ export default function AnimalProfile() {
               </div>
               <InfoRow label="Veterinário" value={animal.vet_name || animal.vet_clinic_name} />
               <InfoRow label="Tel. Vet." value={animal.vet_phone} />
+              <InfoRow label="Morada Vet." value={animal.vet_address} />
+              {animal.medications?.length > 0 && (
+                <div className="py-2 border-t border-slate-50">
+                  <p className="text-[10px] text-slate-400 mb-1 font-medium uppercase tracking-wide">💊 Medicação</p>
+                  <div className="space-y-1">
+                    {animal.medications.map((m, idx) => (
+                      <div key={idx} className="text-sm text-slate-700">
+                        <span className="font-semibold">{m.name}</span>
+                        {m.dosage && <span className="text-slate-500"> · {m.dosage}</span>}
+                        {m.frequency && <span className="text-slate-500"> · {m.frequency}</span>}
+                        {m.notes && <span className="text-slate-400 block text-xs">{m.notes}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {animal.medical_conditions && (
                 <div className="py-2 border-t border-slate-50">
                   <p className="text-[10px] text-slate-400 mb-1 font-medium uppercase tracking-wide">Condições Médicas</p>
@@ -211,6 +228,13 @@ export default function AnimalProfile() {
                 <div className="py-2 border-t border-slate-50">
                   <p className="text-[10px] text-slate-400 mb-1 font-medium uppercase tracking-wide">Alergias</p>
                   <p className="text-sm text-slate-700">{animal.allergies}</p>
+                </div>
+              )}
+              {(animal.insurance_provider || animal.insurance_policy_number) && (
+                <div className="py-2 border-t border-slate-50">
+                  <p className="text-[10px] text-slate-400 mb-1 font-medium uppercase tracking-wide">🛡️ Seguro</p>
+                  <InfoRow label="Seguradora" value={animal.insurance_provider} />
+                  <InfoRow label="Nº Apólice" value={animal.insurance_policy_number} />
                 </div>
               )}
             </SectionCard>
@@ -277,6 +301,41 @@ export default function AnimalProfile() {
                 <InfoRow label="Telefone do Dono" value={animal.owner_phone} />
               </SectionCard>
             )}
+
+            {/* Cuidados Diários */}
+            {(animal.feeding_instructions || animal.habitat_requirements || animal.special_care_notes) && (
+              <SectionCard icon={<Heart className="w-3.5 h-3.5 text-amber-500" />} title="Cuidados Diários" color="text-amber-600">
+                {animal.feeding_instructions && (
+                  <div className="py-2 border-b border-slate-50">
+                    <p className="text-[10px] text-slate-400 mb-1 font-medium uppercase tracking-wide">🍖 Alimentação</p>
+                    <p className="text-sm text-slate-700 leading-relaxed">{animal.feeding_instructions}</p>
+                  </div>
+                )}
+                {animal.habitat_requirements && (
+                  <div className="py-2 border-b border-slate-50">
+                    <p className="text-[10px] text-slate-400 mb-1 font-medium uppercase tracking-wide">🏠 Habitat/Espaço</p>
+                    <p className="text-sm text-slate-700 leading-relaxed">{animal.habitat_requirements}</p>
+                  </div>
+                )}
+                {animal.special_care_notes && (
+                  <div className="py-2">
+                    <p className="text-[10px] text-slate-400 mb-1 font-medium uppercase tracking-wide">⚠️ Cuidados Especiais</p>
+                    <p className="text-sm text-slate-700 leading-relaxed">{animal.special_care_notes}</p>
+                  </div>
+                )}
+              </SectionCard>
+            )}
+
+            {/* Preferências */}
+            {(animal.favorite_toys || animal.favorite_treats) && (
+              <SectionCard icon={<Heart className="w-3.5 h-3.5 text-pink-400" />} title="Preferências" color="text-pink-500">
+                <InfoRow label="🧸 Brinquedos Favoritos" value={animal.favorite_toys} />
+                <InfoRow label="🍪 Snacks Favoritos" value={animal.favorite_treats} />
+              </SectionCard>
+            )}
+
+            {/* Fotos por Serviço */}
+            {animal.service_photos && <ServicePhotosGallery servicePhotos={animal.service_photos} />}
 
             {/* Galeria */}
             {animal.gallery_photos?.length > 0 && (

@@ -57,7 +57,7 @@
     },
     "categorized_photos": {
       "type": "object",
-      "description": "Fotos categorizadas do animal para avaliacao de grooming e hotel",
+      "description": "Fotos categorizadas do animal para avaliacao de grooming e hotel (legacy)",
       "properties": {
         "full_body": {
           "type": "array",
@@ -90,6 +90,111 @@
           },
           "default": [],
           "description": "\u00c1reas problem\u00e1ticas"
+        }
+      },
+      "default": {}
+    },
+    "service_photos": {
+      "type": "object",
+      "description": "Fotos organizadas por tipo de servico (grooming, hotel, walk, training), cada uma com categorias especificas",
+      "properties": {
+        "grooming": {
+          "type": "object",
+          "description": "Fotos para avaliacao de Banho & Tosquia",
+          "properties": {
+            "full_body": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "head_face": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "coat_condition": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "problem_areas": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
+          },
+          "default": {}
+        },
+        "hotel": {
+          "type": "object",
+          "description": "Fotos para Hotel/Creche",
+          "properties": {
+            "general_state": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "space_company": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
+          },
+          "default": {}
+        },
+        "walk": {
+          "type": "object",
+          "description": "Fotos para Passeio",
+          "properties": {
+            "portrait": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "body_movement": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
+          },
+          "default": {}
+        },
+        "training": {
+          "type": "object",
+          "description": "Fotos para Treino",
+          "properties": {
+            "portrait": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "behavior": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            }
+          },
+          "default": {}
         }
       },
       "default": {}
@@ -240,7 +345,25 @@
     "medications": {
       "type": "array",
       "items": {
-        "type": "object"
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome do medicamento"
+          },
+          "dosage": {
+            "type": "string",
+            "description": "Dosagem (ex: 1 comprimido)"
+          },
+          "frequency": {
+            "type": "string",
+            "description": "Frequ\u00eancia (ex: 2x/dia, \u00e0s 8h e 20h)"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notas adicionais"
+          }
+        }
       },
       "default": []
     },
