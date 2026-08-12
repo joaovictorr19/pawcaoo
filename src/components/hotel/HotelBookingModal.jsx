@@ -156,10 +156,13 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
             d.other_observations,
           ].filter(Boolean).join('\n');
           return {
+            dog_id: d.id,
             dog_name: d.dog_name,
             dog_breed: d.breed || 'SRD',
             dog_size: d.size || 'medium',
             dog_age: d.age || 0,
+            photo_url: d.photo_url || '',
+            service_photos: d.service_photos || {},
             special_notes: notes,
             diet: care.diet || '',
             medications: care.medications || '',

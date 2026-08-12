@@ -151,7 +151,7 @@ export default function EditAnimalProfile() {
     }
   }, [animal, user]);
 
-  const set = (key, val) => setFormData((prev) => ({ ...prev, [key]: val }));
+  const set = (key, val) => setFormData((prev) => ({ ...prev, [key]: typeof val === 'function' ? val(prev[key]) : val }));
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];

@@ -28,7 +28,8 @@ export const SNAPSHOT_FIELDS = [
   "microchip_number",
   "emergency_contact_name",
   "emergency_contact_phone",
-  "date_of_birth"
+  "date_of_birth",
+  "service_photos"
 ];
 
 // Etiquetas amigáveis para cada campo (PT)
@@ -58,7 +59,8 @@ export const FIELD_LABELS = {
   microchip_number: "Microchip",
   emergency_contact_name: "Contacto de emergência",
   emergency_contact_phone: "Telefone de emergência",
-  date_of_birth: "Data de nascimento"
+  date_of_birth: "Data de nascimento",
+  service_photos: "Fotos por serviço"
 };
 
 // Cria um snapshot limpo dos campos relevantes do DogProfile

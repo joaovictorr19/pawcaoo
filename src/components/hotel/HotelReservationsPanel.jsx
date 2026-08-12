@@ -348,18 +348,48 @@ function BookingCard({ booking, onUpdate }) {
                     <PawPrint className="w-3 h-3" /> Cães ({booking.dogs.length})
                   </p>
                   <div className="space-y-2">
-                    {booking.dogs.map((dog, i) => (
+                    {booking.dogs.map((dog, i) => {
+                      const svcPhotos = dog.service_photos || {};
+                      const bookingSvcKey = booking.service_type === 'walk_with_partner' ? 'walk'
+                        : booking.service_type === 'boarding' || booking.service_type === 'daycare' ? 'hotel'
+                        : booking.service_type;
+                      const relevantCats = svcPhotos[bookingSvcKey] || {};
+                      const photoCount = Object.values(relevantCats).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
+                      return (
                       <div key={i} className="border border-slate-100 rounded-lg p-2 bg-slate-50/50">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-xs font-bold text-slate-900">{dog.dog_name || `Cão ${i+1}`}</span>
-                          {dog.dog_breed && <span className="text-[10px] text-slate-500">{dog.dog_breed}</span>}
-                          {dog.dog_size && (
-                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600">
-                              {dog.dog_size === "small" ? "Peq" : dog.dog_size === "medium" ? "Méd" : dog.dog_size === "large" ? "Grd" : "XGrd"}
-                            </span>
+                          {dog.photo_url ? (
+                            <img src={dog.photo_url} alt={dog.dog_name} className="w-9 h-9 rounded-lg object-cover shrink-0" />
+                          ) : (
+                            <div className="w-9 h-9 rounded-lg bg-slate-200 flex items-center justify-center shrink-0">
+                              <PawPrint className="w-4 h-4 text-slate-400" />
+                            </div>
                           )}
-                          {dog.dog_age != null && <span className="text-[10px] text-slate-400">{dog.dog_age} ano(s)</span>}
+                          <div className="flex-1 min-w-0 flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs font-bold text-slate-900">{dog.dog_name || `Cão ${i+1}`}</span>
+                            {dog.dog_breed && <span className="text-[10px] text-slate-500">{dog.dog_breed}</span>}
+                            {dog.dog_size && (
+                              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600">
+                                {dog.dog_size === "small" ? "Peq" : dog.dog_size === "medium" ? "Méd" : dog.dog_size === "large" ? "Grd" : "XGrd"}
+                              </span>
+                            )}
+                            {dog.dog_age != null && <span className="text-[10px] text-slate-400">{dog.dog_age} ano(s)</span>}
+                            {photoCount > 0 && (
+                              <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-200">📸 {photoCount}</span>
+                            )}
+                          </div>
                         </div>
+                        {photoCount > 0 && (
+                          <div className="mb-1.5 flex gap-1.5 flex-wrap">
+                            {Object.entries(relevantCats).flatMap(([catKey, arr]) =>
+                              (arr || []).map((url, idx) => (
+                                <a key={`${catKey}-${idx}`} href={url} target="_blank" rel="noreferrer" className="block">
+                                  <img src={url} alt={`${dog.dog_name} ${catKey}`} className="w-14 h-14 rounded-lg object-cover border border-slate-200 hover:opacity-80 transition-opacity" />
+                                </a>
+                              ))
+                            )}
+                          </div>
+                        )}
                         {(dog.diet || dog.medications || dog.routine || dog.special_notes) && (
                           <div className="space-y-1 text-[11px] text-slate-600">
                             {dog.diet && (
@@ -390,7 +420,7 @@ function BookingCard({ booking, onUpdate }) {
                           </p>
                         )}
                       </div>
-                    ))}
+                    );})}
                   </div>
                 </div>
               )}

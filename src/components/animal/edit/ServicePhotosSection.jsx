@@ -19,10 +19,12 @@ export default function ServicePhotosSection({ formData, set }) {
     setUploadingCat(uploadKey);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const currentCats = servicePhotos[activeTab] || {};
-      const currentArr = currentCats[categoryKey] || [];
-      const newCats = { ...currentCats, [categoryKey]: [...currentArr, file_url] };
-      set('service_photos', { ...servicePhotos, [activeTab]: newCats });
+      set('service_photos', (prev) => {
+        const sp = prev || {};
+        const currentCats = sp[activeTab] || {};
+        const currentArr = currentCats[categoryKey] || [];
+        return { ...sp, [activeTab]: { ...currentCats, [categoryKey]: [...currentArr, file_url] } };
+      });
       toast.success("Foto adicionada!");
     } catch {
       toast.error("Erro ao carregar foto");
@@ -32,10 +34,12 @@ export default function ServicePhotosSection({ formData, set }) {
   };
 
   const removePhoto = (categoryKey, idx) => {
-    const currentCats = servicePhotos[activeTab] || {};
-    const currentArr = currentCats[categoryKey] || [];
-    const newCats = { ...currentCats, [categoryKey]: currentArr.filter((_, i) => i !== idx) };
-    set('service_photos', { ...servicePhotos, [activeTab]: newCats });
+    set('service_photos', (prev) => {
+      const sp = prev || {};
+      const currentCats = sp[activeTab] || {};
+      const currentArr = currentCats[categoryKey] || [];
+      return { ...sp, [activeTab]: { ...currentCats, [categoryKey]: currentArr.filter((_, i) => i !== idx) } };
+    });
   };
 
   return (

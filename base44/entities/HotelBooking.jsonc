@@ -83,6 +83,115 @@
           "dog_age": {
             "type": "number"
           },
+          "dog_id": {
+            "type": "string",
+            "description": "ID do DogProfile (referencia para buscar dados atualizados do animal)"
+          },
+          "photo_url": {
+            "type": "string",
+            "description": "Foto principal do animal (snapshot no momento da reserva)"
+          },
+          "service_photos": {
+            "type": "object",
+            "description": "Fotos categorizadas por servico (snapshot no momento da reserva)",
+            "properties": {
+              "grooming": {
+                "type": "object",
+                "properties": {
+                  "full_body": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  },
+                  "head_face": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  },
+                  "coat_condition": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  },
+                  "problem_areas": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  }
+                },
+                "default": {}
+              },
+              "hotel": {
+                "type": "object",
+                "properties": {
+                  "general_state": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  },
+                  "space_company": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  }
+                },
+                "default": {}
+              },
+              "walk": {
+                "type": "object",
+                "properties": {
+                  "portrait": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  },
+                  "body_movement": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  }
+                },
+                "default": {}
+              },
+              "training": {
+                "type": "object",
+                "properties": {
+                  "portrait": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  },
+                  "behavior": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": []
+                  }
+                },
+                "default": {}
+              }
+            },
+            "default": {}
+          },
           "special_notes": {
             "type": "string"
           },

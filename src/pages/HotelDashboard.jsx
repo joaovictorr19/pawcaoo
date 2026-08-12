@@ -36,6 +36,7 @@ import HotelSalesInsights from "@/components/hotel/HotelSalesInsights";
 import HotelAddOnSalesPanel from "@/components/hotel/HotelAddOnSalesPanel";
 import HotelWaitlistPanel from "@/components/hotel/HotelWaitlistPanel";
 import HotelGuestProfilesPanel from "@/components/hotel/HotelGuestProfilesPanel";
+import HotelCaninoProfiles from "@/components/hotel/HotelCaninoProfiles";
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
 import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
 import AssignTaskModal from "@/components/hotel/AssignTaskModal";
@@ -79,6 +80,7 @@ const TABS = [
   { key: "agenda",    label: "Agenda",            icon: CalendarDays },
   { key: "espera",    label: "Lista de Espera",   icon: Clock },
   { key: "clientes",  label: "Clientes",          icon: UserCheck },
+  { key: "caninos",   label: "Perfil Canino",    icon: PawPrint },
   { key: "prontuario",label: "Prontuário",        icon: Stethoscope },
   { key: "servicos",  label: "Serviços e Vagas", icon: LayoutGrid },
   { key: "financas",  label: "Finanças",          icon: Wallet },
@@ -646,6 +648,12 @@ export default function HotelDashboard() {
           {activeTab === "clientes" && (
             <motion.div key="clientes" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <HotelGuestProfilesPanel hotelProfile={hotelProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "caninos" && (
+            <motion.div key="caninos" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <HotelCaninoProfiles hotelProfile={hotelProfile} bookings={bookings} />
             </motion.div>
           )}
 
