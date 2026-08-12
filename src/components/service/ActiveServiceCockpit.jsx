@@ -164,81 +164,19 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     return messages.filter(m => m.sender_email !== user?.email && !m.read_by?.includes(user?.email)).length;
   }, [messages, user?.email]);
 
-  // GPS tracking - REAL-TIME with HIGH ACCURACY
+  // GPS tracking disabled — rastreamento de passeio desativado.
+  // A localização só é pedida quando o utilizador toca explicitamente num botão de GPS.
   useEffect(() => {
-    if (booking?.status === 'in_progress' && navigator.geolocation && !isTracking) {
-      console.log('🛰️ Starting GPS tracking...');
-      setIsTracking(true);
-      startTimeRef.current = booking.walk_start_time ? new Date(booking.walk_start_time) : new Date();
-
-      // Request permission and start tracking
-      toast.info('📡 Ativando GPS de alta precisão...', {
-        description: 'Aguarde alguns segundos',
-        duration: 3000
-      });
-
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        (position) => {
-          const newPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            timestamp: new Date().toISOString()
-          };
-          
-          console.log('📍 GPS Update:', newPos);
-          setCurrentPosition(newPos);
-          pendingPositionRef.current = newPos;
-          
-          // Show success on first position
-          if (!currentPosition) {
-            toast.success('✅ GPS ativo! Sinal obtido.', {
-              description: `Precisão: ${Math.round(newPos.accuracy)}m`,
-              duration: 2000
-            });
-          }
-        },
-        (error) => {
-          console.error('❌ GPS error:', error);
-          toast.error('Erro GPS: ' + error.message, {
-            description: 'Verifique as permissões do navegador'
-          });
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-
-      // CRITICAL: Update database with real-time position
-      updateIntervalRef.current = setInterval(async () => {
-        if (pendingPositionRef.current && booking?.id) {
-          const pos = pendingPositionRef.current;
-          pendingPositionRef.current = null;
-
-          try {
-            console.log('💾 Updating database with position:', pos);
-            await base44.entities.Booking.update(bookingId, {
-              walker_lat: pos.lat,
-              walker_lng: pos.lng,
-              last_update: pos.timestamp,
-              route_coordinates: [...(booking.route_coordinates || []), pos]
-            });
-            console.log('✅ Position saved to database');
-          } catch (err) {
-            console.error('❌ DB update error:', err);
-          }
-        }
-      }, 3000); // Update every 3 seconds
-    }
-
+    setIsTracking(false);
     return () => {
       if (watchIdRef.current) {
-        console.log('🛑 Stopping GPS tracking');
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
       if (updateIntervalRef.current) {
         clearInterval(updateIntervalRef.current);
       }
     };
-  }, [booking?.status, bookingId, isTracking, booking?.id, booking?.route_coordinates, currentPosition]);
+  }, [booking?.status]);
 
   // Timer
   useEffect(() => {
@@ -301,58 +239,36 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     },
   });
 
-  // Handle quick event (Poop, Pee, Water, Social)
+  // Handle quick event (Poop, Pee, Water, Social) — sem GPS
   const handleQuickEvent = async (emoji, message) => {
-    console.log('🎯 handleQuickEvent called:', emoji, message);
-    console.log('📍 Current Position:', currentPosition);
-    
-    if (!currentPosition) {
-      toast.error('⏳ Aguarde o sinal GPS...', {
-        description: 'A localização está a ser obtida'
-      });
-      return;
-    }
-
-    // Visual feedback immediately
     toast.info(`${emoji} A registar...`);
 
-    // Add marker to map immediately for instant visual feedback
-    const newMarker = { 
-      lat: currentPosition.lat, 
-      lng: currentPosition.lng, 
-      emoji, 
-      timestamp: new Date().toISOString() 
+    const newMarker = {
+      emoji,
+      timestamp: new Date().toISOString()
     };
-    
-    setPathMarkers(prev => {
-      console.log('📌 Adding marker:', newMarker);
-      return [...prev, newMarker];
-    });
 
-    // Create checkpoint in database
+    setPathMarkers(prev => [...prev, newMarker]);
+
     try {
       await base44.entities.WalkCheckpoint.create({
         booking_id: bookingId,
         walker_email: user.email,
         checkpoint_type: 'behavior_note',
-        latitude: currentPosition.lat,
-        longitude: currentPosition.lng,
         timestamp: new Date().toISOString(),
         notes: message,
       });
 
-      // Auto-send message to chat
       if (conversation?.id) {
         await sendMessageMutation.mutateAsync({ content: message, type: 'system' });
       }
 
-      toast.success(`📍 ${message}`, {
+      toast.success(`${emoji} ${message}`, {
         description: 'Evento registado com sucesso!'
       });
     } catch (err) {
       console.error('Event error:', err);
       toast.error('Erro ao registar evento');
-      // Remove marker on error
       setPathMarkers(prev => prev.filter(m => m.timestamp !== newMarker.timestamp));
     }
   };
@@ -366,24 +282,17 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      // Add marker
-      if (currentPosition) {
-        setPathMarkers(prev => [...prev, { 
-          lat: currentPosition.lat, 
-          lng: currentPosition.lng, 
-          emoji: '📷', 
-          timestamp: new Date().toISOString() 
-        }]);
-      }
+      setPathMarkers(prev => [...prev, {
+        emoji: '📷',
+        timestamp: new Date().toISOString()
+      }]);
 
-      // Create checkpoint
+      // Create checkpoint (sem coordenadas GPS)
       await base44.entities.WalkCheckpoint.create({
         booking_id: bookingId,
         walker_email: user.email,
         checkpoint_type: 'photo_update',
         photo_url: file_url,
-        latitude: currentPosition?.lat,
-        longitude: currentPosition?.lng,
         timestamp: new Date().toISOString(),
       });
 
@@ -568,11 +477,11 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             </div>
           </div>
 
-          {!currentPosition && (
-            <div className="mb-2 p-1.5 bg-blue-50 border border-blue-300 rounded-lg text-center">
-              <p className="text-[10px] font-bold text-blue-700 flex items-center justify-center gap-1">
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                GPS...
+          {booking?.status === 'in_progress' && (
+            <div className="mb-2 p-1.5 bg-emerald-50 border border-emerald-300 rounded-lg text-center">
+              <p className="text-[10px] font-bold text-emerald-700 flex items-center justify-center gap-1">
+                <div className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse"></div>
+                Passeio em curso
               </p>
             </div>
           )}
@@ -583,8 +492,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             <DropdownMenu open={isEventMenuOpen} onOpenChange={setIsEventMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <button
-                  disabled={!currentPosition}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full shadow-lg active:scale-95 transition-all ${!currentPosition ? 'opacity-50' : ''}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full shadow-lg active:scale-95 transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span className="text-xs font-bold">Evento</span>
@@ -637,7 +545,7 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
             </DropdownMenu>
 
             {/* Photo Button */}
-            <label className={`flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg active:scale-95 transition-all cursor-pointer ${!currentPosition ? 'opacity-50' : ''}`}>
+            <label className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-full shadow-lg active:scale-95 transition-all cursor-pointer">
               <Camera className="w-3.5 h-3.5" />
               <span className="text-xs font-bold">Foto</span>
               <input
@@ -646,7 +554,6 @@ export default function ActiveServiceCockpit({ bookingId, user }) {
                 capture="environment"
                 onChange={handlePhotoUpload}
                 className="hidden"
-                disabled={!currentPosition}
               />
             </label>
 
