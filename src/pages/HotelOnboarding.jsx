@@ -11,7 +11,7 @@ import {
   Phone, Building2, Clock, Users, PawPrint
 } from "lucide-react";
 import {
-  DOG_SIZES, AMENITIES, DOCUMENT_RULES,
+  DOG_SIZES, AMENITIES, DOCUMENT_RULES, ANIMALS,
   uploadFile, submitProfessionalProfile,
 } from "@/lib/professionalOnboarding";
 
@@ -46,6 +46,7 @@ export default function HotelOnboarding() {
       hotel_capacity_total: "5",
       hotel_amenities: [],
       hotel_accepted_sizes: ["small", "medium", "large"],
+      accepted_animals: ["dogs"],
       hotel_services: [
         { service_id: "boarding", service_name: "Alojamento", service_type: "boarding", capacity_total: 5, price_per_day: 25, is_active: true },
         { service_id: "daycare", service_name: "Creche Diária", service_type: "daycare", capacity_total: 5, price_per_day: 15, is_active: true },
@@ -112,6 +113,7 @@ export default function HotelOnboarding() {
         hotel_capacity_total: String(hd.capacity_total || 5),
         hotel_amenities: hd.amenities || [],
         hotel_accepted_sizes: hd.accepted_dog_sizes || ["small", "medium", "large"],
+        accepted_animals: existingProfile.accepted_animals || ["dogs"],
         hotel_services: hd.services?.length ? hd.services : prev.hotel_services,
         country_of_operation: existingProfile.country_of_operation || "portugal",
         tax_id_portugal: existingProfile.tax_id_portugal || "",
@@ -341,6 +343,19 @@ export default function HotelOnboarding() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1"><PawPrint className="w-3 h-3" /> Animais aceites</p>
+              <div className="grid grid-cols-2 gap-2">
+                {ANIMALS.map(a => (
+                  <button key={a.value} onClick={() => toggleArr("accepted_animals", a.value)} className={`flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all ${(form.accepted_animals || ["dogs"]).includes(a.value) ? "border-purple-500 bg-purple-500/10 text-white" : "border-slate-800 bg-slate-900 text-slate-400"}`}>
+                    <span className="text-lg">{a.icon}</span>
+                    <span className="text-sm font-bold">{a.label}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-500 mt-2">Se aceita exóticos (lontras, répteis, aves, etc.), selecione os tipos relevantes.</p>
             </div>
 
             <div>
