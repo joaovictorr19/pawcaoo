@@ -60,6 +60,61 @@ function BookingCard({ booking, onUpdate }) {
   const [showDenyForm, setShowDenyForm] = useState(false);
   const [alternativeAddress, setAlternativeAddress] = useState('');
   const [denyLoading, setDenyLoading] = useState(false);
+  const [meetingPointOpen, setMeetingPointOpen] = useState(false);
+  const [meetingPointText, setMeetingPointText] = useState('');
+  const [meetingPointSending, setMeetingPointSending] = useState(false);
+
+  const sendMeetingPoint = async () => {
+    if (!meetingPointText.trim()) {
+      toast.error("Escreva a morada ou ponto de encontro.");
+      return;
+    }
+    setMeetingPointSending(true);
+    try {
+      const hotelName = booking.hotel_name || 'Hotel';
+      const serviceLabel = SERVICE_LABELS[booking.service_type] || booking.service_type;
+      const msg = `📍 Ponto de encontro para a sua reserva de ${serviceLabel} (${booking.checkin_date || '—'}):\n\n${meetingPointText.trim()}\n\n— ${hotelName}`;
+      await base44.entities.Notification.create({
+        recipient_email: booking.owner_email,
+        title: `📍 Ponto de encontro — ${hotelName}`,
+        message: msg,
+        type: 'booking',
+        related_id: booking.id,
+        icon: '📍',
+      });
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: booking.owner_email,
+          subject: `📍 Ponto de encontro — ${hotelName} • ${serviceLabel}`,
+          body: `<div style="font-family:'Poppins',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+            <div style="background:linear-gradient(135deg,#0d9483,#207373);padding:24px;text-align:center;">
+              <h1 style="color:#fff;font-size:20px;margin:0;font-weight:800;">📍 Ponto de Encontro</h1>
+              <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:14px;">${hotelName}</p>
+            </div>
+            <div style="padding:24px;">
+              <p style="font-size:14px;color:#1e293b;margin:0 0 12px;">Olá <strong>${booking.owner_name || 'Cliente'}</strong>,</p>
+              <p style="font-size:14px;color:#1e293b;margin:0 0 16px;">O hotel indicou o seguinte ponto de encontro para a sua reserva de <strong>${serviceLabel}</strong> em <strong>${booking.checkin_date || '—'}</strong>:</p>
+              <div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:12px;margin:16px 0;">
+                <p style="font-size:14px;color:#065f46;margin:0;font-weight:600;white-space:pre-line;">${meetingPointText.trim().replace(/</g,'&lt;')}</p>
+              </div>
+              <p style="font-size:13px;color:#64748b;margin:0;">Contacte o hotel se tiver dúvidas. PawCão</p>
+            </div>
+            <div style="background:#f1f5f9;padding:16px;text-align:center;font-size:12px;color:#64748b;">PawCão • Ponto de encontro enviado pelo hotel</div>
+          </div>`,
+          from_name: `${hotelName} — PawCão`,
+        });
+      } catch (emailErr) {
+        console.warn('Email falhou (notificação criada):', emailErr?.message);
+      }
+      toast.success("Ponto de encontro enviado ao cliente.");
+      setMeetingPointText('');
+      setMeetingPointOpen(false);
+    } catch (err) {
+      toast.error("Erro ao enviar: " + err.message);
+    } finally {
+      setMeetingPointSending(false);
+    }
+  };
 
   const handleNoShow = async () => {
     if (!confirm(`Marcar como no-show?\n\nO cliente será reembolsado de 40% do valor.`)) return;
@@ -335,6 +390,42 @@ function BookingCard({ booking, onUpdate }) {
                   </div>
                 </div>
               )}
+
+              {/* Send meeting point / address to client */}
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-2.5">
+                <button
+                  className="w-full flex items-center justify-between text-left"
+                  onClick={() => setMeetingPointOpen(o => !o)}
+                >
+                  <span className="text-[11px] font-bold text-teal-700 uppercase tracking-wide flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> Enviar ponto de encontro ao cliente
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-teal-400 transition-transform ${meetingPointOpen ? "rotate-180" : ""}`} />
+                </button>
+                {meetingPointOpen && (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-[10px] text-teal-700">Indique a morada ou ponto de encontro onde o cliente deve levar/recolher o animal.</p>
+                    <textarea
+                      value={meetingPointText}
+                      onChange={(e) => setMeetingPointText(e.target.value)}
+                      placeholder="Ex: Hotel Canino Lisboa, Rua das Flores 12, ou Estação de comboio de Cascais..."
+                      rows={2}
+                      className="w-full p-2 rounded-lg border border-teal-200 bg-white text-slate-900 text-xs focus:border-teal-400 focus:outline-none resize-none"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" className="flex-1 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs"
+                        disabled={meetingPointSending}
+                        onClick={sendMeetingPoint}>
+                        {meetingPointSending ? "A enviar..." : "Enviar ao cliente"}
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-8 border-teal-200 text-teal-700 hover:bg-teal-50 rounded-lg text-xs"
+                        onClick={() => { setMeetingPointOpen(false); setMeetingPointText(''); }}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Price proposal section — grooming only */}
               {booking.service_type === 'grooming' && (
