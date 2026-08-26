@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Package, Home, Loader2 } from "lucide-react";
+import { CheckCircle2, Package, Home, Loader2, Building2, Scissors, CalendarCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -294,16 +294,42 @@ export default function CheckoutSuccess() {
               </div>
             )}
 
-            {/* Next Steps */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
-              <h3 className="font-semibold text-gray-900 mb-2">📱 Como funciona o serviço?</h3>
-              <ol className="text-sm text-gray-700 space-y-2 list-decimal list-inside">
-                <li>O profissional chega e escaneia o <strong>QR de Início</strong></li>
-                <li>O serviço decorre normalmente</li>
-                <li>No fim, mostre o <strong>QR de Fim</strong> ao profissional</li>
-                <li>Após scan, o pagamento é automaticamente liberado</li>
-              </ol>
-            </div>
+            {/* Next Steps — diferenciado por tipo de serviço */}
+            {sessionDetails?.isHotel ? (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-blue-600" /> Como funciona a reserva no hotel?
+                </h3>
+                <ol className="text-sm text-gray-700 space-y-2 list-decimal list-inside mb-3">
+                  <li>O <strong>hotel recebe a reserva</strong> e vai <strong>aceitar ou recusar</strong> em breve.</li>
+                  <li>Receberá uma notificação assim que o hotel confirmar a disponibilidade.</li>
+                  <li>No dia combinado, dirija-se ao hotel para o check-in do seu animal.</li>
+                </ol>
+                {sessionDetails?.serviceType === 'grooming' && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-3">
+                    <p className="text-sm font-semibold text-purple-800 flex items-center gap-1.5 mb-1.5">
+                      <Scissors className="w-4 h-4" /> Banho & Tosquias — análise de preço
+                    </p>
+                    <p className="text-xs text-purple-700 leading-relaxed mb-2">
+                      O valor pago agora é <strong>provisório</strong>. O hotel analisa o perfil e fotos do seu animal (pelagem, tamanho, raça) e pode propor um ajuste de preço. Se o fizer, recebe uma notificação e decide se <strong>aceita</strong> ou <strong>recusa</strong> a proposta.
+                    </p>
+                    <Link to="/PriceProposals" className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-900 underline">
+                      <CalendarCheck className="w-3.5 h-3.5" /> Ver propostas de preço
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mb-8">
+                <h3 className="font-semibold text-gray-900 mb-2">📱 Como funciona o serviço?</h3>
+                <ol className="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+                  <li>O profissional chega e escaneia o <strong>QR de Início</strong></li>
+                  <li>O serviço decorre normalmente</li>
+                  <li>No fim, mostre o <strong>QR de Fim</strong> ao profissional</li>
+                  <li>Após scan, o pagamento é automaticamente liberado</li>
+                </ol>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
