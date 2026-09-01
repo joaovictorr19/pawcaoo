@@ -83,6 +83,27 @@ export default function ProfileEditRequests() {
         admin_notes: 'Aprovado e aplicado',
       });
 
+      // Sincronizar cidade/nome aprovados com o UserProfile do profissional
+      // (caso contrário a página de perfil do utilizador mostra dados desatualizados)
+      try {
+        const email = request.professional_email;
+        const newName = changes.walker_name || changes.trainer_name;
+        const newCity = changes.location;
+        if (email && (newName || newCity)) {
+          const profiles = await base44.entities.UserProfile.filter({ user_email: email });
+          if (profiles.length > 0) {
+            const upd = {};
+            if (newCity) upd.city = newCity;
+            if (newName) upd.full_name = newName;
+            if (Object.keys(upd).length > 0) {
+              await base44.entities.UserProfile.update(profiles[0].id, upd);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Sync UserProfile (city/name) falhou:', e?.message);
+      }
+
       // Notificar o profissional (separado para não falhar a mutação)
       try {
         await base44.entities.Notification.create({
@@ -103,6 +124,8 @@ export default function ProfileEditRequests() {
       queryClient.invalidateQueries(['allTrainersAdmin']);
       queryClient.invalidateQueries(['walkers']);
       queryClient.invalidateQueries(['trainers']);
+      queryClient.invalidateQueries(['currentUser']);
+      queryClient.invalidateQueries(['profileUser']);
       setSelectedRequest(null);
     },
     onError: (error) => {
