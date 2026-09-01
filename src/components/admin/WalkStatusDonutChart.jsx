@@ -65,10 +65,10 @@ export default function WalkStatusDonutChart({ bookings = [], isLoading = false 
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip 
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              <Tooltip
+                contentStyle={{ borderRadius: '8px', border: 'none', background: '#ffffff', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
               />
-              <Legend verticalAlign="bottom" height={36}/>
+              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#334155' }}/>
             </PieChart>
           </ResponsiveContainer>
         ) : (

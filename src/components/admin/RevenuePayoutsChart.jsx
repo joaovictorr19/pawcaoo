@@ -58,12 +58,12 @@ export default function RevenuePayoutsChart({ payments = [], isLoading = false }
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
             <YAxis axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} tickFormatter={(value) => `€${value}`} />
-            <Tooltip 
+            <Tooltip
               formatter={(value) => [`€${value}`, '']}
-              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              contentStyle={{ borderRadius: '8px', border: 'none', background: '#ffffff', color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
               cursor={{ fill: '#f3f4f6' }}
             />
-            <Legend wrapperStyle={{ paddingTop: '10px' }}/>
+            <Legend wrapperStyle={{ paddingTop: '10px', color: '#334155' }}/>
             <Bar dataKey="revenue" name={language === 'pt' ? 'Faturamento Total' : 'Total Revenue'} fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={30} />
             <Bar dataKey="payouts" name={language === 'pt' ? 'Repasses (Walkers)' : 'Payouts (Walkers)'} fill="#22c55e" radius={[4, 4, 0, 0]} barSize={30} />
           </BarChart>
