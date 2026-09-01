@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
-import { getEffectiveCommissionRate, resolveOrigin } from '../../shared/hotelPricing.ts';
+import { computeHotelPayoutSplit, resolveOrigin } from '../../shared/hotelPricing.ts';
 
 export default async function(req) {
   try {
@@ -11,7 +11,10 @@ export default async function(req) {
     const { booking_id, proposed_amount, justification, action } = body;
 
     if (!booking_id) return Response.json({ error: 'booking_id obrigatório' }, { status: 400 });
-    if (!proposed_amount || proposed_amount <= 0) return Response.json({ error: 'Valor proposto inválido' }, { status: 400 });
+    // "Sem ajuste" não precisa de valor — só valida proposed_amount quando o hotel propõe um novo preço
+    if (action !== 'no_adjustment' && (!proposed_amount || proposed_amount <= 0)) {
+      return Response.json({ error: 'Valor proposto inválido' }, { status: 400 });
+    }
 
     // Fetch booking
     const bookings = await base44.asServiceRole.entities.HotelBooking.filter({ id: booking_id });
@@ -41,21 +44,10 @@ export default async function(req) {
     if (!hotelProfiles || hotelProfiles.length === 0) return Response.json({ error: 'Hotel não encontrado' }, { status: 404 });
     const hotel = hotelProfiles[0];
 
-    const commissionRate = getEffectiveCommissionRate(hotel);
-
-    const commissionBorneBy = hotel.commission_borne_by || 'hotel';
     // Calculate transport fee — keep existing transport fee
     const transportFee = booking.transport_price || 0;
-    const proposedServiceBase = Math.max(0, proposedAmount - transportFee);
-    const platformFee = Math.round(proposedServiceBase * (commissionRate / 100) * 100) / 100;
-    let newTotalAmount, newServiceAmount;
-    if (commissionBorneBy === 'client') {
-      newTotalAmount = Math.round((proposedServiceBase + platformFee + transportFee) * 100) / 100;
-      newServiceAmount = Math.round((proposedServiceBase + transportFee) * 100) / 100;
-    } else {
-      newTotalAmount = Math.round((proposedServiceBase + transportFee) * 100) / 100;
-      newServiceAmount = Math.round((proposedServiceBase - platformFee + transportFee) * 100) / 100;
-    }
+    const { totalAmount: newTotalAmount, serviceAmount: newServiceAmount, platformFee } =
+      computeHotelPayoutSplit(hotel, proposedAmount, transportFee);
 
     // Update booking with proposal
     const updateData = {

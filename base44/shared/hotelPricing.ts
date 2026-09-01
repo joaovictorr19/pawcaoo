@@ -63,6 +63,28 @@ export function calcGroomingTotal(service, dogs) {
 }
 
 /**
+ * Compute the commission split for a hotel booking given a desired total
+ * (what the hotel wants the client to pay for the service, before client-borne
+ * commission). Returns totalAmount (what client pays), serviceAmount (what
+ * hotel receives), and platformFee (platform commission).
+ */
+export function computeHotelPayoutSplit(hotel, desiredTotal, transportFee = 0) {
+  const commissionRate = getEffectiveCommissionRate(hotel);
+  const commissionBorneBy = hotel.commission_borne_by || 'hotel';
+  const serviceBase = Math.max(0, (desiredTotal || 0) - (transportFee || 0));
+  const platformFee = Math.round(serviceBase * (commissionRate / 100) * 100) / 100;
+  let totalAmount, serviceAmount;
+  if (commissionBorneBy === 'client') {
+    totalAmount = Math.round((serviceBase + platformFee + transportFee) * 100) / 100;
+    serviceAmount = Math.round((serviceBase + transportFee) * 100) / 100;
+  } else {
+    totalAmount = Math.round((serviceBase + transportFee) * 100) / 100;
+    serviceAmount = Math.round((serviceBase - platformFee + transportFee) * 100) / 100;
+  }
+  return { totalAmount, serviceAmount, platformFee, commissionBorneBy };
+}
+
+/**
  * Restore or reserve hotel capacity for a service type.
  * direction: 'reserve' (subtract) or 'restore' (add back)
  */

@@ -668,6 +668,103 @@ async function handleCheckoutCompleted(base44, session) {
         return;
     }
 
+    // ── HOTEL PRICE ADJUSTMENT: complemento após análise (booking já pago) ──
+    if (session.metadata?.type === 'hotel_price_adjustment') {
+        const hotelBookingId = session.metadata?.hotel_booking_id;
+        if (hotelBookingId) {
+            try {
+                const hotelBookings = await base44.asServiceRole.entities.HotelBooking.filter({ id: hotelBookingId });
+                if (hotelBookings.length > 0) {
+                    const hb = hotelBookings[0];
+                    const adjustmentAmount = parseFloat(session.metadata?.adjustment_amount) || 0;
+                    const additionalServiceAmount = parseFloat(session.metadata?.additional_service_amount) || 0;
+                    const additionalPlatformFee = parseFloat(session.metadata?.additional_platform_fee) || 0;
+
+                    // Confirmar pagamento final da reserva (mantém payment_status='paid')
+                    await base44.asServiceRole.entities.HotelBooking.update(hotelBookingId, {
+                        payment_status: 'paid',
+                        stripe_payment_intent_id: session.payment_intent || hb.stripe_payment_intent_id || '',
+                    });
+                    console.log('✅ Hotel price adjustment complement paid:', hotelBookingId, 'complement €' + adjustmentAmount);
+
+                    // Creditar ao hotel apenas o delta do valor do serviço (pendente)
+                    if (hb.hotel_email && additionalServiceAmount > 0) {
+                        try {
+                            const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: hb.hotel_email });
+                            let wallet = wallets[0];
+                            if (!wallet) {
+                                wallet = await base44.asServiceRole.entities.UserWallet.create({
+                                    user_email: hb.hotel_email,
+                                    cashback_balance: 0, service_tokens: 0, total_points: 0,
+                                    available_balance: 0, pending_balance: 0, total_earnings: 0
+                                });
+                            }
+                            const newPending = (wallet.pending_balance || 0) + additionalServiceAmount;
+                            const newTotalEarnings = (wallet.total_earnings || 0) + additionalServiceAmount;
+                            await base44.asServiceRole.entities.UserWallet.update(wallet.id, {
+                                pending_balance: newPending,
+                                total_earnings: newTotalEarnings
+                            });
+                            await base44.asServiceRole.entities.WalletTransaction.create({
+                                user_email: hb.hotel_email,
+                                transaction_type: 'walker_payment_pending',
+                                amount: additionalServiceAmount,
+                                description: `Complemento de preço — ${hb.hotel_name || 'hotel'} (${hb.checkin_date})`,
+                                related_booking_id: hotelBookingId,
+                                balance_after: newPending
+                            });
+                        } catch (e) {
+                            console.error('Error crediting hotel wallet (price adjustment):', e);
+                        }
+                    }
+
+                    // Registar comissão adicional no cofre da plataforma
+                    if (additionalPlatformFee > 0) {
+                        try {
+                            await base44.asServiceRole.entities.PlatformRevenue.create({
+                                revenue_type: 'commission',
+                                source_id: hotelBookingId,
+                                user_email: hb.hotel_email || '',
+                                gross_amount: adjustmentAmount,
+                                cost_amount: additionalServiceAmount,
+                                net_profit: additionalPlatformFee,
+                                description: `Comissão complemento ajuste preço — ${hb.hotel_name || ''} (${hb.checkin_date})`,
+                                period_month: new Date().toISOString().slice(0, 7),
+                            });
+                        } catch (e) {
+                            console.error('PlatformRevenue (price adjustment) error:', e);
+                        }
+                    }
+
+                    // Notificar hotel e cliente
+                    try {
+                        await base44.asServiceRole.entities.Notification.create({
+                            recipient_email: hb.hotel_email,
+                            title: '✅ Complemento de Preço Pago',
+                            message: `${hb.owner_name} pagou o complemento de €${adjustmentAmount.toFixed(2)}. Total da reserva atualizado para €${(hb.total_amount || 0).toFixed(2)}.`,
+                            type: 'payment',
+                            related_id: hotelBookingId,
+                            icon: '✅'
+                        });
+                        await base44.asServiceRole.entities.Notification.create({
+                            recipient_email: hb.owner_email,
+                            title: '✅ Ajuste de Preço Confirmado',
+                            message: `O complemento de €${adjustmentAmount.toFixed(2)} foi processado. A sua reserva no ${hb.hotel_name || 'hotel'} está confirmada.`,
+                            type: 'payment',
+                            related_id: hotelBookingId,
+                            icon: '✅'
+                        });
+                    } catch (e) {
+                        console.error('Notification error (price adjustment):', e);
+                    }
+                }
+            } catch (e) {
+                console.error('Error processing hotel price adjustment payment:', e);
+            }
+        }
+        return;
+    }
+
     // ── HOTEL ADD-ON: marcar como pago e creditar hotel com valor líquido ──
     if (session.metadata?.type === 'hotel_addon') {
         const hotelBookingId = session.metadata?.booking_id;
@@ -1249,6 +1346,26 @@ async function adjustHotelCapacity(base44, hotelProfileId, serviceType, delta) {
 
 async function handleChargeRefunded(base44, charge) {
     const paymentIntentId = charge.payment_intent;
+
+    // ── Reembolso de ajuste de preço (preço reduzido em reserva já paga): NÃO cancelar ──
+    const refundMetadata = charge.refunds?.data?.[0]?.metadata || {};
+    if (refundMetadata.type === 'price_adjustment_refund') {
+        const hotelBookingId = refundMetadata.hotel_booking_id;
+        if (hotelBookingId) {
+            try {
+                const hotelBookings = await base44.asServiceRole.entities.HotelBooking.filter({ id: hotelBookingId });
+                if (hotelBookings.length > 0) {
+                    const hb = hotelBookings[0];
+                    // A reserva continua ativa; apenas garantir que o total reflete o valor reduzido
+                    // (o total_amount já foi atualizado pelo respondPriceProposal)
+                    console.log('✅ Price adjustment refund processed (no cancellation):', hotelBookingId);
+                }
+            } catch (e) {
+                console.error('Error handling price adjustment refund:', e);
+            }
+        }
+        return;
+    }
 
     // ── Hotel booking refund: restaurar vagas ──
     const hotelBookings = await base44.asServiceRole.entities.HotelBooking.filter({

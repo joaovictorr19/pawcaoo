@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.14.0';
-import { resolveOrigin, adjustHotelCapacity } from '../../shared/hotelPricing.ts';
+import { resolveOrigin, adjustHotelCapacity, computeHotelPayoutSplit } from '../../shared/hotelPricing.ts';
 
 export default async function(req) {
   try {
@@ -61,7 +61,7 @@ export default async function(req) {
       return Response.json({ success: true, action: 'rejected', booking_id });
     }
 
-    // ── ACCEPT: create Stripe checkout with proposed price ──
+    // ── ACCEPT: handle payment based on prior payment status ──
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 
     // Get or create Stripe customer
@@ -78,19 +78,17 @@ export default async function(req) {
       customerId = customer.id;
     }
 
-    // Validate Origin
     const origin = resolveOrigin(req);
 
-    const safeTotalAmount = booking.total_amount || booking.proposed_amount || 0;
-    if (safeTotalAmount <= 0) {
+    const newTotalAmount = booking.total_amount || booking.proposed_amount || 0;
+    if (newTotalAmount <= 0) {
       return Response.json({ error: 'Valor da reserva inválido' }, { status: 400 });
     }
 
-    // Mark as accepted
-    await base44.asServiceRole.entities.HotelBooking.update(booking_id, {
-      price_proposal_status: 'accepted',
-      payment_expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-    });
+    // ── Determine amount already paid (booking já pago → cobrar só a diferença) ──
+    const isAlreadyPaid = booking.payment_status === 'paid';
+    const alreadyPaidAmount = isAlreadyPaid ? (booking.original_amount || booking.total_amount || 0) : 0;
+    const difference = Math.round((newTotalAmount - alreadyPaidAmount) * 100) / 100;
 
     const SERVICE_LABELS = {
       boarding: "Alojamento", daycare: "Creche Diurna", grooming: "Grooming",
@@ -102,6 +100,92 @@ export default async function(req) {
       ? `${booking.checkin_date} → ${booking.checkout_date}`
       : booking.checkin_date;
 
+    // Recompute the original payout split (para calcular deltas a creditar ao hotel/plataforma)
+    let additionalServiceAmount = 0;
+    let additionalPlatformFee = 0;
+    if (isAlreadyPaid) {
+      try {
+        const hotelProfiles = await base44.asServiceRole.entities.WalkerProfile.filter({ id: booking.hotel_profile_id });
+        const hotel = hotelProfiles[0];
+        if (hotel) {
+          const transportFee = booking.transport_price || 0;
+          const origSplit = computeHotelPayoutSplit(hotel, alreadyPaidAmount, transportFee);
+          additionalServiceAmount = Math.max(0, Math.round(((booking.service_amount || 0) - origSplit.serviceAmount) * 100) / 100);
+          additionalPlatformFee = Math.max(0, Math.round(((booking.platform_fee || 0) - origSplit.platformFee) * 100) / 100);
+        }
+      } catch (e) {
+        console.error('Error computing payout deltas:', e.message);
+      }
+    }
+
+    // Mark as accepted (só define payment_expires_at se ainda não foi pago)
+    const acceptUpdate = { price_proposal_status: 'accepted' };
+    if (!isAlreadyPaid) {
+      acceptUpdate.payment_expires_at = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    }
+    await base44.asServiceRole.entities.HotelBooking.update(booking_id, acceptUpdate);
+
+    // ── CASE A: booking já pago e novo preço é MENOR → reembolsar a diferença automaticamente ──
+    if (isAlreadyPaid && difference < 0) {
+      const refundAmount = Math.round((alreadyPaidAmount - newTotalAmount) * 100) / 100;
+      try {
+        const refund = await stripe.refunds.create({
+          payment_intent: booking.stripe_payment_intent_id || '',
+          amount: Math.round(refundAmount * 100),
+          reason: 'requested_by_customer',
+          metadata: { hotel_booking_id: booking_id, type: 'price_adjustment_refund' },
+        });
+
+        try {
+          await base44.asServiceRole.entities.Notification.create({
+            recipient_email: booking.hotel_email,
+            title: 'Proposta de Preço Aceite (valor reduzido)',
+            message: `${booking.owner_name} aceitou a proposta. Foi processado um reembolso de €${refundAmount.toFixed(2)} ao cliente. Novo total: €${newTotalAmount.toFixed(2)}.`,
+            type: 'booking',
+            related_id: booking_id,
+            icon: '✓'
+          });
+          await base44.asServiceRole.entities.Notification.create({
+            recipient_email: booking.owner_email,
+            title: 'Proposta Aceite — Reembolso da Diferença',
+            message: `Aceitou a proposta de preço do ${booking.hotel_name || 'hotel'}. O novo valor é €${newTotalAmount.toFixed(2)} e foi processado um reembolso de €${refundAmount.toFixed(2)} da diferença.`,
+            type: 'payment',
+            related_id: booking_id,
+            icon: '🔄'
+          });
+        } catch (notifErr) {
+          console.error('Notification error:', notifErr.message);
+        }
+
+        return Response.json({ success: true, action: 'accepted_refunded', refund_amount: refundAmount, refund_id: refund.id, booking_id });
+      } catch (refundErr) {
+        console.error('Auto-refund (price decrease) failed:', refundErr.message);
+        return Response.json({ error: 'Não foi possível processar o reembolso da diferença: ' + refundErr.message }, { status: 500 });
+      }
+    }
+
+    // ── CASE B: booking já pago e novo preço é MAIOR → checkout só da diferença ──
+    // ── CASE C: ainda não pago → checkout do total novo ──
+    const isAdjustment = isAlreadyPaid && difference > 0;
+    const chargeAmount = isAdjustment ? difference : newTotalAmount;
+
+    if (chargeAmount <= 0) {
+      // Sem valor a cobrar (ex.: novo preço igual ao já pago) — apenas confirmar
+      try {
+        await base44.asServiceRole.entities.Notification.create({
+          recipient_email: booking.hotel_email,
+          title: 'Proposta de Preço Aceite',
+          message: `${booking.owner_name} aceitou a proposta de preço para a reserva de ${booking.checkin_date}. Valor confirmado: €${newTotalAmount.toFixed(2)}.`,
+          type: 'booking',
+          related_id: booking_id,
+          icon: '✓'
+        });
+      } catch (notifErr) {
+        console.error('Notification error:', notifErr.message);
+      }
+      return Response.json({ success: true, action: 'accepted', booking_id });
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -112,24 +196,30 @@ export default async function(req) {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `${serviceLabel} — ${booking.hotel_name}`,
-              description: `${dogNames} · ${dateRange}${booking.total_nights > 1 ? ` (${booking.total_nights} noites)` : ''} · Preço ajustado após análise do perfil`,
+              name: isAdjustment ? `Complemento de Preço — ${serviceLabel}` : `${serviceLabel} — ${booking.hotel_name}`,
+              description: isAdjustment
+                ? `Complemento de €${difference.toFixed(2)} após análise do perfil (${dogNames} · ${dateRange})`
+                : `${dogNames} · ${dateRange}${booking.total_nights > 1 ? ` (${booking.total_nights} noites)` : ''} · Preço ajustado após análise do perfil`,
             },
-            unit_amount: Math.round(safeTotalAmount * 100),
+            unit_amount: Math.round(chargeAmount * 100),
           },
           quantity: 1,
         },
       ],
       metadata: {
-        type: 'hotel_booking',
+        type: isAdjustment ? 'hotel_price_adjustment' : 'hotel_booking',
         hotel_booking_id: booking_id,
         hotel_profile_id: booking.hotel_profile_id,
         hotel_email: booking.hotel_email || '',
         owner_email: user.email,
         service_type: booking.service_type,
-        total_amount: safeTotalAmount.toString(),
+        total_amount: newTotalAmount.toString(),
         platform_fee: (booking.platform_fee || 0).toString(),
         service_amount: (booking.service_amount || 0).toString(),
+        already_paid: alreadyPaidAmount.toString(),
+        adjustment_amount: isAdjustment ? difference.toString() : '0',
+        additional_service_amount: additionalServiceAmount.toString(),
+        additional_platform_fee: additionalPlatformFee.toString(),
       },
       payment_intent_data: {
         capture_method: 'automatic',
@@ -137,6 +227,7 @@ export default async function(req) {
           hotel_booking_id: booking_id,
           hotel_email: booking.hotel_email || '',
           booking_type: 'hotel',
+          price_adjustment: isAdjustment ? 'true' : 'false',
         }
       },
       success_url: `${origin}/CheckoutSuccess?session_id={CHECKOUT_SESSION_ID}&type=hotel_booking&booking_id=${booking_id}`,
@@ -146,10 +237,13 @@ export default async function(req) {
 
     // Notify hotel that client accepted
     try {
+      const notifMsg = isAdjustment
+        ? `${booking.owner_name} aceitou a proposta de preço. Aguarda o pagamento do complemento de €${difference.toFixed(2)} (total: €${newTotalAmount.toFixed(2)}).`
+        : `${booking.owner_name} aceitou a proposta de preço de €${newTotalAmount.toFixed(2)} para a reserva de ${booking.checkin_date}. Aguardar pagamento.`;
       await base44.asServiceRole.entities.Notification.create({
         recipient_email: booking.hotel_email,
         title: 'Proposta de Preço Aceite',
-        message: `${booking.owner_name} aceitou a proposta de preço de €${safeTotalAmount.toFixed(2)} para a reserva de ${booking.checkin_date}. Aguardar pagamento.`,
+        message: notifMsg,
         type: 'booking',
         related_id: booking_id,
         icon: '✓'
