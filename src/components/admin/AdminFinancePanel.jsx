@@ -2,14 +2,13 @@ import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-  BarChart, Bar, Cell
 } from "recharts";
 import { base44 } from "@/api/base44Client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
   Euro, Percent, Wallet, TrendingDown, TrendingUp, RefreshCw, Users,
-  Receipt, Banknote, ChevronRight, ArrowDownRight, Package
+  Receipt, Banknote, ArrowDownRight, Package,
 } from "lucide-react";
 import { format, isAfter, subMonths, startOfMonth } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -18,6 +17,7 @@ import CompanyVaultPanel from "./CompanyVaultPanel";
 import AdminHotelCommissionManager from "./AdminHotelCommissionManager";
 import AdminAddonCommissionManager from "./AdminAddonCommissionManager";
 import AdminWithdrawalsPanel from "./AdminWithdrawalsPanel";
+import AdminHotelPayoutsPanel from "./AdminHotelPayoutsPanel";
 
 const euro = (v) =>
   (v || 0).toLocaleString("pt-PT", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -85,7 +85,6 @@ export default function AdminFinancePanel() {
     const totalProEarnings = valid.reduce((s, p) => s + (p.service_amount || 0), 0);
     const totalRefunded = payments.filter((p) => p.status === "refunded").reduce((s, p) => s + (p.refund_amount || 0), 0);
 
-    // Monthly breakdown
     const monthlyMap = {};
     valid.forEach((p) => {
       const date = p.held_date ? new Date(p.held_date) : new Date(p.created_date || Date.now());
@@ -99,7 +98,6 @@ export default function AdminFinancePanel() {
     });
     const monthly = Object.values(monthlyMap).sort((a, b) => a.key.localeCompare(b.key));
 
-    // This month vs last month for trend
     const thisMonthStart = startOfMonth(new Date());
     const lastMonthStart = startOfMonth(subMonths(new Date(), 1));
     const thisMonthRev = valid.filter(p => {
@@ -112,7 +110,6 @@ export default function AdminFinancePanel() {
     }).reduce((s, p) => s + (p.total_amount || 0), 0);
     const trendPct = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev * 100) : (thisMonthRev > 0 ? 100 : 0);
 
-    // Per-professional earnings
     const proMap = {};
     valid.forEach((p) => {
       const email = p.recipient_email || "desconhecido";
@@ -123,10 +120,9 @@ export default function AdminFinancePanel() {
     });
     const professionals = Object.values(proMap).sort((a, b) => b.total - a.total);
 
-    // Recent transactions
     const recent = [...payments].slice(0, 8);
 
-    return { totalRevenue, totalPlatformFees, totalProEarnings, totalRefunded, monthly, professionals, txCount: valid.length, trendPct, thisMonthRev, recent };
+    return { totalRevenue, totalPlatformFees, totalProEarnings, totalRefunded, monthly, professionals, txCount: valid.length, trendPct, recent };
   }, [payments]);
 
   if (isLoading) {
@@ -177,9 +173,6 @@ export default function AdminFinancePanel() {
 
   return (
     <div className="space-y-5">
-      {/* Company Vault */}
-      <CompanyVaultPanel />
-
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
@@ -265,7 +258,6 @@ export default function AdminFinancePanel() {
             </ResponsiveContainer>
           )}
 
-          {/* Legend */}
           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100">
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-emerald-500" />
@@ -381,9 +373,25 @@ export default function AdminFinancePanel() {
         )}
       </div>
 
-      {/* Two-column: Commissions + Withdrawals */}
+      {/* Operations Row — Transfer payouts + Withdrawals */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Hotel Commissions */}
+        <AdminHotelPayoutsPanel />
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2 mb-4 px-1">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+              <Banknote className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Gestão de Saques</h3>
+              <p className="text-[10px] text-slate-400">Aprovar, rejeitar ou pagar levantamentos</p>
+            </div>
+          </div>
+          <AdminWithdrawalsPanel />
+        </div>
+      </div>
+
+      {/* Commissions Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
@@ -397,7 +405,6 @@ export default function AdminFinancePanel() {
           <AdminHotelCommissionManager />
         </div>
 
-        {/* Add-on Products & Services Commission */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
@@ -410,21 +417,10 @@ export default function AdminFinancePanel() {
           </div>
           <AdminAddonCommissionManager />
         </div>
-
-        {/* Withdrawals */}
-        <div>
-          <div className="flex items-center gap-2 mb-4 px-1">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Banknote className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900">Gestão de Saques</h3>
-              <p className="text-[10px] text-slate-400">Aprovar, rejeitar ou pagar levantamentos</p>
-            </div>
-          </div>
-          <AdminWithdrawalsPanel />
-        </div>
       </div>
+
+      {/* Company Vault — at the bottom */}
+      <CompanyVaultPanel />
     </div>
   );
 }

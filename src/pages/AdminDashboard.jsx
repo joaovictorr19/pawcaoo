@@ -47,7 +47,6 @@ import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
 import AdminProfessionalsPanel from "../components/admin/AdminProfessionalsPanel";
 import AdminReportsPanel from "../components/admin/AdminReportsPanel";
 import AdminFinancePanel from "../components/admin/AdminFinancePanel";
-import AdminHotelPayoutsPanel from "../components/admin/AdminHotelPayoutsPanel";
 import ImpersonateDialog from "../components/admin/ImpersonateDialog";
 import BackButton from "@/components/ui/BackButton";
 import "@/components/admin/admin-dashboard.css";
@@ -1155,8 +1154,7 @@ export default function AdminDashboard() {
 
           <TabsContent value="financeiro">
             {activeTab === 'financeiro' && (
-              <div className="mt-6 space-y-6">
-                <AdminHotelPayoutsPanel />
+              <div className="mt-6">
                 <AdminFinancePanel />
               </div>
             )}
