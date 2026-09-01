@@ -9,6 +9,7 @@ import {
   Send, X, Loader2, Camera, Smile, CheckCircle2, Check,
   PawPrint, Mail, Bell, Image as ImageIcon, Users,
 } from "lucide-react";
+import { buildDailyReportEmail } from "@/lib/hotelDailyReportEmail";
 
 const MOOD_OPTS = [
   { key: "happy", label: "Feliz", emoji: "😊" },
@@ -112,7 +113,6 @@ export default function HotelBulkMessagePanel({ hotelProfile, bookings }) {
     for (const booking of selectedBookings) {
       try {
         const dogNames = (booking.dogs || []).map(d => d.dog_name).join(" & ") || "animal";
-        const tagLine = tags.length > 0 ? tags.map(t => `• ${t}`).join("\n") : "";
         const photoCount = uploadedUrls.length;
 
         // 1. Store daily report entry
@@ -159,31 +159,23 @@ export default function HotelBulkMessagePanel({ hotelProfile, bookings }) {
             console.warn("Notification creation failed:", notifErr);
           }
 
-          // 3. Email
+          // 3. Email (template profissional PawCão)
           try {
-            const tagsHtml = tagLine
-              ? `<div style="background:#faf5ff;border-radius:8px;padding:12px;margin:12px 0;"><p style="font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;margin:0 0 8px;">📋 Observações</p>${tags.map(t => `<p style="font-size:13px;color:#374151;margin:2px 0;">• ${t}</p>`).join("")}</div>`
-              : "";
+            const { subject: emailSubject, body: emailBody } = buildDailyReportEmail({
+              hotelName,
+              ownerName: booking.owner_name || "Cliente",
+              dogNames,
+              datePt: format(now, "dd/MM/yyyy"),
+              moodEmoji: moodMeta?.emoji,
+              moodLabel: moodMeta?.label,
+              tags,
+              note: note.trim(),
+              photoUrls: uploadedUrls,
+            });
             await base44.integrations.Core.SendEmail({
               to: booking.owner_email,
-              subject: `📓 Diário do ${dogNames} — ${format(now, "dd/MM/yyyy")}`,
-              body: `
-                <div style="font-family:sans-serif;max-width:540px;margin:auto;">
-                  <div style="background:#7c3aed;padding:20px;border-radius:12px 12px 0 0;text-align:center;">
-                    <h2 style="color:#fff;margin:0">🐾 Atualização do Hotel</h2>
-                    <p style="color:#e9d5ff;margin:4px 0 0">${dogNames} · ${format(now, "dd/MM/yyyy")} · ${hotelName}</p>
-                  </div>
-                  <div style="background:#fff;padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;">
-                    <p style="font-size:14px;color:#6b7280;">${moodMeta?.emoji} <strong>${moodMeta?.label}</strong></p>
-                    ${tagsHtml}
-                    ${note.trim() ? `<p style="color:#374151;font-size:15px;font-style:italic;">"${note.trim()}"</p>` : ""}
-                    ${photoCount > 0 ? `<p style="color:#7c3aed;font-size:13px;">📸 ${photoCount} foto(s) anexada(s)</p>` : ""}
-                    ${uploadedUrls.map(u => `<img src="${u}" style="width:100%;border-radius:8px;margin-top:8px;" />`).join("")}
-                    <hr style="border:none;border-top:1px solid #f3f4f6;margin:20px 0"/>
-                    <p style="color:#9ca3af;font-size:12px;text-align:center;">Enviado com ♥ pelo ${hotelName}</p>
-                  </div>
-                </div>
-              `,
+              subject: emailSubject,
+              body: emailBody,
             });
           } catch (emailErr) {
             console.warn("Email send failed:", emailErr);
