@@ -6,19 +6,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ShieldAlert, Home, Building2, BarChart3, Calendar, User, Wallet, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 
 const DESTINATIONS = [
-  { id: "Home", label: "Página Inicial", icon: Home, desc: "Ver a home como o utilizador vê" },
-  { id: "UserProfile", label: "Perfil do Utilizador", icon: User, desc: "Ver/editar perfil público" },
-  { id: "HotelDashboard", label: "Painel do Hotel", icon: Building2, desc: "Gestão hoteleira" },
-  { id: "ProfessionalHubV2", label: "Painel Profissional", icon: BarChart3, desc: "Dashboard do profissional" },
-  { id: "ProfessionalCalendar", label: "Calendário", icon: Calendar, desc: "Agenda e disponibilidade" },
-  { id: "MyWallet", label: "Carteira", icon: Wallet, desc: "Saldos e transações" },
+  { id: "Home", label: "Início", icon: Home },
+  { id: "UserProfile", label: "Perfil", icon: User },
+  { id: "HotelDashboard", label: "Hotel", icon: Building2 },
+  { id: "ProfessionalHubV2", label: "Painel Pro", icon: BarChart3 },
+  { id: "ProfessionalCalendar", label: "Calendário", icon: Calendar },
+  { id: "MyWallet", label: "Carteira", icon: Wallet },
 ];
 
 export default function ImpersonateDialog({ user, isOpen, onClose }) {
@@ -59,71 +58,65 @@ export default function ImpersonateDialog({ user, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="glass-admin-dialog max-w-lg rounded-3xl p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-white/40">
-          <DialogTitle className="flex items-center gap-2 text-red-700 text-lg font-black">
-            <ShieldAlert className="w-5 h-5" />
+      <DialogContent className="glass-admin-dialog max-w-[420px] rounded-2xl p-0 overflow-hidden">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/40">
+          <DialogTitle className="flex items-center gap-2 text-red-700 text-base font-black">
+            <ShieldAlert className="w-4 h-4 shrink-0" />
             Entrar como Utilizador
           </DialogTitle>
-          <DialogDescription className="text-slate-500 text-xs mt-1">
-            Vais aceder à conta de <strong className="text-slate-800">{user.full_name || user.email}</strong> para manutenção e debug.
-            Todas as ações são registadas para auditoria.
+          <DialogDescription className="text-slate-500 text-[11px] mt-1 leading-snug">
+            Aceder à conta de <strong className="text-slate-800">{user.full_name || user.email}</strong>. Todas as ações são registadas.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-5 py-4 space-y-3.5">
           <div className="space-y-1.5">
-            <Label htmlFor="impersonate-reason" className="text-xs font-bold text-slate-600">Motivo (obrigatório, min. 5 caracteres)</Label>
+            <Label htmlFor="impersonate-reason" className="text-[11px] font-bold text-slate-600">Motivo (min. 5 caracteres)</Label>
             <Textarea
               id="impersonate-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Ex: Verificar erro no checkout do hotel; corrigir perfil; debug de reservas..."
-              rows={3}
-              className="resize-none rounded-xl bg-white/50 border-white/40"
+              placeholder="Ex: Verificar erro no checkout; corrigir perfil..."
+              rows={2}
+              className="resize-none rounded-lg bg-white/50 border-white/40 text-sm"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-xs font-bold text-slate-600">Página de destino</Label>
-            <RadioGroup value={destination} onValueChange={setDestination} className="grid grid-cols-2 gap-2">
+          <div className="space-y-1.5">
+            <Label className="text-[11px] font-bold text-slate-600">Página de destino</Label>
+            <div className="grid grid-cols-3 gap-1.5">
               {DESTINATIONS.map((d) => {
                 const Icon = d.icon;
                 const sel = destination === d.id;
                 return (
-                  <label
+                  <button
+                    type="button"
                     key={d.id}
-                    className={"flex items-start gap-2.5 rounded-xl border p-3 cursor-pointer transition-all " + (sel ? "border-red-400 bg-red-50/70" : "border-white/40 bg-white/30 hover:bg-white/50")}
+                    onClick={() => setDestination(d.id)}
+                    className={"flex flex-col items-center justify-center gap-1 rounded-lg border px-1.5 py-2.5 transition-all " + (sel ? "border-red-400 bg-red-50/70 ring-1 ring-red-300" : "border-white/40 bg-white/30 hover:bg-white/50")}
                   >
-                    <RadioGroupItem value={d.id} className="mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <Icon className="w-4 h-4 text-slate-600" />
-                        <span className="text-sm font-semibold text-slate-800">{d.label}</span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-0.5">{d.desc}</p>
-                    </div>
-                  </label>
+                    <Icon className={"w-4 h-4 " + (sel ? "text-red-600" : "text-slate-500")} />
+                    <span className={"text-[11px] font-semibold leading-tight text-center " + (sel ? "text-red-700" : "text-slate-700")}>{d.label}</span>
+                  </button>
                 );
               })}
-            </RadioGroup>
+            </div>
           </div>
 
-          <div className="rounded-xl bg-amber-50/80 border border-amber-200/60 p-3 text-xs text-amber-800">
-            ⚠️ Terás acesso total ao perfil, hotel, reservas, carteira e todas as funcionalidades do utilizador.
-            A sessão expira em 2 horas. Usa o botão "Voltar a Admin" no rodapé para terminar.
+          <div className="rounded-lg bg-amber-50/80 border border-amber-200/60 px-3 py-2 text-[11px] text-amber-800 leading-snug">
+            ⚠️ Acesso total ao perfil e funcionalidades. Sessão expira em 2h. Usa "Voltar a Admin" para terminar.
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-white/40 flex-row gap-3">
-          <Button variant="outline" onClick={onClose} disabled={loading} className="rounded-xl bg-white/50 border-white/40 flex-1">Cancelar</Button>
+        <DialogFooter className="px-5 py-3.5 border-t border-white/40 flex-row gap-2.5">
+          <Button variant="outline" onClick={onClose} disabled={loading} className="rounded-lg bg-white/50 border-white/40 flex-1 h-9 text-sm">Cancelar</Button>
           <Button
             onClick={handleSubmit}
             disabled={loading || reason.trim().length < 5}
-            className="rounded-xl bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white flex-1 shadow-lg"
+            className="rounded-lg bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white flex-1 h-9 text-sm shadow-lg"
           >
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ShieldAlert className="w-4 h-4 mr-2" />}
-            {loading ? "A iniciar..." : "Entrar como Utilizador"}
+            {loading ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <ShieldAlert className="w-4 h-4 mr-1.5" />}
+            {loading ? "A iniciar..." : "Entrar"}
           </Button>
         </DialogFooter>
       </DialogContent>
