@@ -602,18 +602,18 @@ export default function AdminDashboard() {
 
   const handleApproveApplication = (type, item) => {
     if (type === 'walker') {
-      updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true } });
+      updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true, is_verified: true } });
       syncUserVerification(item.created_by, 'verified', null);
       toast.success("Dog Walker aprovado!");
     } else if (type === 'trainer') {
-      base44.entities.TrainerProfile.update(item.id, { verification_status: 'verified', is_active: true }).then(async () => {
+      base44.entities.TrainerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true, is_verified_trainer: true }).then(async () => {
         await syncUserVerification(item.created_by, 'verified', null);
         queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
         queryClient.invalidateQueries({ queryKey: ['allUsers'] });
         toast.success("Treinador aprovado!");
       });
     } else if (type === 'hotel') {
-      base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true }).then(async () => {
+      base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true }).then(async () => {
         await syncUserVerification(item.created_by, 'verified', 'hotel');
         queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
         queryClient.invalidateQueries({ queryKey: ['allUsers'] });
@@ -630,7 +630,7 @@ export default function AdminDashboard() {
   const handleRejectApplication = (type, item) => {
     const reason = prompt("Motivo da rejeição:");
     if (!reason) return;
-    const data = { verification_status: 'rejected', rejection_reason: reason };
+    const data = { verification_status: 'rejected', rejection_reason: reason, is_verified: false };
     if (type === 'walker') {
       updateWalkerMutation.mutate({ id: item.id, data });
       syncUserVerification(item.created_by, 'rejected', null);

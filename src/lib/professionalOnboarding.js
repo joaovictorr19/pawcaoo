@@ -322,8 +322,15 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
   // The entity automation on WalkerProfile.create triggers notifyAdminProfessional automatically.
   const existing = await base44.entities.WalkerProfile.filter({ user_id: user.id });
   let profile;
-  if (existing.length > 0) {
-    profile = await base44.entities.WalkerProfile.update(existing[0].id, profileData);
+  // Only update an existing profile of the SAME kind to avoid overwriting a hotel
+  // profile with walker data (or vice-versa). If a different-kind profile exists,
+  // create a new record instead of clobbering it.
+  const isHotelForm = form.professional_type === "hotel";
+  const matchingExisting = existing.find(p =>
+    isHotelForm ? p.professional_type === "hotel" : p.professional_type !== "hotel"
+  );
+  if (matchingExisting) {
+    profile = await base44.entities.WalkerProfile.update(matchingExisting.id, profileData);
   } else {
     profile = await base44.entities.WalkerProfile.create(profileData);
   }
