@@ -8,7 +8,7 @@ import { useHotelCapacity } from "@/hooks/useHotelCapacity";
 import {
   Hotel, CalendarDays, Dog, Users, Euro, CheckCircle2,
   XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, Settings, RefreshCw,
-  ClipboardList, Wallet, UserCheck, Phone, Mail, StickyNote, FileText, DoorOpen,
+  ClipboardList, Wallet, UserCheck, UserPlus, Phone, Mail, StickyNote, FileText, DoorOpen,
   BedDouble, Sun, Scissors, GraduationCap, PawPrint, ArrowRight, ArrowLeft,
   CircleDot, X, ChevronDown, Stethoscope, ListChecks, BookOpen
 } from "lucide-react";
@@ -74,20 +74,42 @@ const SERVICE_LABELS = {
   training: "Treino",
 };
 
-const TABS = [
-  { key: "diario",    label: "Diário",            icon: BookOpen },
-  { key: "tarefas",   label: "Tarefas",           icon: ListChecks },
-  { key: "hospedes",  label: "Hóspedes",          icon: Users },
-  { key: "reservas",  label: "Reservas",          icon: ClipboardList },
-  { key: "agenda",    label: "Agenda",            icon: CalendarDays },
-  { key: "espera",    label: "Lista de Espera",   icon: Clock },
-  { key: "clientes",  label: "Clientes",          icon: UserCheck },
-  { key: "caninos",   label: "Perfil Canino",    icon: PawPrint },
-  { key: "prontuario",label: "Prontuário",        icon: Stethoscope },
-  { key: "servicos",  label: "Serviços e Vagas", icon: LayoutGrid },
-  { key: "financas",  label: "Finanças",          icon: Wallet },
-  { key: "parceiros", label: "Parceiros",         icon: UserCheck },
-  { key: "config",    label: "Configurações",     icon: Settings },
+// Tabs agrupadas por categoria — pills que quebram linha (mobile-friendly),
+// sem ícones duplicados e labels claros para evitar confusão entre secções.
+const TAB_GROUPS = [
+  {
+    label: "Operação",
+    items: [
+      { key: "diario",   label: "Diário",          icon: BookOpen },
+      { key: "tarefas",  label: "Tarefas",         icon: ListChecks },
+      { key: "reservas", label: "Reservas",        icon: ClipboardList },
+      { key: "agenda",   label: "Agenda",          icon: CalendarDays },
+      { key: "hospedes", label: "Hóspedes",        icon: Users },
+    ],
+  },
+  {
+    label: "Clientes & Cães",
+    items: [
+      { key: "clientes",   label: "Ficha Clientes",  icon: UserCheck },
+      { key: "caninos",     label: "Perfis Caninos",  icon: PawPrint },
+      { key: "prontuario", label: "Registos Saúde",   icon: Stethoscope },
+      { key: "espera",      label: "Lista Espera",    icon: Clock },
+    ],
+  },
+  {
+    label: "Gestão",
+    items: [
+      { key: "servicos",  label: "Serviços & Vagas", icon: LayoutGrid },
+      { key: "financas",  label: "Finanças",         icon: Wallet },
+      { key: "parceiros", label: "Parceiros",        icon: UserPlus },
+    ],
+  },
+  {
+    label: "Configurações",
+    items: [
+      { key: "config", label: "Configurações", icon: Settings },
+    ],
+  },
 ];
 
 export default function HotelDashboard() {
@@ -466,39 +488,44 @@ export default function HotelDashboard() {
             <Button size="sm" variant="outline"
               className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs h-9 w-9 sm:w-auto p-0 sm:px-3"
               onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}>
-              <Settings className="w-4 h-4" /> <span className="hidden md:inline">Configurar</span>
+              <Settings className="w-4 h-4" /> <span className="hidden md:inline">Painel Pro</span>
             </Button>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="max-w-5xl mx-auto px-4 flex gap-1 overflow-x-auto flex-nowrap" style={{ scrollbarWidth: "none" }}>
-          <style>{`div::-webkit-scrollbar{display:none}`}</style>
-          {TABS.map(tab => {
-            const Icon = tab.icon;
-            const count = tab.key === "hospedes" ? hospedeCount
-                         : tab.key === "parceiros" ? partners.length : 0;
-            return (
-              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 px-3 py-3 text-xs font-semibold whitespace-nowrap border-b-2 transition-all shrink-0 min-h-[40px] ${
-                  activeTab === tab.key
-                    ? "border-slate-900 text-slate-900"
-                    : "border-transparent text-slate-400 hover:text-slate-600"
-                }`}>
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
-                {count > 0 && (
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                    activeTab === tab.key ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500"
-                  }`}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
       </header>
+
+      {/* Navegação agrupada — pills por categoria (mobile-friendly, sem scroll horizontal de 13 items) */}
+      <nav className="bg-white border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 py-2.5 space-y-2.5">
+          {TAB_GROUPS.map(group => (
+            <div key={group.label} className="flex flex-col gap-1.5">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-1">{group.label}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {group.items.map(tab => {
+                  const Icon = tab.icon;
+                  const count = tab.key === "hospedes" ? hospedeCount : tab.key === "parceiros" ? partners.length : 0;
+                  const active = activeTab === tab.key;
+                  return (
+                    <button key={tab.key} onClick={() => { setActiveTab(tab.key); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                        active ? "bg-slate-900 text-white shadow-sm" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                      }`}>
+                      <Icon className="w-3.5 h-3.5" />
+                      {tab.label}
+                      {count > 0 && (
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}>
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </nav>
 
       <div className="max-w-5xl mx-auto px-4 pt-4 pb-28 md:pb-8 space-y-4">
         {/* Capacity Alert */}
