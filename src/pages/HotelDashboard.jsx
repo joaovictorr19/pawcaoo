@@ -418,6 +418,12 @@ export default function HotelDashboard() {
     pendingBookings, activeBookings, todayCheckins, todayCheckouts,
   } = useHotelCapacity(hotelProfile, bookings);
 
+  // Hóspedes = apenas alojamento/creche ativos + pendentes (marcações pontuais não contam)
+  const hospedeCount = bookings.filter(b =>
+    ["boarding", "daycare"].includes(b.service_type) &&
+    ["confirmed", "checked_in", "in_progress", "pending"].includes(b.status)
+  ).length;
+
   if (!loadingProfile && !hotelProfile && user) {
     return <HotelOnboardingEmpty userName={user?.full_name} />;
   }
@@ -470,7 +476,7 @@ export default function HotelDashboard() {
           <style>{`div::-webkit-scrollbar{display:none}`}</style>
           {TABS.map(tab => {
             const Icon = tab.icon;
-            const count = tab.key === "hospedes" ? activeBookings.length + pendingBookings.length
+            const count = tab.key === "hospedes" ? hospedeCount
                          : tab.key === "parceiros" ? partners.length : 0;
             return (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}

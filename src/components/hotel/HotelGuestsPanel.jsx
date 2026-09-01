@@ -516,12 +516,17 @@ function GuestCard({ booking, onCheckOut, onCheckIn, onUpdateBooking }) {
   );
 }
 
+// Serviços que implicam estadia (animal a dormir/ficar no hotel).
+// Grooming, passeio, treino e drop-in são marcações pontuais → separador Reservas.
+const STAY_SERVICES = ["boarding", "daycare"];
+
 export default function HotelGuestsPanel({ bookings, onUpdateBooking }) {
   const [search, setSearch] = useState("");
 
-  const guests = bookings.filter(b => ["checked_in", "in_progress"].includes(b.status));
-  const confirmedArrivals = bookings.filter(b => b.status === "confirmed");
-  const pendingBookings = bookings.filter(b => b.status === "pending");
+  const stayBookings = bookings.filter(b => STAY_SERVICES.includes(b.service_type));
+  const guests = stayBookings.filter(b => ["checked_in", "in_progress"].includes(b.status));
+  const confirmedArrivals = stayBookings.filter(b => b.status === "confirmed");
+  const pendingBookings = stayBookings.filter(b => b.status === "pending");
 
   const sendOwnerNotification = async (booking, title, message) => {
     if (!booking.owner_email) return;
