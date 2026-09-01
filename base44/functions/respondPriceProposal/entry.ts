@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import Stripe from 'npm:stripe@14.14.0';
 import { resolveOrigin, adjustHotelCapacity, computeHotelPayoutSplit } from '../../shared/hotelPricing.ts';
+import { applyWalletPayment } from '../../shared/walletPayment.ts';
 
 export default async function(req) {
   try {
@@ -9,7 +10,7 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
-    const { booking_id, action } = body;
+    const { booking_id, action, use_wallet } = body;
 
     if (!booking_id) return Response.json({ error: 'booking_id obrigatório' }, { status: 400 });
     if (!['accept', 'reject'].includes(action)) return Response.json({ error: 'Ação inválida (accept ou reject)' }, { status: 400 });
@@ -167,7 +168,61 @@ export default async function(req) {
     // ── CASE B: booking já pago e novo preço é MAIOR → checkout só da diferença ──
     // ── CASE C: ainda não pago → checkout do total novo ──
     const isAdjustment = isAlreadyPaid && difference > 0;
-    const chargeAmount = isAdjustment ? difference : newTotalAmount;
+    let chargeAmount = isAdjustment ? difference : newTotalAmount;
+
+    // ── Aplicar saldo da carteira do cliente (se solicitado) ──
+    let walletUsed = 0;
+    if (use_wallet && chargeAmount > 0) {
+      try {
+        const walletRes = await applyWalletPayment(base44, user.email, chargeAmount, {
+          description: isAdjustment
+            ? `Complemento de preço — ${booking.hotel_name || 'hotel'} (${booking.checkin_date})`
+            : `${serviceLabel} — ${booking.hotel_name || 'hotel'} (${booking.checkin_date})`,
+          relatedBookingId: booking_id,
+        });
+        walletUsed = walletRes.walletUsed;
+        chargeAmount = walletRes.remainingAmount;
+      } catch (e) {
+        console.error('Wallet payment error (proposal accept):', e.message);
+      }
+    }
+
+    // ── Pagamento total coberto pela carteira — confirmar diretamente (sem Stripe) ──
+    if (chargeAmount <= 0 && walletUsed > 0) {
+      const confirmUpdate = { price_proposal_status: 'accepted' };
+      if (!isAlreadyPaid) {
+        confirmUpdate.payment_status = 'paid';
+      }
+      try {
+        await base44.asServiceRole.entities.HotelBooking.update(booking_id, confirmUpdate);
+      } catch (e) { console.error('Confirm (full wallet) error:', e.message); }
+
+      const hotelCredit = isAdjustment ? additionalServiceAmount : (booking.service_amount || 0);
+      const feeRecord = isAdjustment ? additionalPlatformFee : (booking.platform_fee || 0);
+      if (booking.hotel_email && hotelCredit > 0) {
+        try {
+          const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: booking.hotel_email });
+          let w = wallets[0];
+          if (!w) {
+            w = await base44.asServiceRole.entities.UserWallet.create({ user_email: booking.hotel_email, cashback_balance: 0, service_tokens: 0, total_points: 0, available_balance: 0, pending_balance: 0, total_earnings: 0 });
+          }
+          const newPending = (w.pending_balance || 0) + hotelCredit;
+          const newTotal = (w.total_earnings || 0) + hotelCredit;
+          await base44.asServiceRole.entities.UserWallet.update(w.id, { pending_balance: newPending, total_earnings: newTotal });
+          await base44.asServiceRole.entities.WalletTransaction.create({ user_email: booking.hotel_email, transaction_type: 'walker_payment_pending', amount: hotelCredit, description: `${isAdjustment ? 'Complemento' : 'Reserva'} — ${booking.hotel_name || 'hotel'} (${booking.checkin_date}) [carteira]`, related_booking_id: booking_id, balance_after: newPending });
+        } catch (e) { console.error('Hotel wallet credit (full wallet) error:', e.message); }
+      }
+      if (feeRecord > 0) {
+        try {
+          await base44.asServiceRole.entities.PlatformRevenue.create({ revenue_type: 'commission', source_id: booking_id, user_email: booking.hotel_email || '', gross_amount: isAdjustment ? difference : newTotalAmount, cost_amount: hotelCredit, net_profit: feeRecord, description: `Comissão ${isAdjustment ? 'complemento' : 'reserva'} (carteira) — ${booking.hotel_name || ''} (${booking.checkin_date})`, period_month: new Date().toISOString().slice(0, 7) });
+        } catch (e) { console.error('PlatformRevenue (full wallet) error:', e.message); }
+      }
+      try {
+        await base44.asServiceRole.entities.Notification.create({ recipient_email: booking.hotel_email, title: '✅ Proposta Aceite (carteira)', message: `${booking.owner_name} aceitou e pagou €${newTotalAmount.toFixed(2)} via carteira PawCão.`, type: 'booking', related_id: booking_id, icon: '✅' });
+        await base44.asServiceRole.entities.Notification.create({ recipient_email: booking.owner_email, title: '✅ Proposta Aceite', message: `Aceitou a proposta de €${newTotalAmount.toFixed(2)} paga com saldo da carteira.`, type: 'payment', related_id: booking_id, icon: '✅' });
+      } catch (e) { console.error('Notification error (full wallet):', e.message); }
+      return Response.json({ success: true, action: 'accepted', wallet_paid: true, wallet_used: walletUsed, booking_id });
+    }
 
     if (chargeAmount <= 0) {
       // Sem valor a cobrar (ex.: novo preço igual ao já pago) — apenas confirmar
@@ -220,6 +275,7 @@ export default async function(req) {
         adjustment_amount: isAdjustment ? difference.toString() : '0',
         additional_service_amount: additionalServiceAmount.toString(),
         additional_platform_fee: additionalPlatformFee.toString(),
+        wallet_used: walletUsed.toString(),
       },
       payment_intent_data: {
         capture_method: 'automatic',
@@ -252,7 +308,7 @@ export default async function(req) {
       console.error('Notification error:', notifErr.message);
     }
 
-    return Response.json({ url: session.url, session_id: session.id, booking_id });
+    return Response.json({ url: session.url, session_id: session.id, booking_id, wallet_used: walletUsed });
   } catch (error) {
     console.error('respondPriceProposal error:', error);
     return Response.json({ error: error.message }, { status: 500 });

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Check, X, Scissors, Calendar, PawPrint, Euro, Sparkles, Loader2, TrendingUp, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import WalletPaymentOption from '@/components/wallet/WalletPaymentOption';
 
 const CATEGORY_LABELS = {
   full_body: { label: 'Corpo Completo', icon: '🐕' },
@@ -22,6 +23,7 @@ export default function PriceProposals() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState(null);
+  const [useWallet, setUseWallet] = useState(false);
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -54,13 +56,21 @@ export default function PriceProposals() {
       const res = await base44.functions.invoke('respondPriceProposal', {
         booking_id: booking.id,
         action: 'accept',
+        use_wallet: useWallet,
       });
       const checkoutUrl = res?.data?.url;
-      if (checkoutUrl) {
+      const walletPaid = res?.data?.wallet_paid;
+      if (walletPaid && !checkoutUrl) {
+        toast.success('Proposta aceite e paga com saldo da carteira!');
+        queryClient.invalidateQueries(['priceProposals']);
+        queryClient.invalidateQueries(['myWallet']);
+        setProcessing(null);
+      } else if (checkoutUrl) {
         window.location.href = checkoutUrl;
       } else {
         toast.success('Proposta aceite!');
         queryClient.invalidateQueries(['priceProposals']);
+        setProcessing(null);
       }
     } catch (err) {
       toast.error('Erro: ' + err.message);
@@ -251,6 +261,9 @@ export default function PriceProposals() {
                         ))}
                       </div>
                     )}
+
+                    {/* Wallet option */}
+                    <WalletPaymentOption useWallet={useWallet} onToggle={setUseWallet} amountToPay={proposedAmount} />
 
                     {/* Actions */}
                     <div className="flex gap-2 pt-2">

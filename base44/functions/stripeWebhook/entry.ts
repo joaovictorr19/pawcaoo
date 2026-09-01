@@ -535,8 +535,9 @@ async function handleCheckoutCompleted(base44, session) {
                     return;
                 }
 
-                // ── SECURITY: Verify paid amount matches hotel booking total before confirming ──
-                    const expectedHotelAmountCents = Math.round((hb.total_amount || 0) * 100);
+                // ── SECURITY: Verify paid amount matches hotel booking total (descontando carteira) ──
+                    const walletUsedAmount = parseFloat(session.metadata?.wallet_used) || 0;
+                    const expectedHotelAmountCents = Math.round(((hb.total_amount || 0) - walletUsedAmount) * 100);
                     if ((session.amount_total || 0) < expectedHotelAmountCents) {
                         console.error(`❌ Hotel booking amount mismatch: paid ${session.amount_total} cents, expected ${expectedHotelAmountCents} cents for booking ${hotelBookingId}. Aborting.`);
                         return;

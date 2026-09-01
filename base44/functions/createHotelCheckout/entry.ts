@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 import Stripe from 'npm:stripe@14.14.0';
 import { resolveOrigin, getEffectiveCommissionRate, calcGroomingTotal } from '../../shared/hotelPricing.ts';
+import { applyWalletPayment } from '../../shared/walletPayment.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -48,6 +49,7 @@ Deno.serve(async (req) => {
       transport_type,
       transport_price,
       transport_coverage_areas,
+      use_wallet,
     } = body;
 
     if (!hotel_profile_id) {
@@ -309,6 +311,59 @@ Deno.serve(async (req) => {
       console.error('Erro ao reservar vagas:', capErr.message);
     }
 
+    // ── Aplicar saldo da carteira do cliente (se solicitado) ──
+    let walletUsed = 0;
+    let stripeChargeAmount = safeTotalAmount;
+    if (use_wallet && safeTotalAmount > 0) {
+      try {
+        const walletRes = await applyWalletPayment(base44, user.email, safeTotalAmount, {
+          description: `${serviceLabel} — ${hotel_name} (${checkin_date})`,
+          relatedBookingId: newBooking.id,
+        });
+        walletUsed = walletRes.walletUsed;
+        stripeChargeAmount = walletRes.remainingAmount;
+      } catch (e) {
+        console.error('Wallet payment error (hotel checkout):', e.message);
+      }
+    }
+
+    // ── Pagamento total coberto pela carteira — confirmar diretamente (sem Stripe) ──
+    if (stripeChargeAmount <= 0 && walletUsed > 0) {
+      try {
+        await base44.asServiceRole.entities.HotelBooking.update(newBooking.id, {
+          payment_status: 'paid',
+          payment_expires_at: undefined,
+        });
+        if (hotel_email && safeServiceAmount > 0) {
+          try {
+            const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: hotel_email });
+            let w = wallets[0];
+            if (!w) {
+              w = await base44.asServiceRole.entities.UserWallet.create({ user_email: hotel_email, cashback_balance: 0, service_tokens: 0, total_points: 0, available_balance: 0, pending_balance: 0, total_earnings: 0 });
+            }
+            const newPending = (w.pending_balance || 0) + safeServiceAmount;
+            const newTotal = (w.total_earnings || 0) + safeServiceAmount;
+            await base44.asServiceRole.entities.UserWallet.update(w.id, { pending_balance: newPending, total_earnings: newTotal });
+            await base44.asServiceRole.entities.WalletTransaction.create({ user_email: hotel_email, transaction_type: 'walker_payment_pending', amount: safeServiceAmount, description: `Reserva de hotel — ${hotel_name} (${checkin_date}) [carteira]`, related_booking_id: newBooking.id, balance_after: newPending });
+          } catch (e) { console.error('Hotel wallet credit (full wallet) error:', e.message); }
+        }
+        if (safePlatformFee > 0) {
+          try {
+            await base44.asServiceRole.entities.PlatformRevenue.create({ revenue_type: 'commission', source_id: newBooking.id, user_email: hotel_email || '', gross_amount: safeTotalAmount, cost_amount: safeServiceAmount, net_profit: safePlatformFee, description: `Comissão reserva hotel (carteira) — ${hotel_name} (${checkin_date})`, period_month: new Date().toISOString().slice(0, 7) });
+          } catch (e) { console.error('PlatformRevenue (full wallet) error:', e.message); }
+        }
+        try {
+          if (hotel_email) {
+            await base44.asServiceRole.entities.Notification.create({ recipient_email: hotel_email, title: '💳 Nova Reserva PAGA (carteira)', message: `${owner_name || user.full_name} pagou €${safeTotalAmount.toFixed(2)} via carteira PawCão. Check-in: ${checkin_date}.`, type: 'booking', related_id: newBooking.id, icon: '🏨' });
+          }
+          await base44.asServiceRole.entities.Notification.create({ recipient_email: user.email, title: '✅ Reserva Confirmada', message: `Pagou €${safeTotalAmount.toFixed(2)} com saldo da carteira. Aguarde confirmação do hotel.`, type: 'payment', related_id: newBooking.id, icon: '✅' });
+        } catch (e) { console.error('Notify (full wallet) error:', e.message); }
+      } catch (e) {
+        console.error('Full-wallet confirmation error:', e.message);
+      }
+      return Response.json({ wallet_paid: true, wallet_used: walletUsed, booking_id: newBooking.id });
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -320,9 +375,9 @@ Deno.serve(async (req) => {
             currency: 'eur',
             product_data: {
               name: `${serviceLabel} — ${hotel_name}`,
-              description: `${dogNames} · ${dateRange}${total_nights > 1 ? ` (${total_nights} noites)` : ''}${serverTransportFee > 0 ? ` · Transporte incluído (${safeTransportType === 'round_trip' ? 'ida e volta' : safeTransportType === 'pickup_only' ? 'só recolha' : 'só entrega'})` : ''}`,
+              description: `${dogNames} · ${dateRange}${total_nights > 1 ? ` (${total_nights} noites)` : ''}${serverTransportFee > 0 ? ` · Transporte incluído (${safeTransportType === 'round_trip' ? 'ida e volta' : safeTransportType === 'pickup_only' ? 'só recolha' : 'só entrega'})` : ''}${walletUsed > 0 ? ` · €${walletUsed.toFixed(2)} pago via carteira` : ''}`,
             },
-            unit_amount: Math.round(safeTotalAmount * 100),
+            unit_amount: Math.round(stripeChargeAmount * 100),
           },
           quantity: 1,
         },
@@ -337,6 +392,7 @@ Deno.serve(async (req) => {
         total_amount: serverTotalAmount.toString(),
         platform_fee: safePlatformFee.toString(),
         service_amount: safeServiceAmount.toString(),
+        wallet_used: walletUsed.toString(),
       },
       payment_intent_data: {
         capture_method: 'automatic',
@@ -374,7 +430,7 @@ Deno.serve(async (req) => {
       console.error('VIP notification error:', vipErr.message);
     }
 
-    return Response.json({ url: session.url, session_id: session.id, booking_id: newBooking.id });
+    return Response.json({ url: session.url, session_id: session.id, booking_id: newBooking.id, wallet_used: walletUsed });
 
   } catch (error) {
     console.error('Hotel checkout error:', error);

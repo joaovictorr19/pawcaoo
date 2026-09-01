@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { getEffectiveCommissionRate, getCommissionBearer } from '@/utils/commission';
 import HotelRangeCalendar from '@/components/hotel/HotelRangeCalendar';
+import WalletPaymentOption from '@/components/wallet/WalletPaymentOption';
 
 export default function HotelBookingModal({ isOpen, onClose, hotel, selectedService, currentUser, initialDate, initialCheckout }) {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const [transportRequested, setTransportRequested] = useState(false);
   const [transportType, setTransportType] = useState('round_trip');
   const [transportAddress, setTransportAddress] = useState('');
+  const [useWallet, setUseWallet] = useState(false);
+  const [paidViaWallet, setPaidViaWallet] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -55,6 +58,8 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
       setTransportRequested(false);
       setTransportType('round_trip');
       setTransportAddress('');
+      setUseWallet(false);
+      setPaidViaWallet(false);
       setStep(0);
       setFinalized(false);
     }
@@ -198,15 +203,26 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
         transport_type: transportRequested && serviceHasTransport ? transportType : undefined,
         transport_price: transportRequested && serviceHasTransport ? transportFee : undefined,
         transport_coverage_areas: transportRequested && serviceHasTransport ? selectedService.transport_coverage_areas : undefined,
+        use_wallet: useWallet,
       });
 
       // Verificar se o link de pagamento foi gerado com sucesso
       const checkoutUrl = response?.data?.url;
+      const walletPaid = response?.data?.wallet_paid;
       const checkoutError = response?.data?.error;
 
-      if (checkoutError || !checkoutUrl) {
+      if (checkoutError || (!checkoutUrl && !walletPaid)) {
         toast.error(checkoutError || 'Erro ao gerar link de pagamento. Tente novamente.');
         setIsCreating(false);
+        return;
+      }
+
+      // Pago totalmente via carteira — sem redirecionamento Stripe
+      if (walletPaid && !checkoutUrl) {
+        setPaidViaWallet(true);
+        setFinalized(true);
+        setIsCreating(false);
+        setTimeout(() => navigate(createPageUrl('MyBookings')), 2500);
         return;
       }
 
@@ -761,13 +777,22 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                     </p>
                   </div>
                   <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-center gap-2 text-xs text-slate-500">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    >
-                      <CreditCard className="w-4 h-4 text-slate-400" />
-                    </motion.div>
-                    <span>A redirecionar para o pagamento seguro...</span>
+                    {paidViaWallet ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        <span>Pago com saldo da carteira! A redirecionar...</span>
+                      </>
+                    ) : (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        >
+                          <CreditCard className="w-4 h-4 text-slate-400" />
+                        </motion.div>
+                        <span>A redirecionar para o pagamento seguro...</span>
+                      </>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -1052,6 +1077,9 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         </div>
                       )}
                     </div>
+
+                    {/* Wallet option */}
+                    <WalletPaymentOption useWallet={useWallet} onToggle={setUseWallet} amountToPay={totalAmount} />
 
                     {/* Total */}
                     <div className="border border-slate-900 bg-slate-50 rounded-lg px-4 py-3.5 flex justify-between items-center">
