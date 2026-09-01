@@ -23,6 +23,7 @@ import { useTheme } from "@/components/ThemeContext";
 import { useLocalization } from "@/components/LocalizationContext";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
+import WalletPaymentOption from "@/components/wallet/WalletPaymentOption";
 
 export default function BookingForm({ walker, professional, onClose, initialDate, selectedServiceType }) {
   const navigate = useNavigate();
@@ -59,6 +60,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
   });
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+  const [useWallet, setUseWallet] = useState(false);
 
   // Update date if initialDate prop changes
   React.useEffect(() => {
@@ -413,10 +415,15 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         pickup_lng: pickupCoords.lng,
         owner_phone: formData.owner_phone,
         share_whatsapp_live_location: formData.share_whatsapp_live_location,
-        type: isWalker ? 'walk' : 'training'
+        type: isWalker ? 'walk' : 'training',
+        use_wallet: useWallet,
       });
 
-      if (response?.data?.url) {
+      if (response?.data?.paid_by_wallet) {
+        toast.success('✅ Pagamento concluído com o saldo da carteira!');
+        queryClient.invalidateQueries({ queryKey: ['myBookings'] });
+        navigate(createPageUrl(`CheckoutSuccess?booking_id=${response.data.booking_id}`));
+      } else if (response?.data?.url) {
         window.location.href = response.data.url;
       } else {
         toast.error(language === 'pt' ? 'Erro ao criar sessão de pagamento. Por favor tente novamente.' : 'Error creating payment session');
@@ -842,6 +849,7 @@ export default function BookingForm({ walker, professional, onClose, initialDate
                     />
                   </div>
                 </div>
+                <WalletPaymentOption useWallet={useWallet} onToggle={setUseWallet} amountToPay={amounts.totalAmount} />
               </div>
             </>
           )}

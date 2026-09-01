@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import Stripe from 'npm:stripe@14.14.0';
+import { applyWalletPayment } from '../../shared/walletPayment.ts';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 
@@ -39,7 +40,8 @@ Deno.serve(async (req) => {
       owner_phone,
       share_whatsapp_live_location,
       type,
-      is_exotic
+      is_exotic,
+      use_wallet
     } = body;
 
     // Look up professional's custom commission rate
@@ -172,6 +174,120 @@ Deno.serve(async (req) => {
       /^https:\/\/[a-z0-9-]*pawcao[a-z0-9-]*\.base44\.app$/.test(requestOrigin))
       ? requestOrigin
       : 'https://pawcao.base44.app';
+
+    // ── WALLET PAYMENT (cashback balance) ──
+    // Cliente opta por usar o saldo da carteira. Criamos a reserva inline
+    // (para o webhook a referenciar) e debitamos o saldo; se o saldo cobrir
+    // tudo, não criamos sessão Stripe (evita sessão de valor zero).
+    if (use_wallet) {
+      const bookingType = type || (professional_type === 'trainer' ? 'training' : 'walk');
+      const bookingRecord = await base44.entities.Booking.create({
+        owner_name: user.full_name || 'Cliente',
+        owner_email: user.email,
+        owner_phone: owner_phone || '',
+        dog_name,
+        dog_size: dog_size || 'medium',
+        walker_id: professional_id,
+        walker_name: professional_name,
+        walker_email: professional_email,
+        trainer_id: professional_type === 'trainer' ? professional_id : undefined,
+        trainer_name: professional_type === 'trainer' ? professional_name : undefined,
+        trainer_email: professional_type === 'trainer' ? professional_email : undefined,
+        walk_date,
+        walk_time,
+        duration_hours: Number(duration_hours) || 1,
+        service_amount: effectiveServiceAmount,
+        platform_fee: effectivePlatformFee,
+        total_amount: effectiveTotalAmount,
+        special_notes: special_notes || '',
+        pickup_address: pickup_address || '',
+        pickup_lat: pickup_lat || 0,
+        pickup_lng: pickup_lng || 0,
+        share_whatsapp_live_location: !!share_whatsapp_live_location,
+        status: 'pending',
+        payment_status: 'pending',
+        type: bookingType,
+      });
+
+      const walletDescription = `Pagamento ${bookingType === 'training' ? 'de treino' : 'de passeio'} — ${professional_name}`;
+      const { walletUsed, remainingAmount } = await applyWalletPayment(
+        base44, user.email, effectiveTotalAmount,
+        { description: walletDescription, relatedBookingId: bookingRecord.id }
+      );
+
+      const paymentRecord = await base44.asServiceRole.entities.Payment.create({
+        booking_id: bookingRecord.id,
+        payer_email: user.email,
+        payer_name: user.full_name || 'Cliente',
+        recipient_email: professional_email,
+        recipient_name: professional_name,
+        service_amount: effectiveServiceAmount,
+        platform_fee: effectivePlatformFee,
+        total_amount: remainingAmount <= 0 ? effectiveTotalAmount : remainingAmount,
+        status: 'pending',
+        payment_method: 'stripe',
+        notes: walletUsed > 0 ? `€${walletUsed.toFixed(2)} pagos via carteira` : undefined,
+      });
+      try {
+        await base44.asServiceRole.entities.Booking.update(bookingRecord.id, { payment_id: paymentRecord.id });
+      } catch (e) { /* non-fatal */ }
+
+      // ── FULL WALLET: saldo cobre tudo — sem sessão Stripe ──
+      if (remainingAmount <= 0) {
+        return Response.json({
+          paid_by_wallet: true,
+          booking_id: bookingRecord.id,
+          wallet_used: walletUsed,
+        });
+      }
+
+      // ── PARTIAL WALLET: Stripe cobra apenas o restante ──
+      const walletSession = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        mode: 'payment',
+        expires_at: Math.floor(Date.now() / 1000) + sessionExpiry,
+        line_items: [{
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: `${service_name} com ${professional_name}`,
+              description: `${dog_name} - ${walk_date} às ${walk_time}`,
+            },
+            unit_amount: Math.round(remainingAmount * 100),
+          },
+          quantity: 1,
+        }],
+        metadata: {
+          type: 'booking',
+          booking_id: bookingRecord.id,
+          wallet_used: walletUsed.toString(),
+          professional_id, professional_email, professional_name, professional_type,
+          service_name, dog_name, walk_date, walk_time,
+          owner_email: user.email, owner_name: user.full_name,
+        },
+        success_url: `${origin}/CheckoutSuccess?session_id={CHECKOUT_SESSION_ID}&booking_id=${bookingRecord.id}&type=booking`,
+        cancel_url: `${origin}/MyBookings?cancelled=true`,
+        locale: 'pt',
+        payment_intent_data: {
+          capture_method: 'automatic',
+          metadata: {
+            booking_id: bookingRecord.id,
+            wallet_used: walletUsed.toString(),
+            platform_fee: effectivePlatformFee.toString(),
+            professional_email,
+            booking_type: 'service',
+          },
+        },
+      });
+
+      return Response.json({
+        url: walletSession.url,
+        session_id: walletSession.id,
+        booking_id: bookingRecord.id,
+        wallet_used: walletUsed,
+      });
+    }
 
     // Create Stripe Checkout Session - immediate payment
     const session = await stripe.checkout.sessions.create({

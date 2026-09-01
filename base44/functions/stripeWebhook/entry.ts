@@ -144,10 +144,11 @@ async function handlePaymentSuccess(base44, paymentIntent) {
         if (bookings.length > 0) {
             const booking = bookings[0];
 
-            // ── SECURITY: Verify paid amount matches booking total before processing ──
-            const expectedAmountCents = Math.round((booking.total_amount || 0) * 100);
+            // ── SECURITY: Verify paid amount matches booking total (descontando carteira) ──
+            const walletUsedAmount = parseFloat(paymentIntent.metadata?.wallet_used) || 0;
+            const expectedAmountCents = Math.round(((booking.total_amount || 0) - walletUsedAmount) * 100);
             if (paymentIntent.amount < expectedAmountCents) {
-                console.error(`❌ Amount mismatch: paid ${paymentIntent.amount} cents, expected ${expectedAmountCents} cents for booking ${bookingId}. Aborting.`);
+                console.error(`❌ Amount mismatch: paid ${paymentIntent.amount} cents, expected ${expectedAmountCents} cents (após carteira €${walletUsedAmount}) for booking ${bookingId}. Aborting.`);
                 await base44.asServiceRole.entities.Notification.create({
                     recipient_email: booking.owner_email || booking.created_by,
                     title: 'Pagamento com valor incorreto',
