@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { format, isAfter, subMonths, startOfMonth } from "date-fns";
 import { pt } from "date-fns/locale";
+import { mergePayments } from "@/lib/adminFinance";
 import CompanyVaultPanel from "./CompanyVaultPanel";
 import AdminHotelCommissionManager from "./AdminHotelCommissionManager";
 import AdminAddonCommissionManager from "./AdminAddonCommissionManager";
@@ -53,14 +54,28 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function AdminFinancePanel() {
   const [showAllMonths, setShowAllMonths] = useState(false);
 
-  const { data: payments = [], isLoading, refetch, isFetching } = useQuery({
+  const { data: rawPayments = [], isLoading, refetch, isFetching } = useQuery({
     queryKey: ["adminFinancePayments"],
     queryFn: async () => {
-      const result = await base44.entities.Payment.list("-held_date", 500);
+      const result = await base44.entities.Payment.list("-created_date", 500);
       return Array.isArray(result) ? result : [];
     },
     staleTime: 60 * 1000,
   });
+
+  const { data: hotelBookings = [] } = useQuery({
+    queryKey: ["adminFinanceHotelBookings"],
+    queryFn: async () => {
+      const result = await base44.entities.HotelBooking.list("-created_date", 1000);
+      return Array.isArray(result) ? result : [];
+    },
+    staleTime: 60 * 1000,
+  });
+
+  const payments = useMemo(
+    () => mergePayments(rawPayments, hotelBookings),
+    [rawPayments, hotelBookings]
+  );
 
   const stats = useMemo(() => {
     const valid = payments.filter((p) => p.status !== "refunded" && p.status !== "failed");

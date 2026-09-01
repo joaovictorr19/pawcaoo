@@ -20,9 +20,9 @@ export default function WalkStatusDonutChart({ bookings = [], isLoading = false 
     bookings.forEach(b => {
       const status = b.status?.toLowerCase() || 'pending';
       if (['pending', 'confirmed', 'scheduled'].includes(status)) statusCounts.scheduled++;
-      else if (['completed', 'service_completed', 'finalizada'].includes(status)) statusCounts.completed++;
+      else if (['completed', 'service_completed', 'finalizada', 'checked_out'].includes(status)) statusCounts.completed++;
       else if (['cancelled', 'rejected'].includes(status)) statusCounts.cancelled++;
-      else if (['in_progress', 'started'].includes(status)) statusCounts.in_progress++;
+      else if (['in_progress', 'started', 'checked_in'].includes(status)) statusCounts.in_progress++;
     });
 
     return [

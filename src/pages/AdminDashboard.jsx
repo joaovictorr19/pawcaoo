@@ -50,6 +50,7 @@ import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import ImpersonateDialog from "../components/admin/ImpersonateDialog";
 import BackButton from "@/components/ui/BackButton";
 import "@/components/admin/admin-dashboard.css";
+import { mergePayments } from "@/lib/adminFinance";
 
 export default function AdminDashboard() {
   const { language } = useLanguage();
@@ -163,12 +164,14 @@ export default function AdminDashboard() {
     queryKey: ['adminDashboardStats'],
     queryFn: async () => {
       try {
-        const [allUsers, allWalkers, allTrainers, pendingBookings, completedBookings] = await Promise.all([
+        const [allUsers, allWalkers, allTrainers, pendingBookings, completedBookings, pendingHotelBookings, completedHotelBookings] = await Promise.all([
           base44.entities.User.list('-created_date', 5000),
           base44.entities.WalkerProfile.list('-created_date', 5000),
           base44.entities.TrainerProfile.list('-created_date', 5000),
           base44.entities.Booking.filter({ status: 'pending' }),
-          base44.entities.Booking.filter({ status: 'completed' })
+          base44.entities.Booking.filter({ status: 'completed' }),
+          base44.entities.HotelBooking.filter({ status: 'pending' }),
+          base44.entities.HotelBooking.filter({ status: 'completed' }),
         ]);
 
         return {
@@ -178,8 +181,8 @@ export default function AdminDashboard() {
           activeWalkers: allWalkers?.filter(w => w.is_active && w.verification_status === 'verified')?.length || 0,
           totalTrainers: allTrainers?.length || 0,
           verifiedTrainers: allTrainers?.filter(t => t.verification_status === 'verified')?.length || 0,
-          pendingBookings: pendingBookings?.length || 0,
-          completedBookings: completedBookings?.length || 0,
+          pendingBookings: (pendingBookings?.length || 0) + (pendingHotelBookings?.length || 0),
+          completedBookings: (completedBookings?.length || 0) + (completedHotelBookings?.length || 0),
           pendingWalkers: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type !== 'hotel')?.length || 0,
           pendingHotels: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'hotel')?.length || 0,
           pendingTrainers: allTrainers?.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status)?.length || 0
@@ -292,9 +295,16 @@ export default function AdminDashboard() {
     queryKey: ['allBookings'],
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const walkerBookings = (await base44.entities.Booking.list('-created_date', 500)).map(b => ({...b, entityType: 'walk'}));
-      const trainerBookings = (await base44.entities.TrainingBooking.list('-created_date', 500)).map(b => ({...b, entityType: 'training'}));
-      return [...walkerBookings, ...trainerBookings].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      const [walkerBookings, trainerBookings, hotelBookings] = await Promise.all([
+        base44.entities.Booking.list('-created_date', 500),
+        base44.entities.TrainingBooking.list('-created_date', 500),
+        base44.entities.HotelBooking.list('-created_date', 500),
+      ]);
+      return [
+        ...walkerBookings.map(b => ({...b, entityType: 'walk'})),
+        ...trainerBookings.map(b => ({...b, entityType: 'training'})),
+        ...hotelBookings.map(b => ({...b, entityType: 'hotel'})),
+      ].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     enabled: isAdmin && (activeTab === 'overview' || activeTab === 'godmode'),
     initialData: [],
@@ -306,7 +316,7 @@ export default function AdminDashboard() {
   const { data: allPayments = [] } = useQuery({
     queryKey: ['allPayments'],
     placeholderData: keepPreviousData,
-    queryFn: () => base44.entities.Payment.list('-held_date', 200),
+    queryFn: () => base44.entities.Payment.list('-created_date', 500),
     enabled: isAdmin && (activeTab === 'overview' || activeTab === 'godmode'),
     initialData: [],
     staleTime: 5 * 60 * 1000,
@@ -853,7 +863,7 @@ export default function AdminDashboard() {
                   users={allUsers}
                   walkers={activeWalkers}
                   trainers={allTrainers}
-                  payments={allPayments}
+                  payments={mergePayments(allPayments, allBookings.filter(b => b.entityType === 'hotel'))}
                   isLoading={loadingStats}
                 />
               </div>

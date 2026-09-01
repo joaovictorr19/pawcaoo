@@ -179,8 +179,10 @@ export default function AdminOverviewDashboard({
                       {b.owner_name || b.dog_name || t('Reserva', 'Booking')}
                     </p>
                     <p className="truncate text-xs text-slate-500">
-                      {b.entityType === 'training' ? t('Treino', 'Training') : t('Passeio', 'Walk')}
-                      {b.walker_name || b.trainer_name ? ` · ${b.walker_name || b.trainer_name}` : ''}
+                      {b.entityType === 'training' ? t('Treino', 'Training')
+                        : b.entityType === 'hotel' ? t('Hotel', 'Hotel')
+                        : t('Passeio', 'Walk')}
+                      {b.walker_name || b.trainer_name || b.hotel_name ? ` · ${b.walker_name || b.trainer_name || b.hotel_name}` : ''}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
