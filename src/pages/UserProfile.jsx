@@ -300,7 +300,7 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
   const emailPart = (emailBase.split('@')[0] || '').replace(/[._-]+/g, ' ').trim();
   const derivedName = emailPart ? emailPart.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : null;
   const displayName = walkerProfile?.hotel_details?.hotel_name || profileUser?.full_name || walkerProfile?.walker_name || trainerProfile?.trainer_name || derivedName || "Utilizador";
-  const displayCity = profileUser?.city || walkerProfile?.location || trainerProfile?.location || "";
+  const displayCity = walkerProfile?.location || trainerProfile?.location || profileUser?.city || "";
 
   const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(null);
