@@ -1,18 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
+import { buildCheckinReminderEmail, buildCheckoutReminderEmail } from '../../shared/hotelEmailTemplate.ts';
 
 /**
  * Lembretes automáticos de check-in e check-out para reservas de hotel.
  * - Encontra reservas com check-in no dia seguinte → envia lembrete de chegada
  * - Encontra reservas com check-out no dia atual → envia lembrete de saída
  * Executar diariamente via cron (09:00 Europe/Lisbon).
+ * Emails profissionais gerados por base44/shared/hotelEmailTemplate.ts.
  */
-
-const formatDatePT = (dateStr) => {
-  if (!dateStr) return '';
-  const [y, m, d] = dateStr.split('-');
-  const months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-  return `${parseInt(d)} ${months[parseInt(m) - 1]} ${y}`;
-};
 
 Deno.serve(async (req) => {
   try {
@@ -50,27 +45,11 @@ Deno.serve(async (req) => {
       try {
         if (!booking.owner_email) continue;
 
-        const dogList = (booking.dogs || [])
-          .map(d => `• ${d.dog_name || 'Cão'}${d.dog_breed ? ` (${d.dog_breed})` : ''}`)
-          .join('\n');
-
+        const { subject, body } = buildCheckinReminderEmail(booking);
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: booking.owner_email,
-          subject: `Lembrete: Check-in amanhã no ${booking.hotel_name || 'hotel'}`,
-          body: [
-            `Olá ${booking.owner_name},`,
-            ``,
-            `Este é um lembrete de que o check-in do(s) seu(s) animal(is) no ${booking.hotel_name} está marcado para amanhã, ${formatDatePT(tomorrowStr)}.`,
-            ``,
-            `Detalhes da reserva:`,
-            `Tipo de serviço: ${booking.service_type || 'Alojamento'}`,
-            `${dogList}`,
-            `Data de check-out: ${formatDatePT(booking.checkout_date)}`,
-            ``,
-            `Recomendamos que chegue dentro do horário de check-in estabelecido. Em caso de alteração, contacte o hotel diretamente.`,
-            ``,
-            `Obrigado por escolher a PawCão!`,
-          ].join('\n'),
+          subject,
+          body,
         });
         results.checkinReminders++;
       } catch (e) {
@@ -88,25 +67,11 @@ Deno.serve(async (req) => {
       try {
         if (!booking.owner_email) continue;
 
-        const dogList = (booking.dogs || [])
-          .map(d => `• ${d.dog_name || 'Cão'}${d.dog_breed ? ` (${d.dog_breed})` : ''}`)
-          .join('\n');
-
+        const { subject, body } = buildCheckoutReminderEmail(booking);
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: booking.owner_email,
-          subject: `Hoje é o dia de check-out no ${booking.hotel_name || 'hotel'}`,
-          body: [
-            `Olá ${booking.owner_name},`,
-            ``,
-            `Lembramos que hoje, ${formatDatePT(todayStr)}, é o dia de check-out do(s) seu(s) animal(is) do ${booking.hotel_name}.`,
-            ``,
-            `Detalhes da reserva:`,
-            `${dogList}`,
-            ``,
-            `Por favor, dirija-se ao hotel dentro do horário de check-out para levantar o(s) seu(s) animal(is). Em caso de impedimento, contacte o hotel com a maior brevidade.`,
-            ``,
-            `Obrigado por confiar na PawCão!`,
-          ].join('\n'),
+          subject,
+          body,
         });
         results.checkoutReminders++;
       } catch (e) {
