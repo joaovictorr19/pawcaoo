@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import Stripe from 'npm:stripe';
+import { buildClientConfirmationEmail, buildHotelConfirmationEmail } from '../../shared/hotelEmailTemplate.ts';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
     apiVersion: '2023-10-16',
@@ -631,67 +632,27 @@ async function handleCheckoutCompleted(base44, session) {
                             icon: '⏳'
                         });
 
-                        // ── Enviar email de confirmação ao cliente (só após pagamento) ──
+                        // ── Enviar email de confirmação profissional ao cliente ──
                         try {
-                            const svcLabels = {
-                                boarding: 'Alojamento', daycare: 'Creche Diurna', grooming: 'Grooming',
-                                walk_with_partner: 'Passeio com Parceiro', training: 'Treino',
-                                dropin: 'Assistência em Casa'
-                            };
-                            const svcLabel = svcLabels[hb.service_type] || hb.service_type;
-                            const dogNames = (hb.dogs || []).map(d => d.dog_name).filter(Boolean).join(', ') || 'animal';
-
-                            const emailBody = [
-                                `Olá ${hb.owner_name || ''},`,
-                                ``,
-                                `O seu pagamento foi processado com sucesso! A sua reserva no ${hb.hotel_name || 'hotel'} está agora a aguardar confirmação do hotel.`,
-                                ``,
-                                `Detalhes da Reserva:`,
-                                `Serviço: ${svcLabel}`,
-                                `Animais: ${dogNames}`,
-                                `Check-in: ${hb.checkin_date}${hb.checkin_time ? ' às ' + hb.checkin_time : ''}`,
-                                `Check-out: ${hb.checkout_date}${hb.checkout_time ? ' às ' + hb.checkout_time : ''}`,
-                                `Duração: ${hb.total_nights} ${hb.total_nights === 1 ? 'noite' : 'noites'}`,
-                                ``,
-                                `Resumo de valores:`,
-                                `Serviço: ${hb.service_amount}€`,
-                                `Taxa de plataforma: ${hb.platform_fee}€`,
-                                `Total pago: ${hb.total_amount}€`,
-                                ``,
-                                `Obrigado por escolher a PawCão!`,
-                            ].join('\n');
-
+                            const clientEmail = buildClientConfirmationEmail(hb);
                             await base44.asServiceRole.integrations.Core.SendEmail({
                                 to: hb.owner_email,
-                                subject: `Pagamento recebido — ${hb.hotel_name || 'Hotel'} (aguardando confirmação)`,
-                                body: emailBody,
+                                subject: clientEmail.subject,
+                                body: clientEmail.body,
                             });
                             console.log('✅ Hotel booking confirmation email sent to:', hb.owner_email);
                         } catch (e) {
                             console.error('Error sending hotel confirmation email:', e);
                         }
 
-                        // ── Enviar email de confirmação ao hotel (só após pagamento) ──
+                        // ── Enviar email de confirmação profissional ao hotel ──
                         if (hb.hotel_email) {
                             try {
-                                const hotelEmailBody = [
-                                    `Nova reserva PAGA — aguardando a sua confirmação!`,
-                                    ``,
-                                    `Cliente: ${hb.owner_name || ''} (${hb.owner_email || ''})`,
-                                    `Animais: ${dogNames}`,
-                                    `Serviço: ${svcLabel}`,
-                                    `Check-in: ${hb.checkin_date}${hb.checkin_time ? ' às ' + hb.checkin_time : ''}`,
-                                    `Check-out: ${hb.checkout_date}${hb.checkout_time ? ' às ' + hb.checkout_time : ''}`,
-                                    `Duração: ${hb.total_nights} ${hb.total_nights === 1 ? 'noite' : 'noites'}`,
-                                    `Total pago: ${hb.total_amount}€`,
-                                    ``,
-                                    `Aceda ao seu painel para gerir esta reserva.`,
-                                ].join('\n');
-
+                                const hotelEmail = buildHotelConfirmationEmail(hb);
                                 await base44.asServiceRole.integrations.Core.SendEmail({
                                     to: hb.hotel_email,
-                                    subject: `Nova reserva PAGA — ${hb.owner_name || 'Cliente'} (${hb.checkin_date})`,
-                                    body: hotelEmailBody,
+                                    subject: hotelEmail.subject,
+                                    body: hotelEmail.body,
                                 });
                                 console.log('✅ Hotel notification email sent to:', hb.hotel_email);
                             } catch (e) {
