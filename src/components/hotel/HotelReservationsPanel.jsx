@@ -600,13 +600,35 @@ function BookingCard({ booking, onUpdate }) {
                 )}
                 {booking.status === "checked_in" && (
                   <Button size="sm" className="flex-1 h-9 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs"
-                    onClick={() => onUpdate(booking.id, { status: "checked_out", checkout_time: format(new Date(), "HH:mm") })}>
+                    onClick={async () => {
+                      onUpdate(booking.id, { status: "checked_out", checkout_time: format(new Date(), "HH:mm") });
+                      try {
+                        const res = await base44.functions.invoke("releaseHotelPayout", { bookingId: booking.id });
+                        if (res?.data?.transfer_id) {
+                          toast.success(`Pagamento libertado: €${(res.data.released || 0).toFixed(2)} transferidos para o hotel.`);
+                        } else if (res?.data?.success && !res?.data?.transfer_id) {
+                          toast.info("Serviço concluído. Configure o Stripe Connect para receber automaticamente.");
+                        }
+                      } catch (err) {
+                        console.warn("releaseHotelPayout (check-out):", err?.message);
+                      }
+                    }}>
                     <DoorOpen className="w-3.5 h-3.5 mr-1" /> Check-out
                   </Button>
                 )}
                 {booking.status === "checked_out" && (
                   <Button size="sm" className="flex-1 h-9 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs"
-                    onClick={() => onUpdate(booking.id, { status: "completed" })}>
+                    onClick={async () => {
+                      onUpdate(booking.id, { status: "completed" });
+                      try {
+                        const res = await base44.functions.invoke("releaseHotelPayout", { bookingId: booking.id });
+                        if (res?.data?.transfer_id) {
+                          toast.success(`Pagamento libertado: €${(res.data.released || 0).toFixed(2)} transferidos para o hotel.`);
+                        }
+                      } catch (err) {
+                        console.warn("releaseHotelPayout (concluir):", err?.message);
+                      }
+                    }}>
                     <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Concluir
                   </Button>
                 )}
