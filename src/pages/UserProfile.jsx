@@ -15,6 +15,7 @@ import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 import ProfileManagementSection from "@/components/profile/ProfileManagementSection";
 import ProfessionalProfileSEO from "@/components/profile/ProfessionalProfileSEO";
 import GroupWalkEventsSection from "@/components/groupwalk/GroupWalkEventsSection";
+import { pickPrimaryWalkerProfile } from "@/utils/primaryProfile";
 
 const BadgeSelectionModal = lazy(() => import("@/components/gamification/BadgeSelectionModal"));
 const AnimalManagerModal = lazy(() => import("../components/profile/AnimalManagerModal"));
@@ -143,7 +144,7 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
             if (r.status === 'fulfilled' && r.value?.length > 0) {
               userProfile = r.value[0];
             } else if (rw.status === 'fulfilled' && rw.value?.length > 0) {
-              const w = rw.value[0];
+              const w = pickPrimaryWalkerProfile(rw.value);
               userProfile = { id: w.id, user_id: null, user_email: w.created_by, full_name: w.walker_name, profile_photo_url: w.photo_url, bio: w.bio, city: w.location, role: 'walker', is_verified: w.verification_status === 'verified', is_virtual_profile: true };
             }
 
@@ -225,7 +226,8 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
       if (fixedType === 'hotel') {
         return walkers.find(w => w.professional_type === 'hotel') || walkers[0];
       }
-      return walkers[0];
+      // Priorizar o perfil profissional real (walker/trainer) sobre hotéis/lojas
+      return pickPrimaryWalkerProfile(walkers);
     },
     enabled: !!profileEmail,
     staleTime: 5 * 60 * 1000,
