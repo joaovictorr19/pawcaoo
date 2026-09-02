@@ -22,7 +22,11 @@ export function ProfessionalCard({ walker }) {
 
   return (
     <div className={`bg-white rounded-[2.5rem] p-4 mb-3 border shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow
-      ${profileData.isHotel ? 'border-purple-400 ring-2 ring-purple-300/60 shadow-purple-50' : profileData.isPawcao ? 'border-amber-400 ring-2 ring-amber-300/60 shadow-amber-100' : 'border-slate-100'}`}
+      ${profileData.isHotel
+        ? 'border-purple-500/70 ring-1 ring-purple-400/35 shadow-[0_1px_2px_rgba(124,58,237,0.10),0_6px_20px_rgba(124,58,237,0.15),0_16px_40px_rgba(124,58,237,0.08)]'
+        : profileData.isPawcao
+          ? 'border-amber-500/70 ring-1 ring-amber-400/35 shadow-[0_1px_2px_rgba(217,119,6,0.10),0_6px_20px_rgba(217,119,6,0.16),0_16px_40px_rgba(217,119,6,0.09)]'
+          : 'border-slate-100'}`}
       onClick={async () => {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         const name = walker?.hotel_details?.hotel_name || walker?.walker_name;
