@@ -1,6 +1,7 @@
 // Constantes e componentes partilhados dos registos de estadia (HotelPetRecord)
 // Usados pelo Diário de Estadia (ficha do cão) e pela vista geral no dashboard.
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import DiaryComments from "@/components/hotel/DiaryComments";
@@ -16,13 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerFooter,
-} from "@/components/ui/drawer";
 import { toast } from "sonner";
 import {
   Activity, Heart, Utensils, Pill, AlertTriangle, Eye,
@@ -38,7 +32,7 @@ export const RECORD_TYPES = [
   { key: "incident",     label: { pt: "Incidente",     es: "Incidente",     en: "Incident" },    icon: AlertTriangle,  color: "text-orange-600 bg-orange-50 border-orange-100" },
   { key: "observation",  label: { pt: "Observação",   es: "Observación",   en: "Observation" }, icon: Eye,            color: "text-blue-600 bg-blue-50 border-blue-100" },
   { key: "elimination",  label: { pt: "Eliminação",   es: "Eliminación",   en: "Elimination" }, icon: Droplets,       color: "text-cyan-600 bg-cyan-50 border-cyan-100" },
-  { key: "exercise",     label: { pt: "Exercício",    es: "Ejercicio",     en: "Exercise" },    icon: PawPrint,       color: "text-teal-600 bg-teal-50 border-teal-100" },
+  { key: "exercise",     label: { pt: "Exercício",    es: "Ejercicio",    en: "Exercise" },    icon: PawPrint,       color: "text-teal-600 bg-teal-50 border-teal-100" },
   { key: "grooming",     label: { pt: "Grooming",     es: "Estética",      en: "Grooming" },     icon: Activity,       color: "text-pink-600 bg-pink-50 border-pink-100" },
   { key: "veterinary",   label: { pt: "Veterinário",  es: "Veterinario",   en: "Veterinary" },  icon: Stethoscope,    color: "text-indigo-600 bg-indigo-50 border-indigo-100" },
 ];
@@ -76,7 +70,7 @@ export const MOOD_OPTS = [
   { key: "calm",     label: { pt: "Calmo",     es: "Tranquilo", en: "Calm" } },
   { key: "excited",  label: { pt: "Animado",   es: "Emocionado", en: "Excited" } },
   { key: "anxious",   label: { pt: "Ansioso",   es: "Ansioso",   en: "Anxious" } },
-  { key: "tired",    label: { pt: "Cansado",   es: "Cansado",   en: "Tired" } },
+  { key: "tired",    label: { pt: "Cansado",    es: "Cansado",   en: "Tired" } },
   { key: "stressed", label: { pt: "Stressado", es: "Estresado", en: "Stressed" } },
 ];
 
@@ -85,7 +79,7 @@ export const SOCIAL_OPTS = [
   { key: "neutral",    label: { pt: "Neutro",     es: "Neutral",   en: "Neutral" } },
   { key: "shy",        label: { pt: "Tímido",     es: "Tímido",    en: "Shy" } },
   { key: "aggressive", label: { pt: "Agressivo",  es: "Agresivo",  en: "Aggressive" } },
-  { key: "anxious",    label: { pt: "Ansioso",    es: "Ansioso",   en: "Anxious" } },
+  { key: "anxious",   label: { pt: "Ansioso",    es: "Ansioso",   en: "Anxious" } },
 ];
 
 export const tr = (obj, lang) => obj?.[lang] || obj?.pt || obj?.en;
@@ -219,16 +213,36 @@ export function NewRecordDrawer({ open, onOpenChange, hotelProfile, booking, dog
 
   const isHealthLike = ["health", "incident", "veterinary"].includes(form.record_type);
 
-  return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[92vh] overflow-y-auto">
-        <DrawerHeader>
-          <DrawerTitle className="flex items-center gap-2">
+  // Folha em portal próprio (sem vaul): evita os problemas do Drawer em
+  // PWA/WebView (scroll/pointer bloqueados, página "congelada") e garante
+  // que os Selects e botões respondem sempre.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") onOpenChange(false); };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onOpenChange]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <>
+      <div className="fixed inset-0 z-[12000] bg-black/60 animate-in fade-in duration-200" onClick={() => onOpenChange(false)} aria-hidden="true" />
+      <div role="dialog" aria-modal="true"
+        className="fixed inset-x-0 bottom-0 z-[12001] max-h-[92vh] overflow-y-auto rounded-t-2xl bg-white shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <div className="mx-auto mt-3 h-2 w-[100px] rounded-full bg-slate-200" />
+        <div className="p-4 pb-0">
+          <h2 className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
             <Stethoscope className="w-5 h-5 text-slate-700" />
             {language === "pt" ? "Novo Registo" : language === "es" ? "Nuevo Registro" : "New Record"}
             <span className="text-sm font-normal text-slate-400">— {dogName}</span>
-          </DrawerTitle>
-        </DrawerHeader>
+          </h2>
+        </div>
 
         <div className="px-4 pb-4 space-y-4">
           {/* Type + Severity */}
@@ -421,14 +435,15 @@ export function NewRecordDrawer({ open, onOpenChange, hotelProfile, booking, dog
           </div>
         </div>
 
-        <DrawerFooter>
+        <div className="mt-auto flex flex-col gap-2 p-4">
           <Button onClick={handleSubmit} disabled={createMutation.isPending} className="w-full">
             {createMutation.isPending ? (language === "pt" ? "A guardar..." : "Saving...") : (language === "pt" ? "Guardar Registo" : "Save Record")}
           </Button>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{language === "pt" ? "Cancelar" : "Cancel"}</Button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+        </div>
+      </div>
+    </>,
+    document.body
   );
 }
 
