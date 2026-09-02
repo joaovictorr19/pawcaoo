@@ -235,6 +235,10 @@ export default function Home() {
     queryFn: async () => {
       if (!user?.email) return null;
       let profiles = await base44.entities.WalkerProfile.filter({ created_by: user.email }, '-created_date');
+      // Contas com perfil profissional E hotel/loja: usar o perfil profissional
+      // (o hotel tem o seu próprio dashboard — HotelDashboard)
+      const professionalOnly = profiles.filter(p => !['hotel', 'shop'].includes(p.professional_type));
+      if (professionalOnly.length > 0) return professionalOnly[0];
       if (profiles.length === 0) {
         profiles = await base44.entities.TrainerProfile.filter({ created_by: user.email }, '-created_date');
       }

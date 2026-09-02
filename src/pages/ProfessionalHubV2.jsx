@@ -207,6 +207,10 @@ export default function ProfessionalHubV2() {
     queryFn: async () => {
       if (!user?.id) return null;
       let profiles = await base44.entities.WalkerProfile.filter({ user_id: user.id }, '-created_date');
+      // Contas com perfil profissional E hotel/loja: usar o perfil profissional no hub
+      // (o hotel tem o seu próprio dashboard — HotelDashboard)
+      const professionalOnly = profiles.filter(p => !['hotel', 'shop'].includes(p.professional_type));
+      if (professionalOnly.length > 0) return professionalOnly[0];
       if (profiles.length === 0) {
         profiles = await base44.entities.TrainerProfile.filter({ user_id: user.id }, '-created_date');
       }
