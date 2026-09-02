@@ -63,6 +63,18 @@ export const FIELD_LABELS = {
   service_photos: "Fotos por serviço"
 };
 
+// Normaliza nome de cão para comparação (ignora maiúsculas e espaços extra)
+function normalizeDogName(v) {
+  return (v === null || v === undefined) ? "" : String(v).trim().toLowerCase();
+}
+
+// Encontra o DogProfile correspondente pelo nome do cão
+export function findDogProfileByName(dogProfiles, dogName) {
+  const target = normalizeDogName(dogName);
+  if (!target) return undefined;
+  return (dogProfiles || []).find(dp => normalizeDogName(dp.dog_name) === target);
+}
+
 // Cria um snapshot limpo dos campos relevantes do DogProfile
 export function createOwnerSnapshot(dogProfile) {
   if (!dogProfile) return null;

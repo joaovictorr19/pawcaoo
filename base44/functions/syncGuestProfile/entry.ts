@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
-import { createOwnerSnapshot } from "../../shared/dogSnapshot.ts";
+import { createOwnerSnapshot, findDogProfileByName } from "../../shared/dogSnapshot.ts";
 
 Deno.serve(async (req) => {
   try {
@@ -40,8 +40,8 @@ Deno.serve(async (req) => {
     if (existing.length > 0) {
       profile = existing[0];
       const updatedDogs = (booking.dogs || []).map(bookingDog => {
-        const existingDog = (profile.dogs || []).find(d => d.dog_name === bookingDog.dog_name);
-        const dogProfile = dogProfiles.find(dp => dp.dog_name === bookingDog.dog_name);
+        const existingDog = (profile.dogs || []).find(d => (d.dog_name || "").trim().toLowerCase() === (bookingDog.dog_name || "").trim().toLowerCase());
+        const dogProfile = findDogProfileByName(dogProfiles, bookingDog.dog_name);
         const newSnapshot = createOwnerSnapshot(dogProfile);
 
         // Preserve hotel-edited fields; only update owner_snapshot if data changed
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
         veterinarian_name: booking.veterinarian_name,
         veterinarian_phone: booking.veterinarian_phone,
         dogs: (booking.dogs || []).map(d => {
-          const dogProfile = dogProfiles.find(dp => dp.dog_name === d.dog_name);
+          const dogProfile = findDogProfileByName(dogProfiles, d.dog_name);
           const snapshot = createOwnerSnapshot(dogProfile);
           return {
             dog_name: d.dog_name,

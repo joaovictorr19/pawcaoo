@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
-import { createOwnerSnapshot } from "../../shared/dogSnapshot.ts";
+import { createOwnerSnapshot, findDogProfileByName } from "../../shared/dogSnapshot.ts";
 
 Deno.serve(async (req) => {
   try {
@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     const updatedDogs = (profile.dogs || []).map(dog => {
       if (dog.dog_name !== dog_name) return dog;
 
-      const dogProfile = dogProfiles.find(dp => dp.dog_name === dog.dog_name);
+      const dogProfile = findDogProfileByName(dogProfiles, dog.dog_name);
       const newSnapshot = createOwnerSnapshot(dogProfile);
 
       const updated = {

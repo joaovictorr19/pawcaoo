@@ -77,6 +77,7 @@ export default function HotelCaninoProfiles({ hotelProfile, bookings = [] }) {
         bookings={bookings}
         hotelProfile={hotelProfile}
         onBack={() => setSelectedDog(null)}
+        onDogUpdated={(updated) => setSelectedDog(prev => prev ? { ...prev, ...updated } : prev)}
       />
     );
   }

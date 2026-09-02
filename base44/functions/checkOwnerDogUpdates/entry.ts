@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
-import { createOwnerSnapshot, diffSnapshots } from "../../shared/dogSnapshot.ts";
+import { createOwnerSnapshot, diffSnapshots, findDogProfileByName } from "../../shared/dogSnapshot.ts";
 
 Deno.serve(async (req) => {
   try {
@@ -29,11 +29,12 @@ Deno.serve(async (req) => {
     const updatedDogs = [];
 
     for (const dog of (profile.dogs || [])) {
-      const dogProfile = dogProfiles.find(dp => dp.dog_name === dog.dog_name);
-      const currentSnapshot = createOwnerSnapshot(dogProfile);
+      const dogProfile = findDogProfileByName(dogProfiles, dog.dog_name);
       const storedSnapshot = dog.owner_snapshot || null;
 
-      const changes = diffSnapshots(storedSnapshot, currentSnapshot);
+      // Sem DogProfile correspondente (dono eliminou/renomeou) não dá para
+      // comparar — não marcar tudo como "alterado para vazio" (falso positivo).
+      const changes = dogProfile ? diffSnapshots(storedSnapshot, createOwnerSnapshot(dogProfile)) : [];
       const hasUpdates = changes.length > 0;
 
       results.push({

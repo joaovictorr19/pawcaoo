@@ -7,8 +7,11 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
+import { useQueryClient } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { SERVICE_PHOTO_TABS, countServicePhotosByType } from "@/components/animal/servicePhotoConfig";
 import DogStayDiary from "./DogStayDiary";
+import OwnerDataComparison from "./OwnerDataComparison";
 
 const SERVICE_LABELS = {
   boarding: "Alojamento",
@@ -62,9 +65,27 @@ function InfoRow({ label, value }) {
   );
 }
 
-export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack }) {
+export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack, onDogUpdated }) {
   const [activePhotoTab, setActivePhotoTab] = useState("hotel");
   const [showHistory, setShowHistory] = useState(true);
+  const [showCompare, setShowCompare] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleOwnerUpdatesAccepted = async () => {
+    setShowCompare(false);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["hotelGuestProfiles", hotelProfile?.id] });
+      const gp = await base44.entities.HotelGuestProfile.get(dog.guest_profile_id);
+      const updatedDog = (gp?.dogs || []).find(
+        (d) => (d.dog_name || "").trim().toLowerCase() === (dog.dog_name || "").trim().toLowerCase()
+      );
+      if (updatedDog && onDogUpdated) {
+        onDogUpdated({ ...dog, ...updatedDog, has_owner_updates: false });
+      }
+    } catch (e) {
+      // silencioso — a lista é atualizada pelo invalidate acima
+    }
+  };
 
   // Histórico de serviços: todas as reservas que incluem este cão
   const dogBookings = useMemo(() => {
@@ -142,7 +163,13 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack 
         {dog.has_owner_updates && (
           <div className="bg-amber-50 border-t border-amber-200 px-4 py-2.5 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-            <p className="text-xs text-amber-800 font-medium">O dono atualizou os dados deste animal. Verifique as alterações no separador Clientes.</p>
+            <p className="text-xs text-amber-800 font-medium flex-1">O dono atualizou os dados deste animal.</p>
+            <button
+              onClick={() => setShowCompare(true)}
+              className="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 rounded-full px-2.5 py-1 flex items-center gap-1 hover:bg-amber-200 shrink-0"
+            >
+              <RefreshCw className="w-3 h-3" /> Ver alterações
+            </button>
           </div>
         )}
 
@@ -227,9 +254,17 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack 
 
       {/* Dados do dono (snapshot) */}
       <div className="bg-white border border-slate-200 rounded-xl p-3">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-          <Stethoscope className="w-3 h-3" /> Ficha do Animal (dados do dono)
-        </p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+            <Stethoscope className="w-3 h-3" /> Ficha do Animal (dados do dono)
+          </p>
+          <button
+            onClick={() => setShowCompare(true)}
+            className="text-[10px] font-semibold text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg px-2 py-1 flex items-center gap-1 transition-colors"
+          >
+            <RefreshCw className="w-3 h-3" /> Ver alterações do dono
+          </button>
+        </div>
         <div className="divide-y divide-slate-50">
           <InfoRow label="Raça" value={snapshot.breed || dog.dog_breed} />
           <InfoRow label="Idade" value={snapshot.age || dog.dog_age} />
@@ -344,6 +379,15 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack 
           )}
         </AnimatePresence>
       </div>
+
+      {showCompare && (
+        <OwnerDataComparison
+          guestProfileId={dog.guest_profile_id}
+          dogName={dog.dog_name}
+          onClose={() => setShowCompare(false)}
+          onAccepted={handleOwnerUpdatesAccepted}
+        />
+      )}
     </div>
   );
 }
