@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
-  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Truck, Check, Instagram, Award, Euro
+  Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Check, Instagram, Award, Euro
 } from "lucide-react";
 import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
 import HotelPortfolioEditor from "@/components/hotel/HotelPortfolioEditor";
@@ -32,8 +32,6 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     checkout_time: hotelProfile?.hotel_details?.checkout_time || "",
     checkin_description: hotelProfile?.hotel_details?.checkin_description || "",
     hide_checkin_times: hotelProfile?.hotel_details?.hide_checkin_times || false,
-    offers_pickup: hotelProfile?.hotel_details?.offers_pickup || false,
-    pickup_fee: hotelProfile?.hotel_details?.pickup_fee || "",
     blocked_dates: hotelProfile?.hotel_details?.blocked_dates || [],
     instagram_url: hotelProfile?.instagram_url || "",
     certifications_detailed: hotelProfile?.certifications_detailed || [],
@@ -133,8 +131,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
         checkout_time: form.checkout_time,
         checkin_description: form.checkin_description,
         hide_checkin_times: form.hide_checkin_times,
-        offers_pickup: form.offers_pickup,
-        pickup_fee: form.pickup_fee ? parseFloat(form.pickup_fee) : null,
+        offers_pickup: false,
+        pickup_fee: null,
         blocked_dates: form.blocked_dates,
       };
 
@@ -435,42 +433,6 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
               </>
             )}
 
-            {/* Pickup service toggle */}
-            <div className="mt-3 pt-3 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setForm(prev => ({ ...prev, offers_pickup: !prev.offers_pickup }))}
-                className="flex items-center justify-between w-full"
-              >
-                <div className="flex items-center gap-2">
-                  <Truck className="w-3.5 h-3.5 text-slate-400" />
-                  <div className="text-left">
-                    <p className="text-xs font-semibold text-slate-600">Recolha ao domicílio</p>
-                    <p className="text-[10px] text-slate-400">Oferecer recolha de cães em casa do cliente</p>
-                  </div>
-                </div>
-                <div className={`w-9 h-5 rounded-full transition-colors relative ${form.offers_pickup ? 'bg-emerald-500' : 'bg-slate-200'}`}>
-                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${form.offers_pickup ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                </div>
-              </button>
-              {form.offers_pickup && (
-                <div className="mt-3 ml-6">
-                  <Label className="text-[11px] font-medium text-slate-500">Valor da Recolha (€)</Label>
-                  <div className="relative mt-1">
-                    <Euro className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={form.pickup_fee}
-                      onChange={handleChange("pickup_fee")}
-                      placeholder="5.00"
-                      className="rounded-lg pl-9 max-w-[200px]"
-                    />
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1">Valor extra cobrado ao cliente pela recolha ao domicílio</p>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Blocked dates / Folgas */}

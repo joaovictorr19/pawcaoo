@@ -99,8 +99,7 @@ export function calculateAddOnsTotal(addOns = []) {
 export function buildBookingPayload(formData, hotelProfile, addOns = []) {
   const amount = parseFloat(formData.total_amount) || 0;
   const addOnsTotal = calculateAddOnsTotal(addOns);
-  const pickupFee = (formData.pickup_enabled && hotelProfile?.hotel_details?.pickup_fee) ? parseFloat(hotelProfile.hotel_details.pickup_fee) : 0;
-  const totalAmount = amount + addOnsTotal + pickupFee;
+  const totalAmount = amount + addOnsTotal;
   const finance = calculateBookingFinance(totalAmount);
 
   return {
@@ -134,7 +133,6 @@ export function buildBookingPayload(formData, hotelProfile, addOns = []) {
     service_duration_minutes: formData.service_duration_minutes || undefined,
     pickup_enabled: formData.pickup_enabled || false,
     pickup_address: formData.pickup_enabled ? formData.pickup_address : undefined,
-    pickup_fee: pickupFee > 0 ? pickupFee : undefined,
     add_ons: addOns,
     add_ons_total: addOnsTotal,
   };
