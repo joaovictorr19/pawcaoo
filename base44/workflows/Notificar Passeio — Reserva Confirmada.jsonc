@@ -1,0 +1,41 @@
+{
+  "name": "Notificar Passeio \u2014 Reserva Confirmada",
+  "description": "Envia email profissional ao dono e ao passeador quando uma reserva de passeio/treino (Booking) fica confirmada",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Booking"
+    },
+    "condition": "${ (.trigger.changed_fields | index(\"status\") != null) and ((.trigger.payload_too_large // false) or ((.trigger.data.status // \"\") == \"confirmed\")) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "notificar_passeio_reserva_confirmada",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "enviar_emails": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyBookingConfirmed",
+            "args": {
+              "entity_name": "Booking",
+              "booking_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Enviar emails de confirma\u00e7\u00e3o",
+            "description": "Dono e passeador/treinador"
+          }
+        }
+      }
+    ]
+  }
+}

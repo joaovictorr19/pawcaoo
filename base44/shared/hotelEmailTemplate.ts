@@ -2,7 +2,7 @@
 // Usados pelo webhook do Stripe (stripeWebhook) para enviar emails ao cliente
 // e ao hotel imediatamente após o pagamento ser confirmado.
 
-const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/e3013a5a7_IMG_3975.jpg";
+export const PAWCAO_LOGO_URL = "https://media.base44.com/images/public/6907b3be1ec43db5676a2085/e3013a5a7_IMG_3975.jpg";
 
 const SERVICE_LABELS = {
   boarding: "Alojamento",
@@ -28,7 +28,7 @@ const TRANSPORT_LABELS = {
   dropoff_only: "Só Entrega (volta)",
 };
 
-function formatDatePt(dateStr) {
+export function formatDatePt(dateStr) {
   if (!dateStr) return "—";
   try {
     const d = new Date(dateStr + "T00:00:00");
@@ -69,7 +69,7 @@ function dogList(dogs) {
   }).join(", ");
 }
 
-function euro(n) {
+export function euro(n) {
   return `€${Number(n || 0).toFixed(2)}`;
 }
 
