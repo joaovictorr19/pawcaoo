@@ -30,7 +30,7 @@ export default function StripeConnectSetup() {
   const fetchStatus = async () => {
     setRefreshing(true);
     try {
-      const res = await base44.functions.getStripeAccountStatus({});
+      const res = await base44.functions.invoke('getStripeAccountStatus', {});
       setStatus(res);
     } catch (error) {
       console.error("Error fetching Stripe status:", error);
@@ -56,7 +56,7 @@ export default function StripeConnectSetup() {
   const createAccount = async () => {
     setLoading(true);
     try {
-      const res = await base44.functions.createStripeConnectAccount({});
+      const res = await base44.functions.invoke('createStripeConnectAccount', {});
       if (res?.account_id) {
         toast.success(res.already_exists ? "Conta já existente encontrada." : "Conta criada! Complete o onboarding.");
         await startOnboarding();
@@ -75,7 +75,7 @@ export default function StripeConnectSetup() {
     setLoading(true);
     try {
       const baseUrl = window.location.origin;
-      const res = await base44.functions.createStripeOnboardingLink({
+      const res = await base44.functions.invoke('createStripeOnboardingLink', {
         refresh_url: `${baseUrl}/StripeConnectSetup?refresh=true`,
         return_url: `${baseUrl}/StripeConnectSetup?success=true`,
       });

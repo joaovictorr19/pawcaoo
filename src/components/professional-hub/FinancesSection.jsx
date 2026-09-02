@@ -4,10 +4,13 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { TrendingUp, Loader2, CreditCard, ArrowUpRight } from "lucide-react";
+import { TrendingUp, Loader2, CreditCard, ArrowUpRight, Settings2 } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 export function FinancesSection({ user, professionalProfile }) {
+  const navigate = useNavigate();
   // Fetch all completed payments for this professional
   const { data: payments = [], isLoading } = useQuery({
     queryKey: ['professionalPayments', user?.email],
@@ -137,6 +140,14 @@ export function FinancesSection({ user, professionalProfile }) {
           >
             <ArrowUpRight className="w-4 h-4 mr-2" />
             Levantar Saldo
+          </Button>
+          <Button
+            onClick={() => navigate(createPageUrl("StripeConnectSetup"))}
+            variant="outline"
+            className="w-full mt-2 bg-transparent border-orange-500/40 text-orange-300 hover:bg-orange-500/10 hover:text-orange-200 font-semibold rounded-xl h-10"
+          >
+            <Settings2 className="w-4 h-4 mr-2" />
+            Configurar recebimentos (Stripe)
           </Button>
           <p className="text-xs text-slate-400 mt-3">Mínimo €25 • Processado em 2-3 dias úteis</p>
         </CardContent>
