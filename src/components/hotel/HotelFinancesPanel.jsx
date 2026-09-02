@@ -7,10 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   TrendingUp, ArrowUp, Clock, AlertCircle, Euro,
-  CheckCircle2, XCircle, RefreshCw, Wallet, Calendar
+  CheckCircle2, XCircle, RefreshCw, Wallet, Calendar, Settings2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { format, isSameMonth, parseISO, subMonths } from 'date-fns';
 import { pt, es, fr } from 'date-fns/locale';
 import { useLanguage } from '@/components/LanguageContext';
@@ -74,6 +76,7 @@ const PAYMENT_STATUS_CONFIG = (tr) => ({
 });
 
 export default function HotelFinancesPanel({ hotelProfile, bookings }) {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const lang = ['pt', 'es', 'fr'].includes(language) ? language : 'pt';
   const tr = I18N[lang];
@@ -307,6 +310,14 @@ export default function HotelFinancesPanel({ hotelProfile, bookings }) {
             disabled={!withdrawAmount || !selectedIban || isSubmittingWithdraw || parseFloat(withdrawAmount) > totalEarnings}
             className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-semibold h-10">
             {isSubmittingWithdraw ? tr.processing : tr.requestWithdraw}
+          </Button>
+          <Button
+            onClick={() => navigate(createPageUrl("StripeConnectSetup"))}
+            variant="outline"
+            className="w-full mt-2 rounded-lg font-semibold h-10"
+          >
+            <Settings2 className="w-4 h-4 mr-2" />
+            {lang === 'pt' ? 'Configurar recebimentos (Stripe)' : lang === 'es' ? 'Configurar cobros (Stripe)' : 'Configurer les paiements (Stripe)'}
           </Button>
         </div>
       </Card>
