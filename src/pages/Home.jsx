@@ -99,23 +99,16 @@ export default function Home() {
     queryKey: ['myDogs', user?.email],
     queryFn: () => base44.entities.DogProfile.filter({ owner_email: user?.email }),
     enabled: !!user?.email,
-    initialData: []
+    initialData: [],
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: favorites = [] } = useQuery({
     queryKey: ['myFavorites', user?.email],
     queryFn: () => base44.entities.Favorite.filter({ created_by: user?.email }),
     enabled: !!user?.email,
-    initialData: []
-  });
-
-  const { data: loyaltyPoints } = useQuery({
-    queryKey: ['loyaltyPoints', user?.email],
-    queryFn: async () => {
-      const points = await base44.entities.LoyaltyPoints.filter({ user_email: user.email });
-      return points[0] || { points_balance: 0, total_earned: 0, tier: 'bronze' };
-    },
-    enabled: !!user?.email,
+    initialData: [],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -617,7 +610,6 @@ export default function Home() {
             <div className="max-w-4xl mx-auto relative mb-6">
               <div className={`absolute -inset-1 bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} opacity-20 blur-2xl rounded-3xl pointer-events-none`} />
               <div className="relative bg-white/35 backdrop-blur-xl border border-white/50 rounded-3xl shadow-2xl p-4 md:p-6 overflow-hidden">
-                <div className={`absolute inset-0 bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} opacity-[0.05] pointer-events-none`} />
               {/* Embedded Owner Dashboard */}
               {(() => {
                 const currentTier = calculateTier(currentXP);
@@ -627,8 +619,6 @@ export default function Home() {
                 
                 return (
                   <div className="space-y-3 mb-6 relative">
-                    <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 md:w-96 md:h-96 bg-green-500 opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
-                    
                     <div className={`bg-gradient-to-br ${colors?.gradient || 'from-blue-900 via-indigo-700 to-purple-800'} text-white rounded-2xl shadow-2xl p-4 md:p-5 relative overflow-hidden`}>
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse pointer-events-none"></div>
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>

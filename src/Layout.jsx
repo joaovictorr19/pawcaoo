@@ -161,6 +161,12 @@ function LayoutContent({ children, currentPageName }) {
 
   const unreadCount = notifications?.length || 0;
 
+  // Parcerias com hotéis — só profissionais; consulta leve (filtro aninhado no servidor,
+  // devolve apenas hotéis onde este email é parceiro) em vez do scan de todos os perfis.
+  const isProUser = !!authUser && (
+    ['walker', 'trainer', 'professional', 'admin'].includes(authUser.role) ||
+    ['walker', 'trainer', 'both'].includes(authUser?.account_type)
+  );
   const { data: hotelPartnerships } = useQuery({
     queryKey: ['hotelPartnerships', authUser?.email],
     queryFn: async () => {
@@ -170,34 +176,46 @@ function LayoutContent({ children, currentPageName }) {
         if (profiles.length > 0 && profiles[0].hotel_partnerships?.length > 0) {
           return profiles[0].hotel_partnerships;
         }
-        const hotels = await base44.entities.WalkerProfile.filter(
-          { professional_type: 'hotel' },
-          undefined,
-          5000
-        );
-        const partnerships = [];
-        const currentEmail = authUser.email.trim().toLowerCase();
-        for (const h of hotels) {
-          const partners = h.hotel_details?.partner_walkers || [];
-          const found = partners.find(p => p.walker_email?.trim().toLowerCase() === currentEmail);
-          if (found) {
-            partnerships.push({
-              hotel_profile_id: h.id,
-              hotel_name: h.hotel_details?.hotel_name || h.walker_name || 'Hotel',
-              hotel_photo_url: h.photo_url || '',
-              partner_role: found.partner_role || 'simple',
-              custom_title: found.custom_title || '',
-            });
+        const buildFromHotels = (hotels) => {
+          const partnerships = [];
+          const currentEmail = authUser.email.trim().toLowerCase();
+          for (const h of hotels) {
+            const partners = h.hotel_details?.partner_walkers || [];
+            const found = partners.find(p => p.walker_email?.trim().toLowerCase() === currentEmail);
+            if (found) {
+              partnerships.push({
+                hotel_profile_id: h.id,
+                hotel_name: h.hotel_details?.hotel_name || h.walker_name || 'Hotel',
+                hotel_photo_url: h.photo_url || '',
+                partner_role: found.partner_role || 'simple',
+                custom_title: found.custom_title || '',
+              });
+            }
           }
+          return partnerships;
+        };
+        const currentEmail = authUser.email.trim().toLowerCase();
+        let hotels = await base44.entities.WalkerProfile.filter(
+          { professional_type: 'hotel', 'hotel_details.partner_walkers.walker_email': authUser.email },
+          undefined,
+          20
+        );
+        if (!hotels.length && currentEmail !== authUser.email) {
+          hotels = await base44.entities.WalkerProfile.filter(
+            { professional_type: 'hotel', 'hotel_details.partner_walkers.walker_email': currentEmail },
+            undefined,
+            20
+          );
         }
-        return partnerships;
+        return buildFromHotels(hotels);
       } catch {
         return [];
       }
     },
-    enabled: !!authUser?.email,
-    staleTime: 60 * 1000,
-    refetchOnMount: true,
+    enabled: !!authUser?.email && isProUser,
+    staleTime: 15 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   React.useEffect(() => {

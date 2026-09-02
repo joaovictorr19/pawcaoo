@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { useHotelCapacity } from "@/hooks/useHotelCapacity";
 import {
   Hotel, CalendarDays, Dog, Users, Euro, CheckCircle2,
-  XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, Settings, RefreshCw,
+  XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, Settings,
   ClipboardList, Wallet, UserCheck, UserPlus, Phone, Mail, StickyNote, FileText, DoorOpen,
   BedDouble, Sun, Scissors, GraduationCap, PawPrint, ArrowRight, ArrowLeft,
   CircleDot, X, ChevronDown, Stethoscope, ListChecks, BookOpen
@@ -129,7 +129,6 @@ export default function HotelDashboard() {
   const [showAssignTask, setShowAssignTask] = useState(false);
   const [showAddService, setShowAddService] = useState(false);
   const [alertDismissed, setAlertDismissed] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
@@ -147,13 +146,24 @@ export default function HotelDashboard() {
       const profile = profiles[0] || null;
 
       if (!profile && user?.email) {
-        const allHotels = await base44.entities.WalkerProfile.filter(
-          { professional_type: "hotel" },
+        // Consulta leve: o servidor devolve apenas hotéis onde este email é parceiro
+        let partnerHotels = await base44.entities.WalkerProfile.filter(
+          { professional_type: "hotel", "hotel_details.partner_walkers.walker_email": user.email },
           undefined,
-          100
+          20
         );
+        if (!partnerHotels.length) {
+          const lowerEmail = user.email.trim().toLowerCase();
+          if (lowerEmail !== user.email) {
+            partnerHotels = await base44.entities.WalkerProfile.filter(
+              { professional_type: "hotel", "hotel_details.partner_walkers.walker_email": lowerEmail },
+              undefined,
+              20
+            );
+          }
+        }
 
-        for (const h of allHotels) {
+        for (const h of partnerHotels) {
           const partners = h.hotel_details?.partner_walkers || [];
           const partnership = partners.find(p => p.walker_email === user.email);
           if (partnership) {
@@ -172,14 +182,17 @@ export default function HotelDashboard() {
       return profile;
     },
     enabled: !!user?.email,
+    staleTime: 60 * 1000,
   });
 
   const { data: bookings = [], isLoading: loadingBookings } = useQuery({
     queryKey: ["hotelBookings", hotelProfile?.id],
     queryFn: () => base44.entities.HotelBooking.filter({ hotel_profile_id: hotelProfile.id }, "-created_date", 100),
     enabled: !!hotelProfile?.id,
-    staleTime: 30 * 1000,
-    refetchInterval: 60 * 1000,
+    staleTime: 60 * 1000,
+    refetchInterval: 3 * 60 * 1000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
   });
 
   const adjustServiceCapacity = async (serviceType, delta) => {
@@ -343,21 +356,6 @@ export default function HotelDashboard() {
     toast.success(`Título alterado para ${newTitle}`);
   };
 
-  const handleSyncGoogleCalendar = async () => {
-    if (!hotelProfile) return;
-    setIsSyncing(true);
-    try {
-      const response = await base44.functions.invoke('syncHotelBookingsToGoogleCalendar', {
-        hotel_profile_id: hotelProfile.id
-      });
-      toast.success(response.data?.message || "Sincronização concluída");
-    } catch (error) {
-      toast.error(`Erro na sincronização: ${error.message}`);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   const handleUpdateBooking = (id, data) => updateBookingMutation.mutate({ id, data });
   const handleCreateBooking = (data) => createBookingMutation.mutate(data);
 
@@ -479,12 +477,6 @@ export default function HotelDashboard() {
                 {hotelProfile?.is_active ? "Ativo" : "Inativo"}
               </span>
             </div>
-            <Button size="sm" variant="outline"
-              className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs h-9 w-9 sm:w-auto p-0 sm:px-3"
-              onClick={handleSyncGoogleCalendar} disabled={isSyncing}>
-              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              <span className="hidden md:inline">{isSyncing ? "A sincronizar" : "Google Calendar"}</span>
-            </Button>
             <Button size="sm" variant="outline"
               className="border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg gap-1.5 text-xs h-9 w-9 sm:w-auto p-0 sm:px-3"
               onClick={() => navigate(createPageUrl("ProfessionalHubV2"))}>
