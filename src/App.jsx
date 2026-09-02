@@ -1,6 +1,7 @@
 import './App.css'
 import React, { Suspense, lazy } from 'react'
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { AnimatePresence, motion } from 'framer-motion'
 import Home from './pages/Home.jsx'
 import UserProfile from './pages/UserProfile.jsx'
@@ -270,6 +271,7 @@ function App() {
           <AuthenticatedApp />
         </Router>
         <Toaster />
+        <SonnerToaster position="top-center" />
         <VisualEditAgent />
       </QueryClientProvider>
     </AuthProvider>
