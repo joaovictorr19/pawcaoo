@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight, FileText, Download, ZoomIn, ZoomOut, Loader2 } from "lucide-react";
 
 const MIN_SCALE = 1;
@@ -172,7 +173,10 @@ export default function CertificateLightbox({ items, initialIndex, onClose }) {
 
   if (!item) return null;
 
-  return (
+  // Portal no body: garante que o fixed cobre o ecrã inteiro mesmo quando
+  // a página envolve esta árvore em elementos com transform/filter (animações),
+  // que em mobile quebram o posicionamento fixo (ecrã preto).
+  return createPortal(
     <div
       className="fixed inset-0 z-[99999] bg-black/95 flex items-center justify-center"
       onClick={onClose}
@@ -300,10 +304,15 @@ export default function CertificateLightbox({ items, initialIndex, onClose }) {
                 alt={item.certName}
                 onLoad={() => setLoaded(true)}
                 onError={() => setFailed(true)}
-                className={`max-w-full max-h-full object-contain rounded-xl shadow-2xl select-none transition-opacity duration-200 ${
+                className={`object-contain rounded-xl shadow-2xl select-none transition-opacity duration-200 ${
                   loaded ? "opacity-100" : "opacity-0"
                 }`}
                 style={{
+                  // Tamanhos relativos ao ecrã (independentes da árvore de pais)
+                  maxWidth: "calc(100vw - 1.5rem)",
+                  maxHeight: "calc(100vh - 9rem)",
+                  width: "auto",
+                  height: "auto",
                   transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
                   transformOrigin: "center center",
                   transition: gesturing ? "none" : "transform 0.18s ease-out",
@@ -360,6 +369,7 @@ export default function CertificateLightbox({ items, initialIndex, onClose }) {
           ))}
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
