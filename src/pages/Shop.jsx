@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight } from "lucide-react";
+import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, ChevronRight } from "lucide-react";
 import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
 
 const CATEGORIES = [
@@ -69,6 +69,15 @@ export default function Shop() {
     [products, category, location, search]
   );
 
+  const handleOpenProduct = (product) => {
+    if (!user) {
+      navigate(`/login?from=${encodeURIComponent("/Shop")}`);
+      return;
+    }
+    if ((product.stock_quantity || 0) < 1) return;
+    setSelectedProduct(product);
+  };
+
   return (
     <div className="min-h-screen">
       <Helmet>
@@ -81,25 +90,29 @@ export default function Shop() {
 
       <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-10 pb-12">
         {/* Hero */}
-        <div className="mb-8">
-          <h1 className="font-heading font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight">
+        <div className="mb-6">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-[11px] font-bold mb-3">
+            <Sparkles className="w-3.5 h-3.5" />
+            Vitrine oficial dos parceiros PawCão
+          </span>
+          <h1 className="font-heading font-extrabold text-3xl md:text-4xl text-slate-900 tracking-tight leading-tight">
             Loja de <span className="text-teal-600">Parceiros</span>
           </h1>
-          <p className="text-slate-500 text-sm md:text-base mt-2 max-w-2xl">
-            Produtos e serviços vendidos diretamente pelos profissionais verificados da PawCão —
-            hotéis, passeadores, treinadores e tosquiadores que já cuidam do teu cão.
+          <p className="text-slate-500 text-sm mt-2 max-w-2xl leading-relaxed">
+            Produtos e serviços vendidos pelos mesmos profissionais que cuidam do teu cão — hotéis,
+            passeadores, treinadores e tosquiadores verificados.
           </p>
         </div>
 
         {/* Filtros */}
-        <div className="space-y-3 mb-8">
-          <div className="flex flex-col sm:flex-row gap-3">
+        <div className="rounded-3xl bg-white/70 backdrop-blur-md border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3.5 md:p-4 mb-5 space-y-3">
+          <div className="flex flex-col sm:flex-row gap-2.5">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Procurar produtos, serviços ou parceiros..."
+                placeholder="Procurar na loja..."
                 className="w-full h-11 pl-10 pr-4 rounded-2xl border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
               />
             </div>
@@ -111,12 +124,14 @@ export default function Shop() {
               >
                 <option value="all">Todas as localizações</option>
                 {locations.map((loc) => (
-                  <option key={loc} value={loc}>{loc}</option>
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
                 ))}
               </select>
             )}
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
@@ -133,12 +148,19 @@ export default function Shop() {
           </div>
         </div>
 
-        {/* Grelha de produtos */}
+        {/* Contagem */}
+        {!isLoading && (
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+            {filtered.length} {filtered.length === 1 ? "artigo" : "artigos"}
+          </p>
+        )}
+
+        {/* Lista de produtos */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="bg-white rounded-3xl border border-slate-100 overflow-hidden animate-pulse">
-                <div className="w-full h-48 bg-slate-200" />
+                <div className="w-full h-44 bg-slate-200" />
                 <div className="p-4 space-y-2.5">
                   <div className="h-4 bg-slate-200 rounded w-3/4" />
                   <div className="h-3 bg-slate-200 rounded w-1/2" />
@@ -147,33 +169,28 @@ export default function Shop() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-16 bg-white rounded-3xl border border-slate-100">
+            <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-4">
               <PackageOpen className="w-8 h-8 text-slate-400" />
             </div>
-            <p className="font-semibold text-slate-700">Nenhum produto encontrado</p>
+            <p className="font-semibold text-slate-700">Nenhum artigo encontrado</p>
             <p className="text-sm text-slate-500 mt-1">
               Ajusta os filtros ou volta mais tarde — novos parceiros chegam a toda a hora.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {filtered.map((product) => {
               const delivery = DELIVERY[product.delivery_method] || DELIVERY.pickup;
               const soldOut = (product.stock_quantity || 0) < 1;
               return (
                 <button
                   key={product.id}
-                  onClick={() => {
-                    if (!user) {
-                      navigate(`/login?from=${encodeURIComponent("/Shop")}`);
-                      return;
-                    }
-                    if (!soldOut) setSelectedProduct(product);
-                  }}
-                  className="group text-left bg-white rounded-3xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(13,148,131,0.12)] hover:ring-1 hover:ring-teal-500/20 transition-all overflow-hidden active:scale-[0.98]"
+                  onClick={() => handleOpenProduct(product)}
+                  className="group text-left bg-white rounded-3xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(13,148,131,0.12)] hover:ring-1 hover:ring-teal-500/20 transition-all overflow-hidden active:scale-[0.98] flex sm:flex-col"
                 >
-                  <div className="w-full h-48 bg-slate-100 relative overflow-hidden">
+                  {/* Imagem — compacta à esquerda no telemóvel, em cima no desktop */}
+                  <div className="w-28 h-28 sm:w-full sm:h-44 shrink-0 relative overflow-hidden bg-slate-100 rounded-2xl sm:rounded-none">
                     {product.image_url ? (
                       <img
                         src={product.image_url}
@@ -182,39 +199,43 @@ export default function Shop() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-10 h-10 text-slate-300" />
+                        <Package className="w-8 h-8 text-slate-300" />
                       </div>
                     )}
-                    {soldOut && (
-                      <span className="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-900/80 text-white text-[11px] font-bold">
+                    {soldOut ? (
+                      <span className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-slate-900/80 text-white text-[10px] font-bold">
                         Esgotado
                       </span>
-                    )}
-                    {product.product_type === "service" && !soldOut && (
-                      <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-teal-600 text-white text-[11px] font-bold">
+                    ) : product.product_type === "service" ? (
+                      <span className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-teal-600 text-white text-[10px] font-bold">
                         Serviço
                       </span>
-                    )}
+                    ) : null}
                   </div>
-                  <div className="p-4">
-                    <p className="font-bold text-slate-900 text-sm leading-snug line-clamp-1">
+
+                  {/* Conteúdo */}
+                  <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col">
+                    <p className="font-bold text-slate-900 text-sm leading-snug line-clamp-2">
                       {product.product_name}
                     </p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {product.partner_name}
-                      {product.partner_location ? ` · ${product.partner_location}` : ""}
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 flex-1 hidden sm:block">
+                      {product.description || "\u00A0"}
                     </p>
-                    <p className="text-xs text-slate-500 mt-2 line-clamp-2 min-h-[2rem]">
-                      {product.description}
-                    </p>
-                    <div className="flex items-center justify-between mt-3">
-                      <span className="text-lg font-black text-teal-700">
+                    <div className="flex items-center justify-between gap-2 mt-2.5">
+                      <span className="text-lg font-black text-teal-700 leading-none">
                         €{(product.price_euro || 0).toFixed(2)}
                       </span>
                       <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-full px-2.5 py-1">
                         <delivery.icon className="w-3.5 h-3.5 text-teal-600" />
                         {delivery.label}
                       </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
+                      <p className="text-[11px] text-slate-500 truncate flex-1">
+                        {product.partner_name}
+                        {product.partner_location ? ` · ${product.partner_location}` : ""}
+                      </p>
+                      <ChevronRight className="w-4 h-4 text-teal-600 shrink-0 ml-2" />
                     </div>
                   </div>
                 </button>
@@ -224,9 +245,9 @@ export default function Shop() {
         )}
 
         {/* CTA para profissionais */}
-        <div className="mt-12 rounded-3xl p-8 md:p-10 bg-gradient-to-br from-violet-300/80 via-sky-200/80 to-teal-200/80 border border-white/60 backdrop-blur-sm text-center">
-          <Sparkles className="w-8 h-8 text-slate-900 mx-auto mb-3" />
-          <h2 className="font-heading font-extrabold text-2xl md:text-3xl text-slate-900">
+        <div className="mt-10 rounded-3xl p-6 md:p-10 bg-gradient-to-br from-violet-300/80 via-sky-200/80 to-teal-200/80 border border-white/60 backdrop-blur-sm text-center">
+          <Sparkles className="w-7 h-7 text-slate-900 mx-auto mb-3" />
+          <h2 className="font-heading font-extrabold text-xl md:text-3xl text-slate-900">
             Vende os teus produtos na PawCão
           </h2>
           <p className="text-slate-700/90 text-sm md:text-base mt-2 max-w-xl mx-auto">
@@ -235,7 +256,7 @@ export default function Shop() {
           </p>
           <a
             href={createPageUrl("BecomeProfessional")}
-            className="inline-flex items-center gap-2 mt-6 bg-white text-[#1a1a1a] rounded-full px-7 py-3.5 font-bold text-sm shadow-lg hover:shadow-xl transition-all active:scale-95"
+            className="inline-flex items-center gap-2 mt-5 bg-white text-[#1a1a1a] rounded-full px-7 py-3.5 font-bold text-sm shadow-lg hover:shadow-xl transition-all active:scale-95"
           >
             Tornar-me parceiro
             <ArrowRight className="w-4 h-4" />
@@ -244,10 +265,7 @@ export default function Shop() {
       </div>
 
       {selectedProduct && (
-        <ProductPurchaseModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
+        <ProductPurchaseModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
       )}
     </div>
   );

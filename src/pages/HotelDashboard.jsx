@@ -10,7 +10,7 @@ import {
   XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, Settings,
   ClipboardList, Wallet, UserCheck, UserPlus, Phone, Mail, StickyNote, FileText, DoorOpen,
   BedDouble, Sun, Scissors, GraduationCap, PawPrint, ArrowRight, ArrowLeft,
-  CircleDot, X, ChevronDown, Stethoscope, ListChecks, BookOpen
+  CircleDot, X, ChevronDown, Stethoscope, ListChecks, BookOpen, Store
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -45,6 +45,7 @@ import AddServiceToStayModal from "@/components/hotel/AddServiceToStayModal";
 import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 import BackButton from "@/components/ui/BackButton";
+import PartnerStorePanel from "@/components/shop/PartnerStorePanel";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 
 const STATUS_CONFIG = {
@@ -101,6 +102,7 @@ const TAB_GROUPS = [
     items: [
       { key: "servicos",  label: "Serviços & Vagas", icon: LayoutGrid },
       { key: "financas",  label: "Finanças",         icon: Wallet },
+      { key: "loja",      label: "Loja",             icon: Store },
       { key: "parceiros", label: "Parceiros",        icon: UserPlus },
     ],
   },
@@ -730,6 +732,12 @@ export default function HotelDashboard() {
                 onUpdatePartnerRole={updatePartnerRole}
                 onUpdatePartnerTitle={updatePartnerTitle}
               />
+            </motion.div>
+          )}
+
+          {activeTab === "loja" && (
+            <motion.div key="loja" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <PartnerStorePanel user={user} professionalProfile={hotelProfile} variant="light" />
             </motion.div>
           )}
 
