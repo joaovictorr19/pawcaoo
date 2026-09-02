@@ -24,7 +24,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/components/ThemeContext";
-import { Trophy, ArrowRight } from "lucide-react";
+import { Trophy, ArrowRight, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -955,15 +955,11 @@ export default function Home() {
                   <span className="truncate">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
                 </button>
                 <button
-                  onClick={() => setActiveTab('emergency')}
-                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all flex-1 font-heading ${
-                    activeTab === 'emergency'
-                      ? 'bg-[#0e9485] text-white shadow-[0_4px_14px_rgba(14,148,133,0.35)]'
-                      : 'text-[#597670] hover:bg-white/40'
-                  }`}
+                  onClick={() => navigate(createPageUrl('Shop'))}
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all flex-1 font-heading text-[#597670] hover:bg-white/40"
                 >
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">PawGo</span>
+                  <ShoppingBag className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">Loja</span>
                 </button>
               </div>
 
