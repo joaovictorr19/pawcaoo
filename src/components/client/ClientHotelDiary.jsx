@@ -33,7 +33,7 @@ const STATUS_COLORS = {
   rejected: "text-red-400 bg-red-500/10",
 };
 
-function StayCard({ booking }) {
+function StayCard({ booking, user }) {
   const [open, setOpen] = useState(false);
   const dogNames = (booking.dogs || []).map(d => d.dog_name).join(", ") || "—";
   const dogPhoto = booking.dogs?.[0]?.photo_url;
@@ -84,7 +84,7 @@ function StayCard({ booking }) {
             className="overflow-hidden"
           >
             <div className="px-3.5 pb-3">
-              <HotelStayDiary booking={booking} />
+              <HotelStayDiary booking={booking} user={user} />
             </div>
           </motion.div>
         )}
@@ -179,7 +179,7 @@ export default function ClientHotelDiary({ user }) {
       ) : (
         <div className="space-y-3">
           {filtered.map(b => (
-            <StayCard key={b.id} booking={b} />
+            <StayCard key={b.id} booking={b} user={user} />
           ))}
         </div>
       )}

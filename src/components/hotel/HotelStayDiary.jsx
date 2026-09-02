@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import DiaryComments from "@/components/hotel/DiaryComments";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,7 +41,8 @@ function DetailChip({ icon: Icon, label, value }) {
   );
 }
 
-export default function HotelStayDiary({ booking }) {
+export default function HotelStayDiary({ booking, user }) {
+  const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -58,6 +60,55 @@ export default function HotelStayDiary({ booking }) {
     enabled: !!booking.id && isExpanded,
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000,
+  });
+
+  const { data: messages = [] } = useQuery({
+    queryKey: ['diaryMessages', booking.id],
+    queryFn: async () => {
+      if (!booking.id) return [];
+      return await base44.entities.HotelDiaryMessage.filter({ booking_id: booking.id }, 'created_date', 200);
+    },
+    enabled: !!booking.id && isExpanded,
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+
+  const commentsByRecord = useMemo(() => {
+    const map = {};
+    messages.forEach(m => { (map[m.record_id] = map[m.record_id] || []).push(m); });
+    return map;
+  }, [messages]);
+
+  const sendComment = useMutation({
+    mutationFn: async ({ record, message, photo_url }) => {
+      const msg = await base44.entities.HotelDiaryMessage.create({
+        booking_id: booking.id,
+        record_id: record.id,
+        hotel_profile_id: booking.hotel_profile_id,
+        hotel_email: booking.hotel_email,
+        owner_email: booking.owner_email,
+        author_email: user?.email,
+        author_name: user?.full_name || booking.owner_name || (user?.email || '').split('@')[0],
+        author_role: 'owner',
+        message: message || undefined,
+        photo_url: photo_url || undefined,
+      });
+      try {
+        if (booking.hotel_email) {
+          await base44.entities.Notification.create({
+            recipient_email: booking.hotel_email,
+            title: `💬 Novo comentário — ${booking.dogs?.[0]?.dog_name || 'estadia'}`,
+            message: message || 'O dono enviou uma foto no diário.',
+            type: 'booking',
+            icon: '💬',
+            link: '/HotelDashboard',
+            related_id: record.id,
+          });
+        }
+      } catch (e) { console.warn('Falha ao notificar hotel:', e); }
+      return msg;
+    },
+    onSuccess: () => queryClient.invalidateQueries(['diaryMessages', booking.id]),
   });
 
   const notifyCount = useMemo(() => records.filter(r => r.notify_owner).length, [records]);
@@ -295,6 +346,18 @@ export default function HotelStayDiary({ booking }) {
                                 <ImageIcon className="w-3 h-3" /> Ver documento
                               </a>
                             )}
+
+                            {/* Comentários do dono / respostas do hotel */}
+                            <div className="ml-[42px] mt-1">
+                              <DiaryComments
+                                comments={commentsByRecord[record.id] || []}
+                                onSend={({ message, photo_url }) => sendComment.mutate({ record, message, photo_url })}
+                                sending={sendComment.isPending}
+                                canComment={!!user?.email && !!booking.hotel_email}
+                                perspective="client"
+                                theme="dark"
+                              />
+                            </div>
                           </div>
                         </motion.div>
                       );

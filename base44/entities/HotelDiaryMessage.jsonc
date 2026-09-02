@@ -1,0 +1,108 @@
+{
+  "name": "HotelDiaryMessage",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "ID da reserva associada"
+    },
+    "record_id": {
+      "type": "string",
+      "description": "ID do registo do di\u00e1rio comentado"
+    },
+    "hotel_profile_id": {
+      "type": "string",
+      "description": "ID do perfil do hotel"
+    },
+    "hotel_email": {
+      "type": "string",
+      "description": "Email do hotel (destinat\u00e1rio)"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email do dono"
+    },
+    "author_email": {
+      "type": "string",
+      "description": "Email de quem escreveu o coment\u00e1rio"
+    },
+    "author_name": {
+      "type": "string",
+      "description": "Nome de quem escreveu"
+    },
+    "author_role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "hotel"
+      ],
+      "default": "owner",
+      "description": "owner=dono do animal, hotel=equipa do hotel"
+    },
+    "message": {
+      "type": "string",
+      "description": "Texto do coment\u00e1rio"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Foto anexada ao coment\u00e1rio"
+    }
+  },
+  "required": [
+    "booking_id",
+    "record_id",
+    "author_email",
+    "author_role"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "data.hotel_email": "{{user.email}}"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.author_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.author_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

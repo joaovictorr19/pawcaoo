@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import DiaryComments from "@/components/hotel/DiaryComments";
 import { useLanguage } from "@/components/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -434,7 +435,7 @@ function NewRecordDrawer({ open, onOpenChange, hotelProfile, booking, dogName, u
   );
 }
 
-function RecordTimelineItem({ record, language, onResolve }) {
+function RecordTimelineItem({ record, language, onResolve, comments, onSendComment, sending }) {
   const typeMeta = RECORD_TYPES.find((r) => r.key === record.record_type) || RECORD_TYPES[5];
   const sevMeta = SEVERITY.find((s) => s.key === record.severity) || SEVERITY[0];
   const Icon = typeMeta.icon;
@@ -502,6 +503,14 @@ function RecordTimelineItem({ record, language, onResolve }) {
               {new Date(record.created_date).toLocaleString(language === "pt" ? "pt-PT" : "en-EN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
               {record.recorded_by_name && ` — ${record.recorded_by_name}`}
             </p>
+            <DiaryComments
+              comments={comments || []}
+              onSend={({ message, photo_url }) => onSendComment({ record, message, photo_url })}
+              sending={sending}
+              canComment={!!record.owner_email}
+              perspective="hotel"
+              theme="light"
+            />
           </div>
         </div>
         {record.follow_up_needed && !record.follow_up_resolved && (
@@ -514,7 +523,7 @@ function RecordTimelineItem({ record, language, onResolve }) {
   );
 }
 
-function PetCard({ dog, records, language, onAddRecord, onResolve }) {
+function PetCard({ dog, records, language, onAddRecord, onResolve, commentsByRecord, onSendComment, sending }) {
   const [expanded, setExpanded] = useState(true);
   const followUpCount = records.filter((r) => r.follow_up_needed && !r.follow_up_resolved).length;
 
@@ -546,7 +555,15 @@ function PetCard({ dog, records, language, onAddRecord, onResolve }) {
           {records.length > 0 ? (
             <div className="mt-3">
               {records.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).map((record) => (
-                <RecordTimelineItem key={record.id} record={record} language={language} onResolve={onResolve} />
+                <RecordTimelineItem
+                  key={record.id}
+                  record={record}
+                  language={language}
+                  onResolve={onResolve}
+                  comments={commentsByRecord?.[record.id] || []}
+                  onSendComment={onSendComment}
+                  sending={sending}
+                />
               ))}
             </div>
           ) : (
@@ -577,6 +594,50 @@ export default function HotelPetRecordsPanel({ hotelProfile }) {
     queryKey: ["hotelPetRecords", hotelProfile?.id],
     queryFn: () => base44.entities.HotelPetRecord.filter({ hotel_profile_id: hotelProfile?.id }, "-created_date", 200),
     enabled: !!hotelProfile?.id,
+  });
+
+  const { data: diaryMessages = [] } = useQuery({
+    queryKey: ["diaryMessages", hotelProfile?.id],
+    queryFn: () => base44.entities.HotelDiaryMessage.filter({ hotel_email: user?.email }, "created_date", 200),
+    enabled: !!user?.email,
+  });
+
+  const commentsByRecord = React.useMemo(() => {
+    const map = {};
+    diaryMessages.forEach((m) => { (map[m.record_id] = map[m.record_id] || []).push(m); });
+    return map;
+  }, [diaryMessages]);
+
+  const sendComment = useMutation({
+    mutationFn: async ({ record, message, photo_url }) => {
+      const msg = await base44.entities.HotelDiaryMessage.create({
+        booking_id: record.booking_id,
+        record_id: record.id,
+        hotel_profile_id: record.hotel_profile_id,
+        hotel_email: record.hotel_email,
+        owner_email: record.owner_email,
+        author_email: user?.email,
+        author_name: user?.full_name || (user?.email || "").split("@")[0],
+        author_role: "hotel",
+        message: message || undefined,
+        photo_url: photo_url || undefined,
+      });
+      try {
+        if (record.owner_email) {
+          await base44.entities.Notification.create({
+            recipient_email: record.owner_email,
+            title: `💬 Resposta do hotel — ${record.dog_name || "estadia"}`,
+            message: message || "O hotel enviou uma foto no diário.",
+            type: "booking",
+            icon: "💬",
+            link: "/ClientDashboard",
+            related_id: record.id,
+          });
+        }
+      } catch (e) { console.warn("Falha ao notificar dono:", e); }
+      return msg;
+    },
+    onSuccess: () => queryClient.invalidateQueries(["diaryMessages", hotelProfile?.id]),
   });
 
   const resolveMutation = useMutation({
@@ -659,7 +720,7 @@ export default function HotelPetRecordsPanel({ hotelProfile }) {
         <div className="space-y-3">
           {dogsFromBookings.map((dogInfo) => {
             const dogRecords = filteredRecords.filter((r) => r.dog_name === dogInfo.name);
-            return <PetCard key={dogInfo.name} dog={dogInfo.name} records={dogRecords} language={language} onAddRecord={handleAddRecord} onResolve={resolveMutation.mutate} />;
+            return <PetCard key={dogInfo.name} dog={dogInfo.name} records={dogRecords} language={language} onAddRecord={handleAddRecord} onResolve={resolveMutation.mutate} commentsByRecord={commentsByRecord} onSendComment={sendComment.mutate} sending={sendComment.isPending} />;
           })}
         </div>
       )}
