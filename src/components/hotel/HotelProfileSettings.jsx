@@ -42,9 +42,36 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
   const [justSaved, setJustSaved] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const photoInputRef = React.useRef(null);
+  const coverInputRef = React.useRef(null);
+
+  // Redimensiona/comprime no dispositivo antes do upload — uploads grandes são a principal causa de lentidão
+  const compressImage = (file, maxDim = 1600, quality = 0.85) =>
+    new Promise((resolve) => {
+      if (!file.type.startsWith("image/")) return resolve(file);
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        if (scale >= 1 && file.size < 1.5 * 1024 * 1024) return resolve(file);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => resolve(blob ? new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" }) : file),
+          "image/jpeg",
+          quality
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
 
   const uploadImage = async (file) => {
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    const optimized = await compressImage(file);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file: optimized });
     return file_url;
   };
 
@@ -174,37 +201,54 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
       {/* Cover Photo */}
-      <div className="relative h-40 md:h-48 bg-slate-100">
+      <div className="relative h-40 md:h-48 bg-slate-100 overflow-hidden">
         {form.cover_photo_url ? (
           <img src={form.cover_photo_url} alt="Capa" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <ImageIcon className="w-10 h-10 text-slate-300" />
+          <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-slate-400">
+            <ImageIcon className="w-9 h-9" />
+            <p className="text-xs font-medium">Adicionar foto de capa</p>
           </div>
         )}
-        <label className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-          {uploadingCover ? (
+
+        {uploadingCover && (
+          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-1.5">
             <Loader2 className="w-7 h-7 text-white animate-spin" />
-          ) : (
-            <>
-              <Camera className="w-7 h-7 text-white" />
-              <input type="file" className="hidden" onChange={handleCoverUpload} accept="image/*" />
-            </>
-          )}
-        </label>
-        <span className="absolute bottom-2 right-2 text-[10px] text-white/80 bg-black/40 px-2 py-0.5 rounded">
-          Foto de Capa
+            <p className="text-xs font-semibold text-white">A carregar capa...</p>
+          </div>
+        )}
+
+        {!uploadingCover && (
+          <button
+            type="button"
+            onClick={() => coverInputRef.current?.click()}
+            className="absolute inset-0 w-full h-full cursor-pointer"
+            aria-label="Alterar foto de capa"
+          />
+        )}
+
+        <span className="pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/55 text-white text-[11px] font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm">
+          <Camera className="w-3.5 h-3.5" />
+          {form.cover_photo_url ? "Alterar capa" : "Adicionar capa"}
         </span>
+
+        <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} disabled={uploadingCover} />
       </div>
 
       {/* Profile Photo + Name */}
       <div className="px-4 md:px-6 pb-4 -mt-10 relative">
         <div className="flex items-end gap-4">
-          <div className="relative group shrink-0">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-4 border-white shadow-lg bg-slate-100">
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => !uploadingPhoto && photoInputRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="relative block w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-4 border-white shadow-lg bg-slate-100 active:scale-95 transition-transform"
+              aria-label="Alterar foto de perfil"
+            >
               {uploadingPhoto ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                <div className="w-full h-full flex items-center justify-center bg-black/30">
+                  <Loader2 className="w-6 h-6 animate-spin text-white" />
                 </div>
               ) : form.photo_url ? (
                 <img src={form.photo_url} alt="Perfil" className="w-full h-full object-cover" />
@@ -213,15 +257,17 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
                   <Hotel className="w-8 h-8 text-slate-300" />
                 </div>
               )}
-            </div>
-            <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl cursor-pointer">
-              <Camera className="w-6 h-6 text-white" />
-              <input type="file" className="hidden" onChange={handlePhotoUpload} accept="image/*" />
-            </label>
+              {!uploadingPhoto && (
+                <span className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center border-2 border-white shadow-md">
+                  <Camera className="w-3.5 h-3.5 text-white" />
+                </span>
+              )}
+            </button>
+            <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
           </div>
           <div className="flex-1 pb-1">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Foto de Perfil</p>
-            <p className="text-xs text-slate-400">Clique para alterar a imagem do hotel</p>
+            <p className="text-xs text-slate-400">Toque na foto ou no ícone da câmara para alterar</p>
           </div>
         </div>
 
