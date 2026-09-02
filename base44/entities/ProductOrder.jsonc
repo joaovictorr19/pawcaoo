@@ -12,6 +12,18 @@
     "customer_name": {
       "type": "string"
     },
+    "partner_id": {
+      "type": "string",
+      "description": "ID do perfil do parceiro (WalkerProfile/TrainerProfile)"
+    },
+    "partner_name": {
+      "type": "string",
+      "description": "Nome do parceiro vendedor"
+    },
+    "partner_company_email": {
+      "type": "string",
+      "description": "Email do parceiro vendedor (\u00e2ncora de acesso)"
+    },
     "items": {
       "type": "array",
       "items": {
@@ -56,6 +68,35 @@
     "total_amount": {
       "type": "number"
     },
+    "wallet_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor pago com saldo PawC\u00e3o (carteira universal)"
+    },
+    "commission_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Comiss\u00e3o da plataforma retida"
+    },
+    "partner_net_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor l\u00edquido do parceiro (total - comiss\u00e3o)"
+    },
+    "delivery_method": {
+      "type": "string",
+      "enum": [
+        "shipping",
+        "pickup",
+        "with_stay"
+      ],
+      "default": "pickup",
+      "description": "shipping=entrega ao domic\u00edlio, pickup=recolha no local, with_stay=adicionado \u00e0 pr\u00f3xima estadia"
+    },
+    "delivery_notes": {
+      "type": "string",
+      "description": "Notas de entrega/recolha combinadas com o parceiro"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -77,6 +118,15 @@
         "refunded"
       ],
       "default": "pending"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "stripe, wallet ou mixed"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando o pagamento foi confirmado"
     },
     "stripe_payment_intent_id": {
       "type": "string"
@@ -105,7 +155,8 @@
   "required": [
     "customer_email",
     "items",
-    "total_amount"
+    "total_amount",
+    "partner_company_email"
   ],
   "rls": {
     "create": {
@@ -117,6 +168,9 @@
           "data.customer_email": "{{user.email}}"
         },
         {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -124,9 +178,16 @@
       ]
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.partner_company_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "delete": {
       "user_condition": {
