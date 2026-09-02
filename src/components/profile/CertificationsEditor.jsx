@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Award, Plus, Trash2, Upload, Eye, X, ImagePlus, ScrollText } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import { getCertStatus, CERT_STATUS_META } from "@/utils/certStatus";
 
 const inputCls = "w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-400";
 
@@ -99,6 +100,9 @@ export default function CertificationsEditor({ value = [], onChange }) {
                 {cert.cert_type === "participation" ? <ScrollText className="w-3.5 h-3.5 text-teal-600" /> : <Award className="w-3.5 h-3.5 text-teal-600" />}
               </div>
               <span className="text-xs font-bold text-slate-600">{cert.cert_type === "participation" ? "Participação" : "Certificação"} #{idx + 1}</span>
+              <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${CERT_STATUS_META[getCertStatus(cert)].chip}`}>
+                {CERT_STATUS_META[getCertStatus(cert)].labelPt}
+              </span>
             </div>
             <button
               type="button"

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { Award, ExternalLink, ShieldCheck, Calendar, ImageIcon, FileText, ScrollText, Infinity as InfinityIcon } from "lucide-react";
+import { Award, ExternalLink, ShieldCheck, Calendar, ImageIcon, FileText, ScrollText, AlertTriangle, Infinity as InfinityIcon } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
+import { getCertStatus, CERT_STATUS_META } from "@/utils/certStatus";
 import CertificateLightbox from "@/components/profile/CertificateLightbox";
 
 function formatDate(raw) {
@@ -108,8 +109,8 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
         {certs.map((cert, idx) => {
           const issueLabel = formatDate(cert.issue_date);
           const expiryLabel = formatDate(cert.expiry_date);
-          const todayStr = new Date().toISOString().split('T')[0];
-          const isExpired = cert.expiry_date && cert.expiry_date < todayStr;
+          const statusKey = getCertStatus(cert);
+          const statusMeta = CERT_STATUS_META[statusKey];
           const hasLink = cert.url || cert.verify_url;
           const certPhotoIdx = galleryPhotos.findIndex(p => p.url === (cert.photos?.[0] || cert.url));
           const canOpenGallery = cert.photos?.length > 0;
@@ -127,20 +128,22 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                   {cert.org && (
                     <p className="text-xs text-slate-500 truncate mt-0.5">{cert.org}</p>
                   )}
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold ${statusMeta.chip}`}
+                    >
+                      {statusKey === "permanent" && <InfinityIcon className="w-3 h-3" />}
+                      {statusKey === "expired" && <AlertTriangle className="w-3 h-3" />}
+                      {statusKey === "expiring_soon" && <AlertTriangle className="w-3 h-3" />}
+                      {language === "pt" ? statusMeta.labelPt : statusMeta.labelEn}
+                      {expiryLabel && !cert.no_expiry && (
+                        <span className="font-semibold opacity-80">· {expiryLabel}</span>
+                      )}
+                    </span>
                     {issueLabel && (
                       <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-400">
                         <Calendar className="w-2.5 h-2.5" />
                         {issueLabel}
-                        {cert.no_expiry
-                          ? ""
-                          : expiryLabel && ` → ${expiryLabel}`}
-                      </span>
-                    )}
-                    {cert.no_expiry && (
-                      <span className="flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
-                        <InfinityIcon className="w-2.5 h-2.5" />
-                        {language === "pt" ? "Permanente" : "Permanent"}
                       </span>
                     )}
                     {cert.cert_type === "participation" && (
@@ -151,11 +154,6 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                     {cert.credential_id && (
                       <span className="text-[10px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
                         {cert.credential_id}
-                      </span>
-                    )}
-                    {isExpired && (
-                      <span className="text-[9px] font-black text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">
-                        {language === "pt" ? "Expirado" : "Expired"}
                       </span>
                     )}
                     {canOpenGallery && (
@@ -181,7 +179,7 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                 key={idx}
                 type="button"
                 onClick={() => galleryStartIdx >= 0 && setGalleryIdx(galleryStartIdx)}
-                className="w-full text-left block p-3 rounded-2xl border border-slate-100 transition-all hover:border-teal-200 hover:bg-teal-50/40 hover:shadow-sm cursor-pointer"
+                className={`w-full text-left block p-3 rounded-2xl border border-slate-100 border-l-4 ${statusMeta.bar} transition-all hover:bg-teal-50/40 hover:shadow-sm cursor-pointer`}
               >
                 {content}
               </button>
@@ -195,14 +193,14 @@ export default function ProfileCertifications({ walkerProfile, trainerProfile })
                 href={cert.verify_url || cert.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block p-3 rounded-2xl border border-slate-100 transition-all hover:border-teal-200 hover:bg-teal-50/40 hover:shadow-sm cursor-pointer"
+                className={`block p-3 rounded-2xl border border-slate-100 border-l-4 ${statusMeta.bar} transition-all hover:bg-teal-50/40 hover:shadow-sm cursor-pointer`}
               >
                 {content}
               </a>
             );
           }
           return (
-            <div key={idx} className="p-3 rounded-2xl border border-slate-100 bg-slate-50/40">
+            <div key={idx} className={`p-3 rounded-2xl border border-slate-100 border-l-4 ${statusMeta.bar} bg-slate-50/40`}>
               {content}
             </div>
           );
