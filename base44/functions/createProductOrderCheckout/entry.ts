@@ -52,7 +52,7 @@ export default async function (req) {
       return Response.json({ error: 'Morada de entrega é obrigatória' }, { status: 400 });
     }
 
-    // Comissão da plataforma (configurável, default 5%)
+    // Comissão da plataforma — taxa global da Loja (default 5%)
     let commissionRate = 5;
     try {
       const settings = await base44.asServiceRole.entities.PlatformSetting.filter({
@@ -63,6 +63,33 @@ export default async function (req) {
       }
     } catch (e) {
       console.warn('Commission rate fallback 5%:', e?.message || e);
+    }
+
+    // Regras específicas do parceiro (espelham getEffectiveCommissionRate dos serviços):
+    // isento permanente / taxa zero → 0%; zero temporária → 0% até expirar;
+    // percentual personalizado → taxa definida no perfil do hotel/profissional.
+    if (product.partner_company_email) {
+      try {
+        const profiles = await base44.asServiceRole.entities.WalkerProfile.filter({
+          created_by: product.partner_company_email,
+        });
+        const profile = profiles[0];
+        if (profile) {
+          const mode = profile.commission_rate_mode || 'default';
+          if (profile.exempt_from_platform_fees === true || mode === 'zero') {
+            commissionRate = 0;
+          } else if (mode === 'zero_temporary') {
+            const expired =
+              profile.commission_rate_expiry &&
+              new Date() > new Date(profile.commission_rate_expiry);
+            if (!expired) commissionRate = 0;
+          } else if (mode === 'custom_percent' && profile.custom_commission_rate != null) {
+            commissionRate = Number(profile.custom_commission_rate);
+          }
+        }
+      } catch (e) {
+        console.warn('Partner commission rules skipped:', e?.message || e);
+      }
     }
     const commissionAmount = Math.round(((subtotal * commissionRate) / 100) * 100) / 100;
     const partnerNet = Math.round((subtotal - commissionAmount) * 100) / 100;
