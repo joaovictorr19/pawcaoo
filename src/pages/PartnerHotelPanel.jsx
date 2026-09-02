@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,7 @@ const STATUS_COLORS = {
 
 export default function PartnerHotelPanel() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('today');
   const [showAssignModal, setShowAssignModal] = useState(false);
   const queryClient = useQueryClient();
@@ -92,12 +93,14 @@ export default function PartnerHotelPanel() {
     enabled: !!authUser?.email,
   });
 
-  // Redirect full-access partners to the HotelDashboard
+  // Redirect full-access partners to the HotelDashboard — apenas quando este
+  // painel está visível (o TabKeepAlive mantém-no montado em background e um
+  // redirect incondicional arrancava o utilizador de outras páginas)
   useEffect(() => {
-    if (hotel?.partnerRole === 'full') {
+    if (hotel?.partnerRole === 'full' && location.pathname === createPageUrl('PartnerHotelPanel')) {
       navigate(createPageUrl('HotelDashboard'));
     }
-  }, [hotel?.partnerRole, navigate]);
+  }, [hotel?.partnerRole, location.pathname, navigate]);
 
   const isFullRole = hotel?.partnerRole === 'full';
   const isLimitedRole = hotel?.partnerRole === 'limited';
@@ -236,7 +239,7 @@ export default function PartnerHotelPanel() {
       <div className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <BackButton />
+            <BackButton to={createPageUrl('Home')} />
             {hotel.photo_url ? (
               <img src={hotel.photo_url} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" />
             ) : (

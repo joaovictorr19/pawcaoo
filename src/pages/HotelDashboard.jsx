@@ -13,7 +13,7 @@ import {
   CircleDot, X, ChevronDown, Stethoscope, ListChecks, BookOpen, Store
 } from "lucide-react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -116,6 +116,7 @@ const TAB_GROUPS = [
 
 export default function HotelDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -167,15 +168,16 @@ export default function HotelDashboard() {
 
         for (const h of partnerHotels) {
           const partners = h.hotel_details?.partner_walkers || [];
-          const partnership = partners.find(p => p.walker_email === user.email);
+          const partnership = partners.find(p => p.walker_email?.toLowerCase() === user.email.toLowerCase());
           if (partnership) {
             if (partnership.partner_role === 'full') {
               // Full-access partner: use the hotel's profile directly
               return h;
             } else {
-              // simple or limited: redirect to partner panel
-              navigate(createPageUrl("PartnerHotelPanel"));
-              return null;
+              // simple or limited: redirect to partner panel (feito no effect abaixo,
+              // nunca dentro do queryFn — a query corre em background no TabKeepAlive
+              // e um navigate aqui arrancava o utilizador de outras páginas)
+              return { _redirectToPartnerPanel: true };
             }
           }
         }
@@ -186,6 +188,14 @@ export default function HotelDashboard() {
     enabled: !!user?.email,
     staleTime: 60 * 1000,
   });
+
+  // Parceiro simple/limited a abrir o painel do hotel: redirecionar para o painel
+  // parceiro — apenas quando este painel está realmente visível (nunca em background)
+  React.useEffect(() => {
+    if (hotelProfile?._redirectToPartnerPanel && location.pathname === createPageUrl("HotelDashboard")) {
+      navigate(createPageUrl("PartnerHotelPanel"));
+    }
+  }, [hotelProfile, location.pathname, navigate]);
 
   const { data: bookings = [], isLoading: loadingBookings } = useQuery({
     queryKey: ["hotelBookings", hotelProfile?.id],
