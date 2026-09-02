@@ -12,6 +12,8 @@ import { base44 } from "@/api/base44Client";
 import { SERVICE_PHOTO_TABS, countServicePhotosByType } from "@/components/animal/servicePhotoConfig";
 import DogStayDiary from "./DogStayDiary";
 import OwnerDataComparison from "./OwnerDataComparison";
+import OwnerDogProfileSection from "./OwnerDogProfileSection";
+import CertificateLightbox from "@/components/profile/CertificateLightbox";
 
 const SERVICE_LABELS = {
   boarding: "Alojamento",
@@ -113,6 +115,28 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack,
   const activeCats = servicePhotos[activePhotoTab] || {};
   const cfg = SERVICE_PHOTO_TABS.find(s => s.key === activePhotoTab);
 
+  // Visualizador de fotos estilo certificados (zoom, swipe, miniaturas)
+  const [lightbox, setLightbox] = useState(null);
+
+  // Grupos de fotos do separador ativo, com offsets para o índice global do lightbox
+  const tabPhotoGroups = useMemo(() => {
+    if (!cfg) return [];
+    const groups = [];
+    let running = 0;
+    for (const cat of cfg.categories) {
+      const photos = activeCats[cat.key] || [];
+      if (photos.length === 0) continue;
+      groups.push({ key: cat.key, label: cat.label, photos, offset: running });
+      running += photos.length;
+    }
+    return groups;
+  }, [cfg, activeCats]);
+
+  const tabPhotoItems = useMemo(
+    () => tabPhotoGroups.flatMap(g => g.photos.map(url => ({ url, certName: g.label, certOrg: dog.dog_name }))),
+    [tabPhotoGroups, dog.dog_name]
+  );
+
   // Reserva de referência para o diário: ativa se existir, senão a mais recente
   const diaryBooking = dogBookings.find(b => ["checked_in", "in_progress", "confirmed"].includes(b.status)) || dogBookings[0];
 
@@ -131,13 +155,17 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack,
       {/* Header com foto + nome */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
         <div className="flex items-center gap-4 p-4">
-          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center shrink-0">
+          <button
+            type="button"
+            onClick={() => dog.photo_url && setLightbox({ items: [{ url: dog.photo_url, certName: dog.dog_name }], initialIndex: 0 })}
+            className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center shrink-0"
+          >
             {dog.photo_url ? (
               <img src={dog.photo_url} alt={dog.dog_name} className="w-full h-full object-cover" />
             ) : (
               <PawPrint className="w-9 h-9 text-slate-300" />
             )}
-          </div>
+          </button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="font-bold text-slate-900 text-lg">{dog.dog_name}</h2>
@@ -290,6 +318,9 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack,
         </div>
       </div>
 
+      {/* Perfil completo do dono (saúde, comportamento e fotos) */}
+      <OwnerDogProfileSection guestProfileId={dog.guest_profile_id} dogName={dog.dog_name} />
+
       {/* Fotos por serviço */}
       {Object.keys(servicePhotos).length > 0 && (
         <div className="bg-white border border-slate-200 rounded-xl p-3">
@@ -310,24 +341,25 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack,
               );
             })}
           </div>
-          {cfg && (
+          {tabPhotoGroups.length > 0 && (
             <div className="grid grid-cols-2 gap-2 mt-2">
-              {cfg.categories.map(cat => {
-                const photos = activeCats[cat.key] || [];
-                if (photos.length === 0) return null;
-                return (
-                  <div key={cat.key}>
-                    <p className="text-[10px] font-semibold text-slate-500 mb-1">{cat.label}</p>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {photos.map((url, idx) => (
-                        <a key={idx} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden bg-slate-100 block">
-                          <img src={url} alt={`${cat.label} ${idx + 1}`} className="w-full h-full object-cover hover:opacity-80 transition-opacity" />
-                        </a>
-                      ))}
-                    </div>
+              {tabPhotoGroups.map(group => (
+                <div key={group.key}>
+                  <p className="text-[10px] font-semibold text-slate-500 mb-1">{group.label}</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {group.photos.map((url, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setLightbox({ items: tabPhotoItems, initialIndex: group.offset + idx })}
+                        className="aspect-square rounded-lg overflow-hidden bg-slate-100 block"
+                      >
+                        <img src={url} alt={`${group.label} ${idx + 1}`} className="w-full h-full object-cover hover:opacity-80 transition-opacity" />
+                      </button>
+                    ))}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -379,6 +411,14 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack,
           )}
         </AnimatePresence>
       </div>
+
+      {lightbox && (
+        <CertificateLightbox
+          items={lightbox.items}
+          initialIndex={lightbox.initialIndex}
+          onClose={() => setLightbox(null)}
+        />
+      )}
 
       {showCompare && (
         <OwnerDataComparison
