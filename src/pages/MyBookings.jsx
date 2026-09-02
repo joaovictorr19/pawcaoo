@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2, CalendarPlus, Map as MapIcon, Star, LocateFixed } from "lucide-react";
+import { Calendar, Clock, DollarSign, MessageCircle, Filter, ChevronLeft, ChevronRight, CalendarDays, Trash2, CalendarPlus, Map as MapIcon, Star, LocateFixed, Flag } from "lucide-react";
 import { getGoogleCalendarUrl, generateICS, downloadICS, bookingToEvent } from "../components/calendar/calendarHelpers";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
@@ -41,6 +41,7 @@ import CheckoutModal from "../components/payments/CheckoutModal";
 import WalkSecurityPass from "../components/booking/WalkSecurityPass";
 import BookingReceiptButton from "../components/booking/BookingReceiptButton";
 import HotelStayDiary from "../components/hotel/HotelStayDiary";
+import ReportModal from "@/components/profile/ReportModal";
 import { CreditCard } from "lucide-react";
 
 export default function MyBookings() {
@@ -88,6 +89,9 @@ export default function MyBookings() {
   // Review State
   const [reviewTarget, setReviewTarget] = useState(null); // { booking, type: 'client' | 'professional' }
   const [isReviewProcessing, setIsReviewProcessing] = useState(false);
+
+  // Report State (hotel)
+  const [reportHotel, setReportHotel] = useState(null);
   
   // Reward Modal State
   const [showRewardModal, setShowRewardModal] = useState(false);
@@ -217,6 +221,7 @@ export default function MyBookings() {
       time: h.checkin_time || '',
       status: normalizeHotelStatus(h.status),
       dog_name: h.dogs?.[0]?.dog_name || (h.total_dogs > 1 ? `${h.total_dogs} cães` : '—'),
+      walker_id: h.hotel_profile_id,
       walker_name: h.hotel_name,
       walker_email: h.hotel_email,
       owner_name: h.owner_name,
@@ -628,7 +633,7 @@ export default function MyBookings() {
     const professionalName = isHotel
       ? booking.hotel_name
       : (booking.type === 'walk' ? booking.walker_name : booking.trainer_name);
-    const hasReview = !isHotel && myGivenReviews.some(r => r.booking_id === booking.id || r.training_booking_id === booking.id);
+    const hasReview = myGivenReviews.some(r => r.booking_id === booking.id || r.training_booking_id === booking.id);
 
     const { data: professionalContact } = useQuery({
       queryKey: ['profContact', booking.walker_id || booking.trainer_id],
@@ -750,6 +755,16 @@ export default function MyBookings() {
               </button>
             )}
 
+            {isHotel && (
+              <button
+                onClick={() => setReportHotel(booking)}
+                className="w-9 h-9 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 flex items-center justify-center transition-all active:scale-95"
+                title="Reportar hotel"
+              >
+                <Flag className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             {booking.status === 'pending' && !isProfessional && !isHotel && (
               <button
                 onClick={() => { setCheckoutBooking({...booking, user}); setShowCheckoutModal(true); }}
@@ -764,7 +779,7 @@ export default function MyBookings() {
               <BookingReceiptButton booking={booking} />
             )}
 
-            {booking.status === 'completed' && !isProfessional && !isHotel && !hasReview && (
+            {booking.status === 'completed' && !isProfessional && !hasReview && (
               <button
                 onClick={() => handleReviewClick(booking, 'professional')}
                 className="flex-1 min-w-[100px] h-9 rounded-2xl bg-yellow-500 hover:bg-yellow-400 text-white text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
@@ -800,7 +815,7 @@ export default function MyBookings() {
               </>
             )}
 
-            {!(isHotel && booking.status === 'confirmed') && booking.status !== 'in_progress' && !(booking.status === 'completed' && !hasReview && !isHotel) && (
+            {!(isHotel && booking.status === 'confirmed') && booking.status !== 'in_progress' && !(booking.status === 'completed' && !hasReview) && (
               <button
                 onClick={() => { setSelectedBooking(booking); setIsDetailsModalOpen(true); }}
                 className="w-9 h-9 rounded-2xl bg-slate-800 border border-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-all active:scale-95"
@@ -897,6 +912,15 @@ export default function MyBookings() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Report Hotel Modal */}
+      <ReportModal
+        open={!!reportHotel}
+        onOpenChange={(open) => !open && setReportHotel(null)}
+        reportedUser={reportHotel ? { email: reportHotel.hotel_email, walker_name: reportHotel.hotel_name } : null}
+        reporterEmail={user?.email}
+        reporterName={user?.full_name}
+      />
 
       {/* Reward Modal */}
       <AchievementModal 

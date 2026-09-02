@@ -24,6 +24,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
   });
 
   const isClientReview = booking.isClientReview; // Passed via prop or augmented booking object
+  const isHotelBooking = booking.type === 'hotel';
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -62,7 +63,9 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
         }),
         reviewer_email: booking.created_by,
         reviewer_name: booking.owner_name,
-        ...formData
+        ...formData,
+        // Gorjetas não se aplicam a estadias de hotel
+        ...(isHotelBooking ? { tip_amount: 0 } : {})
       };
     }
     
@@ -71,7 +74,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
 
   const isTrainer = booking.trainer_id || booking.trainer_name;
   const targetName = isClientReview ? booking.owner_name : (booking.trainer_name || booking.walker_name);
-  const targetType = isClientReview ? 'Client' : (isTrainer ? 'Trainer' : 'Walker');
+  const targetType = isClientReview ? 'Client' : (isHotelBooking ? 'Hotel' : (isTrainer ? 'Trainer' : 'Walker'));
 
   // Adjust categories based on type
   React.useEffect(() => {
@@ -278,7 +281,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
               </label>
             </div>
 
-            {!isClientReview && (
+            {!isClientReview && !isHotelBooking && (
               <div className="pt-4 border-t border-slate-100 mt-4">
                 <Label className="mb-3 block text-sm font-semibold" style={{ color: '#334155' }}>Deixar Gorjeta (Opcional)</Label>
                 <div className="flex gap-2 flex-wrap">
