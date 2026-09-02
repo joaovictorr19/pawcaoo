@@ -11,6 +11,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import HotelCollaboratorBadge from "@/components/profile/HotelCollaboratorBadge";
 import { animalConfig } from "@/components/professionals/AnimalIcons";
+import { getLevelFromXP } from "@/components/gamification/tierSystem";
 
 const AVAILABILITY_LABELS = {
   morning:   { pt: "Manhã",      en: "Morning",   es: "Mañana" },
@@ -100,7 +101,10 @@ export default function ProfileHeroCard({
   const isVerified = walkerProfile?.is_verified || trainerProfile?.is_verified || profileUser?.is_verified;
   const hasPawcaoSeal = walkerProfile?.has_pawcao_seal;
   const isPawcaoEmployee = walkerProfile?.is_pawcao_employee;
-  const gamificationLevel = profileUser?.gamification_level;
+  // Nível derivado dos XP (100 XP = 1 nível) para estar sempre sincronizado com o tier
+  const gamificationLevel = profileUser?.gamification_xp
+    ? getLevelFromXP(profileUser.gamification_xp)
+    : profileUser?.gamification_level;
 
   const coverUrl = displayCoverUrl;
 
