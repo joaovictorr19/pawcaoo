@@ -132,8 +132,14 @@ export default function HotelGuestProfilesPanel({ hotelProfile }) {
             <button key={p.id} onClick={() => setSelected(p)}
               className="w-full text-left bg-white border border-slate-200 rounded-xl p-3 hover:border-slate-300 hover:shadow-sm transition-all">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${p.is_vip ? "bg-amber-100" : "bg-slate-100"}`}>
-                  {p.is_vip ? <Crown className="w-5 h-5 text-amber-500" /> : <Users className="w-5 h-5 text-slate-400" />}
+                <div className={`relative w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ${p.is_vip ? "ring-2 ring-amber-300" : ""} ${p.owner_photo_url ? "" : (p.is_vip ? "bg-amber-100" : "bg-slate-100")}`}>
+                  {p.owner_photo_url ? (
+                    <img src={p.owner_photo_url} alt={p.owner_name} className="w-full h-full object-cover" />
+                  ) : p.is_vip ? (
+                    <Crown className="w-5 h-5 text-amber-500" />
+                  ) : (
+                    <Users className="w-5 h-5 text-slate-400" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -143,10 +149,26 @@ export default function HotelGuestProfilesPanel({ hotelProfile }) {
                   <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-0.5 flex-wrap">
                     <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{tr.stays(p.total_stays || 0)}</span>
                     {p.total_spent > 0 && <span className="flex items-center gap-1"><Euro className="w-3 h-3" />{(p.total_spent || 0).toFixed(0)}</span>}
-                    {p.dogs?.length > 0 && <span className="flex items-center gap-1"><PawPrint className="w-3 h-3" />{p.dogs.map(d => d.dog_name).join(", ")}</span>}
                     {p.last_stay_date && <span>{tr.lastStay} {format(parseISO(p.last_stay_date), "dd/MM/yyyy", { locale: dateLocale })}</span>}
                   </div>
                 </div>
+                {(p.dogs || []).length > 0 && (
+                  <div className="flex -space-x-2 shrink-0 pl-1">
+                    {p.dogs.slice(0, 4).map((d, i) => (
+                      <div key={i} title={d.dog_name}
+                        className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 overflow-hidden flex items-center justify-center shadow-sm">
+                        {d.photo_url
+                          ? <img src={d.photo_url} alt={d.dog_name} className="w-full h-full object-cover" />
+                          : <PawPrint className="w-3.5 h-3.5 text-slate-400" />}
+                      </div>
+                    ))}
+                    {p.dogs.length > 4 && (
+                      <span className="w-8 h-8 rounded-full border-2 border-white bg-slate-800 text-white text-[9px] font-black flex items-center justify-center shadow-sm">
+                        +{p.dogs.length - 4}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </button>
           ))}
@@ -163,8 +185,14 @@ function GuestProfileDetail({ profile, hotelEmail, tr, lang, dateLocale, onBack,
 
       <div className="bg-white border border-slate-200 rounded-xl p-4">
         <div className="flex items-center gap-3 mb-4">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${profile.is_vip ? "bg-amber-100" : "bg-slate-100"}`}>
-            {profile.is_vip ? <Crown className="w-6 h-6 text-amber-500" /> : <Users className="w-6 h-6 text-slate-400" />}
+          <div className={`relative w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center shrink-0 ${profile.is_vip ? "ring-2 ring-amber-300" : ""} ${profile.owner_photo_url ? "" : (profile.is_vip ? "bg-amber-100" : "bg-slate-100")}`}>
+            {profile.owner_photo_url ? (
+              <img src={profile.owner_photo_url} alt={profile.owner_name} className="w-full h-full object-cover" />
+            ) : profile.is_vip ? (
+              <Crown className="w-6 h-6 text-amber-500" />
+            ) : (
+              <Users className="w-6 h-6 text-slate-400" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">

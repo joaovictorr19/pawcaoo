@@ -18,6 +18,10 @@
     "owner_phone": {
       "type": "string"
     },
+    "owner_photo_url": {
+      "type": "string",
+      "description": "Foto de perfil do cliente (sincronizada do UserProfile do dono)"
+    },
     "emergency_contact_name": {
       "type": "string"
     },

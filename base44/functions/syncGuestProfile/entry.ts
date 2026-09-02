@@ -31,6 +31,12 @@ Deno.serve(async (req) => {
       ? await base44.asServiceRole.entities.DogProfile.filter({ owner_email: booking.owner_email })
       : [];
 
+    // Foto de perfil do cliente (sincronizada do UserProfile do dono)
+    const ownerUserProfiles = booking.owner_email
+      ? await base44.asServiceRole.entities.UserProfile.filter({ user_email: booking.owner_email })
+      : [];
+    const ownerUser = ownerUserProfiles[0];
+
     if (existing.length > 0) {
       profile = existing[0];
       const updatedDogs = (booking.dogs || []).map(bookingDog => {
@@ -74,6 +80,7 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.HotelGuestProfile.update(profile.id, {
         owner_name: booking.owner_name,
         owner_phone: booking.owner_phone || profile.owner_phone,
+        owner_photo_url: ownerUser?.profile_photo_url || profile.owner_photo_url,
         emergency_contact_name: booking.emergency_contact_name || profile.emergency_contact_name,
         emergency_contact_phone: booking.emergency_contact_phone || profile.emergency_contact_phone,
         veterinarian_name: booking.veterinarian_name || profile.veterinarian_name,
@@ -91,6 +98,7 @@ Deno.serve(async (req) => {
         owner_name: booking.owner_name,
         owner_email: booking.owner_email,
         owner_phone: booking.owner_phone,
+        owner_photo_url: ownerUser?.profile_photo_url,
         emergency_contact_name: booking.emergency_contact_name,
         emergency_contact_phone: booking.emergency_contact_phone,
         veterinarian_name: booking.veterinarian_name,
