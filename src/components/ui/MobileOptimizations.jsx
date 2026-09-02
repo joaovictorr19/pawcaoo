@@ -17,35 +17,11 @@ export default function MobileOptimizations() {
     // Enable momentum scrolling on iOS
     document.body.style.webkitOverflowScrolling = 'touch';
 
-    // Only prevent pull-to-refresh on iOS Safari
-    const ua = navigator.userAgent || '';
-    const isIOS = /iPhone|iPad|iPod/i.test(ua);
-    const isWebKit = /AppleWebKit/i.test(ua) && !/CriOS|FxiOS/i.test(ua);
-    const shouldPreventPTR = isIOS && isWebKit;
-
-    let startY = 0;
-    const onTouchStart = (event) => {
-      if (!shouldPreventPTR) return;
-      startY = event.touches[0]?.clientY ?? 0;
-    };
-
-    const onTouchMove = (event) => {
-      if (!shouldPreventPTR) return;
-      const currentY = event.touches[0]?.clientY ?? 0;
-      const dy = currentY - startY;
-      // At top and pulling down => prevent browser PTR
-      if ((window.scrollY || window.pageYOffset) <= 0 && dy > 10) {
-        event.preventDefault();
-      }
-    };
-
-    document.addEventListener('touchstart', onTouchStart, { passive: true });
-    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    // Pull-to-refresh é gerido exclusivamente por <PullToRefresh /> (Layout)
+    // — o bloqueio do PTR nativo do browser acontece lá, sem listeners duplicados.
 
     return () => {
       document.removeEventListener('touchend', preventDoubleTapZoom);
-      document.removeEventListener('touchstart', onTouchStart);
-      document.removeEventListener('touchmove', onTouchMove);
     };
   }, []);
 
