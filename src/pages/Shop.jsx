@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, ChevronRight } from "lucide-react";
+import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, Store } from "lucide-react";
 import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
 
 const CATEGORIES = [
@@ -215,13 +215,17 @@ export default function Shop() {
 
                   {/* Conteúdo */}
                   <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col">
-                    <p className="font-bold text-slate-900 text-sm leading-snug line-clamp-2">
+                    <p className="flex items-center gap-1 text-[11px] font-bold text-teal-700">
+                      <Store className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{product.partner_name || "Parceiro PawCão"}</span>
+                    </p>
+                    <p className="font-bold text-slate-900 text-sm leading-snug mt-1">
                       {product.product_name}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 flex-1 hidden sm:block">
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 hidden sm:block">
                       {product.description || "\u00A0"}
                     </p>
-                    <div className="flex items-center justify-between gap-2 mt-2.5">
+                    <div className="flex items-center justify-between gap-2 mt-auto pt-2.5 border-t border-slate-100">
                       <span className="text-lg font-black text-teal-700 leading-none">
                         €{(product.price_euro || 0).toFixed(2)}
                       </span>
@@ -229,13 +233,6 @@ export default function Shop() {
                         <delivery.icon className="w-3.5 h-3.5 text-teal-600" />
                         {delivery.label}
                       </span>
-                    </div>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
-                      <p className="text-[11px] text-slate-500 truncate flex-1">
-                        {product.partner_name}
-                        {product.partner_location ? ` · ${product.partner_location}` : ""}
-                      </p>
-                      <ChevronRight className="w-4 h-4 text-teal-600 shrink-0 ml-2" />
                     </div>
                   </div>
                 </button>
