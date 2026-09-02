@@ -447,6 +447,18 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
             <CertificationsEditor
               value={form.certifications_detailed}
               onChange={(certs) => setForm(prev => ({ ...prev, certifications_detailed: certs }))}
+              onSave={async () => {
+                try {
+                  await base44.entities.WalkerProfile.update(hotelProfile.id, {
+                    certifications_detailed: form.certifications_detailed,
+                  });
+                  queryClient.invalidateQueries(['walkerProfile']);
+                  toast.success("Certificações guardadas!");
+                } catch {
+                  toast.error("Erro ao guardar certificações");
+                  throw new Error("save failed");
+                }
+              }}
             />
           </div>
 
