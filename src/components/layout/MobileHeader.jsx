@@ -5,7 +5,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import PawCaoLogo from '@/components/PawCaoLogo';
-import { LogOut } from 'lucide-react';
+import { LogOut, ChevronLeft } from 'lucide-react';
+import { isTabRootPath } from '@/lib/tabRoots';
 import LanguageSelector from '@/components/ui/LanguageSelector';
 import { useLanguage } from '@/components/LanguageContext';
 import ModeSwitcherMenu from '@/components/layout/ModeSwitcherMenu';
@@ -51,6 +52,7 @@ export default function MobileHeader() {
   const lbl = (key) => NAV_LABELS[key]?.[language] || NAV_LABELS[key]?.pt || key;
 
   const isActive = (page) => location.pathname === createPageUrl(page);
+  const isTabRoot = isTabRootPath(location.pathname);
 
   return (
     <div
@@ -67,11 +69,21 @@ export default function MobileHeader() {
           boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
         }}
       >
-        {/* Logo à esquerda */}
+        {/* Esquerda: logo nas raízes das abas, seta de voltar nas sub-páginas */}
         <div className="flex items-center shrink-0">
-          <button onClick={() => navigate(createPageUrl('Home'))} aria-label="Ir para a página inicial" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
-            <PawCaoLogo size="small" showText={false} />
-          </button>
+          {isTabRoot ? (
+            <button onClick={() => navigate(createPageUrl('Home'))} aria-label="Ir para a página inicial" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+              <PawCaoLogo size="small" showText={false} />
+            </button>
+          ) : (
+            <button
+              onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+              aria-label="Voltar"
+              className="w-9 h-9 -ml-0.5 rounded-full flex items-center justify-center text-slate-700 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Botões centralizados - dropdown compacto para poupar espaço */}

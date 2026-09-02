@@ -101,6 +101,8 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import PageLoader from '@/components/ui/PageLoader';
+import { useIsMobile } from "@/hooks/use-mobile";
+import TabKeepAlive, { findActiveTab } from "@/components/layout/TabKeepAlive";
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -154,6 +156,22 @@ const LayoutWrapper = ({ children, currentPageName }) => {
 const AuthenticatedApp = () => {
   const location = useLocation();
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const isMobile = useIsMobile();
+
+  // Direção da navegação (avançar vs voltar) — alimenta as transições de página
+  const historyKeysRef = React.useRef([]);
+  const [isBackNav, setIsBackNav] = React.useState(false);
+  React.useEffect(() => {
+    const stack = historyKeysRef.current;
+    const idx = stack.indexOf(location.key);
+    if (idx === -1) {
+      stack.push(location.key);
+      setIsBackNav(false);
+    } else {
+      stack.length = idx + 1;
+      setIsBackNav(true);
+    }
+  }, [location.key]);
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return <PageLoader />;
@@ -168,15 +186,27 @@ const AuthenticatedApp = () => {
     }
   }
 
+  // Transições: mobile desliza (push entra pela direita / volta sai pela direita);
+  // desktop mantém o fade existente.
+  const onTabPage = !!findActiveTab(location.pathname);
+  const variants = isMobile
+    ? (isBackNav
+        ? { initial: { x: "-22%", opacity: 0.75 }, animate: { x: 0, opacity: 1 }, exit: { x: "100%", opacity: 1 } }
+        : { initial: { x: "100%", opacity: 1 }, animate: { x: 0, opacity: 1 }, exit: { x: "-22%", opacity: 0.75 } })
+    : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
+
   return (
     <LayoutWrapper currentPageName={mainPageKey}>
-      <AnimatePresence mode="wait">
+      {/* Abas principais mantêm o DOM montado entre trocas (preserva estado) */}
+      <TabKeepAlive />
+      <AnimatePresence mode="wait" initial={false}>
+      {!onTabPage && (
       <motion.div
         key={location.pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        initial={variants.initial}
+        animate={variants.animate}
+        exit={variants.exit}
+        transition={{ duration: isMobile ? 0.26 : 0.2, ease: [0.32, 0.72, 0, 1] }}
       >
         <Suspense fallback={<PageLoader />}>
           <Routes location={location}>
@@ -224,6 +254,7 @@ const AuthenticatedApp = () => {
             </Routes>
         </Suspense>
       </motion.div>
+      )}
       </AnimatePresence>
     </LayoutWrapper>
   );
