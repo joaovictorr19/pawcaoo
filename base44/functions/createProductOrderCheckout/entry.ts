@@ -1,0 +1,171 @@
+import Stripe from 'npm:stripe';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { secrets } from 'base44:runtime';
+import { applyWalletPayment } from '../../shared/walletPayment.ts';
+import { fulfillProductOrderPaid } from '../../shared/productOrderFulfillment.ts';
+
+export default async function (req) {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const payload = await req.json();
+    const {
+      product_id,
+      quantity = 1,
+      use_wallet = false,
+      shipping_address = null,
+      success_url,
+      cancel_url,
+    } = payload;
+
+    if (!product_id) {
+      return Response.json({ error: 'product_id é obrigatório' }, { status: 400 });
+    }
+
+    // Produto tem de estar aprovado e disponível
+    const products = await base44.entities.PartnerProduct.filter({ id: product_id });
+    const product = products[0];
+    if (!product) {
+      return Response.json({ error: 'Produto não encontrado' }, { status: 404 });
+    }
+    if (!product.is_available || product.moderation_status !== 'approved') {
+      return Response.json({ error: 'Este produto não está disponível' }, { status: 400 });
+    }
+
+    const qty = Math.max(1, Math.floor(Number(quantity) || 1));
+    if ((product.stock_quantity || 0) < qty) {
+      return Response.json({ error: 'Stock insuficiente disponível' }, { status: 400 });
+    }
+
+    const subtotal = Math.round((product.price_euro || 0) * qty * 100) / 100;
+    if (subtotal <= 0) {
+      return Response.json({ error: 'Valor inválido' }, { status: 400 });
+    }
+
+    const deliveryMethod = product.delivery_method || 'pickup';
+    if (
+      deliveryMethod === 'shipping' &&
+      (!shipping_address || !shipping_address.street || !shipping_address.city || !shipping_address.postal_code)
+    ) {
+      return Response.json({ error: 'Morada de entrega é obrigatória' }, { status: 400 });
+    }
+
+    // Comissão da plataforma (configurável, default 5%)
+    let commissionRate = 5;
+    try {
+      const settings = await base44.asServiceRole.entities.PlatformSetting.filter({
+        key: 'shop_commission_rate',
+      });
+      if (settings?.length > 0 && settings[0].value != null) {
+        commissionRate = Number(settings[0].value);
+      }
+    } catch (e) {
+      console.warn('Commission rate fallback 5%:', e?.message || e);
+    }
+    const commissionAmount = Math.round(((subtotal * commissionRate) / 100) * 100) / 100;
+    const partnerNet = Math.round((subtotal - commissionAmount) * 100) / 100;
+
+    // Carteira PawCão universal (parcial ou total)
+    let walletUsed = 0;
+    if (use_wallet === true) {
+      const walletRes = await applyWalletPayment(base44, user.email, subtotal, {
+        description: `Compra na Loja PawCão — ${product.product_name}`,
+      });
+      walletUsed = walletRes.walletUsed || 0;
+    }
+    const remaining = Math.round((subtotal - walletUsed) * 100) / 100;
+
+    const orderNumber =
+      'PC-' +
+      Date.now().toString(36).toUpperCase() +
+      '-' +
+      crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
+
+    // Criar a encomenda (pendente) — o parceiro é identificado pelos campos denormalizados
+    const order = await base44.entities.ProductOrder.create({
+      order_number: orderNumber,
+      customer_email: user.email,
+      customer_name: user.full_name || user.email,
+      items: [
+        {
+          product_id: String(product.id),
+          product_name: product.product_name,
+          product_image: product.image_url || '',
+          quantity: qty,
+          unit_price: product.price_euro,
+          total_price: subtotal,
+        },
+      ],
+      subtotal,
+      shipping_fee: 0,
+      total_amount: subtotal,
+      status: 'pending',
+      payment_status: 'pending',
+      partner_id: product.partner_id || '',
+      partner_name: product.partner_name || '',
+      partner_company_email: product.partner_company_email || '',
+      delivery_method: deliveryMethod,
+      shipping_address: deliveryMethod === 'shipping' ? shipping_address : undefined,
+      wallet_used: walletUsed,
+      commission_amount: commissionAmount,
+      partner_net_amount: partnerNet,
+    });
+
+    // Pagamento coberto na totalidade pela carteira — confirmar de imediato
+    if (remaining <= 0) {
+      await fulfillProductOrderPaid(base44, order.id, { paymentMethod: 'wallet' });
+      return Response.json({
+        success: true,
+        paid: true,
+        order_id: order.id,
+        order_number: orderNumber,
+      });
+    }
+
+    // Restante pago por cartão via Stripe Checkout
+    const stripe = new Stripe(secrets.get('STRIPE_SECRET_KEY'), { apiVersion: '2023-10-16' });
+    const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: product.product_name,
+              description: `${qty}x na Loja de Parceiros PawCão — ${product.partner_name || 'Parceiro'}`,
+            },
+            unit_amount: Math.round(remaining * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      locale: 'pt',
+      success_url:
+        success_url || `${origin}/OrderSuccess?order_id=${order.id}`,
+      cancel_url: cancel_url || `${origin}/Shop?checkout=cancelled`,
+      customer_email: user.email,
+      metadata: {
+        type: 'product_order',
+        order_id: order.id,
+        wallet_used: String(walletUsed),
+        commission_amount: String(commissionAmount),
+        partner_net_amount: String(partnerNet),
+      },
+    });
+
+    return Response.json({
+      url: session.url,
+      order_id: order.id,
+      order_number: orderNumber,
+      success: true,
+    });
+  } catch (error) {
+    console.error('❌ createProductOrderCheckout error:', error?.message || error);
+    return Response.json({ error: error?.message || 'Erro interno' }, { status: 500 });
+  }
+}

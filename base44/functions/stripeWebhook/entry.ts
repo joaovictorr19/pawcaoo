@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import Stripe from 'npm:stripe';
 import { buildClientConfirmationEmail, buildHotelConfirmationEmail } from '../../shared/hotelEmailTemplate.ts';
+import { fulfillProductOrderPaid } from '../../shared/productOrderFulfillment.ts';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
     apiVersion: '2023-10-16',
@@ -501,6 +502,22 @@ async function handleWalletTopup(base44, session) {
 }
 
 async function handleCheckoutCompleted(base44, session) {
+    // ── PRODUCT ORDER (Loja de Parceiros): marcar encomenda como paga ──
+    if (session.metadata?.type === 'product_order') {
+        const orderId = session.metadata?.order_id;
+        if (orderId) {
+            try {
+                await fulfillProductOrderPaid(base44, orderId, {
+                    stripePaymentIntentId: session.payment_intent || '',
+                    paymentMethod: parseFloat(session.metadata?.wallet_used) > 0 ? 'mixed' : 'stripe',
+                });
+            } catch (e) {
+                console.error('Error processing product order payment:', e?.message || e);
+            }
+        }
+        return;
+    }
+
     // ── HOTEL BOOKING: confirmar automaticamente após pagamento ──
     if (session.metadata?.type === 'hotel_booking') {
         const hotelBookingId = session.metadata?.hotel_booking_id;
