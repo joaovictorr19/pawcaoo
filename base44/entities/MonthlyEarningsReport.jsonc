@@ -1,0 +1,126 @@
+{
+  "name": "MonthlyEarningsReport",
+  "type": "object",
+  "properties": {
+    "professional_email": {
+      "type": "string",
+      "description": "Email do profissional"
+    },
+    "professional_name": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "period_month": {
+      "type": "string",
+      "description": "M\u00eas do relat\u00f3rio no formato yyyy-MM"
+    },
+    "period_year": {
+      "type": "number",
+      "description": "Ano do relat\u00f3rio"
+    },
+    "country": {
+      "type": "string",
+      "enum": [
+        "PT",
+        "ES",
+        "FR",
+        "DE",
+        "IT",
+        "UK",
+        "OTHER"
+      ],
+      "default": "PT",
+      "description": "Pa\u00eds fiscal do profissional"
+    },
+    "total_bookings": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de servi\u00e7os no per\u00edodo"
+    },
+    "gross_earnings": {
+      "type": "number",
+      "default": 0,
+      "description": "Ganhos brutos no per\u00edodo"
+    },
+    "platform_fees": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de comiss\u00f5es da plataforma no per\u00edodo"
+    },
+    "net_earnings": {
+      "type": "number",
+      "default": 0,
+      "description": "Ganhos l\u00edquidos no per\u00edodo"
+    },
+    "tips_received": {
+      "type": "number",
+      "default": 0,
+      "description": "Gorjetas recebidas no per\u00edodo"
+    },
+    "vat_collected": {
+      "type": "number",
+      "default": 0,
+      "description": "IVA/TVA cobrado no per\u00edodo"
+    },
+    "vat_rate_applied": {
+      "type": "number",
+      "default": 0,
+      "description": "Taxa de IVA/TVA aplicada (%)"
+    },
+    "bookings_breakdown": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": [],
+      "description": "Detalhe de cada servi\u00e7o do per\u00edodo"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "finalized"
+      ],
+      "default": "finalized",
+      "description": "Estado do relat\u00f3rio"
+    }
+  },
+  "required": [
+    "professional_email",
+    "period_month"
+  ],
+  "rls": {
+    "create": {
+      "data.professional_email": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.professional_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

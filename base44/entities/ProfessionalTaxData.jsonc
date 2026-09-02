@@ -11,7 +11,8 @@
       "enum": [
         "walker",
         "trainer",
-        "both"
+        "both",
+        "hotel"
       ],
       "description": "Tipo de profissional"
     },

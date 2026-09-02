@@ -84,7 +84,7 @@ const COUNTRY_CONFIG = {
   }
 };
 
-export default function TaxDataForm({ onComplete }) {
+export default function TaxDataForm({ onComplete, professionalType }) {
   const { language } = useLanguage();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
@@ -157,6 +157,7 @@ export default function TaxDataForm({ onComplete }) {
       const payload = {
         ...data,
         professional_email: user.email,
+        professional_type: professionalType || 'walker',
         tax_id_type: countryConfig.taxIdType,
         status: data.tax_id && data.fiscal_address ? "pending_verification" : "incomplete"
       };
