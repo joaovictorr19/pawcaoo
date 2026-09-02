@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, Package, Calendar, QrCode, Wallet, Zap, TrendingUp, Star, Image, ShieldCheck, Bell, ChevronDown, User } from "lucide-react";
+import { BarChart3, Package, Calendar, QrCode, Wallet, Zap, TrendingUp, Star, Image, ShieldCheck, Bell, ChevronDown, User, Store } from "lucide-react";
 
 const TABS = [
   { id: "overview", label: "Resumo", icon: BarChart3 },
@@ -14,6 +14,7 @@ const TABS = [
   { id: "reviews", label: "Avaliações", icon: Star },
   { id: "finances", label: "Finanças", icon: TrendingUp },
   { id: "wallet", label: "Carteira", icon: Wallet },
+  { id: "store", label: "Loja", icon: Store },
   { id: "tools", label: "Ferramentas", icon: QrCode },
 ];
 

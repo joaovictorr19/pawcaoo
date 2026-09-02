@@ -25,6 +25,7 @@ import PendingApproval from "@/components/professional-hub/PendingApproval";
 // ProfessionalProfileForm replaced by centralized WalkerOnboarding redirect
 const HotelManagementPanel = React.lazy(() => import("@/components/professional-hub/HotelManagementPanel"));
 const PendingRequestsList = React.lazy(() => import("@/components/professional-hub/PendingRequestsList"));
+const PartnerStorePanel = React.lazy(() => import("@/components/shop/PartnerStorePanel"));
 import ProOverview from "@/components/professional-hub/ProOverview";
 import BackButton from "@/components/ui/BackButton";
 
@@ -697,6 +698,18 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
             >
               <PortfolioSection professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "store" && (
+            <motion.div
+              key="store"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PartnerStorePanel user={user} professionalProfile={professionalProfile} />
             </motion.div>
           )}
 
