@@ -48,6 +48,9 @@ export default function Shop() {
         60
       ),
     initialData: [],
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const locations = useMemo(
@@ -131,12 +134,12 @@ export default function Shop() {
               </select>
             )}
           </div>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
+          <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setCategory(cat.id)}
-                className={`px-4 h-9 rounded-full text-sm font-semibold whitespace-nowrap transition-all border ${
+                className={`px-3.5 h-9 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all border ${
                   category === cat.id
                     ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-600/20"
                     : "bg-white text-slate-600 border-slate-200 hover:border-teal-300 hover:text-teal-700"
@@ -179,7 +182,7 @@ export default function Shop() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {filtered.map((product) => {
               const delivery = DELIVERY[product.delivery_method] || DELIVERY.pickup;
               const soldOut = (product.stock_quantity || 0) < 1;
@@ -195,6 +198,8 @@ export default function Shop() {
                       <img
                         src={product.image_url}
                         alt={product.product_name}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
