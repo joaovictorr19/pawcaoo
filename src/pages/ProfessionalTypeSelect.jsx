@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Building2, Dog, User, ChevronRight, Sparkles, Loader2 } from "lucide-react";
+import { Building2, Dog, User, ChevronRight, Sparkles, Loader2, Store } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function ProfessionalTypeSelect() {
@@ -21,6 +21,8 @@ export default function ProfessionalTypeSelect() {
           const wp = walkers[0];
           if (wp.professional_type === "hotel") {
             navigate("/HotelDashboard", { replace: true });
+          } else if (wp.professional_type === "shop") {
+            navigate("/StoreDashboard", { replace: true });
           } else {
             navigate("/ProfessionalHubV2", { replace: true });
           }
@@ -65,6 +67,14 @@ export default function ProfessionalTypeSelect() {
       icon: Building2,
       color: "purple",
       route: "/HotelOnboarding",
+    },
+    {
+      type: "shop",
+      title: "Loja de Produtos",
+      desc: "Vende ração, brinquedos e acessórios na Loja PawCão",
+      icon: Store,
+      color: "teal",
+      route: "/ShopOnboarding",
     },
     {
       type: "client",
@@ -115,21 +125,23 @@ export default function ProfessionalTypeSelect() {
                     ? "border-slate-800 bg-slate-900 hover:border-orange-500/50 hover:bg-orange-500/5"
                     : opt.color === "blue"
                     ? "border-slate-800 bg-slate-900 hover:border-blue-500/50 hover:bg-blue-500/5"
+                    : opt.color === "teal"
+                    ? "border-slate-800 bg-slate-900 hover:border-teal-500/50 hover:bg-teal-500/5"
                     : "border-slate-800 bg-slate-900 hover:border-purple-500/50 hover:bg-purple-500/5"
                 }`}
               >
                 <div className="flex items-center gap-5">
                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                    opt.color === "orange" ? "bg-orange-500/10" : opt.color === "blue" ? "bg-blue-500/10" : "bg-purple-500/10"
+                    opt.color === "orange" ? "bg-orange-500/10" : opt.color === "blue" ? "bg-blue-500/10" : opt.color === "teal" ? "bg-teal-500/10" : "bg-purple-500/10"
                   }`}>
-                    <Icon className={`w-8 h-8 ${opt.color === "orange" ? "text-orange-400" : opt.color === "blue" ? "text-blue-400" : "text-purple-400"}`} />
+                    <Icon className={`w-8 h-8 ${opt.color === "orange" ? "text-orange-400" : opt.color === "blue" ? "text-blue-400" : opt.color === "teal" ? "text-teal-400" : "text-purple-400"}`} />
                   </div>
                   <div className="flex-1">
                     <p className="text-white font-bold text-lg">{opt.title}</p>
                     <p className="text-slate-400 text-sm mt-0.5">{opt.desc}</p>
                   </div>
                   <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${
-                    opt.color === "orange" ? "text-orange-400" : opt.color === "blue" ? "text-blue-400" : "text-purple-400"
+                    opt.color === "orange" ? "text-orange-400" : opt.color === "blue" ? "text-blue-400" : opt.color === "teal" ? "text-teal-400" : "text-purple-400"
                   }`} />
                 </div>
               </motion.button>

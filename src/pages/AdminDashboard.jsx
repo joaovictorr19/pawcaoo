@@ -183,9 +183,10 @@ export default function AdminDashboard() {
           verifiedTrainers: allTrainers?.filter(t => t.verification_status === 'verified')?.length || 0,
           pendingBookings: (pendingBookings?.length || 0) + (pendingHotelBookings?.length || 0),
           completedBookings: (completedBookings?.length || 0) + (completedHotelBookings?.length || 0),
-          pendingWalkers: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type !== 'hotel')?.length || 0,
+          pendingWalkers: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type !== 'hotel' && w.professional_type !== 'shop')?.length || 0,
           pendingHotels: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'hotel')?.length || 0,
-          pendingTrainers: allTrainers?.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status)?.length || 0
+          pendingTrainers: allTrainers?.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status)?.length || 0,
+          pendingShops: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'shop')?.length || 0
         };
       } catch (error) {
         console.error("Error fetching admin stats:", error);
@@ -413,7 +414,8 @@ export default function AdminDashboard() {
     refetchOnWindowFocus: false,
   });
 
-  const walkerApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type !== 'hotel');
+  const walkerApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type !== 'hotel' && w.professional_type !== 'shop');
+  const shopApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'shop');
   const hotelApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'hotel');
   const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status);
   const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || s.verification_status === 'requires_documents' || s.verification_status === 'rejected' || !s.verification_status);
@@ -478,7 +480,7 @@ export default function AdminDashboard() {
     },
     {
       icon: AlertCircle,
-      value: (adminStats?.pendingWalkers || 0) + (adminStats?.pendingTrainers || 0),
+      value: (adminStats?.pendingWalkers || 0) + (adminStats?.pendingTrainers || 0) + (adminStats?.pendingShops || 0),
       label: "Candidaturas",
       subLabel: `Aguardam verificação`,
       color: "from-purple-600 to-pink-600"
@@ -605,6 +607,13 @@ export default function AdminDashboard() {
       updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true, is_verified: true } });
       syncUserVerification(item.created_by, 'verified', null);
       toast.success("Dog Walker aprovado!");
+    } else if (type === 'shop') {
+      base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true }).then(async () => {
+        await syncUserVerification(item.created_by, 'verified', 'shop');
+        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+        toast.success("Loja aprovada!");
+      });
     } else if (type === 'trainer') {
       base44.entities.TrainerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true, is_verified_trainer: true }).then(async () => {
         await syncUserVerification(item.created_by, 'verified', null);
@@ -635,6 +644,13 @@ export default function AdminDashboard() {
       updateWalkerMutation.mutate({ id: item.id, data });
       syncUserVerification(item.created_by, 'rejected', null);
       toast.success("Rejeitado!");
+    } else if (type === 'shop') {
+      base44.entities.WalkerProfile.update(item.id, data).then(async () => {
+        await syncUserVerification(item.created_by, 'rejected', null);
+        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+        toast.success("Loja rejeitada!");
+      });
     } else if (type === 'trainer') {
       base44.entities.TrainerProfile.update(item.id, data).then(async () => {
         await syncUserVerification(item.created_by, 'rejected', null);
@@ -921,6 +937,7 @@ export default function AdminDashboard() {
                     <div className="p-4">
                       <AdminVerificationQueue
                         walkers={walkerApplications}
+                        shops={shopApplications}
                         hotels={hotelApplications}
                         trainers={trainerApplications}
                         shelters={shelterApplications}

@@ -15,6 +15,7 @@ const NAV_LABELS = {
   client:       { pt: 'Cliente',       en: 'Client',       es: 'Cliente',      fr: 'Client'        },
   admin:        { pt: 'Admin',         en: 'Admin',        es: 'Admin',        fr: 'Admin'         },
   hotel:        { pt: 'Hotel',         en: 'Hotel',        es: 'Hotel',        fr: 'Hôtel'         },
+  store:        { pt: 'Loja',          en: 'Store',         es: 'Tienda',       fr: 'Boutique'      },
   enter:        { pt: 'Entrar',        en: 'Sign In',      es: 'Entrar',       fr: 'Connexion'     },
   exit:         { pt: 'Sair',          en: 'Sign Out',     es: 'Salir',        fr: 'Déconnecter'   },
 };
@@ -37,6 +38,7 @@ export default function MobileHeader() {
   const authed = !!user;
   const isAdmin = user?.role === 'admin';
   const isHotel = user?.role === 'hotel' || user?.role === 'hotel_admin';
+  const isShop = user?.role === 'shop';
 
   useEffect(() => {
     const handler = (e) => {
@@ -86,10 +88,11 @@ export default function MobileHeader() {
                 onToggle={() => setMenuOpen(o => !o)}
                 currentLabel={(() => {
                   if (isHotel && isActive('HotelDashboard')) return lbl('hotel');
+                  if (isShop && isActive('StoreDashboard')) return lbl('store');
                   if (isActive('ProfessionalHubV2')) return lbl('professional');
                   if (isActive('ClientDashboard')) return lbl('client');
                   if (isAdmin && isActive('AdminDashboard')) return lbl('admin');
-                  return lbl('professional');
+                  return isShop ? lbl('store') : lbl('professional');
                 })()}
                 options={[
                   ...(isHotel ? [{
@@ -98,12 +101,17 @@ export default function MobileHeader() {
                     active: isActive('HotelDashboard'),
                     onClick: () => { navigate(createPageUrl('HotelDashboard')); setMenuOpen(false); },
                   }] : []),
-                  {
+                  ...(isShop ? [{
+                    key: 'store',
+                    label: lbl('store'),
+                    active: isActive('StoreDashboard'),
+                    onClick: () => { navigate('/StoreDashboard'); setMenuOpen(false); },
+                  }] : [{
                     key: 'professional',
                     label: lbl('professional'),
                     active: isActive('ProfessionalHubV2'),
                     onClick: () => { navigate(createPageUrl('ProfessionalHubV2')); setMenuOpen(false); },
-                  },
+                  }]),
                   {
                     key: 'client',
                     label: lbl('client'),

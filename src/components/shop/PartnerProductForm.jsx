@@ -23,7 +23,7 @@ const DELIVERY_OPTIONS = [
   { id: "with_stay", label: "Adicionar à próxima estadia" },
 ];
 
-export default function PartnerProductForm({ open, onClose, product, partner, variant = "dark" }) {
+export default function PartnerProductForm({ open, onClose, product, partner, variant = "dark", autoApprove = true }) {
   const queryClient = useQueryClient();
   const isEdit = !!product?.id;
   const [form, setForm] = useState(() => ({
@@ -93,14 +93,20 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
         partner_name: partner.partner_name,
         partner_company_email: partner.partner_email,
         partner_photo_url: partner.partner_photo_url || "",
-        moderation_status: "approved",
-        is_available: true,
+        moderation_status: autoApprove ? "approved" : "pending",
+        is_available: autoApprove,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["partnerProducts"] });
       queryClient.invalidateQueries({ queryKey: ["shopProducts"] });
-      toast.success(isEdit ? "Produto atualizado!" : "Produto publicado na Loja! 🛍️");
+      toast.success(
+        isEdit
+          ? "Produto atualizado!"
+          : autoApprove
+          ? "Produto publicado na Loja! 🛍️"
+          : "Produto enviado para aprovação da equipa PawCão! ⏳"
+      );
       onClose();
     },
     onError: (err) => toast.error(err?.response?.data?.error || "Erro ao guardar o produto"),
@@ -123,7 +129,9 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
           <p className={`text-xs mt-1 ${S.sub}`}>
             {isEdit
               ? "As alterações ficam visíveis na Loja de imediato."
-              : "Publicado diretamente na vitrine da Loja de Parceiros."}
+              : autoApprove
+              ? "Publicado diretamente na vitrine da Loja de Parceiros."
+              : "Enviado para aprovação da equipa PawCão antes de ficar visível na Loja."}
           </p>
         </DialogHeader>
 

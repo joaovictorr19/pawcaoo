@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Save, Percent, Gift, Calendar, Hotel, Search } from "lucide-react";
+import { Loader2, Save, Percent, Gift, Calendar, Hotel, Search, Store } from "lucide-react";
 import { toast } from "sonner";
 
 const DEFAULT_RATE = 10;
@@ -27,6 +27,7 @@ function getEffectiveRate(hotel) {
 
 function HotelCommissionRow({ hotel }) {
   const queryClient = useQueryClient();
+  const isShop = hotel.professional_type === "shop";
   const [editing, setEditing] = useState(false);
   const [mode, setMode] = useState(hotel.commission_rate_mode || "default");
   const [customRate, setCustomRate] = useState(
@@ -46,11 +47,11 @@ function HotelCommissionRow({ hotel }) {
         custom_commission_rate: mode === "custom_percent" ? Number(customRate) : null,
         commission_rate_expiry: mode === "zero_temporary" ? expiryDate : null,
         exempt_from_platform_fees: mode === "zero" || mode === "zero_temporary",
-        commission_borne_by: borneBy,
+        ...(isShop ? {} : { commission_borne_by: borneBy }),
       };
       await base44.entities.WalkerProfile.update(hotel.id, payload);
       await queryClient.invalidateQueries({ queryKey: ["adminHotelCommissions"] });
-      toast.success("Comissão do hotel atualizada.");
+      toast.success(isShop ? "Comissão da loja atualizada." : "Comissão do hotel atualizada.");
       setEditing(false);
     } catch (e) {
       toast.error(e.message || "Erro ao guardar.");
@@ -60,7 +61,7 @@ function HotelCommissionRow({ hotel }) {
   };
 
   const modes = [
-    { value: "default", label: "Padrão", desc: `${DEFAULT_RATE}% do hotel`, icon: Percent },
+    { value: "default", label: "Padrão", desc: isShop ? "Taxa global da Loja" : `${DEFAULT_RATE}% do hotel`, icon: Percent },
     { value: "custom_percent", label: "Personalizada", desc: "Escolher %", icon: Percent },
     { value: "zero", label: "Taxa Zero", desc: "Hotel isento", icon: Gift },
     { value: "zero_temporary", label: "Zero Temp.", desc: "Por X tempo", icon: Calendar },
@@ -72,7 +73,7 @@ function HotelCommissionRow({ hotel }) {
     <div className="bg-white rounded-2xl border border-slate-200 p-4">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
-          <Hotel className="w-5 h-5 text-teal-600" />
+          {isShop ? <Store className="w-5 h-5 text-teal-600" /> : <Hotel className="w-5 h-5 text-teal-600" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -84,15 +85,24 @@ function HotelCommissionRow({ hotel }) {
           <p className="text-xs text-slate-400 truncate">{hotel.location || "—"} · {hotel.created_by || ""}</p>
           <div className="flex items-center gap-3 mt-1.5 text-xs">
             <span className="text-slate-500">
-              Taxa efetiva: <strong className="text-slate-900">{effectiveRate}%</strong>
-            </span>
-            <span className="text-slate-300">·</span>
-            <span className="text-slate-500">
-              Modelo: <strong className={hotel.commission_borne_by === 'client' ? 'text-orange-600' : 'text-teal-700'}>
-                {hotel.commission_borne_by === 'client' ? 'cliente paga taxa' : 'comissão do hotel'}
+              Taxa efetiva:{" "}
+              <strong className="text-slate-900">
+                {isShop && (hotel.commission_rate_mode || "default") === "default"
+                  ? "taxa global da Loja"
+                  : `${effectiveRate}%`}
               </strong>
-              {hotel.commission_borne_by === 'client' ? ' (taxa adicionada ao cliente)' : ' (cliente paga só o serviço)'}
             </span>
+            {!isShop && (
+              <>
+                <span className="text-slate-300">·</span>
+                <span className="text-slate-500">
+                  Modelo: <strong className={hotel.commission_borne_by === 'client' ? 'text-orange-600' : 'text-teal-700'}>
+                    {hotel.commission_borne_by === 'client' ? 'cliente paga taxa' : 'comissão do hotel'}
+                  </strong>
+                  {hotel.commission_borne_by === 'client' ? ' (taxa adicionada ao cliente)' : ' (cliente paga só o serviço)'}
+                </span>
+              </>
+            )}
           </div>
         </div>
         <Button
@@ -107,6 +117,8 @@ function HotelCommissionRow({ hotel }) {
 
       {editing && (
         <div className="mt-4 pt-4 border-t border-slate-100 space-y-4">
+          {!isShop && (
+          <>
           <div className="rounded-xl border border-teal-100 bg-teal-50/50 p-3">
             <p className="text-xs text-teal-800">
               💡 Escolhe <strong>quem paga a comissão</strong> para este hotel. Podes mudar por cada hotel conforme o acordo comercial.
@@ -138,6 +150,8 @@ function HotelCommissionRow({ hotel }) {
               <p className="text-[10px] text-slate-500">Taxa adicionada ao cliente · hotel recebe valor cheio</p>
             </button>
           </div>
+          </>
+          )}
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {modes.map((m) => {
@@ -213,12 +227,14 @@ export default function AdminHotelCommissionManager() {
   const { data: hotels = [], isLoading } = useQuery({
     queryKey: ["adminHotelCommissions"],
     queryFn: async () => {
-      const all = await base44.entities.WalkerProfile.filter(
-        { professional_type: "hotel" },
-        "-created_date",
-        200
-      );
-      return Array.isArray(all) ? all : [];
+      const [hotelList, shopList] = await Promise.all([
+        base44.entities.WalkerProfile.filter({ professional_type: "hotel" }, "-created_date", 200),
+        base44.entities.WalkerProfile.filter({ professional_type: "shop" }, "-created_date", 200),
+      ]);
+      return [
+        ...(Array.isArray(hotelList) ? hotelList : []),
+        ...(Array.isArray(shopList) ? shopList : []),
+      ];
     },
     staleTime: 30 * 1000,
   });
@@ -240,11 +256,11 @@ export default function AdminHotelCommissionManager() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Pesquisar hotel..."
+            placeholder="Pesquisar hotel ou loja..."
             className="pl-9 rounded-xl border-slate-200"
           />
         </div>
-        <span className="text-sm text-slate-500 font-medium">{filtered.length} hotéis</span>
+        <span className="text-sm text-slate-500 font-medium">{filtered.length} parceiros</span>
       </div>
 
       {isLoading ? (

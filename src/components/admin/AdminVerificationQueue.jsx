@@ -40,6 +40,7 @@ const AccordionItem = ({ item, type, onApprove, onReject, onViewDetails, languag
     if (type === 'walker') return { label: 'Dog Walker', cls: 'bg-blue-100 text-blue-700' };
     if (type === 'hotel') return { label: 'Hotel', cls: 'bg-violet-100 text-violet-700' };
     if (type === 'trainer') return { label: 'Treinador', cls: 'bg-amber-100 text-amber-700' };
+    if (type === 'shop') return { label: 'Loja', cls: 'bg-teal-100 text-teal-700' };
     return { label: 'Abrigo', cls: 'bg-pink-100 text-pink-700' };
   };
 
@@ -47,6 +48,7 @@ const AccordionItem = ({ item, type, onApprove, onReject, onViewDetails, languag
     if (type === 'walker') return item.walker_name;
     if (type === 'hotel') return item.hotel_details?.hotel_name || item.walker_name;
     if (type === 'trainer') return item.business_name || item.trainer_name;
+    if (type === 'shop') return item.walker_name;
     return item.shelter_name;
   };
 
@@ -107,7 +109,7 @@ const AccordionItem = ({ item, type, onApprove, onReject, onViewDetails, languag
             <p className="text-sm text-slate-600 italic">"{item.bio || item.description || 'Sem descrição.'}"</p>
           </div>
 
-          {type !== 'shelter' && type !== 'hotel' && (
+          {type !== 'shelter' && type !== 'hotel' && type !== 'shop' && (
             <div className="flex gap-4 text-sm">
               <div className="flex items-center gap-1">
                 <Star className="w-3.5 h-3.5 text-yellow-500" />
@@ -212,6 +214,7 @@ const EmptyState = ({ message }) => (
 
 export default function AdminVerificationQueue({
   walkers = [],
+  shops = [],
   hotels = [],
   trainers = [],
   shelters = [],
@@ -226,6 +229,7 @@ export default function AdminVerificationQueue({
 
   const allItems = [
     ...walkers.map(w => ({ item: w, type: 'walker' })),
+    ...shops.map(s => ({ item: s, type: 'shop' })),
     ...hotels.map(h => ({ item: h, type: 'hotel' })),
     ...trainers.map(t => ({ item: t, type: 'trainer' })),
     ...shelters.map(s => ({ item: s, type: 'shelter' })),
@@ -236,6 +240,7 @@ export default function AdminVerificationQueue({
   const filterChips = [
     { key: 'all', label: 'Todos', count: allItems.length },
     { key: 'walker', label: 'Dog Walkers', count: walkers.length },
+    { key: 'shop', label: 'Lojas', count: shops.length },
     { key: 'hotel', label: 'Hotéis', count: hotels.length },
     { key: 'trainer', label: 'Treinadores', count: trainers.length },
     { key: 'shelter', label: 'Abrigos', count: shelters.length },

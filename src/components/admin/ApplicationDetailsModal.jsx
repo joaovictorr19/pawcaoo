@@ -53,7 +53,7 @@ export default function ApplicationDetailsModal({
   if (!isOpen || !selectedApp) return null;
 
   const type = selectedApp.type;
-  const isWalker = type === 'walker';
+  const isWalker = type === 'walker' || type === 'shop';
   const isTrainer = type === 'trainer';
   const isShelter = type === 'shelter';
 

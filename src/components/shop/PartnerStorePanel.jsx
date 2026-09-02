@@ -30,7 +30,7 @@ const STATUS_LIGHT = {
   cancelled: { label: "Cancelado", cls: "bg-red-50 text-red-600 border-red-200" },
 };
 
-export default function PartnerStorePanel({ user, professionalProfile, variant = "dark" }) {
+export default function PartnerStorePanel({ user, professionalProfile, variant = "dark", autoApprove = true }) {
   const queryClient = useQueryClient();
   const [view, setView] = useState("products");
   const [formOpen, setFormOpen] = useState(false);
@@ -231,14 +231,25 @@ export default function PartnerStorePanel({ user, professionalProfile, variant =
                       <delivery.icon className={`inline w-3 h-3 ${variant === "light" ? "text-teal-600" : "text-teal-400"}`} />{" "}
                       {delivery.label}
                     </p>
-                    <button
-                      onClick={() => toggleAvailableMutation.mutate(p)}
-                      className={`mt-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                        p.is_available ? S.chipActive : S.chipInactive
-                      }`}
-                    >
-                      {p.is_available ? "● À venda" : "○ Pausado"}
-                    </button>
+                    <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                      {p.moderation_status === "pending" && (
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                          variant === "light"
+                            ? "bg-amber-50 text-amber-700 border-amber-200"
+                            : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                        }`}>
+                          ⏳ Em aprovação
+                        </span>
+                      )}
+                      <button
+                        onClick={() => toggleAvailableMutation.mutate(p)}
+                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                          p.is_available ? S.chipActive : S.chipInactive
+                        }`}
+                      >
+                        {p.is_available ? "● À venda" : "○ Pausado"}
+                      </button>
+                    </div>
                   </div>
                   <div className="flex gap-1.5 flex-shrink-0">
                     <button
@@ -362,6 +373,7 @@ export default function PartnerStorePanel({ user, professionalProfile, variant =
           product={editing}
           partner={partner}
           variant={variant}
+          autoApprove={autoApprove}
         />
       )}
     </div>

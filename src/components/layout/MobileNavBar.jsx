@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Map, Calendar, User, LayoutDashboard, Bell, Building2 } from "lucide-react";
+import { Map, Calendar, User, LayoutDashboard, Bell, Building2, Store } from "lucide-react";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import { motion } from "framer-motion";
@@ -41,6 +41,8 @@ export default function MobileNavBar({ user, hasHotelPartnership = false, unread
   // When impersonating, role is forced to 'admin' for RLS — use originalRole for UI
   const effectiveRole = user?.isImpersonating ? (user?.originalRole || 'user') : (user?.role || 'user');
   const isHotel = effectiveRole === 'hotel' || effectiveRole === 'hotel_admin';
+  const isShop = effectiveRole === 'shop';
+  const storePath = "/StoreDashboard";
 
   // Localized labels with safe fallbacks
   const labelDashboard = t('dashboard', language) || (language === 'pt' ? 'Painel' : language === 'es' ? 'Panel' : 'Dashboard');
@@ -149,8 +151,9 @@ export default function MobileNavBar({ user, hasHotelPartnership = false, unread
 
   // Active checks per tab
   const isTab1Active = (isProf && isActive(profPanelPath)) ||
+    (isShop && isActive(storePath)) ||
     (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
-    (!isProf && !isTutor && isActive(createPageUrl("Home")));
+    (!isProf && !isTutor && !isShop && isActive(createPageUrl("Home")));
   const isTab2Active = (isProf && isActive(createPageUrl("ProfessionalCalendar"))) ||
     (!isProf && isActive(createPageUrl("MyBookings")));
   const isPartnerActive = isActive(createPageUrl("PartnerHotelPanel"));
@@ -182,15 +185,15 @@ export default function MobileNavBar({ user, hasHotelPartnership = false, unread
         {/* ABA 1: EXPLORAR / PAINEL / CLIENTE */}
         <button
           onClick={() => {
-            const targetPath = isProf ? profPanelPath : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
+            const targetPath = isProf ? profPanelPath : isShop ? storePath : isTutor ? createPageUrl("ClientDashboard") : createPageUrl("Home");
             handleTabClick(targetPath);
           }}
           className={`${tabBase} ${isTab1Active ? activeCls : inactiveCls}`}
           style={isTab1Active ? { boxShadow: '0 2px 12px rgba(32,115,115,0.35)' } : {}}
         >
-          {isProf ? <LayoutDashboard size={18} /> : isTutor ? <LayoutDashboard size={18} /> : <Map size={18} />}
+          {isProf ? <LayoutDashboard size={18} /> : isShop ? <Store size={18} /> : isTutor ? <LayoutDashboard size={18} /> : <Map size={18} />}
           <span className="text-[8px] leading-none font-bold uppercase tracking-tight whitespace-nowrap truncate max-w-[60px] text-center">
-            {isProf ? labelDashboard : isTutor ? labelClient : labelExplore}
+            {isProf ? labelDashboard : isShop ? (language === 'pt' ? 'Loja' : language === 'es' ? 'Tienda' : 'Store') : isTutor ? labelClient : labelExplore}
           </span>
         </button>
 

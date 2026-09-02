@@ -8,10 +8,11 @@
         "walker",
         "trainer",
         "both",
-        "hotel"
+        "hotel",
+        "shop"
       ],
       "default": "walker",
-      "description": "Tipo de profissional"
+      "description": "Tipo de profissional (shop = loja apenas de produtos)"
     },
     "user_id": {
       "type": "string",

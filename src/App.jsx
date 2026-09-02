@@ -80,6 +80,14 @@ const Shop = lazy(() => import('./pages/Shop').catch(e => {
   console.error('Error loading Shop:', e);
   return { default: () => <div>Erro ao carregar página</div> };
 }));
+const ShopOnboarding = lazy(() => import('./pages/ShopOnboarding').catch(e => {
+  console.error('Error loading ShopOnboarding:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
+const StoreDashboard = lazy(() => import('./pages/StoreDashboard').catch(e => {
+  console.error('Error loading StoreDashboard:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
 
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -204,6 +212,8 @@ const AuthenticatedApp = () => {
             <Route path="/WalkerRecommenderChat" element={<Suspense fallback={<PageLoader />}><WalkerRecommenderChat /></Suspense>} />
             <Route path="/PriceProposals" element={<Suspense fallback={<PageLoader />}><PriceProposals /></Suspense>} />
             <Route path="/Shop" element={<Suspense fallback={<PageLoader />}><Shop /></Suspense>} />
+            <Route path="/ShopOnboarding" element={<Suspense fallback={<PageLoader />}><ShopOnboarding /></Suspense>} />
+            <Route path="/StoreDashboard" element={<Suspense fallback={<PageLoader />}><StoreDashboard /></Suspense>} />
 
             <Route path="/QRProfileTest" element={<QRProfileTest />} />
             <Route path="/portugal" element={<CountryLandingPage country="portugal" />} />

@@ -424,6 +424,7 @@ function LayoutContent({ children, currentPageName }) {
     bookings:        { pt: 'Reservas',              en: 'Bookings',      es: 'Reservas',         fr: 'Réservations' },
     myPanel:         { pt: 'Meu Painel',            en: 'My Dashboard',  es: 'Mi Panel',         fr: 'Mon Tableau'  },
     myHotel:         { pt: 'Meu Hotel',             en: 'My Hotel',      es: 'Mi Hotel',         fr: 'Mon Hôtel'    },
+    myStore:         { pt: 'Minha Loja',            en: 'My Store',      es: 'Mi Tienda',        fr: 'Ma Boutique'  },
     signOut:         { pt: 'Sair',                  en: 'Sign Out',      es: 'Salir',            fr: 'Déconnexion'  },
     signIn:          { pt: 'Entrar',                en: 'Sign In',       es: 'Entrar',           fr: 'Connexion'    },
     signUp:          { pt: 'Registar',              en: 'Sign Up',       es: 'Registrarse',      fr: 'S\'inscrire'  },
@@ -514,6 +515,12 @@ function LayoutContent({ children, currentPageName }) {
                     Admin
                   </NavLink>
                 </>
+              );
+
+              if (role === 'shop') return (
+                <NavLink to="/StoreDashboard" className={({ isActive }) => `px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${isActive ? 'bg-teal-500/15 text-teal-700' : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'}`}>
+                  {nav('myStore')}
+                </NavLink>
               );
 
               if (isHotel) return (
