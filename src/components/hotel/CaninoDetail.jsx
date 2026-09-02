@@ -8,6 +8,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import { SERVICE_PHOTO_TABS, countServicePhotosByType } from "@/components/animal/servicePhotoConfig";
+import DogStayDiary from "./DogStayDiary";
 
 const SERVICE_LABELS = {
   boarding: "Alojamento",
@@ -90,6 +91,9 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack 
   const snapshot = dog.owner_snapshot || {};
   const activeCats = servicePhotos[activePhotoTab] || {};
   const cfg = SERVICE_PHOTO_TABS.find(s => s.key === activePhotoTab);
+
+  // Reserva de referência para o diário: ativa se existir, senão a mais recente
+  const diaryBooking = dogBookings.find(b => ["checked_in", "in_progress", "confirmed"].includes(b.status)) || dogBookings[0];
 
   // Estatísticas
   const totalServices = dogBookings.length;
@@ -213,6 +217,13 @@ export default function CaninoDetail({ dog, bookings = [], hotelProfile, onBack 
           )}
         </div>
       )}
+
+      {/* Diário de Estadia — registos e notas */}
+      <DogStayDiary
+        hotelProfile={hotelProfile}
+        dogName={dog.dog_name}
+        booking={diaryBooking}
+      />
 
       {/* Dados do dono (snapshot) */}
       <div className="bg-white border border-slate-200 rounded-xl p-3">
