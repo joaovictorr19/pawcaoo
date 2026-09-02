@@ -40,21 +40,24 @@ export default function InstallPrompt() {
 
     if (!isMobile) return; // Só mostrar em mobile
 
+    let timer = null;
     const handleBeforeInstall = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
       // Pequeno delay para não interromper a navegação
-      const timer = setTimeout(() => setShowBanner(true), 6000);
-      return () => clearTimeout(timer);
+      timer = setTimeout(() => setShowBanner(true), 6000);
     };
 
     if (isIOS) {
       // iOS não dispara beforeinstallprompt — mostrar dica direta
-      const timer = setTimeout(() => setShowIOSHint(true), 6000);
+      timer = setTimeout(() => setShowIOSHint(true), 6000);
       return () => clearTimeout(timer);
     } else {
       window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-      return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+        if (timer) clearTimeout(timer);
+      };
     }
   }, []);
 
