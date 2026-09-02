@@ -13,6 +13,7 @@ const AdvancedTrainerFilters = React.lazy(() => import("../components/search/Adv
 
 const TestimonialsSection = React.lazy(() => import("../components/home/TestimonialsSection"));
 import UnauthenticatedHero from "../components/home/UnauthenticatedHero";
+import { ProfessionalCardSkeleton } from "../components/marketplace/ProfessionalCardSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
 import { useLanguage } from "@/components/LanguageContext";
@@ -996,13 +997,9 @@ export default function Home() {
 
                   <div className="relative z-10">
                   {loadingWalkers ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                      {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                        <div key={`skeleton-${i}`} className="bg-white rounded-xl p-4 space-y-3 shadow-md">
-                          <Skeleton className="w-full h-48 md:h-56 rounded-lg bg-gray-200" />
-                          <Skeleton className="h-5 w-3/4 bg-gray-200" />
-                          <Skeleton className="h-4 w-1/2 bg-gray-200" />
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <ProfessionalCardSkeleton key={`pro-skeleton-${i}`} />
                       ))}
                     </div>
                   ) : filteredProfessionals.length === 0 ? (
@@ -1027,10 +1024,17 @@ export default function Home() {
                     </Card>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-                      {paginatedProfessionals.map((pro) => (
-                        <Suspense key={pro.id} fallback={<div className="bg-white rounded-xl p-4 h-64 animate-pulse" />}>
-                          <ProfessionalCard walker={pro} />
-                        </Suspense>
+                      {paginatedProfessionals.map((pro, index) => (
+                        <motion.div
+                          key={pro.id}
+                          initial={{ opacity: 0, y: 14 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.4), ease: "easeOut" }}
+                        >
+                          <Suspense fallback={<ProfessionalCardSkeleton />}>
+                            <ProfessionalCard walker={pro} />
+                          </Suspense>
+                        </motion.div>
                       ))}
                     </div>
                   )}
