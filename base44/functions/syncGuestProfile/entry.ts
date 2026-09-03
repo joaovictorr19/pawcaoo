@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const booking = await base44.asServiceRole.entities.HotelBooking.get(booking_id);
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
-    if (user.email !== booking.hotel_email && user.email !== booking.owner_email) {
+    if (user.email !== booking.hotel_email && user.email !== booking.owner_email && user.role !== 'admin') {
       return Response.json({ error: 'Forbidden: not authorized for this booking' }, { status: 403 });
     }
 
@@ -26,6 +26,9 @@ Deno.serve(async (req) => {
     let profile;
     const stayDate = booking.checkout_date || booking.checkin_date || new Date().toISOString().split('T')[0];
     const nowIso = new Date().toISOString();
+    // A ficha de cliente e o perfil dos cães são criados/atualizados já na confirmação,
+    // mas a estadia só conta nas estatísticas quando é concluída (checked_out/completed).
+    const isCompletedStay = ['checked_out', 'completed'].includes(booking.status);
 
     const dogProfiles = booking.owner_email
       ? await base44.asServiceRole.entities.DogProfile.filter({ owner_email: booking.owner_email })
@@ -39,6 +42,8 @@ Deno.serve(async (req) => {
 
     if (existing.length > 0) {
       profile = existing[0];
+      const countedBookingIds = profile.counted_booking_ids || [];
+      const shouldCountStay = isCompletedStay && !countedBookingIds.includes(booking.id);
       const updatedDogs = (booking.dogs || []).map(bookingDog => {
         const existingDog = (profile.dogs || []).find(d => (d.dog_name || "").trim().toLowerCase() === (bookingDog.dog_name || "").trim().toLowerCase());
         const dogProfile = findDogProfileByName(dogProfiles, bookingDog.dog_name);
@@ -86,10 +91,11 @@ Deno.serve(async (req) => {
         veterinarian_name: booking.veterinarian_name || profile.veterinarian_name,
         veterinarian_phone: booking.veterinarian_phone || profile.veterinarian_phone,
         dogs: mergedDogs,
-        total_stays: (profile.total_stays || 0) + 1,
-        total_spent: (profile.total_spent || 0) + (booking.total_amount || 0),
-        last_stay_date: stayDate,
-        first_stay_date: profile.first_stay_date || stayDate,
+        total_stays: shouldCountStay ? (profile.total_stays || 0) + 1 : (profile.total_stays || 0),
+        total_spent: shouldCountStay ? (profile.total_spent || 0) + (booking.total_amount || 0) : (profile.total_spent || 0),
+        last_stay_date: shouldCountStay ? stayDate : (profile.last_stay_date || ''),
+        first_stay_date: profile.first_stay_date || (shouldCountStay ? stayDate : ''),
+        counted_booking_ids: shouldCountStay ? [...countedBookingIds, booking.id] : countedBookingIds,
       });
     } else {
       profile = await base44.asServiceRole.entities.HotelGuestProfile.create({
@@ -122,10 +128,11 @@ Deno.serve(async (req) => {
             has_owner_updates: false,
           };
         }),
-        total_stays: 1,
-        total_spent: booking.total_amount || 0,
-        first_stay_date: stayDate,
-        last_stay_date: stayDate,
+        total_stays: isCompletedStay ? 1 : 0,
+        total_spent: isCompletedStay ? (booking.total_amount || 0) : 0,
+        first_stay_date: isCompletedStay ? stayDate : undefined,
+        last_stay_date: isCompletedStay ? stayDate : undefined,
+        counted_booking_ids: isCompletedStay ? [booking.id] : [],
       });
     }
 

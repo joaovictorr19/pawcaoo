@@ -1,8 +1,8 @@
 {
   "name": "Sincronizar Perfil H\u00f3spede no Check-out",
-  "description": "Cria ou atualiza o perfil do h\u00f3spede recorrente quando uma reserva \u00e9 marcada como checked_out ou completed",
+  "description": "Cria ou atualiza a ficha de cliente e o perfil dos c\u00e3es quando uma reserva \u00e9 confirmada, marcada como checked_out ou completed",
   "trigger": {
-    "condition": "${ ((.trigger.data.status == \"checked_out\") or (.trigger.data.status == \"completed\")) }",
+    "condition": "${ ((.trigger.data.status == \"confirmed\") or (.trigger.data.status == \"checked_out\") or (.trigger.data.status == \"completed\")) }",
     "config": {
       "trigger_type": "entity",
       "events": [
