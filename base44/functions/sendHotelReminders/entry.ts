@@ -13,16 +13,30 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Auth check — admin manual call or platform-scheduled invocation
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
+    // Auth check — SEMPRE verificar a identidade:
+    // - Com token de utilizador: tem de ser admin (nunca é ignorado)
+    // - Sem utilizador (invocação agendada da workflow): exige a chave de sistema no body
+    const CRON_KEY = 'pawcao-cron-7fKx9Qm2vT8wR5zL3n';
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch {
+      // Sem token de utilizador válido — segue para a validação da chave de sistema
+    }
+
+    if (user) {
+      if (user.role !== 'admin') {
+        return Response.json({ error: 'Admin access required' }, { status: 403 });
+      }
+    } else {
+      let body = {};
       try {
-        const user = await base44.auth.me();
-        if (user?.role !== 'admin') {
-          return Response.json({ error: 'Admin access required' }, { status: 403 });
-        }
+        body = await req.json();
       } catch {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        // body vazio ou inválido
+      }
+      if (body.cron_key !== CRON_KEY) {
+        return Response.json({ error: 'Unauthorized: system key required' }, { status: 401 });
       }
     }
 

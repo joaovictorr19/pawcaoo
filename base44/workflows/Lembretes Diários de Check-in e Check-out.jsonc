@@ -31,7 +31,9 @@
           "call": "invoke_backend_function",
           "with": {
             "function_name": "sendHotelReminders",
-            "args": {}
+            "args": {
+              "cron_key": "pawcao-cron-7fKx9Qm2vT8wR5zL3n"
+            }
           },
           "then": "end"
         }
