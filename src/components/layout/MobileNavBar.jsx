@@ -154,8 +154,9 @@ export default function MobileNavBar({ user, hasHotelPartnership = false, unread
     (isShop && isActive(storePath)) ||
     (isTutor && isActive(createPageUrl("ClientDashboard"))) ||
     (!isProf && !isTutor && !isShop && isActive(createPageUrl("Home")));
-  const isTab2Active = (isProf && isActive(createPageUrl("ProfessionalCalendar"))) ||
-    (!isProf && isActive(createPageUrl("MyBookings")));
+  const isTab2Active = (isHotel && isActive(hotelDashPath)) ||
+    (isProf && isActive(createPageUrl("ProfessionalCalendar"))) ||
+    (!isProf && !isHotel && isActive(createPageUrl("MyBookings")));
   const isPartnerActive = isActive(createPageUrl("PartnerHotelPanel"));
   const isTab4Active = isActive(createPageUrl("UserProfile"));
 
@@ -200,7 +201,9 @@ export default function MobileNavBar({ user, hasHotelPartnership = false, unread
         {/* ABA 2: AGENDA / RESERVAS */}
         <button
           onClick={() => {
-            if (isProf) {
+            if (isHotel) {
+              handleTabClick(hotelDashPath);
+            } else if (isProf) {
               handleTabClick(createPageUrl("ProfessionalCalendar"));
             } else {
               handleTabClick(createPageUrl("MyBookings"));

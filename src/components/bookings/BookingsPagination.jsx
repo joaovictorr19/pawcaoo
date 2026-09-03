@@ -9,15 +9,15 @@ export default function BookingsPagination({ totalPages, currentPage, setCurrent
       <button
         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
         disabled={currentPage === 1}
-        className="w-10 h-10 rounded-2xl bg-slate-900 border border-white/5 text-slate-400 hover:text-white disabled:opacity-30 flex items-center justify-center transition-all active:scale-95"
+        className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-500 hover:text-teal-700 disabled:opacity-30 flex items-center justify-center transition-all active:scale-95"
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
-      <span className="text-sm font-bold text-slate-400">{currentPage} / {totalPages}</span>
+      <span className="text-sm font-bold text-slate-500">{currentPage} / {totalPages}</span>
       <button
         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
         disabled={currentPage === totalPages}
-        className="w-10 h-10 rounded-2xl bg-slate-900 border border-white/5 text-slate-400 hover:text-white disabled:opacity-30 flex items-center justify-center transition-all active:scale-95"
+        className="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-500 hover:text-teal-700 disabled:opacity-30 flex items-center justify-center transition-all active:scale-95"
       >
         <ChevronRight className="w-4 h-4" />
       </button>

@@ -28,8 +28,8 @@ export default function BookingsFilters({ filters, setFilters, setCurrentPage })
               onClick={() => { setFilters({...filters, status: value}); setCurrentPage(1); }}
               className={`shrink-0 px-3.5 py-1.5 rounded-lg text-[11px] font-bold tracking-wide whitespace-nowrap transition-all duration-200 active:scale-95 ${
                 active
-                  ? 'bg-teal-500 text-white shadow-sm shadow-teal-900/30'
-                  : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700/80'
+                  ? 'bg-[#0e9485] text-white shadow-sm shadow-teal-600/30'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0e9485]/50 hover:text-teal-700'
               }`}
             >
               {label}
@@ -48,8 +48,8 @@ export default function BookingsFilters({ filters, setFilters, setCurrentPage })
               onClick={() => { setFilters({...filters, type: value}); setCurrentPage(1); }}
               className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-lg transition-all duration-200 active:scale-95 ${
                 active
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700/80'
+                  ? 'bg-[#0e9485] text-white shadow-sm shadow-teal-600/30'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0e9485]/50 hover:text-teal-700'
               }`}
             >
               <span className="text-sm leading-none">{icon}</span>

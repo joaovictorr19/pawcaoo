@@ -125,7 +125,7 @@ export default function MyBookings() {
     queryFn: async () => {
       if (!user?.email) return [];
       return await base44.entities.Booking.filter({ 
-        created_by: user.email
+        owner_email: user.email
       }, '-created_date', 50);
     },
     enabled: !!user?.email,
@@ -153,7 +153,7 @@ export default function MyBookings() {
     queryFn: async () => {
       if (!user?.email) return [];
       if (!base44.entities.TrainingBooking) return [];
-      return await base44.entities.TrainingBooking.filter({ created_by: user.email }, '-created_date', 50);
+      return await base44.entities.TrainingBooking.filter({ owner_email: user.email }, '-created_date', 50);
     },
     enabled: !!user?.email,
     staleTime: 30 * 1000,
@@ -651,12 +651,12 @@ export default function MyBookings() {
     });
 
     return (
-      <div className="bg-slate-900 rounded-3xl border border-white/5 overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200/70 shadow-lg shadow-slate-200/60 overflow-hidden">
         <div className="p-4 flex flex-col gap-3">
           {/* Header */}
           <div className="flex justify-between items-start">
             <div className="flex-1 min-w-0">
-              <h3 className="font-black text-white truncate">
+              <h3 className="font-black text-slate-900 truncate">
                 {isHotel ? booking.hotel_name : (isProfessional ? booking.owner_name : professionalName)}
               </h3>
               <p className="text-xs text-slate-500 font-bold mt-0.5">
@@ -668,29 +668,29 @@ export default function MyBookings() {
 
           {/* Info */}
           <div className="flex gap-3 flex-wrap">
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold">
               <Calendar className="w-3.5 h-3.5 text-orange-400" />
               {booking.date ? format(new Date(booking.date), 'dd/MM/yy', { locale: pt }) : 'N/A'}
             </div>
             {booking.time && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold">
                 <Clock className="w-3.5 h-3.5 text-orange-400" />
                 {booking.time}
               </div>
             )}
             {booking.total_amount && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold ml-auto">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold ml-auto">
                 <DollarSign className="w-3.5 h-3.5 text-green-400" />
                 €{booking.total_amount.toFixed(2)}
               </div>
             )}
             {!isProfessional && !isHotel && (booking.status === 'confirmed' || booking.status === 'in_progress' || booking.status === 'service_completed') && booking.walker_payment_contact && (
               <div className="w-full space-y-2">
-                <div className="text-[11px] text-slate-300 font-semibold">
+                <div className="text-[11px] text-slate-700 font-semibold">
                   Contacto do profissional: {booking.walker_payment_contact}
                 </div>
-                <div className="rounded-2xl border border-green-500/20 bg-green-500/10 p-3">
-                  <p className="text-[11px] font-bold text-green-300">
+                <div className="rounded-2xl border border-green-200 bg-green-50 p-3">
+                  <p className="text-[11px] font-bold text-green-800">
                     Se quiser, pode pedir pelo WhatsApp ao profissional a partilha da localização em tempo real durante o serviço.
                   </p>
                 </div>
@@ -698,11 +698,11 @@ export default function MyBookings() {
             )}
             {isProfessional && booking.status === 'confirmed' && booking.owner_phone && (
               <div className="w-full space-y-2">
-                <div className="text-[11px] text-slate-300 font-semibold">
+                <div className="text-[11px] text-slate-700 font-semibold">
                   Contacto do cliente: {booking.owner_phone}
                 </div>
-                <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-3">
-                  <p className="text-[11px] font-bold text-blue-300">
+                <div className="rounded-2xl border border-blue-200 bg-blue-50 p-3">
+                  <p className="text-[11px] font-bold text-blue-800">
                     O cliente pode pedir por WhatsApp a partilha da sua localização em tempo real durante o serviço, se desejar.
                   </p>
                 </div>
@@ -725,7 +725,7 @@ export default function MyBookings() {
             {(booking.status === 'pending' || booking.status === 'confirmed') && !isProfessional && (
               <button
                 onClick={() => handleCancelClick(booking)}
-                className="w-9 h-9 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 flex items-center justify-center transition-all active:scale-95"
+                className="w-9 h-9 rounded-2xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 flex items-center justify-center transition-all active:scale-95"
                 title="Cancelar"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -758,7 +758,7 @@ export default function MyBookings() {
             {isHotel && (
               <button
                 onClick={() => setReportHotel(booking)}
-                className="w-9 h-9 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 flex items-center justify-center transition-all active:scale-95"
+                className="w-9 h-9 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 flex items-center justify-center transition-all active:scale-95"
                 title="Reportar hotel"
               >
                 <Flag className="w-3.5 h-3.5" />
@@ -798,7 +798,7 @@ export default function MyBookings() {
                       const text = encodeURIComponent(`Olá ${professionalName || ''}! Gostaria que partilhasse a sua localização em tempo real pelo WhatsApp durante o serviço, se possível.`);
                       window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
                     }}
-                    className="flex-1 min-w-[100px] h-9 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 text-[11px] font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                    className="flex-1 min-w-[100px] h-9 rounded-2xl bg-green-50 border border-green-200 text-green-600 hover:bg-green-100 text-[11px] font-black flex items-center justify-center gap-1.5 transition-all active:scale-95"
                     title="Pedir localização"
                   >
                     <LocateFixed className="w-3.5 h-3.5" />
@@ -807,7 +807,7 @@ export default function MyBookings() {
                 )}
                 <button
                   onClick={() => window.open(`https://wa.me/${String(professionalContact || booking.walker_payment_contact).replace(/[^0-9]/g, '')}`, '_blank')}
-                  className="w-9 h-9 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 flex items-center justify-center transition-all active:scale-95"
+                  className="w-9 h-9 rounded-2xl bg-green-50 border border-green-200 text-green-600 hover:bg-green-100 flex items-center justify-center transition-all active:scale-95"
                   title="WhatsApp"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -818,7 +818,7 @@ export default function MyBookings() {
             {!(isHotel && booking.status === 'confirmed') && booking.status !== 'in_progress' && !(booking.status === 'completed' && !hasReview) && (
               <button
                 onClick={() => { setSelectedBooking(booking); setIsDetailsModalOpen(true); }}
-                className="w-9 h-9 rounded-2xl bg-slate-800 border border-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-all active:scale-95"
+                className="w-9 h-9 rounded-2xl bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-all active:scale-95"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -827,20 +827,20 @@ export default function MyBookings() {
             {booking.status === 'confirmed' && !isHotel && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="w-9 h-9 rounded-2xl bg-slate-800 border border-white/5 text-slate-400 hover:text-purple-400 flex items-center justify-center transition-all active:scale-95">
+                  <button className="w-9 h-9 rounded-2xl bg-slate-100 border border-slate-200 text-slate-500 hover:text-teal-600 flex items-center justify-center transition-all active:scale-95">
                     <CalendarPlus className="w-4 h-4" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-48 p-2 bg-slate-900 border-white/10" align="end">
+                <PopoverContent className="w-48 p-2 bg-white border-slate-200" align="end">
                   <div className="grid gap-1">
                     <button
-                      className="w-full text-left px-3 py-2 rounded-xl text-xs text-slate-300 hover:bg-slate-800 font-bold transition-all"
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs text-slate-700 hover:bg-slate-100 font-bold transition-all"
                       onClick={() => { const e = bookingToEvent(booking); if (e) window.open(getGoogleCalendarUrl(e), '_blank'); }}
                     >
                       Google Calendar
                     </button>
                     <button
-                      className="w-full text-left px-3 py-2 rounded-xl text-xs text-slate-300 hover:bg-slate-800 font-bold transition-all"
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs text-slate-700 hover:bg-slate-100 font-bold transition-all"
                       onClick={() => { const e = bookingToEvent(booking); if (e) { const ics = generateICS(e); downloadICS(`booking_${booking.id}.ics`, ics); } }}
                     >
                       Apple/Outlook (.ics)
@@ -857,11 +857,11 @@ export default function MyBookings() {
 
   if (loadingUser || loadingOwnerWalks || loadingWalkerWalks || loadingOwnerTrainings || loadingTrainerTrainings || loadingHotelBookings) {
     return (
-      <div className="min-h-screen bg-slate-950 p-6">
+      <div className="min-h-screen bg-slate-50 p-6">
         <div className="max-w-lg mx-auto space-y-4">
-          <Skeleton className="h-8 w-48 bg-slate-800" />
+          <Skeleton className="h-8 w-48 bg-slate-200" />
           <div className="grid grid-cols-2 gap-4">
-            {[1,2,3,4].map(i => <Skeleton key={i} className="h-36 w-full rounded-2xl bg-slate-800" />)}
+            {[1,2,3,4].map(i => <Skeleton key={i} className="h-36 w-full rounded-2xl bg-slate-200" />)}
           </div>
         </div>
       </div>
@@ -869,7 +869,7 @@ export default function MyBookings() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-32 font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-32 font-sans">
       <BookingsHeader allBookings={allBookings} />
 
       <main className="p-4 max-w-lg mx-auto space-y-4">

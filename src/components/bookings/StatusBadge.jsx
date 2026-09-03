@@ -2,13 +2,13 @@ import React from "react";
 
 export default function StatusBadge({ status }) {
   const statusConfig = {
-    pending: { label: 'Pendente', color: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' },
-    confirmed: { label: 'Confirmado', color: 'bg-green-500/20 text-green-300 border border-green-500/30' },
-    in_progress: { label: 'Em Andamento', color: 'bg-orange-500/20 text-orange-300 border border-orange-500/30' },
-    service_completed: { label: 'Serviço Feito', color: 'bg-blue-500/20 text-blue-300 border border-blue-500/30' },
-    completed: { label: 'Concluído', color: 'bg-slate-600/40 text-slate-300 border border-slate-600/40' },
-    cancelled: { label: 'Cancelado', color: 'bg-red-500/20 text-red-300 border border-red-500/30' },
-    rejected: { label: 'Rejeitado', color: 'bg-red-500/20 text-red-400 border border-red-500/30' }
+    pending: { label: 'Pendente', color: 'bg-amber-100 text-amber-800' },
+    confirmed: { label: 'Confirmado', color: 'bg-emerald-100 text-emerald-800' },
+    in_progress: { label: 'Em Andamento', color: 'bg-orange-100 text-orange-800' },
+    service_completed: { label: 'Serviço Feito', color: 'bg-blue-100 text-blue-800' },
+    completed: { label: 'Concluído', color: 'bg-slate-100 text-slate-600' },
+    cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-700' },
+    rejected: { label: 'Rejeitado', color: 'bg-red-100 text-red-700' }
   };
 
   const config = statusConfig[status] || statusConfig.pending;
