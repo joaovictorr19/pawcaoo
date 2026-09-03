@@ -12,6 +12,11 @@ export const PLATFORM_FEE_RATE = 0.10;
 export const ACTIVE_STATUSES = ["confirmed", "checked_in", "in_progress"];
 
 /**
+ * Tipos de serviço que contam como "hóspedes" (cães alojados / creche)
+ */
+export const STAY_SERVICE_TYPES = ["boarding", "daycare"];
+
+/**
  * Estados de reserva que não contam para receita
  */
 export const INACTIVE_STATUSES = ["cancelled", "rejected"];
@@ -36,12 +41,16 @@ export function calculateServiceCapacity(service) {
  */
 export function calculateOccupancy(bookings = [], capacityTotal = 0) {
   const activeBookings = (bookings || []).filter(b => ACTIVE_STATUSES.includes(b.status));
-  const occupancyToday = activeBookings.reduce((acc, b) => acc + (b.total_dogs || 1), 0);
+  // Hóspedes = apenas alojamento/creche ativos (serviços pontuais não contam)
+  const stayBookings = activeBookings.filter(b => STAY_SERVICE_TYPES.includes(b.service_type));
+  const occupancyToday = stayBookings.reduce((acc, b) => acc + (b.total_dogs || 1), 0);
   const occupancyPct = capacityTotal > 0
     ? Math.min(100, Math.round((occupancyToday / capacityTotal) * 100))
     : 0;
   const available = Math.max(0, capacityTotal - occupancyToday);
-  return { occupancyToday, occupancyPct, available, activeBookings };
+  // Serviços pontuais agendados (grooming, passeio, treino, etc.)
+  const scheduledServices = activeBookings.filter(b => !STAY_SERVICE_TYPES.includes(b.service_type)).length;
+  return { occupancyToday, occupancyPct, available, activeBookings, scheduledServices };
 }
 
 /**
@@ -174,6 +183,7 @@ export function useHotelCapacity(hotelProfile, bookings = []) {
       services: servicesCapacity,
       occupancyToday: occupancy.occupancyToday,
       occupancyPct: occupancy.occupancyPct,
+      scheduledServices: occupancy.scheduledServices,
       availableSpots: occupancy.available,
       revenue30d,
       pendingBookings,

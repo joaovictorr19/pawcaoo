@@ -4,9 +4,12 @@ import { pt } from "date-fns/locale";
 import { format } from "date-fns";
 import { AlertTriangle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { STAY_SERVICE_TYPES } from "@/hooks/useHotelCapacity";
 
 function getBookingsForDay(bookings, day) {
   return bookings.filter(b => {
+    // Apenas hóspedes reais (alojamento/creche) — serviços pontuais não ocupam vagas
+    if (!STAY_SERVICE_TYPES.includes(b.service_type)) return false;
     if (!b.checkin_date || ["cancelled", "rejected"].includes(b.status)) return false;
     try {
       const cin = startOfDay(parseISO(b.checkin_date));

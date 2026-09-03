@@ -446,7 +446,7 @@ export default function HotelDashboard() {
 
   const partners = hotelProfile?.hotel_details?.partner_walkers || [];
   const {
-    capacityTotal, occupancyToday, occupancyPct, revenue30d,
+    capacityTotal, occupancyToday, occupancyPct, scheduledServices, revenue30d,
     pendingBookings, activeBookings, todayCheckins, todayCheckouts,
   } = useHotelCapacity(hotelProfile, bookings);
 
@@ -545,6 +545,7 @@ export default function HotelDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { label: "Hóspedes agora", value: occupancyToday, sub: `de ${capacityTotal} vagas`, icon: Dog, iconCls: "text-slate-500" },
+            { label: "Serviços agendados", value: scheduledServices, sub: "grooming, passeio, treino", icon: Scissors, iconCls: "text-teal-500" },
             { label: "Pendentes", value: pendingBookings.length, sub: "a responder", icon: Clock, iconCls: "text-amber-500" },
             { label: "Chegadas hoje", value: todayCheckins.length, sub: "check-in", icon: ArrowRight, iconCls: "text-emerald-500" },
             ...(activeTab === "financas" ? [{ label: "Receita 30d", value: `${revenue30d.toFixed(0)}€`, sub: "estimada", icon: TrendingUp, iconCls: "text-blue-500" }] : []),
