@@ -28,9 +28,11 @@ Deno.serve(async (req) => {
     const hotelDetails = hotel.hotel_details || {};
     const services = hotelDetails.services || [];
     
-    // Use services array if available, else fall back to legacy capacity_total
-    const capacityTotal = services.length > 0 
-      ? services.reduce((acc, s) => acc + s.capacity_total, 0)
+    // Hóspedes/vagas = apenas alojamento/creche (serviços pontuais não contam)
+    const STAY_SERVICE_TYPES = ["boarding", "daycare"];
+    const stayServices = services.filter(s => STAY_SERVICE_TYPES.includes(s.service_type));
+    const capacityTotal = stayServices.length > 0 
+      ? stayServices.reduce((acc, s) => acc + s.capacity_total, 0)
       : hotelDetails.capacity_total;
     
     if (!capacityTotal || capacityTotal <= 0) {
@@ -59,7 +61,8 @@ Deno.serve(async (req) => {
     });
 
     const activeBookings = allBookings.filter(b =>
-      !["cancelled", "rejected"].includes(b.status) && b.checkin_date
+      !["cancelled", "rejected"].includes(b.status) && b.checkin_date &&
+      STAY_SERVICE_TYPES.includes(b.service_type)
     );
 
     const alertsSent = [];

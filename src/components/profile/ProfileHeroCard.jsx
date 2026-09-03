@@ -12,6 +12,7 @@ import { t } from "@/components/translations";
 import HotelCollaboratorBadge from "@/components/profile/HotelCollaboratorBadge";
 import { animalConfig } from "@/components/professionals/AnimalIcons";
 import { getLevelFromXP } from "@/components/gamification/tierSystem";
+import { STAY_SERVICE_TYPES } from "@/hooks/useHotelCapacity";
 
 const AVAILABILITY_LABELS = {
   morning:   { pt: "Manhã",      en: "Morning",   es: "Mañana" },
@@ -81,9 +82,11 @@ export default function ProfileHeroCard({
   const isProfessional = walkerProfile || trainerProfile;
   const hasBio = walkerProfile?.bio || trainerProfile?.bio || profileUser?.bio;
 
-  const hotelServices = walkerProfile?.hotel_details?.services || [];
-  const totalCapacity = hotelServices.reduce((sum, s) => sum + (s.capacity_total || 0), 0);
-  const availableCapacity = hotelServices.reduce(
+  // "Lugares" = apenas alojamento/creche (serviços pontuais não contam)
+  const stayServices = (walkerProfile?.hotel_details?.services || [])
+    .filter(s => STAY_SERVICE_TYPES.includes(s.service_type));
+  const totalCapacity = stayServices.reduce((sum, s) => sum + (s.capacity_total || 0), 0);
+  const availableCapacity = stayServices.reduce(
     (sum, s) => sum + (s.capacity_available ?? s.capacity_total ?? 0), 0
   );
   const checkinTime = walkerProfile?.hotel_details?.checkin_time;

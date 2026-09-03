@@ -56,8 +56,11 @@ Deno.serve(async (req) => {
       hotel_email: hotel_email
     });
 
+    // Hóspedes = apenas alojamento/creche (serviços pontuais não ocupam vagas)
+    const STAY_SERVICE_TYPES = ['boarding', 'daycare'];
     const activeBookings = allBookings.filter(b =>
-      !['cancelled', 'rejected'].includes(b.status) && b.checkin_date
+      !['cancelled', 'rejected'].includes(b.status) && b.checkin_date &&
+      STAY_SERVICE_TYPES.includes(b.service_type)
     );
 
     // Calculate today's occupancy
@@ -75,11 +78,22 @@ Deno.serve(async (req) => {
     const dogsToday = todayBookings.reduce((acc, b) => acc + (b.total_dogs || 1), 0);
     const availableToday = Math.max(0, capacityTotal - dogsToday);
 
+    // Sync also each stay service's availability with today's occupancy
+    const services = (hotel.hotel_details?.services || []).map(s => {
+      if (!STAY_SERVICE_TYPES.includes(s.service_type)) return s;
+      const dogsService = todayBookings
+        .filter(b => b.service_type === s.service_type)
+        .reduce((acc, b) => acc + (b.total_dogs || 1), 0);
+      const total = s.capacity_total ?? 0;
+      return { ...s, capacity_available: Math.max(0, total - dogsService) };
+    });
+
     // Update hotel's capacity_available to today's value
     await base44.asServiceRole.entities.WalkerProfile.update(hotel.id, {
       hotel_details: {
         ...hotel.hotel_details,
-        capacity_available: availableToday
+        capacity_available: availableToday,
+        services
       }
     });
 

@@ -197,6 +197,22 @@ export default function HotelDashboard() {
     }
   }, [hotelProfile, location.pathname, navigate]);
 
+  // Sincronizar vagas globais e por serviço com a ocupação real de hoje
+  // (corre uma vez ao abrir o painel; a invalidação não gera loop — a dep é o id)
+  React.useEffect(() => {
+    if (!hotelProfile?.id || !user?.email || hotelProfile?._redirectToPartnerPanel) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await base44.functions.invoke('syncHotelAvailability', {
+          hotel_email: hotelProfile.created_by || user.email,
+        });
+        if (!cancelled) queryClient.invalidateQueries({ queryKey: ["myHotelProfile"] });
+      } catch (e) { /* silencioso — não bloqueia o painel */ }
+    })();
+    return () => { cancelled = true; };
+  }, [hotelProfile?.id, user?.email]);
+
   const { data: bookings = [], isLoading: loadingBookings } = useQuery({
     queryKey: ["hotelBookings", hotelProfile?.id],
     queryFn: () => base44.entities.HotelBooking.filter({ hotel_profile_id: hotelProfile.id }, "-created_date", 100),
