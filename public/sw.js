@@ -4,7 +4,13 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  // Remove caches de versões antigas do SW que podiam servir "chunks"
+  // desatualizados e quebrar a importação de módulos após deploys.
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('push', (event) => {
