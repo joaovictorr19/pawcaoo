@@ -79,12 +79,13 @@ export default function ProOverview({ user, professionalProfile, onLogout, onDel
   const avgRating = professionalProfile?.rating || 0;
 
   const stats = [
-    { label: 'Concluídos', value: completedBookings.length, icon: CheckCircle2, color: 'text-green-400' },
-    { label: 'Ganhos', value: `€${totalEarnings.toFixed(0)}`, icon: TrendingUp, color: 'text-orange-400' },
-    { label: 'Avaliação', value: avgRating > 0 ? avgRating.toFixed(1) : '—', icon: Star, color: 'text-yellow-400' },
+    { label: 'Concluídos', value: completedBookings.length, icon: CheckCircle2, color: 'text-emerald-600' },
+    { label: 'Ganhos', value: `€${totalEarnings.toFixed(0)}`, icon: TrendingUp, color: 'text-teal-600' },
+    { label: 'Avaliação', value: avgRating > 0 ? avgRating.toFixed(1) : '—', icon: Star, color: 'text-amber-500' },
   ];
 
   const isOnline = user?.pawgo_status?.is_online || false;
+  const goTab = (tab) => navigate(createPageUrl(`ProfessionalHubV2?tab=${tab}`));
 
   const toggleOnline = async () => {
     try {
@@ -133,18 +134,18 @@ export default function ProOverview({ user, professionalProfile, onLogout, onDel
 
       {/* Pedidos pendentes */}
       {pendingRequests.length > 0 && (
-        <Card className="bg-slate-900 border border-orange-500/30 cursor-pointer" onClick={() => navigate(createPageUrl('ProfessionalHubV2?tab=requests'))}>
+        <Card className="bg-white border border-amber-200 cursor-pointer hover:border-amber-300 transition-colors" onClick={() => goTab('requests')}>
           <CardContent className="p-4 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                <Bell className="w-5 h-5 text-orange-400" />
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                <Bell className="w-5 h-5 text-amber-600" />
               </div>
-              <div>
-                <p className="font-bold text-white text-sm">{pendingRequests.length} {pendingRequests.length === 1 ? 'novo pedido' : 'novos pedidos'}</p>
-                <p className="text-xs text-slate-400">Toque para ver e responder</p>
+              <div className="min-w-0">
+                <p className="font-bold text-slate-900 text-sm truncate">{pendingRequests.length} {pendingRequests.length === 1 ? 'novo pedido' : 'novos pedidos'}</p>
+                <p className="text-xs text-slate-500">Toque para ver e responder</p>
               </div>
             </div>
-            <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white font-bold whitespace-nowrap">
+            <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white font-bold whitespace-nowrap shrink-0">
               Ver →
             </Button>
           </CardContent>
@@ -153,32 +154,32 @@ export default function ProOverview({ user, professionalProfile, onLogout, onDel
 
       {/* Próxima reserva confirmada */}
       {nextWalk && !activeWalk && (
-        <Card className="bg-slate-900 border border-blue-500/30 cursor-pointer" onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${nextWalk.id}`))}>
+        <Card className="bg-white border border-slate-200 cursor-pointer hover:border-slate-300 transition-colors" onClick={() => navigate(createPageUrl(`ActiveWalkDashboard?bookingId=${nextWalk.id}`))}>
           <CardContent className="p-4">
-            <p className="text-xs font-semibold text-blue-400 mb-2 flex items-center gap-1">
+            <p className="text-xs font-semibold text-blue-600 mb-2 flex items-center gap-1">
               <CalendarDays className="w-3.5 h-3.5" /> Próxima Reserva
             </p>
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-bold text-white">{nextWalk.dog_name}</p>
-                <p className="text-xs text-slate-400 mt-0.5">
+              <div className="min-w-0">
+                <p className="font-bold text-slate-900 truncate">{nextWalk.dog_name}</p>
+                <p className="text-xs text-slate-500 mt-0.5 truncate">
                   {nextWalk.walk_date ? format(new Date(nextWalk.walk_date + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR }) : '—'} · {nextWalk.owner_name}
                 </p>
               </div>
-              <Clock className="w-8 h-8 text-blue-400 flex-shrink-0" />
+              <Clock className="w-7 h-7 text-blue-500 flex-shrink-0" />
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2">
         {stats.map(s => (
-          <Card key={s.label} className="bg-slate-900 border border-white/5">
-            <CardContent className="p-3 flex flex-col items-center text-center gap-1">
-              <s.icon className={`w-5 h-5 ${s.color}`} />
-              <p className="text-lg font-black text-white leading-none">{s.value}</p>
-              <p className="text-[10px] text-slate-500 font-medium">{s.label}</p>
+          <Card key={s.label} className="bg-white border border-slate-200">
+            <CardContent className="p-2.5 flex flex-col items-center text-center gap-1 min-w-0">
+              <s.icon className={`w-5 h-5 ${s.color} shrink-0`} />
+              <p className="text-base font-black text-slate-900 leading-none truncate w-full">{s.value}</p>
+              <p className="text-[10px] text-slate-400 font-medium truncate w-full">{s.label}</p>
             </CardContent>
           </Card>
         ))}
@@ -189,45 +190,45 @@ export default function ProOverview({ user, professionalProfile, onLogout, onDel
         onClick={toggleOnline}
         className={`w-full rounded-2xl p-4 flex items-center justify-between transition-all border ${
           isOnline
-            ? 'bg-emerald-500/10 border-emerald-500/30'
-            : 'bg-slate-900 border-white/5'
+            ? 'bg-emerald-50 border-emerald-200'
+            : 'bg-white border-slate-200'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isOnline ? 'bg-emerald-500/20' : 'bg-slate-800'}`}>
-            <Zap className={`w-5 h-5 ${isOnline ? 'text-emerald-400' : 'text-slate-500'}`} />
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isOnline ? 'bg-emerald-100' : 'bg-slate-100'}`}>
+            <Zap className={`w-5 h-5 ${isOnline ? 'text-emerald-600' : 'text-slate-400'}`} />
           </div>
-          <div className="text-left">
-            <p className="font-bold text-white text-sm">{isOnline ? 'Online no PawGo' : 'Offline no PawGo'}</p>
-            <p className="text-xs text-slate-400">{isOnline ? 'A receber pedidos em tempo real' : 'Ative para receber pedidos'}</p>
+          <div className="text-left min-w-0">
+            <p className="font-bold text-slate-900 text-sm">{isOnline ? 'Online no PawGo' : 'Offline no PawGo'}</p>
+            <p className="text-xs text-slate-500 truncate">{isOnline ? 'A receber pedidos em tempo real' : 'Ative para receber pedidos'}</p>
           </div>
         </div>
-        <div className={`w-12 h-7 rounded-full flex items-center px-1 transition-all ${isOnline ? 'bg-emerald-500 justify-end' : 'bg-slate-700 justify-start'}`}>
+        <div className={`w-12 h-7 rounded-full flex items-center px-1 transition-all shrink-0 ${isOnline ? 'bg-emerald-500 justify-end' : 'bg-slate-300 justify-start'}`}>
           <div className="w-5 h-5 bg-white rounded-full shadow" />
         </div>
       </button>
 
       {/* Atalhos rápidos */}
       <div className="grid grid-cols-2 gap-3">
-        <button onClick={() => navigate(createPageUrl('ProfessionalHubV2?tab=calendar'))} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
-          <CalendarDays className="w-6 h-6 text-orange-400" />
-          <p className="text-sm font-bold text-white">Agenda</p>
-          <p className="text-xs text-slate-500">Reservas e horários</p>
+        <button onClick={() => goTab('calendar')} className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-slate-300 transition-colors">
+          <CalendarDays className="w-6 h-6 text-teal-600" />
+          <p className="text-sm font-bold text-slate-900">Agenda</p>
+          <p className="text-xs text-slate-400">Reservas e horários</p>
         </button>
-        <button onClick={() => navigate(createPageUrl('ProfessionalHubV2?tab=wallet'))} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
-          <Wallet className="w-6 h-6 text-green-400" />
-          <p className="text-sm font-bold text-white">Carteira</p>
-          <p className="text-xs text-slate-500">Ganhos e pagamentos</p>
+        <button onClick={() => goTab('wallet')} className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-slate-300 transition-colors">
+          <Wallet className="w-6 h-6 text-emerald-600" />
+          <p className="text-sm font-bold text-slate-900">Carteira</p>
+          <p className="text-xs text-slate-400">Ganhos e pagamentos</p>
         </button>
-        <button onClick={() => navigate(createPageUrl('ProfessionalHubV2?tab=services'))} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all">
-          <Users className="w-6 h-6 text-blue-400" />
-          <p className="text-sm font-bold text-white">Serviços</p>
-          <p className="text-xs text-slate-500">Editar ofertas</p>
+        <button onClick={() => goTab('services')} className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-slate-300 transition-colors">
+          <Users className="w-6 h-6 text-blue-600" />
+          <p className="text-sm font-bold text-slate-900">Serviços</p>
+          <p className="text-xs text-slate-400">Editar ofertas</p>
         </button>
-        <button onClick={() => navigate(createPageUrl('Notifications'))} className="bg-slate-900 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-orange-500/30 transition-all relative">
-          <Bell className="w-6 h-6 text-pink-400" />
-          <p className="text-sm font-bold text-white">Notificações</p>
-          <p className="text-xs text-slate-500">{unreadNotifs.length} não lidas</p>
+        <button onClick={() => navigate(createPageUrl('Notifications'))} className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col gap-2 text-left hover:border-slate-300 transition-colors relative">
+          <Bell className="w-6 h-6 text-pink-500" />
+          <p className="text-sm font-bold text-slate-900">Notificações</p>
+          <p className="text-xs text-slate-400">{unreadNotifs.length} não lidas</p>
           {unreadNotifs.length > 0 && (
             <span className="absolute top-3 right-3 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
               {unreadNotifs.length}
@@ -238,14 +239,14 @@ export default function ProOverview({ user, professionalProfile, onLogout, onDel
 
       {/* Ações de conta */}
       <div className="flex gap-2 pt-2">
-        <Button onClick={() => navigate(createPageUrl(`UserProfile?id=${user?.id}`))} variant="outline" className="flex-1 border-white/10 text-white hover:bg-white/5 font-semibold rounded-2xl h-11">
+        <Button onClick={() => navigate(createPageUrl(`UserProfile?id=${user?.id}`))} variant="outline" className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold rounded-2xl h-11">
           <ExternalLink className="w-4 h-4 mr-2" /> Ver Perfil
         </Button>
-        <Button onClick={onLogout} variant="outline" className="flex-1 border-white/10 text-slate-400 hover:bg-white/5 font-semibold rounded-2xl h-11">
+        <Button onClick={onLogout} variant="outline" className="flex-1 border-slate-200 text-slate-500 hover:bg-slate-50 font-semibold rounded-2xl h-11">
           <LogOut className="w-4 h-4 mr-2" /> Sair
         </Button>
       </div>
-      <Button onClick={onDeleteAccount} variant="outline" className="w-full border-red-500/20 text-red-500 hover:bg-red-500/10 font-semibold rounded-2xl h-11">
+      <Button onClick={onDeleteAccount} variant="outline" className="w-full border-red-200 text-red-600 hover:bg-red-50 font-semibold rounded-2xl h-11">
         <Trash2 className="w-4 h-4 mr-2" /> Eliminar Conta
       </Button>
     </motion.div>
