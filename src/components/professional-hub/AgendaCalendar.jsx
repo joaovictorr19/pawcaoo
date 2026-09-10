@@ -126,7 +126,7 @@ function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onDr
             {days.map(day => (
               <button
                 key={day.toISOString()}
-                onClick={() => !isPast(day) && !isToday(day) && onDayOffClick(day)}
+                onClick={() => !isPast(day) && onDayOffClick(day)}
                 className={`p-2 text-center border-l border-slate-100 transition-colors ${
                   isToday(day) ? 'bg-orange-50' : ''
                 } ${isDayOff(day) ? 'bg-red-50' : 'hover:bg-slate-100'}`}

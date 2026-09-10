@@ -22,14 +22,14 @@ function Row({ label, value }) {
   return (
     <div className="flex justify-between items-start gap-2 py-1 text-xs">
       <span className="text-slate-400 shrink-0">{label}</span>
-      <span className="text-slate-200 font-medium text-right">{String(value)}</span>
+      <span className="text-slate-700 font-medium text-right">{String(value)}</span>
     </div>
   );
 }
 
 function Chip({ on, label }) {
   return (
-    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${on ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" : "bg-rose-500/10 text-rose-400 border-rose-500/20"}`}>
+    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${on ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
       {label}: {on ? "Sim" : "Não"}
     </span>
   );
@@ -37,7 +37,7 @@ function Chip({ on, label }) {
 
 /**
  * Ficha completa do cão (DogProfile) para passeios e treinos:
- * saúde, comportamento e fotos — mesmo estilo do hotel.
+ * saúde, comportamento e fotos — estilo claro, compatível com cards brancos.
  */
 export default function WalkDogProfileSection({ dogId, ownerEmail, dogName }) {
   const [lightbox, setLightbox] = useState(null);
@@ -73,7 +73,7 @@ export default function WalkDogProfileSection({ dogId, ownerEmail, dogName }) {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-900/60 border border-white/5 rounded-xl p-3 flex items-center justify-center gap-2 text-xs text-slate-400">
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-center gap-2 text-xs text-slate-500">
         <Loader2 className="w-3.5 h-3.5 animate-spin" /> A carregar ficha do animal...
       </div>
     );
@@ -81,7 +81,7 @@ export default function WalkDogProfileSection({ dogId, ownerEmail, dogName }) {
 
   if (!dp) {
     return (
-      <div className="bg-slate-900/60 border border-dashed border-white/10 rounded-xl p-3 flex items-center gap-2 text-xs text-slate-500">
+      <div className="bg-slate-50 border border-dashed border-slate-300 rounded-xl p-3 flex items-center gap-2 text-xs text-slate-500">
         <PawPrint className="w-3.5 h-3.5 shrink-0" />
         O dono ainda não criou a ficha completa deste animal (saúde, comportamento e fotos).
       </div>
@@ -93,22 +93,22 @@ export default function WalkDogProfileSection({ dogId, ownerEmail, dogName }) {
 
   return (
     <>
-      <div className="bg-slate-900/60 border border-white/5 rounded-xl p-3 space-y-3">
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
             <Stethoscope className="w-3 h-3" /> Ficha do Animal
           </p>
           {dp.date_of_birth && (
-            <span className="text-[9px] text-slate-500 shrink-0">Nasc. {fmtDate(dp.date_of_birth)}</span>
+            <span className="text-[9px] text-slate-400 shrink-0">Nasc. {fmtDate(dp.date_of_birth)}</span>
           )}
         </div>
 
         {/* Saúde */}
         <div>
-          <p className="text-[10px] font-bold text-teal-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+          <p className="text-[10px] font-bold text-teal-600 uppercase tracking-wider mb-1 flex items-center gap-1">
             <Activity className="w-3 h-3" /> Saúde
           </p>
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-slate-200">
             <Row label="Peso" value={dp.weight ? `${dp.weight} kg` : undefined} />
             <Row label="Condições médicas" value={dp.medical_conditions} />
             <Row label="Alergias" value={dp.allergies} />
@@ -152,10 +152,10 @@ export default function WalkDogProfileSection({ dogId, ownerEmail, dogName }) {
 
         {/* Comportamento */}
         <div>
-          <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+          <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1 flex items-center gap-1">
             <PawPrint className="w-3 h-3" /> Comportamento
           </p>
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-slate-200">
             <Row label="Nível de energia" value={ENERGY_LABELS[dp.energy_level] || dp.energy_level} />
             <Row label="Socialização" value={SOC_LABELS[dp.socialization] || dp.socialization} />
             <Row label="Notas comportamentais" value={dp.behavioral_notes} />
@@ -175,7 +175,7 @@ export default function WalkDogProfileSection({ dogId, ownerEmail, dogName }) {
             </div>
           )}
           {(dp.reactive_to_dogs || dp.reactive_to_people || dp.reactive_to_noises) && (
-            <div className="flex items-center gap-1.5 mt-1.5 bg-rose-500/10 border border-rose-500/20 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-rose-300">
+            <div className="flex items-center gap-1.5 mt-1.5 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-rose-600">
               <ShieldAlert className="w-3 h-3 shrink-0" />
               Reativo a: {[
                 dp.reactive_to_dogs && "cães",
@@ -189,7 +189,7 @@ export default function WalkDogProfileSection({ dogId, ownerEmail, dogName }) {
         {/* Fotos */}
         {photos.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1">
               <Camera className="w-3 h-3" /> Fotos ({photos.length})
             </p>
             <div className="grid grid-cols-3 gap-1.5">
@@ -198,7 +198,7 @@ export default function WalkDogProfileSection({ dogId, ownerEmail, dogName }) {
                   key={idx}
                   type="button"
                   onClick={() => setLightbox({ items: photoItems, initialIndex: idx })}
-                  className="aspect-square rounded-lg overflow-hidden bg-slate-800"
+                  className="aspect-square rounded-lg overflow-hidden bg-slate-200"
                 >
                   <img src={url} alt={`${dogName} ${idx + 1}`} className="w-full h-full object-cover hover:opacity-80 transition-opacity" />
                 </button>

@@ -15,7 +15,6 @@ import { VerificationBanner } from "@/components/professional-hub/VerificationBa
 const ToolsSection = React.lazy(() => import("@/components/professional-hub/ToolsSection").then(m => ({ default: m.ToolsSection })));
 const WalletSection = React.lazy(() => import("@/components/professional-hub/WalletSection").then(m => ({ default: m.WalletSection })));
 const FinancesSection = React.lazy(() => import("@/components/professional-hub/FinancesSection").then(m => ({ default: m.FinancesSection })));
-const DayOffManager = React.lazy(() => import("@/components/professional-hub/DayOffManager").then(m => ({ default: m.DayOffManager })));
 const ServiceOfferingsEditor = React.lazy(() => import("@/components/professional-hub/ServiceOfferingsEditor"));
 const HotelServiceManager = React.lazy(() => import("@/components/hotel/HotelServiceManager"));
 const ReviewsManagementSection = React.lazy(() => import("@/components/professional-hub/ReviewsManagementSection"));
@@ -651,7 +650,6 @@ export default function ProfessionalHubV2() {
               className="space-y-6"
             >
               <AgendaCalendar user={user} walkerProfile={professionalProfile} />
-              <DayOffManager userEmail={user?.email} />
             </motion.div>
           )}
 
