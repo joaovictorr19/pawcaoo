@@ -85,7 +85,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState(urlTabParam || "professionals");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const itemsPerPage = 12;
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -1001,11 +1001,9 @@ export default function Home() {
 
                   <div className="relative z-10">
                   {loadingWalkers ? (
-                    <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
-                      {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={`pro-skeleton-${i}`} className="shrink-0 snap-start w-[280px]">
-                          <ProfessionalCardSkeleton />
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <ProfessionalCardSkeleton key={`pro-skeleton-${i}`} />
                       ))}
                     </div>
                   ) : filteredProfessionals.length === 0 ? (
@@ -1029,14 +1027,13 @@ export default function Home() {
                       </Button>
                     </Card>
                   ) : (
-                    <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory -mx-1 px-1">
-                      {filteredProfessionals.map((pro, index) => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                      {paginatedProfessionals.map((pro, index) => (
                         <motion.div
                           key={pro.id}
                           initial={{ opacity: 0, y: 14 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.4), ease: "easeOut" }}
-                          className="shrink-0 snap-start w-[280px] md:w-[320px]"
                         >
                           <Suspense fallback={<ProfessionalCardSkeleton />}>
                             <ProfessionalCard walker={pro} />
