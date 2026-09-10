@@ -1,0 +1,139 @@
+{
+  "name": "ShopOffer",
+  "type": "object",
+  "properties": {
+    "professional_email": {
+      "type": "string",
+      "description": "Email do profissional que anunciou"
+    },
+    "professional_name": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "professional_profile_id": {
+      "type": "string",
+      "description": "ID do WalkerProfile/TrainerProfile"
+    },
+    "professional_type": {
+      "type": "string",
+      "enum": [
+        "walker",
+        "trainer",
+        "both",
+        "hotel"
+      ],
+      "description": "Tipo de profissional"
+    },
+    "service_name": {
+      "type": "string",
+      "description": "Nome do servi\u00e7o em promo\u00e7\u00e3o"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "walk",
+        "group_walk",
+        "training",
+        "boarding",
+        "daycare",
+        "grooming",
+        "dropin",
+        "other"
+      ],
+      "description": "Tipo de servi\u00e7o"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo/headline da oferta"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o da oferta"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Imagem de destaque da oferta"
+    },
+    "original_price": {
+      "type": "number",
+      "description": "Pre\u00e7o original do servi\u00e7o"
+    },
+    "offer_price": {
+      "type": "number",
+      "description": "Pre\u00e7o promocional"
+    },
+    "discount_percentage": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentagem de desconto (calculada)"
+    },
+    "slots_total": {
+      "type": "number",
+      "description": "N\u00famero total de vagas/reservas dispon\u00edveis"
+    },
+    "slots_available": {
+      "type": "number",
+      "description": "Vagas ainda dispon\u00edveis"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora de fim da oferta"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "sold_out",
+        "cancelled",
+        "paused"
+      ],
+      "default": "active",
+      "description": "Estado da oferta"
+    },
+    "location": {
+      "type": "string",
+      "description": "Localiza\u00e7\u00e3o do profissional"
+    }
+  },
+  "required": [
+    "professional_email",
+    "professional_name",
+    "service_name",
+    "title",
+    "offer_price",
+    "slots_total",
+    "expires_at"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

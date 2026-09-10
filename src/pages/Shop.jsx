@@ -8,6 +8,7 @@ import { createPageUrl } from "@/utils";
 import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, Store } from "lucide-react";
 import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
 import FeaturedProducts from "@/components/shop/FeaturedProducts";
+import ShopOffersCarousel from "@/components/shop/ShopOffersCarousel";
 
 const CATEGORIES = [
   { id: "all", label: "Todos" },
@@ -121,6 +122,9 @@ export default function Shop() {
             passeadores, treinadores e tosquiadores verificados.
           </p>
         </div>
+
+        {/* Ofertas relâmpago (banner rotativo) */}
+        <ShopOffersCarousel />
 
         {/* Produtos em destaque (mais vendidos) */}
         <FeaturedProducts onOpenProduct={setSelectedProduct} />

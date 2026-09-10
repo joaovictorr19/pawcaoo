@@ -4,16 +4,18 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { QrCode, CreditCard, Download, Megaphone } from "lucide-react";
+import { QrCode, CreditCard, Download, Megaphone, Flame } from "lucide-react";
 import DigitalWalletPass from "../professionals/DigitalWalletPass";
 import DataExportInline from "../professionals/DataExportInline";
 import StripeConnectSetup from "../professionals/StripeConnectSetup";
 import HotelPromotionTools from "./HotelPromotionTools";
+import CreateShopOfferModal from "../shop/CreateShopOfferModal";
 
 export function ToolsSection({ user, professionalProfile, onEditProfile }) {
   const [iban, setIban] = React.useState("");
   const [amount, setAmount] = React.useState("");
   const [withdrawing, setWithdrawing] = React.useState(false);
+  const [showOfferModal, setShowOfferModal] = React.useState(false);
 
 
   const handleIbanWithdrawal = async () => {
@@ -52,6 +54,24 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
       </div>
 
       <HotelPromotionTools user={user} professionalProfile={professionalProfile} />
+
+      <div className="bg-gradient-to-br from-orange-50 to-rose-50 border border-orange-200 rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+            <Flame className="w-5 h-5 text-orange-600" />
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-900 text-sm">Oferta Relâmpago</h4>
+            <p className="text-xs text-slate-500">Promove um serviço com desconto na Loja</p>
+          </div>
+        </div>
+        <Button
+          onClick={() => setShowOfferModal(true)}
+          className="w-full bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold rounded-xl py-2 text-sm"
+        >
+          Anunciar Oferta
+        </Button>
+      </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center gap-3 mb-4">
@@ -130,6 +150,13 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
           />
         </div>
       </div>
+
+      <CreateShopOfferModal
+        open={showOfferModal}
+        onClose={() => setShowOfferModal(false)}
+        professionalProfile={professionalProfile}
+        user={user}
+      />
     </div>
   );
 }
