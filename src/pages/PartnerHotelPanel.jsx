@@ -365,6 +365,7 @@ export default function PartnerHotelPanel() {
                 bookings={bookings}
                 onUpdateBooking={handleUpdateBooking}
                 onNewBooking={null}
+                hideFinance
               />
             )}
 
@@ -397,7 +398,7 @@ export default function PartnerHotelPanel() {
                             {STATUS_LABELS[b.status] || b.status}
                           </Badge>
                           {b.total_amount > 0 && (
-                            <span className="text-xs font-bold text-slate-700">{b.total_amount.toFixed(2)}€</span>
+                            <span className="text-[10px] text-slate-400">—</span>
                           )}
                         </div>
                       </div>

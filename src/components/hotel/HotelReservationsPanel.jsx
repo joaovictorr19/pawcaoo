@@ -54,7 +54,7 @@ function fmtDate(dateStr) {
   try { return format(parseISO(dateStr), "dd/MM/yyyy", { locale: pt }); } catch { return dateStr; }
 }
 
-function BookingCard({ booking, onUpdate }) {
+function BookingCard({ booking, onUpdate, hideFinance = false }) {
   const [expanded, setExpanded] = useState(false);
   const [noShowLoading, setNoShowLoading] = useState(false);
   const [showDenyForm, setShowDenyForm] = useState(false);
@@ -220,14 +220,14 @@ function BookingCard({ booking, onUpdate }) {
 
           {/* Right side: value + status */}
           <div className="flex flex-col items-end gap-1 shrink-0">
-            {booking.total_amount > 0 && (
+            {!hideFinance && booking.total_amount > 0 && (
               <span className="text-sm font-bold text-slate-800">{((booking.total_amount || 0) - (booking.platform_fee || 0)).toFixed(2)}€</span>
             )}
             <Badge variant="outline" className={`text-[9px] border ${cfg.cls} py-0`}>
               <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} mr-1`} />
               {cfg.label}
             </Badge>
-            {booking.payment_status && booking.payment_status !== "paid" && (
+            {!hideFinance && booking.payment_status && booking.payment_status !== "paid" && (
               <Badge variant="outline" className={`text-[8px] border ${payCfg.cls} py-0`}>
                 {payCfg.label}
               </Badge>
@@ -284,7 +284,7 @@ function BookingCard({ booking, onUpdate }) {
                   </p>
                   <div className="space-y-1 text-xs">
                     <p><span className="font-semibold text-slate-600">Tipo:</span> <span className="font-bold text-slate-900">{booking.transport_type === 'round_trip' ? 'Ida e Volta' : booking.transport_type === 'pickup_only' ? 'Só Ida (Recolha)' : booking.transport_type === 'dropoff_only' ? 'Só Volta (Entrega)' : 'Ida e Volta'}</span></p>
-                    <p><span className="font-semibold text-slate-600">Preço pago:</span> <span className="font-bold text-emerald-600">€{(booking.transport_price || 0).toFixed(2)}</span></p>
+                    {!hideFinance && <p><span className="font-semibold text-slate-600">Preço pago:</span> <span className="font-bold text-emerald-600">€{(booking.transport_price || 0).toFixed(2)}</span></p>}
                     {booking.pickup_address && <p><span className="font-semibold text-slate-600">Morada:</span> {booking.pickup_address}</p>}
                     {booking.transport_coverage_areas && <p><span className="font-semibold text-slate-600">Áreas de cobertura:</span> {booking.transport_coverage_areas}</p>}
                   </div>
@@ -530,7 +530,7 @@ function BookingCard({ booking, onUpdate }) {
                           : "bg-slate-50 text-slate-600 border-slate-200"
                       }`}>
                         {a.completed && "✓ "}{SERVICE_LABELS[a.service_name] || a.service_name}
-                        {a.total_price > 0 && ` ${a.total_price.toFixed(0)}€`}
+                        {!hideFinance && a.total_price > 0 && ` ${a.total_price.toFixed(0)}€`}
                       </span>
                     ))}
                   </div>
@@ -562,13 +562,13 @@ function BookingCard({ booking, onUpdate }) {
               <div className="flex gap-2 pt-1 flex-wrap">
                 {booking.status === "pending" && (
                   <>
-                    {booking.payment_status !== "paid" && (
-                      <div className="w-full flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-1">
-                        <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                        <p className="text-[11px] text-amber-700 font-medium">
-                          Pagamento pendente — a reserva só pode ser confirmada após pagamento confirmado.
-                        </p>
-                      </div>
+                    {!hideFinance && booking.payment_status !== "paid" && (
+                     <div className="w-full flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-1">
+                       <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                       <p className="text-[11px] text-amber-700 font-medium">
+                         Pagamento pendente — a reserva só pode ser confirmada após pagamento confirmado.
+                       </p>
+                     </div>
                     )}
                     <Button size="sm" className="flex-1 h-9 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs min-w-[100px] disabled:opacity-40 disabled:cursor-not-allowed"
                       disabled={booking.payment_status !== "paid"}
@@ -587,7 +587,7 @@ function BookingCard({ booking, onUpdate }) {
                       onClick={() => onUpdate(booking.id, { status: "checked_in", checkin_time: format(new Date(), "HH:mm") })}>
                       <DoorOpen className="w-3.5 h-3.5 mr-1" /> Check-in
                     </Button>
-                    {booking.payment_status === "paid" && (
+                    {!hideFinance && booking.payment_status === "paid" && (
                       <Button size="sm" variant="outline"
                         className="h-9 border-orange-300 text-orange-600 hover:bg-orange-50 rounded-lg text-xs"
                         disabled={noShowLoading}
@@ -647,7 +647,7 @@ function BookingCard({ booking, onUpdate }) {
   );
 }
 
-export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNewBooking, onRefresh }) {
+export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNewBooking, onRefresh, hideFinance = false }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -705,7 +705,8 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
 
   return (
     <div className="space-y-4">
-      {/* Revenue summary */}
+      {/* Revenue summary — hidden for partners without finance access */}
+      {!hideFinance && (
       <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
         <div className="bg-white border border-slate-200 rounded-xl p-2 sm:p-3 text-center">
           <p className="text-[8px] sm:text-[9px] font-semibold uppercase tracking-wide text-slate-400">Total Filtrado</p>
@@ -720,6 +721,7 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
           <p className="text-sm sm:text-base font-bold text-amber-600 mt-0.5">{revenueSummary.pending.toFixed(0)}€</p>
         </div>
       </div>
+      )}
 
       {/* Search */}
       <div className="relative">
@@ -777,10 +779,12 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
               <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Atualizar</span>
             </Button>
           )}
-          <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5 text-xs h-9"
-            onClick={onNewBooking}>
-            <ClipboardList className="w-3.5 h-3.5" /> Nova
-          </Button>
+          {!hideFinance && onNewBooking && (
+            <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg gap-1.5 text-xs h-9"
+              onClick={onNewBooking}>
+              <ClipboardList className="w-3.5 h-3.5" /> Nova
+            </Button>
+          )}
         </div>
       </div>
 
@@ -795,7 +799,7 @@ export default function HotelReservationsPanel({ bookings, onUpdateBooking, onNe
       ) : (
         <div className="space-y-2">
           {filtered.map(b => (
-            <BookingCard key={b.id} booking={b} onUpdate={onUpdateBooking} />
+            <BookingCard key={b.id} booking={b} onUpdate={onUpdateBooking} hideFinance={hideFinance} />
           ))}
         </div>
       )}
