@@ -95,6 +95,7 @@
             "type": "string",
             "enum": [
               "walk",
+              "group_walk",
               "training",
               "boarding",
               "daycare",
@@ -136,6 +137,19 @@
                 "extra_large"
               ]
             }
+          },
+          "is_group_walk": {
+            "type": "boolean",
+            "default": false,
+            "description": "Se este servi\u00e7o \u00e9 um passeio em grupo"
+          },
+          "capacity_total": {
+            "type": "number",
+            "description": "Lota\u00e7\u00e3o m\u00e1xima de c\u00e3es para passeios em grupo"
+          },
+          "capacity_available": {
+            "type": "number",
+            "description": "Vagas dispon\u00edveis (sincronizado com GroupWalkEvent)"
           }
         }
       },

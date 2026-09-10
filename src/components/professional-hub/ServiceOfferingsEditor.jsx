@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Trash2, Plus, Edit2, Save, X, Tag, Clock, Euro } from 'lucide-react';
+import { Trash2, Plus, Edit2, Save, X, Tag, Clock, Euro, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import ServiceIconPicker, { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
+import { useGroupWalkCapacity } from '@/hooks/useGroupWalkCapacity';
 
 export default function ServiceOfferingsEditor({ professionalProfile }) {
   const queryClient = useQueryClient();
@@ -15,9 +16,14 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
     description: '',
     duration_options: [],
     price: '',
-    icon: ''
+    icon: '',
+    is_group_walk: false,
+    capacity_total: ''
   });
   const [durationInput, setDurationInput] = useState('');
+
+  // Vagas em tempo real para passeios em grupo
+  const { groupServices } = useGroupWalkCapacity(professionalProfile);
 
   const isWalker = !!professionalProfile?.walker_name;
   const services = professionalProfile?.services_offered || [];
@@ -41,13 +47,19 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
       toast.error('Nome e preço são obrigatórios');
       return;
     }
+    const isGroup = formData.is_group_walk || formData.service_name.toLowerCase().includes('grupo');
     const newService = {
       service_name: formData.service_name,
       description: formData.description || '',
       duration_options: durationInput ? [durationInput] : [],
       price: parseFloat(formData.price),
-      service_type: formData.service_name.toLowerCase().includes('grupo') ? 'group_walk' : 'standard',
-      icon: formData.icon || ''
+      service_type: isGroup ? 'group_walk' : 'standard',
+      icon: formData.icon || '',
+      is_group_walk: isGroup,
+      ...(isGroup && {
+        capacity_total: parseInt(formData.capacity_total) || 5,
+        capacity_available: parseInt(formData.capacity_total) || 5,
+      }),
     };
     const updatedServices = editingIndex !== null
       ? services.map((s, i) => i === editingIndex ? newService : s)
@@ -66,7 +78,9 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
       description: service.description || '',
       duration_options: service.duration_options || [],
       price: service.price?.toString() || '',
-      icon: service.icon || ''
+      icon: service.icon || '',
+      is_group_walk: service.is_group_walk || service.service_type === 'group_walk',
+      capacity_total: service.capacity_total?.toString() || ''
     });
     setDurationInput(service.duration_options?.[0] || '');
     setEditingIndex(index);
@@ -74,7 +88,7 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
   };
 
   const resetForm = () => {
-    setFormData({ service_name: '', description: '', duration_options: [], price: '', icon: '' });
+    setFormData({ service_name: '', description: '', duration_options: [], price: '', icon: '', is_group_walk: false, capacity_total: '' });
     setDurationInput('');
     setEditingIndex(null);
     setShowForm(false);

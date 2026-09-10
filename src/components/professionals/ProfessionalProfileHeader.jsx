@@ -4,7 +4,7 @@ import { t } from "@/components/translations";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Star, MapPin, Video, Clock, Calendar, Phone, Award, User as UserIcon, Target, Maximize2, Minimize2 } from "lucide-react";
+import { ShieldCheck, Star, MapPin, Video, Clock, Calendar, Phone, Award, User as UserIcon, Target, Maximize2, Minimize2, Instagram } from "lucide-react";
 import { format } from "date-fns";
 
 export default function ProfessionalProfileHeader({ professional, type, reviews, averageRating, customBadges }) {
@@ -66,6 +66,22 @@ export default function ProfessionalProfileHeader({ professional, type, reviews,
               <ShieldCheck className="w-6 h-6 text-blue-600 flex-shrink-0" title="Verificado" />
             )}
             {customBadges}
+            {professional.instagram_url && (() => {
+              const url = professional.instagram_url.startsWith("http")
+                ? professional.instagram_url
+                : `https://instagram.com/${professional.instagram_url.replace(/^@/, "")}`;
+              return (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-[#feda75] via-[#d62976] to-[#962fbf] text-white shadow-sm hover:scale-110 transition-transform"
+                  title="Ver Instagram"
+                >
+                  <Instagram className="w-4 h-4" />
+                </a>
+              );
+            })()}
           </div>
           
           <div className="flex items-center gap-4 text-gray-600 text-sm mb-4">
