@@ -200,6 +200,13 @@
     background: hsl(var(--background));
   }
 
+  /* Auto-gap for dialogs: p-6 modals get 1rem spacing between children;
+     p-0 modals (custom layouts) get no gap — prevents transparent/black bars */
+  [data-radix-dialog-content]:not([class*="p-0"]):not([class*="gap-0"]),
+  [data-radix-alert-dialog-content]:not([class*="p-0"]):not([class*="gap-0"]) {
+    gap: 1rem;
+  }
+
   [data-radix-popper-content-wrapper] > div,
   [role="listbox"],
   [role="menu"] {
