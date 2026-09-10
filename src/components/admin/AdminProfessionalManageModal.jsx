@@ -12,7 +12,9 @@ import {
   XCircle, Clock, AlertTriangle, Save, ExternalLink
 } from "lucide-react";
 import AdminCommissionManager from "@/components/admin/AdminCommissionManager";
+import ProfileUpdateRequestDialog from "@/components/admin/ProfileUpdateRequestDialog";
 import { ensureProfileSlug } from "@/utils/profileSlug";
+import { Mail } from "lucide-react";
 
 const VERIFICATION_LABELS = {
   requires_documents: { label: "Documentos necessários", color: "text-amber-500", bg: "bg-amber-50", icon: AlertTriangle },
@@ -36,6 +38,7 @@ export default function AdminProfessionalManageModal({
   const [expiryDate, setExpiryDate] = useState(walker?.commission_rate_expiry || "");
   const [zeroMonths, setZeroMonths] = useState("3");
   const [borneBy, setBorneBy] = useState(walker?.commission_borne_by || "hotel");
+  const [showUpdateRequest, setShowUpdateRequest] = useState(false);
 
   useEffect(() => {
     if (walker) {
@@ -113,7 +116,15 @@ export default function AdminProfessionalManageModal({
               <p className="text-base">{walker.walker_name || "Sem nome"}</p>
               <p className="text-xs font-normal text-slate-400">{walker.created_by || "—"}</p>
             </div>
-            <Button variant="outline" size="sm" className="ml-auto gap-1.5" onClick={openProfile}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto gap-1.5 border-teal-300 text-teal-700 hover:bg-teal-50"
+              onClick={() => setShowUpdateRequest(true)}
+            >
+              <Mail className="w-3.5 h-3.5" /> Pedir Atualizações
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={openProfile}>
               <ExternalLink className="w-3.5 h-3.5" /> Ver Perfil
             </Button>
           </DialogTitle>
@@ -208,6 +219,19 @@ export default function AdminProfessionalManageModal({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {showUpdateRequest && (
+        <ProfileUpdateRequestDialog
+          isOpen={true}
+          onClose={() => setShowUpdateRequest(false)}
+          recipientEmail={walker.created_by}
+          recipientName={walker.hotel_details?.hotel_name || walker.walker_name}
+          profileKind={walker.professional_type === "hotel" ? "hotel" : "walker"}
+          profile={walker}
+          profileId={walker.id}
+          editUrl="/ProfessionalSetup"
+        />
+      )}
     </Dialog>
   );
 }

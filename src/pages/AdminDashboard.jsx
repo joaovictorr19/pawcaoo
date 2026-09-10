@@ -46,6 +46,7 @@ import { GrantBadgeModal } from "../components/admin/GrantBadgeModal";
 import { QuickCreateDummy } from "../components/admin/QuickCreateDummy";
 import AdminProfessionalsPanel from "../components/admin/AdminProfessionalsPanel";
 import AdminReportsPanel from "../components/admin/AdminReportsPanel";
+import AdminProfileModeration from "../components/admin/AdminProfileModeration";
 import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import ImpersonateDialog from "../components/admin/ImpersonateDialog";
 import BackButton from "@/components/ui/BackButton";
@@ -1173,6 +1174,14 @@ export default function AdminDashboard() {
             {activeTab === 'financeiro' && (
               <div className="mt-6">
                 <AdminFinancePanel />
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="profileModeration">
+            {activeTab === 'profileModeration' && (
+              <div className="mt-6">
+                <AdminProfileModeration />
               </div>
             )}
           </TabsContent>

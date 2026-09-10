@@ -11,9 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Save, Send, FileText, Percent, User2, ShieldCheck, Mail, Sparkles, Fingerprint, CalendarDays, Copy } from "lucide-react";
+import { Loader2, Save, Send, FileText, Percent, User2, ShieldCheck, Mail, Sparkles, Fingerprint, CalendarDays, Copy, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import AdminCommissionManager from "./AdminCommissionManager";
+import ProfileUpdateRequestDialog from "./ProfileUpdateRequestDialog";
 
 const REQUEST_FIELDS = [
   { key: "id_document_url", label: "Documento de Identificação" },
@@ -65,6 +66,7 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
   const [expiryDate, setExpiryDate] = useState("");
   const [zeroMonths, setZeroMonths] = useState(3);
   const [borneBy, setBorneBy] = useState("hotel");
+  const [showUpdateRequest, setShowUpdateRequest] = useState(false);
 
   const { data: linked, isLoading } = useQuery({
     queryKey: ["adminAccountEditor", userToEdit?.id],
@@ -273,6 +275,14 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
                 </Badge>
               )}
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-1.5 border-teal-300 text-teal-700 hover:bg-teal-50"
+              onClick={() => setShowUpdateRequest(true)}
+            >
+              <ClipboardCheck className="w-3.5 h-3.5" /> Pedir Atualizações
+            </Button>
           </div>
         </DialogHeader>
 
@@ -487,6 +497,23 @@ export default function AdminAccountEditor({ isOpen, onClose, userToEdit }) {
             Guardar alterações
           </Button>
         </DialogFooter>
+
+        {showUpdateRequest && linked && (
+          <ProfileUpdateRequestDialog
+            isOpen={true}
+            onClose={() => setShowUpdateRequest(false)}
+            recipientEmail={userToEdit?.email}
+            recipientName={form?.full_name || userToEdit?.full_name}
+            profileKind={
+              isProfessional
+                ? (linked.professionalType === "trainer" ? "trainer" : (linked.professionalProfile?.professional_type === "hotel" ? "hotel" : "walker"))
+                : "client"
+            }
+            profile={isProfessional ? linked.professionalProfile : linked.userProfile}
+            profileId={linked.professionalProfile?.id || linked.userProfile?.id}
+            editUrl={isProfessional ? "/ProfessionalSetup" : "/AccountSettings"}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
