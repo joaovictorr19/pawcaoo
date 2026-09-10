@@ -18,11 +18,19 @@ const DELIVERY = {
   with_stay: { label: "Com estadia", icon: Hotel },
 };
 
+const TYPE_LABEL = {
+  shop: "Loja",
+  hotel: "Hotel",
+  walker: "Profissional",
+  trainer: "Treinador",
+  both: "Profissional",
+};
+
 const VERIF = {
-  verified: { label: "Loja verificada", cls: "bg-emerald-50 text-emerald-700 border-emerald-200", Icon: BadgeCheck },
+  verified: { label: "Verificado", cls: "bg-emerald-50 text-emerald-700 border-emerald-200", Icon: BadgeCheck },
   pending: { label: "Em análise", cls: "bg-amber-50 text-amber-700 border-amber-200", Icon: Clock },
   requires_documents: { label: "Em análise", cls: "bg-amber-50 text-amber-700 border-amber-200", Icon: Clock },
-  rejected: { label: "Rejeitada", cls: "bg-red-50 text-red-600 border-red-200", Icon: Clock },
+  rejected: { label: "Rejeitado", cls: "bg-red-50 text-red-600 border-red-200", Icon: Clock },
 };
 
 export default function ShopProfile() {
@@ -60,14 +68,14 @@ export default function ShopProfile() {
 
   if (loadingShop) return <PageLoader />;
 
-  if (!shop || shop.professional_type !== "shop") {
+  if (!shop) {
     return (
       <div className="max-w-xl mx-auto px-4 pt-10 text-center">
         <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
           <PackageOpen className="w-8 h-8 text-slate-400" />
         </div>
-        <h1 className="text-xl font-bold text-slate-900">Loja não encontrada</h1>
-        <p className="text-sm text-slate-500 mt-1 mb-6">Esta loja pode ter sido removida ou não está disponível.</p>
+        <h1 className="text-xl font-bold text-slate-900">Perfil não encontrado</h1>
+        <p className="text-sm text-slate-500 mt-1 mb-6">Este perfil pode ter sido removido ou não está disponível.</p>
         <Link to={createPageUrl("Shop")} className="inline-flex items-center gap-2 text-sm font-bold text-teal-600">
           <ChevronLeft className="w-4 h-4" /> Voltar à Loja
         </Link>
@@ -76,6 +84,7 @@ export default function ShopProfile() {
   }
 
   const verif = VERIF[shop.verification_status] || VERIF.pending;
+  const typeLabel = TYPE_LABEL[shop.professional_type] || "Parceiro";
 
   const handleOpenProduct = (product) => {
     if (!user) {
@@ -89,7 +98,7 @@ export default function ShopProfile() {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>{shop.walker_name || "Loja"} | Loja PawCão</title>
+        <title>{shop.walker_name || typeLabel} | Loja PawCão</title>
         <meta name="description" content={shop.bio ? shop.bio.slice(0, 150) : `Produtos de ${shop.walker_name} na Loja PawCão.`} />
       </Helmet>
 
@@ -102,7 +111,7 @@ export default function ShopProfile() {
           <ChevronLeft className="w-4 h-4" /> Voltar
         </button>
 
-        {/* Header da loja */}
+        {/* Cabeçalho do parceiro */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-5 md:p-7 mb-6">
           <div className="flex items-start gap-4 md:gap-5">
             <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden bg-teal-50 flex-shrink-0">
@@ -110,7 +119,11 @@ export default function ShopProfile() {
                 <img src={shop.photo_url} alt={shop.walker_name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Store className="w-9 h-9 text-teal-400" />
+                  {shop.professional_type === "hotel" ? (
+                    <Hotel className="w-9 h-9 text-teal-400" />
+                  ) : (
+                    <Store className="w-9 h-9 text-teal-400" />
+                  )}
                 </div>
               )}
             </div>
@@ -135,7 +148,7 @@ export default function ShopProfile() {
               )}
               {!loadingProducts && (
                 <p className="text-xs font-semibold text-teal-700 mt-3">
-                  {products.length} {products.length === 1 ? "artigo disponível" : "artigos disponíveis"}
+                  {typeLabel} · {products.length} {products.length === 1 ? "artigo disponível" : "artigos disponíveis"}
                 </p>
               )}
             </div>
