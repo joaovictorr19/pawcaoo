@@ -38,6 +38,7 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
     description: "",
     originalPrice: "",
     offerPrice: "",
+    discountPct: "20",
     slotsTotal: "5",
     expiryHours: "24",
     imageUrl: "",
@@ -51,12 +52,32 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
   const selectService = (svc) => {
     const name = svc.service_name || svc.name || "";
     const price = svc.price || svc.price_per_day || svc.price_per_night || svc.price_30min || svc.price_60min || "";
+    const svcType = svc.service_type || (isHotel ? "boarding" : "walk");
+    const parsedPrice = price ? parseFloat(String(price)) : 0;
+    // pré-seleciona 20% de desconto por defeito
+    const disc = 20;
     setForm((f) => ({
       ...f,
       serviceName: name,
-      originalPrice: price ? String(price) : "",
-      offerPrice: price ? String((price * 0.8).toFixed(2)) : "",
-      serviceType: svc.service_type || (isHotel ? "boarding" : "walk"),
+      serviceType: svcType,
+      originalPrice: parsedPrice ? String(parsedPrice) : "",
+      discountPct: String(disc),
+      offerPrice: parsedPrice ? String((parsedPrice * (1 - disc / 100)).toFixed(2)) : "",
+      title: name ? `${disc}% off — ${name}` : "",
+      description: svc.description || "",
+      imageUrl: svc.icon ? "" : f.imageUrl,
+    }));
+  };
+
+  const applyDiscount = (pct) => {
+    const p = parseFloat(form.originalPrice) || 0;
+    const newOffer = p ? (p * (1 - pct / 100)).toFixed(2) : "";
+    const name = form.serviceName;
+    setForm((f) => ({
+      ...f,
+      discountPct: String(pct),
+      offerPrice: newOffer,
+      title: name ? `${pct}% off — ${name}` : f.title,
     }));
   };
 
@@ -66,11 +87,14 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
     ? Math.round(((originalPrice - offerPrice) / originalPrice) * 100)
     : 0;
 
+  const QUICK_DISCOUNTS = [10, 15, 20, 25, 30, 50];
+
   const handleSubmit = async () => {
-    if (!form.title.trim()) { toast.error("Define um título para a oferta"); return; }
-    if (!form.serviceName.trim()) { toast.error("Seleciona um serviço"); return; }
+    if (!form.serviceName.trim()) { toast.error("Seleciona um serviço do teu perfil"); return; }
     if (offerPrice <= 0) { toast.error("Define um preço de oferta válido"); return; }
     if (parseInt(form.slotsTotal) < 1) { toast.error("Número de vagas inválido"); return; }
+    // Auto-gera título se vazio
+    const finalTitle = form.title.trim() || `${discount}% off — ${form.serviceName}`;
 
     setSubmitting(true);
     try {
@@ -82,7 +106,7 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
         professional_type: professionalProfile?.professional_type || "walker",
         service_name: form.serviceName,
         service_type: form.serviceType,
-        title: form.title.trim(),
+        title: finalTitle,
         description: form.description.trim(),
         image_url: form.imageUrl.trim(),
         original_price: originalPrice,
@@ -99,7 +123,7 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
       toast.success("Oferta publicada na loja!");
       setForm({
         serviceName: "", serviceType: "walk", title: "", description: "",
-        originalPrice: "", offerPrice: "", slotsTotal: "5", expiryHours: "24", imageUrl: "",
+        originalPrice: "", offerPrice: "", discountPct: "20", slotsTotal: "5", expiryHours: "24", imageUrl: "",
       });
       onClose();
     } catch (e) {
@@ -119,7 +143,7 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
             Anunciar Oferta Relâmpago
           </DialogTitle>
           <p className="text-xs text-slate-500 mt-1">
-            Promove um serviço com desconto, vagas limitadas e tempo de fim. Aparece no topo da Loja.
+            Escolhe um serviço do teu perfil, aplica um desconto e define vagas/duração. Sem escrita — tudo é puxado do perfil.
           </p>
         </DialogHeader>
 
@@ -127,7 +151,7 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
           {/* Seleção de serviço existente */}
           {services.length > 0 && (
             <div>
-              <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Serviços que ofereces</Label>
+              <Label className="text-xs font-bold text-slate-700 mb-1.5 block">1. Escolhe um serviço do teu perfil</Label>
               <div className="flex flex-wrap gap-1.5">
                 {services.slice(0, 8).map((svc, i) => {
                   const name = svc.service_name || svc.name || `Serviço ${i + 1}`;
@@ -150,62 +174,99 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
             </div>
           )}
 
-          <div>
-            <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Título da oferta *</Label>
-            <Input
-              value={form.title}
-              onChange={(e) => update("title", e.target.value)}
-              placeholder="ex: 20% off em Creche para cães pequenos"
-              className="bg-white border-slate-200"
-            />
-          </div>
-
-          <div>
-            <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Descrição</Label>
-            <textarea
-              value={form.description}
-              onChange={(e) => update("description", e.target.value)}
-              placeholder="Detalhes do serviço em oferta..."
-              rows={2}
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/30 resize-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+          {/* Desconto rápido — botões */}
+          {form.serviceName && originalPrice > 0 && (
             <div>
-              <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Preço original (€)</Label>
-              <Input
-                type="number"
-                value={form.originalPrice}
-                onChange={(e) => update("originalPrice", e.target.value)}
-                placeholder="0.00"
-                className="bg-white border-slate-200"
-              />
-            </div>
-            <div>
-              <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Preço de oferta (€) *</Label>
-              <Input
-                type="number"
-                value={form.offerPrice}
-                onChange={(e) => update("offerPrice", e.target.value)}
-                placeholder="0.00"
-                className="bg-white border-slate-200"
-              />
-            </div>
-          </div>
-
-          {discount > 0 && (
-            <div className="flex items-center justify-center py-1">
-              <span className="px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-sm font-black">
-                {discount}% de desconto
-              </span>
+              <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Desconto</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {QUICK_DISCOUNTS.map((pct) => {
+                  const active = form.discountPct === String(pct);
+                  return (
+                    <button
+                      key={pct}
+                      onClick={() => applyDiscount(pct)}
+                      className={`px-4 py-2 rounded-xl text-sm font-black border transition-all ${
+                        active
+                          ? "bg-rose-500 text-white border-rose-500 scale-105"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-rose-300"
+                      }`}
+                    >
+                      {pct}%
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-2 flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2">
+                <span className="text-xs text-slate-500">
+                  {originalPrice.toFixed(2)}€ → <span className="line-through text-slate-400">{originalPrice.toFixed(2)}€</span>
+                </span>
+                <span className="text-lg font-black text-rose-600">
+                  {offerPrice.toFixed(2)}€
+                </span>
+              </div>
             </div>
           )}
+
+          {form.serviceName && originalPrice <= 0 && (
+            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+              Este serviço não tem preço definido no perfil. Define manualmente abaixo.
+            </p>
+          )}
+
+          {/* Edição avançada (opcional) */}
+          <details className="group">
+            <summary className="text-xs font-semibold text-slate-500 cursor-pointer select-none hover:text-slate-700">
+              Personalizar título, descrição e preço →
+            </summary>
+            <div className="mt-3 space-y-3">
+              <div>
+                <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Título da oferta</Label>
+                <Input
+                  value={form.title}
+                  onChange={(e) => update("title", e.target.value)}
+                  placeholder="ex: 20% off em Creche para cães pequenos"
+                  className="bg-white border-slate-200"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Descrição</Label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => update("description", e.target.value)}
+                  placeholder="Detalhes do serviço em oferta..."
+                  rows={2}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/30 resize-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Preço original (€)</Label>
+                  <Input
+                    type="number"
+                    value={form.originalPrice}
+                    onChange={(e) => update("originalPrice", e.target.value)}
+                    placeholder="0.00"
+                    className="bg-white border-slate-200"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-bold text-slate-700 mb-1.5 block">Preço de oferta (€)</Label>
+                  <Input
+                    type="number"
+                    value={form.offerPrice}
+                    onChange={(e) => update("offerPrice", e.target.value)}
+                    placeholder="0.00"
+                    className="bg-white border-slate-200"
+                  />
+                </div>
+              </div>
+            </div>
+          </details>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                <Users className="w-3 h-3" /> Vagas *
+                <Users className="w-3 h-3" /> 2. Vagas
               </Label>
               <Input
                 type="number"
@@ -217,7 +278,7 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
             </div>
             <div>
               <Label className="text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
-                <Clock className="w-3 h-3" /> Duração
+                <Clock className="w-3 h-3" /> 3. Duração
               </Label>
               <select
                 value={form.expiryHours}
