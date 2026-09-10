@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, Store } from "lucide-react";
 import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
+import FeaturedProducts from "@/components/shop/FeaturedProducts";
 
 const CATEGORIES = [
   { id: "all", label: "Todos" },
@@ -120,6 +121,9 @@ export default function Shop() {
             passeadores, treinadores e tosquiadores verificados.
           </p>
         </div>
+
+        {/* Produtos em destaque (mais vendidos) */}
+        <FeaturedProducts onOpenProduct={setSelectedProduct} />
 
         {/* Filtros */}
         <div className="rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3.5 md:p-4 mb-5 space-y-3">
