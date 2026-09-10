@@ -89,6 +89,11 @@
       "default": "pickup",
       "description": "shipping=entrega ao domic\u00edlio, pickup=recolha no local, with_stay=adicionado \u00e0 pr\u00f3xima estadia"
     },
+    "is_pawcao_mimo": {
+      "type": "boolean",
+      "default": false,
+      "description": "True se for mimo do cat\u00e1logo central PawC\u00e3o (oferta gratuita)"
+    },
     "discount_percentage": {
       "type": "number",
       "description": "Special discount for PawC\u00e3o members",

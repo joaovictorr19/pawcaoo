@@ -47,9 +47,10 @@
         "elimination",
         "exercise",
         "grooming",
-        "veterinary"
+        "veterinary",
+        "mimo"
       ],
-      "description": "Tipo de registo: saude, comportamento, alimentacao, medicamento, incidente, observacao, eliminacao, exercicio, grooming, veterinario"
+      "description": "Tipo de registo: saude, comportamento, alimentacao, medicamento, incidente, observacao, eliminacao, exercicio, grooming, veterinario, mimo (mimo entregue pelo hotel)"
     },
     "title": {
       "type": "string",

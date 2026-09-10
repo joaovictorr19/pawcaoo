@@ -16,6 +16,8 @@ export default async function (req) {
       quantity = 1,
       use_wallet = false,
       shipping_address = null,
+      booking_id = null,
+      dog_name = null,
       success_url,
       cancel_url,
     } = payload;
@@ -51,6 +53,22 @@ export default async function (req) {
     ) {
       return Response.json({ error: 'Morada de entrega é obrigatória' }, { status: 400 });
     }
+
+    // Validar reserva de hotel quando delivery_method='with_stay'
+    let booking = null;
+    if (deliveryMethod === 'with_stay' && booking_id) {
+      const bookings = await base44.entities.HotelBooking.filter({ id: booking_id });
+      booking = bookings[0];
+      if (!booking) {
+        return Response.json({ error: 'Reserva de hotel não encontrada' }, { status: 400 });
+      }
+      if (booking.owner_email !== user.email) {
+        return Response.json({ error: 'Esta reserva não te pertence' }, { status: 403 });
+      }
+    }
+
+    // Mimo grátis da PawCão (price=0, is_pawcao_mimo) — sem pagamento, confirma de imediato
+    const isPawcaoGift = product.is_pawcao_mimo === true && (product.price_euro || 0) === 0;
 
     // Comissão da plataforma — taxa global da Loja (default 5%)
     let commissionRate = 5;
@@ -132,13 +150,46 @@ export default async function (req) {
       payment_status: 'pending',
       partner_id: product.partner_id || '',
       partner_name: product.partner_name || '',
-      partner_company_email: product.partner_company_email || '',
+      partner_company_email: isPawcaoGift && booking?.hotel_email
+        ? booking.hotel_email
+        : (product.partner_company_email || ''),
       delivery_method: deliveryMethod,
       shipping_address: deliveryMethod === 'shipping' ? shipping_address : undefined,
       wallet_used: walletUsed,
       commission_amount: commissionAmount,
       partner_net_amount: partnerNet,
+      booking_id: booking_id || undefined,
+      dog_name: dog_name || undefined,
+      is_pawcao_gift: isPawcaoGift,
     });
+
+    // Mimo grátis da PawCão — confirmar de imediato (sem Stripe, sem carteira)
+    if (isPawcaoGift) {
+      await fulfillProductOrderPaid(base44, order.id, { paymentMethod: 'gift' });
+      // Notificar o hotel de que há um mimo por entregar para esta reserva
+      if (booking && booking.hotel_email) {
+        try {
+          await base44.asServiceRole.entities.Notification.create({
+            recipient_email: booking.hotel_email,
+            title: '🎁 Mimo para entregar',
+            message: `${user.full_name || user.email} resgatou um mimo (${product.product_name}) para ${dog_name || 'o cão'} na estadia. Entrega e publica uma foto no diário!',
+            type: 'booking',
+            icon: '🎁',
+            link: '/HotelDashboard',
+            related_id: order.id,
+          });
+        } catch (e) {
+          console.warn('Mimo hotel notify error:', e?.message || e);
+        }
+      }
+      return Response.json({
+        success: true,
+        paid: true,
+        gift: true,
+        order_id: order.id,
+        order_number: orderNumber,
+      });
+    }
 
     // Pagamento coberto na totalidade pela carteira — confirmar de imediato
     if (remaining <= 0) {

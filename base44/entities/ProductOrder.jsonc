@@ -97,6 +97,28 @@
       "type": "string",
       "description": "Notas de entrega/recolha combinadas com o parceiro"
     },
+    "booking_id": {
+      "type": "string",
+      "description": "ID da reserva HotelBooking associada (quando delivery_method=with_stay ou mimo)"
+    },
+    "dog_name": {
+      "type": "string",
+      "description": "Nome do c\u00e3o que recebe o mimo/produto na estadia"
+    },
+    "is_pawcao_gift": {
+      "type": "boolean",
+      "default": false,
+      "description": "True se for mimo gr\u00e1tis oferecido pela PawC\u00e3o (sem pagamento)"
+    },
+    "mimo_photo_url": {
+      "type": "string",
+      "description": "Foto do c\u00e3o feliz com o mimo, publicada pelo hotel no di\u00e1rio"
+    },
+    "mimo_delivered_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando o hotel entregou o mimo e publicou a foto no di\u00e1rio"
+    },
     "status": {
       "type": "string",
       "enum": [

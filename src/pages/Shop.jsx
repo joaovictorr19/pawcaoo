@@ -9,6 +9,8 @@ import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRigh
 import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
 import FeaturedProducts from "@/components/shop/FeaturedProducts";
 import ShopOffersCarousel from "@/components/shop/ShopOffersCarousel";
+import MimosSection from "@/components/shop/MimosSection";
+import MimoRedeemModal from "@/components/shop/MimoRedeemModal";
 
 const CATEGORIES = [
   { id: "all", label: "Todos" },
@@ -33,6 +35,7 @@ export default function Shop() {
   const [category, setCategory] = useState("all");
   const [location, setLocation] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedMimo, setSelectedMimo] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ["shopCurrentUser"],
@@ -125,6 +128,9 @@ export default function Shop() {
 
         {/* Ofertas relâmpago (banner rotativo) */}
         <ShopOffersCarousel />
+
+        {/* Mimos — petiscos para oferecer ao cão durante a estadia */}
+        <MimosSection onOpenMimo={setSelectedMimo} />
 
         {/* Produtos em destaque (mais vendidos) */}
         <FeaturedProducts onOpenProduct={setSelectedProduct} />
@@ -303,6 +309,9 @@ export default function Shop() {
 
       {selectedProduct && (
         <ProductPurchaseModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+      )}
+      {selectedMimo && (
+        <MimoRedeemModal mimo={selectedMimo} onClose={() => setSelectedMimo(null)} />
       )}
     </div>
   );

@@ -10,7 +10,7 @@ import {
   XCircle, Clock, Plus, AlertCircle, TrendingUp, LayoutGrid, Settings,
   ClipboardList, Wallet, UserCheck, UserPlus, Phone, Mail, StickyNote, FileText, DoorOpen,
   BedDouble, Sun, Scissors, GraduationCap, PawPrint, ArrowRight, ArrowLeft,
-  CircleDot, X, ChevronDown, Stethoscope, ListChecks, BookOpen, Store
+  CircleDot, X, ChevronDown, Stethoscope, ListChecks, BookOpen, Store, Gift
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -40,6 +40,7 @@ import HotelCaninoProfiles from "@/components/hotel/HotelCaninoProfiles";
 import HotelPetRecordsPanel from "@/components/hotel/HotelPetRecordsPanel";
 import HotelBulkMessagePanel from "@/components/hotel/HotelBulkMessagePanel";
 import HotelTasksPanel from "@/components/hotel/HotelTasksPanel";
+import HotelMimoDeliveries from "@/components/hotel/HotelMimoDeliveries";
 import AssignTaskModal from "@/components/hotel/AssignTaskModal";
 import AddServiceToStayModal from "@/components/hotel/AddServiceToStayModal";
 import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
@@ -86,6 +87,7 @@ const TAB_GROUPS = [
       { key: "reservas", label: "Reservas",        icon: ClipboardList },
       { key: "agenda",   label: "Agenda",          icon: CalendarDays },
       { key: "hospedes", label: "Hóspedes",        icon: Users },
+      { key: "mimos",    label: "Mimos",           icon: Gift },
     ],
   },
   {
@@ -765,6 +767,21 @@ export default function HotelDashboard() {
           {activeTab === "loja" && (
             <motion.div key="loja" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <PartnerStorePanel user={user} professionalProfile={hotelProfile} variant="light" />
+            </motion.div>
+          )}
+
+          {activeTab === "mimos" && (
+            <motion.div key="mimos" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+              <div className="bg-white border border-slate-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <Gift className="w-4 h-4 text-teal-600" />
+                  <h3 className="font-semibold text-slate-900 text-sm">Mimos por entregar</h3>
+                </div>
+                <p className="text-xs text-slate-400 mb-3">
+                  Mimos resgatados pelos clientes para os seus cães durante a estadia. Entrega e publica uma foto no diário.
+                </p>
+                <HotelMimoDeliveries hotelEmail={user?.email} />
+              </div>
             </motion.div>
           )}
 
