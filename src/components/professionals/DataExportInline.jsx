@@ -135,12 +135,12 @@ export default function DataExportInline({ professionalEmail, country }) {
       {/* Filtros */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-slate-300">Ano</Label>
+          <Label className="text-slate-700">Ano</Label>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="bg-slate-900 border-white/10 text-white">
+            <SelectTrigger className="bg-white border-slate-200 text-slate-900">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-slate-900 text-white">
+            <SelectContent className="bg-white text-slate-900">
               {years.map(year => (
                 <SelectItem key={year} value={year}>{year}</SelectItem>
               ))}
@@ -148,12 +148,12 @@ export default function DataExportInline({ professionalEmail, country }) {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label className="text-slate-300">Mês</Label>
+          <Label className="text-slate-700">Mês</Label>
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="bg-slate-900 border-white/10 text-white">
+            <SelectTrigger className="bg-white border-slate-200 text-slate-900">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-slate-900 text-white">
+            <SelectContent className="bg-white text-slate-900">
               {months.map(m => (
                 <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
               ))}
@@ -163,31 +163,31 @@ export default function DataExportInline({ professionalEmail, country }) {
       </div>
 
       {/* Resumo */}
-      <div className="grid grid-cols-3 gap-4 p-4 bg-slate-900 rounded-xl border border-white/10">
+      <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
         <div className="text-center">
-          <div className="text-lg font-bold text-amber-400">{currency.format(totalGross)}</div>
-          <div className="text-xs text-slate-400">Valor Bruto</div>
+          <div className="text-lg font-bold text-amber-600">{currency.format(totalGross)}</div>
+          <div className="text-xs text-slate-500">Valor Bruto</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-bold text-red-400">-{currency.format(totalFees)}</div>
-          <div className="text-xs text-slate-400">Taxas</div>
+          <div className="text-lg font-bold text-red-600">-{currency.format(totalFees)}</div>
+          <div className="text-xs text-slate-500">Taxas</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-bold text-emerald-400">{currency.format(totalNet)}</div>
-          <div className="text-xs text-slate-400">Valor Líquido</div>
+          <div className="text-lg font-bold text-emerald-600">{currency.format(totalNet)}</div>
+          <div className="text-xs text-slate-500">Valor Líquido</div>
         </div>
       </div>
 
       {/* Pré-visualização */}
-      <div className="rounded-xl border border-white/10 overflow-hidden">
-        <div className="bg-slate-900/80 px-3 py-2 text-xs text-slate-400 flex items-center justify-between">
+      <div className="rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-slate-50 px-3 py-2 text-xs text-slate-500 flex items-center justify-between">
           <span>{filteredData.length} registo{filteredData.length !== 1 ? 's' : ''} no período</span>
           <span>Mostrando até 10</span>
         </div>
         <div className="max-h-64 overflow-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-900 sticky top-0">
-              <tr className="text-left text-slate-400">
+            <thead className="bg-slate-50 sticky top-0">
+              <tr className="text-left text-slate-500">
                 <th className="px-3 py-2">Data</th>
                 <th className="px-3 py-2">Cliente</th>
                 <th className="px-3 py-2">Tipo</th>
@@ -203,19 +203,19 @@ export default function DataExportInline({ professionalEmail, country }) {
                 const fee = (payment?.platform_fee || 0);
                 const net = (payment?.service_amount || (gross - fee));
                 return (
-                  <tr key={b.id} className="odd:bg-slate-950 even:bg-slate-900">
-                    <td className="px-3 py-2 text-slate-200">{format(new Date(b.walk_date || b.session_date), 'dd/MM/yyyy')}</td>
-                    <td className="px-3 py-2 text-slate-200">{b.owner_name || 'N/A'}</td>
-                    <td className="px-3 py-2 text-slate-200">{b.trainer_name ? 'Treino' : 'Passeio'}</td>
-                    <td className="px-3 py-2 text-right text-slate-100">{currency.format(gross)}</td>
-                    <td className="px-3 py-2 text-right text-slate-100">{currency.format(fee)}</td>
-                    <td className="px-3 py-2 text-right text-slate-100">{currency.format(net)}</td>
+                  <tr key={b.id} className="odd:bg-white even:bg-slate-50">
+                    <td className="px-3 py-2 text-slate-700">{format(new Date(b.walk_date || b.session_date), 'dd/MM/yyyy')}</td>
+                    <td className="px-3 py-2 text-slate-700">{b.owner_name || 'N/A'}</td>
+                    <td className="px-3 py-2 text-slate-700">{b.trainer_name ? 'Treino' : 'Passeio'}</td>
+                    <td className="px-3 py-2 text-right text-slate-900">{currency.format(gross)}</td>
+                    <td className="px-3 py-2 text-right text-slate-900">{currency.format(fee)}</td>
+                    <td className="px-3 py-2 text-right text-slate-900">{currency.format(net)}</td>
                   </tr>
                 );
               })}
               {filteredData.length === 0 && (
                 <tr>
-                  <td className="px-3 py-6 text-center text-slate-500" colSpan={6}>Sem registos neste período</td>
+                  <td className="px-3 py-6 text-center text-slate-400" colSpan={6}>Sem registos neste período</td>
                 </tr>
               )}
             </tbody>

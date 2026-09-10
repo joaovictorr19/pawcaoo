@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Upload, FileText, ShieldCheck, Clock, AlertTriangle, Eye } from "lucide-react";
@@ -19,7 +18,7 @@ function StatusBadge({ status }) {
 
 function DocumentCard({ title, description, fileUrl, onUpload, uploading }) {
   return (
-    <Card className="p-5 rounded-2xl border border-slate-200 bg-white space-y-4">
+    <div className="p-5 rounded-2xl border border-slate-200 bg-white space-y-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-black text-slate-900">{title}</h3>
@@ -51,7 +50,7 @@ function DocumentCard({ title, description, fileUrl, onUpload, uploading }) {
           </div>
         </label>
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -92,7 +91,7 @@ export default function DocumentsVerificationSection({ professionalProfile, user
 
   const uploadMutation = useMutation({
     mutationFn: async ({ type, file }) => {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
       const updates = {
         verification_status: "pending"
       };

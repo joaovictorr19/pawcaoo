@@ -183,8 +183,8 @@ export default function StripeConnectSetup() {
 
   if (isLoading) {
     return (
-      <Card className="border-0 shadow-lg">
-        <CardContent className="p-8 flex items-center justify-center">
+      <Card className="border border-slate-200 bg-white text-slate-900 dark:bg-white dark:border-slate-200 dark:text-slate-900 shadow-lg">
+        <CardContent className="p-8 flex items-center justify-center dark:bg-white">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         </CardContent>
       </Card>
@@ -197,10 +197,10 @@ export default function StripeConnectSetup() {
   return (
     <div className="space-y-6">
       {/* Main Status Card */}
-      <Card className="border-0 shadow-xl overflow-hidden">
+      <Card className="border border-slate-200 bg-white text-slate-900 dark:bg-white dark:border-slate-200 dark:text-slate-900 shadow-xl overflow-hidden">
         <div className={`h-2 ${isFullySetup ? 'bg-gradient-to-r from-green-500 to-emerald-500' : hasAccount ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`} />
         
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 dark:bg-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`p-3 rounded-xl ${isFullySetup ? 'bg-green-100' : hasAccount ? 'bg-yellow-100' : 'bg-blue-100'}`}>
@@ -226,7 +226,7 @@ export default function StripeConnectSetup() {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 dark:bg-white">
           {/* No Account State */}
           {!hasAccount && (
             <div className="text-center py-6">
@@ -306,8 +306,8 @@ export default function StripeConnectSetup() {
 
       {/* Benefits Card */}
       {!isFullySetup && (
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-blue-50">
-          <CardContent className="p-6">
+        <Card className="border border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50 text-slate-900 dark:bg-slate-50 dark:border-slate-200 dark:text-slate-900 shadow-lg">
+          <CardContent className="p-6 dark:bg-slate-50">
             <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-blue-600" />
               {language === 'pt' ? 'Benefícios' : language === 'es' ? 'Beneficios' : language === 'fr' ? 'Avantages' : 'Benefits'}
