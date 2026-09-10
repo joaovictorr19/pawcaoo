@@ -125,13 +125,9 @@ export default function AdminOverviewDashboard({
       </div>
 
       {/* 3. Charts */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <WalkStatusDonutChart bookings={bookings} isLoading={isLoading} />
-        </div>
-        <div className="lg:col-span-2">
-          <RevenuePayoutsChart payments={payments} isLoading={isLoading} />
-        </div>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <WalkStatusDonutChart bookings={bookings} isLoading={isLoading} />
+        <RevenuePayoutsChart payments={payments} isLoading={isLoading} />
       </div>
 
       {/* 4. Recent activity */}
