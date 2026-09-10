@@ -129,6 +129,24 @@ body:has(.admin-dashboard-ui) [role="menu"] {
   color: #0f172a !important;
 }
 
+/* Neutralize the shared Card component's hardcoded dark: utilities
+   (dark:bg-slate-900, dark:border-slate-700, dark:text-slate-50) so chart
+   cards — and every admin card — stay light even when .dark is momentarily
+   re-applied on <html> by the ThemeProvider system listener (which races
+   with the MutationObserver in AdminDashboard). These dark: variants have
+   higher specificity (.dark .dark\:…) than the bg-white passed by the chart
+   cards, so they win and turn the cards dark without this override. */
+.admin-dashboard-ui .dark\:bg-slate-900 {
+  background-color: #ffffff !important;
+}
+.admin-dashboard-ui .dark\:border-slate-700 {
+  border-color: #e2e8f0 !important;
+}
+.admin-dashboard-ui .dark\:text-slate-50,
+.admin-dashboard-ui .dark\:text-white {
+  color: #0f172a !important;
+}
+
 .admin-dashboard-ui [role="tabpanel"] {
   min-width: 0;
   margin-top: 1.25rem;
