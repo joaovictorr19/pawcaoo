@@ -346,7 +346,7 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
 
           {/* Portfólio */}
           <div className="border-t border-slate-100 pt-4">
-            <PortfolioSection professionalProfile={professionalProfile} />
+            <PortfolioSection professionalProfile={professionalProfile} hideCertifications />
           </div>
 
           {/* Save Button */}
