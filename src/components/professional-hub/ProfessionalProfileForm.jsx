@@ -399,6 +399,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
             requested_changes: { name: data.name, location: data.location, hourly_rate: data.hourly_rate, bio: data.bio },
             original_data: professionalProfile || {},
             status: 'pending',
+            request_type: 'user_submission',
           });
         } catch (e) { console.warn('ProfileEditRequest creation skipped:', e?.message); }
       }

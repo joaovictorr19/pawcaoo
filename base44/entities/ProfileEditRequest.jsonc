@@ -44,6 +44,15 @@
     "admin_notes": {
       "type": "string",
       "description": "Notas do administrador"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "user_submission",
+        "admin_outbound"
+      ],
+      "default": "user_submission",
+      "description": "Tipo de pedido: user_submission=profissional submeteu alteracoes para aprovacao, admin_outbound=admin pediu ao utilizador para atualizar o perfil (nao e uma alteracao para aprovar)"
     }
   },
   "required": [

@@ -74,6 +74,7 @@ export default async function(req) {
           },
           original_data: {},
           status: 'pending',
+          request_type: 'admin_outbound',
         });
       } catch (e) {
         console.warn('ProfileEditRequest log failed:', e);

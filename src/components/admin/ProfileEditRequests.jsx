@@ -32,7 +32,13 @@ export default function ProfileEditRequests() {
     queryKey: ['profileEditRequests', activeTab],
     queryFn: async () => {
       const res = await base44.entities.ProfileEditRequest.filter({ status: activeTab }, '-created_date');
-      return Array.isArray(res) ? res : [];
+      const all = Array.isArray(res) ? res : [];
+      // A fila de aprovação só mostra alterações SUBMETIDAS pelos profissionais.
+      // Exclui os pedidos de atualização enviados pelo admin (admin_outbound / com requested_items),
+      // que são registos de auditoria de emails enviados — não alterações para aprovar.
+      return all.filter(
+        (r) => r.request_type !== 'admin_outbound' && !Array.isArray(r.requested_changes?.requested_items)
+      );
     }
   });
 
