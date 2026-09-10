@@ -61,9 +61,9 @@ export default function ShopProfile() {
         60
       ),
     enabled: !!profileId,
-    initialData: [],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   if (loadingShop) return <PageLoader />;
@@ -96,7 +96,7 @@ export default function ShopProfile() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-slate-50">
       <Helmet>
         <title>{shop.walker_name || typeLabel} | Loja PawCão</title>
         <meta name="description" content={shop.bio ? shop.bio.slice(0, 150) : `Produtos de ${shop.walker_name} na Loja PawCão.`} />

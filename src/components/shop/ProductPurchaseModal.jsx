@@ -123,25 +123,23 @@ export default function ProductPurchaseModal({ product, onClose }) {
           <div>
             <Label className="text-sm font-semibold">Quantidade</Label>
             <div className="flex items-center gap-3 mt-1.5">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 rounded-xl"
+              <button
+                type="button"
+                className="h-9 w-9 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 disabled={quantity <= 1}
               >
                 <Minus className="w-4 h-4" />
-              </Button>
+              </button>
               <span className="w-10 text-center font-bold text-lg text-slate-900">{quantity}</span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 rounded-xl"
+              <button
+                type="button"
+                className="h-9 w-9 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
                 disabled={quantity >= maxQty}
               >
                 <Plus className="w-4 h-4" />
-              </Button>
+              </button>
               <span className="text-xs text-slate-500 ml-1">{product.stock_quantity} em stock</span>
             </div>
           </div>

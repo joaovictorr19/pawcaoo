@@ -122,7 +122,7 @@ export default function Shop() {
         </div>
 
         {/* Filtros */}
-        <div className="rounded-3xl bg-white/70 backdrop-blur-md border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3.5 md:p-4 mb-5 space-y-3">
+        <div className="rounded-3xl bg-white border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3.5 md:p-4 mb-5 space-y-3">
           <div className="flex flex-col sm:flex-row gap-2.5">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
