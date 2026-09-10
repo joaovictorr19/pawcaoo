@@ -77,14 +77,13 @@ function BookingChip({ booking, onClick }) {
   return (
     <button
       onClick={() => onClick(booking)}
-      className={`w-full px-2 py-1 rounded-lg border text-xs font-medium truncate cursor-pointer hover:scale-[1.02] transition-transform text-left ${statusConfig}`}
+      className={`w-full px-1.5 py-0.5 rounded border text-[10px] font-medium truncate cursor-pointer hover:scale-[1.02] transition-transform text-left ${statusConfig}`}
       title={`${booking.owner_name} — ${booking.walk_time || "?"}\nToque para mover`}
     >
       <div className="flex items-center gap-1">
-        <User className="w-2.5 h-2.5 flex-shrink-0" />
         <span className="truncate">{booking.owner_name?.split(' ')[0] || 'Cliente'}</span>
       </div>
-      <div className="text-[9px] opacity-60">{booking.walk_time}</div>
+      <div className="text-[8px] opacity-60 leading-tight">{booking.walk_time}</div>
     </button>
   );
 }
@@ -114,32 +113,32 @@ function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onBo
     <div className="overflow-x-auto rounded-xl border border-slate-200">
       <div className="min-w-[600px]">
         {/* Header dos dias */}
-        <div className="grid bg-slate-50 border-b border-slate-200" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
-          <div className="p-2" />
+        <div className="grid bg-slate-50 border-b border-slate-200" style={{ gridTemplateColumns: '44px repeat(7, 1fr)' }}>
+          <div className="p-1" />
           {days.map(day => (
             <button
               key={day.toISOString()}
               onClick={() => !isPast(day) && onDayOffClick(day)}
-              className={`p-2 text-center border-l border-slate-100 transition-colors ${
+              className={`p-1.5 text-center border-l border-slate-100 transition-colors ${
                 isToday(day) ? 'bg-orange-50' : ''
               } ${isDayOff(day) ? 'bg-red-50' : 'hover:bg-slate-100'}`}
             >
-              <div className={`text-[10px] font-semibold uppercase tracking-widest ${isToday(day) ? 'text-orange-500' : 'text-slate-400'}`}>
+              <div className={`text-[9px] font-semibold uppercase tracking-widest ${isToday(day) ? 'text-orange-500' : 'text-slate-400'}`}>
                 {format(day, 'EEE', { locale: pt })}
               </div>
-              <div className={`text-lg font-bold ${isToday(day) ? 'text-orange-500' : isDayOff(day) ? 'text-red-400' : 'text-slate-700'}`}>
+              <div className={`text-sm font-bold ${isToday(day) ? 'text-orange-500' : isDayOff(day) ? 'text-red-400' : 'text-slate-700'}`}>
                 {format(day, 'd')}
               </div>
-              {isDayOff(day) && <div className="text-[8px] text-red-400 font-semibold">FOLGA</div>}
+              {isDayOff(day) && <div className="text-[7px] text-red-400 font-semibold">FOLGA</div>}
             </button>
           ))}
         </div>
 
         {/* Grelha de horas */}
-        <div className="max-h-[480px] overflow-y-auto bg-white">
+        <div className="max-h-[340px] overflow-y-auto bg-white">
           {HOURS.map(hour => (
-            <div key={hour} className="grid border-t border-slate-100" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
-              <div className="p-1.5 text-right pr-2 text-[10px] text-slate-400 font-mono pt-2">
+            <div key={hour} className="grid border-t border-slate-100" style={{ gridTemplateColumns: '44px repeat(7, 1fr)' }}>
+              <div className="p-1 text-right pr-1.5 text-[10px] text-slate-400 font-mono pt-1.5">
                 {hour}:00
               </div>
               {days.map(day => {
@@ -148,7 +147,7 @@ function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onBo
                 return (
                   <div
                     key={`${format(day, 'yyyy-MM-dd')}-${hour}`}
-                    className={`border-l border-slate-100 min-h-[52px] p-0.5 transition-colors ${
+                    className={`border-l border-slate-100 min-h-[40px] p-0.5 transition-colors ${
                       dayIsOff ? 'bg-red-50/50' :
                       isToday(day) ? 'bg-orange-50/30' : ''
                     }`}
@@ -405,9 +404,9 @@ export function AgendaCalendar({ user, walkerProfile }) {
 
       {/* Calendário */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4">
+        <div className="p-3">
           {/* Navegação */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             {viewMode === "week" ? (
               <>
                 <button onClick={() => setCurrentWeek(w => subWeeks(w, 1))} className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors">
@@ -447,15 +446,15 @@ export function AgendaCalendar({ user, walkerProfile }) {
           )}
 
           {viewMode === "week" && (
-            <div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-slate-100">
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-blue-50 border border-blue-200" /><span className="text-[10px] text-slate-400">Confirmado</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-orange-50 border border-orange-200" /><span className="text-[10px] text-slate-400">Pendente</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-emerald-50 border border-emerald-200" /><span className="text-[10px] text-slate-400">Em curso</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-red-50 border border-red-200" /><span className="text-[10px] text-red-400 font-semibold">Folga</span></div>
+            <div className="flex flex-wrap gap-2.5 mt-2.5 pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded bg-blue-50 border border-blue-200" /><span className="text-[9px] text-slate-400">Confirmado</span></div>
+              <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded bg-orange-50 border border-orange-200" /><span className="text-[9px] text-slate-400">Pendente</span></div>
+              <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded bg-emerald-50 border border-emerald-200" /><span className="text-[9px] text-slate-400">Em curso</span></div>
+              <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded bg-red-50 border border-red-200" /><span className="text-[9px] text-red-400 font-semibold">Folga</span></div>
             </div>
           )}
 
-          <p className="text-center text-xs text-slate-400 mt-3">
+          <p className="text-center text-[10px] text-slate-400 mt-2">
             {viewMode === "week"
               ? "Toque numa reserva para alterar horário • Toque num dia para gerir folga"
               : "Toque num dia para gerir a sua disponibilidade"}
