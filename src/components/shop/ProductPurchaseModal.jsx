@@ -187,7 +187,7 @@ export default function ProductPurchaseModal({ product, onClose }) {
                       <p className="text-xs text-slate-400">{shippingAddress.country}</p>
                     </div>
                   </div>
-                ) : (
+                ) : user ? (
                   <button
                     onClick={() => navigate("/ClientSetup")}
                     className="w-full flex items-center gap-2.5 bg-amber-50 rounded-xl p-3 text-left active:scale-[0.98] transition-transform"
@@ -196,6 +196,17 @@ export default function ProductPurchaseModal({ product, onClose }) {
                     <div>
                       <p className="text-sm font-semibold text-amber-800">Morada em falta</p>
                       <p className="text-xs text-amber-600">Toca para completar o teu perfil</p>
+                    </div>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate(`/login?from=${encodeURIComponent("/Shop")}`)}
+                    className="w-full flex items-center gap-2.5 bg-amber-50 rounded-xl p-3 text-left active:scale-[0.98] transition-transform"
+                  >
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800">Inicia sessão</p>
+                      <p className="text-xs text-amber-600">Precisas de sessão para entrega ao domicílio</p>
                     </div>
                   </button>
                 )}

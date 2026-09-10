@@ -73,7 +73,7 @@ export default function ClientSetup() {
     };
   });
 
-  const { data: user, isError: userError } = useQuery({
+  const { data: user, isError: userError, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => getCurrentUser(),
     retry: 1,
@@ -187,9 +187,15 @@ export default function ClientSetup() {
   };
 
   const handleFinish = async () => {
-    if (!user) {
-      toast.info("Precisas de criar uma conta para guardar o teu perfil.");
-      navigate(`/register?from=${encodeURIComponent('/ClientSetup')}`);
+    // Ainda a carregar a sessão — não redirecionar para registo
+    if (userLoading) {
+      toast.info("A carregar a tua sessão... tenta novamente.");
+      return;
+    }
+    // Erro de rede/auth transitório — manda para login (já tem conta)
+    if (userError || !user) {
+      toast.info("Inicia sessão para guardar o teu perfil.");
+      navigate(`/login?from=${encodeURIComponent('/ClientSetup')}`);
       return;
     }
     setLoading(true);
@@ -703,10 +709,10 @@ export default function ClientSetup() {
           ) : (
             <Button
               onClick={handleFinish}
-              disabled={loading}
+              disabled={loading || userLoading}
               className="flex-1 h-13 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-900/50"
             >
-              {loading ? "A guardar..." : "Criar Perfil 🐾"}
+              {loading ? "A guardar..." : userLoading ? "A carregar..." : "Guardar Perfil"}
             </Button>
           )}
         </div>
