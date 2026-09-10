@@ -94,7 +94,7 @@ export default function AdminWithdrawalsPanel() {
                 onClick={() => setFilter(f.key)}
                 className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
                   filter === f.key
-                    ? "bg-slate-900 text-white shadow-sm"
+                    ? "bg-teal-600 text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-700"
                 }`}
               >

@@ -68,7 +68,7 @@ export function QuickCreateDummy({ onCreated }) {
     <Button 
       onClick={createDummy}
       disabled={loading}
-      className="bg-slate-900 text-white rounded-2xl h-12 px-6 flex items-center gap-2 shadow-xl active:scale-95 transition-all w-full md:w-auto"
+      className="bg-teal-600 text-white rounded-2xl h-12 px-6 flex items-center gap-2 shadow-xl active:scale-95 transition-all w-full md:w-auto"
     >
       {loading ? (
         <Loader2 className="animate-spin w-5 h-5" />

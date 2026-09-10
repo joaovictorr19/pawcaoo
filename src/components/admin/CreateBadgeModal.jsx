@@ -115,7 +115,7 @@ export function CreateBadgeModal({ onClose, onSuccess }) {
           <button 
             onClick={handleCreate}
             disabled={isLoading}
-            className="w-full h-14 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full h-14 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

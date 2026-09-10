@@ -127,7 +127,7 @@ function BadgeForm({ initial = {}, onSave, onCancel, isSaving }) {
         <Button
           onClick={handleSubmit}
           disabled={isSaving}
-          className="flex-1 bg-slate-900 hover:bg-slate-800 text-white"
+          className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
         >
           {isSaving ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Save size={14} className="mr-1" />{initial.id ? 'Atualizar' : 'Criar'} Emblema</>}
         </Button>

@@ -36,11 +36,22 @@
   color-scheme: light;
 }
 
-/* Force light backgrounds on dialogs/popovers rendered as portals */
-.admin-dashboard-ui ~ [role="dialog"],
-.admin-dashboard-ui ~ [data-radix-popper-content-wrapper],
-.dark .admin-dashboard-ui ~ [role="dialog"],
-.dark .admin-dashboard-ui ~ [data-radix-popper-content-wrapper] {
+/* Force light backgrounds on dialogs/popovers rendered as portals.
+   Portals mount under document.body (outside .admin-dashboard-ui), so the
+   previous sibling selector never matched. Use :has() to scope body-level
+   portals to light tokens whenever the admin dashboard is mounted, so the
+   calendar date-picker, select dropdowns, tooltips and dialogs always render
+   light regardless of any lingering .dark class on <html>. */
+body:has(.admin-dashboard-ui) [role="dialog"],
+body:has(.admin-dashboard-ui) [data-radix-popper-content-wrapper],
+body:has(.admin-dashboard-ui) [role="listbox"],
+body:has(.admin-dashboard-ui) [role="menu"],
+body:has(.admin-dashboard-ui) [data-radix-tooltip-content],
+.dark body:has(.admin-dashboard-ui) [role="dialog"],
+.dark body:has(.admin-dashboard-ui) [data-radix-popper-content-wrapper],
+.dark body:has(.admin-dashboard-ui) [role="listbox"],
+.dark body:has(.admin-dashboard-ui) [role="menu"],
+.dark body:has(.admin-dashboard-ui) [data-radix-tooltip-content] {
   --background: 0 0% 100%;
   --foreground: 0 0% 3.9%;
   --card: 0 0% 100%;
@@ -65,6 +76,16 @@
   --sidebar-accent: 240 4.8% 95.9%;
   --sidebar-border: 220 13% 91%;
   color-scheme: light;
+}
+
+/* Ensure portal surfaces themselves pick up the light tokens above
+   (they consume bg-popover/bg-card/etc.) */
+body:has(.admin-dashboard-ui) [role="dialog"] > div,
+body:has(.admin-dashboard-ui) [data-radix-popper-content-wrapper] > div,
+body:has(.admin-dashboard-ui) [role="listbox"],
+body:has(.admin-dashboard-ui) [role="menu"] {
+  background-color: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
 }
 
 /* Recharts tooltips and legends always light inside admin */
