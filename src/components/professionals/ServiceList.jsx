@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Award } from "lucide-react";
+import { DollarSign, Award, Users } from "lucide-react";
 
 export default function ServiceList({ services, type }) {
   const isWalker = type === 'walker';
@@ -35,6 +35,16 @@ export default function ServiceList({ services, type }) {
                 </div>
               </div>
               <p className="text-sm text-gray-700 mb-3">{service.description}</p>
+              {(service.is_group_walk || service.service_type === 'group_walk') && service.capacity_total > 0 && (() => {
+                const avail = service.capacity_available ?? service.capacity_total;
+                const isFull = avail <= 0;
+                return (
+                  <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full mb-3 ${isFull ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                    <Users className="w-3.5 h-3.5" />
+                    {isFull ? 'Esgotado' : `${avail} de ${service.capacity_total} vagas disponíveis`}
+                  </div>
+                );
+              })()}
               {service.duration_options && service.duration_options.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {service.duration_options.map(duration => (

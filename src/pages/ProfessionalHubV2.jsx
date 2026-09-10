@@ -27,6 +27,7 @@ const HotelManagementPanel = React.lazy(() => import("@/components/professional-
 const PendingRequestsList = React.lazy(() => import("@/components/professional-hub/PendingRequestsList"));
 const PartnerStorePanel = React.lazy(() => import("@/components/shop/PartnerStorePanel"));
 import ProOverview from "@/components/professional-hub/ProOverview";
+import ProfessionalSettings from "@/components/professional-hub/ProfessionalSettings";
 import BackButton from "@/components/ui/BackButton";
 
 const sizeLabels = { small: "Pequeno", medium: "Médio", large: "Grande", extra_large: "Extra Grande" };
@@ -148,7 +149,7 @@ export default function ProfessionalHubV2() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
-  const validTabs = ['overview', 'calendar', 'requests', 'active', 'documents', 'wallet', 'services', 'portfolio', 'reviews', 'finances', 'profile', 'tools'];
+  const validTabs = ['overview', 'calendar', 'requests', 'active', 'documents', 'wallet', 'services', 'portfolio', 'reviews', 'finances', 'profile', 'tools', 'store'];
   const mapTab = (t) => {
     if (t === 'agenda') return 'calendar';
     if (!t) return 'overview';
@@ -450,7 +451,7 @@ export default function ProfessionalHubV2() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
       </div>
     );
@@ -463,15 +464,15 @@ export default function ProfessionalHubV2() {
 
   if (needsSetup) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold mb-2">Configura o teu perfil</h2>
-          <p className="text-slate-400 text-sm mb-6">Completa o teu perfil profissional no editor centralizado para começar a receber pedidos.</p>
+          <h2 className="text-xl font-bold mb-2 text-slate-900">Configura o teu perfil</h2>
+          <p className="text-slate-500 text-sm mb-6">Completa o teu perfil profissional no editor centralizado para começar a receber pedidos.</p>
           <Button
             onClick={() => navigate("/WalkerOnboarding")}
             className="bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-semibold px-6 h-11"
@@ -494,7 +495,7 @@ export default function ProfessionalHubV2() {
   const isOnline = user?.pawgo_status?.is_online || false;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans" style={{ paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" style={{ paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
       <IncomingRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}
@@ -504,10 +505,10 @@ export default function ProfessionalHubV2() {
       <header className="px-4 pt-6 md:pt-20 pb-5">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-          <BackButton className="bg-slate-800/80 border-white/10 text-slate-300 hover:bg-slate-700 hover:text-white" />
+          <BackButton className="bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900" />
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}>
             <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
-            <h1 className="text-lg font-black text-white">Olá, {user?.full_name?.split(' ')[0] || 'Pro'} {isHotelProfile ? '🏨' : '🐾'}</h1>
+            <h1 className="text-lg font-black text-slate-900">Olá, {user?.full_name?.split(' ')[0] || 'Pro'} {isHotelProfile ? '🏨' : '🐾'}</h1>
           </motion.div>
           </div>
           <motion.div className="flex items-center gap-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
@@ -515,18 +516,18 @@ export default function ProfessionalHubV2() {
               onClick={() => toggleOnlineMutation.mutate(!isOnline)}
               className={`px-3 py-1.5 rounded-full border cursor-pointer active:scale-95 transition-all font-semibold text-xs ${
                 isOnline
-                  ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
-                  : 'border-white/10 text-slate-500 bg-slate-900'
+                  ? 'border-emerald-200 text-emerald-600 bg-emerald-50'
+                  : 'border-slate-200 text-slate-500 bg-white'
               }`}
             >
               <span className="flex items-center gap-1.5">
-                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} />
+                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
                 {isOnline ? 'Online' : 'Offline'}
               </span>
             </button>
             <button
               onClick={() => navigate(createPageUrl('Notifications'))}
-              className="w-9 h-9 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center text-slate-400 hover:bg-slate-800 transition-colors"
+              className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
             >
               <Bell size={16} />
             </button>
@@ -582,21 +583,21 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
               className="space-y-4"
             >
-              <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-7 h-7 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
+              {!isHotelProfile && (
+                <ProfessionalSettings professionalProfile={professionalProfile} user={user} />
+              )}
+              {isHotelProfile && (
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center">
+                  <h2 className="text-lg font-bold text-slate-900 mb-1">Configurações do Hotel</h2>
+                  <p className="text-slate-500 text-sm mb-4">Gerido no separador de Configurações do painel do hotel.</p>
+                  <Button
+                    onClick={() => navigate(createPageUrl("HotelDashboard"))}
+                    className="bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-semibold px-6 h-11"
+                  >
+                    Ir para Painel do Hotel
+                  </Button>
                 </div>
-                <h2 className="text-lg font-bold text-white mb-1">Editar Perfil Profissional</h2>
-                <p className="text-slate-400 text-sm mb-4">As alterações serão enviadas para aprovação da equipa PawCão antes de serem publicadas.</p>
-                <Button
-                  onClick={() => navigate("/WalkerOnboarding")}
-                  className="bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-semibold px-6 h-11"
-                >
-                  Ir para Editor de Perfil
-                </Button>
-              </div>
+              )}
             </motion.div>
           )}
 
@@ -747,9 +748,9 @@ export default function ProfessionalHubV2() {
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-          <div className="bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-xl border border-white/10">
-            <h3 className="text-lg font-bold text-white mb-2">⚠️ Eliminar Conta</h3>
-            <p className="text-slate-400 text-sm mb-6">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-slate-200">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">⚠️ Eliminar Conta</h3>
+            <p className="text-slate-500 text-sm mb-6">
               Tem certeza que deseja eliminar sua conta? Esta ação é irreversível e todos os seus dados serão permanentemente apagados.
             </p>
             <div className="flex gap-3">

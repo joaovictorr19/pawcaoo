@@ -129,6 +129,18 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
                 <span className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full">
                   {service.price}€
                 </span>
+                {(service.is_group_walk || service.service_type === 'group_walk') && (() => {
+                  const live = groupServices.find((gs) => gs.service_name === service.service_name);
+                  const capTotal = live?.capacity_total ?? service.capacity_total ?? 0;
+                  const capAvail = live?.capacity_available ?? service.capacity_available ?? capTotal;
+                  const isFull = capAvail <= 0 && capTotal > 0;
+                  return (
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${isFull ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                      <Users className="w-3 h-3" />
+                      {isFull ? 'Esgotado' : `${capAvail}/${capTotal} vagas`}
+                    </span>
+                  );
+                })()}
               </div>
               {service.description && (
                 <p className="text-xs text-slate-500 mb-1">{service.description}</p>
@@ -223,6 +235,40 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
               value={formData.icon}
               onChange={(icon) => setFormData({ ...formData, icon })}
             />
+
+            {/* Toggle Passeio em Grupo */}
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, is_group_walk: !formData.is_group_walk })}
+              className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${formData.is_group_walk ? 'border-orange-300 bg-orange-50' : 'border-slate-200 bg-white'}`}
+            >
+              <div className="flex items-center gap-2">
+                <Users className={`w-4 h-4 ${formData.is_group_walk ? 'text-orange-500' : 'text-slate-400'}`} />
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-slate-700">Passeio em Grupo</p>
+                  <p className="text-xs text-slate-400">Vários cães com lotação máxima</p>
+                </div>
+              </div>
+              <div className={`w-9 h-5 rounded-full transition-all ${formData.is_group_walk ? 'bg-orange-500' : 'bg-slate-200'} flex items-center px-0.5`}>
+                <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${formData.is_group_walk ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+            </button>
+
+            {/* Lotação (apenas para grupo) */}
+            {formData.is_group_walk && (
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1">Lotação Máxima (cães) *</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.capacity_total}
+                  onChange={(e) => setFormData({ ...formData, capacity_total: e.target.value })}
+                  placeholder="5"
+                  className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-100 focus:border-orange-400"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">As vagas decrementam automaticamente quando um cliente reserva e paga</p>
+              </div>
+            )}
 
           <div className="flex gap-2 pt-1">
             <Button
