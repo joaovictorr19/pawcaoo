@@ -6,10 +6,12 @@ import { createPageUrl } from "@/utils";
 import { ensureProfileSlug } from "@/utils/profileSlug";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { useSealConfiguration, getProfileSeals, sealToBorderStyle, sealToBadgeStyle } from "@/hooks/useSealConfiguration";
 
 export function ProfessionalCard({ walker }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { getConfig } = useSealConfiguration();
 
   const profileData = useMemo(() => ({
     photo: walker?.photo_url || walker?.professional_profile?.avatar_url || walker?.profile_photo_url,
@@ -21,19 +23,20 @@ export function ProfessionalCard({ walker }) {
     isTrainer: walker?.professional_type === 'trainer' || walker?.professional_type === 'both' || walker?.is_verified_trainer === true,
   }), [walker.id, walker.has_pawcao_seal, walker.is_pawcao_employee, walker.verification_status, walker.is_verified, walker.is_verified_trainer, walker.professional_type]);
 
+  // Determine the primary seal for dynamic border styling
+  const activeSeals = useMemo(() => getProfileSeals(walker), [walker]);
+  const primarySeal = activeSeals[0]; // First matching seal takes priority
+  const sealConfig = getConfig(primarySeal);
+  const borderStyle = sealConfig ? sealToBorderStyle(sealConfig) : null;
+
   const displayName = walker.hotel_details?.hotel_name || walker.full_name || walker.walker_name || walker.trainer_name;
   const bio = walker?.bio || walker?.professional_profile?.bio || '';
   const city = walker.city || walker.location || 'Portugal';
 
   return (
-    <div className={`bg-white rounded-[2rem] mb-3 border overflow-hidden cursor-pointer hover:shadow-lg transition-all flex flex-col group
-      ${profileData.isHotel
-        ? 'border-purple-200 shadow-[0_2px_12px_rgba(124,58,237,0.08)] hover:shadow-[0_8px_30px_rgba(124,58,237,0.15)]'
-        : profileData.isPawcao
-          ? 'border-amber-200 shadow-[0_2px_12px_rgba(217,119,6,0.08)] hover:shadow-[0_8px_30px_rgba(217,119,6,0.15)]'
-          : profileData.isTrainer
-            ? 'border-indigo-200 shadow-[0_2px_12px_rgba(79,70,229,0.08)] hover:shadow-[0_8px_30px_rgba(79,70,229,0.15)]'
-            : 'border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]'}`}
+    <div
+      className="bg-white rounded-[2rem] mb-3 border overflow-hidden cursor-pointer hover:shadow-lg transition-all flex flex-col group border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
+      style={borderStyle || {}}
       onClick={async () => {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         const name = walker?.hotel_details?.hotel_name || walker?.walker_name;
@@ -77,20 +80,13 @@ export function ProfessionalCard({ walker }) {
         />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
 
-        {/* Badge de categoria no topo */}
-        {profileData.isHotel && (
-          <span className="absolute top-3 left-3 bg-purple-600 text-[9px] font-black text-white px-2.5 py-1 rounded-full uppercase tracking-tighter shadow-md">
-            Hotel Canino
-          </span>
-        )}
-        {!profileData.isHotel && profileData.isPawcao && (
-          <span className="absolute top-3 left-3 bg-orange-500 text-[9px] font-black text-white px-2.5 py-1 rounded-full uppercase tracking-tighter shadow-md">
-            Parceiro PawGo
-          </span>
-        )}
-        {!profileData.isHotel && !profileData.isPawcao && profileData.isTrainer && (
-          <span className="absolute top-3 left-3 bg-indigo-600 text-[9px] font-black text-white px-2.5 py-1 rounded-full uppercase tracking-tighter shadow-md">
-            Treinador
+        {/* Badge de categoria no topo — dynamic color from seal config */}
+        {primarySeal && sealConfig && (
+          <span
+            className="absolute top-3 left-3 text-[9px] font-black text-white px-2.5 py-1 rounded-full uppercase tracking-tighter shadow-md"
+            style={sealToBadgeStyle(sealConfig) || {}}
+          >
+            {sealConfig.badge_label}
           </span>
         )}
       </div>

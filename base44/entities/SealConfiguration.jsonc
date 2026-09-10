@@ -1,0 +1,79 @@
+{
+  "name": "SealConfiguration",
+  "type": "object",
+  "properties": {
+    "seal_type": {
+      "type": "string",
+      "enum": [
+        "hotel_canino",
+        "parceiro_pawgo",
+        "equipa_pawcao",
+        "treinador_verificado"
+      ],
+      "description": "Tipo de selo: hotel_canino, parceiro_pawgo, equipa_pawcao, treinador_verificado"
+    },
+    "border_color": {
+      "type": "string",
+      "description": "Cor da borda em hex (ex: #7c3aed)",
+      "default": "#7c3aed"
+    },
+    "shadow_style": {
+      "type": "string",
+      "enum": [
+        "none",
+        "subtle",
+        "medium",
+        "strong"
+      ],
+      "default": "subtle",
+      "description": "Estilo da sombra aplicada \u00e0 borda"
+    },
+    "glow_intensity": {
+      "type": "number",
+      "default": 0,
+      "description": "Intensidade do brilho/glow (0-100)",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "border_width": {
+      "type": "number",
+      "default": 1,
+      "description": "Largura da borda (1-6)",
+      "minimum": 1,
+      "maximum": 6
+    },
+    "badge_label": {
+      "type": "string",
+      "description": "Etiqueta de exibi\u00e7\u00e3o do selo (ex: Hotel Canino, Parceiro PawGo)",
+      "default": ""
+    },
+    "badge_icon": {
+      "type": "string",
+      "description": "Nome do \u00edcone lucide-react para o selo",
+      "default": "Award"
+    }
+  },
+  "required": [
+    "seal_type",
+    "border_color",
+    "shadow_style"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

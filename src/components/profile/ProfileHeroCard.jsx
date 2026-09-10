@@ -13,6 +13,7 @@ import HotelCollaboratorBadge from "@/components/profile/HotelCollaboratorBadge"
 import { animalConfig } from "@/components/professionals/AnimalIcons";
 import { getLevelFromXP } from "@/components/gamification/tierSystem";
 import { STAY_SERVICE_TYPES } from "@/hooks/useHotelCapacity";
+import { useSealConfiguration, getProfileSeals, sealToBorderStyle } from "@/hooks/useSealConfiguration";
 
 const AVAILABILITY_LABELS = {
   morning:   { pt: "Manhã",      en: "Morning",   es: "Mañana" },
@@ -111,6 +112,13 @@ export default function ProfileHeroCard({
 
   const coverUrl = displayCoverUrl;
 
+  // Dynamic seal configuration for border styling
+  const { getConfig } = useSealConfiguration();
+  const activeSeals = React.useMemo(() => getProfileSeals(walkerProfile), [walkerProfile]);
+  const primarySeal = activeSeals[0];
+  const sealConfig = getConfig(primarySeal);
+  const avatarBorderStyle = sealConfig ? sealToBorderStyle(sealConfig) : null;
+
   const instagramUrl = walkerProfile?.instagram_url || trainerProfile?.instagram_url || "";
 
   const lastUpdatedRaw = walkerProfile?.updated_date || trainerProfile?.updated_date || profileUser?.updated_date;
@@ -138,11 +146,13 @@ export default function ProfileHeroCard({
     return match ? `@${match[1]}` : (instagramUrl.startsWith("@") ? instagramUrl : "Instagram");
   })();
 
-  const avatarBorderColor = isHotel
-    ? "border-purple-400 ring-4 ring-purple-300/40"
-    : (hasPawcaoSeal || isPawcaoEmployee)
-      ? "border-amber-400 ring-4 ring-amber-300/40"
-      : "border-white ring-4 ring-white/60";
+  const avatarBorderColor = primarySeal && sealConfig
+    ? ""
+    : isHotel
+      ? "border-purple-400 ring-4 ring-purple-300/40"
+      : (hasPawcaoSeal || isPawcaoEmployee)
+        ? "border-amber-400 ring-4 ring-amber-300/40"
+        : "border-white ring-4 ring-white/60";
 
   // ── Favorite logic ──
   const queryClient = useQueryClient();
@@ -237,7 +247,10 @@ export default function ProfileHeroCard({
       <div className="relative px-5 md:px-6 pb-5 md:pb-6 flex flex-col items-center text-center -mt-12">
         {/* Avatar */}
         <div className="relative">
-          <Avatar className={`w-24 h-24 md:w-28 md:h-28 shadow-xl rounded-[2rem] border-4 ${avatarBorderColor}`}>
+          <Avatar
+            className={`w-24 h-24 md:w-28 md:h-28 shadow-xl rounded-[2rem] border-4 ${avatarBorderColor}`}
+            style={avatarBorderStyle || undefined}
+          >
             <AvatarImage
               src={displayPhotoUrl}
               className="object-cover object-top w-full h-full"

@@ -49,6 +49,7 @@ import AdminReportsPanel from "../components/admin/AdminReportsPanel";
 import AdminProfileModeration from "../components/admin/AdminProfileModeration";
 import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import AdminMimosManager from "../components/admin/AdminMimosManager";
+import AdminSealsManager from "../components/admin/AdminSealsManager";
 import ImpersonateDialog from "../components/admin/ImpersonateDialog";
 import BackButton from "@/components/ui/BackButton";
 import "@/components/admin/admin-dashboard.css";
@@ -1191,6 +1192,14 @@ export default function AdminDashboard() {
             {activeTab === 'mimos' && (
               <div className="mt-6">
                 <AdminMimosManager />
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="selos">
+            {activeTab === 'selos' && (
+              <div className="mt-6">
+                <AdminSealsManager />
               </div>
             )}
           </TabsContent>
