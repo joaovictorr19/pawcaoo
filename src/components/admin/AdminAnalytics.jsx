@@ -31,8 +31,8 @@ export default function AdminAnalytics({
   const statusBreakdown = useMemo(() => {
     const pending = bookings.filter(b => b.status === 'pending').length;
     const accepted = bookings.filter(b => b.status === 'confirmed').length;
-    const active = bookings.filter(b => b.status === 'in_progress').length;
-    const completed = bookings.filter(b => ['completed', 'service_completed'].includes(b.status)).length;
+    const active = bookings.filter(b => ['in_progress', 'checked_in'].includes(b.status)).length;
+    const completed = bookings.filter(b => ['completed', 'service_completed', 'checked_out'].includes(b.status)).length;
     const rejected = bookings.filter(b => ['cancelled', 'rejected'].includes(b.status)).length;
     const total = bookings.length;
     return { pending, accepted, active, completed, rejected, total };
@@ -47,8 +47,8 @@ export default function AdminAnalytics({
   }, [payments]);
 
   const completionRate = useMemo(() => {
-    const relevant = bookings.filter(b => ['confirmed', 'completed', 'service_completed', 'in_progress'].includes(b.status));
-    const completed = bookings.filter(b => ['completed', 'service_completed'].includes(b.status)).length;
+    const relevant = bookings.filter(b => ['confirmed', 'completed', 'service_completed', 'in_progress', 'checked_in', 'checked_out'].includes(b.status));
+    const completed = bookings.filter(b => ['completed', 'service_completed', 'checked_out'].includes(b.status)).length;
     return relevant.length > 0 ? Math.round((completed / relevant.length) * 100) : 0;
   }, [bookings]);
 

@@ -895,7 +895,7 @@ export default function AdminDashboard() {
                   users={allUsers}
                   walkers={allWalkers}
                   trainers={allTrainers}
-                  payments={allPayments}
+                  payments={mergePayments(allPayments, allBookings.filter(b => b.entityType === 'hotel'))}
                 />
               </div>
             )}
