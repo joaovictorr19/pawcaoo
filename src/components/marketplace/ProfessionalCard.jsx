@@ -67,8 +67,8 @@ export function ProfessionalCard({ walker }) {
       <div className="relative w-full h-48 overflow-hidden bg-slate-100">
         <img
           key={`img-${walker.id}`}
-          src={profileData.cover || profileData.photo}
-          className="w-full h-full object-cover opacity-0 transition-all duration-500 group-hover:scale-105"
+          src={profileData.photo}
+          className="w-full h-full object-cover object-top opacity-0 transition-all duration-500 group-hover:scale-105"
           onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
           onError={(e) => {
             e.currentTarget.classList.remove('opacity-0');
