@@ -502,7 +502,7 @@ function LayoutContent({ children, currentPageName }) {
               const isRealAdmin = authUser.role === 'admin' && !authUser.isImpersonating;
               const isAdmin = isRealAdmin;
               const isHotel = role === 'hotel' || role === 'hotel_admin';
-              const isPro = role === 'walker' || role === 'trainer' || role === 'professional';
+              const isPro = role === 'walker' || role === 'trainer' || role === 'professional' || role === 'both';
 
               const navCls = ({ isActive }) =>
                 `px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${isActive ? 'bg-teal-500/15 text-teal-700' : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'}`;

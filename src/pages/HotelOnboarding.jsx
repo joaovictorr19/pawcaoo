@@ -8,10 +8,10 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   Camera, MapPin, ChevronRight, ChevronLeft, CheckCircle, Upload,
-  Phone, Building2, Clock, Users, PawPrint
+  Phone, Building2, Clock, Users, PawPrint, Globe
 } from "lucide-react";
 import {
-  DOG_SIZES, AMENITIES, DOCUMENT_RULES, ANIMALS,
+  DOG_SIZES, AMENITIES, DOCUMENT_RULES, ANIMALS, LANGUAGES,
   uploadFile, submitProfessionalProfile,
 } from "@/lib/professionalOnboarding";
 
@@ -58,6 +58,8 @@ export default function HotelOnboarding() {
       france_professional_type: "professional",
       id_document_url: "",
       proof_of_address_url: "",
+      experience_years: "",
+      languages_spoken: ["Português"],
     };
   });
 
@@ -122,6 +124,8 @@ export default function HotelOnboarding() {
         france_professional_type: existingProfile.france_professional_type || "professional",
         id_document_url: existingProfile.id_document_url || "",
         proof_of_address_url: existingProfile.proof_of_address_url || "",
+        experience_years: existingProfile.experience_years != null ? String(existingProfile.experience_years) : "",
+        languages_spoken: existingProfile.languages_spoken?.length ? existingProfile.languages_spoken : prev.languages_spoken,
       }));
     } else if (user.full_name) {
       setForm(prev => ({ ...prev, walker_name: user.full_name, hotel_name: user.full_name }));
@@ -164,7 +168,7 @@ export default function HotelOnboarding() {
   const isEditing = !!(formInitialized && existingProfile);
 
   const canProceed = () => {
-    if (step === 0) return form.hotel_name.trim() && form.location.trim();
+    if (step === 0) return form.hotel_name.trim() && form.location.trim() && String(form.experience_years).trim() !== "" && (form.languages_spoken || []).length > 0;
     if (step === 1) return parseInt(form.hotel_capacity_total) > 0;
     return true;
   };
@@ -290,6 +294,20 @@ export default function HotelOnboarding() {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1"><Phone className="w-3 h-3" /> WhatsApp</label>
               <input value={form.whatsapp_number} onChange={e => set("whatsapp_number", e.target.value)} placeholder="351912345678" className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-purple-500 outline-none text-sm" />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1"><Clock className="w-3 h-3" /> Anos de Experiência *</label>
+              <input type="number" min="0" value={form.experience_years} onChange={e => set("experience_years", e.target.value)} placeholder="0" className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-purple-500 outline-none text-sm" />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1"><Globe className="w-3 h-3" /> Idiomas aceitos *</label>
+              <div className="flex flex-wrap gap-2">
+                {LANGUAGES.map(lang => (
+                  <button key={lang} type="button" onClick={() => toggleArr("languages_spoken", lang)} className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all ${(form.languages_spoken || []).includes(lang) ? "border-purple-500 bg-purple-500/10 text-white" : "border-slate-800 bg-slate-900 text-slate-300"}`}>{lang}</button>
+                ))}
+              </div>
             </div>
 
             <div>
