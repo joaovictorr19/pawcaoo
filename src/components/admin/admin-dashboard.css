@@ -3,6 +3,40 @@
   background: linear-gradient(180deg, #f8fafc 0%, #ffffff 36rem);
 }
 
+/* When the admin dashboard is mounted, force the ENTIRE document light — not
+   just elements inside .admin-dashboard-ui. The Layout shell (mobile header,
+   dynamic background, nav) lives outside .admin-dashboard-ui and would
+   otherwise inherit dark tokens when the OS is in dark mode. Scoping light
+   tokens to body while admin is present removes every residual dark surface. */
+body:has(.admin-dashboard-ui),
+.dark body:has(.admin-dashboard-ui) {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 174 84% 31%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 174 84% 92%;
+  --accent-foreground: 174 84% 20%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 174 84% 31%;
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-border: 220 13% 91%;
+  color-scheme: light;
+  background-color: #ffffff;
+}
+
 /* Force light theme across the entire admin dashboard — overrides every
    theme variable even when `.dark` is (re)applied on <html> by ThemeProvider,
    so charts, cards, dialogs and popovers always render light. */
