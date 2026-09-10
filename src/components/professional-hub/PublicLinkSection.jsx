@@ -168,7 +168,7 @@ export default function PublicLinkSection({ professionalProfile, userEmail }) {
   };
 
   const handleCopy = async () => {
-    const fullUrl = `${window.location.origin}/${currentSlug}`;
+    const fullUrl = `https://pawcao.pt/${currentSlug}`;
     try {
       await navigator.clipboard.writeText(fullUrl);
       setCopied(true);
@@ -205,8 +205,7 @@ export default function PublicLinkSection({ professionalProfile, userEmail }) {
         <div className="space-y-2.5">
           {/* Link atual */}
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
-            <span className="text-xs text-slate-400 shrink-0 hidden sm:inline">{window.location.origin}</span>
-            <span className="text-xs text-slate-400 shrink-0 sm:hidden">…/</span>
+            <span className="text-xs text-slate-400 shrink-0 font-medium">pawcao.pt</span>
             <span className="text-sm font-semibold text-slate-900 truncate flex-1">/{currentSlug}</span>
             <button
               onClick={handleCopy}
@@ -226,7 +225,7 @@ export default function PublicLinkSection({ professionalProfile, userEmail }) {
               <Link2 className="w-3.5 h-3.5" /> Personalizar link
             </Button>
             <a
-              href={`${window.location.origin}/${currentSlug}`}
+              href={`/${currentSlug}`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 px-4 h-9 rounded-lg text-xs border border-slate-200 text-teal-600 hover:bg-teal-50 transition-colors font-medium"
@@ -240,7 +239,7 @@ export default function PublicLinkSection({ professionalProfile, userEmail }) {
           {/* Campo de edição */}
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium pointer-events-none">
-              {window.location.origin.replace(/^https?:\/\//, '')}/
+              pawcao.pt/
             </span>
             <Input
               value={inputSlug}
