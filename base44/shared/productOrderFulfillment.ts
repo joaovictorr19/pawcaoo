@@ -147,6 +147,41 @@ export async function fulfillProductOrderPaid(
       }
     }
 
+    // 7. Criar tarefa pendente no diário da estadia (delivery_method = 'with_stay')
+    if (order.delivery_method === 'with_stay' && order.booking_id) {
+      try {
+        const bookings = await base44.asServiceRole.entities.HotelBooking.filter({ id: order.booking_id });
+        const booking = bookings[0];
+        if (booking) {
+          const productName = order.items?.[0]?.product_name || 'mimo';
+          const dogName = order.dog_name || booking.dogs?.[0]?.dog_name || 'o cão';
+          const isGift = order.is_pawcao_gift;
+          await base44.asServiceRole.entities.HotelPetRecord.create({
+            hotel_profile_id: booking.hotel_profile_id || '',
+            hotel_email: booking.hotel_email || order.partner_company_email || '',
+            booking_id: booking.id,
+            owner_name: booking.owner_name,
+            owner_email: booking.owner_email,
+            dog_name: dogName,
+            dog_breed: booking.dogs?.[0]?.dog_breed || '',
+            dog_size: booking.dogs?.[0]?.dog_size || undefined,
+            record_type: 'mimo',
+            title: isGift
+              ? `🎁 Mimo da PawCão por entregar: ${productName}`
+              : `🎁 Mimo por entregar: ${productName}`,
+            description: `O cliente ${order.customer_name || ''} ${isGift ? 'resgatou' : 'comprou'} ${productName} para ${dogName}. Entrega e publica uma foto no diário! [order:${order.id}]`,
+            follow_up_needed: true,
+            follow_up_resolved: false,
+            recorded_by: 'system',
+            recorded_by_name: 'PawCão (automático)',
+            notify_owner: false,
+          });
+        }
+      } catch (e) {
+        console.error('Mimo pending task error:', e?.message || e);
+      }
+    }
+
     return { success: true };
   } catch (error) {
     console.error('fulfillProductOrderPaid error:', error?.message || error);

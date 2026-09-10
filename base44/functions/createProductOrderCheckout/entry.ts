@@ -116,7 +116,7 @@ export default async function (req) {
     let walletUsed = 0;
     if (use_wallet === true) {
       const walletRes = await applyWalletPayment(base44, user.email, subtotal, {
-        description: `Compra na Loja PawCão — ${product.product_name}`,
+        description: 'Compra na Loja PawCão — ' + (product.product_name || ''),
       });
       walletUsed = walletRes.walletUsed || 0;
     }
@@ -172,7 +172,7 @@ export default async function (req) {
           await base44.asServiceRole.entities.Notification.create({
             recipient_email: booking.hotel_email,
             title: '🎁 Mimo para entregar',
-            message: `${user.full_name || user.email} resgatou um mimo (${product.product_name}) para ${dog_name || 'o cão'} na estadia. Entrega e publica uma foto no diário!',
+            message: (user.full_name || user.email) + ' resgatou um mimo (' + (product.product_name || '') + ') para ' + (dog_name || 'o cão') + ' na estadia. Entrega e publica uma foto no diário!',
             type: 'booking',
             icon: '🎁',
             link: '/HotelDashboard',
@@ -214,7 +214,7 @@ export default async function (req) {
             currency: 'eur',
             product_data: {
               name: product.product_name,
-              description: `${qty}x na Loja de Parceiros PawCão — ${product.partner_name || 'Parceiro'}`,
+              description: String(qty) + 'x na Loja de Parceiros PawCão — ' + (product.partner_name || 'Parceiro'),
             },
             unit_amount: Math.round(remaining * 100),
           },
@@ -224,8 +224,8 @@ export default async function (req) {
       mode: 'payment',
       locale: 'pt',
       success_url:
-        success_url || `${origin}/OrderSuccess?order_id=${order.id}`,
-      cancel_url: cancel_url || `${origin}/Shop?checkout=cancelled`,
+        success_url || (origin + '/OrderSuccess?order_id=' + order.id),
+      cancel_url: cancel_url || (origin + '/Shop?checkout=cancelled'),
       customer_email: user.email,
       metadata: {
         type: 'product_order',
@@ -243,7 +243,7 @@ export default async function (req) {
       success: true,
     });
   } catch (error) {
-    console.error('❌ createProductOrderCheckout error:', error?.message || error);
+    console.error('createProductOrderCheckout error:', error?.message || error);
     return Response.json({ error: error?.message || 'Erro interno' }, { status: 500 });
   }
 }

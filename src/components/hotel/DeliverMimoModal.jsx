@@ -42,42 +42,79 @@ export default function DeliverMimoModal({ order, hotelEmail, onClose, onDeliver
         booking = bookings[0];
       }
 
-      // 2. Criar registo no diário da estadia
+      // 2. Procurar registo pendente criado automaticamente na compra
+      let existingRecord = null;
       if (booking) {
         try {
-          await base44.entities.HotelPetRecord.create({
-            hotel_profile_id: booking.hotel_profile_id || "",
-            hotel_email: hotelEmail,
-            booking_id: booking.id,
-            owner_name: booking.owner_name,
-            owner_email: booking.owner_email,
-            dog_name: dogName,
-            dog_breed: booking.dogs?.[0]?.dog_breed || "",
-            dog_size: booking.dogs?.[0]?.dog_size || undefined,
-            record_type: "mimo",
-            title: isGift ? `🎁 Mimo da PawCão: ${productName}` : `🐾 Mimo: ${productName}`,
-            description: isGift
-              ? `O ${dogName} recebeu o mimo oferecido pela PawCão — ${productName}! Olha como ficou feliz 🐶✨`
-              : `O ${dogName} recebeu o mimo oferecido pelo dono — ${productName}! Olha como ficou feliz 🐶✨`,
-            mood: "happy",
-            photo_url: photoUrl,
-            recorded_by: hotelEmail,
-            recorded_by_name: hotelEmail,
-            notify_owner: true,
-          });
+          const records = await base44.entities.HotelPetRecord.filter(
+            { booking_id: booking.id, record_type: "mimo" },
+            "-created_date",
+            20
+          );
+          existingRecord = (records || []).find(
+            (r) => !r.follow_up_resolved && r.description && r.description.includes("[order:" + order.id + "]")
+          );
+        } catch (e) {
+          console.warn("Find existing mimo record:", e?.message || e);
+        }
+      }
+
+      // 3. Atualizar registo pendente OU criar novo no diário da estadia
+      if (booking) {
+        try {
+          const deliveredTitle = isGift
+            ? "🎁 Mimo da PawCão: " + productName
+            : "🐾 Mimo: " + productName;
+          const deliveredDesc = isGift
+            ? "O " + dogName + " recebeu o mimo oferecido pela PawCão — " + productName + "! Olha como ficou feliz 🐶✨"
+            : "O " + dogName + " recebeu o mimo oferecido pelo dono — " + productName + "! Olha como ficou feliz 🐶✨";
+
+          if (existingRecord) {
+            // Atualizar o registo pendente com a foto e marcar como resolvido
+            await base44.entities.HotelPetRecord.update(existingRecord.id, {
+              title: deliveredTitle,
+              description: deliveredDesc,
+              photo_url: photoUrl,
+              mood: "happy",
+              follow_up_resolved: true,
+              notify_owner: true,
+              recorded_by: hotelEmail,
+              recorded_by_name: hotelEmail,
+            });
+          } else {
+            // Fallback: criar novo registo se não existir pendente
+            await base44.entities.HotelPetRecord.create({
+              hotel_profile_id: booking.hotel_profile_id || "",
+              hotel_email: hotelEmail,
+              booking_id: booking.id,
+              owner_name: booking.owner_name,
+              owner_email: booking.owner_email,
+              dog_name: dogName,
+              dog_breed: booking.dogs?.[0]?.dog_breed || "",
+              dog_size: booking.dogs?.[0]?.dog_size || undefined,
+              record_type: "mimo",
+              title: deliveredTitle,
+              description: deliveredDesc,
+              mood: "happy",
+              photo_url: photoUrl,
+              recorded_by: hotelEmail,
+              recorded_by_name: hotelEmail,
+              notify_owner: true,
+            });
+          }
         } catch (e) {
           console.error("Diary record error:", e?.message || e);
         }
       }
 
-      // 3. Marcar encomenda como entregue
+      // 4. Marcar encomenda como entregue
       await base44.entities.ProductOrder.update(order.id, {
         status: "delivered",
         mimo_photo_url: photoUrl,
         mimo_delivered_at: new Date().toISOString(),
       });
 
-      // 4. Notificar o cliente com a foto
+      // 5. Notificar o cliente com a foto
       if (order.customer_email) {
         try {
           await base44.entities.Notification.create({

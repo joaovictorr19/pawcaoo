@@ -9,7 +9,7 @@ import {
   Bell, Heart, Activity, Utensils, Pill, AlertTriangle,
   Eye, Footprints, Scissors, Stethoscope, Droplets,
   ChevronDown, PawPrint, Camera, Clock, Thermometer, Scale,
-  Moon, Sparkles, X, Image as ImageIcon, ChevronRight,
+  Moon, Sparkles, X, Image as ImageIcon, ChevronRight, Gift,
 } from "lucide-react";
 
 const RECORD_META = {
@@ -23,6 +23,7 @@ const RECORD_META = {
   exercise:     { label: 'Exercício',     icon: Footprints,    accent: 'from-green-500 to-emerald-500',   soft: 'bg-green-500/10',   text: 'text-green-400',   ring: 'ring-green-500/20' },
   grooming:     { label: 'Grooming',      icon: Scissors,       accent: 'from-pink-500 to-rose-500',       soft: 'bg-pink-500/10',    text: 'text-pink-400',    ring: 'ring-pink-500/20' },
   veterinary:   { label: 'Veterinário',   icon: Stethoscope,    accent: 'from-indigo-500 to-blue-500',     soft: 'bg-indigo-500/10',  text: 'text-indigo-400',  ring: 'ring-indigo-500/20' },
+  mimo:         { label: 'Mimo',           icon: Gift,           accent: 'from-teal-500 to-cyan-500',       soft: 'bg-teal-500/10',    text: 'text-teal-400',    ring: 'ring-teal-500/20' },
 };
 
 const MOOD_LABELS = { happy: 'Feliz', calm: 'Calmo', excited: 'Excitado', anxious: 'Ansioso', tired: 'Cansado', stressed: 'Stressado', depressed: 'Desanimado' };
