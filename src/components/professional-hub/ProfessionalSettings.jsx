@@ -13,6 +13,7 @@ import {
 import CertificationsEditor from "@/components/profile/CertificationsEditor";
 import SaveConfirmation from "@/components/ui/SaveConfirmation";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
+import PublicLinkSection from "@/components/professional-hub/PublicLinkSection";
 
 export default function ProfessionalSettings({ professionalProfile, user, onSave }) {
   const queryClient = useQueryClient();
@@ -248,6 +249,9 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
             />
             <p className="text-[10px] text-amber-600 mt-1">⚠️ Alterações de nome precisam de aprovação do admin</p>
           </div>
+
+          {/* Link Público Personalizável */}
+          <PublicLinkSection professionalProfile={professionalProfile} userEmail={professionalProfile?.created_by} />
 
           {/* Localização + Telefone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
