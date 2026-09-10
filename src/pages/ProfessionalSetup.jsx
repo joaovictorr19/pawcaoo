@@ -280,6 +280,14 @@ export default function ProfessionalSetup() {
 
   const handleFinish = async () => {
    if (!user) return;
+   const requiredName = form.professional_type === "hotel"
+     ? String(form.hotel_name || "").trim()
+     : String(form.walker_name || "").trim();
+   if (!requiredName) {
+     toast.error(form.professional_type === "hotel" ? "Indica o nome do hotel." : "Indica o teu nome profissional no primeiro passo do formulário.");
+     setStep(0);
+     return;
+   }
    setLoading(true);
    try {
      const formForSubmit = {

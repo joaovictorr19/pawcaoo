@@ -189,6 +189,11 @@ export default function WalkerOnboarding() {
       navigate(`/register?from=${encodeURIComponent('/WalkerOnboarding')}`);
       return;
     }
+    if (!String(form.walker_name || "").trim()) {
+      toast.error("Indica o teu nome profissional no primeiro passo do formulário.");
+      setStep(0);
+      return;
+    }
     setLoading(true);
     try {
       await submitProfessionalProfile(user, form, isEditing, queryClient, navigate);

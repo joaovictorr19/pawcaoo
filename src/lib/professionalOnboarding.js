@@ -366,6 +366,7 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
 
   await base44.auth.updateMe({
     account_type: form.professional_type,
+    full_name: form.walker_name || user.full_name,
     profile_photo_url: form.photo_url || user.profile_photo_url,
     city: form.location,
     role: form.professional_type === "hotel" ? "hotel" : form.professional_type,
