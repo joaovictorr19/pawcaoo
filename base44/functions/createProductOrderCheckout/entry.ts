@@ -41,8 +41,12 @@ export default async function (req) {
       return Response.json({ error: 'Stock insuficiente disponível' }, { status: 400 });
     }
 
+    // Mimo grátis da PawCão (price=0, is_pawcao_mimo) — sem pagamento, confirma de imediato
+    const isPawcaoGift = product.is_pawcao_mimo === true && (product.price_euro || 0) === 0;
+
     const subtotal = Math.round((product.price_euro || 0) * qty * 100) / 100;
-    if (subtotal <= 0) {
+    // Permitir subtotal=0 apenas para mimos grátis da PawCão
+    if (subtotal <= 0 && !isPawcaoGift) {
       return Response.json({ error: 'Valor inválido' }, { status: 400 });
     }
 
@@ -66,9 +70,6 @@ export default async function (req) {
         return Response.json({ error: 'Esta reserva não te pertence' }, { status: 403 });
       }
     }
-
-    // Mimo grátis da PawCão (price=0, is_pawcao_mimo) — sem pagamento, confirma de imediato
-    const isPawcaoGift = product.is_pawcao_mimo === true && (product.price_euro || 0) === 0;
 
     // Comissão da plataforma — taxa global da Loja (default 5%)
     let commissionRate = 5;

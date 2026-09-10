@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { Upload, Trash2, Loader2 } from "lucide-react";
+import { Upload, Trash2, Loader2, Gift } from "lucide-react";
 
 const CATEGORIES = [
   { id: "food", label: "Alimentação" },
@@ -36,6 +36,7 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
     delivery_method: product?.delivery_method || "pickup",
     partner_location: product?.partner_location || partner.partner_location || "",
     image_url: product?.image_url || "",
+    is_mimo: product?.delivery_method === "with_stay" && product?.product_type === "product",
   }));
   const [uploading, setUploading] = useState(false);
 
@@ -64,7 +65,16 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
           save: "bg-orange-600 hover:bg-orange-700 text-white",
         };
 
-  const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+  const set = (key, value) =>
+    setForm((f) => {
+      const next = { ...f, [key]: value };
+      // Ativar "mimo" força entrega com estadia
+      if (key === "is_mimo" && value === true) {
+        next.delivery_method = "with_stay";
+        next.product_type = "product";
+      }
+      return next;
+    });
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -83,7 +93,7 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const data = { ...form };
+      const { is_mimo, ...data } = form;
       if (isEdit) {
         return base44.entities.PartnerProduct.update(product.id, data);
       }
@@ -255,20 +265,64 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
             </div>
           </div>
 
-          {/* Entrega */}
+          {/* É mimo? toggle */}
+          {form.product_type === "product" && (
+            <label
+              className={`flex items-center gap-3 cursor-pointer rounded-xl p-3 border transition-colors ${
+                form.is_mimo
+                  ? variant === "light"
+                    ? "bg-teal-50 border-teal-200"
+                    : "bg-teal-900/30 border-teal-500/30"
+                  : variant === "light"
+                  ? "bg-slate-50 border-slate-200"
+                  : "bg-slate-800 border-white/10"
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={form.is_mimo}
+                onChange={(e) => set("is_mimo", e.target.checked)}
+                className="w-4 h-4 rounded accent-teal-600"
+              />
+              <div className="flex-1">
+                <span className={`flex items-center gap-1.5 text-sm font-bold ${S.title}`}>
+                  <Gift className="w-4 h-4 text-teal-600" />
+                  É um mimo?
+                </span>
+                <p className={`text-[11px] mt-0.5 ${S.sub}`}>
+                  Mimos aparecem na secção "Mimos" da Loja e são entregues pelo hotel durante a estadia do cão.
+                </p>
+              </div>
+            </label>
+          )}
+
+          {/* Entrega — escondida/locked quando é mimo (sempre with_stay) */}
           <div>
             <Label className={`text-sm font-semibold ${S.label}`}>Entrega</Label>
-            <select
-              value={form.delivery_method}
-              onChange={(e) => set("delivery_method", e.target.value)}
-              className={`mt-1.5 w-full h-10 px-3 rounded-xl text-sm focus:outline-none border ${S.select}`}
-            >
-              {DELIVERY_OPTIONS.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
+            {form.is_mimo ? (
+              <div
+                className={`mt-1.5 w-full h-10 px-3 rounded-xl text-sm flex items-center gap-2 border ${
+                  variant === "light"
+                    ? "bg-teal-50 border-teal-200 text-teal-700"
+                    : "bg-slate-800 border-teal-500/30 text-teal-400"
+                }`}
+              >
+                <Gift className="w-3.5 h-3.5" />
+                Adicionar à próxima estadia (bloqueado para mimos)
+              </div>
+            ) : (
+              <select
+                value={form.delivery_method}
+                onChange={(e) => set("delivery_method", e.target.value)}
+                className={`mt-1.5 w-full h-10 px-3 rounded-xl text-sm focus:outline-none border ${S.select}`}
+              >
+                {DELIVERY_OPTIONS.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Localização */}

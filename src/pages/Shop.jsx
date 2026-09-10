@@ -10,6 +10,7 @@ import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
 import FeaturedProducts from "@/components/shop/FeaturedProducts";
 import ShopOffersCarousel from "@/components/shop/ShopOffersCarousel";
 import MimosSection from "@/components/shop/MimosSection";
+import MimosHighlightBanner from "@/components/shop/MimosHighlightBanner";
 import MimoRedeemModal from "@/components/shop/MimoRedeemModal";
 
 const CATEGORIES = [
@@ -128,6 +129,9 @@ export default function Shop() {
 
         {/* Ofertas relâmpago (banner rotativo) */}
         <ShopOffersCarousel />
+
+        {/* Banner de destaque — mimos grátis PawCão */}
+        <MimosHighlightBanner onOpenMimo={setSelectedMimo} />
 
         {/* Mimos — petiscos para oferecer ao cão durante a estadia */}
         <MimosSection onOpenMimo={setSelectedMimo} />
