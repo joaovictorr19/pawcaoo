@@ -46,8 +46,35 @@ export default function AdminInteractiveCalendar() {
         subtitle: b.dog_name,
         color: 'bg-purple-100 border-purple-300 text-purple-800'
       }));
+
+      // Reservas de hotel — expandir por cada dia da estadia (check-in → check-out)
+      const hotelRaw = await base44.entities.HotelBooking.list('-checkin_date', 500);
+      const hotels = [];
+      for (const b of hotelRaw) {
+        if (!b.checkin_date) continue;
+        const stayStart = parseISO(b.checkin_date);
+        const stayEnd = b.checkout_date ? parseISO(b.checkout_date) : stayStart;
+        const hour = b.checkin_time ? parseInt(String(b.checkin_time).split(':')[0], 10) : 12;
+        const safeHour = isNaN(hour) ? 12 : hour;
+        let cur = startOfDay(stayStart);
+        const stop = startOfDay(stayEnd);
+        let guard = 0;
+        while (cur <= stop && guard < 90) {
+          hotels.push({
+            ...b,
+            type: 'hotel',
+            walker_id: b.hotel_profile_id, // para o filtro de profissional funcionar
+            date: setHours(cur, safeHour),
+            title: b.hotel_name || 'Hotel',
+            subtitle: `${b.total_dogs || 1} cão(s)${b.owner_name ? ' · ' + b.owner_name : ''}`,
+            color: 'bg-emerald-100 border-emerald-300 text-emerald-800'
+          });
+          cur = addDays(cur, 1);
+          guard++;
+        }
+      }
       
-      return [...walks, ...trainings];
+      return [...walks, ...trainings, ...hotels];
     },
     staleTime: 5 * 60 * 1000
   });
@@ -252,7 +279,7 @@ export default function AdminInteractiveCalendar() {
                           title={`${event.title} - ${event.subtitle} (${event.status})`}
                         >
                           <div className="font-bold truncate flex items-center gap-1">
-                            {event.type === 'walk' ? '🐕' : '🎓'} {event.title}
+                            {event.type === 'walk' ? '🐕' : event.type === 'hotel' ? '🏨' : '🎓'} {event.title}
                           </div>
                           <div className="truncate opacity-80 flex items-center gap-1">
                             <Dog className="w-3 h-3" /> {event.subtitle}
