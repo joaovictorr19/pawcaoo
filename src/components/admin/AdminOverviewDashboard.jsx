@@ -36,7 +36,7 @@ export default function AdminOverviewDashboard({
   const secondaryStats = [
     {
       label: t('Receita Total', 'Total Revenue'),
-      value: `€${metrics.totalRevenue.toLocaleString('pt-PT', { maximumFractionDigits: 0 })}`,
+      value: `€${metrics.totalRevenue.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: Euro,
       tint: 'from-teal-50 to-teal-100/40',
       iconColor: 'text-teal-600',
@@ -44,7 +44,7 @@ export default function AdminOverviewDashboard({
     },
     {
       label: t('Comissão Plataforma', 'Platform Fees'),
-      value: `€${metrics.platformFees.toLocaleString('pt-PT', { maximumFractionDigits: 0 })}`,
+      value: `€${metrics.platformFees.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: Wallet,
       tint: 'from-violet-50 to-violet-100/40',
       iconColor: 'text-violet-600',
@@ -195,7 +195,7 @@ export default function AdminOverviewDashboard({
                       {b.status}
                     </span>
                     {b.total_amount ? (
-                      <p className="mt-0.5 text-xs font-bold text-slate-700">€{Number(b.total_amount).toFixed(0)}</p>
+                      <p className="mt-0.5 text-xs font-bold text-slate-700">€{Number(b.total_amount).toFixed(2)}</p>
                     ) : null}
                   </div>
                 </div>
