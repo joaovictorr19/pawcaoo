@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import {
   Calendar, Clock, Dog, DollarSign, User, MapPin, Star,
   PawPrint, Home, Scissors, GraduationCap, Footprints,
-  Package, Car, FileText, ChevronRight
+  Package, Car, FileText, ChevronRight, Mail, Phone
 } from "lucide-react";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+import WalkDogProfileSection from "@/components/booking/WalkDogProfileSection";
 
 const STATUS_CONFIG = {
   pending: { label: 'Pendente', dot: 'bg-yellow-400', badge: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30' },
@@ -138,6 +139,16 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
             <h3 className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Cliente & Pet</h3>
             <div className="bg-slate-900/60 border border-white/5 rounded-2xl px-4 py-2 divide-y divide-white/5">
               <InfoRow icon={User} label="Cliente" value={booking.owner_name} accent="text-blue-400" />
+              {isProfessional && !isHotel && (
+                <>
+                  {booking.owner_email && (
+                    <InfoRow icon={Mail} label="Email" value={booking.owner_email} accent="text-blue-400" />
+                  )}
+                  {booking.owner_phone && (
+                    <InfoRow icon={Phone} label="Telefone" value={booking.owner_phone} accent="text-blue-400" />
+                  )}
+                </>
+              )}
               {isHotel ? (
                 booking.dogs?.length > 0 ? (
                   booking.dogs.map((dog, i) => (
@@ -157,6 +168,18 @@ export default function BookingDetailsModal({ booking, open, onOpenChange, type,
               )}
             </div>
           </section>
+
+          {/* Ficha completa do animal (passeios/treinos) */}
+          {isProfessional && !isHotel && (
+            <section>
+              <h3 className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Ficha do Animal</h3>
+              <WalkDogProfileSection
+                dogId={booking.dogs?.[0]?.dog_id}
+                ownerEmail={booking.owner_email}
+                dogName={booking.dogs?.[0]?.dog_name || booking.dog_name}
+              />
+            </section>
+          )}
 
           {/* Dates */}
           <section>
