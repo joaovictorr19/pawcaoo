@@ -72,6 +72,20 @@ export default function Shop() {
     [products, category, location, search]
   );
 
+  // Contagem de produtos por loja (para o indicador "mais N produtos")
+  const partnerProductCount = useMemo(() => {
+    const map = {};
+    for (const p of products) {
+      if (p.partner_id) map[p.partner_id] = (map[p.partner_id] || 0) + 1;
+    }
+    return map;
+  }, [products]);
+
+  const handleOpenShop = (e, partnerId) => {
+    e.stopPropagation();
+    if (partnerId) navigate(`/loja/${partnerId}`);
+  };
+
   const handleOpenProduct = (product) => {
     if (!user) {
       navigate(`/login?from=${encodeURIComponent("/Shop")}`);
@@ -220,10 +234,23 @@ export default function Shop() {
 
                   {/* Conteúdo */}
                   <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col">
-                    <p className="flex items-center gap-1 text-[11px] font-bold text-teal-700">
-                      <Store className="w-3 h-3 shrink-0" />
-                      <span className="truncate">{product.partner_name || "Parceiro PawCão"}</span>
-                    </p>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <button
+                        onClick={(e) => handleOpenShop(e, product.partner_id)}
+                        className="flex items-center gap-1 text-[11px] font-bold text-teal-700 hover:text-teal-900 hover:underline transition-colors"
+                      >
+                        <Store className="w-3 h-3 shrink-0" />
+                        <span className="truncate max-w-[140px]">{product.partner_name || "Parceiro PawCão"}</span>
+                      </button>
+                      {(partnerProductCount[product.partner_id] || 0) > 1 && (
+                        <button
+                          onClick={(e) => handleOpenShop(e, product.partner_id)}
+                          className="text-[10px] font-semibold text-slate-400 hover:text-teal-700 transition-colors"
+                        >
+                          +{partnerProductCount[product.partner_id] - 1} produtos →
+                        </button>
+                      )}
+                    </div>
                     <p className="font-bold text-slate-900 text-sm leading-snug mt-1">
                       {product.product_name}
                     </p>

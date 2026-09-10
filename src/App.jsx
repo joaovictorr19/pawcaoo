@@ -81,6 +81,10 @@ const Shop = lazy(() => import('./pages/Shop').catch(e => {
   console.error('Error loading Shop:', e);
   return { default: () => <div>Erro ao carregar página</div> };
 }));
+const ShopProfile = lazy(() => import('./pages/ShopProfile').catch(e => {
+  console.error('Error loading ShopProfile:', e);
+  return { default: () => <div>Erro ao carregar página</div> };
+}));
 const ShopOnboarding = lazy(() => import('./pages/ShopOnboarding').catch(e => {
   console.error('Error loading ShopOnboarding:', e);
   return { default: () => <div>Erro ao carregar página</div> };
@@ -245,6 +249,7 @@ const AuthenticatedApp = () => {
             <Route path="/Shop" element={<Suspense fallback={<PageLoader />}><Shop /></Suspense>} />
             <Route path="/ShopOnboarding" element={<Suspense fallback={<PageLoader />}><ShopOnboarding /></Suspense>} />
             <Route path="/StoreDashboard" element={<Suspense fallback={<PageLoader />}><StoreDashboard /></Suspense>} />
+            <Route path="/loja/:profileId" element={<Suspense fallback={<PageLoader />}><ShopProfile /></Suspense>} />
 
             <Route path="/QRProfileTest" element={<QRProfileTest />} />
             <Route path="/portugal" element={<CountryLandingPage country="portugal" />} />
