@@ -18,15 +18,18 @@ export function ProfessionalCard({ walker }) {
     isTrained: walker?.is_verified_trainer || walker?.professional_profile?.is_trained,
     isPawcao: !!(walker?.has_pawcao_seal || walker?.is_pawcao_employee),
     isHotel: walker?.professional_type === 'hotel',
+    isTrainer: walker?.professional_type === 'trainer' || walker?.professional_type === 'both' || walker?.is_verified_trainer === true,
   }), [walker.id, walker.has_pawcao_seal, walker.is_pawcao_employee, walker.verification_status, walker.is_verified, walker.is_verified_trainer, walker.professional_type]);
 
   return (
-    <div className={`bg-white rounded-[2.5rem] p-4 mb-3 border shadow-sm flex gap-4 items-center cursor-pointer hover:shadow-md transition-shadow
+    <div className={`bg-white rounded-[2.5rem] p-4 mb-3 border flex gap-4 items-center cursor-pointer hover:shadow-md transition-all
       ${profileData.isHotel
-        ? 'border-purple-500/70 ring-1 ring-purple-400/35 shadow-[0_1px_2px_rgba(124,58,237,0.10),0_6px_20px_rgba(124,58,237,0.15),0_16px_40px_rgba(124,58,237,0.08)]'
+        ? 'border-purple-200 shadow-[0_2px_12px_rgba(124,58,237,0.10)] hover:shadow-[0_6px_24px_rgba(124,58,237,0.16)]'
         : profileData.isPawcao
-          ? 'border-amber-500/70 ring-1 ring-amber-400/35 shadow-[0_1px_2px_rgba(217,119,6,0.10),0_6px_20px_rgba(217,119,6,0.16),0_16px_40px_rgba(217,119,6,0.09)]'
-          : 'border-slate-100'}`}
+          ? 'border-amber-200 shadow-[0_2px_12px_rgba(217,119,6,0.10)] hover:shadow-[0_6px_24px_rgba(217,119,6,0.16)]'
+          : profileData.isTrainer
+            ? 'border-indigo-200 shadow-[0_2px_12px_rgba(79,70,229,0.10)] hover:shadow-[0_6px_24px_rgba(79,70,229,0.16)]'
+            : 'border-slate-100 shadow-sm'}`}
       onClick={async () => {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         const name = walker?.hotel_details?.hotel_name || walker?.walker_name;
@@ -57,7 +60,7 @@ export function ProfessionalCard({ walker }) {
       }}>
       
       {/* 2. Container da Foto com KEY FIXA (Evita o sumiço) */}
-      <div className={`relative w-16 h-16 shrink-0 rounded-2xl bg-slate-100 overflow-hidden border-2 shadow-inner ${profileData.isHotel ? 'border-purple-300' : 'border-white'}`}>
+      <div className={`relative w-16 h-16 shrink-0 rounded-2xl bg-slate-100 overflow-hidden border shadow-inner ${profileData.isHotel ? 'border-purple-200' : profileData.isTrainer ? 'border-indigo-200' : 'border-white'}`}>
         <img 
           key={`img-${walker.id}`} // KEY FIXA É VITAL
           src={profileData.photo}
@@ -72,7 +75,7 @@ export function ProfessionalCard({ walker }) {
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-1">
-          <h3 className="font-heading font-bold text-slate-900 text-sm truncate tracking-tight">{walker.hotel_details?.hotel_name || walker.full_name || walker.walker_name || walker.trainer_name}</h3>
+          <h3 className="font-heading font-bold text-slate-900 text-[15px] truncate tracking-tight">{walker.hotel_details?.hotel_name || walker.full_name || walker.walker_name || walker.trainer_name}</h3>
           
           {/* 3. Renderização Estática dos Emblemas (Não Piscam) */}
           <div className="flex gap-0.5 shrink-0">
@@ -90,6 +93,11 @@ export function ProfessionalCard({ walker }) {
           {!profileData.isHotel && profileData.isPawcao && (
             <span className="bg-orange-500 text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shrink-0">
               Parceiro PawGo
+            </span>
+          )}
+          {!profileData.isHotel && !profileData.isPawcao && profileData.isTrainer && (
+            <span className="bg-indigo-600 text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shrink-0">
+              Treinador
             </span>
           )}
           <span className="text-[10px] font-bold text-slate-400 uppercase italic truncate">

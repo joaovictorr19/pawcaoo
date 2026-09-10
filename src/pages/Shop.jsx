@@ -195,7 +195,7 @@ export default function Shop() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="bg-white rounded-3xl border border-slate-100 overflow-hidden animate-pulse">
-                <div className="w-full h-44 bg-slate-200" />
+                <div className="w-full h-56 bg-slate-200" />
                 <div className="p-4 space-y-2.5">
                   <div className="h-4 bg-slate-200 rounded w-3/4" />
                   <div className="h-3 bg-slate-200 rounded w-1/2" />
@@ -225,7 +225,7 @@ export default function Shop() {
                   className="group text-left bg-white rounded-3xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(13,148,131,0.12)] hover:ring-1 hover:ring-teal-500/20 transition-all overflow-hidden active:scale-[0.98] flex sm:flex-col"
                 >
                   {/* Imagem — compacta à esquerda no telemóvel, em cima no desktop */}
-                  <div className="w-28 h-28 sm:w-full sm:h-44 shrink-0 relative overflow-hidden bg-slate-100 rounded-2xl sm:rounded-none">
+                  <div className="w-28 h-28 sm:w-full sm:h-56 shrink-0 relative overflow-hidden bg-slate-100 rounded-2xl sm:rounded-none">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Package className="w-8 h-8 text-slate-300" />
                     </div>
@@ -239,6 +239,7 @@ export default function Shop() {
                         className="relative w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     )}
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none hidden sm:block" />
                     {soldOut ? (
                       <span className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-slate-900/80 text-white text-[10px] font-bold">
                         Esgotado
@@ -276,11 +277,11 @@ export default function Shop() {
                       {product.description || "\u00A0"}
                     </p>
                     <div className="flex items-center justify-between gap-2 mt-auto pt-2.5 border-t border-slate-100">
-                      <span className="text-lg font-black text-teal-700 leading-none">
+                      <span className="text-xl font-black text-teal-700 leading-none">
                         €{(product.price_euro || 0).toFixed(2)}
                       </span>
-                      <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-full px-2.5 py-1">
-                        <delivery.icon className="w-3.5 h-3.5 text-teal-600" />
+                      <span className="flex items-center gap-1.5 text-[12px] font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded-full px-3 py-1">
+                        <delivery.icon className="w-4 h-4 text-teal-600" />
                         {delivery.label}
                       </span>
                     </div>
