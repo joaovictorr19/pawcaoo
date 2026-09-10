@@ -240,8 +240,8 @@ export default function ProfileHeroCard({
           <Avatar className={`w-24 h-24 md:w-28 md:h-28 shadow-xl rounded-[2rem] border-4 ${avatarBorderColor}`}>
             <AvatarImage
               src={displayPhotoUrl}
-              className="object-cover w-full h-full"
-              style={{ objectFit: "cover" }}
+              className="object-cover object-top w-full h-full"
+              style={{ objectFit: "cover", objectPosition: "top" }}
               loading="lazy"
             />
             <AvatarFallback className="bg-gradient-to-br from-teal-500 to-teal-600 text-white text-2xl font-black">
