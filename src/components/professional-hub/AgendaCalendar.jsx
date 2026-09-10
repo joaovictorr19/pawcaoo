@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Loader2, X, Calendar, BedDouble, Check, ChevronLeft, ChevronRight, Clock, User } from "lucide-react";
+import { Loader2, X, Calendar, BedDouble, Check, ChevronLeft, ChevronRight, Clock, User, AlertCircle, RefreshCw } from "lucide-react";
 import {
   format, addMonths, subMonths, addWeeks, subWeeks,
-  startOfMonth, endOfMonth, eachDayOfInterval, isSameDay,
-  isToday, isPast, getDay, startOfWeek, endOfWeek, parseISO, getHours
+  startOfMonth, endOfMonth, eachDayOfInterval,
+  isToday, isPast, getDay, startOfWeek, endOfWeek, parseISO
 } from "date-fns";
 import { pt } from "date-fns/locale";
 import { toast } from "sonner";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import RescheduleBookingModal from "./RescheduleBookingModal";
 
 // ─── MODAL DE DIA ─────────────────────────────────────────────────────────────
 function DayOffModal({ date, existing, onConfirm, onRemove, onClose }) {
@@ -67,7 +67,7 @@ function parseHour(timeStr) {
   return isNaN(h) ? null : h;
 }
 
-function BookingChip({ booking, index }) {
+function BookingChip({ booking, onClick }) {
   const statusConfig = {
     confirmed: { bg: "bg-blue-50 border-blue-200 text-blue-700" },
     pending:   { bg: "bg-orange-50 border-orange-200 text-orange-700" },
@@ -75,27 +75,21 @@ function BookingChip({ booking, index }) {
   }[booking.status] || { bg: "bg-slate-100 border-slate-200 text-slate-600" };
 
   return (
-    <Draggable draggableId={booking.id} index={index}>
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          className={`px-2 py-1 rounded-lg border text-xs font-medium truncate cursor-grab active:cursor-grabbing shadow-sm transition-transform ${statusConfig.bg} ${snapshot.isDragging ? "scale-105 shadow-md" : ""}`}
-          title={`${booking.owner_name} — ${booking.walk_time || "?"}`}
-        >
-          <div className="flex items-center gap-1">
-            <User className="w-2.5 h-2.5 flex-shrink-0" />
-            <span className="truncate">{booking.owner_name?.split(' ')[0] || 'Cliente'}</span>
-          </div>
-          <div className="text-[9px] opacity-60">{booking.walk_time}</div>
-        </div>
-      )}
-    </Draggable>
+    <button
+      onClick={() => onClick(booking)}
+      className={`w-full px-2 py-1 rounded-lg border text-xs font-medium truncate cursor-pointer hover:scale-[1.02] transition-transform text-left ${statusConfig}`}
+      title={`${booking.owner_name} — ${booking.walk_time || "?"}\nToque para mover`}
+    >
+      <div className="flex items-center gap-1">
+        <User className="w-2.5 h-2.5 flex-shrink-0" />
+        <span className="truncate">{booking.owner_name?.split(' ')[0] || 'Cliente'}</span>
+      </div>
+      <div className="text-[9px] opacity-60">{booking.walk_time}</div>
+    </button>
   );
 }
 
-function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onDropBooking }) {
+function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onBookingClick }) {
   const days = eachDayOfInterval({ start: weekStart, end: endOfWeek(weekStart, { weekStartsOn: 1 }) });
 
   const getBookingsForSlot = (day, hour) => {
@@ -117,71 +111,61 @@ function WeeklyView({ weekStart, walkBookings, availability, onDayOffClick, onDr
   };
 
   return (
-    <DragDropContext onDragEnd={onDropBooking}>
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
-        <div className="min-w-[600px]">
-          {/* Header dos dias */}
-          <div className="grid bg-slate-50 border-b border-slate-200" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
-            <div className="p-2" />
-            {days.map(day => (
-              <button
-                key={day.toISOString()}
-                onClick={() => !isPast(day) && onDayOffClick(day)}
-                className={`p-2 text-center border-l border-slate-100 transition-colors ${
-                  isToday(day) ? 'bg-orange-50' : ''
-                } ${isDayOff(day) ? 'bg-red-50' : 'hover:bg-slate-100'}`}
-              >
-                <div className={`text-[10px] font-semibold uppercase tracking-widest ${isToday(day) ? 'text-orange-500' : 'text-slate-400'}`}>
-                  {format(day, 'EEE', { locale: pt })}
-                </div>
-                <div className={`text-lg font-bold ${isToday(day) ? 'text-orange-500' : isDayOff(day) ? 'text-red-400' : 'text-slate-700'}`}>
-                  {format(day, 'd')}
-                </div>
-                {isDayOff(day) && <div className="text-[8px] text-red-400 font-semibold">FOLGA</div>}
-              </button>
-            ))}
-          </div>
-
-          {/* Grelha de horas */}
-          <div className="max-h-[480px] overflow-y-auto bg-white">
-            {HOURS.map(hour => (
-              <div key={hour} className="grid border-t border-slate-100" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
-                <div className="p-1.5 text-right pr-2 text-[10px] text-slate-400 font-mono pt-2">
-                  {hour}:00
-                </div>
-                {days.map(day => {
-                  const droppableId = `${format(day, 'yyyy-MM-dd')}__${hour}`;
-                  const slotBookings = getBookingsForSlot(day, hour);
-                  const dayIsOff = isDayOff(day);
-                  return (
-                    <Droppable key={droppableId} droppableId={droppableId}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
-                          className={`border-l border-slate-100 min-h-[52px] p-0.5 transition-colors ${
-                            dayIsOff ? 'bg-red-50/50' :
-                            snapshot.isDraggingOver ? 'bg-orange-50' :
-                            isToday(day) ? 'bg-orange-50/30' : ''
-                          }`}
-                        >
-                          <div className="space-y-0.5">
-                            {slotBookings.map((b, i) => (
-                              <BookingChip key={b.id} booking={b} index={i} />
-                            ))}
-                          </div>
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
-                  );
-                })}
+    <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <div className="min-w-[600px]">
+        {/* Header dos dias */}
+        <div className="grid bg-slate-50 border-b border-slate-200" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
+          <div className="p-2" />
+          {days.map(day => (
+            <button
+              key={day.toISOString()}
+              onClick={() => !isPast(day) && onDayOffClick(day)}
+              className={`p-2 text-center border-l border-slate-100 transition-colors ${
+                isToday(day) ? 'bg-orange-50' : ''
+              } ${isDayOff(day) ? 'bg-red-50' : 'hover:bg-slate-100'}`}
+            >
+              <div className={`text-[10px] font-semibold uppercase tracking-widest ${isToday(day) ? 'text-orange-500' : 'text-slate-400'}`}>
+                {format(day, 'EEE', { locale: pt })}
               </div>
-            ))}
-          </div>
+              <div className={`text-lg font-bold ${isToday(day) ? 'text-orange-500' : isDayOff(day) ? 'text-red-400' : 'text-slate-700'}`}>
+                {format(day, 'd')}
+              </div>
+              {isDayOff(day) && <div className="text-[8px] text-red-400 font-semibold">FOLGA</div>}
+            </button>
+          ))}
+        </div>
+
+        {/* Grelha de horas */}
+        <div className="max-h-[480px] overflow-y-auto bg-white">
+          {HOURS.map(hour => (
+            <div key={hour} className="grid border-t border-slate-100" style={{ gridTemplateColumns: '48px repeat(7, 1fr)' }}>
+              <div className="p-1.5 text-right pr-2 text-[10px] text-slate-400 font-mono pt-2">
+                {hour}:00
+              </div>
+              {days.map(day => {
+                const slotBookings = getBookingsForSlot(day, hour);
+                const dayIsOff = isDayOff(day);
+                return (
+                  <div
+                    key={`${format(day, 'yyyy-MM-dd')}-${hour}`}
+                    className={`border-l border-slate-100 min-h-[52px] p-0.5 transition-colors ${
+                      dayIsOff ? 'bg-red-50/50' :
+                      isToday(day) ? 'bg-orange-50/30' : ''
+                    }`}
+                  >
+                    <div className="space-y-0.5">
+                      {slotBookings.map((b) => (
+                        <BookingChip key={b.id} booking={b} onClick={onBookingClick} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
-    </DragDropContext>
+    </div>
   );
 }
 
@@ -255,6 +239,22 @@ function MonthlyView({ currentMonth, walkBookings, availability, onDayClick }) {
   );
 }
 
+// ─── ESTADO DE ERRO ────────────────────────────────────────────────────────────
+function ErrorState({ onRetry }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+      <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-3">
+        <AlertCircle className="w-7 h-7 text-red-400" />
+      </div>
+      <p className="text-slate-700 font-semibold text-sm mb-1">Não foi possível carregar a agenda</p>
+      <p className="text-slate-400 text-xs mb-4">Verifica a tua ligação e tenta novamente.</p>
+      <Button onClick={onRetry} variant="outline" className="rounded-xl font-semibold text-xs">
+        <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Tentar novamente
+      </Button>
+    </div>
+  );
+}
+
 // ─── COMPONENTE PRINCIPAL ──────────────────────────────────────────────────────
 export function AgendaCalendar({ user, walkerProfile }) {
   const queryClient = useQueryClient();
@@ -263,20 +263,45 @@ export function AgendaCalendar({ user, walkerProfile }) {
   const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDateInfo, setSelectedDateInfo] = useState(null);
+  const [rescheduleBooking, setRescheduleBooking] = useState(null);
 
-  const { data: availability = [], isLoading } = useQuery({
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const futureLimitStr = format(new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
+
+  const availabilityQuery = useQuery({
     queryKey: ['myAvailability', user?.email],
     queryFn: () => base44.entities.CalendarAvailability.filter({ professional_email: user?.email }),
     enabled: !!user?.email,
     initialData: [],
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
-  const { data: walkBookings = [] } = useQuery({
+  const bookingsQuery = useQuery({
     queryKey: ['myWalkBookingsCalendar', user?.email],
-    queryFn: () => base44.entities.Booking.filter({ walker_email: user.email }, '-created_date', 200),
+    queryFn: () => base44.entities.Booking.filter({
+      walker_email: user.email,
+      walk_date: { $gte: todayStr, $lte: futureLimitStr }
+    }, '-created_date', 100),
     enabled: !!user?.email,
     initialData: [],
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
+
+  const availability = availabilityQuery.data || [];
+  const walkBookings = bookingsQuery.data || [];
+  const isLoading = availabilityQuery.isLoading || bookingsQuery.isLoading;
+  const hasError = availabilityQuery.isError || bookingsQuery.isError;
+
+  const refetchAll = () => {
+    availabilityQuery.refetch();
+    bookingsQuery.refetch();
+  };
 
   const toggleDayOffMutation = useMutation({
     mutationFn: async ({ date, notes, remove }) => {
@@ -315,19 +340,12 @@ export function AgendaCalendar({ user, walkerProfile }) {
     onError: () => toast.error("Erro ao atualizar disponibilidade."),
   });
 
-  const handleDropBooking = async (result) => {
-    if (!result.destination || result.destination.droppableId === result.source.droppableId) return;
-    const bookingId = result.draggableId;
-    const [newDate, newHour] = result.destination.droppableId.split('__');
-    const newTime = `${newHour}:00`;
-    try {
-      await base44.entities.Booking.update(bookingId, { walk_date: newDate, walk_time: newTime });
-      queryClient.invalidateQueries(['myWalkBookingsCalendar']);
-      toast.success(`Reserva movida para ${format(parseISO(newDate), 'dd/MM', { locale: pt })} às ${newTime}`);
-    } catch {
-      toast.error("Erro ao mover reserva.");
-      queryClient.invalidateQueries(['myWalkBookingsCalendar']);
-    }
+  const handleReschedule = async (newDate, newTime) => {
+    if (!rescheduleBooking) return;
+    await base44.entities.Booking.update(rescheduleBooking.id, { walk_date: newDate, walk_time: newTime });
+    queryClient.invalidateQueries(['myWalkBookingsCalendar']);
+    toast.success(`Reserva movida para ${format(parseISO(newDate), 'dd/MM', { locale: pt })} às ${newTime}`);
+    setRescheduleBooking(null);
   };
 
   const normalizeDate = (date) => {
@@ -349,7 +367,21 @@ export function AgendaCalendar({ user, walkerProfile }) {
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5);
 
-  if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-slate-300" /></div>;
+  if (hasError) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <ErrorState onRetry={refetchAll} />
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -403,7 +435,7 @@ export function AgendaCalendar({ user, walkerProfile }) {
               walkBookings={walkBookings}
               availability={availability}
               onDayOffClick={(day) => handleDayOffClick(day, null)}
-              onDropBooking={handleDropBooking}
+              onBookingClick={(booking) => setRescheduleBooking(booking)}
             />
           ) : (
             <MonthlyView
@@ -425,7 +457,7 @@ export function AgendaCalendar({ user, walkerProfile }) {
 
           <p className="text-center text-xs text-slate-400 mt-3">
             {viewMode === "week"
-              ? "Arraste reservas para alterar horário • Toque num dia para gerir folga"
+              ? "Toque numa reserva para alterar horário • Toque num dia para gerir folga"
               : "Toque num dia para gerir a sua disponibilidade"}
           </p>
         </div>
@@ -464,6 +496,14 @@ export function AgendaCalendar({ user, walkerProfile }) {
           onConfirm={({ notes }) => toggleDayOffMutation.mutate({ date: selectedDate, notes })}
           onRemove={() => toggleDayOffMutation.mutate({ date: selectedDate, remove: true })}
           onClose={() => setSelectedDate(null)}
+        />
+      )}
+
+      {rescheduleBooking && (
+        <RescheduleBookingModal
+          booking={rescheduleBooking}
+          onConfirm={handleReschedule}
+          onClose={() => setRescheduleBooking(null)}
         />
       )}
     </div>
