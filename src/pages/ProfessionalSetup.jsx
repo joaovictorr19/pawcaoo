@@ -8,8 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Camera, MapPin, Euro, Dog, Clock, ChevronRight, ChevronLeft, CheckCircle, Upload, Phone, Zap } from "lucide-react";
-import { submitProfessionalProfile } from "@/lib/professionalOnboarding";
+import { Camera, MapPin, Euro, Dog, Clock, ChevronRight, ChevronLeft, CheckCircle, Upload, Phone, Zap, Globe } from "lucide-react";
+import { submitProfessionalProfile, LANGUAGES } from "@/lib/professionalOnboarding";
 
 const STEPS = ["Perfil", "Tipo", "Serviços", "Preferências", "Conclusão"];
 
@@ -116,6 +116,8 @@ export default function ProfessionalSetup() {
     hotel_capacity_total: "5",
     hotel_amenities: [],
     hotel_accepted_sizes: ["small", "medium", "large"],
+    experience_years: "",
+    languages_spoken: ["Português"],
     };
   });
 
@@ -180,6 +182,8 @@ export default function ProfessionalSetup() {
         tax_id_spain: existingProfile.tax_id_spain || "",
         tax_id_france: existingProfile.tax_id_france || "",
         france_professional_type: existingProfile.france_professional_type || "professional",
+        experience_years: existingProfile.experience_years != null ? String(existingProfile.experience_years) : "",
+        languages_spoken: existingProfile.languages_spoken?.length ? existingProfile.languages_spoken : prev.languages_spoken,
       }));
     } else if (user.full_name) {
       setForm(prev => ({ ...prev, walker_name: user.full_name }));
@@ -270,7 +274,7 @@ export default function ProfessionalSetup() {
   const isEditing = formInitialized;
 
   const canProceed = () => {
-    if (step === 0) return form.walker_name.trim() && form.location.trim();
+    if (step === 0) return form.walker_name.trim() && form.location.trim() && String(form.experience_years).trim() !== "" && (form.languages_spoken || []).length > 0;
     if (step === 2) {
       if (form.professional_type === 'hotel') return form.hotel_name.trim().length > 0;
       return parseFloat(form.hourly_rate) > 0;
@@ -285,6 +289,11 @@ export default function ProfessionalSetup() {
      : String(form.walker_name || "").trim();
    if (!requiredName) {
      toast.error(form.professional_type === "hotel" ? "Indica o nome do hotel." : "Indica o teu nome profissional no primeiro passo do formulário.");
+     setStep(0);
+     return;
+   }
+   if (String(form.experience_years).trim() === "" || (form.languages_spoken || []).length === 0) {
+     toast.error("Indica os teus anos de experiência e pelo menos um idioma no primeiro passo.");
      setStep(0);
      return;
    }
@@ -425,6 +434,38 @@ export default function ProfessionalSetup() {
                     💡 A coordenada será determinada automaticamente pela localização.
                   </div>
                 )}
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Anos de experiência *
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.experience_years}
+                  onChange={e => set("experience_years", e.target.value)}
+                  placeholder="0"
+                  className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                  <Globe className="w-3 h-3" /> Idiomas aceitos *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {LANGUAGES.map(lang => (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => toggleArr("languages_spoken", lang)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all ${(form.languages_spoken || []).includes(lang) ? 'border-orange-500 bg-orange-500/10 text-white' : 'border-slate-800 bg-slate-900 text-slate-300'}`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>

@@ -8,10 +8,10 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   Camera, MapPin, Euro, ChevronRight, ChevronLeft, CheckCircle, Upload,
-  Phone, Zap, Clock, Dog as DogIcon
+  Phone, Zap, Clock, Dog as DogIcon, Globe
 } from "lucide-react";
 import {
-  DOG_SIZES, ANIMALS, AVAILABILITY_SLOTS, SERVICE_PRESETS, DOCUMENT_RULES,
+  DOG_SIZES, ANIMALS, AVAILABILITY_SLOTS, SERVICE_PRESETS, DOCUMENT_RULES, LANGUAGES,
   uploadFile, submitProfessionalProfile,
 } from "@/lib/professionalOnboarding";
 
@@ -57,6 +57,8 @@ export default function WalkerOnboarding() {
       tax_id_spain: "",
       tax_id_france: "",
       france_professional_type: "professional",
+      experience_years: "",
+      languages_spoken: ["Português"],
     };
   });
 
@@ -124,6 +126,8 @@ export default function WalkerOnboarding() {
         tax_id_spain: existingProfile.tax_id_spain || "",
         tax_id_france: existingProfile.tax_id_france || "",
         france_professional_type: existingProfile.france_professional_type || "professional",
+        experience_years: existingProfile.experience_years != null ? String(existingProfile.experience_years) : "",
+        languages_spoken: existingProfile.languages_spoken?.length ? existingProfile.languages_spoken : prev.languages_spoken,
       }));
     } else if (user.full_name) {
       setForm(prev => ({ ...prev, walker_name: user.full_name }));
@@ -178,7 +182,7 @@ export default function WalkerOnboarding() {
   const isEditing = !!(formInitialized && existingProfile && existingProfile.professional_type !== "hotel");
 
   const canProceed = () => {
-    if (step === 0) return form.walker_name.trim() && form.location.trim();
+    if (step === 0) return form.walker_name.trim() && form.location.trim() && String(form.experience_years).trim() !== "" && (form.languages_spoken || []).length > 0;
     if (step === 2) return parseFloat(form.hourly_rate) > 0;
     return true;
   };
@@ -191,6 +195,11 @@ export default function WalkerOnboarding() {
     }
     if (!String(form.walker_name || "").trim()) {
       toast.error("Indica o teu nome profissional no primeiro passo do formulário.");
+      setStep(0);
+      return;
+    }
+    if (String(form.experience_years).trim() === "" || (form.languages_spoken || []).length === 0) {
+      toast.error("Indica os teus anos de experiência e pelo menos um idioma no primeiro passo.");
       setStep(0);
       return;
     }
@@ -286,6 +295,20 @@ export default function WalkerOnboarding() {
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1"><MapPin className="w-3 h-3" /> Localização *</label>
               <input value={form.location} onChange={e => set("location", e.target.value)} placeholder="Lisboa, Porto, Braga..." className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1"><Clock className="w-3 h-3" /> Anos de experiência *</label>
+              <input type="number" min="0" value={form.experience_years} onChange={e => set("experience_years", e.target.value)} placeholder="0" className="w-full h-12 px-4 bg-slate-800 text-white rounded-xl border border-slate-700 focus:border-orange-500 outline-none text-sm" />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1"><Globe className="w-3 h-3" /> Idiomas aceitos *</label>
+              <div className="flex flex-wrap gap-2">
+                {LANGUAGES.map(lang => (
+                  <button key={lang} type="button" onClick={() => toggleArr("languages_spoken", lang)} className={`px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all ${(form.languages_spoken || []).includes(lang) ? "border-orange-500 bg-orange-500/10 text-white" : "border-slate-800 bg-slate-900 text-slate-300"}`}>{lang}</button>
+                ))}
+              </div>
             </div>
 
             <div>

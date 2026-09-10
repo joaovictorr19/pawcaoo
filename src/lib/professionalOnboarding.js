@@ -41,6 +41,8 @@ export const ANIMALS = [
 
 export const EXOTIC_ANIMALS = ["reptiles", "rodents", "birds", "arachnids"];
 
+export const LANGUAGES = ["Português", "English", "Español", "Français", "Deutsch", "Italiano", "Outro"];
+
 export const SERVICE_PRESETS = [
   { key: "walk_30", service_name: "Passeio 30 min", description: "Passeio individual rápido", defaultPrice: 10, service_type: "standard", is_active: true },
   { key: "walk_60", service_name: "Passeio 1h", description: "Passeio individual de 1 hora", defaultPrice: 15, service_type: "standard", is_active: true },
@@ -110,6 +112,8 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
     user_id: user.id,
     professional_type: form.professional_type,
     is_verified_trainer: form.professional_type === "trainer" || form.professional_type === "both",
+    experience_years: parseInt(form.experience_years) || 0,
+    languages_spoken: form.languages_spoken && form.languages_spoken.length ? form.languages_spoken : ["Português"],
   };
 
   if (form.professional_type === "hotel") {
@@ -169,6 +173,8 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
       }],
       latitude: lat,
       longitude: lng,
+      experience_years: parseInt(form.experience_years) || 0,
+      languages_spoken: form.languages_spoken && form.languages_spoken.length ? form.languages_spoken : ["Português"],
     };
 
     // Hotel-specific display fields — update directly
@@ -356,6 +362,8 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
       is_verified: false,
       verification_status: "pending",
       user_id: user.id,
+      experience_years: parseInt(form.experience_years) || 0,
+      languages: form.languages_spoken && form.languages_spoken.length ? form.languages_spoken : ["Português"],
     };
     if (existingTrainers.length > 0) {
       await base44.entities.TrainerProfile.update(existingTrainers[0].id, trainerData);
