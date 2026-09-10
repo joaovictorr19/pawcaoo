@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Check, X, MapPin, Clock, Calendar, PawPrint, Loader2, Phone, MessageCircle } from "lucide-react";
+import { Check, X, MapPin, Clock, Calendar, PawPrint, Loader2, Phone, MessageCircle, ChevronDown, Mail, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import WalkDogProfileSection from "@/components/booking/WalkDogProfileSection";
 
 const sizeLabels = { small: "Pequeno", medium: "Médio", large: "Grande", extra_large: "Extra Grande" };
 
@@ -13,6 +14,7 @@ export default function PendingRequestsList({ user, professionalProfile }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [processing, setProcessing] = useState(null);
+  const [expandedBooking, setExpandedBooking] = useState(null);
 
   const { data: pendingBookings = [], isLoading } = useQuery({
     queryKey: ['pendingBookingsPro', user?.email],
@@ -124,26 +126,34 @@ export default function PendingRequestsList({ user, professionalProfile }) {
             <div className="flex justify-between items-start mb-3">
               <div>
                 <h3 className="font-semibold text-slate-900">{booking.owner_name}</h3>
-                {booking.owner_phone && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                      <Phone className="w-3 h-3" /> {booking.owner_phone}
-                    </span>
-                    <a
-                      href={`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xs text-green-600 flex items-center gap-1 hover:underline"
-                    >
-                      <MessageCircle className="w-3 h-3" /> WhatsApp
-                    </a>
-                  </div>
-                )}
               </div>
               <span className="text-xs bg-amber-50 text-amber-600 px-2 py-1 rounded-full border border-amber-100 font-medium">
                 Aguarda resposta
               </span>
+            </div>
+
+            {/* Contacto do cliente */}
+            <div className="flex flex-wrap items-center gap-2 mb-3 text-xs">
+              {booking.owner_phone && (
+                <span className="text-slate-400 flex items-center gap-1">
+                  <Phone className="w-3 h-3" /> {booking.owner_phone}
+                </span>
+              )}
+              {booking.owner_email && (
+                <span className="text-slate-400 flex items-center gap-1">
+                  <Mail className="w-3 h-3" /> {booking.owner_email}
+                </span>
+              )}
+              {booking.owner_phone && (
+                <a
+                  href={`https://wa.me/${booking.owner_phone.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 flex items-center gap-1 hover:underline"
+                >
+                  <MessageCircle className="w-3 h-3" /> WhatsApp
+                </a>
+              )}
             </div>
 
             {/* Dogs */}
@@ -165,6 +175,28 @@ export default function PendingRequestsList({ user, professionalProfile }) {
                 </div>
               ))}
             </div>
+
+            {/* Botão ver ficha do animal */}
+            <button
+              onClick={() => setExpandedBooking(expandedBooking === booking.id ? null : booking.id)}
+              className="w-full flex items-center justify-between text-xs font-semibold text-teal-600 bg-teal-50 hover:bg-teal-100 rounded-lg px-3 py-2 mb-3 transition-colors"
+            >
+              <span className="flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5" /> Ficha do Animal
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expandedBooking === booking.id ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Ficha completa do animal (expansível) */}
+            {expandedBooking === booking.id && (
+              <div className="mb-3">
+                <WalkDogProfileSection
+                  dogId={dogs[0]?.dog_id}
+                  ownerEmail={booking.owner_email}
+                  dogName={dogs[0]?.dog_name}
+                />
+              </div>
+            )}
 
             {/* Details */}
             <div className="space-y-1.5 text-xs text-slate-500 mb-4">
