@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -9,7 +8,7 @@ import { getCurrentUser } from "@/utils/getCurrentUser";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
-  Minus, Plus, Truck, MapPin, Hotel, Wallet, CreditCard, Loader2, Package
+  Minus, Plus, Truck, MapPin, Hotel, Wallet, CreditCard, Loader2, Package, AlertCircle
 } from "lucide-react";
 
 const DELIVERY = {
@@ -24,7 +23,6 @@ export default function ProductPurchaseModal({ product, onClose }) {
   const [quantity, setQuantity] = useState(1);
   const [useWallet, setUseWallet] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [address, setAddress] = useState({ street: "", postal_code: "", city: "", country: "Portugal" });
 
   const { data: user } = useQuery({
     queryKey: ["shopCurrentUser"],
@@ -32,6 +30,28 @@ export default function ProductPurchaseModal({ product, onClose }) {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  const { data: userProfile } = useQuery({
+    queryKey: ["shopUserProfile", user?.email],
+    queryFn: async () => {
+      const profiles = await base44.entities.UserProfile.filter({ user_email: user.email });
+      return profiles[0] || null;
+    },
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const stats = userProfile?.profile_stats || {};
+  const hasAddress = !!(stats.street && stats.postal_code && stats.city);
+  const shippingAddress = hasAddress
+    ? {
+        street: [stats.street, stats.door_number, stats.floor_apt].filter(Boolean).join(", "),
+        postal_code: stats.postal_code || "",
+        city: stats.city || "",
+        country: stats.country || "Portugal",
+      }
+    : null;
 
   const { data: walletBalance = 0 } = useQuery({
     queryKey: ["shopWalletBalance"],
@@ -57,8 +77,8 @@ export default function ProductPurchaseModal({ product, onClose }) {
       navigate(`/login?from=${encodeURIComponent("/Shop")}`);
       return;
     }
-    if (product.delivery_method === "shipping" && (!address.street || !address.city || !address.postal_code)) {
-      toast.error("Preenche a morada de entrega completa");
+    if (product.delivery_method === "shipping" && !shippingAddress) {
+      toast.error("Completa a tua morada no perfil para continuar");
       return;
     }
     setProcessing(true);
@@ -67,7 +87,7 @@ export default function ProductPurchaseModal({ product, onClose }) {
         product_id: product.id,
         quantity,
         use_wallet: useWallet && walletBalance > 0,
-        shipping_address: product.delivery_method === "shipping" ? address : null,
+        shipping_address: product.delivery_method === "shipping" ? shippingAddress : null,
       });
       const data = response.data;
       if (data?.url) {
@@ -155,27 +175,30 @@ export default function ProductPurchaseModal({ product, onClose }) {
             </div>
             <p className="text-xs text-slate-500 mt-0.5">{delivery.hint}</p>
             {product.delivery_method === "shipping" && (
-              <div className="space-y-2 mt-3">
-                <Input
-                  value={address.street}
-                  onChange={(e) => setAddress({ ...address, street: e.target.value })}
-                  placeholder="Rua e número"
-                  className="bg-white"
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    value={address.postal_code}
-                    onChange={(e) => setAddress({ ...address, postal_code: e.target.value })}
-                    placeholder="Código Postal"
-                    className="bg-white"
-                  />
-                  <Input
-                    value={address.city}
-                    onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                    placeholder="Cidade"
-                    className="bg-white"
-                  />
-                </div>
+              <div className="mt-3">
+                {shippingAddress ? (
+                  <div className="bg-slate-50 rounded-xl p-3 flex items-start gap-2.5">
+                    <MapPin className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-800 leading-snug">{shippingAddress.street}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {shippingAddress.postal_code} {shippingAddress.city}
+                      </p>
+                      <p className="text-xs text-slate-400">{shippingAddress.country}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate("/ClientSetup")}
+                    className="w-full flex items-center gap-2.5 bg-amber-50 rounded-xl p-3 text-left active:scale-[0.98] transition-transform"
+                  >
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800">Morada em falta</p>
+                      <p className="text-xs text-amber-600">Toca para completar o teu perfil</p>
+                    </div>
+                  </button>
+                )}
               </div>
             )}
           </div>
