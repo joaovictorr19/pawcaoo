@@ -2,7 +2,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Loader2, Trash2 } from "lucide-react";
+import { Bell, Loader2, Trash2, PawPrint, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -494,56 +494,65 @@ export default function ProfessionalHubV2() {
 
   const isOnline = user?.pawgo_status?.is_online || false;
 
+  const isTrainer = !!professionalProfile?.trainer_name;
+  const proName = professionalProfile?.walker_name || professionalProfile?.trainer_name || user?.full_name || 'Profissional';
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans" style={{ paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))', WebkitOverflowScrolling: 'touch', overflowY: 'auto' }}>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pt-12 md:pt-0 pb-24 md:pb-8">
       <IncomingRequestModal
         request={incomingRequest}
         onAccept={handleAcceptRequest}
         onDecline={handleDeclineRequest}
       />
-      {/* 1. Header com saudação, status e stats rápidas */}
-      <header className="px-4 pt-6 md:pt-20 pb-5">
-        <div className="max-w-3xl mx-auto flex justify-between items-center">
+      {/* Header sticky branco — alinhado ao padrão do HotelDashboard */}
+      <header className="bg-white border-b border-slate-200 sticky top-12 md:top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-          <BackButton className="bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900" />
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">{isHotelProfile ? 'Painel Hotel Canino' : 'Painel Profissional'}</p>
-            <h1 className="text-lg font-black text-slate-900">Olá, {user?.full_name?.split(' ')[0] || 'Pro'} {isHotelProfile ? '🏨' : '🐾'}</h1>
-          </motion.div>
+            <BackButton to={createPageUrl("Home")} />
+            <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center shrink-0">
+              {isTrainer ? <GraduationCap className="w-5 h-5 text-white" /> : <PawPrint className="w-5 h-5 text-white" />}
+            </div>
+            <div>
+              <h1 className="font-bold text-slate-900 text-sm leading-tight truncate max-w-[180px]">
+                {proName}
+              </h1>
+              <p className="text-slate-400 text-xs truncate max-w-[180px]">{professionalProfile?.location || '—'}</p>
+            </div>
           </div>
-          <motion.div className="flex items-center gap-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {incomingRequest && (
+              <span className="bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold px-2 py-1 rounded-md shrink-0">
+                1 pendente
+              </span>
+            )}
             <button
               onClick={() => toggleOnlineMutation.mutate(!isOnline)}
-              className={`px-3 py-1.5 rounded-full border cursor-pointer active:scale-95 transition-all font-semibold text-xs ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer active:scale-95 shrink-0 ${
                 isOnline
                   ? 'border-emerald-200 text-emerald-600 bg-emerald-50'
                   : 'border-slate-200 text-slate-500 bg-white'
               }`}
             >
-              <span className="flex items-center gap-1.5">
-                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                {isOnline ? 'Online' : 'Offline'}
-              </span>
+              <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+              <span className="hidden sm:inline">{isOnline ? 'Online' : 'Offline'}</span>
             </button>
             <button
               onClick={() => navigate(createPageUrl('Notifications'))}
-              className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+              className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors shrink-0"
             >
               <Bell size={16} />
             </button>
-          </motion.div>
-        </div>
-        <div className="max-w-3xl mx-auto mt-3">
-          <VerificationBanner status={professionalProfile?.verification_status} />
+          </div>
         </div>
       </header>
 
-      <ProfessionalTabBar active={activeTab} onChange={(tab) => {
+      <ProfessionalTabBar active={activeTab} pendingCount={incomingRequest ? 1 : 0} onChange={(tab) => {
         setActiveTab(tab);
         scrollToTop();
       }} />
 
-      <main className="px-4 md:px-6 pb-6 max-w-3xl mx-auto w-full">
+      <main className="px-4 md:px-6 pt-4 pb-6 max-w-5xl mx-auto w-full space-y-4">
+        <VerificationBanner status={professionalProfile?.verification_status} />
         {/* Renderização Condicional por Abas */}
         <Suspense fallback={<div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-orange-500 animate-spin" /></div>}>
         <AnimatePresence mode="wait">

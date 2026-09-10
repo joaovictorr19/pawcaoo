@@ -1,8 +1,6 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart3, Package, Calendar, QrCode, Wallet, Zap, TrendingUp, Star,
-  Image, ShieldCheck, Bell, ChevronDown, User, Store,
+  Image, ShieldCheck, Bell, User, Store,
 } from "lucide-react";
 
 const TAB_GROUPS = [
@@ -41,98 +39,48 @@ const TAB_GROUPS = [
   },
 ];
 
-const ALL_TABS = TAB_GROUPS.flatMap((g) => g.items);
-
-export function ProfessionalTabBar({ active, onChange }) {
-  const [openGroup, setOpenGroup] = useState(null);
-
-  const activeTab = ALL_TABS.find((t) => t.id === active) || ALL_TABS[0];
-  const ActiveIcon = activeTab.icon;
-
-  const handleSelect = (id) => {
-    onChange(id);
-    setOpenGroup(null);
-  };
-
+export function ProfessionalTabBar({ active, onChange, pendingCount = 0 }) {
   return (
-    <div className="max-w-3xl mx-auto px-4 pb-4 w-full">
-      {/* Desktop: pills agrupadas por categoria — tema claro */}
-      <div className="hidden md:flex flex-wrap items-center gap-4 bg-white border border-slate-200 rounded-2xl p-2 shadow-sm">
+    <nav className="bg-white border-b border-slate-200">
+      <div className="max-w-5xl mx-auto px-4 py-2.5 space-y-2.5">
         {TAB_GROUPS.map((group) => (
-          <div key={group.label} className="flex items-center gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">
+          <div key={group.label} className="flex flex-col gap-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-1">
               {group.label}
-            </span>
-            {group.items.map((tab) => {
-              const isActive = active === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleSelect(tab.id)}
-                  className="relative flex items-center gap-1.5 h-9 rounded-xl transition-colors px-2.5"
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTabPro"
-                      className="absolute inset-0 bg-orange-100 rounded-xl"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <tab.icon className={`w-4 h-4 relative z-10 ${isActive ? "text-orange-600" : "text-slate-400"}`} />
-                  <span className={`text-xs font-bold relative z-10 whitespace-nowrap ${isActive ? "text-orange-700" : "text-slate-500"}`}>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {group.items.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = active === tab.id;
+                const count = tab.id === "requests" ? pendingCount : 0;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => onChange(tab.id)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                      isActive
+                        ? "bg-slate-900 text-white shadow-sm"
+                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
                     {tab.label}
-                  </span>
-                </button>
-              );
-            })}
+                    {count > 0 && (
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                          isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         ))}
       </div>
-
-      {/* Mobile: acordeão por categoria — tema claro */}
-      <div className="md:hidden bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-        <button
-          onClick={() => setOpenGroup(openGroup ? null : "all")}
-          className="w-full flex items-center justify-between px-4 py-3.5"
-        >
-          <span className="flex items-center gap-2.5">
-            <ActiveIcon className="w-5 h-5 text-orange-600" />
-            <span className="text-sm font-bold text-slate-900">{activeTab.label}</span>
-          </span>
-          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${openGroup ? "rotate-180" : ""}`} />
-        </button>
-        <AnimatePresence>
-          {openGroup && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="border-t border-slate-100 py-1">
-                {TAB_GROUPS.map((group) => (
-                  <div key={group.label}>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-300 px-4 pt-2 pb-0.5">
-                      {group.label}
-                    </p>
-                    {group.items.filter((t) => t.id !== active).map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => handleSelect(tab.id)}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-                      >
-                        <tab.icon className="w-5 h-5" />
-                        <span className="text-sm font-semibold">{tab.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
+    </nav>
   );
 }
