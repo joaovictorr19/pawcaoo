@@ -36,12 +36,25 @@ export default function ServiceList({ services, type }) {
               </div>
               <p className="text-sm text-gray-700 mb-3">{service.description}</p>
               {(service.is_group_walk || service.service_type === 'group_walk') && service.capacity_total > 0 && (() => {
-                const avail = service.capacity_available ?? service.capacity_total;
-                const isFull = avail <= 0;
+                const capTotal = service.capacity_total;
+                const spotsLeft = service.capacity_available ?? capTotal;
+                const isFull = spotsLeft <= 0;
                 return (
-                  <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full mb-3 ${isFull ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                    <Users className="w-3.5 h-3.5" />
-                    {isFull ? 'Esgotado' : `${avail} de ${service.capacity_total} vagas disponíveis`}
+                  <div className="bg-slate-50 rounded-xl p-2.5 mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                        <Users className="w-3 h-3" /> Lotação
+                      </span>
+                      <span className={`text-xs font-black ${isFull ? 'text-red-500' : 'text-green-500'}`}>
+                        {capTotal - spotsLeft}/{capTotal} ocupadas
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${isFull ? 'bg-red-500' : spotsLeft <= capTotal * 0.3 ? 'bg-orange-500' : 'bg-green-500'}`}
+                        style={{ width: `${capTotal > 0 ? ((capTotal - spotsLeft) / capTotal) * 100 : 0}%` }}
+                      />
+                    </div>
                   </div>
                 );
               })()}
