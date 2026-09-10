@@ -1,6 +1,7 @@
 // ProfileBentoGrid - bento layout for user profile
 import React, { useState } from "react";
-import { ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, PawPrint, Zap, Flag } from "lucide-react";
+import { ArrowLeft, Star, Moon, Shield, Award, Calendar, Image as ImageIcon, Sparkles, BedDouble, Clock, PawPrint, Zap, Flag, Users } from "lucide-react";
+import { useGroupWalkCapacity } from "@/hooks/useGroupWalkCapacity";
 import ReviewCard from "@/components/reviews/ReviewCard";
 import ProfessionalReviewsSection from "@/components/reviews/ProfessionalReviewsSection";
 import BadgeItem from "@/components/gamification/BadgeItem";
@@ -58,6 +59,14 @@ export default function ProfileBentoGrid({
   const isProfessional = walkerProfile || trainerProfile;
   const [reportOpen, setReportOpen] = React.useState(false);
   const [lightbox, setLightbox] = useState({ open: false, index: 0 });
+
+  // Vagas em tempo real para passeios em grupo (espelha a lotação do hotel)
+  const { groupServices: gwServices = [] } = useGroupWalkCapacity(walkerProfile || trainerProfile);
+  const gwByName = React.useMemo(() => {
+    const m = {};
+    for (const s of gwServices) if (s.service_name) m[s.service_name] = s;
+    return m;
+  }, [gwServices]);
   const [showAllBadges, setShowAllBadges] = useState(false);
 
   const portfolioItems = (walkerProfile?.portfolio || []).filter(p => p.media_url);
@@ -170,27 +179,52 @@ export default function ProfileBentoGrid({
               <div className="space-y-2.5">
                 {(walkerProfile?.services_offered || trainerProfile?.services_offered || []).filter(s => s.is_active !== false).map((service, idx) => {
                   const Icon = getServiceIcon(service.icon, SERVICE_ICONS[service.service_type] || SERVICE_ICONS.other);
+                  const isGroupWalk = (service.is_group_walk || service.service_type === 'group_walk') && (service.capacity_total || gwByName[service.service_name]?.capacity_total) > 0;
+                  const gw = isGroupWalk ? (gwByName[service.service_name] || service) : null;
+                  const capTotal = gw?.capacity_total || 0;
+                  const spotsLeft = gw?.capacity_available ?? capTotal;
+                  const isFull = spotsLeft <= 0;
                   return (
                     <div
                       key={idx}
                       onClick={() => !isOwnProfile && onServiceClick(service)}
-                      className={`group flex items-center gap-3 p-3 rounded-2xl border border-slate-100 transition-all ${
+                      className={`group p-3 rounded-2xl border border-slate-100 transition-all ${
                         !isOwnProfile ? 'hover:border-blue-200 hover:bg-blue-50/50 hover:shadow-sm cursor-pointer active:scale-[0.98]' : ''
                       }`}
                     >
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center flex-shrink-0 border border-slate-100">
-                        <Icon className="w-5 h-5 text-slate-500 group-hover:text-blue-500 transition-colors" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center flex-shrink-0 border border-slate-100">
+                          <Icon className="w-5 h-5 text-slate-500 group-hover:text-blue-500 transition-colors" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-sm text-slate-900 truncate">{service.service_name}</h4>
+                          {service.description && <p className="text-xs text-slate-400 truncate">{service.description}</p>}
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-base font-black text-slate-900">{service.price}€</p>
+                          {service.duration_options?.length > 0 && (
+                            <p className="text-[9px] text-slate-400 font-medium">{service.duration_options[0]}</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-sm text-slate-900 truncate">{service.service_name}</h4>
-                        {service.description && <p className="text-xs text-slate-400 truncate">{service.description}</p>}
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="text-base font-black text-slate-900">{service.price}€</p>
-                        {service.duration_options?.length > 0 && (
-                          <p className="text-[9px] text-slate-400 font-medium">{service.duration_options[0]}</p>
-                        )}
-                      </div>
+                      {isGroupWalk && capTotal > 0 && (
+                        <div className="bg-slate-50 rounded-xl p-2.5 mt-2.5">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                              <Users className="w-3 h-3" /> Lotação
+                            </span>
+                            <span className={`text-xs font-black ${isFull ? 'text-red-500' : 'text-green-500'}`}>
+                              {capTotal - spotsLeft}/{capTotal} ocupadas
+                            </span>
+                          </div>
+                          <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${isFull ? 'bg-red-500' : spotsLeft <= capTotal * 0.3 ? 'bg-orange-500' : 'bg-green-500'}`}
+                              style={{ width: `${capTotal > 0 ? ((capTotal - spotsLeft) / capTotal) * 100 : 0}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
