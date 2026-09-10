@@ -175,13 +175,13 @@ export default function ProOverview({ user, professionalProfile, onLogout, onDel
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2">
         {stats.map(s => (
-          <Card key={s.label} className="bg-white border border-slate-200">
-            <CardContent className="p-2.5 flex flex-col items-center text-center gap-1 min-w-0">
+          <div key={s.label} className="bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div className="p-2.5 flex flex-col items-center text-center gap-1 min-w-0">
               <s.icon className={`w-5 h-5 ${s.color} shrink-0`} />
               <p className="text-base font-black text-slate-900 leading-none truncate w-full">{s.value}</p>
               <p className="text-[10px] text-slate-400 font-medium truncate w-full">{s.label}</p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 

@@ -723,7 +723,7 @@ export default function ProfessionalHubV2() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              <PartnerStorePanel user={user} professionalProfile={professionalProfile} />
+              <PartnerStorePanel user={user} professionalProfile={professionalProfile} variant="light" />
             </motion.div>
           )}
 

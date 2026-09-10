@@ -42,102 +42,94 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-black text-white mb-2">Ferramentas Pro</h3>
+      <h3 className="text-lg font-black text-slate-900 mb-2">Ferramentas Pro</h3>
 
-      <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-teal-500/10 rounded-xl border border-teal-500/20">
-        <Megaphone className="w-4 h-4 text-teal-400 flex-shrink-0" />
-        <span className="text-xs font-bold text-teal-300">
+      <div className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-teal-50 rounded-xl border border-teal-200">
+        <Megaphone className="w-4 h-4 text-teal-600 flex-shrink-0" />
+        <span className="text-xs font-bold text-teal-700">
           Ferramentas de Divulgação
         </span>
       </div>
 
       <HotelPromotionTools user={user} professionalProfile={professionalProfile} />
 
-      <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
-              <QrCode className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm">Cartão Digital PawGo</h4>
-              <p className="text-xs text-slate-400">O seu passe de segurança</p>
-            </div>
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+            <QrCode className="w-5 h-5 text-amber-600" />
           </div>
-          <div className="flex justify-center bg-slate-950 rounded-xl p-4">
-             <DigitalWalletPass
-                user={{ ...user, ...professionalProfile, username: user?.username || professionalProfile?.id }}
-                profileType={professionalProfile?.walker_name ? "walker" : "trainer"}
-                isVerified={professionalProfile?.is_verified || professionalProfile?.verification_status === 'verified'}
-             />
+          <div>
+            <h4 className="font-bold text-slate-900 text-sm">Cartão Digital PawGo</h4>
+            <p className="text-xs text-slate-400">O seu passe de segurança</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="flex justify-center bg-slate-50 rounded-xl p-4">
+           <DigitalWalletPass
+              user={{ ...user, ...professionalProfile, username: user?.username || professionalProfile?.id }}
+              profileType={professionalProfile?.walker_name ? "walker" : "trainer"}
+              isVerified={professionalProfile?.is_verified || professionalProfile?.verification_status === 'verified'}
+           />
+        </div>
+      </div>
 
-      <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
-              <CreditCard className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm">Receber Pagamentos</h4>
-              <p className="text-xs text-slate-400">Configuração Stripe Connect</p>
-            </div>
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+            <CreditCard className="w-5 h-5 text-amber-600" />
           </div>
-          <div className="bg-slate-950 rounded-xl p-4 text-slate-200">
-            <StripeConnectSetup />
+          <div>
+            <h4 className="font-bold text-slate-900 text-sm">Receber Pagamentos</h4>
+            <p className="text-xs text-slate-400">Configuração Stripe Connect</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="bg-slate-50 rounded-xl p-4 text-slate-700">
+          <StripeConnectSetup />
+        </div>
+      </div>
 
-      <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
-              <Download className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm">Levantamento por IBAN</h4>
-              <p className="text-xs text-slate-400">Transfira o saldo para a sua conta bancária</p>
-            </div>
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+            <Download className="w-5 h-5 text-amber-600" />
           </div>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-slate-300 mb-1 block">IBAN</label>
-              <Input value={iban} onChange={(e) => setIban(e.target.value)} placeholder="PT50 0000 0000 0000 0000 0000 0" className="bg-slate-950 border-white/10 text-white placeholder:text-slate-500" />
-            </div>
-            <div>
-              <label className="text-xs text-slate-300 mb-1 block">Montante (€)</label>
-              <Input type="number" min="1" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="bg-slate-950 border-white/10 text-white placeholder:text-slate-500" />
-            </div>
-            <Button onClick={handleIbanWithdrawal} disabled={withdrawing || !iban || !amount} className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg py-2 text-sm disabled:opacity-50">
-              {withdrawing ? 'A enviar...' : 'Solicitar Levantamento'}
-            </Button>
-            <p className="text-[11px] text-slate-500">Pedidos são processados em 1–2 dias úteis.</p>
+          <div>
+            <h4 className="font-bold text-slate-900 text-sm">Levantamento por IBAN</h4>
+            <p className="text-xs text-slate-400">Transfira o saldo para a sua conta bancária</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-slate-600 mb-1 block">IBAN</label>
+            <Input value={iban} onChange={(e) => setIban(e.target.value)} placeholder="PT50 0000 0000 0000 0000 0000 0" className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-600 mb-1 block">Montante (€)</label>
+            <Input type="number" min="1" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400" />
+          </div>
+          <Button onClick={handleIbanWithdrawal} disabled={withdrawing || !iban || !amount} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg py-2 text-sm disabled:opacity-50">
+            {withdrawing ? 'A enviar...' : 'Solicitar Levantamento'}
+          </Button>
+          <p className="text-[11px] text-slate-400">Pedidos são processados em 1–2 dias úteis.</p>
+        </div>
+      </div>
 
-      <Card className="bg-slate-900 border-white/5 rounded-[2rem] overflow-hidden">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
-              <Download className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-sm">Exportação Fiscal</h4>
-              <p className="text-xs text-slate-400">Faturas e relatórios</p>
-            </div>
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+            <Download className="w-5 h-5 text-amber-600" />
           </div>
-          <div className="bg-slate-950 rounded-xl p-4 text-slate-200">
-            <DataExportInline 
-              professionalEmail={user?.email}
-              country={professionalProfile?.country_of_operation}
-            />
+          <div>
+            <h4 className="font-bold text-slate-900 text-sm">Exportação Fiscal</h4>
+            <p className="text-xs text-slate-400">Faturas e relatórios</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="bg-slate-50 rounded-xl p-4 text-slate-700">
+          <DataExportInline 
+            professionalEmail={user?.email}
+            country={professionalProfile?.country_of_operation}
+          />
+        </div>
+      </div>
     </div>
   );
 }
