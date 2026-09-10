@@ -48,10 +48,10 @@ export default function Shop() {
         "-created_date",
         60
       ),
-    initialData: [],
     staleTime: 5 * 60 * 1000,
-    cacheTime: 15 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   const locations = useMemo(
