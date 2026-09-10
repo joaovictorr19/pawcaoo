@@ -104,13 +104,12 @@ export default function ProductPurchaseModal({ product, onClose }) {
         <div className="px-5 pb-5 space-y-5">
           {/* Resumo do produto */}
           <div className="flex gap-3 items-center bg-slate-50 rounded-2xl p-3">
-            <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-200 flex-shrink-0">
-              {product.image_url ? (
-                <img src={product.image_url} alt={product.product_name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="w-6 h-6 text-slate-400" />
-                </div>
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-200 flex-shrink-0 relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Package className="w-6 h-6 text-slate-400" />
+              </div>
+              {product.image_url && (
+                <img src={product.image_url} alt={product.product_name} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="relative w-full h-full object-cover" />
               )}
             </div>
             <div className="min-w-0">

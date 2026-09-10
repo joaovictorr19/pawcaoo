@@ -194,18 +194,18 @@ export default function Shop() {
                 >
                   {/* Imagem — compacta à esquerda no telemóvel, em cima no desktop */}
                   <div className="w-28 h-28 sm:w-full sm:h-44 shrink-0 relative overflow-hidden bg-slate-100 rounded-2xl sm:rounded-none">
-                    {product.image_url ? (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Package className="w-8 h-8 text-slate-300" />
+                    </div>
+                    {product.image_url && (
                       <img
                         src={product.image_url}
                         alt={product.product_name}
                         loading="lazy"
                         decoding="async"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        className="relative w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-8 h-8 text-slate-300" />
-                      </div>
                     )}
                     {soldOut ? (
                       <span className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-slate-900/80 text-white text-[10px] font-bold">
