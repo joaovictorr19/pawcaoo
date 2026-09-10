@@ -76,7 +76,14 @@ Deno.serve(async (req) => {
     });
 
     const dogsToday = todayBookings.reduce((acc, b) => acc + (b.total_dogs || 1), 0);
-    const availableToday = Math.max(0, capacityTotal - dogsToday);
+    const bookingBasedAvailable = Math.max(0, capacityTotal - dogsToday);
+
+    // Respeitar vagas fechadas manualmente pelo hotel (ex: botão "Esgotar"):
+    // a sincronização só FECHA vagas (quando entram cães), nunca REABRE
+    // vagas que o hotel fechou deliberadamente. A reabertura faz-se via o
+    // fluxo de cancelamento/expiração de reservas ou manualmente (+/Cheio).
+    const currentTopAvailable = hotel.hotel_details?.capacity_available ?? capacityTotal;
+    const syncedTopAvailable = Math.min(currentTopAvailable, bookingBasedAvailable);
 
     // Sync also each stay service's availability with today's occupancy
     const services = (hotel.hotel_details?.services || []).map(s => {
@@ -85,14 +92,16 @@ Deno.serve(async (req) => {
         .filter(b => b.service_type === s.service_type)
         .reduce((acc, b) => acc + (b.total_dogs || 1), 0);
       const total = s.capacity_total ?? 0;
-      return { ...s, capacity_available: Math.max(0, total - dogsService) };
+      const bookingSvcAvailable = Math.max(0, total - dogsService);
+      const currentSvcAvailable = s.capacity_available ?? total;
+      return { ...s, capacity_available: Math.min(currentSvcAvailable, bookingSvcAvailable) };
     });
 
-    // Update hotel's capacity_available to today's value
+    // Update hotel's capacity_available — apenas fecha, nunca reabre
     await base44.asServiceRole.entities.WalkerProfile.update(hotel.id, {
       hotel_details: {
         ...hotel.hotel_details,
-        capacity_available: availableToday,
+        capacity_available: syncedTopAvailable,
         services
       }
     });
@@ -102,7 +111,7 @@ Deno.serve(async (req) => {
       hotel_email: hotel_email,
       capacity_total: capacityTotal,
       dogs_today: dogsToday,
-      capacity_available: availableToday
+      capacity_available: syncedTopAvailable
     });
 
   } catch (error) {
