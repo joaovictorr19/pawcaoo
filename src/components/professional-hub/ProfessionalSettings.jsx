@@ -66,7 +66,7 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
 
   const uploadImage = async (file) => {
     const optimized = await compressImage(file);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: optimized });
+    const { file_url } = await base44.integrations.Core.UploadPublicFile({ file: optimized });
     return file_url;
   };
 

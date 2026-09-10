@@ -40,12 +40,24 @@ if (typeof window !== 'undefined' && !window.__moduleImportRecoveryPatched) {
     try {
       if (sessionStorage.getItem('__staleChunkReload')) return; // já recarregamos uma vez — não fazer loop
       sessionStorage.setItem('__staleChunkReload', '1');
+      // Limpar caches HTTP e service workers que possam estar a servir chunks antigos
       if (window.caches?.keys) {
         window.caches.keys().then(keys => keys.forEach(k => window.caches.delete(k))).catch(() => {});
+      }
+      if (navigator.serviceWorker?.getRegistrations) {
+        navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister())).catch(() => {});
       }
       window.location.reload();
     } catch (_) {}
   };
+
+  // Limpar a flag de recuperação pouco depois do carregamento, para que futuros
+  // deploys também consigam recuperar (a flag apenas evita loops imediatos).
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      try { sessionStorage.removeItem('__staleChunkReload'); } catch (_) {}
+    }, 5000);
+  });
 
   window.addEventListener('error', (e) => {
     if (isStaleChunkError(e?.message) || isStaleChunkError(e?.error?.message)) recoverFromStaleChunk();
