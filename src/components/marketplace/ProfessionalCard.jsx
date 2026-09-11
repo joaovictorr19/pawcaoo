@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Globe, Briefcase } from "lucide-react";
 import { BadgeStatic } from "@/components/ui/BadgeStatic";
+import { AnimalIconsList } from "@/components/professionals/AnimalIcons";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ensureProfileSlug } from "@/utils/profileSlug";
@@ -30,8 +31,11 @@ export function ProfessionalCard({ walker }) {
   const borderStyle = sealConfig ? sealToBorderStyle(sealConfig) : null;
 
   const displayName = walker.hotel_details?.hotel_name || walker.full_name || walker.walker_name || walker.trainer_name;
-  const bio = walker?.bio || walker?.professional_profile?.bio || '';
+  const bio = walker?.bio || walker?.hotel_details?.hotel_description || walker?.professional_profile?.bio || '';
   const city = walker.city || walker.location || 'Portugal';
+  const acceptedAnimals = walker?.accepted_animals?.length ? walker.accepted_animals : ['dogs'];
+  const languages = walker?.languages_spoken || [];
+  const experienceYears = walker?.experience_years;
 
   return (
     <div
@@ -42,7 +46,7 @@ export function ProfessionalCard({ walker }) {
         const name = walker?.hotel_details?.hotel_name || walker?.walker_name;
         const type = walker?.professional_type === 'hotel' ? 'hotel' : 'walker';
         const link = await ensureProfileSlug(name, walker?.created_by, type);
-        navigate(link, { state: { email: walker?.created_by, type } });
+        navigate(link);
       }}
       onMouseEnter={() => {
         queryClient.prefetchQuery({
@@ -107,6 +111,27 @@ export function ProfessionalCard({ walker }) {
           </p>
         ) : (
           <p className="text-xs text-slate-300 italic mb-2">Profissional verificado PawCão</p>
+        )}
+
+        {/* Info row: accepted animals, languages, experience */}
+        {(acceptedAnimals.length > 0 || languages.length > 0 || experienceYears != null) && (
+          <div className="flex items-center gap-2.5 mb-2 flex-wrap">
+            {acceptedAnimals.length > 0 && (
+              <AnimalIconsList acceptedAnimals={acceptedAnimals} size="sm" />
+            )}
+            {languages.length > 0 && (
+              <span className="flex items-center gap-0.5 text-[10px] font-semibold text-slate-500">
+                <Globe className="w-3 h-3" />
+                {languages.slice(0, 3).join(', ')}
+              </span>
+            )}
+            {experienceYears != null && (
+              <span className="flex items-center gap-0.5 text-[10px] font-semibold text-slate-500">
+                <Briefcase className="w-3 h-3" />
+                {experienceYears}a exp
+              </span>
+            )}
+          </div>
         )}
 
         <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-slate-100">
