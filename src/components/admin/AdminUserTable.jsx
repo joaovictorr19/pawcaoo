@@ -102,7 +102,7 @@ export default function AdminUserTable({
   };
 
   const stats = useMemo(() => {
-    let pending = 0, active = 0;
+    let pending = 0, active = 0, professionals = 0;
     (Array.isArray(users) ? users : []).forEach(u => {
       const prof = profilesByEmail[u.email];
       const isVerifiedProfile = prof?.is_verified === true;
@@ -117,10 +117,11 @@ export default function AdminUserTable({
         !!u?.professional_profile?.requested_role
       );
       if (!isProfessional) return;
+      professionals++;
       const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker || hasActiveTrainer;
       if (isActive) active++; else pending++;
     });
-    return { pending, active, reports: 0 };
+    return { pending, active, professionals, reports: 0 };
   }, [users, profilesByEmail, walkers, trainers]);
 
   const filteredUsers = useMemo(() => {
@@ -151,6 +152,7 @@ export default function AdminUserTable({
         !!u?.professional_profile?.requested_role
       );
       const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker || hasActiveTrainer;
+      if (quickFilter === 'professionals') return isProfessional;
       if (quickFilter === 'pending') return isProfessional && !isActive;
       if (quickFilter === 'active') return isProfessional && isActive;
       if (quickFilter === 'reports') return false;
@@ -214,6 +216,9 @@ export default function AdminUserTable({
           <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
             <Button size="sm" className={pillCls(quickFilter === 'all', 'bg-slate-800')} onClick={() => setQuickFilter('all')}>
               Todos ({users.length})
+            </Button>
+            <Button size="sm" className={pillCls(quickFilter === 'professionals', 'bg-teal-600')} onClick={() => setQuickFilter('professionals')}>
+              Profissionais ({stats.professionals})
             </Button>
             <Button size="sm" className={pillCls(quickFilter === 'pending', 'bg-orange-500')} onClick={() => setQuickFilter('pending')}>
               Pendentes ({stats.pending})
