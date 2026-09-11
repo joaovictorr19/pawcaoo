@@ -60,17 +60,27 @@ Deno.serve(async (req) => {
     const isReminder = email_type === 'reminder';
 
     const subject = isReminder
-      ? `Ainda não partilhou a sua experiência com ${trainerName} 🐾`
-      : `Como correreu a sua sessão com ${trainerName}? 🐾`;
+      ? `Ainda não partilhou a sua experiência com ${safeTrainerName} 🐾`
+      : `Como correreu a sua sessão com ${safeTrainerName}? 🐾`;
 
-    const greeting = ownerName ? `Olá ${ownerName},` : 'Olá,';
+    const escapeHtml = (str: string): string =>
+      String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const greeting = ownerName ? `Olá ${escapeHtml(ownerName)},` : 'Olá,';
+    const safeTrainerName = escapeHtml(trainerName);
+    const safeDogName = escapeHtml(dogName);
 
     const bodyHtml = isReminder
       ? `<div style="font-family:'Poppins',Arial,sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
            <p style="font-size:16px;">${greeting}</p>
            <p style="font-size:15px;line-height:1.6;">
-             A sua sessão de treino ${dogName ? `com o/a ${dogName} ` : ''}com <strong>${trainerName}</strong> já foi concluída.
-             A sua opinião é muito importante para nós e para outros donos que procuram um treinador de confiança.
+             A sua sessão de treino ${safeDogName ? `com o/a ${safeDogName} ` : ''}com <strong>${safeTrainerName}</strong> já foi concluída.
+              A sua opinião é muito importante para nós e para outros donos que procuram um treinador de confiança.
            </p>
            <p style="font-size:15px;line-height:1.6;">
              Demora menos de um minuto e faz toda a diferença. 💚
@@ -86,8 +96,8 @@ Deno.serve(async (req) => {
       : `<div style="font-family:'Poppins',Arial,sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
            <p style="font-size:16px;">${greeting}</p>
            <p style="font-size:15px;line-height:1.6;">
-             A sua sessão de treino ${dogName ? `com o/a ${dogName} ` : ''}com <strong>${trainerName}</strong> foi concluída.
-             Esperamos que tenha corrido bem!
+             A sua sessão de treino ${safeDogName ? `com o/a ${safeDogName} ` : ''}com <strong>${safeTrainerName}</strong> foi concluída.
+              Esperamos que tenha corrido bem!
            </p>
            <p style="font-size:15px;line-height:1.6;">
              Gostaríamos muito de saber a sua opinião. A sua avaliação ajuda-nos a melhorar o serviço e ajuda outros donos a encontrar o treinador certo.

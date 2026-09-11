@@ -1,6 +1,8 @@
 import Stripe from 'npm:stripe';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 
+import { safeRedirectUrl } from '../../shared/safeRedirect.ts';
+
 const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
 const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
@@ -110,8 +112,8 @@ Deno.serve(async (req) => {
       }],
       mode: 'payment',
       locale: 'pt',
-      success_url: successUrl || `${origin}/ClientDashboard?addon=success`,
-      cancel_url: cancelUrl || `${origin}/ClientDashboard?addon=cancelled`,
+      success_url: safeRedirectUrl(successUrl, `${origin}/ClientDashboard?addon=success`, origin),
+      cancel_url: safeRedirectUrl(cancelUrl, `${origin}/ClientDashboard?addon=cancelled`, origin),
       customer_email: customerEmail,
       metadata: {
         booking_id: bookingId,

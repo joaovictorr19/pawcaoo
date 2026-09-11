@@ -3,6 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { applyWalletPayment } from '../../shared/walletPayment.ts';
 import { fulfillProductOrderPaid } from '../../shared/productOrderFulfillment.ts';
+import { safeRedirectUrl } from '../../shared/safeRedirect.ts';
 
 export default async function (req) {
   try {
@@ -326,9 +327,8 @@ export default async function (req) {
       ],
       mode: 'payment',
       locale: 'pt',
-      success_url:
-        success_url || (origin + '/OrderSuccess?order_id=' + order.id),
-      cancel_url: cancel_url || (origin + '/Shop?checkout=cancelled'),
+      success_url: safeRedirectUrl(success_url, origin + '/OrderSuccess?order_id=' + order.id, origin),
+      cancel_url: safeRedirectUrl(cancel_url, origin + '/Shop?checkout=cancelled', origin),
       customer_email: user.email,
       metadata: {
         type: 'product_order',
