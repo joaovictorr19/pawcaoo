@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import {
   Camera, Loader2, Hotel, MapPin, Save, Image as ImageIcon, Phone, Globe, Clock, Eye, EyeOff, Check, Instagram, Award, Euro
 } from "lucide-react";
+import CardPhotoAdjuster from "@/components/ui/CardPhotoAdjuster";
 import HotelBlockedDatesManager from "@/components/hotel/HotelBlockedDatesManager";
 import HotelPortfolioEditor from "@/components/hotel/HotelPortfolioEditor";
 import CertificationsEditor from "@/components/profile/CertificationsEditor";
@@ -22,6 +23,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     phone: hotelProfile?.phone || "",
     bio: hotelProfile?.bio || "",
     photo_url: hotelProfile?.photo_url || "",
+    photo_focus_x: hotelProfile?.photo_focus_x ?? 50,
+    photo_focus_y: hotelProfile?.photo_focus_y ?? 0,
     cover_photo_url: hotelProfile?.cover_photo_url || "",
     hotel_name: hotelProfile?.hotel_details?.hotel_name || "",
     hotel_description: hotelProfile?.hotel_details?.hotel_description || "",
@@ -142,6 +145,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
         phone: origPhone,
         bio: form.bio,
         photo_url: form.photo_url,
+        photo_focus_x: form.photo_focus_x ?? 50,
+        photo_focus_y: form.photo_focus_y ?? 0,
         cover_photo_url: form.cover_photo_url,
         instagram_url: form.instagram_url,
         hotel_details: directHotelDetails,
@@ -268,6 +273,17 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
             <p className="text-xs text-slate-400">Toque na foto ou no ícone da câmara para alterar</p>
           </div>
         </div>
+
+        {form.photo_url && (
+          <div className="mt-4">
+            <CardPhotoAdjuster
+              imageUrl={form.photo_url}
+              focusX={form.photo_focus_x}
+              focusY={form.photo_focus_y}
+              onChange={(x, y) => setForm((prev) => ({ ...prev, photo_focus_x: x, photo_focus_y: y }))}
+            />
+          </div>
+        )}
 
         {/* Form Fields */}
         <div className="mt-5 space-y-4">

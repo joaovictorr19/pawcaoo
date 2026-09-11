@@ -10,6 +10,7 @@ import {
   Camera, Loader2, MapPin, Save, Image as ImageIcon, Phone, Instagram,
   Euro, Award, Clock, Check, Dog,
 } from "lucide-react";
+import CardPhotoAdjuster from "@/components/ui/CardPhotoAdjuster";
 import CertificationsEditor from "@/components/profile/CertificationsEditor";
 import SaveConfirmation from "@/components/ui/SaveConfirmation";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
@@ -28,6 +29,8 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
     phone: professionalProfile?.phone || "",
     bio: professionalProfile?.bio || "",
     photo_url: professionalProfile?.photo_url || "",
+    photo_focus_x: professionalProfile?.photo_focus_x ?? 50,
+    photo_focus_y: professionalProfile?.photo_focus_y ?? 0,
     cover_photo_url: professionalProfile?.cover_photo_url || "",
     instagram_url: professionalProfile?.instagram_url || "",
     hourly_rate: professionalProfile?.hourly_rate || "",
@@ -122,6 +125,8 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
       await entity.update(professionalProfile.id, {
         bio: form.bio,
         photo_url: form.photo_url,
+        photo_focus_x: form.photo_focus_x ?? 50,
+        photo_focus_y: form.photo_focus_y ?? 0,
         cover_photo_url: form.cover_photo_url,
         instagram_url: form.instagram_url,
         hourly_rate: form.hourly_rate ? parseFloat(form.hourly_rate) : null,
@@ -236,6 +241,17 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
             <p className="text-xs text-slate-400">Toque na foto ou no ícone da câmara para alterar</p>
           </div>
         </div>
+
+        {form.photo_url && (
+          <div className="mt-4">
+            <CardPhotoAdjuster
+              imageUrl={form.photo_url}
+              focusX={form.photo_focus_x}
+              focusY={form.photo_focus_y}
+              onChange={(x, y) => setForm((prev) => ({ ...prev, photo_focus_x: x, photo_focus_y: y }))}
+            />
+          </div>
+        )}
 
         <div className="mt-5 space-y-4">
           {/* Nome */}
