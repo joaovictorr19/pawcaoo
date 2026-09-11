@@ -83,7 +83,7 @@ export default function AdminProfessionalsPanel({ walkers = [], onDelete, onTogg
                         <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-base flex-shrink-0">🐾</div>
                       )}
                       <div>
-                        <p className="font-semibold text-slate-900">{w.walker_name || "Sem nome"}</p>
+                        <p className="font-semibold text-slate-900">{w.walker_name || w.hotel_details?.hotel_name || w.trainer_name || "Sem nome"}</p>
                         <p className="text-xs text-slate-400">{w.location || "—"}</p>
                       </div>
                     </div>

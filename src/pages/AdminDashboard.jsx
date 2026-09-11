@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Users, Shield, Clock, Ban, AlertCircle,
-  Award, Gift, Zap, AlertTriangle, Building2
+  Award, Gift, Zap, AlertTriangle, Building2, RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -1080,13 +1080,13 @@ export default function AdminDashboard() {
                           is_verified: true
                         }
                       });
-                      if (u.account_type === 'walker' || u.account_type === 'both') {
+                      if (u.account_type === 'walker' || u.account_type === 'both' || u.account_type === 'hotel' || u.account_type === 'shop') {
                         const w = await base44.entities.WalkerProfile.filter({ created_by: u.email });
-                        if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'verified', is_active: true });
+                        if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'verified', is_active: true, is_verified: true });
                       }
                       if (u.account_type === 'trainer' || u.account_type === 'both') {
                         const t = await base44.entities.TrainerProfile.filter({ created_by: u.email });
-                        if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'verified', is_active: true });
+                        if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'verified', is_active: true, is_verified: true });
                       }
                       // Garantir que a aba Usuários reflete o estado (UserProfile -> is_verified)
                       try {
@@ -1114,13 +1114,13 @@ export default function AdminDashboard() {
                           rejection_reason: reason
                         }
                       });
-                      if (u.account_type === 'walker' || u.account_type === 'both') {
+                      if (u.account_type === 'walker' || u.account_type === 'both' || u.account_type === 'hotel' || u.account_type === 'shop') {
                         const w = await base44.entities.WalkerProfile.filter({ created_by: u.email });
-                        if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'rejected', rejection_reason: reason });
+                        if (w.length) await base44.entities.WalkerProfile.update(w[0].id, { verification_status: 'rejected', rejection_reason: reason, is_verified: false });
                       }
                       if (u.account_type === 'trainer' || u.account_type === 'both') {
                         const t = await base44.entities.TrainerProfile.filter({ created_by: u.email });
-                        if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'rejected', rejection_reason: reason });
+                        if (t.length) await base44.entities.TrainerProfile.update(t[0].id, { verification_status: 'rejected', rejection_reason: reason, is_verified: false });
                       }
                       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
                       toast.success("Usuário rejeitado!");
@@ -1195,7 +1195,36 @@ export default function AdminDashboard() {
 
           <TabsContent value="debug">
             {activeTab === 'debug' && (
-              <div className="mt-6">
+              <div className="mt-6 space-y-6">
+                <Card className="glass-panel border-0 shadow-xl" style={{ borderRadius: 0 }}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <RefreshCw className="w-5 h-5 text-teal-600" />
+                      Sincronização de Verificação
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">Corrige dessincronização entre <code>verification_status</code> e <code>is_verified</code> em todos os perfis profissionais</p>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      onClick={async () => {
+                        if (!confirm("Sincronizar is_verified com verification_status em todos os WalkerProfile e TrainerProfile?")) return;
+                        try {
+                          const res = await base44.functions.invoke('syncVerificationFields', {});
+                          const r = res?.data || res;
+                          queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+                          queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+                          queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+                          toast.success(`${r.total_corrected} perfis corrigidos (${r.walker_synced} walkers, ${r.trainer_synced} treinadores)`);
+                        } catch (e) {
+                          toast.error("Erro ao sincronizar: " + (e.message || "desconhecido"));
+                        }
+                      }}
+                      className="bg-teal-600 hover:bg-teal-700 text-white gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" /> Sincronizar Agora
+                    </Button>
+                  </CardContent>
+                </Card>
                 <AdminDebug />
               </div>
             )}

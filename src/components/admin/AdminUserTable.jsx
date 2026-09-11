@@ -105,12 +105,10 @@ export default function AdminUserTable({
     let pending = 0, active = 0, professionals = 0;
     (Array.isArray(users) ? users : []).forEach(u => {
       const prof = profilesByEmail[u.email];
-      const isVerifiedProfile = prof?.is_verified === true;
-      const isVerifiedUser = u?.professional_profile?.verification_status === 'verified' || u?.professional_profile?.is_verified === true;
       const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && w.verification_status === 'verified');
       const hasActiveTrainer = Array.isArray(trainers) && trainers.some(t => t.created_by === u.email && t.verification_status === 'verified');
       const isProfessional = (
-        ['walker','trainer','both','professional'].includes(u.account_type || '') ||
+        ['walker','trainer','both','professional','hotel','shop'].includes(u.account_type || '') ||
         (Array.isArray(walkers) && walkers.some(w => w.created_by === u.email)) ||
         (Array.isArray(trainers) && trainers.some(t => t.created_by === u.email)) ||
         u?.professional_profile?.is_professional === true ||
@@ -118,7 +116,7 @@ export default function AdminUserTable({
       );
       if (!isProfessional) return;
       professionals++;
-      const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker || hasActiveTrainer;
+      const isActive = hasActiveWalker || hasActiveTrainer || u?.professional_profile?.verification_status === 'verified';
       if (isActive) active++; else pending++;
     });
     return { pending, active, professionals, reports: 0 };
@@ -139,19 +137,17 @@ export default function AdminUserTable({
           return false;
         }
       }
-      const prof = profilesByEmail[u.email];
-      const isVerifiedProfile = prof?.is_verified === true;
-      const isVerifiedUser = u?.professional_profile?.verification_status === 'verified' || u?.professional_profile?.is_verified === true;
       const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && w.verification_status === 'verified');
       const hasActiveTrainer = Array.isArray(trainers) && trainers.some(t => t.created_by === u.email && t.verification_status === 'verified');
       const isProfessional = (
-        ['walker','trainer','both','professional'].includes(u.account_type || '') ||
+        ['walker','trainer','both','professional','hotel','shop'].includes(u.account_type || '') ||
         (Array.isArray(walkers) && walkers.some(w => w.created_by === u.email)) ||
         (Array.isArray(trainers) && trainers.some(t => t.created_by === u.email)) ||
         u?.professional_profile?.is_professional === true ||
         !!u?.professional_profile?.requested_role
       );
-      const isActive = isVerifiedProfile || isVerifiedUser || hasActiveWalker || hasActiveTrainer;
+      const isActive = hasActiveWalker || hasActiveTrainer || u?.professional_profile?.verification_status === 'verified';
+      const prof = profilesByEmail[u.email];
       if (quickFilter === 'professionals') return isProfessional;
       if (quickFilter === 'pending') return isProfessional && !isActive;
       if (quickFilter === 'active') return isProfessional && isActive;
