@@ -425,11 +425,11 @@ export default function AdminDashboard() {
     refetchOnWindowFocus: false,
   });
 
-  const walkerApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type !== 'hotel' && w.professional_type !== 'shop');
-  const shopApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'shop');
-  const hotelApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'hotel');
-  const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status);
-  const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || s.verification_status === 'requires_documents' || s.verification_status === 'rejected' || !s.verification_status);
+  const walkerApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents') && w.professional_type !== 'hotel' && w.professional_type !== 'shop');
+  const shopApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents') && w.professional_type === 'shop');
+  const hotelApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents') && w.professional_type === 'hotel');
+  const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents');
+  const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || s.verification_status === 'requires_documents');
   const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified' && w.is_active === true && ['walker', 'trainer', 'both'].includes(w.professional_type));
   const activeHotels = allWalkers.filter(w => w.verification_status === 'verified' && w.is_active === true && w.professional_type === 'hotel');
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
