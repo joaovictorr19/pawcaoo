@@ -353,7 +353,7 @@ export default function ClientDashboard() {
       {/* Modal de relatório */}
       {selectedBooking && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-end md:items-center justify-center p-4" onClick={() => setSelectedBooking(null)}>
-          <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl" onClick={e => e.stopPropagation()}>
+          <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-slate-900" onClick={e => e.stopPropagation()}>
             <WalkReport booking={selectedBooking} checkpoints={checkpoints} />
             <Button onClick={() => setSelectedBooking(null)} className="w-full mt-3 bg-slate-800 hover:bg-slate-700 rounded-2xl">
               Fechar
