@@ -26,7 +26,7 @@ export default function DeliverMimoModal({ order, hotelEmail, onClose, onDeliver
 
   const handleDeliver = async () => {
     if (!photoUrl) {
-      toast.error("Tira uma foto do cão com o mimo 📸");
+      toast.error("Tira uma foto do cão com o mimo.");
       return;
     }
     setSaving(true);
@@ -62,12 +62,14 @@ export default function DeliverMimoModal({ order, hotelEmail, onClose, onDeliver
       // 3. Atualizar registo pendente OU criar novo no diário da estadia
       if (booking) {
         try {
+          const ownerMessage = (order.delivery_notes || "").trim();
           const deliveredTitle = isGift
-            ? "🎁 Mimo da PawCão: " + productName
-            : "🐾 Mimo: " + productName;
-          const deliveredDesc = isGift
-            ? "O " + dogName + " recebeu o mimo oferecido pela PawCão — " + productName + "! Olha como ficou feliz 🐶✨"
-            : "O " + dogName + " recebeu o mimo oferecido pelo dono — " + productName + "! Olha como ficou feliz 🐶✨";
+            ? "Mimo da PawCão: " + productName
+            : "Mimo: " + productName;
+          const deliveredDesc = (isGift
+            ? "O " + dogName + " recebeu o mimo oferecido pela PawCão — " + productName + ". Olha como ficou feliz."
+            : "O " + dogName + " recebeu o mimo oferecido pelo dono — " + productName + ". Olha como ficou feliz.")
+            + (ownerMessage ? ' Recado do dono: "' + ownerMessage + '"' : "");
 
           if (existingRecord) {
             // Atualizar o registo pendente com a foto e marcar como resolvido
@@ -119,12 +121,12 @@ export default function DeliverMimoModal({ order, hotelEmail, onClose, onDeliver
         try {
           await base44.entities.Notification.create({
             recipient_email: order.customer_email,
-            title: `🐾 ${dogName} recebeu o mimo!`,
+            title: `${dogName} recebeu o mimo!`,
             message: isGift
-              ? `O ${dogName} recebeu o mimo oferecido pela PawCão (${productName}) e adorou! Vê a foto no diário da estadia.`
-              : `O ${dogName} recebeu o teu mimo (${productName}) e adorou! Vê a foto no diário da estadia.`,
+              ? `O ${dogName} recebeu o mimo oferecido pela PawCão (${productName}) e adorou. Vê a foto no diário da estadia.`
+              : `O ${dogName} recebeu o teu mimo (${productName}) e adorou. Vê a foto no diário da estadia.`,
             type: "booking",
-            icon: "🐾",
+            icon: "gift",
             link: booking ? `/ClientDashboard` : "/Shop",
             related_id: order.id,
           });
@@ -133,7 +135,7 @@ export default function DeliverMimoModal({ order, hotelEmail, onClose, onDeliver
         }
       }
 
-      toast.success("Mimo entregue! Foto publicada no diário 🐾");
+      toast.success("Mimo entregue. Foto publicada no diário.");
       onDelivered();
     } catch (err) {
       console.error("Deliver mimo error:", err);
@@ -167,9 +169,17 @@ export default function DeliverMimoModal({ order, hotelEmail, onClose, onDeliver
             </div>
           </div>
 
+          {/* Recado do dono */}
+          {(order.delivery_notes || "").trim() && (
+            <div className="rounded-xl bg-rose-50 border border-rose-100 p-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-rose-500 mb-1">Recado do dono</p>
+              <p className="text-sm text-slate-700 italic leading-relaxed">"{(order.delivery_notes || "").trim()}"</p>
+            </div>
+          )}
+
           {/* Upload de foto */}
           <div>
-            <p className="text-sm font-bold text-slate-900 mb-2">Foto do cão feliz 📸</p>
+            <p className="text-sm font-bold text-slate-900 mb-2">Foto do cão feliz</p>
             <label className="block">
               <div className={`relative rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden ${
                 photoUrl ? "border-teal-400" : "border-slate-200 hover:border-teal-300"
@@ -226,7 +236,7 @@ export default function DeliverMimoModal({ order, hotelEmail, onClose, onDeliver
                   A publicar...
                 </>
               ) : (
-                "Entregar e publicar 🐾"
+                "Entregar e publicar"
               )}
             </button>
           </div>

@@ -8,13 +8,14 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import {
-  Gift, Loader2, PawPrint, Calendar, Check, ChevronRight, AlertCircle, Hotel
+  Gift, Loader2, PawPrint, Calendar, Check, ChevronRight, AlertCircle, Hotel, Heart
 } from "lucide-react";
 
 export default function MimoRedeemModal({ mimo, onClose }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [petMessage, setPetMessage] = useState("");
   const [processing, setProcessing] = useState(false);
 
   const { data: user } = useQuery({
@@ -133,6 +134,7 @@ export default function MimoRedeemModal({ mimo, onClose }) {
         quantity: 1,
         booking_id: selectedBooking.raw?.id || selectedBooking.id,
         dog_name: selectedBooking.dogName || null,
+        delivery_notes: petMessage.trim() || null,
       });
       const data = response.data;
       if (data?.url) {
@@ -142,8 +144,8 @@ export default function MimoRedeemModal({ mimo, onClose }) {
       if (data?.paid || data?.gift) {
         toast.success(
           isFree
-            ? "Mimo resgatado! O hotel vai entregar ao teu cão 🐾"
-            : "Compra confirmada! O hotel vai entregar ao teu cão 🐾"
+            ? "Mimo resgatado. O hotel vai entregar ao teu cão na próxima estadia."
+            : "Compra confirmada. O hotel vai entregar ao teu cão na próxima estadia."
         );
         queryClient.invalidateQueries({ queryKey: ["shopMimos"] });
         queryClient.invalidateQueries({ queryKey: ["shopProducts"] });
@@ -259,7 +261,26 @@ export default function MimoRedeemModal({ mimo, onClose }) {
           )}
 
           {user && bookings.length > 0 && (
-            <p className="text-[11px] text-slate-400 text-center pt-3">
+            <div className="pt-3">
+              <label className="flex items-center gap-1.5 text-sm font-bold text-slate-900 mb-1.5">
+                <Heart className="w-3.5 h-3.5 text-rose-400" />
+                Diga algo ao seu pet
+              </label>
+              <p className="text-[11px] text-slate-400 mb-2">Opcional — o hotel lê esta mensagem quando entregar o mimo.</p>
+              <textarea
+                value={petMessage}
+                onChange={(e) => setPetMessage(e.target.value)}
+                rows={3}
+                maxLength={300}
+                placeholder="Escreve uma mensagem carinhosa para o teu companheiro..."
+                className="w-full text-sm rounded-xl border border-slate-200 bg-white p-3 text-slate-900 placeholder:text-slate-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none resize-none"
+              />
+              <p className="text-[10px] text-slate-400 text-right mt-0.5">{petMessage.length}/300</p>
+            </div>
+          )}
+
+          {user && bookings.length > 0 && (
+            <p className="text-[11px] text-slate-400 text-center pt-2">
               {isFree
                 ? "O parceiro será notificado e entregará o mimo ao teu cão na reserva."
                 : "Pagamento seguro · O parceiro entrega o mimo e publica uma foto no diário."}
@@ -283,7 +304,7 @@ export default function MimoRedeemModal({ mimo, onClose }) {
               ) : (
                 <>
                   <span className="text-sm font-medium opacity-90">
-                    {isFree ? "Resgatar mimo" : "Pagar"}
+                    {isFree ? "Resgatar e enviar" : "Pagar e enviar"}
                   </span>
                   <span className="flex items-center gap-1.5">
                     {!isFree && `€${(mimo.price_euro || 0).toFixed(2)}`}

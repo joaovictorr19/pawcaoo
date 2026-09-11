@@ -46,7 +46,7 @@ export default function MimosSection({ onOpenMimo }) {
         <h2 className="font-heading font-extrabold text-xl text-slate-900">Mimos</h2>
       </div>
       <p className="text-xs text-slate-500 mb-3">
-        Oferece um petisco ao teu cão durante a estadia — o hotel entrega e partilha uma foto no diário 🐾
+        Oferece um petisco ao teu cão durante a estadia — o hotel entrega e partilha uma foto no diário.
       </p>
 
       <div className="flex items-center gap-1.5 mb-2">
