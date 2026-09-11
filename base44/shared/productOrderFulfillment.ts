@@ -112,7 +112,7 @@ export async function fulfillProductOrderPaid(
         await base44.asServiceRole.entities.Notification.create({
           recipient_email: order.partner_company_email,
           title: '🛍️ Nova Venda Paga na Loja',
-          message: `${order.customer_name || order.customer_email} comprou ${itemsSummary}. Total: €${(order.total_amount || 0).toFixed(2)} · Líquido: €${net.toFixed(2)}.`,
+          message: `${order.customer_name || order.customer_email} comprou ${itemsSummary}. Total: €${(order.total_amount || 0).toFixed(2)} · Líquido: €${net.toFixed(2)}.` + (order.delivery_method === 'pickup' ? ` · Recolha código ${order.pickup_code || ''}${order.pickup_address ? ' — ' + order.pickup_address : ''}.` : ''),
           type: 'payment',
           related_id: order.id,
           icon: '🛍️',
@@ -128,7 +128,7 @@ export async function fulfillProductOrderPaid(
         await base44.asServiceRole.entities.Notification.create({
           recipient_email: order.customer_email,
           title: '✅ Encomenda Confirmada',
-          message: `O pagamento da encomenda ${order.order_number || ''} foi confirmado. O parceiro ${order.partner_name || ''} foi notificado.`,
+          message: `O pagamento da encomenda ${order.order_number || ''} foi confirmado. O parceiro ${order.partner_name || ''} foi notificado.` + (order.delivery_method === 'pickup' && order.pickup_code ? ` Código de recolha: ${order.pickup_code}.` : ''),
           type: 'payment',
           related_id: order.id,
           icon: '✅',
@@ -208,7 +208,7 @@ function buildOrderEmailHtml(order, itemsSummary, net) {
           <p style="margin:0 0 8px;color:#134e4a;font-size:14px;"><strong>${itemsSummary}</strong></p>
           <p style="margin:0 0 4px;color:#134e4a;font-size:14px;">Total: €${(order.total_amount || 0).toFixed(2)}</p>
           ${order.delivery_method === 'shipping' ? `<p style="margin:0 0 4px;color:#134e4a;font-size:14px;">Entrega ao domicílio: ${order.shipping_address?.street || ''}, ${order.shipping_address?.postal_code || ''} ${order.shipping_address?.city || ''}</p>` : ''}
-          ${order.delivery_method === 'pickup' ? `<p style="margin:0 0 4px;color:#134e4a;font-size:14px;">Recolha no local do parceiro</p>` : ''}
+          ${order.delivery_method === 'pickup' ? `<p style="margin:0 0 4px;color:#134e4a;font-size:14px;">Recolha no local</p><p style="margin:0 0 4px;color:#134e4a;font-size:14px;"><strong>Código de recolha: ${order.pickup_code || ''}</strong></p>${order.pickup_address ? `<p style="margin:0 0 4px;color:#134e4a;font-size:14px;">📍 ${order.pickup_address}${order.pickup_postal_code ? ', ' + order.pickup_postal_code : ''}${order.pickup_city ? ' ' + order.pickup_city : ''}</p>` : ''}${order.pickup_schedule ? `<p style="margin:0 0 4px;color:#134e4a;font-size:13px;">🕒 ${order.pickup_schedule}</p>` : ''}${order.pickup_notes ? `<p style="margin:0 0 4px;color:#6b7280;font-size:12px;">${order.pickup_notes}</p>` : ''}` : ''}
           ${order.delivery_method === 'with_stay' ? `<p style="margin:0 0 4px;color:#134e4a;font-size:14px;">Será entregue na sua próxima estadia</p>` : ''}
         </div>
         <p style="color:#9ca3af;font-size:12px;margin:0;">

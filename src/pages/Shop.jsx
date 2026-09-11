@@ -5,13 +5,14 @@ import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, Store, RefreshCw } from "lucide-react";
+import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, Store, RefreshCw, KeyRound } from "lucide-react";
 import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
 import FeaturedProducts from "@/components/shop/FeaturedProducts";
 import ShopOffersCarousel from "@/components/shop/ShopOffersCarousel";
 import MimosSection from "@/components/shop/MimosSection";
 import MimosHighlightBanner from "@/components/shop/MimosHighlightBanner";
 import MimoRedeemModal from "@/components/shop/MimoRedeemModal";
+import PickupLookup from "@/components/shop/PickupLookup";
 
 const CATEGORIES = [
   { id: "all", label: "Todos" },
@@ -38,6 +39,7 @@ export default function Shop() {
   const [location, setLocation] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedMimo, setSelectedMimo] = useState(null);
+  const [pickupLookup, setPickupLookup] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["shopCurrentUser"],
@@ -126,6 +128,13 @@ export default function Shop() {
             Produtos e serviços vendidos pelos mesmos profissionais que cuidam do teu cão — hotéis,
             passeadores, treinadores e tosquiadores verificados.
           </p>
+          <button
+            onClick={() => setPickupLookup(true)}
+            className="mt-3 inline-flex items-center gap-1.5 px-4 h-9 rounded-full bg-white border border-slate-200 text-slate-600 hover:border-teal-300 hover:text-teal-700 text-xs font-bold transition-all active:scale-95"
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            Procurar recolha
+          </button>
         </div>
 
         {/* Ofertas relâmpago (banner rotativo) */}
@@ -337,6 +346,7 @@ export default function Shop() {
       {selectedMimo && (
         <MimoRedeemModal mimo={selectedMimo} onClose={() => setSelectedMimo(null)} />
       )}
+      <PickupLookup open={pickupLookup} onClose={() => setPickupLookup(false)} />
     </div>
   );
 }

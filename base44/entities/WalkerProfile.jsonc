@@ -870,6 +870,130 @@
           "default": []
         }
       }
+    },
+    "shop_pickup_config": {
+      "type": "object",
+      "description": "Configuracao de recolha para lojas (privada - so visivel no momento da compra)",
+      "properties": {
+        "full_address": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "postal_code": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Instrucoes adicionais de recolha"
+        },
+        "weekly_schedule": {
+          "type": "object",
+          "description": "Horario semanal de recolha disponivel",
+          "properties": {
+            "monday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "tuesday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "wednesday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "thursday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "friday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "saturday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            },
+            "sunday": {
+              "type": "object",
+              "properties": {
+                "open": {
+                  "type": "boolean"
+                },
+                "open_time": {
+                  "type": "string"
+                },
+                "close_time": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "default": {}
     }
   },
   "required": [

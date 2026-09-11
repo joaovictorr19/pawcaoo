@@ -172,6 +172,28 @@
     },
     "tracking_number": {
       "type": "string"
+    },
+    "pickup_code": {
+      "type": "string",
+      "description": "C\u00f3digo curto de recolha (ex: REC-XXXX) para procura r\u00e1pida na loja"
+    },
+    "pickup_address": {
+      "type": "string",
+      "description": "Morada de recolha (snapshot no momento da compra)"
+    },
+    "pickup_city": {
+      "type": "string"
+    },
+    "pickup_postal_code": {
+      "type": "string"
+    },
+    "pickup_notes": {
+      "type": "string",
+      "description": "Instru\u00e7\u00f5es de recolha (snapshot)"
+    },
+    "pickup_schedule": {
+      "type": "string",
+      "description": "Hor\u00e1rio semanal de recolha formatado (snapshot no momento da compra)"
     }
   },
   "required": [

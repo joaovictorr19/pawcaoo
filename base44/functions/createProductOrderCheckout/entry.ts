@@ -137,6 +137,48 @@ export default async function (req) {
       '-' +
       crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
 
+    // Configuração de recolha (pickup) — morada + horário do parceiro, privado
+    let pickupConfig = null;
+    let pickupCode = '';
+    let pickupSnapshot = { address: '', city: '', postal_code: '', notes: '', schedule: '' };
+    if (deliveryMethod === 'pickup') {
+      try {
+        const pickupEmail = isPawcaoGift && booking?.hotel_email
+          ? booking.hotel_email
+          : (product.partner_company_email || '');
+        const profiles = await base44.asServiceRole.entities.WalkerProfile.filter({
+          created_by: pickupEmail,
+        });
+        const profile = profiles[0];
+        if (profile?.shop_pickup_config) {
+          pickupConfig = profile.shop_pickup_config;
+        }
+        // Hotéis usam hotel_details.full_address + weekly_schedule como fallback
+        if (!pickupConfig && profile?.hotel_details) {
+          pickupConfig = {
+            full_address: profile.hotel_details.full_address || '',
+            weekly_schedule: profile.hotel_details.weekly_schedule || {},
+          };
+        }
+      } catch (e) {
+        console.warn('Pickup config fetch error:', e?.message || e);
+      }
+      if (!pickupConfig || !pickupConfig.full_address) {
+        return Response.json(
+          { error: 'O parceiro ainda não configurou a morada de recolha. Contacta-o antes de comprar.' },
+          { status: 400 },
+        );
+      }
+      pickupCode = 'REC-' + crypto.randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase();
+      pickupSnapshot = {
+        address: pickupConfig.full_address || '',
+        city: pickupConfig.city || '',
+        postal_code: pickupConfig.postal_code || '',
+        notes: pickupConfig.notes || '',
+        schedule: formatWeeklySchedule(pickupConfig.weekly_schedule),
+      };
+    }
+
     // Criar a encomenda (pendente) — o parceiro é identificado pelos campos denormalizados
     const order = await base44.entities.ProductOrder.create({
       order_number: orderNumber,
@@ -170,6 +212,12 @@ export default async function (req) {
       booking_id: booking_id || undefined,
       dog_name: dog_name || undefined,
       is_pawcao_gift: isPawcaoGift,
+      pickup_code: pickupCode || undefined,
+      pickup_address: pickupSnapshot.address || undefined,
+      pickup_city: pickupSnapshot.city || undefined,
+      pickup_postal_code: pickupSnapshot.postal_code || undefined,
+      pickup_notes: pickupSnapshot.notes || undefined,
+      pickup_schedule: pickupSnapshot.schedule || undefined,
     });
 
     // Mimo grátis da PawCão — confirmar de imediato (sem Stripe, sem carteira)
@@ -255,4 +303,16 @@ export default async function (req) {
     console.error('createProductOrderCheckout error:', error?.message || error);
     return Response.json({ error: error?.message || 'Erro interno' }, { status: 500 });
   }
+}
+
+function formatWeeklySchedule(ws) {
+  if (!ws) return '';
+  const days = [
+    ['monday', 'Seg'], ['tuesday', 'Ter'], ['wednesday', 'Qua'],
+    ['thursday', 'Qui'], ['friday', 'Sex'], ['saturday', 'Sáb'], ['sunday', 'Dom'],
+  ];
+  const lines = days
+    .filter(([k]) => ws[k] && ws[k].open)
+    .map(([k, label]) => `${label} ${ws[k].open_time || ''}–${ws[k].close_time || ''}`);
+  return lines.join(' · ');
 }

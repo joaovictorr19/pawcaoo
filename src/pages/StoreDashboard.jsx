@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { createPageUrl } from "@/utils";
 import PartnerStorePanel from "@/components/shop/PartnerStorePanel";
+import PickupConfigSection from "@/components/shop/PickupConfigSection";
 import PageLoader from "@/components/ui/PageLoader";
 import {
   Store, MapPin, Wallet, BadgeCheck, Clock, XCircle, Plus, ChevronLeft,
@@ -173,6 +174,9 @@ export default function StoreDashboard() {
         </div>
         <ChevronLeft className="w-4 h-4 text-slate-300 rotate-180" />
       </Link>
+
+      {/* Configuração de recolha (morada + horário privados) */}
+      <PickupConfigSection shopProfile={shopProfile} />
 
       {/* Gestão de produtos e encomendas */}
       <PartnerStorePanel

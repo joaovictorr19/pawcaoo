@@ -10,10 +10,11 @@ import { useNavigate } from "react-router-dom";
 import {
   Minus, Plus, Truck, MapPin, Hotel, Wallet, CreditCard, Loader2, Package, AlertCircle
 } from "lucide-react";
+import PickupInfoBlock from "./PickupInfoBlock";
 
 const DELIVERY = {
   shipping: { label: "Entrega ao domicílio", icon: Truck, hint: "Vai ser entregue na sua morada" },
-  pickup: { label: "Recolha no local", icon: MapPin, hint: "Combinará a recolha diretamente com o parceiro" },
+  pickup: { label: "Recolha no local", icon: MapPin, hint: "Morada e horário de recolha abaixo" },
   with_stay: { label: "Na próxima estadia", icon: Hotel, hint: "Será adicionado à sua próxima estadia" },
 };
 
@@ -64,6 +65,20 @@ export default function ProductPurchaseModal({ product, onClose }) {
       }
     },
     enabled: !!user?.email,
+  });
+
+  const { data: pickupConfig } = useQuery({
+    queryKey: ["shopPickupConfig", product?.partner_company_email],
+    queryFn: async () => {
+      const profiles = await base44.entities.WalkerProfile.filter({ created_by: product.partner_company_email });
+      const p = profiles[0];
+      if (p?.shop_pickup_config) return p.shop_pickup_config;
+      if (p?.hotel_details) return { full_address: p.hotel_details.full_address, weekly_schedule: p.hotel_details.weekly_schedule };
+      return null;
+    },
+    enabled: !!product?.partner_company_email && product?.delivery_method === "pickup",
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   if (!product) return null;
@@ -174,6 +189,24 @@ export default function ProductPurchaseModal({ product, onClose }) {
               <p className="text-sm font-medium text-slate-700">{delivery.label}</p>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">{delivery.hint}</p>
+            {product.delivery_method === "pickup" && (
+              pickupConfig ? (
+                <div className="mt-3">
+                  <PickupInfoBlock
+                    address={pickupConfig.full_address}
+                    city={pickupConfig.city}
+                    postal_code={pickupConfig.postal_code}
+                    notes={pickupConfig.notes}
+                    schedule={pickupConfig.weekly_schedule}
+                  />
+                </div>
+              ) : (
+                <div className="mt-3 flex items-center gap-2.5 bg-amber-50 rounded-xl p-3">
+                  <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                  <p className="text-xs text-amber-700">O parceiro ainda não configurou a morada de recolha.</p>
+                </div>
+              )
+            )}
             {product.delivery_method === "shipping" && (
               <div className="mt-3">
                 {shippingAddress ? (
