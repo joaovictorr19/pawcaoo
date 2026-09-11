@@ -970,10 +970,9 @@ export default function Home() {
 
               <TabsContent value="professionals">
                 <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
                   className="relative rounded-2xl p-6 md:p-8 overflow-hidden"
                 >
                   <div className="absolute -top-16 -right-10 w-48 h-48 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ background: "#009b93" }} />
@@ -1031,9 +1030,9 @@ export default function Home() {
                       {paginatedProfessionals.map((pro, index) => (
                         <motion.div
                           key={pro.id}
-                          initial={{ opacity: 0, y: 14 }}
+                          initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.4), ease: "easeOut" }}
+                          transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.18), ease: "easeOut" }}
                         >
                           <Suspense fallback={<ProfessionalCardSkeleton />}>
                             <ProfessionalCard walker={pro} />

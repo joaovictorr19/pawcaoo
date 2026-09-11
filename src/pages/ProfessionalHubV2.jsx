@@ -462,8 +462,9 @@ export default function ProfessionalHubV2() {
 
   const isHotelProfile = professionalProfile?.professional_type === 'hotel';
 
-  // Show inline form for new professionals or those without a profile
-  const needsSetup = !professionalProfile || (!isHotelProfile && !user?.account_type);
+  // Se o perfil profissional já existe (por user_id), o painel abre —
+  // não exigir user.account_type (nem sempre preenchido no onboarding).
+  const needsSetup = !professionalProfile;
 
   if (needsSetup) {
     return (
