@@ -195,7 +195,7 @@ export default function ProfileHeroCard({
   return (
     <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col relative overflow-hidden">
       {/* Cover banner inside the card */}
-      <div className="relative h-32 md:h-36 w-full overflow-hidden">
+      <div className="relative aspect-[16/9] md:aspect-[3/2] w-full overflow-hidden">
         {coverUrl ? (
           <img
             src={coverUrl}
