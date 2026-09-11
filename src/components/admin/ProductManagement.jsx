@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ShoppingBag, Edit, Trash2, CheckCircle, X, AlertTriangle, Package, EyeOff } from "lucide-react";
+import { ShoppingBag, Edit, Trash2, CheckCircle, X, AlertTriangle, Package, EyeOff, RefreshCw } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -45,6 +45,7 @@ export default function ProductManagement({ products, isLoading }) {
   // Paginação
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(20);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Produtos filtrados
   const filteredProducts = useMemo(() => {
@@ -184,8 +185,33 @@ export default function ProductManagement({ products, isLoading }) {
     );
   }
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
+    setTimeout(() => setIsRefreshing(false), 600);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Cabeçalho + Atualizar */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <ShoppingBag className="w-5 h-5 text-blue-600" />
+          <h2 className="text-xl font-black text-slate-900">Gestão da Loja</h2>
+          <Badge variant="secondary" className="ml-1">{products.length} produtos</Badge>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="gap-2"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'A atualizar...' : 'Atualizar'}
+        </Button>
+      </div>
+
       {/* Alertas */}
       {lowStockCount > 0 && (
         <Card className="border-2 border-orange-200 bg-orange-50">
