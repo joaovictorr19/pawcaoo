@@ -14,6 +14,20 @@
       "type": "string",
       "description": "Profile photo URL"
     },
+    "cover_focus_x": {
+      "type": "number",
+      "default": 50,
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Posicao horizontal do foco da capa (0-100, 50=centro)"
+    },
+    "cover_focus_y": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Posicao vertical do foco da capa (0-100, 0=topo)"
+    },
     "video_intro_url": {
       "type": "string",
       "description": "Video introduction URL (1-2 min)"

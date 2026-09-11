@@ -111,6 +111,8 @@ export default function ProfileHeroCard({
     : profileUser?.gamification_level;
 
   const coverUrl = displayCoverUrl;
+  const coverFocusX = walkerProfile?.cover_focus_x ?? trainerProfile?.cover_focus_x ?? 50;
+  const coverFocusY = walkerProfile?.cover_focus_y ?? trainerProfile?.cover_focus_y ?? 0;
 
   // Dynamic seal configuration for border styling
   const { getConfig } = useSealConfiguration();
@@ -193,11 +195,12 @@ export default function ProfileHeroCard({
   return (
     <div className="md:col-span-2 lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 flex flex-col relative overflow-hidden">
       {/* Cover banner inside the card */}
-      <div className="relative h-28 md:h-32 w-full overflow-hidden">
+      <div className="relative h-32 md:h-36 w-full overflow-hidden">
         {coverUrl ? (
           <img
             src={coverUrl}
             className="w-full h-full object-cover"
+            style={{ objectPosition: `${coverFocusX}% ${coverFocusY}%` }}
             alt="Capa"
             loading="lazy"
           />

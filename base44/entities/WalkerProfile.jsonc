@@ -42,6 +42,20 @@
       "maximum": 100,
       "description": "Posicao vertical do foco da foto no card (0-100, 0=topo)"
     },
+    "cover_focus_x": {
+      "type": "number",
+      "default": 50,
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Posicao horizontal do foco da capa (0-100, 50=centro)"
+    },
+    "cover_focus_y": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Posicao vertical do foco da capa (0-100, 0=topo)"
+    },
     "cover_photo_url": {
       "type": "string"
     },

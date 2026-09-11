@@ -11,6 +11,7 @@ export default function CardPhotoAdjuster({
   focusY = 0,
   onChange,
   label = "Ajustar Enquadramento do Card",
+  previewClassName = "h-48",
 }) {
   const containerRef = useRef(null);
   const [dragging, setDragging] = useState(false);
@@ -81,7 +82,7 @@ export default function CardPhotoAdjuster({
       {/* Card preview — same aspect ratio as the home ProfessionalCard (h-48, ~340px wide) */}
       <div
         ref={containerRef}
-        className="relative w-full max-w-[340px] mx-auto h-48 overflow-hidden rounded-xl bg-slate-100 cursor-move touch-none select-none"
+        className={`relative w-full max-w-[340px] mx-auto ${previewClassName} overflow-hidden rounded-xl bg-slate-100 cursor-move touch-none select-none`}
         style={{ touchAction: "none" }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}

@@ -32,6 +32,8 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
     photo_focus_x: professionalProfile?.photo_focus_x ?? 50,
     photo_focus_y: professionalProfile?.photo_focus_y ?? 0,
     cover_photo_url: professionalProfile?.cover_photo_url || "",
+    cover_focus_x: professionalProfile?.cover_focus_x ?? 50,
+    cover_focus_y: professionalProfile?.cover_focus_y ?? 0,
     instagram_url: professionalProfile?.instagram_url || "",
     hourly_rate: professionalProfile?.hourly_rate || "",
     experience_years: professionalProfile?.experience_years || "",
@@ -128,6 +130,8 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
         photo_focus_x: form.photo_focus_x ?? 50,
         photo_focus_y: form.photo_focus_y ?? 0,
         cover_photo_url: form.cover_photo_url,
+        cover_focus_x: form.cover_focus_x ?? 50,
+        cover_focus_y: form.cover_focus_y ?? 0,
         instagram_url: form.instagram_url,
         hourly_rate: form.hourly_rate ? parseFloat(form.hourly_rate) : null,
         experience_years: form.experience_years ? parseFloat(form.experience_years) : null,
@@ -249,6 +253,19 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
               focusX={form.photo_focus_x}
               focusY={form.photo_focus_y}
               onChange={(x, y) => setForm((prev) => ({ ...prev, photo_focus_x: x, photo_focus_y: y }))}
+            />
+          </div>
+        )}
+
+        {form.cover_photo_url && (
+          <div className="mt-4">
+            <CardPhotoAdjuster
+              imageUrl={form.cover_photo_url}
+              focusX={form.cover_focus_x}
+              focusY={form.cover_focus_y}
+              previewClassName="h-24 md:h-28"
+              label="Ajustar Enquadramento da Capa"
+              onChange={(x, y) => setForm((prev) => ({ ...prev, cover_focus_x: x, cover_focus_y: y }))}
             />
           </div>
         )}
