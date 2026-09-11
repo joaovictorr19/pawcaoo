@@ -481,6 +481,7 @@ export default function AdminUserTable({
         onApprove={onApproveUser}
         onBan={onRejectUser}
         onDelete={onDelete}
+        onImpersonate={onImpersonate}
         onUpdate={async (userId, data) => {
           await onUpdateUser(userId, data);
           setSelectedUser(prev => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2, Gift, Wallet, Trash2, Percent } from "lucide-react";
+import { ShieldCheck, Ban, UserCog, MessageSquare, X, GraduationCap, Dog, Loader2, Gift, Wallet, Trash2, Percent, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -200,7 +200,7 @@ export function AdminBadgeManager({ user, profile, onUpdate, refreshProfile }) {
   );
 }
 
-export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpdate, onDelete }) {
+export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpdate, onDelete, onImpersonate }) {
   const queryClient = useQueryClient();
   const [isGifting, setIsGifting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
@@ -443,6 +443,15 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
                 <UserCog size={18} /> Ver Perfil Completo
               </button>
               
+              {onImpersonate && (
+                <button 
+                  onClick={() => { onImpersonate(user); onClose(); }}
+                  className="w-full h-14 bg-red-50 hover:bg-red-100 transition-colors rounded-2xl flex items-center px-6 gap-4 text-red-600 font-bold text-sm"
+                >
+                  <UserCircle size={18} /> Entrar como Utilizador
+                </button>
+              )}
+
               <button 
                 onClick={() => { onBan(user); onClose(); }}
                 className="w-full h-14 bg-red-50 hover:bg-red-100 transition-colors rounded-2xl flex items-center px-6 gap-4 text-red-600 font-bold text-sm"
