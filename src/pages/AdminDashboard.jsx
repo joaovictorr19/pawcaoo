@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Users, Shield, Clock, Ban, AlertCircle,
-  Award, Gift, Zap, AlertTriangle, Building2, Mail
+  Award, Gift, Zap, AlertTriangle, Building2
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +26,6 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
-import ProfileUpdateRequestsSent from "../components/admin/ProfileUpdateRequestsSent";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import PendingHotelsPanel from "../components/admin/PendingHotelsPanel";
 import HotelBookingStatusPanel from "../components/admin/HotelBookingStatusPanel";
@@ -183,8 +182,7 @@ export default function AdminDashboard() {
           totalUsers: allUsers?.length || 0,
           totalWalkers: allWalkers?.length || 0,
           verifiedWalkers: allWalkers?.filter(w => w.verification_status === 'verified')?.length || 0,
-          activeWalkers: allWalkers?.filter(w => w.is_active && w.verification_status === 'verified' && !['hotel', 'shop'].includes(w.professional_type))?.length || 0,
-          activeHotels: allWalkers?.filter(w => w.is_active && w.verification_status === 'verified' && w.professional_type === 'hotel')?.length || 0,
+          activeWalkers: allWalkers?.filter(w => w.is_active && w.verification_status === 'verified')?.length || 0,
           totalTrainers: allTrainers?.length || 0,
           verifiedTrainers: allTrainers?.filter(t => t.verification_status === 'verified')?.length || 0,
           pendingBookings: (pendingBookings?.length || 0) + (pendingHotelBookings?.length || 0),
@@ -427,7 +425,7 @@ export default function AdminDashboard() {
   const hotelApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'hotel');
   const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status);
   const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || s.verification_status === 'requires_documents' || s.verification_status === 'rejected' || !s.verification_status);
-  const activeWalkers = allWalkers.filter(w => w.is_active && w.verification_status === 'verified' && !['hotel', 'shop'].includes(w.professional_type));
+  const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified' || w.is_active === true);
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
   const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
 
@@ -447,9 +445,7 @@ export default function AdminDashboard() {
     queryKey: ['profileEditRequestsCount'],
     queryFn: async () => {
       const res = await base44.entities.ProfileEditRequest.filter({ status: 'pending' });
-      const all = Array.isArray(res) ? res : [];
-      // Excluir pedidos admin_outbound (enviados pelo admin — aguardam resposta do cliente)
-      return all.filter(r => r.request_type !== 'admin_outbound').length;
+      return Array.isArray(res) ? res.length : 0;
     },
     enabled: isAdmin && activeTab === 'approvals',
     staleTime: 30 * 1000,
@@ -463,7 +459,6 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
       queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
       queryClient.invalidateQueries({ queryKey: ['profileEditRequestsCount'] });
-      queryClient.invalidateQueries({ queryKey: ['profileUpdateRequestsSent'] });
     }
   }, [activeTab, queryClient]);
 
@@ -481,13 +476,6 @@ export default function AdminDashboard() {
       label: "Walkers Ativos",
       subLabel: `${adminStats?.verifiedWalkers || 0} verificados`,
       color: "from-green-600 to-emerald-600"
-    },
-    {
-      icon: Building2,
-      value: adminStats?.activeHotels || 0,
-      label: "Hotéis Ativos",
-      subLabel: `${adminStats?.verifiedWalkers || 0} perfis verificados`,
-      color: "from-cyan-600 to-teal-600"
     },
     {
       icon: Clock,
@@ -988,17 +976,6 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 )}
-
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-[#1D8A82]" />
-                    <h3 className="text-sm font-extrabold text-slate-900">Mensagens Enviadas</h3>
-                    <span className="ml-auto text-xs text-slate-400">Pedidos de atualização enviados a profissionais</span>
-                  </div>
-                  <div className="p-4">
-                    <ProfileUpdateRequestsSent />
-                  </div>
-                </div>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                   <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
