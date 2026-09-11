@@ -1,13 +1,8 @@
 import React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { GraduationCap } from "lucide-react";
-import { useLanguage } from "@/components/LanguageContext";
-import { getSealLabel, getSealDescription } from "@/hooks/useSealConfiguration";
 
 export default function TrainerVerifiedBadge({ size = "md" }) {
-  const { language } = useLanguage();
-  const trainerLabel = getSealLabel("treinador_verificado", language) || "Treinador Verificado";
-  const certDesc = getSealDescription("treinador_verificado", language) || "Certificado pela PawCão";
   const sizeClasses = {
     sm: "w-4 h-4",
     md: "w-5 h-5",
@@ -30,8 +25,8 @@ export default function TrainerVerifiedBadge({ size = "md" }) {
           </div>
         </TooltipTrigger>
         <TooltipContent className="bg-purple-900 text-white border-purple-700">
-          <p className="font-semibold">{trainerLabel}</p>
-          <p className="text-xs">{certDesc}</p>
+          <p className="font-semibold">Treinador Verificado</p>
+          <p className="text-xs">Certificado pela PawCão</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

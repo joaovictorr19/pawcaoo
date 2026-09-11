@@ -1,13 +1,8 @@
 import React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Crown } from "lucide-react";
-import { useLanguage } from "@/components/LanguageContext";
-import { getSealLabel, getSealDescription } from "@/hooks/useSealConfiguration";
 
 export default function GoldEmployeeBadge({ size = "lg", position = "profile" }) {
-  const { language } = useLanguage();
-  const teamLabel = getSealLabel("equipa_pawcao", language) || "Equipa PawCão";
-  const employeeDesc = getSealDescription("pawcao_employee", language) || "Funcionário oficial da empresa";
   const sizeClasses = {
     sm: "w-5 h-5",
     md: "w-6 h-6",
@@ -43,8 +38,8 @@ export default function GoldEmployeeBadge({ size = "lg", position = "profile" })
           </div>
         </TooltipTrigger>
         <TooltipContent className="bg-gradient-to-r from-yellow-600 to-orange-600 text-white border-yellow-400">
-          <p className="font-bold text-sm">👑 {teamLabel}</p>
-          <p className="text-xs">{employeeDesc}</p>
+          <p className="font-bold text-sm">👑 Equipa PawCão</p>
+          <p className="text-xs">Funcionário oficial da empresa</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

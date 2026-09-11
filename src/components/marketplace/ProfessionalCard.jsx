@@ -7,14 +7,12 @@ import { createPageUrl } from "@/utils";
 import { ensureProfileSlug } from "@/utils/profileSlug";
 import { useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { useSealConfiguration, getProfileSeals, sealToBorderStyle, sealToBadgeStyle, getSealLabel } from "@/hooks/useSealConfiguration";
-import { useLanguage } from "@/components/LanguageContext";
+import { useSealConfiguration, getProfileSeals, sealToBorderStyle, sealToBadgeStyle } from "@/hooks/useSealConfiguration";
 
 export function ProfessionalCard({ walker }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { getConfig } = useSealConfiguration();
-  const { language } = useLanguage();
 
   const profileData = useMemo(() => ({
     photo: walker?.photo_url || walker?.professional_profile?.avatar_url || walker?.profile_photo_url,
@@ -93,7 +91,7 @@ export function ProfessionalCard({ walker }) {
             className="absolute top-3 left-3 text-[9px] font-black text-white px-2.5 py-1 rounded-full uppercase tracking-tighter shadow-md"
             style={sealToBadgeStyle(sealConfig) || {}}
           >
-            {getSealLabel(primarySeal, language) || sealConfig.badge_label}
+            {sealConfig.badge_label}
           </span>
         )}
       </div>

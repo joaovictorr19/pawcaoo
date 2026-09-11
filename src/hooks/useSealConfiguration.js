@@ -41,37 +41,6 @@ export const SEAL_DEFAULTS = {
   },
 };
 
-// Seal label translations by site language (pt, en, es, fr)
-export const SEAL_LABELS = {
-  hotel_canino: { pt: "Hotel Canino", en: "Dog Hotel", es: "Hotel Canino", fr: "Hôtel Canin" },
-  parceiro_pawgo: { pt: "Parceiro PawGo", en: "PawGo Partner", es: "Socio PawGo", fr: "Partenaire PawGo" },
-  equipa_pawcao: { pt: "Equipa PawCão", en: "PawCão Team", es: "Equipo PawCão", fr: "Équipe PawCão" },
-  treinador_verificado: { pt: "Treinador Verificado", en: "Verified Trainer", es: "Entrenador Verificado", fr: "Dresseur Vérifié" },
-  pawcao_seal: { pt: "SELO PAWCÃO", en: "PAWCÃO SEAL", es: "SELLO PAWCÃO", fr: "SCEAU PAWCÃO" },
-};
-
-// Seal tooltip / description translations by site language
-export const SEAL_DESCRIPTIONS = {
-  equipa_pawcao: { pt: "Membro verificado da equipa PawCão", en: "Verified member of the PawCão team", es: "Miembro verificado del equipo PawCão", fr: "Membre vérifié de l'équipe PawCão" },
-  treinador_verificado: { pt: "Certificado pela PawCão", en: "Certified by PawCão", es: "Certificado por PawCão", fr: "Certifié par PawCão" },
-  pawcao_official: { pt: "Oficial da PawCão", en: "PawCão Official", es: "Oficial de PawCão", fr: "Officiel PawCão" },
-  pawcao_employee: { pt: "Funcionário oficial da empresa", en: "Official company employee", es: "Empleado oficial de la empresa", fr: "Employé officiel de l'entreprise" },
-};
-
-// Returns the translated seal label for the given seal type and language
-export function getSealLabel(sealType, language = "pt") {
-  const labels = SEAL_LABELS[sealType];
-  if (!labels) return null;
-  return labels[language] || labels.pt || labels.en || sealType;
-}
-
-// Returns the translated seal description for the given key and language
-export function getSealDescription(key, language = "pt") {
-  const descs = SEAL_DESCRIPTIONS[key];
-  if (!descs) return null;
-  return descs[language] || descs.pt || descs.en || key;
-}
-
 // Determines which seals apply to a given WalkerProfile
 export function getProfileSeals(walker) {
   const seals = [];
