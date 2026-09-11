@@ -70,7 +70,7 @@ export default function CardPhotoAdjuster({
           <p className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
             <Move className="w-4 h-4 text-teal-500" /> {label}
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">Arraste a foto para enquadrar o rosto no card</p>
+          <p className="text-xs text-slate-400 mt-0.5">Arraste a foto para enquadrar o rosto no card da home</p>
         </div>
         <button type="button" onClick={reset}
           className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 font-medium px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors">
@@ -78,10 +78,10 @@ export default function CardPhotoAdjuster({
         </button>
       </div>
 
-      {/* Card preview — matches ProfessionalCard h-48 */}
+      {/* Card preview — same aspect ratio as the home ProfessionalCard (h-48, ~340px wide) */}
       <div
         ref={containerRef}
-        className="relative w-full h-48 overflow-hidden rounded-xl bg-slate-100 cursor-move touch-none select-none"
+        className="relative w-full max-w-[340px] mx-auto h-48 overflow-hidden rounded-xl bg-slate-100 cursor-move touch-none select-none"
         style={{ touchAction: "none" }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
