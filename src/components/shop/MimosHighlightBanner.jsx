@@ -56,7 +56,7 @@ export default function MimosHighlightBanner({ onOpenMimo }) {
                 <Sparkles className="w-4 h-4 text-teal-600" />
               </h2>
               <p className="text-xs text-slate-700/80">
-                Oferece um petisco ao teu cão — o hotel entrega durante a estadia 🐾
+                Oferece um petisco ao teu cão — o hotel entrega durante a estadia.
               </p>
             </div>
           </div>
