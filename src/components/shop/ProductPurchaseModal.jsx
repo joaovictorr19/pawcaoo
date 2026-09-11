@@ -113,7 +113,7 @@ export default function ProductPurchaseModal({ product, onClose }) {
 
   return (
     <Dialog open={!!product} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-lg max-h-[92vh] overflow-y-auto p-0 rounded-3xl">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-[calc(100vw-1.5rem)] sm:max-w-lg max-h-[92vh] overflow-y-auto p-0 rounded-3xl">
         <DialogHeader className="p-5 pb-3">
           <DialogTitle className="flex items-center gap-2 text-lg font-heading font-bold text-slate-900">
             <Package className="w-5 h-5 text-teal-600" />
