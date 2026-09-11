@@ -113,15 +113,15 @@ export default function ProductPurchaseModal({ product, onClose }) {
 
   return (
     <Dialog open={!!product} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-[calc(100vw-1.5rem)] sm:max-w-lg max-h-[92vh] overflow-y-auto p-0 rounded-3xl">
-        <DialogHeader className="p-5 pb-3">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-[calc(100vw-1.5rem)] sm:max-w-lg max-h-[92vh] flex flex-col overflow-hidden p-0 rounded-3xl">
+        <DialogHeader className="p-5 pb-3 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-lg font-heading font-bold text-slate-900">
             <Package className="w-5 h-5 text-teal-600" />
             Comprar
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-5 pb-4">
+        <div className="px-5 pb-4 overflow-y-auto overflow-x-hidden flex-1">
           {/* Resumo do produto — banner horizontal */}
           <div className="flex gap-3 items-center bg-slate-100 rounded-xl p-2.5">
             <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0 relative">
@@ -234,8 +234,8 @@ export default function ProductPurchaseModal({ product, onClose }) {
                       </span>
                     </span>
                   </span>
-                  <span className={`w-9 h-5 rounded-full flex items-center justify-center transition-all ${useWallet ? "bg-teal-600" : "bg-slate-300"}`}>
-                    <span className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${useWallet ? "translate-x-2" : "-translate-x-2"}`} />
+                  <span className={`w-9 h-5 rounded-full flex items-center transition-all overflow-hidden px-0.5 ${useWallet ? "bg-teal-600 justify-end" : "bg-slate-300 justify-start"}`}>
+                    <span className="w-4 h-4 rounded-full bg-white shadow-sm transition-transform" />
                   </span>
                 </button>
                 <div className="flex items-center gap-2 pt-2">
@@ -259,7 +259,7 @@ export default function ProductPurchaseModal({ product, onClose }) {
         </div>
 
         {/* Sticky bottom action bar */}
-        <div className="sticky bottom-0 px-5 pb-5 pt-2 bg-white border-t border-slate-100">
+        <div className="shrink-0 px-5 pb-5 pt-2 bg-white border-t border-slate-100">
           {!user ? (
             <button
               onClick={() => navigate(`/login?from=${encodeURIComponent("/Shop")}`)}
