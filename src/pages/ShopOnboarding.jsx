@@ -9,6 +9,7 @@ import {
   Store, Camera, MapPin, ChevronRight, ChevronLeft, CheckCircle, Upload, Phone,
 } from "lucide-react";
 import { DOCUMENT_RULES, geocodeLocation, uploadFile } from "@/lib/professionalOnboarding";
+import CardPhotoAdjuster from "@/components/ui/CardPhotoAdjuster";
 
 const STEPS = ["A Loja", "Documentos", "Confirmação"];
 
@@ -30,6 +31,8 @@ export default function ShopOnboarding() {
       location: "",
       bio: "",
       photo_url: "",
+      photo_focus_x: 50,
+      photo_focus_y: 0,
       whatsapp_number: "",
       country_of_operation: "portugal",
       tax_id_portugal: "",
@@ -80,6 +83,8 @@ export default function ShopOnboarding() {
         location: existingProfile.location || prev.location,
         bio: existingProfile.bio || prev.bio,
         photo_url: existingProfile.photo_url || prev.photo_url,
+        photo_focus_x: existingProfile.photo_focus_x ?? 50,
+        photo_focus_y: existingProfile.photo_focus_y ?? 0,
         whatsapp_number: existingProfile.whatsapp_number || prev.whatsapp_number,
         country_of_operation: existingProfile.country_of_operation || "portugal",
         tax_id_portugal: existingProfile.tax_id_portugal || "",
@@ -142,6 +147,8 @@ export default function ShopOnboarding() {
         longitude: lng,
         bio: form.bio || "",
         photo_url: form.photo_url || "",
+        photo_focus_x: form.photo_focus_x ?? 50,
+        photo_focus_y: form.photo_focus_y ?? 0,
         whatsapp_number: form.whatsapp_number || "",
         phone: form.whatsapp_number || "",
         service_areas: [{ area_name: form.location, radius_km: 15, latitude: lat, longitude: lng }],
@@ -253,12 +260,22 @@ export default function ShopOnboarding() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleUpload(e, "photo_url", "Logotipo carregado!")}
+                  onChange={(e) => { handleUpload(e, "photo_url", "Logotipo carregado!"); set("photo_focus_x", 50); set("photo_focus_y", 0); }}
                   className="hidden"
                   disabled={uploading}
                 />
               </label>
             </div>
+
+            {form.photo_url && (
+              <CardPhotoAdjuster
+                imageUrl={form.photo_url}
+                focusX={form.photo_focus_x}
+                focusY={form.photo_focus_y}
+                onChange={(x, y) => { set("photo_focus_x", x); set("photo_focus_y", y); }}
+                label="Ajustar Enquadramento do Card da Loja"
+              />
+            )}
 
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">

@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import OptimizedImageUpload from "../adoption/OptimizedImageUpload";
 import ImageCropModal from "../ui/ImageCropModal";
 import CenteredAvatarUpload from "../ui/CenteredAvatarUpload";
+import CardPhotoAdjuster from "../ui/CardPhotoAdjuster";
 import BreedSelector from "../professionals/BreedSelector";
 import HotelPartnersStep from "./HotelPartnersStep";
 import SaveConfirmation from "@/components/ui/SaveConfirmation";
@@ -63,6 +64,8 @@ function buildInitialForm(user, existingProfile) {
       name: existingProfile.walker_name || existingProfile.trainer_name || user?.full_name || "",
       hotel_details: existingProfile.hotel_details || { partner_walkers: [], amenities: [], accepted_dog_sizes: [], capacity_total: 10, price_per_night: 25, price_daycare: 15, checkin_time: "14:00", checkout_time: "12:00" },
       photo_url: existingProfile.photo_url || user?.profile_photo_url || "",
+      photo_focus_x: existingProfile.photo_focus_x ?? 50,
+      photo_focus_y: existingProfile.photo_focus_y ?? 0,
       cover_photo_url: existingProfile.cover_photo_url || "",
       video_intro_url: existingProfile.video_intro_url || "",
       bio: existingProfile.bio || "",
@@ -109,6 +112,8 @@ function buildInitialForm(user, existingProfile) {
   return {
     name: user?.full_name || "",
     photo_url: user?.profile_photo_url || "",
+    photo_focus_x: 50,
+    photo_focus_y: 0,
     cover_photo_url: "",
     video_intro_url: "",
     bio: "",
@@ -305,6 +310,7 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
 
       const commonData = {
         location: data.location, bio: data.bio, photo_url: data.photo_url,
+        photo_focus_x: data.photo_focus_x ?? 50, photo_focus_y: data.photo_focus_y ?? 0,
         cover_photo_url: data.cover_photo_url, video_intro_url: data.video_intro_url,
         phone: data.phone, whatsapp_number: data.whatsapp_number?.replace(/\D/g, ''), instagram_url: data.instagram_url,
         dog_sizes: data.dog_sizes, accepted_animals: data.accepted_animals,
@@ -504,8 +510,18 @@ export default function ProfessionalProfileForm({ user, professionalProfile, onD
 
               {/* Foto */}
               <div className="flex flex-col items-center justify-center w-full">
-                <CenteredAvatarUpload currentImageUrl={formData.photo_url} onImageChange={(url) => set("photo_url", url)} />
+                <CenteredAvatarUpload currentImageUrl={formData.photo_url} onImageChange={(url) => { set("photo_url", url); set("photo_focus_x", 50); set("photo_focus_y", 0); }} />
               </div>
+
+              {/* Card preview — drag para ajustar enquadramento */}
+              {formData.photo_url && (
+                <CardPhotoAdjuster
+                  imageUrl={formData.photo_url}
+                  focusX={formData.photo_focus_x}
+                  focusY={formData.photo_focus_y}
+                  onChange={(x, y) => { set("photo_focus_x", x); set("photo_focus_y", y); }}
+                />
+              )}
 
               {/* Foto de capa */}
               <div className={sectionCls}>
