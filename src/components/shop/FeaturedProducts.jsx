@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
@@ -76,11 +76,13 @@ export default function FeaturedProducts({ onOpenProduct }) {
     },
     enabled: true,
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
     retry: 1,
   });
 
-  if (isLoading || products.length === 0) return null;
+  if (!isLoading && products.length === 0) return null;
+  const showSkeleton = isLoading && products.length === 0;
 
   const handleOpen = (product) => {
     if (!user) {
@@ -113,7 +115,24 @@ export default function FeaturedProducts({ onOpenProduct }) {
         className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {products.map((product, idx) => {
+        {showSkeleton
+          ? [0, 1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-[180px] md:w-[200px] bg-white rounded-2xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden animate-pulse"
+              >
+                <div className="w-full h-28 bg-slate-200" />
+                <div className="p-3 space-y-2">
+                  <div className="h-3 bg-slate-200 rounded w-full" />
+                  <div className="h-2.5 bg-slate-200 rounded w-2/3" />
+                  <div className="flex items-center justify-between pt-2 mt-2 border-t border-slate-100">
+                    <div className="h-4 bg-slate-200 rounded w-10" />
+                    <div className="h-4 bg-slate-200 rounded w-14 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))
+          : products.map((product, idx) => {
           const delivery = DELIVERY[product.delivery_method] || DELIVERY.pickup;
           const soldOut = (product.stock_quantity || 0) < 1;
           return (

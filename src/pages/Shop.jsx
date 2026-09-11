@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useNavigate } from "react-router-dom";
@@ -32,6 +32,7 @@ const DELIVERY = {
 
 export default function Shop() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [location, setLocation] = useState("all");
@@ -193,7 +194,12 @@ export default function Shop() {
             <span />
           )}
           <button
-            onClick={() => refetch()}
+            onClick={() => {
+              refetch();
+              queryClient.invalidateQueries({ queryKey: ["featuredProducts"] });
+              queryClient.invalidateQueries({ queryKey: ["featuredOrders"] });
+              queryClient.invalidateQueries({ queryKey: ["shopOffers"] });
+            }}
             disabled={isFetching}
             title="Atualizar loja"
             className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-slate-500 bg-white border border-slate-200 hover:border-teal-300 hover:text-teal-700 transition-all active:scale-95 disabled:opacity-50"
