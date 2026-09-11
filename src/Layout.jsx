@@ -218,6 +218,27 @@ function LayoutContent({ children, currentPageName }) {
     refetchOnWindowFocus: false,
   });
 
+  // Verificar se o utilizador tem perfil profissional (mesmo que role='user')
+  // para encaminhar por defeito para o ProfessionalHubV2
+  const { data: hasProProfile } = useQuery({
+    queryKey: ['hasProProfile', authUser?.id],
+    queryFn: async () => {
+      if (!authUser?.id) return false;
+      let profiles = await base44.entities.WalkerProfile.filter({ user_id: authUser.id }, '-created_date', 10);
+      const professionalOnly = profiles.filter(p => !['hotel', 'shop'].includes(p.professional_type));
+      if (professionalOnly.length > 0) return true;
+      if (profiles.length === 0) {
+        profiles = await base44.entities.TrainerProfile.filter({ user_id: authUser.id }, '-created_date', 10);
+      }
+      return profiles.length > 0;
+    },
+    enabled: !!authUser?.id,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+
   React.useEffect(() => {
     setIsNotificationPanelOpen(false);
     setIsSearchOpen(false);
@@ -502,7 +523,7 @@ function LayoutContent({ children, currentPageName }) {
               const isRealAdmin = authUser.role === 'admin' && !authUser.isImpersonating;
               const isAdmin = isRealAdmin;
               const isHotel = role === 'hotel' || role === 'hotel_admin';
-              const isPro = role === 'walker' || role === 'trainer' || role === 'professional' || role === 'both';
+              const isPro = role === 'walker' || role === 'trainer' || role === 'professional' || role === 'both' || hasProProfile;
 
               const navCls = ({ isActive }) =>
                 `px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${isActive ? 'bg-teal-500/15 text-teal-700' : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'}`;
@@ -536,6 +557,12 @@ function LayoutContent({ children, currentPageName }) {
                 </>
               );
 
+              if (hasProProfile) return (
+                <>
+                  <NavLink to={createPageUrl("ProfessionalHubV2")} className={navCls}>{nav('professionalHub')}</NavLink>
+                  <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>{nav('bookings')}</NavLink>
+                </>
+              );
               return (
                 <NavLink to={createPageUrl("ClientDashboard")} className={navCls}>{nav('myPanel')}</NavLink>
               );

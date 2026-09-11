@@ -1,6 +1,6 @@
 import {
   BarChart3, Package, Calendar, QrCode, Wallet, Zap, TrendingUp, Star,
-  Image, ShieldCheck, Bell, User, Store,
+  Image, ShieldCheck, Bell, User, Store, BookOpen, Users, ClipboardList,
 } from "lucide-react";
 
 const TAB_GROUPS = [
@@ -14,8 +14,11 @@ const TAB_GROUPS = [
     ],
   },
   {
-    label: "Clientes",
+    label: "Clientes & Diário",
     items: [
+      { id: "diary", label: "Diário", icon: BookOpen },
+      { id: "clients", label: "Clientes", icon: Users },
+      { id: "bookings", label: "Reservas", icon: ClipboardList },
       { id: "reviews", label: "Avaliações", icon: Star },
     ],
   },
@@ -34,6 +37,7 @@ const TAB_GROUPS = [
     label: "Configurações",
     items: [
       { id: "profile", label: "Perfil", icon: User },
+      { id: "alerts", label: "Avisos", icon: Bell },
       { id: "documents", label: "Documentos", icon: ShieldCheck },
     ],
   },

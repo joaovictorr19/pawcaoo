@@ -10,6 +10,7 @@ import WalkReport from "@/components/client/WalkReport";
 import PendingHotelBookings from "@/components/client/PendingHotelBookings";
 import ClientActiveHotelStays from "@/components/client/ClientActiveHotelStays";
 import ClientHotelDiary from "@/components/client/ClientHotelDiary";
+import ClientWalkDiary from "@/components/client/ClientWalkDiary";
 import MyDogsManager from "@/components/profile/MyDogsManager";
 import ClientDataSettings from "@/components/client/ClientDataSettings";
 import ClientNotificationsWidget from "@/components/client/ClientNotificationsWidget";
@@ -276,9 +277,10 @@ export default function ClientDashboard() {
             </motion.div>
           )}
 
-          {/* ─── DIÁRIO DAS ESTADIAS ─── */}
+          {/* ─── DIÁRIO (estadias + passeios) ─── */}
           {activeTab === 'diary' && (
-            <motion.div key="dy" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <motion.div key="dy" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
+              <ClientWalkDiary user={user} />
               <ClientHotelDiary user={user} />
             </motion.div>
           )}

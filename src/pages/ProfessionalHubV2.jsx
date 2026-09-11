@@ -20,6 +20,10 @@ const HotelServiceManager = React.lazy(() => import("@/components/hotel/HotelSer
 const ReviewsManagementSection = React.lazy(() => import("@/components/professional-hub/ReviewsManagementSection"));
 const PortfolioSection = React.lazy(() => import("@/components/professional-hub/PortfolioSection"));
 const DocumentsVerificationSection = React.lazy(() => import("@/components/professional-hub/DocumentsVerificationSection"));
+const WalkDiaryPanel = React.lazy(() => import("@/components/professional-hub/WalkDiaryPanel"));
+const ProClientsPanel = React.lazy(() => import("@/components/professional-hub/ProClientsPanel"));
+const ProBookingsPanel = React.lazy(() => import("@/components/professional-hub/ProBookingsPanel"));
+const ProAlertsPanel = React.lazy(() => import("@/components/professional-hub/ProAlertsPanel"));
 import PendingApproval from "@/components/professional-hub/PendingApproval";
 // ProfessionalProfileForm replaced by centralized WalkerOnboarding redirect
 const HotelManagementPanel = React.lazy(() => import("@/components/professional-hub/HotelManagementPanel"));
@@ -148,7 +152,7 @@ export default function ProfessionalHubV2() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
-  const validTabs = ['overview', 'calendar', 'requests', 'active', 'documents', 'wallet', 'services', 'portfolio', 'reviews', 'finances', 'profile', 'tools', 'store'];
+  const validTabs = ['overview', 'calendar', 'requests', 'active', 'documents', 'wallet', 'services', 'portfolio', 'reviews', 'finances', 'profile', 'tools', 'store', 'diary', 'clients', 'bookings', 'alerts'];
   const mapTab = (t) => {
     if (t === 'agenda') return 'calendar';
     if (!t) return 'overview';
@@ -485,7 +489,7 @@ export default function ProfessionalHubV2() {
 
   // Hotéis têm painel próprio — sem pending approval screen
   const verificationStatus = professionalProfile?.verification_status;
-  const showRestrictedPendingScreen = !isHotelProfile && verificationStatus !== 'verified' && !['documents', 'portfolio', 'requests'].includes(activeTab);
+  const showRestrictedPendingScreen = !isHotelProfile && verificationStatus !== 'verified' && !['documents', 'portfolio', 'requests', 'bookings', 'clients', 'diary', 'alerts', 'profile'].includes(activeTab);
 
   if (showRestrictedPendingScreen) {
     return <PendingApproval profile={professionalProfile} activeTab={activeTab} onChangeTab={setActiveTab} />;
@@ -698,6 +702,54 @@ export default function ProfessionalHubV2() {
               transition={{ duration: 0.2 }}
             >
               <ReviewsManagementSection user={user} professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "diary" && (
+            <motion.div
+              key="diary"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <WalkDiaryPanel user={user} professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "clients" && (
+            <motion.div
+              key="clients"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ProClientsPanel user={user} professionalProfile={professionalProfile} />
+            </motion.div>
+          )}
+
+          {activeTab === "bookings" && (
+            <motion.div
+              key="bookings"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ProBookingsPanel user={user} />
+            </motion.div>
+          )}
+
+          {activeTab === "alerts" && (
+            <motion.div
+              key="alerts"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ProAlertsPanel user={user} />
             </motion.div>
           )}
 
