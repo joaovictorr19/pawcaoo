@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Users, Shield, Clock, Ban, AlertCircle,
-  Award, Gift, Zap, AlertTriangle, Building2
+  Award, Gift, Zap, AlertTriangle, Building2, Mail
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +26,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
+import ProfileUpdateRequestsSent from "../components/admin/ProfileUpdateRequestsSent";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
 import PendingHotelsPanel from "../components/admin/PendingHotelsPanel";
 import HotelBookingStatusPanel from "../components/admin/HotelBookingStatusPanel";
@@ -446,7 +447,9 @@ export default function AdminDashboard() {
     queryKey: ['profileEditRequestsCount'],
     queryFn: async () => {
       const res = await base44.entities.ProfileEditRequest.filter({ status: 'pending' });
-      return Array.isArray(res) ? res.length : 0;
+      const all = Array.isArray(res) ? res : [];
+      // Excluir pedidos admin_outbound (enviados pelo admin — aguardam resposta do cliente)
+      return all.filter(r => r.request_type !== 'admin_outbound').length;
     },
     enabled: isAdmin && activeTab === 'approvals',
     staleTime: 30 * 1000,
@@ -460,6 +463,7 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
       queryClient.invalidateQueries({ queryKey: ['profileEditRequests'] });
       queryClient.invalidateQueries({ queryKey: ['profileEditRequestsCount'] });
+      queryClient.invalidateQueries({ queryKey: ['profileUpdateRequestsSent'] });
     }
   }, [activeTab, queryClient]);
 
@@ -984,6 +988,17 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 )}
+
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                  <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-[#1D8A82]" />
+                    <h3 className="text-sm font-extrabold text-slate-900">Mensagens Enviadas</h3>
+                    <span className="ml-auto text-xs text-slate-400">Pedidos de atualização enviados a profissionais</span>
+                  </div>
+                  <div className="p-4">
+                    <ProfileUpdateRequestsSent />
+                  </div>
+                </div>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                   <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
