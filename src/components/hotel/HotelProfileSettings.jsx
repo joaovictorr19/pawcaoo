@@ -26,6 +26,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
     photo_focus_x: hotelProfile?.photo_focus_x ?? 50,
     photo_focus_y: hotelProfile?.photo_focus_y ?? 0,
     cover_photo_url: hotelProfile?.cover_photo_url || "",
+    cover_focus_x: hotelProfile?.cover_focus_x ?? 50,
+    cover_focus_y: hotelProfile?.cover_focus_y ?? 0,
     hotel_name: hotelProfile?.hotel_details?.hotel_name || "",
     hotel_description: hotelProfile?.hotel_details?.hotel_description || "",
     full_address: hotelProfile?.hotel_details?.full_address || "",
@@ -148,6 +150,8 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
         photo_focus_x: form.photo_focus_x ?? 50,
         photo_focus_y: form.photo_focus_y ?? 0,
         cover_photo_url: form.cover_photo_url,
+        cover_focus_x: form.cover_focus_x ?? 50,
+        cover_focus_y: form.cover_focus_y ?? 0,
         instagram_url: form.instagram_url,
         hotel_details: directHotelDetails,
         certifications_detailed: form.certifications_detailed,
@@ -281,6 +285,19 @@ export default function HotelProfileSettings({ hotelProfile, onSave }) {
               focusX={form.photo_focus_x}
               focusY={form.photo_focus_y}
               onChange={(x, y) => setForm((prev) => ({ ...prev, photo_focus_x: x, photo_focus_y: y }))}
+            />
+          </div>
+        )}
+
+        {form.cover_photo_url && (
+          <div className="mt-4">
+            <CardPhotoAdjuster
+              imageUrl={form.cover_photo_url}
+              focusX={form.cover_focus_x}
+              focusY={form.cover_focus_y}
+              previewClassName="h-24 md:h-28"
+              label="Ajustar Enquadramento da Capa"
+              onChange={(x, y) => setForm((prev) => ({ ...prev, cover_focus_x: x, cover_focus_y: y }))}
             />
           </div>
         )}
