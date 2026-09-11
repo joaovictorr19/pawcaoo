@@ -5,7 +5,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, MapPin, Heart, Users, Award, Calendar, ShieldCheck, Wallet, AlertCircle, RefreshCw, PawPrint, Bone } from "lucide-react";
+import { Search, MapPin, Heart, Users, Award, Calendar, ShieldCheck, Wallet, AlertCircle, RefreshCw, PawPrint, Bone, Building2 } from "lucide-react";
 const ProfessionalCard = React.lazy(() => import("../components/marketplace/ProfessionalCard").then(m => ({ default: m.ProfessionalCard })));
 const ReviewModal = React.lazy(() => import("../components/reviews/ReviewModal"));
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
@@ -322,6 +322,26 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: hotels = [], isLoading: loadingHotels, refetch: refetchHotels } = useQuery({
+    queryKey: ['allHotels'],
+    queryFn: async () => {
+      try {
+        const result = await base44.entities.WalkerProfile.filter(
+          { is_active: true, professional_type: 'hotel', verification_status: 'verified' },
+          '-rating',
+          30
+        );
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        console.error("Erro hotels:", error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   const { data: emergencyWalks, isLoading: loadingEmergency } = useQuery({
     queryKey: ['emergencyWalks'],
     queryFn: async () => {
@@ -421,7 +441,12 @@ export default function Home() {
   };
 
   const filteredProfessionals = React.useMemo(() => {
-    const validWalkers = walkers.filter(w => w?.id && w?.walker_name && w?.is_active !== false);
+    const validWalkers = walkers.filter(w => 
+      w?.id && w?.walker_name && 
+      w?.is_active !== false &&
+      w?.verification_status === 'verified' &&
+      ['walker', 'trainer', 'both'].includes(w?.professional_type)
+    );
     
     const processed = validWalkers.map(w => ({
       ...w,
@@ -477,6 +502,29 @@ export default function Home() {
     });
   }, [walkers, searchLocation, filterSize, filterTime, filterAnimalType, filterDogSitting, filterProfessionalType, myDogs, favorites, activeBookings]);
 
+  const filteredHotels = React.useMemo(() => {
+    let result = hotels.filter(h => h?.id && h?.walker_name);
+
+    if (searchLocation?.trim()) {
+      const term = searchLocation.toLowerCase();
+      result = result.filter(h => 
+        h.location?.toLowerCase().includes(term) || 
+        h.walker_name?.toLowerCase().includes(term) ||
+        h.hotel_details?.hotel_name?.toLowerCase().includes(term)
+      );
+    }
+
+    return result.sort((a, b) => {
+      if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1;
+      return (b.rating || 0) - (a.rating || 0);
+    });
+  }, [hotels, searchLocation]);
+
+  const paginatedHotels = filteredHotels.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   const filteredEmergencyWalks = React.useMemo(() => {
     if (!Array.isArray(emergencyWalks)) return [];
 
@@ -496,7 +544,9 @@ export default function Home() {
       });
   }, [emergencyWalks, searchLocation, filterSize]);
 
-  const totalPages = Math.ceil(filteredProfessionals.length / itemsPerPage);
+  const totalPages = Math.ceil(
+    (activeTab === 'hotels' ? filteredHotels.length : filteredProfessionals.length) / itemsPerPage
+  );
   const paginatedProfessionals = filteredProfessionals.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -950,7 +1000,7 @@ export default function Home() {
               >
                 <button
                   onClick={() => setActiveTab('professionals')}
-                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all flex-1 font-heading ${
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all flex-1 font-heading ${
                     activeTab === 'professionals'
                       ? 'bg-[#0e9485] text-white shadow-[0_4px_14px_rgba(14,148,133,0.35)]'
                       : 'text-[#597670] hover:bg-white/40'
@@ -960,8 +1010,19 @@ export default function Home() {
                   <span className="truncate">{language === 'pt' ? 'Profissionais' : 'Professionals'}</span>
                 </button>
                 <button
+                  onClick={() => setActiveTab('hotels')}
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all flex-1 font-heading ${
+                    activeTab === 'hotels'
+                      ? 'bg-[#0e7490] text-white shadow-[0_4px_14px_rgba(14,116,144,0.35)]'
+                      : 'text-[#597670] hover:bg-white/40'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{language === 'pt' ? 'Hotéis' : 'Hotels'}</span>
+                </button>
+                <button
                   onClick={() => navigate(createPageUrl('Shop'))}
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all flex-1 font-heading text-[#597670] hover:bg-white/40"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold transition-all flex-1 font-heading text-[#597670] hover:bg-white/40"
                 >
                   <ShoppingBag className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">Loja</span>
@@ -1052,6 +1113,72 @@ export default function Home() {
                       {language === 'pt' ? 'Sobre Nós' : language === 'es' ? 'Sobre Nosotros' : 'About Us'}
                       <ArrowRight className="w-4 h-4" />
                     </Link>
+                  </div>
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="hotels">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className="relative rounded-2xl p-6 md:p-8 overflow-hidden"
+                >
+                  <div className="absolute -top-16 -right-10 w-48 h-48 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ background: "#0e7490" }} />
+                  <div className="absolute -bottom-16 -left-10 w-48 h-48 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "#0891b2" }} />
+
+                  <div className="relative z-10 flex items-center gap-3 mb-6">
+                    <h2 className="font-heading text-xl md:text-3xl font-bold drop-shadow-lg flex items-center gap-2 tracking-tight" style={{ color: "#0e7490" }}>
+                      <Building2 className="w-5 h-5 md:w-6 md:h-6" />
+                      {language === 'pt' ? 'Hotéis Caninos' : 
+                       language === 'es' ? 'Hoteles Caninos' : 
+                       'Dog Hotels'}
+                    </h2>
+                  </div>
+
+                  <div className="relative z-10">
+                  {loadingHotels ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <ProfessionalCardSkeleton key={`hotel-skeleton-${i}`} />
+                      ))}
+                    </div>
+                  ) : filteredHotels.length === 0 ? (
+                    <Card className="border-0 shadow-xl py-12 md:py-16 text-center rounded-3xl overflow-hidden bg-white/90">
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 shadow-sm">
+                        <Building2 className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">
+                        {language === 'pt' ? 'Nenhum hotel disponível' : 'No hotels available'}
+                      </h3>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => {
+                          setSearchLocation("");
+                          setCurrentPage(1);
+                        }}
+                        className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                      >
+                        {language === 'pt' ? 'Limpar Filtros' : 'Clear Filters'}
+                      </Button>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+                      {paginatedHotels.map((hotel, index) => (
+                        <motion.div
+                          key={hotel.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.25, delay: Math.min(index * 0.03, 0.18), ease: "easeOut" }}
+                        >
+                          <Suspense fallback={<ProfessionalCardSkeleton />}>
+                            <ProfessionalCard walker={hotel} />
+                          </Suspense>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                   </div>
                 </motion.div>
               </TabsContent>

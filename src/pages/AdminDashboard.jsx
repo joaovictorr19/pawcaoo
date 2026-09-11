@@ -182,7 +182,8 @@ export default function AdminDashboard() {
           totalUsers: allUsers?.length || 0,
           totalWalkers: allWalkers?.length || 0,
           verifiedWalkers: allWalkers?.filter(w => w.verification_status === 'verified')?.length || 0,
-          activeWalkers: allWalkers?.filter(w => w.is_active && w.verification_status === 'verified')?.length || 0,
+          activeWalkers: allWalkers?.filter(w => w.is_active && w.verification_status === 'verified' && !['hotel', 'shop'].includes(w.professional_type))?.length || 0,
+          activeHotels: allWalkers?.filter(w => w.is_active && w.verification_status === 'verified' && w.professional_type === 'hotel')?.length || 0,
           totalTrainers: allTrainers?.length || 0,
           verifiedTrainers: allTrainers?.filter(t => t.verification_status === 'verified')?.length || 0,
           pendingBookings: (pendingBookings?.length || 0) + (pendingHotelBookings?.length || 0),
@@ -425,7 +426,7 @@ export default function AdminDashboard() {
   const hotelApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'hotel');
   const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status);
   const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || s.verification_status === 'requires_documents' || s.verification_status === 'rejected' || !s.verification_status);
-  const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified' || w.is_active === true);
+  const activeWalkers = allWalkers.filter(w => w.is_active && w.verification_status === 'verified' && !['hotel', 'shop'].includes(w.professional_type));
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
   const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
 
@@ -476,6 +477,13 @@ export default function AdminDashboard() {
       label: "Walkers Ativos",
       subLabel: `${adminStats?.verifiedWalkers || 0} verificados`,
       color: "from-green-600 to-emerald-600"
+    },
+    {
+      icon: Building2,
+      value: adminStats?.activeHotels || 0,
+      label: "Hotéis Ativos",
+      subLabel: `${adminStats?.verifiedWalkers || 0} perfis verificados`,
+      color: "from-cyan-600 to-teal-600"
     },
     {
       icon: Clock,
