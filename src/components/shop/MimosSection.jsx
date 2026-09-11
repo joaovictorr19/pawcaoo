@@ -34,10 +34,10 @@ export default function MimosSection({ onOpenMimo }) {
     );
   }
 
-  if (mimos.length === 0) return null;
-
-  const freeMimos = mimos.filter((m) => m.is_pawcao_mimo);
+  // Apenas mimos pagos dos hotéis — os grátis da PawCão aparecem no MimosHighlightBanner
   const paidMimos = mimos.filter((m) => !m.is_pawcao_mimo);
+
+  if (paidMimos.length === 0) return null;
 
   return (
     <div className="mb-8">
@@ -49,35 +49,15 @@ export default function MimosSection({ onOpenMimo }) {
         Oferece um petisco ao teu cão durante a estadia — o hotel entrega e partilha uma foto no diário 🐾
       </p>
 
-      {/* Mimos grátis da PawCão */}
-      {freeMimos.length > 0 && (
-        <div className="mb-4">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-            <span className="text-sm font-bold text-teal-700">Oferta PawCão</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {freeMimos.map((mimo) => (
-              <MimoCard key={mimo.id} mimo={mimo} onOpen={() => onOpenMimo(mimo)} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Mimos pagos dos hotéis */}
-      {paidMimos.length > 0 && (
-        <div>
-          <div className="flex items-center gap-1.5 mb-2">
-            <Package className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-sm font-bold text-slate-600">Mimos dos hotéis</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {paidMimos.map((mimo) => (
-              <MimoCard key={mimo.id} mimo={mimo} onOpen={() => onOpenMimo(mimo)} />
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="flex items-center gap-1.5 mb-2">
+        <Package className="w-3.5 h-3.5 text-slate-500" />
+        <span className="text-sm font-bold text-slate-600">Mimos dos hotéis</span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {paidMimos.map((mimo) => (
+          <MimoCard key={mimo.id} mimo={mimo} onOpen={() => onOpenMimo(mimo)} />
+        ))}
+      </div>
     </div>
   );
 }

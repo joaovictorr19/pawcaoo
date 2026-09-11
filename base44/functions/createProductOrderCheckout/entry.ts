@@ -69,6 +69,14 @@ export default async function (req) {
       if (booking.owner_email !== user.email) {
         return Response.json({ error: 'Esta reserva não te pertence' }, { status: 403 });
       }
+      // Mimos só fazem sentido numa estadia real — passeios, treinos, dropin e transporte não se aplicam
+      const stayTypes = ['boarding', 'daycare'];
+      if (!stayTypes.includes(booking.service_type)) {
+        return Response.json(
+          { error: 'O mimo só pode ser associado a uma estadia (hotel ou creche)' },
+          { status: 400 },
+        );
+      }
     }
 
     // Comissão da plataforma — taxa global da Loja (default 5%)

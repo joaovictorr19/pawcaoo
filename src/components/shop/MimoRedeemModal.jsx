@@ -35,8 +35,13 @@ export default function MimoRedeemModal({ mimo, onClose }) {
       );
       const activeStatuses = ["pending", "confirmed", "checked_in", "in_progress"];
       const today = new Date().toISOString().slice(0, 10);
+      // Mimos só podem ser entregues em estadias reais (hotel/creche), não em passeios/treinos/dropin/transporte
+      const stayTypes = ["boarding", "daycare"];
       return (all || []).filter(
-        (b) => activeStatuses.includes(b.status) && (b.checkout_date || b.checkin_date || "") >= today
+        (b) =>
+          activeStatuses.includes(b.status) &&
+          stayTypes.includes(b.service_type) &&
+          (b.checkout_date || b.checkin_date || "") >= today
       );
     },
     enabled: !!user?.email,
