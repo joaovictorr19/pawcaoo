@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ShoppingBag, Edit, Trash2, CheckCircle, X, AlertTriangle, Package } from "lucide-react";
+import { ShoppingBag, Edit, Trash2, CheckCircle, X, AlertTriangle, Package, EyeOff } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -31,6 +31,8 @@ export default function ProductManagement({ products, isLoading }) {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState(null);
+  const [removeMode, setRemoveMode] = useState('deactivate');
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -95,6 +97,32 @@ export default function ProductManagement({ products, isLoading }) {
       queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
       setSelectedProducts([]);
       toast.success('Produtos eliminados!');
+    },
+  });
+
+  const removeFromStoreMutation = useMutation({
+    mutationFn: async ({ product, mode }) => {
+      if (mode === 'delete') {
+        await base44.entities.PartnerProduct.delete(product.id);
+      } else {
+        await base44.entities.PartnerProduct.update(product.id, { is_available: false });
+      }
+      if (product.partner_company_email) {
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: product.partner_company_email,
+            subject: mode === 'delete' ? 'Produto removido da loja PawCão' : 'Produto desativado na loja PawCão',
+            body: `Olá,\n\nO produto "${product.product_name}" foi ${mode === 'delete' ? 'removido definitivamente' : 'desativado'} da loja por administração da PawCão.${mode === 'deactivate' ? ' Pode reativá-lo a qualquer momento nos seus produtos.' : ''}\n\nCumprimentos,\nEquipa PawCão`,
+          });
+        } catch (e) {
+          console.warn('Notify partner email failed:', e?.message);
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allPartnerProducts'] });
+      setRemoveTarget(null);
+      toast.success('Produto removido da loja!');
     },
   });
 
@@ -452,6 +480,15 @@ export default function ProductManagement({ products, isLoading }) {
                           <Edit className="w-3 h-3 mr-1" />
                           Editar
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setRemoveTarget(product); setRemoveMode('deactivate'); }}
+                          className="h-8 text-red-600 hover:bg-red-50 hover:border-red-300"
+                        >
+                          <EyeOff className="w-3 h-3 mr-1" />
+                          Tirar da Loja
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -613,6 +650,46 @@ export default function ProductManagement({ products, isLoading }) {
               className="bg-blue-600"
             >
               Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Tirar da Loja */}
+      <Dialog open={!!removeTarget} onOpenChange={(o) => !o && setRemoveTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tirar produto da loja</DialogTitle>
+          </DialogHeader>
+          {removeTarget && (
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-gray-700">Escolha como remover <strong>{removeTarget.product_name}</strong>:</p>
+              <div className="space-y-2">
+                <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer ${removeMode === 'deactivate' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                  <input type="radio" checked={removeMode === 'deactivate'} onChange={() => setRemoveMode('deactivate')} className="mt-1" />
+                  <div>
+                    <p className="font-semibold text-sm">Desativar (manter registo)</p>
+                    <p className="text-xs text-gray-500">O produto deixa de aparecer na loja mas fica guardado. O parceiro pode reativá-lo.</p>
+                  </div>
+                </label>
+                <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer ${removeMode === 'delete' ? 'border-red-500 bg-red-50' : 'border-gray-200'}`}>
+                  <input type="radio" checked={removeMode === 'delete'} onChange={() => setRemoveMode('delete')} className="mt-1" />
+                  <div>
+                    <p className="font-semibold text-sm text-red-600">Apagar definitivo</p>
+                    <p className="text-xs text-gray-500">Remove permanentemente o produto. Não pode ser desfeito.</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRemoveTarget(null)}>Cancelar</Button>
+            <Button
+              variant={removeMode === 'delete' ? 'destructive' : 'default'}
+              onClick={() => removeFromStoreMutation.mutate({ product: removeTarget, mode: removeMode })}
+              disabled={removeFromStoreMutation.isPending}
+            >
+              {removeMode === 'delete' ? 'Apagar Definitivamente' : 'Desativar Produto'}
             </Button>
           </DialogFooter>
         </DialogContent>

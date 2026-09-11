@@ -1,11 +1,12 @@
 import React from "react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, Globe2, CalendarDays, BadgeCheck, Users, Zap, Trophy, PawPrint, ShieldAlert, Bug, WalletCards, ClipboardCheck, Gift, Award } from "lucide-react";
+import { LayoutDashboard, Globe2, CalendarDays, BadgeCheck, Users, Zap, Trophy, PawPrint, ShieldAlert, Bug, WalletCards, ClipboardCheck, Gift, Award, ShoppingBag } from "lucide-react";
 
 const modules = [
   ["overview", "Visão Geral", LayoutDashboard], ["godmode", "Análises", Globe2],
   ["calendar", "Agenda", CalendarDays], ["approvals", "Aprovações", BadgeCheck],
   ["users", "Utilizadores", Users], ["operations", "Operações", Zap],
+  ["loja", "Loja", ShoppingBag],
   ["gamification", "Gamificação", Trophy], ["professionals", "Profissionais", PawPrint],
   ["mimos", "Mimos", Gift],
   ["selos", "Selos", Award],
@@ -14,7 +15,7 @@ const modules = [
   ["financeiro", "Financeiro", WalletCards],
 ];
 
-export default function AdminModuleNavigation({ approvalCount = 0 }) {
+export default function AdminModuleNavigation({ approvalCount = 0, shopPendingCount = 0 }) {
   return (
     <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
       {modules.map(([value, label, Icon]) => (
@@ -24,6 +25,7 @@ export default function AdminModuleNavigation({ approvalCount = 0 }) {
           </span>
           <span className="min-w-0 text-xs font-bold leading-tight break-words sm:text-sm">{label}</span>
           {value === "approvals" && approvalCount > 0 && <span className="absolute right-2 top-2 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold text-white">{approvalCount}</span>}
+          {value === "loja" && shopPendingCount > 0 && <span className="absolute right-2 top-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">{shopPendingCount}</span>}
         </TabsTrigger>
       ))}
     </TabsList>

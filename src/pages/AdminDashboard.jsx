@@ -50,6 +50,7 @@ import AdminProfileModeration from "../components/admin/AdminProfileModeration";
 import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import AdminMimosManager from "../components/admin/AdminMimosManager";
 import AdminSealsManager from "../components/admin/AdminSealsManager";
+import ProductManagement from "@/components/admin/ProductManagement";
 import ImpersonateDialog from "../components/admin/ImpersonateDialog";
 import BackButton from "@/components/ui/BackButton";
 import "@/components/admin/admin-dashboard.css";
@@ -285,15 +286,17 @@ export default function AdminDashboard() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: allPartnerProducts = [] } = useQuery({
+  const { data: allPartnerProducts = [], isFetching: loadingProducts } = useQuery({
     queryKey: ['allPartnerProducts'],
     placeholderData: keepPreviousData,
     queryFn: () => base44.entities.PartnerProduct.list('-created_date'),
-    enabled: isAdmin && activeTab === 'operations',
+    enabled: isAdmin && (activeTab === 'operations' || activeTab === 'loja'),
     initialData: [],
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  const pendingProductsCount = allPartnerProducts.filter(p => p.moderation_status === 'pending').length;
 
   const { data: allBookings = [] } = useQuery({
     queryKey: ['allBookings'],
@@ -871,7 +874,7 @@ export default function AdminDashboard() {
               <h2 className="text-lg font-extrabold text-slate-950">Módulos</h2>
               <p className="text-sm text-slate-600">Selecione uma área para gerir</p>
             </div>
-            <AdminModuleNavigation approvalCount={walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length} />
+            <AdminModuleNavigation approvalCount={walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length} shopPendingCount={pendingProductsCount} />
           </section>
 
           <TabsContent value="overview">
@@ -1138,6 +1141,14 @@ export default function AdminDashboard() {
               <SubscriptionsManager />
               <BroadcastManager />
             </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="loja">
+            {activeTab === 'loja' && (
+              <div className="mt-6">
+                <ProductManagement products={allPartnerProducts} isLoading={loadingProducts} />
+              </div>
             )}
           </TabsContent>
 
