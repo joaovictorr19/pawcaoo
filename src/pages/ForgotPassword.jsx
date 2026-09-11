@@ -6,8 +6,11 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import { useLanguage } from "@/components/LanguageContext";
+import { ta } from "@/components/authTranslations";
 
 export default function ForgotPassword() {
+  const { language } = useLanguage();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -18,9 +21,9 @@ export default function ForgotPassword() {
     try {
       await base44.auth.resetPasswordRequest(email);
       setSent(true);
-      toast.success("Email de recuperação enviado");
+      toast.success(ta('recoverySent', language));
     } catch (error) {
-      toast.success("Se o email existe, receberá um link de recuperação");
+      toast.success(ta('recoveryGeneric', language));
       setSent(true);
     } finally {
       setLoading(false);
@@ -37,12 +40,12 @@ export default function ForgotPassword() {
 
           <div className="space-y-2 text-center">
             <h1 className="text-2xl font-semibold text-slate-900">
-              {sent ? "Verifique seu Email" : "Recuperar Senha"}
+              {sent ? ta('checkEmail', language) : ta('recoverPassword', language)}
             </h1>
             <p className="text-sm text-slate-500">
               {sent
-                ? "Se a conta existir, receberá um link para resetar sua senha"
-                : "Insira seu email para receber um link de recuperação"}
+                ? ta('recoveryGeneric', language)
+                : ta('enterEmailToRecover', language)}
             </p>
           </div>
 
@@ -50,7 +53,7 @@ export default function ForgotPassword() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
-                  Email
+                  {ta('email', language)}
                 </label>
                 <Input
                   type="email"
@@ -67,13 +70,13 @@ export default function ForgotPassword() {
                 disabled={loading}
                 className="w-full h-11 bg-slate-900 hover:bg-black text-white rounded-xl font-semibold text-sm transition-colors"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enviar Link"}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : ta('sendLink', language)}
               </Button>
             </form>
           ) : (
             <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
               <p className="text-sm text-orange-800">
-                Um link de recuperação foi enviado para <strong>{email}</strong>
+                {ta('linkSentTo', language, { email })}
               </p>
             </div>
           )}
@@ -84,7 +87,7 @@ export default function ForgotPassword() {
               className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700 font-medium text-sm"
             >
               <ArrowLeft className="w-4 h-4" />
-              Voltar ao Login
+              {ta('backToLogin', language)}
             </Link>
           </div>
         </div>

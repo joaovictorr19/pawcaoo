@@ -6,8 +6,11 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import PawCaoLogo from "@/components/PawCaoLogo";
+import { useLanguage } from "@/components/LanguageContext";
+import { ta } from "@/components/authTranslations";
 
 export default function ResetPassword() {
+  const { language } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
@@ -20,11 +23,11 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem");
+      toast.error(ta('passwordsDontMatch', language));
       return;
     }
     if (!token) {
-      toast.error("Token inválido ou expirado");
+      toast.error(ta('invalidToken', language));
       return;
     }
 
@@ -32,10 +35,10 @@ export default function ResetPassword() {
     try {
       await base44.auth.resetPassword({ resetToken: token, newPassword: password });
       setSuccess(true);
-      toast.success("Senha alterada com sucesso!");
+      toast.success(ta('passwordChanged', language));
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
-      toast.error(error.message || "Erro ao resetar senha");
+      toast.error(error.message || ta('passwordResetError', language));
     } finally {
       setLoading(false);
     }
@@ -47,9 +50,9 @@ export default function ResetPassword() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center space-y-4">
             <PawCaoLogo size="medium" showText={true} />
-            <p className="text-red-600 font-medium">Link de recuperação inválido ou expirado</p>
+            <p className="text-red-600 font-medium">{ta('recoveryInvalid', language)}</p>
             <Link to="/forgot-password" className="text-orange-600 hover:text-orange-700 font-medium">
-              Solicitar novo link
+              {ta('requestNewLink', language)}
             </Link>
           </div>
         </div>
@@ -66,20 +69,20 @@ export default function ResetPassword() {
           </div>
 
           <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-semibold text-slate-900">Nova Senha</h1>
-            <p className="text-sm text-slate-500">Defina uma nova senha para sua conta</p>
+            <h1 className="text-2xl font-semibold text-slate-900">{ta('newPassword', language)}</h1>
+            <p className="text-sm text-slate-500">{ta('setNewPassword', language)}</p>
           </div>
 
           {success ? (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center space-y-2">
-              <p className="text-sm text-green-800 font-medium">Senha alterada com sucesso!</p>
-              <p className="text-xs text-green-700">Será redirecionado para login em breve...</p>
+              <p className="text-sm text-green-800 font-medium">{ta('passwordChanged', language)}</p>
+              <p className="text-xs text-green-700">{ta('redirectingToLogin', language)}</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
-                  Nova Senha
+                  {ta('newPassword', language)}
                 </label>
                 <Input
                   type="password"
@@ -93,7 +96,7 @@ export default function ResetPassword() {
 
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">
-                  Confirmar Senha
+                  {ta('confirmPassword', language)}
                 </label>
                 <Input
                   type="password"
@@ -110,7 +113,7 @@ export default function ResetPassword() {
                 disabled={loading}
                 className="w-full h-11 bg-slate-900 hover:bg-black text-white rounded-xl font-semibold text-sm transition-colors"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Resetar Senha"}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : ta('resetPasswordBtn', language)}
               </Button>
             </form>
           )}
