@@ -24,27 +24,90 @@ export default function MimoRedeemModal({ mimo, onClose }) {
     refetchOnWindowFocus: false,
   });
 
-  // Reservas de hotel ativas/futuras do cliente
+  // Reservas elegíveis conforme o âmbito de redenção do mimo (redemption_scope)
   const { data: bookings = [], isLoading } = useQuery({
-    queryKey: ["clientActiveBookings", user?.email],
+    queryKey: ["mimoEligibleBookings", user?.email, mimo?.id, mimo?.redemption_scope],
     queryFn: async () => {
-      const all = await base44.entities.HotelBooking.filter(
-        { owner_email: user.email },
-        "-checkin_date",
-        30
-      );
-      const activeStatuses = ["pending", "confirmed", "checked_in", "in_progress"];
+      if (!user?.email) return [];
+      const scope = mimo?.redemption_scope || "hotels";
       const today = new Date().toISOString().slice(0, 10);
-      // Mimos só podem ser entregues em estadias reais (hotel/creche), não em passeios/treinos/dropin/transporte
-      const stayTypes = ["boarding", "daycare"];
-      return (all || []).filter(
-        (b) =>
-          activeStatuses.includes(b.status) &&
-          stayTypes.includes(b.service_type) &&
-          (b.checkout_date || b.checkin_date || "") >= today
-      );
+      const activeStatuses = ["pending", "confirmed", "checked_in", "in_progress", "service_completed", "completed"];
+      const items = [];
+
+      const fmt = (d) => (d ? format(new Date(d), "dd MMM", { locale: pt }) : "");
+
+      if (scope === "hotels" || scope === "all") {
+        const all = await base44.entities.HotelBooking.filter(
+          { owner_email: user.email },
+          "-checkin_date",
+          30
+        );
+        const stayTypes = ["boarding", "daycare"];
+        (all || []).forEach((b) => {
+          if (
+            activeStatuses.includes(b.status) &&
+            stayTypes.includes(b.service_type) &&
+            (b.checkout_date || b.checkin_date || "") >= today
+          ) {
+            items.push({
+              id: b.id,
+              kindLabel: "Hotel",
+              dogName: b.dogs?.[0]?.dog_name || b.dog_name || "Cão",
+              dateLabel: [fmt(b.checkin_date), fmt(b.checkout_date)].filter(Boolean).join(" → "),
+              partnerName: b.hotel_name,
+              raw: b,
+            });
+          }
+        });
+      }
+
+      if (scope === "services" || scope === "all") {
+        const walks = await base44.entities.Booking.filter(
+          { owner_email: user.email },
+          "-walk_date",
+          30
+        );
+        (walks || []).forEach((b) => {
+          if (
+            activeStatuses.includes(b.status) &&
+            (b.walk_date || b.session_date || "") >= today
+          ) {
+            items.push({
+              id: b.id,
+              kindLabel: "Passeio",
+              dogName: b.dogs?.[0]?.dog_name || b.dog_name || "Cão",
+              dateLabel: fmt(b.walk_date || b.session_date),
+              partnerName: b.walker_name || b.trainer_name,
+              raw: b,
+            });
+          }
+        });
+
+        const trainings = await base44.entities.TrainingBooking.filter(
+          { owner_email: user.email },
+          "-session_date",
+          30
+        );
+        (trainings || []).forEach((b) => {
+          if (
+            activeStatuses.includes(b.status) &&
+            (b.session_date || "") >= today
+          ) {
+            items.push({
+              id: b.id,
+              kindLabel: "Treino",
+              dogName: b.dog_name || "Cão",
+              dateLabel: fmt(b.session_date),
+              partnerName: b.trainer_name,
+              raw: b,
+            });
+          }
+        });
+      }
+
+      return items;
     },
-    enabled: !!user?.email,
+    enabled: !!user?.email && !!mimo,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -52,6 +115,7 @@ export default function MimoRedeemModal({ mimo, onClose }) {
   if (!mimo) return null;
 
   const isFree = mimo.is_pawcao_mimo;
+  const scope = mimo.redemption_scope || "hotels";
 
   const handleConfirm = async () => {
     if (!user) {
@@ -67,8 +131,8 @@ export default function MimoRedeemModal({ mimo, onClose }) {
       const response = await base44.functions.invoke("createProductOrderCheckout", {
         product_id: mimo.id,
         quantity: 1,
-        booking_id: selectedBooking.id,
-        dog_name: selectedBooking.dogs?.[0]?.dog_name || selectedBooking.dog_name || null,
+        booking_id: selectedBooking.raw?.id || selectedBooking.id,
+        dog_name: selectedBooking.dogName || null,
       });
       const data = response.data;
       if (data?.url) {
@@ -128,7 +192,9 @@ export default function MimoRedeemModal({ mimo, onClose }) {
           </div>
 
           {/* Seleção de reserva */}
-          <p className="text-sm font-bold text-slate-900 mb-2">Para qual estadia?</p>
+          <p className="text-sm font-bold text-slate-900 mb-2">
+            {scope === "hotels" ? "Para qual estadia?" : "Para qual reserva?"}
+          </p>
 
           {!user ? (
             <button
@@ -148,15 +214,18 @@ export default function MimoRedeemModal({ mimo, onClose }) {
           ) : bookings.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-6 px-4 rounded-xl bg-slate-50 border border-slate-100">
               <Hotel className="w-8 h-8 text-slate-300 mb-2" />
-              <p className="text-sm font-semibold text-slate-700 mb-1">Sem estadias ativas</p>
+              <p className="text-sm font-semibold text-slate-700 mb-1">
+                {scope === "hotels" ? "Sem estadias ativas" : "Sem reservas ativas"}
+              </p>
               <p className="text-xs text-slate-500 text-center leading-relaxed max-w-[220px]">
-                Precisas de ter uma reserva de hotel ativa ou futura para oferecer um mimo ao teu cão.
+                {scope === "hotels"
+                  ? "Precisas de ter uma reserva de hotel ativa ou futura para oferecer um mimo ao teu cão."
+                  : "Precisas de ter uma reserva ativa ou futura para oferecer um mimo ao teu cão."}
               </p>
             </div>
           ) : (
             <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
               {bookings.map((b) => {
-                const dogName = b.dogs?.[0]?.dog_name || b.dog_name || "Cão";
                 const selected = selectedBooking?.id === b.id;
                 return (
                   <button
@@ -172,13 +241,15 @@ export default function MimoRedeemModal({ mimo, onClose }) {
                       {selected ? <Check className="w-5 h-5 text-white" /> : <PawPrint className="w-5 h-5 text-slate-400" />}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-slate-900 text-sm leading-tight">{dogName}</p>
+                      <p className="font-bold text-slate-900 text-sm leading-tight">{b.dogName}</p>
                       <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                         <Calendar className="w-3 h-3" />
-                        {b.checkin_date && format(new Date(b.checkin_date), "dd MMM", { locale: pt })}
-                        {b.checkout_date && ` → ${format(new Date(b.checkout_date), "dd MMM", { locale: pt })}`}
+                        {b.dateLabel || "—"}
                       </p>
-                      <p className="text-[10px] text-slate-400 truncate mt-0.5">{b.hotel_name}</p>
+                      <p className="text-[10px] text-slate-400 truncate mt-0.5 flex items-center gap-1">
+                        <span className="text-[9px] font-semibold text-teal-600 bg-teal-50 rounded px-1 py-0.5">{b.kindLabel}</span>
+                        {b.partnerName}
+                      </p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />
                   </button>
@@ -190,8 +261,8 @@ export default function MimoRedeemModal({ mimo, onClose }) {
           {user && bookings.length > 0 && (
             <p className="text-[11px] text-slate-400 text-center pt-3">
               {isFree
-                ? "O hotel será notificado e entregará o mimo ao teu cão durante a estadia."
-                : "Pagamento seguro · O hotel entrega o mimo e publica uma foto no diário."}
+                ? "O parceiro será notificado e entregará o mimo ao teu cão na reserva."
+                : "Pagamento seguro · O parceiro entrega o mimo e publica uma foto no diário."}
             </p>
           )}
         </div>

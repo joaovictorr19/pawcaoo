@@ -27,10 +27,18 @@ const EMPTY_FORM = {
   product_name: "",
   description: "",
   category: "food",
+  redemption_scope: "hotels",
   image_url: "",
   stock_unlimited: true,
   stock_quantity: 50,
 };
+
+const SCOPE_OPTIONS = [
+  { id: "hotels", label: "Hotéis", desc: "Estadias" },
+  { id: "services", label: "Serviços", desc: "Passeios/treinos" },
+  { id: "all", label: "Todos", desc: "Qualquer reserva" },
+];
+const SCOPE_BADGE = { hotels: "Hotéis", services: "Serviços", all: "Todos" };
 
 export default function AdminMimosManager() {
   const queryClient = useQueryClient();
@@ -80,6 +88,7 @@ export default function AdminMimosManager() {
       product_name: mimo.product_name || "",
       description: mimo.description || "",
       category: mimo.category || "food",
+      redemption_scope: mimo.redemption_scope || "hotels",
       image_url: mimo.image_url || "",
       stock_unlimited: (mimo.stock_quantity || 0) >= 999999,
       stock_quantity: (mimo.stock_quantity || 0) >= 999999 ? 50 : mimo.stock_quantity || 50,
@@ -94,6 +103,7 @@ export default function AdminMimosManager() {
         product_name: form.product_name.trim(),
         description: form.description.trim(),
         category: form.category,
+        redemption_scope: form.redemption_scope,
         image_url: form.image_url,
         stock_quantity: stockQty,
         is_pawcao_mimo: true,
@@ -292,6 +302,31 @@ export default function AdminMimosManager() {
               </select>
             </div>
 
+            {/* Âmbito de redenção */}
+            <div>
+              <Label className="text-sm font-semibold text-slate-700">Âmbito de redenção</Label>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Onde este mimo pode ser resgatado, conforme a parceria.
+              </p>
+              <div className="grid grid-cols-3 gap-2 mt-1.5">
+                {SCOPE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => set("redemption_scope", opt.id)}
+                    className={`px-2 py-2 rounded-xl text-xs font-semibold border-2 transition-all ${
+                      form.redemption_scope === opt.id
+                        ? "border-teal-500 bg-teal-50 text-teal-700"
+                        : "border-slate-200 bg-white text-slate-500 hover:border-teal-200"
+                    }`}
+                  >
+                    <span className="block">{opt.label}</span>
+                    <span className="block text-[10px] font-normal opacity-70">{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Description */}
             <div>
               <Label className="text-sm font-semibold text-slate-700">Descrição</Label>
@@ -416,6 +451,9 @@ function MimoCard({ mimo, onEdit, onToggle, onDelete }) {
           </span>
           <span className="text-[10px] font-semibold text-teal-600 bg-teal-50 rounded-full px-2 py-0.5">
             {CATEGORIES.find((c) => c.id === mimo.category)?.label || "Outros"}
+          </span>
+          <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 rounded-full px-2 py-0.5">
+            {SCOPE_BADGE[mimo.redemption_scope] || "Hotéis"}
           </span>
         </div>
         <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100">

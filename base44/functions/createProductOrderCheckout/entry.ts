@@ -58,24 +58,69 @@ export default async function (req) {
       return Response.json({ error: 'Morada de entrega é obrigatória' }, { status: 400 });
     }
 
-    // Validar reserva de hotel quando delivery_method='with_stay'
+    // Validar reserva conforme o âmbito de redenção do mimo (redemption_scope)
     let booking = null;
+    let bookingProfEmail = '';
+    let bookingType = ''; // 'hotel' | 'service'
     if (deliveryMethod === 'with_stay' && booking_id) {
-      const bookings = await base44.entities.HotelBooking.filter({ id: booking_id });
-      booking = bookings[0];
+      const scope = product.redemption_scope || 'hotels';
+
+      // Hotéis (válido para 'hotels' e 'all')
+      if (scope === 'hotels' || scope === 'all') {
+        const hb = await base44.entities.HotelBooking.filter({ id: booking_id });
+        if (hb[0]) {
+          booking = hb[0];
+          bookingType = 'hotel';
+          if (booking.owner_email !== user.email) {
+            return Response.json({ error: 'Esta reserva não te pertence' }, { status: 403 });
+          }
+          const stayTypes = ['boarding', 'daycare'];
+          if (!stayTypes.includes(booking.service_type)) {
+            return Response.json(
+              { error: 'O mimo só pode ser associado a uma estadia (hotel ou creche)' },
+              { status: 400 },
+            );
+          }
+          bookingProfEmail = booking.hotel_email || '';
+        }
+      }
+
+      // Serviços pontuais (válido para 'services' e 'all')
+      if (!booking && (scope === 'services' || scope === 'all')) {
+        const wb = await base44.entities.Booking.filter({ id: booking_id });
+        if (wb[0]) {
+          booking = wb[0];
+          bookingType = 'service';
+          if (booking.owner_email !== user.email) {
+            return Response.json({ error: 'Esta reserva não te pertence' }, { status: 403 });
+          }
+          bookingProfEmail = booking.walker_email || booking.trainer_email || '';
+        } else {
+          const tb = await base44.entities.TrainingBooking.filter({ id: booking_id });
+          if (tb[0]) {
+            booking = tb[0];
+            bookingType = 'service';
+            if (booking.owner_email !== user.email) {
+              return Response.json({ error: 'Esta reserva não te pertence' }, { status: 403 });
+            }
+            bookingProfEmail = '';
+          }
+        }
+      }
+
       if (!booking) {
-        return Response.json({ error: 'Reserva de hotel não encontrada' }, { status: 400 });
+        const msg = scope === 'hotels'
+          ? 'Reserva de hotel não encontrada'
+          : scope === 'services'
+            ? 'Reserva de serviço não encontrada'
+            : 'Reserva não encontrada';
+        return Response.json({ error: msg }, { status: 400 });
       }
-      if (booking.owner_email !== user.email) {
-        return Response.json({ error: 'Esta reserva não te pertence' }, { status: 403 });
+      if (scope === 'hotels' && bookingType !== 'hotel') {
+        return Response.json({ error: 'Este mimo é apenas para estadias de hotel/creche' }, { status: 400 });
       }
-      // Mimos só fazem sentido numa estadia real — passeios, treinos, dropin e transporte não se aplicam
-      const stayTypes = ['boarding', 'daycare'];
-      if (!stayTypes.includes(booking.service_type)) {
-        return Response.json(
-          { error: 'O mimo só pode ser associado a uma estadia (hotel ou creche)' },
-          { status: 400 },
-        );
+      if (scope === 'services' && bookingType !== 'service') {
+        return Response.json({ error: 'Este mimo é apenas para serviços (passeios/treinos)' }, { status: 400 });
       }
     }
 
@@ -143,8 +188,8 @@ export default async function (req) {
     let pickupSnapshot = { address: '', city: '', postal_code: '', notes: '', schedule: '' };
     if (deliveryMethod === 'pickup') {
       try {
-        const pickupEmail = isPawcaoGift && booking?.hotel_email
-          ? booking.hotel_email
+        const pickupEmail = isPawcaoGift && bookingProfEmail
+          ? bookingProfEmail
           : (product.partner_company_email || '');
         const profiles = await base44.asServiceRole.entities.WalkerProfile.filter({
           created_by: pickupEmail,
@@ -201,8 +246,8 @@ export default async function (req) {
       payment_status: 'pending',
       partner_id: product.partner_id || '',
       partner_name: product.partner_name || '',
-      partner_company_email: isPawcaoGift && booking?.hotel_email
-        ? booking.hotel_email
+      partner_company_email: isPawcaoGift && bookingProfEmail
+        ? bookingProfEmail
         : (product.partner_company_email || ''),
       delivery_method: deliveryMethod,
       shipping_address: deliveryMethod === 'shipping' ? shipping_address : undefined,
@@ -224,10 +269,11 @@ export default async function (req) {
     if (isPawcaoGift) {
       await fulfillProductOrderPaid(base44, order.id, { paymentMethod: 'gift' });
       // Notificar o hotel de que há um mimo por entregar para esta reserva
-      if (booking && booking.hotel_email) {
+      const notifyEmail = bookingProfEmail || booking?.hotel_email || '';
+      if (booking && notifyEmail) {
         try {
           await base44.asServiceRole.entities.Notification.create({
-            recipient_email: booking.hotel_email,
+            recipient_email: notifyEmail,
             title: '🎁 Mimo para entregar',
             message: (user.full_name || user.email) + ' resgatou um mimo (' + (product.product_name || '') + ') para ' + (dog_name || 'o cão') + ' na estadia. Entrega e publica uma foto no diário!',
             type: 'booking',
