@@ -42,7 +42,7 @@ export function ProfessionalCard({ walker }) {
         const name = walker?.hotel_details?.hotel_name || walker?.walker_name;
         const type = walker?.professional_type === 'hotel' ? 'hotel' : 'walker';
         const link = await ensureProfileSlug(name, walker?.created_by, type);
-        navigate(link);
+        navigate(link, { state: { email: walker?.created_by, type } });
       }}
       onMouseEnter={() => {
         queryClient.prefetchQuery({

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { Search, Building2, Award, Shield, GraduationCap, Save, RotateCcw, Users } from "lucide-react";
+import { Search, Building2, Award, Shield, GraduationCap, Save, RotateCcw, Users, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -117,6 +117,7 @@ export default function AdminSealsManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sealConfigurations"] });
+      setEditConfig(null);
       toast.success("Configuração de selo guardada!");
     },
     onError: (error) => toast.error("Erro: " + (error.message || "Erro ao guardar")),
@@ -130,9 +131,29 @@ export default function AdminSealsManager() {
     saveConfigMutation.mutate(currentConfig);
   };
 
+  // Delete seal visual configuration (reverts to defaults)
+  const deleteConfigMutation = useMutation({
+    mutationFn: async (configId) => {
+      await base44.entities.SealConfiguration.delete(configId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sealConfigurations"] });
+      setEditConfig(null);
+      toast.success("Configuração eliminada — revertida para defaults");
+    },
+    onError: (error) => toast.error("Erro: " + (error.message || "Erro ao eliminar")),
+  });
+
   const handleResetConfig = () => {
     setEditConfig({ ...SEAL_DEFAULTS[selectedSeal] });
     toast.info("Configuração resetada para os defaults");
+  };
+
+  const handleDeleteConfig = () => {
+    const savedConfig = sealConfigs[selectedSeal];
+    if (savedConfig?.id) {
+      deleteConfigMutation.mutate(savedConfig.id);
+    }
   };
 
   const handleSealSelect = (sealType) => {
@@ -219,8 +240,8 @@ export default function AdminSealsManager() {
                               onClick={() => handleToggleSeal(walker, sealType, hasSeal)}
                               disabled={toggleSealMutation.isPending}
                               title={config.badge_label}
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${hasSeal ? "border-transparent shadow-sm" : "border-slate-200 bg-slate-50 opacity-40 hover:opacity-70"}`}
-                              style={hasSeal ? { backgroundColor: config.border_color, color: "#fff" } : {}}
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${hasSeal ? "seal-active-bg border-transparent shadow-sm" : "border-slate-200 bg-slate-50 opacity-40 hover:opacity-70"}`}
+                              style={hasSeal ? { '--seal-color': config.border_color } : {}}
                             >
                               <Icon className="w-3.5 h-3.5" />
                             </button>
@@ -244,6 +265,11 @@ export default function AdminSealsManager() {
         <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
           <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
             <Award className="w-4 h-4 text-teal-600" /> Configuração Visual
+            {sealConfigs[selectedSeal]?.id ? (
+              <span className="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Guardado</span>
+            ) : (
+              <span className="ml-auto text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Default</span>
+            )}
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">Personaliza a borda e o efeito de cada selo</p>
         </div>
@@ -258,8 +284,8 @@ export default function AdminSealsManager() {
               <button
                 key={sealType}
                 onClick={() => handleSealSelect(sealType)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${isActive ? "border-transparent text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
-                style={isActive ? { backgroundColor: config.border_color } : {}}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${isActive ? "seal-active-bg border-transparent shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                style={isActive ? { '--seal-color': config.border_color } : {}}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {config.badge_label}
@@ -382,6 +408,16 @@ export default function AdminSealsManager() {
             >
               <RotateCcw className="w-4 h-4" /> Reset
             </Button>
+            {sealConfigs[selectedSeal]?.id && (
+              <Button
+                onClick={handleDeleteConfig}
+                disabled={deleteConfigMutation.isPending}
+                variant="outline"
+                className="gap-2 text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" /> Eliminar
+              </Button>
+            )}
           </div>
         </div>
       </div>

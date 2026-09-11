@@ -1,4 +1,4 @@
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { slugify } from "@/utils/profileSlug";
@@ -17,6 +17,7 @@ import UserProfile from "./UserProfile";
  */
 export default function ShortProfile() {
   const { slug: rawSlug } = useParams();
+  const location = useLocation();
   const [resolved, setResolved] = useState(null);
   const [notFound, setNotFound] = useState(false);
 
@@ -26,6 +27,12 @@ export default function ShortProfile() {
       if (!rawSlug) { setNotFound(true); return; }
       setResolved(null);
       setNotFound(false);
+
+      // Fast path: navigation state provides email/type directly (from ProfessionalCard click)
+      if (location.state?.email) {
+        setResolved({ email: location.state.email, type: location.state.type });
+        return;
+      }
 
       // Aceita tanto slug (com hífens) quanto ID antigo (alfanumérico sem hífens)
       const looksLikeLegacyId = rawSlug.length > 20 && !rawSlug.includes('-');
