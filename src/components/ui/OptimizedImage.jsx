@@ -1,16 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-export default function OptimizedImage({ 
-  src, 
-  alt, 
-  className, 
+// Cache module-level de URLs já carregadas nesta sessão.
+// Ao remontar (ex: voltar atrás), imagens em cache aparecem de imediato
+// sem o placeholder animate-pulse — elimina o efeito de "piscar".
+const loadedUrlCache = new Set();
+
+export default function OptimizedImage({
+  src,
+  alt,
+  className,
   aspectRatio = 'square',
   priority = false,
-  fallback = null 
+  fallback = null
 }) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => !loadedUrlCache.has(src));
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (!src) return;
+    if (loadedUrlCache.has(src)) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+  }, [src]);
 
   const aspectClasses = {
     square: 'aspect-square',
@@ -37,10 +51,13 @@ export default function OptimizedImage({
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
-        onLoad={() => setIsLoading(false)}
-        onError={() => {
+        onLoad={() => {
+          loadedUrlCache.add(src);
           setIsLoading(false);
+        }}
+        onError={() => {
           setHasError(true);
+          setIsLoading(false);
         }}
         className={cn(
           'w-full h-full object-cover transition-opacity duration-300',

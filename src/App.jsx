@@ -194,10 +194,13 @@ const AuthenticatedApp = () => {
   // Transições: mobile desliza (push entra pela direita / volta sai pela direita);
   // desktop mantém o fade existente.
   const onTabPage = !!findActiveTab(location.pathname);
+  // Transições leves e rápidas: voltar é quase instantâneo (apenas fade curto),
+  // avançar mantém um slide subtil mas mais rápido. Reduz a perceção de atraso
+  // ao abrir/voltar páginas.
   const variants = isMobile
     ? (isBackNav
-        ? { initial: { x: "-22%", opacity: 0.75 }, animate: { x: 0, opacity: 1 }, exit: { x: "100%", opacity: 1 } }
-        : { initial: { x: "100%", opacity: 1 }, animate: { x: 0, opacity: 1 }, exit: { x: "-22%", opacity: 0.75 } })
+        ? { initial: { opacity: 0.5 }, animate: { opacity: 1 }, exit: { opacity: 0 } }
+        : { initial: { x: "100%", opacity: 1 }, animate: { x: 0, opacity: 1 }, exit: { x: "-15%", opacity: 0.5 } })
     : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } };
 
   return (
@@ -211,7 +214,7 @@ const AuthenticatedApp = () => {
         initial={variants.initial}
         animate={variants.animate}
         exit={variants.exit}
-        transition={{ duration: isMobile ? 0.26 : 0.2, ease: [0.32, 0.72, 0, 1] }}
+        transition={{ duration: isBackNav ? (isMobile ? 0.12 : 0.1) : (isMobile ? 0.18 : 0.15), ease: [0.32, 0.72, 0, 1] }}
       >
         <Suspense fallback={<PageLoader />}>
           <Routes location={location}>
