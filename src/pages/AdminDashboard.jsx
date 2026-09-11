@@ -27,7 +27,6 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
 import ProfileEditRequests from "../components/admin/ProfileEditRequests";
 import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
-import PendingHotelsPanel from "../components/admin/PendingHotelsPanel";
 import HotelBookingStatusPanel from "../components/admin/HotelBookingStatusPanel";
 import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
@@ -37,6 +36,7 @@ import ClientDetails from "../components/admin/ClientDetails";
 import BroadcastManager from "../components/admin/BroadcastManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
+import RejectionModal from "../components/admin/RejectionModal";
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
 import AdminAccountEditor from "../components/admin/AdminAccountEditor.jsx";
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
@@ -73,6 +73,9 @@ export default function AdminDashboard() {
   const [isSyncingProfiles, setIsSyncingProfiles] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [showApplicationDialog, setShowApplicationDialog] = useState(false);
+  const [rejectionTargets, setRejectionTargets] = useState([]);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [isBulkApproving, setIsBulkApproving] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [userFormData, setUserFormData] = useState({});
@@ -432,18 +435,6 @@ export default function AdminDashboard() {
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
   const pendingProducts = allPartnerProducts.filter(p => p.moderation_status === 'pending');
 
-  // Profissionais pendentes via novo sistema unificado (professional_profile)
-  const pendingProfessionals = allUsers.filter(u => {
-    const status = u.professional_profile?.verification_status;
-    const isPro = (
-      ['walker', 'trainer', 'both', 'professional'].includes(u.account_type || '') ||
-      !!u.professional_profile?.requested_role ||
-      u.professional_profile?.is_professional === true ||
-      !!u.professional_profile
-    );
-    return isPro && (status === 'pending' || status === 'requires_documents' || !status);
-  });
-
   const { data: pendingEditRequestsCount = 0 } = useQuery({
     queryKey: ['profileEditRequestsCount'],
     queryFn: async () => {
@@ -496,12 +487,12 @@ export default function AdminDashboard() {
     },
     {
       icon: AlertCircle,
-      value: (adminStats?.pendingWalkers || 0) + (adminStats?.pendingTrainers || 0) + (adminStats?.pendingShops || 0),
+      value: walkerApplications.length + hotelApplications.length + trainerApplications.length + shopApplications.length,
       label: "Candidaturas",
       subLabel: `Aguardam verificação`,
       color: "from-purple-600 to-pink-600"
     },
-  ], [adminStats]);
+  ], [adminStats, walkerApplications, hotelApplications, trainerApplications, shopApplications]);
 
   const updateUserMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.User.update(id, data),
@@ -618,75 +609,92 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleApproveApplication = (type, item) => {
+  const invalidateAllApprovalQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
+    queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
+    queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
+    queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+    queryClient.invalidateQueries({ queryKey: ['walkers'] });
+  };
+
+  // Lógica de aprovação partilhada (individual + em massa).
+  const applyApprove = async (type, item) => {
     if (type === 'walker') {
-      updateWalkerMutation.mutate({ id: item.id, data: { verification_status: 'verified', is_active: true, is_verified: true } });
-      syncUserVerification(item.created_by, 'verified', null);
-      toast.success("Dog Walker aprovado!");
+      await base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true });
+      await syncUserVerification(item.created_by, 'verified', null);
     } else if (type === 'shop') {
-      base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true }).then(async () => {
-        await syncUserVerification(item.created_by, 'verified', 'shop');
-        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-        toast.success("Loja aprovada!");
-      });
+      await base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true });
+      await syncUserVerification(item.created_by, 'verified', 'shop');
     } else if (type === 'trainer') {
-      base44.entities.TrainerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true, is_verified_trainer: true }).then(async () => {
-        await syncUserVerification(item.created_by, 'verified', null);
-        queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-        toast.success("Treinador aprovado!");
-      });
+      await base44.entities.TrainerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true, is_verified_trainer: true });
+      await syncUserVerification(item.created_by, 'verified', null);
     } else if (type === 'hotel') {
-      base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true }).then(async () => {
-        await syncUserVerification(item.created_by, 'verified', 'hotel');
-        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-        toast.success("Hotel aprovado!");
-      });
+      await base44.entities.WalkerProfile.update(item.id, { verification_status: 'verified', is_active: true, is_verified: true });
+      await syncUserVerification(item.created_by, 'verified', 'hotel');
     } else if (type === 'shelter') {
-      base44.entities.ShelterProfile.update(item.id, { verification_status: 'approved', is_verified: true }).then(() => {
-        queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
-        toast.success("Abrigo aprovado!");
-      });
+      await base44.entities.ShelterProfile.update(item.id, { verification_status: 'approved', is_verified: true });
+    }
+  };
+
+  // Lógica de rejeição partilhada (individual + em massa).
+  const applyReject = async (type, item, reason) => {
+    const data = { verification_status: 'rejected', rejection_reason: reason, is_verified: false };
+    if (type === 'walker' || type === 'shop' || type === 'hotel') {
+      await base44.entities.WalkerProfile.update(item.id, data);
+      await syncUserVerification(item.created_by, 'rejected', null);
+    } else if (type === 'trainer') {
+      await base44.entities.TrainerProfile.update(item.id, data);
+      await syncUserVerification(item.created_by, 'rejected', null);
+    } else if (type === 'shelter') {
+      await base44.entities.ShelterProfile.update(item.id, data);
+    }
+  };
+
+  const handleApproveApplication = async (type, item) => {
+    try {
+      await applyApprove(type, item);
+      invalidateAllApprovalQueries();
+      toast.success("Aprovado!");
+    } catch (e) {
+      toast.error("Erro: " + (e.message || "Erro desconhecido"));
     }
   };
 
   const handleRejectApplication = (type, item) => {
-    const reason = prompt("Motivo da rejeição:");
-    if (!reason) return;
-    const data = { verification_status: 'rejected', rejection_reason: reason, is_verified: false };
-    if (type === 'walker') {
-      updateWalkerMutation.mutate({ id: item.id, data });
-      syncUserVerification(item.created_by, 'rejected', null);
-      toast.success("Rejeitado!");
-    } else if (type === 'shop') {
-      base44.entities.WalkerProfile.update(item.id, data).then(async () => {
-        await syncUserVerification(item.created_by, 'rejected', null);
-        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-        toast.success("Loja rejeitada!");
-      });
-    } else if (type === 'trainer') {
-      base44.entities.TrainerProfile.update(item.id, data).then(async () => {
-        await syncUserVerification(item.created_by, 'rejected', null);
-        queryClient.invalidateQueries({ queryKey: ['allTrainersAdmin'] });
-        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-        toast.success("Rejeitado!");
-      });
-    } else if (type === 'hotel') {
-      base44.entities.WalkerProfile.update(item.id, data).then(async () => {
-        await syncUserVerification(item.created_by, 'rejected', null);
-        queryClient.invalidateQueries({ queryKey: ['allWalkersAdmin'] });
-        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-        toast.success("Rejeitado!");
-      });
-    } else if (type === 'shelter') {
-      base44.entities.ShelterProfile.update(item.id, data).then(() => {
-        queryClient.invalidateQueries({ queryKey: ['allSheltersAdmin'] });
-        toast.success("Rejeitado!");
-      });
-    }
+    setRejectionTargets([{ item, type }]);
+  };
+
+  const handleBulkApprove = async (selectedItems) => {
+    if (!selectedItems?.length) return;
+    setIsBulkApproving(true);
+    let ok = 0, fail = 0;
+    await Promise.allSettled(
+      selectedItems.map(({ type, item }) =>
+        applyApprove(type, item).then(() => ok++).catch(() => fail++)
+      )
+    );
+    invalidateAllApprovalQueries();
+    setIsBulkApproving(false);
+    toast.success(`${ok} aprovado${ok !== 1 ? 's' : ''}${fail ? `, ${fail} falharam` : ''}`);
+  };
+
+  const handleBulkReject = (selectedItems) => {
+    if (!selectedItems?.length) return;
+    setRejectionTargets(selectedItems);
+  };
+
+  const confirmRejection = async (reason) => {
+    setIsRejecting(true);
+    let ok = 0, fail = 0;
+    await Promise.allSettled(
+      rejectionTargets.map(({ type, item }) =>
+        applyReject(type, item, reason).then(() => ok++).catch(() => fail++)
+      )
+    );
+    invalidateAllApprovalQueries();
+    setIsRejecting(false);
+    setRejectionTargets([]);
+    toast.success(`${ok} rejeitado${ok !== 1 ? 's' : ''}${fail ? `, ${fail} falharam` : ''}`);
   };
 
   const handleViewApplicationDetails = (item, type) => {
@@ -961,6 +969,9 @@ export default function AdminDashboard() {
                         onReject={handleRejectApplication}
                         onViewDetails={handleViewApplicationDetails}
                         onRefresh={handleRefreshApplications}
+                        onBulkApprove={handleBulkApprove}
+                        onBulkReject={handleBulkReject}
+                        isBulkApproving={isBulkApproving}
                       />
                     </div>
                   </div>
@@ -975,18 +986,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {hotelApplications.length > 0 && (
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-[#1D8A82]" />
-                      <h3 className="text-sm font-extrabold text-slate-900">Hotéis Pendentes — Tempo de Espera</h3>
-                    </div>
-                    <div className="p-4">
-                      <PendingHotelsPanel hotels={hotelApplications} />
-                    </div>
-                  </div>
-                )}
-
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                   <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-[#1D8A82]" />
@@ -996,6 +995,15 @@ export default function AdminDashboard() {
                     <HotelBookingStatusPanel hotels={allWalkers} hotelBookings={allHotelBookings} />
                   </div>
                 </div>
+
+                <RejectionModal
+                  isOpen={rejectionTargets.length > 0}
+                  onClose={() => setRejectionTargets([])}
+                  onConfirm={confirmRejection}
+                  isLoading={isRejecting}
+                  targetCount={rejectionTargets.length}
+                  targetLabel={rejectionTargets.length === 1 ? (rejectionTargets[0]?.item?.walker_name || rejectionTargets[0]?.item?.trainer_name || rejectionTargets[0]?.item?.shelter_name || rejectionTargets[0]?.item?.hotel_details?.hotel_name) : undefined}
+                />
               </div>
             )}
           </TabsContent>
