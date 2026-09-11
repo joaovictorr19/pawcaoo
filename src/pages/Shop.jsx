@@ -244,7 +244,7 @@ export default function Shop() {
                   className="group text-left bg-white rounded-3xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(13,148,131,0.12)] hover:ring-1 hover:ring-teal-500/20 transition-all overflow-hidden active:scale-[0.98] flex sm:flex-col"
                 >
                   {/* Imagem — compacta à esquerda no telemóvel, em cima no desktop */}
-                  <div className="w-28 h-28 sm:w-full sm:h-56 shrink-0 relative overflow-hidden bg-slate-100 rounded-2xl sm:rounded-none p-2 sm:p-0">
+                  <div className="w-28 min-h-[112px] self-stretch sm:w-full sm:h-56 shrink-0 relative overflow-hidden bg-slate-100 rounded-2xl sm:rounded-none p-2 sm:p-0">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Package className="w-8 h-8 text-slate-300" />
                     </div>
