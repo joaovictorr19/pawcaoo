@@ -47,6 +47,7 @@ import HotelOnboardingEmpty from "@/components/hotel/HotelOnboardingEmpty";
 import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 import BackButton from "@/components/ui/BackButton";
 import PartnerStorePanel from "@/components/shop/PartnerStorePanel";
+import PickupLookupButton from "@/components/shop/PickupLookupButton";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 
 const STATUS_CONFIG = {
@@ -765,7 +766,10 @@ export default function HotelDashboard() {
           )}
 
           {activeTab === "loja" && (
-            <motion.div key="loja" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <motion.div key="loja" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
+              <div className="flex justify-end">
+                <PickupLookupButton partnerEmail={user?.email} />
+              </div>
               <PartnerStorePanel user={user} professionalProfile={hotelProfile} variant="light" />
             </motion.div>
           )}

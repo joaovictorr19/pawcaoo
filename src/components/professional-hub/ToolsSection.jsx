@@ -4,12 +4,13 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { QrCode, CreditCard, Download, Megaphone, Flame } from "lucide-react";
+import { QrCode, CreditCard, Download, Megaphone, Flame, PackageSearch } from "lucide-react";
 import DigitalWalletPass from "../professionals/DigitalWalletPass";
 import DataExportInline from "../professionals/DataExportInline";
 import StripeConnectSetup from "../professionals/StripeConnectSetup";
 import HotelPromotionTools from "./HotelPromotionTools";
 import CreateShopOfferModal from "../shop/CreateShopOfferModal";
+import PickupLookupButton from "@/components/shop/PickupLookupButton";
 
 export function ToolsSection({ user, professionalProfile, onEditProfile }) {
   const [iban, setIban] = React.useState("");
@@ -54,6 +55,19 @@ export function ToolsSection({ user, professionalProfile, onEditProfile }) {
       </div>
 
       <HotelPromotionTools user={user} professionalProfile={professionalProfile} />
+
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center">
+            <PackageSearch className="w-5 h-5 text-teal-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-bold text-slate-900 text-sm">Procurar Recolha</h4>
+            <p className="text-xs text-slate-400">Confirma encomendas no balcão pelo código</p>
+          </div>
+        </div>
+        <PickupLookupButton partnerEmail={user?.email} className="w-full justify-center" />
+      </div>
 
       <div className="bg-gradient-to-br from-orange-50 to-rose-50 border border-orange-200 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center gap-3 mb-3">

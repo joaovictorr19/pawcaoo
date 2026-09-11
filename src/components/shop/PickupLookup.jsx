@@ -13,7 +13,7 @@ const STATUS_LABELS = {
   cancelled: "Cancelado",
 };
 
-export default function PickupLookup({ open, onClose }) {
+export default function PickupLookup({ open, onClose, partnerEmail }) {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -30,9 +30,12 @@ export default function PickupLookup({ open, onClose }) {
     setError("");
     setResult(null);
     try {
-      const orders = await base44.entities.ProductOrder.filter({ pickup_code: c }, "-created_date", 5);
+      const filterQuery = partnerEmail
+        ? { pickup_code: c, partner_company_email: partnerEmail }
+        : { pickup_code: c };
+      const orders = await base44.entities.ProductOrder.filter(filterQuery, "-created_date", 5);
       if (!orders.length) {
-        setError("Nenhuma encomenda encontrada com esse código");
+        setError(partnerEmail ? "Nenhuma encomenda tua com esse código" : "Nenhuma encomenda encontrada com esse código");
       } else {
         setResult(orders[0]);
       }
@@ -51,7 +54,7 @@ export default function PickupLookup({ open, onClose }) {
             <MapPin className="w-5 h-5 text-teal-600" /> Procurar Recolha
           </DialogTitle>
           <p className="text-xs text-slate-500 mt-1">
-            Insere o código de recolha (ex: REC-XXXX) para veres onde e quando levantar a tua encomenda.
+            Insere o código de recolha (ex: REC-XXXX) para confirmar a encomenda no balcão.
           </p>
         </DialogHeader>
         <div className="px-5 pb-5 overflow-y-auto flex-1 space-y-3">

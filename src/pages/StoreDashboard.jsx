@@ -10,6 +10,7 @@ import PageLoader from "@/components/ui/PageLoader";
 import {
   Store, MapPin, Wallet, BadgeCheck, Clock, XCircle, Plus, ChevronLeft,
 } from "lucide-react";
+import PickupLookupButton from "@/components/shop/PickupLookupButton";
 
 const VERIFICATION = {
   verified: {
@@ -131,12 +132,15 @@ export default function StoreDashboard() {
               </p>
             )}
           </div>
-          <Link
-            to="/ShopOnboarding"
-            className="flex-shrink-0 h-9 px-4 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 text-xs font-bold flex items-center"
-          >
-            Editar
-          </Link>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <PickupLookupButton partnerEmail={user?.email} />
+            <Link
+              to="/ShopOnboarding"
+              className="h-9 px-4 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200 text-xs font-bold flex items-center"
+            >
+              Editar
+            </Link>
+          </div>
         </div>
       </div>
 
