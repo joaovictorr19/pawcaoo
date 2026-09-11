@@ -40,7 +40,7 @@ export default function PublicLinkSection({ professionalProfile, userEmail }) {
       if (!email) { setLoadingCurrent(false); return; }
       setLoadingCurrent(true);
       try {
-        const existing = await base44.entities.ProfileSlug.filter({ entity_email: email });
+        const existing = await base44.entities.ProfileSlug.filter({ entity_email: email, entity_type: entityType });
         if (!cancelled && existing?.length > 0) {
           setCurrentSlug(existing[0].slug);
         } else if (!cancelled) {
@@ -57,7 +57,7 @@ export default function PublicLinkSection({ professionalProfile, userEmail }) {
     }
     loadSlug();
     return () => { cancelled = true; };
-  }, [email, entityName]);
+  }, [email, entityName, entityType]);
 
   // Validação de unicidade em tempo real (debounced)
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function PublicLinkSection({ professionalProfile, userEmail }) {
     try {
       // 1. Apagar o slug antigo deste profissional (se existir e for diferente)
       try {
-        const oldSlugs = await base44.entities.ProfileSlug.filter({ entity_email: email });
+        const oldSlugs = await base44.entities.ProfileSlug.filter({ entity_email: email, entity_type: entityType });
         for (const s of oldSlugs) {
           if (s.slug !== newSlug) {
             await base44.entities.ProfileSlug.delete(s.id);
