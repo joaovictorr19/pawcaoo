@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, Store } from "lucide-react";
+import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, Store, RefreshCw } from "lucide-react";
 import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
 import FeaturedProducts from "@/components/shop/FeaturedProducts";
 import ShopOffersCarousel from "@/components/shop/ShopOffersCarousel";
@@ -45,7 +45,7 @@ export default function Shop() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ["shopProducts"],
     queryFn: () =>
       base44.entities.PartnerProduct.filter(
@@ -183,12 +183,25 @@ export default function Shop() {
           </div>
         </div>
 
-        {/* Contagem */}
-        {!isLoading && (
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-            {filtered.length} {filtered.length === 1 ? "artigo" : "artigos"}
-          </p>
-        )}
+        {/* Contagem + botão atualizar */}
+        <div className="flex items-center justify-between mb-3">
+          {!isLoading ? (
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              {filtered.length} {filtered.length === 1 ? "artigo" : "artigos"}
+            </p>
+          ) : (
+            <span />
+          )}
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            title="Atualizar loja"
+            className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-slate-500 bg-white border border-slate-200 hover:border-teal-300 hover:text-teal-700 transition-all active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
+            {isFetching ? "A atualizar..." : "Atualizar"}
+          </button>
+        </div>
 
         {/* Lista de produtos */}
         {isLoading ? (
