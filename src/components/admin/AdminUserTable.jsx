@@ -107,8 +107,8 @@ export default function AdminUserTable({
       const prof = profilesByEmail[u.email];
       const isVerifiedProfile = prof?.is_verified === true;
       const isVerifiedUser = u?.professional_profile?.verification_status === 'verified' || u?.professional_profile?.is_verified === true;
-      const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && (w.is_active === true || w.verification_status === 'verified'));
-      const hasActiveTrainer = Array.isArray(trainers) && trainers.some(t => t.created_by === u.email && (t.is_active === true || t.verification_status === 'verified'));
+      const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && w.verification_status === 'verified');
+      const hasActiveTrainer = Array.isArray(trainers) && trainers.some(t => t.created_by === u.email && t.verification_status === 'verified');
       const isProfessional = (
         ['walker','trainer','both','professional'].includes(u.account_type || '') ||
         (Array.isArray(walkers) && walkers.some(w => w.created_by === u.email)) ||
@@ -142,8 +142,8 @@ export default function AdminUserTable({
       const prof = profilesByEmail[u.email];
       const isVerifiedProfile = prof?.is_verified === true;
       const isVerifiedUser = u?.professional_profile?.verification_status === 'verified' || u?.professional_profile?.is_verified === true;
-      const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && (w.is_active === true || w.verification_status === 'verified'));
-      const hasActiveTrainer = Array.isArray(trainers) && trainers.some(t => t.created_by === u.email && (t.is_active === true || t.verification_status === 'verified'));
+      const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && w.verification_status === 'verified');
+      const hasActiveTrainer = Array.isArray(trainers) && trainers.some(t => t.created_by === u.email && t.verification_status === 'verified');
       const isProfessional = (
         ['walker','trainer','both','professional'].includes(u.account_type || '') ||
         (Array.isArray(walkers) && walkers.some(w => w.created_by === u.email)) ||
