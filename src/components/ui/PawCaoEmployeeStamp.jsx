@@ -1,7 +1,13 @@
 import React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLanguage } from "@/components/LanguageContext";
+import { getSealLabel, getSealDescription } from "@/hooks/useSealConfiguration";
 
 export default function PawCaoEmployeeStamp() {
+  const { language } = useLanguage();
+  const teamLabel = getSealLabel("equipa_pawcao", language) || "{teamLabel}";
+  const officialLabel = getSealDescription("pawcao_official", language) || "Oficial da PawCão";
+  const memberDesc = getSealDescription("equipa_pawcao", language) || "Membro verificado da equipa PawCão";
   return (
     <TooltipProvider>
       <Tooltip>
@@ -66,7 +72,7 @@ export default function PawCaoEmployeeStamp() {
                 style={{ fontFamily: 'Georgia, serif' }}
               >
                 <textPath href="#textCircleTop" startOffset="50%" textAnchor="middle">
-                  EQUIPA PAWCÃO
+                  {teamLabel}
                 </textPath>
               </text>
 
@@ -79,7 +85,7 @@ export default function PawCaoEmployeeStamp() {
                 style={{ fontFamily: 'Georgia, serif' }}
               >
                 <textPath href="#textCircleBottom" startOffset="50%" textAnchor="middle">
-                  EQUIPA PAWCÃO
+                  {teamLabel}
                 </textPath>
               </text>
 
@@ -97,8 +103,8 @@ export default function PawCaoEmployeeStamp() {
           </div>
         </TooltipTrigger>
         <TooltipContent className="bg-green-700 text-white border-green-500">
-          <p className="font-bold text-sm">🛡️ Oficial da PawCão</p>
-          <p className="text-xs">Membro verificado da equipa PawCão</p>
+          <p className="font-bold text-sm">🛡️ {officialLabel}</p>
+          <p className="text-xs">{memberDesc}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
