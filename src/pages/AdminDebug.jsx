@@ -1,15 +1,17 @@
 import React, { useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
-  User, Play, CheckSquare, Trash, Zap, ShieldAlert, RefreshCw,
+  Play, CheckSquare, Trash, Zap, ShieldAlert, RefreshCw,
   AlertTriangle, Loader2, Database, Bug, Activity, Wrench,
-  Hotel, CreditCard, Stethoscope, Users, Sparkles, ChevronDown, ChevronRight,
+  Hotel, CreditCard, Stethoscope, Users, Sparkles,
 } from "lucide-react";
+import { SectionCard, ActionButton, LogPanel } from "@/components/admin/debug/DebugPrimitives";
+import { runEphemeral, cleanupBookingSideEffects, DEBUG_FLAG } from "@/lib/ephemeralTestRunner";
 
 const ENTITIES_TO_CHECK = [
   { name: "Booking", label: "Reservas" },
@@ -23,87 +25,6 @@ const ENTITIES_TO_CHECK = [
   { name: "Review", label: "Avaliações" },
   { name: "Notification", label: "Notificações" },
 ];
-
-const DEBUG_FLAG = "__DEBUG_TEST__";
-
-function LogPanel({ logs }) {
-  if (logs.length === 0) return null;
-  return (
-    <div className="mt-4 space-y-1 max-h-64 overflow-y-auto">
-      {logs.map((line, i) => (
-        <p
-          key={i}
-          className={`text-xs font-mono p-2 rounded border ${
-            line.type === "error"
-              ? "bg-red-50 border-red-200 text-red-900"
-              : line.type === "warn"
-              ? "bg-amber-50 border-amber-200 text-amber-900"
-              : "bg-slate-50 border-slate-200 text-slate-700"
-          }`}
-        >
-          <span className="text-slate-400 mr-2">
-            {new Date(line.time).toLocaleTimeString("pt-PT")}
-          </span>
-          {line.msg}
-        </p>
-      ))}
-    </div>
-  );
-}
-
-function SectionCard({ icon: Icon, title, subtitle, accent, children, defaultOpen = true }) {
-  const [open, setOpen] = useState(defaultOpen);
-  const accents = {
-    blue: "border-blue-200 bg-blue-50/50",
-    red: "border-red-200 bg-red-50/50",
-    orange: "border-orange-200 bg-orange-50/50",
-    teal: "border-teal-200 bg-teal-50/50",
-    purple: "border-purple-200 bg-purple-50/50",
-  };
-  const titleColors = {
-    blue: "text-blue-800",
-    red: "text-red-800",
-    orange: "text-orange-800",
-    teal: "text-teal-800",
-    purple: "text-purple-800",
-  };
-  return (
-    <Card className={accents[accent]}>
-      <CardHeader className="pb-3">
-        <button
-          onClick={() => setOpen(!open)}
-          className="flex items-center justify-between w-full text-left"
-        >
-          <CardTitle className={`text-base flex items-center gap-2 ${titleColors[accent]}`}>
-            <Icon className="w-5 h-5" />
-            {title}
-          </CardTitle>
-          {open ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
-        </button>
-        {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
-      </CardHeader>
-      {open && <CardContent>{children}</CardContent>}
-    </Card>
-  );
-}
-
-function ActionButton({ onClick, disabled, loading, loadingLabel, icon: Icon, label, variant = "outline", className = "" }) {
-  return (
-    <Button
-      onClick={onClick}
-      disabled={disabled}
-      variant={variant}
-      className={`w-full justify-start ${className}`}
-    >
-      {loading ? (
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-      ) : (
-        <Icon className="w-4 h-4 mr-2 flex-shrink-0" />
-      )}
-      <span className="text-xs">{loading ? (loadingLabel || "A processar...") : label}</span>
-    </Button>
-  );
-}
 
 export default function AdminDebug() {
   const [loadingBtn, setLoadingBtn] = useState(null);
@@ -122,29 +43,36 @@ export default function AdminDebug() {
   const anyLoading = loadingBtn !== null;
 
   const addLog = useCallback((msg, type = "info") => {
-    setLogs((prev) => [...prev, { msg, type, time: Date.now() }].slice(-100));
+    setLogs((prev) => [...prev, { msg, type, time: Date.now() }].slice(-150));
   }, []);
 
-  const runAction = async (btnId, actionFn, successMsg, errorMsg) => {
-    if (!currentUserEmail) {
-      toast.error("Utilizador não carregado — aguarda 1 segundo");
-      return;
-    }
-    setLoadingBtn(btnId);
+  // Runner genérico para funções backend read-only
+  const testFunction = async (fnName, payload, label) => {
+    setLoadingBtn(`fn_${fnName}`);
+    addLog(`A testar função: ${fnName}...`);
     try {
-      const result = await actionFn();
-      addLog(successMsg || `✅ ${btnId} concluído`);
-      if (result?.id) addLog(`  → ID: ${result.id}`);
-      toast.success(successMsg || "Concluído!");
+      const response = await base44.functions.invoke(fnName, payload || {});
+      addLog(`✅ ${fnName}: sucesso`);
+      const data = response?.data ?? response;
+      if (data) {
+        const preview = JSON.stringify(data).slice(0, 200);
+        addLog(`  → ${preview}${JSON.stringify(data).length > 200 ? "..." : ""}`);
+      }
+      toast.success(`${label || fnName}: OK!`);
     } catch (e) {
-      addLog(`❌ ${errorMsg || e.message}`, "error");
-      toast.error(errorMsg || e.message);
+      addLog(`❌ ${fnName}: ${e.message}`, "error");
+      toast.error(`${fnName}: ${e.message}`);
     } finally {
       setLoadingBtn(null);
     }
   };
 
-  // --- HEALTH CHECK ---
+  const clearLogs = () => {
+    setLogs([]);
+    toast.info("Log limpo.");
+  };
+
+  // ─── HEALTH CHECK ───
   const runHealthCheck = async () => {
     setHealthLoading(true);
     addLog("A verificar saúde das entidades...");
@@ -164,12 +92,16 @@ export default function AdminDebug() {
     toast.success("Verificação concluída!");
   };
 
-  // --- CREATE: Booking Pending ---
-  const createPendingBooking = () =>
-    runAction(
-      "pending",
-      async () =>
-        await base44.entities.Booking.create({
+  // ─── TESTES EFÉMEROS DE DADOS (criar → verificar → apagar) ───
+  const ephemeral = (cfg) =>
+    runEphemeral({ ...cfg, addLog, setLoadingBtn, toast });
+
+  const testPendingBooking = () =>
+    ephemeral({
+      btnId: "pending",
+      label: "Reserva Pendente",
+      createFn: () =>
+        base44.entities.Booking.create({
           owner_email: currentUserEmail,
           owner_name: "Cliente Fictício",
           dog_name: "Rex Teste",
@@ -188,15 +120,19 @@ export default function AdminDebug() {
           type: "walk",
           special_notes: DEBUG_FLAG,
         }),
-      "✅ Pedido Pendente criado"
-    );
+      verifyFn: async (rec) => {
+        const got = await base44.entities.Booking.get(rec.id);
+        if (got.status !== "pending") throw new Error(`estado inesperado: ${got.status}`);
+      },
+      deleteFn: (rec) => base44.entities.Booking.delete(rec.id),
+    });
 
-  // --- CREATE: Active Walk ---
-  const createActiveWalk = () =>
-    runAction(
-      "active",
-      async () =>
-        await base44.entities.Booking.create({
+  const testActiveWalk = () =>
+    ephemeral({
+      btnId: "active",
+      label: "Passeio Ativo",
+      createFn: () =>
+        base44.entities.Booking.create({
           owner_email: currentUserEmail,
           owner_name: "Cliente Fictício",
           dog_name: "Max Ativo",
@@ -217,15 +153,19 @@ export default function AdminDebug() {
           walker_name: "Dog Walker Teste",
           special_notes: DEBUG_FLAG,
         }),
-      "✅ Passeio Ativo criado"
-    );
+      verifyFn: async (rec) => {
+        const got = await base44.entities.Booking.get(rec.id);
+        if (got.status !== "in_progress") throw new Error(`estado inesperado: ${got.status}`);
+      },
+      deleteFn: (rec) => base44.entities.Booking.delete(rec.id),
+    });
 
-  // --- CREATE: Completed Walk ---
-  const createCompletedWalk = () =>
-    runAction(
-      "completed",
-      async () =>
-        await base44.entities.Booking.create({
+  const testCompletedWalk = () =>
+    ephemeral({
+      btnId: "completed",
+      label: "Passeio Concluído",
+      createFn: () =>
+        base44.entities.Booking.create({
           owner_email: currentUserEmail,
           owner_name: "Cliente Fictício",
           dog_name: "Luna Paga",
@@ -244,15 +184,19 @@ export default function AdminDebug() {
           completed_date: new Date().toISOString(),
           special_notes: DEBUG_FLAG,
         }),
-      "✅ Passeio Concluído criado"
-    );
+      verifyFn: async (rec) => {
+        const got = await base44.entities.Booking.get(rec.id);
+        if (got.status !== "completed") throw new Error(`estado inesperado: ${got.status}`);
+      },
+      deleteFn: (rec) => base44.entities.Booking.delete(rec.id),
+    });
 
-  // --- CREATE: Emergency ---
-  const createEmergency = () =>
-    runAction(
-      "emergency",
-      async () =>
-        await base44.entities.EmergencyWalk.create({
+  const testEmergency = () =>
+    ephemeral({
+      btnId: "emergency",
+      label: "Emergência PawGo",
+      createFn: () =>
+        base44.entities.EmergencyWalk.create({
           owner_name: "Cliente SOS Teste",
           owner_phone: "999999999",
           owner_email: currentUserEmail,
@@ -266,21 +210,25 @@ export default function AdminDebug() {
           dog_name: "SOS Dog",
           dog_size: "medium",
         }),
-      "✅ Emergência criada"
-    );
+      verifyFn: async (rec) => {
+        const got = await base44.entities.EmergencyWalk.get(rec.id);
+        if (got.status !== "available") throw new Error(`estado inesperado: ${got.status}`);
+      },
+      deleteFn: (rec) => base44.entities.EmergencyWalk.delete(rec.id),
+    });
 
-  // --- CREATE: Hotel Booking ---
-  const createHotelBooking = () =>
-    runAction(
-      "hotel",
-      async () => {
+  const testHotelBooking = () =>
+    ephemeral({
+      btnId: "hotel",
+      label: "Reserva de Hotel",
+      createFn: async () => {
         const walkers = await base44.entities.WalkerProfile.filter({ professional_type: "hotel" });
         const hotel = walkers[0];
         if (!hotel) throw new Error("Nenhum perfil de hotel encontrado. Cria um primeiro.");
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        return await base44.entities.HotelBooking.create({
+        return base44.entities.HotelBooking.create({
           hotel_profile_id: hotel.id,
           hotel_name: hotel.walker_name,
           hotel_email: hotel.created_by,
@@ -298,29 +246,26 @@ export default function AdminDebug() {
           service_amount: 21.25,
           status: "pending",
           payment_status: "pending",
-          dogs: [
-            {
-              dog_name: "Hotel Dog",
-              dog_breed: "Misto",
-              dog_size: "medium",
-              special_notes: DEBUG_FLAG,
-            },
-          ],
+          dogs: [{ dog_name: "Hotel Dog", dog_breed: "Misto", dog_size: "medium", special_notes: DEBUG_FLAG }],
           special_requests: DEBUG_FLAG,
         });
       },
-      "✅ Reserva de Hotel criada"
-    );
+      verifyFn: async (rec) => {
+        const got = await base44.entities.HotelBooking.get(rec.id);
+        if (got.status !== "pending") throw new Error(`estado inesperado: ${got.status}`);
+      },
+      deleteFn: (rec) => base44.entities.HotelBooking.delete(rec.id),
+    });
 
-  // --- CREATE: Review ---
-  const createReview = () =>
-    runAction(
-      "review",
-      async () => {
+  const testReview = () =>
+    ephemeral({
+      btnId: "review",
+      label: "Avaliação",
+      createFn: async () => {
         const walkers = await base44.entities.WalkerProfile.filter({});
         const walker = walkers[0];
         if (!walker) throw new Error("Nenhum WalkerProfile encontrado.");
-        return await base44.entities.Review.create({
+        return base44.entities.Review.create({
           walker_id: walker.id,
           walker_name: walker.walker_name,
           reviewer_email: currentUserEmail,
@@ -329,26 +274,25 @@ export default function AdminDebug() {
           comment: "Excelente serviço! (dados de teste)",
           is_verified: true,
           would_recommend: true,
-          categories: {
-            punctuality: 5,
-            care: 5,
-            communication: 5,
-            professionalism: 5,
-          },
+          categories: { punctuality: 5, care: 5, communication: 5, professionalism: 5 },
         });
       },
-      "✅ Avaliação criada"
-    );
+      verifyFn: async (rec) => {
+        const got = await base44.entities.Review.get(rec.id);
+        if (got.rating !== 5) throw new Error(`rating inesperado: ${got.rating}`);
+      },
+      deleteFn: (rec) => base44.entities.Review.delete(rec.id),
+    });
 
-  // --- CREATE: Wallet Transaction ---
-  const createWalletTx = () =>
-    runAction(
-      "wallet",
-      async () => {
+  const testWalletTx = () =>
+    ephemeral({
+      btnId: "wallet",
+      label: "Transação de Carteira",
+      createFn: async () => {
         const wallets = await base44.entities.UserWallet.filter({});
         const wallet = wallets[0];
         if (!wallet) throw new Error("Nenhuma carteira encontrada.");
-        return await base44.entities.WalletTransaction.create({
+        return base44.entities.WalletTransaction.create({
           user_email: wallet.user_email,
           transaction_type: "credit",
           amount: 5.0,
@@ -356,136 +300,168 @@ export default function AdminDebug() {
           balance_after: (wallet.available_balance || 0) + 5,
         });
       },
-      "✅ Transação de carteira criada"
-    );
+      verifyFn: async (rec) => {
+        const got = await base44.entities.WalletTransaction.get(rec.id);
+        if (got.amount !== 5) throw new Error(`montante inesperado: ${got.amount}`);
+      },
+      deleteFn: (rec) => base44.entities.WalletTransaction.delete(rec.id),
+    });
 
-  // --- DELETE: Clear Test Data ---
-  const clearTestData = async () => {
-    if (!confirm("Apagar TODOS os dados de teste (marcados com __DEBUG_TEST__)?")) return;
-    setLoadingBtn("clear");
-    addLog("A apagar dados de teste...");
-    let deletedCount = 0;
+  // ─── TESTES DE FLUXO DE PAGAMENTO CRÍTICOS ───
+  // Criam um booking efémero, invocam a função e limpam tudo (booking + side-effects).
+  // Desenhados com service_amount=0 / sem payment_intent_id para NUNCA mover dinheiro real.
 
-    try {
-      // Bookings by current user
-      const ownerBookings = await base44.entities.Booking.filter({ owner_email: currentUserEmail });
-      const walkerBookings = await base44.entities.Booking.filter({ walker_email: currentUserEmail });
-      const bookingIds = new Set([...ownerBookings.map((b) => b.id), ...walkerBookings.map((b) => b.id)]);
-      for (const id of bookingIds) {
-        await base44.entities.Booking.delete(id);
-        deletedCount++;
-      }
-      addLog(`  Bookings: ${bookingIds.size} apagados`);
+  const testReleaseHotelPayout = () =>
+    ephemeral({
+      btnId: "payout",
+      label: "releaseHotelPayout",
+      createFn: async () => {
+        const walkers = await base44.entities.WalkerProfile.filter({ professional_type: "hotel" });
+        const hotel = walkers[0];
+        if (!hotel) throw new Error("Nenhum hotel encontrado para o teste.");
+        return base44.entities.HotelBooking.create({
+          hotel_profile_id: hotel.id,
+          hotel_name: hotel.walker_name,
+          hotel_email: hotel.created_by,
+          owner_name: "Teste Payout",
+          owner_email: currentUserEmail,
+          service_type: "boarding",
+          checkin_date: new Date().toISOString().split("T")[0],
+          checkout_date: new Date().toISOString().split("T")[0],
+          total_nights: 1,
+          total_amount: 0,
+          platform_fee: 0,
+          service_amount: 0, // 0 → early-return "No amount to release", sem transferência
+          status: "checked_out", // necessário para passar a guarda de estados
+          payment_status: "paid",
+          special_requests: DEBUG_FLAG,
+        });
+      },
+      verifyFn: async (rec) => {
+        const res = await base44.functions.invoke("releaseHotelPayout", { bookingId: rec.id });
+        const data = res?.data ?? res;
+        addLog(`  → resposta: ${JSON.stringify(data).slice(0, 160)}`);
+        if (!data?.success) throw new Error("função não retornou success");
+        addLog(`  ✓ releaseHotelPayout executou sem mover dinheiro (service_amount=0)`);
+      },
+      deleteFn: async (rec) => {
+        await cleanupBookingSideEffects(rec.id, addLog);
+        await base44.entities.HotelBooking.delete(rec.id);
+      },
+    });
 
-      // Emergency walks by current user
-      const emergencies = await base44.entities.EmergencyWalk.filter({ owner_email: currentUserEmail });
-      for (const e of emergencies) {
-        await base44.entities.EmergencyWalk.delete(e.id);
-        deletedCount++;
-      }
-      addLog(`  Emergências: ${emergencies.length} apagadas`);
+  const testProcessHotelNoShow = () =>
+    ephemeral({
+      btnId: "noshow",
+      label: "processHotelNoShow",
+      createFn: async () => {
+        const walkers = await base44.entities.WalkerProfile.filter({ professional_type: "hotel" });
+        const hotel = walkers[0];
+        if (!hotel) throw new Error("Nenhum hotel encontrado para o teste.");
+        return base44.entities.HotelBooking.create({
+          hotel_profile_id: hotel.id,
+          hotel_name: hotel.walker_name,
+          hotel_email: hotel.created_by,
+          owner_name: "Teste NoShow",
+          owner_email: currentUserEmail,
+          service_type: "boarding",
+          checkin_date: new Date().toISOString().split("T")[0],
+          checkout_date: new Date().toISOString().split("T")[0],
+          total_nights: 1,
+          total_amount: 0, // 0 → sem reembolso Stripe
+          platform_fee: 0,
+          service_amount: 0,
+          status: "confirmed", // não pode estar checked_in/in_progress/checked_out/completed
+          payment_status: "paid", // necessário para passar a guarda
+          special_requests: DEBUG_FLAG,
+          // sem stripe_payment_intent_id → sem refund real
+        });
+      },
+      verifyFn: async (rec) => {
+        const res = await base44.functions.invoke("processHotelNoShow", { bookingId: rec.id });
+        const data = res?.data ?? res;
+        addLog(`  → resposta: ${JSON.stringify(data).slice(0, 160)}`);
+        if (!data?.success) throw new Error("função não retornou success");
+        addLog(`  ✓ processHotelNoShow executou sem reembolso real (total_amount=0)`);
+      },
+      deleteFn: async (rec) => {
+        await cleanupBookingSideEffects(rec.id, addLog);
+        await base44.entities.HotelBooking.delete(rec.id);
+      },
+    });
 
-      // Hotel bookings with debug flag
-      try {
-        const hotelBookings = await base44.entities.HotelBooking.filter({ owner_email: currentUserEmail });
-        for (const hb of hotelBookings) {
-          await base44.entities.HotelBooking.delete(hb.id);
-          deletedCount++;
-        }
-        addLog(`  Reservas Hotel: ${hotelBookings.length} apagadas`);
-      } catch (e) {
-        addLog(`  Reservas Hotel: ignorado (${e.message})`, "warn");
-      }
+  const testRetryHotelPayment = () =>
+    ephemeral({
+      btnId: "retry",
+      label: "retryHotelPayment",
+      createFn: async () => {
+        const walkers = await base44.entities.WalkerProfile.filter({ professional_type: "hotel" });
+        const hotel = walkers[0];
+        if (!hotel) throw new Error("Nenhum hotel encontrado para o teste.");
+        return base44.entities.HotelBooking.create({
+          hotel_profile_id: hotel.id,
+          hotel_name: hotel.walker_name,
+          hotel_email: hotel.created_by,
+          owner_name: "Teste Retry",
+          owner_email: currentUserEmail,
+          service_type: "boarding",
+          checkin_date: new Date().toISOString().split("T")[0],
+          checkout_date: new Date().toISOString().split("T")[0],
+          total_nights: 1,
+          total_amount: 1, // valor simbólico — cria checkout session, não captura
+          platform_fee: 0.15,
+          service_amount: 0.85,
+          status: "pending",
+          payment_status: "pending",
+          special_requests: DEBUG_FLAG,
+        });
+      },
+      verifyFn: async (rec) => {
+        const res = await base44.functions.invoke("retryHotelPayment", { hotel_booking_id: rec.id });
+        const data = res?.data ?? res;
+        addLog(`  → resposta: ${JSON.stringify(data).slice(0, 160)}`);
+        if (!data?.url && !data?.session_id) throw new Error("função não retornou URL de checkout");
+        addLog(`  ✓ retryHotelPayment gerou sessão de checkout (não captura dinheiro)`);
+      },
+      deleteFn: async (rec) => {
+        await cleanupBookingSideEffects(rec.id, addLog);
+        await base44.entities.HotelBooking.delete(rec.id);
+      },
+    });
 
-      // Reviews with debug flag
-      try {
-        const reviews = await base44.entities.Review.filter({ reviewer_email: currentUserEmail });
-        for (const r of reviews) {
-          await base44.entities.Review.delete(r.id);
-          deletedCount++;
-        }
-        addLog(`  Avaliações: ${reviews.length} apagadas`);
-      } catch (e) {
-        addLog(`  Avaliações: ignorado (${e.message})`, "warn");
-      }
-
-      // Wallet transactions with debug flag
-      try {
-        const txs = await base44.entities.WalletTransaction.filter({ user_email: currentUserEmail });
-        for (const tx of txs) {
-          if (tx.description?.includes(DEBUG_FLAG)) {
-            await base44.entities.WalletTransaction.delete(tx.id);
-            deletedCount++;
-          }
-        }
-        addLog(`  Transações carteira: filtradas e apagadas`);
-      } catch (e) {
-        addLog(`  Transações carteira: ignorado (${e.message})`, "warn");
-      }
-
-      addLog(`✅ Total apagado: ${deletedCount} registos`);
-      toast.success(`${deletedCount} registos de teste apagados!`);
-    } catch (e) {
-      addLog(`❌ Erro ao apagar: ${e.message}`, "error");
-      toast.error("Erro: " + e.message);
-    } finally {
-      setLoadingBtn(null);
-    }
-  };
-
-  // --- REPAIR: Normalize Profiles ---
+  // ─── REPARAÇÃO ───
   const repairProProfiles = async () => {
     if (!confirm("Normalizar todos os WalkerProfile e TrainerProfile?")) return;
     setLoadingBtn("repair");
     addLog("A reparar perfis profissionais...");
-
     try {
-      // WalkerProfile
       const walkers = await base44.entities.WalkerProfile.list("-created_date", 500);
       let walkerFixed = 0;
       for (const w of walkers) {
         const updates = {};
-        const arrays = [
-          "services_offered", "portfolio", "faq", "dog_sizes",
-          "service_areas", "availability", "specializations",
-          "training_specializations", "breed_specialization",
-          "dog_breeds_handled", "languages_spoken", "success_stories",
-          "certifications_detailed", "hotel_partnerships",
-        ];
-        for (const field of arrays) {
-          if (!Array.isArray(w[field])) updates[field] = [];
-        }
+        const arrays = ["services_offered", "portfolio", "faq", "dog_sizes", "service_areas", "availability", "specializations", "training_specializations", "breed_specialization", "dog_breeds_handled", "languages_spoken", "success_stories", "certifications_detailed", "hotel_partnerships"];
+        for (const field of arrays) if (!Array.isArray(w[field])) updates[field] = [];
         if (!Array.isArray(w.accepted_animals)) updates.accepted_animals = ["dogs"];
         if (typeof w.rating !== "number") updates.rating = 0;
         if (typeof w.total_walks !== "number") updates.total_walks = 0;
         if (typeof w.total_earnings !== "number") updates.total_earnings = 0;
         if (!w.walker_name) updates.walker_name = "Sem nome";
-
         if (Object.keys(updates).length > 0) {
           await base44.entities.WalkerProfile.update(w.id, updates);
           walkerFixed++;
         }
       }
       addLog(`  WalkerProfile: ${walkerFixed}/${walkers.length} normalizados`);
-
-      // TrainerProfile
       const trainers = await base44.entities.TrainerProfile.list("-created_date", 500);
       let trainerFixed = 0;
       for (const t of trainers) {
         const updates = {};
-        const arrays = [
-          "services_offered", "portfolio", "training_specialties",
-          "training_methodologies", "certifications", "certifications_detailed",
-          "dog_sizes", "service_areas", "availability", "consultation_options",
-        ];
-        for (const field of arrays) {
-          if (!Array.isArray(t[field])) updates[field] = [];
-        }
+        const arrays = ["services_offered", "portfolio", "training_specialties", "training_methodologies", "certifications", "certifications_detailed", "dog_sizes", "service_areas", "availability", "consultation_options"];
+        for (const field of arrays) if (!Array.isArray(t[field])) updates[field] = [];
         if (!Array.isArray(t.accepted_animals)) updates.accepted_animals = ["dogs"];
         if (typeof t.rating !== "number") updates.rating = 5;
         if (typeof t.total_earnings !== "number") updates.total_earnings = 0;
         if (!t.trainer_name) updates.trainer_name = "Sem nome";
-
         if (Object.keys(updates).length > 0) {
           await base44.entities.TrainerProfile.update(t.id, updates);
           trainerFixed++;
@@ -502,20 +478,16 @@ export default function AdminDebug() {
     }
   };
 
-  // --- REPAIR: Fix Duplicates ---
   const fixDuplicates = async () => {
     if (!confirm("Remover perfis duplicados? Mantém o mais recente por email.")) return;
     setLoadingBtn("dedup");
     addLog("A remover duplicados...");
-
     try {
-      // WalkerProfile
       const walkers = await base44.entities.WalkerProfile.list("-created_date", 500);
       const walkerMap = {};
       for (const w of walkers) {
         const key = w.created_by || w.walker_name || w.id;
-        if (!walkerMap[key]) walkerMap[key] = [];
-        walkerMap[key].push(w);
+        (walkerMap[key] = walkerMap[key] || []).push(w);
       }
       let walkerDeleted = 0;
       for (const [email, profiles] of Object.entries(walkerMap)) {
@@ -528,14 +500,11 @@ export default function AdminDebug() {
           addLog(`  Walker [${email}]: ${profiles.length - 1} duplicados removidos`);
         }
       }
-
-      // TrainerProfile
       const trainers = await base44.entities.TrainerProfile.list("-created_date", 500);
       const trainerMap = {};
       for (const t of trainers) {
         const key = t.created_by || t.trainer_name || t.id;
-        if (!trainerMap[key]) trainerMap[key] = [];
-        trainerMap[key].push(t);
+        (trainerMap[key] = trainerMap[key] || []).push(t);
       }
       let trainerDeleted = 0;
       for (const [email, profiles] of Object.entries(trainerMap)) {
@@ -548,10 +517,8 @@ export default function AdminDebug() {
           addLog(`  Trainer [${email}]: ${profiles.length - 1} duplicados removidos`);
         }
       }
-
-      const total = walkerDeleted + trainerDeleted;
-      addLog(`✅ Total duplicados removidos: ${total}`);
-      toast.success(`${total} duplicados removidos!`);
+      addLog(`✅ Total duplicados removidos: ${walkerDeleted + trainerDeleted}`);
+      toast.success(`${walkerDeleted + trainerDeleted} duplicados removidos!`);
     } catch (e) {
       addLog(`❌ Erro: ${e.message}`, "error");
       toast.error("Erro: " + e.message);
@@ -560,29 +527,69 @@ export default function AdminDebug() {
     }
   };
 
-  // --- TEST: Backend Functions ---
-  const testFunction = async (fnName, payload, label) => {
-    setLoadingBtn(`fn_${fnName}`);
-    addLog(`A testar função: ${fnName}...`);
+  // ─── LIMPEZA RESIDUAL (rede de segurança) ───
+  const clearResidual = async () => {
+    if (!confirm("Apagar TODOS os dados de teste residuais marcados com __DEBUG_TEST__?")) return;
+    setLoadingBtn("clear");
+    addLog("A procurar e apagar residuais de teste...");
+    let deletedCount = 0;
     try {
-      const response = await base44.functions.invoke(fnName, payload || {});
-      addLog(`✅ ${fnName}: sucesso`);
-      if (response?.data) {
-        const preview = JSON.stringify(response.data).slice(0, 200);
-        addLog(`  → ${preview}${JSON.stringify(response.data).length > 200 ? "..." : ""}`);
+      const ownerBookings = await base44.entities.Booking.filter({ owner_email: currentUserEmail });
+      for (const b of ownerBookings) {
+        if (b.special_notes?.includes(DEBUG_FLAG)) {
+          await base44.entities.Booking.delete(b.id);
+          deletedCount++;
+        }
       }
-      toast.success(`${label || fnName}: OK!`);
+      const emergencies = await base44.entities.EmergencyWalk.filter({ owner_email: currentUserEmail });
+      for (const e of emergencies) {
+        if (e.special_notes?.includes(DEBUG_FLAG)) {
+          await base44.entities.EmergencyWalk.delete(e.id);
+          deletedCount++;
+        }
+      }
+      try {
+        const hotelBookings = await base44.entities.HotelBooking.filter({ owner_email: currentUserEmail });
+        for (const hb of hotelBookings) {
+          if (hb.special_requests?.includes(DEBUG_FLAG)) {
+            await cleanupBookingSideEffects(hb.id, addLog);
+            await base44.entities.HotelBooking.delete(hb.id);
+            deletedCount++;
+          }
+        }
+      } catch (e) {
+        addLog(`  Reservas Hotel: ignorado (${e.message})`, "warn");
+      }
+      try {
+        const reviews = await base44.entities.Review.filter({ reviewer_email: currentUserEmail });
+        for (const r of reviews) {
+          if (r.comment?.includes(DEBUG_FLAG)) {
+            await base44.entities.Review.delete(r.id);
+            deletedCount++;
+          }
+        }
+      } catch (e) {
+        addLog(`  Avaliações: ignorado (${e.message})`, "warn");
+      }
+      try {
+        const txs = await base44.entities.WalletTransaction.filter({ user_email: currentUserEmail });
+        for (const tx of txs) {
+          if (tx.description?.includes(DEBUG_FLAG)) {
+            await base44.entities.WalletTransaction.delete(tx.id);
+            deletedCount++;
+          }
+        }
+      } catch (e) {
+        addLog(`  Transações carteira: ignorado (${e.message})`, "warn");
+      }
+      addLog(`✅ Total residuais apagados: ${deletedCount}`);
+      toast.success(`${deletedCount} residuais apagados!`);
     } catch (e) {
-      addLog(`❌ ${fnName}: ${e.message}`, "error");
-      toast.error(`${fnName}: ${e.message}`);
+      addLog(`❌ Erro ao apagar: ${e.message}`, "error");
+      toast.error("Erro: " + e.message);
     } finally {
       setLoadingBtn(null);
     }
-  };
-
-  const clearLogs = () => {
-    setLogs([]);
-    toast.info("Log limpo.");
   };
 
   return (
@@ -592,24 +599,19 @@ export default function AdminDebug() {
         <div>
           <h1 className="text-xl md:text-2xl font-black text-slate-900 flex items-center gap-2">
             <Bug className="w-6 h-6 text-teal-600" />
-            Admin Debug & Testes
+            Diagnóstico & Testes
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Sessão: <strong className="text-slate-700">{currentUserEmail || "a carregar..."}</strong>
+            Sessão: <strong className="text-slate-700">{currentUserEmail || "a carregar..."}</strong> · testes efémeros (criar→verificar→apagar)
           </p>
         </div>
-        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
-          <AlertTriangle className="w-3 h-3 mr-1" /> Modo Debug
+        <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 text-xs">
+          <Activity className="w-3 h-3 mr-1" /> Efémero
         </Badge>
       </div>
 
-      {/* HEALTH CHECK */}
-      <SectionCard
-        icon={Activity}
-        title="Saúde do Sistema"
-        subtitle="Verifica contagens de entidades em tempo real"
-        accent="teal"
-      >
+      {/* SAÚDE */}
+      <SectionCard icon={Activity} title="Saúde do Sistema" subtitle="Verifica contagens de entidades em tempo real" accent="teal">
         <div className="flex items-center gap-2 mb-4">
           <Button onClick={runHealthCheck} disabled={healthLoading} className="bg-teal-600 hover:bg-teal-700 text-white">
             {healthLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Database className="w-4 h-4 mr-2" />}
@@ -619,204 +621,74 @@ export default function AdminDebug() {
         {healthData && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {Object.entries(healthData).map(([key, data]) => (
-              <div
-                key={key}
-                className={`p-3 rounded-xl border text-center ${
-                  data.status === "ok"
-                    ? "bg-white border-slate-200"
-                    : "bg-red-50 border-red-200"
-                }`}
-              >
+              <div key={key} className={`p-3 rounded-xl border text-center ${data.status === "ok" ? "bg-white border-slate-200" : "bg-red-50 border-red-200"}`}>
                 <p className="text-lg font-black text-slate-900">{data.count}</p>
                 <p className="text-[10px] font-bold uppercase text-slate-500 tracking-wide">{data.label}</p>
-                {data.status === "error" && (
-                  <p className="text-[9px] text-red-600 mt-1 truncate">{data.error}</p>
-                )}
+                {data.status === "error" && <p className="text-[9px] text-red-600 mt-1 truncate">{data.error}</p>}
               </div>
             ))}
           </div>
         )}
       </SectionCard>
 
-      {/* CREATE TEST DATA */}
-      <SectionCard
-        icon={Sparkles}
-        title="Criar Dados de Teste"
-        subtitle="Todos os dados de teste são marcados com __DEBUG_TEST__ para limpeza fácil"
-        accent="blue"
-      >
+      {/* TESTES EFÉMEROS DE DADOS */}
+      <SectionCard icon={Sparkles} title="Testes de Dados (efémeros)" subtitle="Cada teste cria um registo, verifica-o e apaga-o automaticamente — não deixa lixo" accent="blue">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <ActionButton
-            onClick={createPendingBooking}
-            disabled={anyLoading}
-            loading={isLoading("pending")}
-            loadingLabel="A criar..."
-            icon={User}
-            label="Pedido Pendente"
-            className="border-blue-200 text-blue-700 hover:bg-blue-50"
-          />
-          <ActionButton
-            onClick={createActiveWalk}
-            disabled={anyLoading}
-            loading={isLoading("active")}
-            loadingLabel="A criar..."
-            icon={Play}
-            label="Passeio Ativo (Cockpit)"
-            className="border-green-200 text-green-700 hover:bg-green-50"
-          />
-          <ActionButton
-            onClick={createCompletedWalk}
-            disabled={anyLoading}
-            loading={isLoading("completed")}
-            loadingLabel="A criar..."
-            icon={CheckSquare}
-            label="Passeio Concluído (Carteira)"
-            className="border-purple-200 text-purple-700 hover:bg-purple-50"
-          />
-          <ActionButton
-            onClick={createEmergency}
-            disabled={anyLoading}
-            loading={isLoading("emergency")}
-            loadingLabel="A criar..."
-            icon={Zap}
-            label="Emergência PawGo"
-            className="border-orange-200 text-orange-700 hover:bg-orange-50"
-          />
-          <ActionButton
-            onClick={createHotelBooking}
-            disabled={anyLoading}
-            loading={isLoading("hotel")}
-            loadingLabel="A criar..."
-            icon={Hotel}
-            label="Reserva de Hotel"
-            className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-          />
-          <ActionButton
-            onClick={createReview}
-            disabled={anyLoading}
-            loading={isLoading("review")}
-            loadingLabel="A criar..."
-            icon={Stethoscope}
-            label="Avaliação de Teste"
-            className="border-pink-200 text-pink-700 hover:bg-pink-50"
-          />
-          <ActionButton
-            onClick={createWalletTx}
-            disabled={anyLoading}
-            loading={isLoading("wallet")}
-            loadingLabel="A criar..."
-            icon={CreditCard}
-            label="Transação de Carteira"
-            className="border-cyan-200 text-cyan-700 hover:bg-cyan-50"
-          />
+          <ActionButton onClick={testPendingBooking} disabled={anyLoading} loading={isLoading("pending")} loadingLabel="A testar..." icon={Users} label="Reserva Pendente" className="border-blue-200 text-blue-700 hover:bg-blue-50" />
+          <ActionButton onClick={testActiveWalk} disabled={anyLoading} loading={isLoading("active")} loadingLabel="A testar..." icon={Play} label="Passeio Ativo" className="border-green-200 text-green-700 hover:bg-green-50" />
+          <ActionButton onClick={testCompletedWalk} disabled={anyLoading} loading={isLoading("completed")} loadingLabel="A testar..." icon={CheckSquare} label="Passeio Concluído" className="border-purple-200 text-purple-700 hover:bg-purple-50" />
+          <ActionButton onClick={testEmergency} disabled={anyLoading} loading={isLoading("emergency")} loadingLabel="A testar..." icon={Zap} label="Emergência PawGo" className="border-orange-200 text-orange-700 hover:bg-orange-50" />
+          <ActionButton onClick={testHotelBooking} disabled={anyLoading} loading={isLoading("hotel")} loadingLabel="A testar..." icon={Hotel} label="Reserva de Hotel" className="border-indigo-200 text-indigo-700 hover:bg-indigo-50" />
+          <ActionButton onClick={testReview} disabled={anyLoading} loading={isLoading("review")} loadingLabel="A testar..." icon={Stethoscope} label="Avaliação" className="border-pink-200 text-pink-700 hover:bg-pink-50" />
+          <ActionButton onClick={testWalletTx} disabled={anyLoading} loading={isLoading("wallet")} loadingLabel="A testar..." icon={CreditCard} label="Transação de Carteira" className="border-cyan-200 text-cyan-700 hover:bg-cyan-50" />
         </div>
       </SectionCard>
 
-      {/* BACKEND FUNCTION TESTS */}
-      <SectionCard
-        icon={Wrench}
-        title="Testar Funções Backend"
-        subtitle="Executa funções backend com payloads de teste"
-        accent="purple"
-        defaultOpen={false}
-      >
+      {/* FLUXOS DE PAGAMENTO CRÍTICOS */}
+      <SectionCard icon={CreditCard} title="Fluxos de Pagamento Críticos" subtitle="Criam booking efémero + invocam a função + limpam tudo. Desenhados para nunca mover dinheiro real (service_amount=0 / sem payment_intent)" accent="purple" defaultOpen={false}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <ActionButton
-            onClick={() => testFunction("getStripeAccountStatus", {}, "Stripe Account Status")}
-            disabled={anyLoading}
-            loading={isLoading("fn_getStripeAccountStatus")}
-            loadingLabel="A testar..."
-            icon={CreditCard}
-            label="getStripeAccountStatus"
-            className="border-slate-200 text-slate-700 hover:bg-slate-50"
-          />
-          <ActionButton
-            onClick={() => testFunction("syncHotelAvailability", {}, "Sync Hotel Availability")}
-            disabled={anyLoading}
-            loading={isLoading("fn_syncHotelAvailability")}
-            loadingLabel="A testar..."
-            icon={Hotel}
-            label="syncHotelAvailability"
-            className="border-slate-200 text-slate-700 hover:bg-slate-50"
-          />
-          <ActionButton
-            onClick={() => testFunction("processBreakageDaily", {}, "Process Breakage")}
-            disabled={anyLoading}
-            loading={isLoading("fn_processBreakageDaily")}
-            loadingLabel="A testar..."
-            icon={RefreshCw}
-            label="processBreakageDaily"
-            className="border-slate-200 text-slate-700 hover:bg-slate-50"
-          />
-          <ActionButton
-            onClick={() => testFunction("retryBlockedPayouts", {}, "Retry Blocked Payouts")}
-            disabled={anyLoading}
-            loading={isLoading("fn_retryBlockedPayouts")}
-            loadingLabel="A testar..."
-            icon={CreditCard}
-            label="retryBlockedPayouts"
-            className="border-slate-200 text-slate-700 hover:bg-slate-50"
-          />
+          <ActionButton onClick={testReleaseHotelPayout} disabled={anyLoading} loading={isLoading("payout")} loadingLabel="A testar..." icon={CreditCard} label="releaseHotelPayout (payout)" className="border-slate-200 text-slate-700 hover:bg-slate-50" />
+          <ActionButton onClick={testProcessHotelNoShow} disabled={anyLoading} loading={isLoading("noshow")} loadingLabel="A testar..." icon={ShieldAlert} label="processHotelNoShow (no-show)" className="border-slate-200 text-slate-700 hover:bg-slate-50" />
+          <ActionButton onClick={testRetryHotelPayment} disabled={anyLoading} loading={isLoading("retry")} loadingLabel="A testar..." icon={RefreshCw} label="retryHotelPayment (checkout)" className="border-slate-200 text-slate-700 hover:bg-slate-50" />
         </div>
       </SectionCard>
 
-      {/* REPAIR PROFILES */}
-      <SectionCard
-        icon={ShieldAlert}
-        title="Reparar Perfis Profissionais"
-        subtitle="Normaliza arrays null/undefined e remove duplicados"
-        accent="orange"
-        defaultOpen={false}
-      >
+      {/* FUNÇÕES BACKEND READ-ONLY */}
+      <SectionCard icon={Wrench} title="Funções Backend (read-only)" subtitle="Invoca funções backend sem criar dados" accent="purple" defaultOpen={false}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <ActionButton onClick={() => testFunction("stripeHealthCheck", {}, "Stripe Health Check")} disabled={anyLoading} loading={isLoading("fn_stripeHealthCheck")} loadingLabel="A testar..." icon={CreditCard} label="stripeHealthCheck" className="border-slate-200 text-slate-700 hover:bg-slate-50" />
+          <ActionButton onClick={() => testFunction("getStripeAccountStatus", {}, "Stripe Account Status")} disabled={anyLoading} loading={isLoading("fn_getStripeAccountStatus")} loadingLabel="A testar..." icon={CreditCard} label="getStripeAccountStatus" className="border-slate-200 text-slate-700 hover:bg-slate-50" />
+          <ActionButton onClick={() => testFunction("syncHotelAvailability", {}, "Sync Hotel Availability")} disabled={anyLoading} loading={isLoading("fn_syncHotelAvailability")} loadingLabel="A testar..." icon={Hotel} label="syncHotelAvailability" className="border-slate-200 text-slate-700 hover:bg-slate-50" />
+          <ActionButton onClick={() => testFunction("retryBlockedPayouts", {}, "Retry Blocked Payouts")} disabled={anyLoading} loading={isLoading("fn_retryBlockedPayouts")} loadingLabel="A testar..." icon={CreditCard} label="retryBlockedPayouts" className="border-slate-200 text-slate-700 hover:bg-slate-50" />
+          <ActionButton onClick={() => testFunction("checkHotelCapacity", {}, "Check Hotel Capacity")} disabled={anyLoading} loading={isLoading("fn_checkHotelCapacity")} loadingLabel="A testar..." icon={Hotel} label="checkHotelCapacity" className="border-slate-200 text-slate-700 hover:bg-slate-50" />
+        </div>
+      </SectionCard>
+
+      {/* REPARAÇÃO */}
+      <SectionCard icon={ShieldAlert} title="Reparar Perfis Profissionais" subtitle="Normaliza arrays null/undefined e remove duplicados" accent="orange" defaultOpen={false}>
         <div className="flex flex-col md:flex-row gap-2">
-          <ActionButton
-            onClick={repairProProfiles}
-            disabled={anyLoading}
-            loading={isLoading("repair")}
-            loadingLabel="A reparar..."
-            icon={RefreshCw}
-            label="Normalizar Todos os Perfis"
-            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white border-orange-600"
-          />
-          <ActionButton
-            onClick={fixDuplicates}
-            disabled={anyLoading}
-            loading={isLoading("dedup")}
-            loadingLabel="A remover..."
-            icon={Trash}
-            label="Remover Perfis Duplicados"
-            className="flex-1 bg-red-700 hover:bg-red-800 text-white border-red-700"
-          />
+          <ActionButton onClick={repairProProfiles} disabled={anyLoading} loading={isLoading("repair")} loadingLabel="A reparar..." icon={RefreshCw} label="Normalizar Todos os Perfis" className="flex-1 bg-orange-600 hover:bg-orange-700 text-white border-orange-600" />
+          <ActionButton onClick={fixDuplicates} disabled={anyLoading} loading={isLoading("dedup")} loadingLabel="A remover..." icon={Trash} label="Remover Perfis Duplicados" className="flex-1 bg-red-700 hover:bg-red-800 text-white border-red-700" />
         </div>
       </SectionCard>
 
-      {/* DANGER ZONE */}
-      <SectionCard
-        icon={AlertTriangle}
-        title="Zona de Perigo"
-        subtitle="Apaga todos os dados de teste marcados com __DEBUG_TEST__"
-        accent="red"
-        defaultOpen={false}
-      >
-        <p className="text-xs text-red-600 mb-3">
-          Apaga bookings, emergências, reservas de hotel, avaliações e transações de carteira de teste associados ao teu email.
-        </p>
-        <Button onClick={clearTestData} disabled={anyLoading} variant="destructive" className="w-full">
+      {/* LIMPEZA RESIDUAL */}
+      <SectionCard icon={AlertTriangle} title="Limpeza Residual" subtitle="Apaga registos de teste que tenham ficado por apagar (interrupções)" accent="red" defaultOpen={false}>
+        <p className="text-xs text-red-600 mb-3">Procura bookings, emergências, reservas de hotel, avaliações e transações marcados com __DEBUG_TEST__ associados ao teu email e apaga-os.</p>
+        <Button onClick={clearResidual} disabled={anyLoading} variant="destructive" className="w-full">
           {isLoading("clear") ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash className="w-4 h-4 mr-2" />}
-          {isLoading("clear") ? "A apagar..." : "Apagar Todos os Dados de Teste"}
+          {isLoading("clear") ? "A apagar..." : "Apagar Residuais de Teste"}
         </Button>
       </SectionCard>
 
-      {/* ACTIVITY LOG */}
+      {/* LOG */}
       <Card className="border-slate-200">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2 text-slate-800">
               <Activity className="w-5 h-5" />
               Log de Atividade
-              {logs.length > 0 && (
-                <Badge variant="secondary" className="text-[10px]">{logs.length}</Badge>
-              )}
+              {logs.length > 0 && <Badge variant="secondary" className="text-[10px]">{logs.length}</Badge>}
             </CardTitle>
             {logs.length > 0 && (
               <Button onClick={clearLogs} variant="ghost" size="sm" className="text-xs h-8">
@@ -827,9 +699,7 @@ export default function AdminDebug() {
         </CardHeader>
         <CardContent>
           {logs.length === 0 ? (
-            <p className="text-xs text-slate-400 italic py-4 text-center">
-              Nenhuma atividade registada. Executa uma ação acima.
-            </p>
+            <p className="text-xs text-slate-400 italic py-4 text-center">Nenhuma atividade registada. Executa um teste acima.</p>
           ) : (
             <LogPanel logs={logs} />
           )}
