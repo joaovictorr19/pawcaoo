@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Star } from "lucide-react";
+import { Star, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }) {
@@ -23,25 +22,21 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
     tip_amount: 0
   });
 
-  const isClientReview = booking.isClientReview; // Passed via prop or augmented booking object
+  const isClientReview = booking.isClientReview;
   const isHotelBooking = booking.type === 'hotel';
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Determine if this is a training booking or regular walk
     const isTrainingBooking = booking.trainer_id || booking.trainer_name;
-    
     let reviewData = {};
 
     if (isClientReview) {
-      // Reviewing the Client
       reviewData = {
         booking_id: !isTrainingBooking ? booking.id : undefined,
         training_booking_id: isTrainingBooking ? booking.id : undefined,
         reviewer_email: isTrainingBooking ? booking.trainer_email : booking.walker_email,
         reviewer_name: isTrainingBooking ? booking.trainer_name : booking.walker_name,
-        target_email: booking.created_by, // Owner email
+        target_email: booking.created_by,
         target_name: booking.owner_name,
         dog_name: booking.dog_name,
         rating: formData.rating,
@@ -50,7 +45,6 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
         would_work_again: formData.would_recommend
       };
     } else {
-      // Reviewing the Professional
       reviewData = {
         ...(isTrainingBooking ? {
           training_booking_id: booking.id,
@@ -64,19 +58,16 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
         reviewer_email: booking.created_by,
         reviewer_name: booking.owner_name,
         ...formData,
-        // Gorjetas não se aplicam a estadias de hotel
         ...(isHotelBooking ? { tip_amount: 0 } : {})
       };
     }
-    
     onSubmit(reviewData);
   };
 
   const isTrainer = booking.trainer_id || booking.trainer_name;
   const targetName = isClientReview ? booking.owner_name : (booking.trainer_name || booking.walker_name);
-  const targetType = isClientReview ? 'Client' : (isHotelBooking ? 'Hotel' : (isTrainer ? 'Trainer' : 'Walker'));
+  const targetType = isClientReview ? 'cliente' : (isHotelBooking ? 'hotel' : (isTrainer ? 'treinador' : 'passeador'));
 
-  // Adjust categories based on type
   React.useEffect(() => {
     if (isClientReview) {
       setFormData(prev => ({
@@ -91,32 +82,34 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
     }
   }, [isClientReview]);
 
-  const StarRating = ({ value, onChange, label }) => (
-    <div className="space-y-2.5">
-      <Label className="text-sm font-semibold" style={{ color: '#334155' }}>{label}</Label>
-      <div className="flex gap-2">
-        {Array.from({ length: 5 }, (_, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => onChange(i + 1)}
-            className="transition-transform hover:scale-110"
-          >
-            <Star
-              className={`w-9 h-9 ${
-                i < value ? 'fill-amber-400' : ''
-              }`}
-              style={{ color: i < value ? '#f59e0b' : '#e2e8f0' }}
-            />
-          </button>
-        ))}
+  const StarRating = ({ value, onChange, label, size = "lg" }) => {
+    const starSize = size === "lg" ? "w-9 h-9" : "w-5 h-5";
+    return (
+      <div className="space-y-2.5">
+        <Label className="text-sm font-semibold text-slate-700">{label}</Label>
+        <div className="flex gap-2">
+          {Array.from({ length: 5 }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onChange(i + 1)}
+              className="transition-transform hover:scale-110 active:scale-95"
+            >
+              <Star
+                className={`${starSize} transition-colors ${
+                  i < value ? 'fill-amber-400 text-amber-400' : 'text-slate-200'
+                }`}
+              />
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const CategoryStars = ({ value, onChange, label }) => (
     <div className="space-y-1.5">
-      <Label className="text-xs font-medium" style={{ color: '#64748b' }}>{label}</Label>
+      <Label className="text-xs font-medium text-slate-500">{label}</Label>
       <div className="flex gap-1">
         {Array.from({ length: 5 }, (_, i) => (
           <button
@@ -126,10 +119,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
             className="transition-transform hover:scale-110"
           >
             <Star
-              className={`w-5 h-5 ${
-                i < value ? 'fill-amber-400' : ''
-              }`}
-              style={{ color: i < value ? '#f59e0b' : '#e2e8f0' }}
+              className={`w-5 h-5 ${i < value ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
             />
           </button>
         ))}
@@ -137,196 +127,155 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
     </div>
   );
 
+  const tipOptions = [0, 2, 5, 10, 15, 20];
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+      className="p-7 md:p-8 rounded-[1.75rem]"
+      style={{
+        background: 'rgba(255, 255, 255, 0.92)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+      }}
     >
-      <Card className="border-0 shadow-none bg-transparent">
-        <CardHeader className="bg-transparent p-0 mb-6">
-          <CardTitle className="flex items-center gap-2.5 text-lg font-heading font-bold" style={{ color: '#0d9483' }}>
-            <Star className="w-5 h-5 fill-amber-400" style={{ color: '#f59e0b' }} />
-            {isClientReview ? "Avaliar Cliente & Cão" : `Avaliar ${targetName}`}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <StarRating
-              value={formData.rating}
-              onChange={(rating) => setFormData({ ...formData, rating })}
-              label="Avaliação Geral *"
-            />
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(13, 148, 131, 0.08)' }}>
+          <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
+        </div>
+        <div>
+          <h3 className="text-xl font-heading font-bold text-slate-900 leading-tight">
+            {isClientReview ? `Avaliar ${targetName}` : `Avaliar ${targetName}`}
+          </h3>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">
+            {isClientReview ? 'Avaliação de cliente' : `Avaliação de ${targetType}`}
+          </p>
+        </div>
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="comment" className="text-sm font-semibold" style={{ color: '#334155' }}>O teu comentário</Label>
-              <Textarea
-                id="comment"
-                value={formData.comment}
-                onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                placeholder={`Partilha a tua experiência com este ${targetType.toLowerCase()}...`}
-                rows={5}
-                className="resize-none rounded-2xl border-slate-200"
-                style={{ background: 'rgba(255, 255, 255, 0.6)' }}
-              />
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Overall Rating */}
+        <div className="rounded-[1.25rem] p-5" style={{ background: 'rgba(13, 148, 131, 0.03)', border: '1px solid rgba(13, 148, 131, 0.08)' }}>
+          <StarRating
+            value={formData.rating}
+            onChange={(rating) => setFormData({ ...formData, rating })}
+            label="Avaliação geral"
+          />
+          {formData.rating > 0 && (
+            <p className="text-sm font-semibold mt-3" style={{ color: '#0d9483' }}>
+              {formData.rating === 5 ? "Excecional" : formData.rating >= 4 ? "Muito bom" : formData.rating === 3 ? "Bom" : "Pode melhorar"}
+            </p>
+          )}
+        </div>
 
-            <div className="border-t border-slate-100 pt-6">
-              <h4 className="font-semibold text-sm mb-4" style={{ color: '#334155' }}>Avaliar por Categoria</h4>
-              <div className="grid md:grid-cols-2 gap-4">
-                {isClientReview ? (
+        {/* Comment */}
+        <div className="space-y-2">
+          <Label htmlFor="comment" className="text-sm font-semibold text-slate-700">O teu comentário</Label>
+          <Textarea
+            id="comment"
+            value={formData.comment}
+            onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+            placeholder={`Partilha a tua experiência com este ${targetType}...`}
+            rows={4}
+            className="resize-none rounded-2xl border-slate-200 bg-white/60 text-sm"
+          />
+        </div>
+
+        {/* Categories */}
+        <div className="border-t border-slate-100 pt-5">
+          <h4 className="font-heading font-bold text-sm text-slate-700 mb-4">Avaliação por categoria</h4>
+          <div className="grid md:grid-cols-2 gap-4">
+            {isClientReview ? (
+              <>
+                <CategoryStars value={formData.categories.dog_behavior || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, dog_behavior: val } })} label="Comportamento do cão" />
+                <CategoryStars value={formData.categories.owner_communication || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, owner_communication: val } })} label="Comunicação" />
+                <CategoryStars value={formData.categories.punctuality || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, punctuality: val } })} label="Pontualidade" />
+                <CategoryStars value={formData.categories.payment_promptness || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, payment_promptness: val } })} label="Processo" />
+              </>
+            ) : (
+              <>
+                <CategoryStars value={formData.categories.punctuality || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, punctuality: val } })} label="Pontualidade" />
+                <CategoryStars value={formData.categories.care || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, care: val } })} label={isTrainer ? "Atenção ao cão" : "Cuidado e atenção"} />
+                <CategoryStars value={formData.categories.communication || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, communication: val } })} label="Comunicação" />
+                <CategoryStars value={formData.categories.professionalism || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, professionalism: val } })} label="Profissionalismo" />
+                {isTrainer && (
                   <>
-                    <CategoryStars
-                      value={formData.categories.dog_behavior || 5}
-                      onChange={(val) => setFormData({
-                        ...formData,
-                        categories: { ...formData.categories, dog_behavior: val }
-                      })}
-                      label="Dog Behavior"
-                    />
-                    <CategoryStars
-                      value={formData.categories.owner_communication || 5}
-                      onChange={(val) => setFormData({
-                        ...formData,
-                        categories: { ...formData.categories, owner_communication: val }
-                      })}
-                      label="Communication"
-                    />
-                    <CategoryStars
-                      value={formData.categories.punctuality || 5}
-                      onChange={(val) => setFormData({
-                        ...formData,
-                        categories: { ...formData.categories, punctuality: val }
-                      })}
-                      label="Punctuality"
-                    />
-                    <CategoryStars
-                      value={formData.categories.payment_promptness || 5}
-                      onChange={(val) => setFormData({
-                        ...formData,
-                        categories: { ...formData.categories, payment_promptness: val }
-                      })}
-                      label="Process Smoothness"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <CategoryStars
-                      value={formData.categories.punctuality || 5}
-                      onChange={(val) => setFormData({
-                        ...formData,
-                        categories: { ...formData.categories, punctuality: val }
-                      })}
-                      label="Punctuality"
-                    />
-                    <CategoryStars
-                      value={formData.categories.care || 5}
-                      onChange={(val) => setFormData({
-                        ...formData,
-                        categories: { ...formData.categories, care: val }
-                      })}
-                      label={isTrainer ? "Attention to Dog" : "Care & Attention"}
-                    />
-                    <CategoryStars
-                      value={formData.categories.communication || 5}
-                      onChange={(val) => setFormData({
-                        ...formData,
-                        categories: { ...formData.categories, communication: val }
-                      })}
-                      label="Communication"
-                    />
-                    <CategoryStars
-                      value={formData.categories.professionalism || 5}
-                      onChange={(val) => setFormData({
-                        ...formData,
-                        categories: { ...formData.categories, professionalism: val }
-                      })}
-                      label="Professionalism"
-                    />
-                    {isTrainer && (
-                      <>
-                        <CategoryStars
-                          value={formData.categories.effectiveness || 5}
-                          onChange={(val) => setFormData({
-                            ...formData,
-                            categories: { ...formData.categories, effectiveness: val }
-                          })}
-                          label="Training Effectiveness"
-                        />
-                        <CategoryStars
-                          value={formData.categories.knowledge || 5}
-                          onChange={(val) => setFormData({
-                            ...formData,
-                            categories: { ...formData.categories, knowledge: val }
-                          })}
-                          label="Professional Knowledge"
-                        />
-                      </>
-                    )}
+                    <CategoryStars value={formData.categories.effectiveness || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, effectiveness: val } })} label="Eficácia do treino" />
+                    <CategoryStars value={formData.categories.knowledge || 5} onChange={(val) => setFormData({ ...formData, categories: { ...formData.categories, knowledge: val } })} label="Conhecimento" />
                   </>
                 )}
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2 pt-4">
-              <Checkbox
-                id="recommend"
-                checked={formData.would_recommend}
-                onCheckedChange={(checked) => setFormData({ ...formData, would_recommend: checked })}
-              />
-              <label htmlFor="recommend" className="text-sm font-medium cursor-pointer" style={{ color: '#475569' }}>
-                {isClientReview
-                  ? "Trabalharia novamente com este cliente"
-                  : `Recomendaria este ${targetType.toLowerCase()} a outros`}
-              </label>
-            </div>
-
-            {!isClientReview && !isHotelBooking && (
-              <div className="pt-4 border-t border-slate-100 mt-4">
-                <Label className="mb-3 block text-sm font-semibold" style={{ color: '#334155' }}>Deixar Gorjeta (Opcional)</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {[0, 2, 5, 10, 15, 20].map((amount) => (
-                    <Button
-                      key={amount}
-                      type="button"
-                      variant={formData.tip_amount === amount ? "default" : "outline"}
-                      className="flex-1 min-w-[55px] rounded-xl"
-                      style={formData.tip_amount === amount ? { background: '#0d9483', borderColor: '#0d9483' } : {}}
-                      onClick={() => setFormData({ ...formData, tip_amount: amount })}
-                    >
-                      {amount === 0 ? 'Sem gorjeta' : `€${amount}`}
-                    </Button>
-                  ))}
-                </div>
-                {formData.tip_amount > 0 && (
-                  <p className="text-sm mt-2 font-medium" style={{ color: '#0d9483' }}>
-                    + €{formData.tip_amount} gorjeta será adicionada ao pagamento.
-                  </p>
-                )}
-              </div>
+              </>
             )}
+          </div>
+        </div>
 
-            <div className="flex gap-3 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                className="flex-1 rounded-2xl"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isProcessing}
-                className="flex-1 rounded-2xl text-white"
-                style={{ background: '#0d9483' }}
-              >
-                {isProcessing ? "A enviar..." : "Enviar"}
-              </Button>
+        {/* Recommend */}
+        <div className="flex items-center space-x-2.5 pt-1">
+          <Checkbox
+            id="recommend"
+            checked={formData.would_recommend}
+            onCheckedChange={(checked) => setFormData({ ...formData, would_recommend: checked })}
+          />
+          <label htmlFor="recommend" className="text-sm font-medium cursor-pointer text-slate-600">
+            {isClientReview ? "Trabalharia novamente com este cliente" : `Recomendaria este ${targetType} a outros donos`}
+          </label>
+        </div>
+
+        {/* Tip Section */}
+        {!isClientReview && !isHotelBooking && (
+          <div className="border-t border-slate-100 pt-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Heart className="w-4 h-4 text-rose-400" />
+              <Label className="text-sm font-semibold text-slate-700">Gorjeta (opcional)</Label>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+            <div className="flex gap-2 flex-wrap">
+              {tipOptions.map((amount) => (
+                <button
+                  key={amount}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, tip_amount: amount })}
+                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all active:scale-95 ${
+                    formData.tip_amount === amount
+                      ? 'text-white shadow-md'
+                      : 'bg-white/60 text-slate-600 border border-slate-200 hover:border-teal-300 hover:text-teal-700'
+                  }`}
+                  style={formData.tip_amount === amount ? { background: '#0d9483', borderColor: '#0d9483' } : {}}
+                >
+                  {amount === 0 ? 'Sem gorjeta' : `€${amount}`}
+                </button>
+              ))}
+            </div>
+            {formData.tip_amount > 0 && (
+              <p className="text-xs mt-2.5 font-medium text-slate-500">
+                A gorjeta de €{formData.tip_amount} será processada de forma segura após enviar a avaliação.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-3 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1 rounded-2xl h-12 font-semibold"
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            disabled={isProcessing}
+            className="flex-1 rounded-2xl h-12 font-bold text-white shadow-lg transition-all active:scale-95"
+            style={{ background: 'linear-gradient(135deg, #0d9483, #14b8a6)' }}
+          >
+            {isProcessing ? "A enviar..." : "Enviar avaliação"}
+          </Button>
+        </div>
+      </form>
     </motion.div>
   );
 }

@@ -78,6 +78,24 @@
           "minimum": 1,
           "maximum": 5,
           "description": "Professional knowledge (for trainers)"
+        },
+        "dog_behavior": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Dog behavior (for client reviews)"
+        },
+        "owner_communication": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Owner communication (for client reviews)"
+        },
+        "payment_promptness": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Payment promptness (for client reviews)"
         }
       },
       "description": "Detailed category ratings"
@@ -85,6 +103,11 @@
     "would_recommend": {
       "type": "boolean",
       "description": "Would recommend this professional"
+    },
+    "tip_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Tip amount included with this review (euros)"
     },
     "is_verified": {
       "type": "boolean",

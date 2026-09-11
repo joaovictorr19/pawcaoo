@@ -146,10 +146,16 @@ export default function ReviewCard({ review }) {
         )}
 
         {review.would_recommend !== undefined && (
-          <div className="mb-4">
+          <div className="mb-4 flex items-center gap-2 flex-wrap">
             <Badge className={review.would_recommend ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600"}>
               {review.would_recommend ? "Recomenda" : "Não recomenda"}
             </Badge>
+            {review.tip_amount && review.tip_amount > 0 && (
+              <Badge className="bg-rose-50 text-rose-600 border-rose-200">
+                <Heart className="w-3 h-3 mr-1" />
+                Gorjeta €{review.tip_amount}
+              </Badge>
+            )}
           </div>
         )}
 

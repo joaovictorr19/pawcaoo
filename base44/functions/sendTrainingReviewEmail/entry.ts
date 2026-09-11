@@ -59,10 +59,6 @@ Deno.serve(async (req) => {
 
     const isReminder = email_type === 'reminder';
 
-    const subject = isReminder
-      ? `Ainda não partilhou a sua experiência com ${safeTrainerName} 🐾`
-      : `Como correreu a sua sessão com ${safeTrainerName}? 🐾`;
-
     const escapeHtml = (str: string): string =>
       String(str)
         .replace(/&/g, '&amp;')
@@ -74,6 +70,10 @@ Deno.serve(async (req) => {
     const greeting = ownerName ? `Olá ${escapeHtml(ownerName)},` : 'Olá,';
     const safeTrainerName = escapeHtml(trainerName);
     const safeDogName = escapeHtml(dogName);
+
+    const subject = isReminder
+      ? `Ainda não partilhou a sua experiência com ${safeTrainerName}`
+      : `Como correreu a sua sessão com ${safeTrainerName}?`;
 
     const bodyHtml = isReminder
       ? `<div style="font-family:'Poppins',Arial,sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a;">

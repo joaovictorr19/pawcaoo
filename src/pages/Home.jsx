@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Search, MapPin, Heart, Users, Award, Calendar, ShieldCheck, Wallet, AlertCircle, RefreshCw, PawPrint, Bone, Hotel } from "lucide-react";
 const ProfessionalCard = React.lazy(() => import("../components/marketplace/ProfessionalCard").then(m => ({ default: m.ProfessionalCard })));
-const ReviewModal = React.lazy(() => import("../components/reviews/ReviewModal"));
 const AdvancedWalkerFilters = React.lazy(() => import("../components/search/AdvancedWalkerFilters"));
 const AdvancedTrainerFilters = React.lazy(() => import("../components/search/AdvancedTrainerFilters"));
 
@@ -114,7 +113,6 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  const [reviewBooking, setReviewBooking] = useState(null);
   const userPets = myDogs;
 
   const toggleOnlineMutation = useMutation({
@@ -890,19 +888,6 @@ export default function Home() {
           )}
         </div>
       </div>
-
-      {/* Modal de Avaliação */}
-      {reviewBooking && (
-        <Suspense fallback={null}>
-          <ReviewModal
-            booking={reviewBooking}
-            isOpen={!!reviewBooking}
-            onClose={() => setReviewBooking(null)}
-          />
-        </Suspense>
-      )}
-
-
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6">
         {/* Tabs Section */}

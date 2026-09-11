@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Star, Calendar, Dog, CheckCircle, Loader2, PawPrint } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Star, Calendar, Loader2, PawPrint } from "lucide-react";
 import { format } from "date-fns";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { toast } from "sonner";
@@ -29,19 +23,16 @@ export default function LeaveReviewDialog({
   const professionalName =
     walkerProfile?.walker_name || trainerProfile?.trainer_name || "Profissional";
 
-  // Fetch user's completed bookings with this professional that haven't been reviewed
   const { data: eligibleBookings = [], isLoading } = useQuery({
     queryKey: ["eligibleBookingsForReview", professionalEmail, currentUser?.email],
     queryFn: async () => {
       if (!currentUser?.email || !professionalEmail) return [];
-
       const emailFilter = isTrainer
         ? { trainer_email: professionalEmail, status: "completed", owner_email: currentUser.email }
         : { walker_email: professionalEmail, status: "completed", owner_email: currentUser.email };
 
       const bookings = await base44.entities.Booking.filter(emailFilter, "-created_date", 20);
 
-      // Filter out bookings that already have reviews
       const reviewedBookingIds = new Set();
       const reviewFilter = isTrainer
         ? { trainer_id: trainerProfile?.id }
@@ -66,14 +57,14 @@ export default function LeaveReviewDialog({
 
   const submitReviewMutation = useMutation({
     mutationFn: async (reviewData) => {
+      let tipCheckoutUrl = null;
+
       // 1. Create the review
       await base44.entities.Review.create(reviewData);
 
       // 2. Update professional profile rating
       const isTrainerReview = !!reviewData.trainer_id;
-      const profileEntity = isTrainerReview
-        ? base44.entities.TrainerProfile
-        : base44.entities.WalkerProfile;
+      const profileEntity = isTrainerReview ? base44.entities.TrainerProfile : base44.entities.WalkerProfile;
       const profileId = isTrainerReview ? reviewData.trainer_id : reviewData.walker_id;
 
       try {
@@ -103,12 +94,36 @@ export default function LeaveReviewDialog({
           console.error("Error marking booking as reviewed:", e);
         }
       }
+
+      // 4. Process tip via Stripe if present
+      if (reviewData.tip_amount && reviewData.tip_amount > 0) {
+        const bookingId = reviewData.booking_id || reviewData.training_booking_id;
+        const bookingType = reviewData.training_booking_id ? 'training' : 'walk';
+        try {
+          const tipResponse = await base44.functions.invoke('createTipCheckout', {
+            booking_id: bookingId,
+            tip_amount: reviewData.tip_amount,
+            booking_type: bookingType
+          });
+          if (tipResponse.data?.url) {
+            tipCheckoutUrl = tipResponse.data.url;
+          }
+        } catch (tipErr) {
+          console.error('Tip processing error:', tipErr);
+        }
+      }
+
+      return { tipCheckoutUrl };
     },
-    onSuccess: () => {
-      toast.success("Avaliação enviada com sucesso! Obrigado pelo feedback.");
+    onSuccess: (data) => {
+      toast.success("Avaliação enviada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["professionalReviews"] });
       queryClient.invalidateQueries({ queryKey: ["eligibleBookingsForReview"] });
       onClose();
+
+      if (data?.tipCheckoutUrl) {
+        window.location.href = data.tipCheckoutUrl;
+      }
     },
     onError: (error) => {
       toast.error("Erro ao enviar avaliação: " + error.message);
@@ -130,18 +145,18 @@ export default function LeaveReviewDialog({
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[1.75rem] border-0 p-0"
+        className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[1.75rem] border-0 p-0 gap-0"
         style={{
-          background: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
+          background: 'rgba(255, 255, 255, 0.92)',
+          backdropFilter: 'blur(28px)',
+          WebkitBackdropFilter: 'blur(28px)',
           border: '1px solid rgba(255, 255, 255, 0.6)',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
         }}
       >
-        <DialogHeader className="px-8 pt-8 pb-2">
-          <DialogTitle className="flex items-center gap-2.5 text-2xl font-heading font-bold" style={{ color: '#0d9483' }}>
-            <Star className="w-6 h-6 fill-amber-400 text-amber-500" style={{ color: '#f59e0b' }} />
+        <DialogHeader className="px-7 md:px-8 pt-7 md:pt-8 pb-2">
+          <DialogTitle className="flex items-center gap-2.5 text-xl font-heading font-bold text-slate-900">
+            <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
             Avaliar {professionalName}
           </DialogTitle>
         </DialogHeader>
@@ -149,12 +164,12 @@ export default function LeaveReviewDialog({
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-16 px-8">
             <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#0d9483' }} />
-            <p className="text-sm mt-3" style={{ color: '#64748b' }}>A carregar reservas...</p>
+            <p className="text-sm mt-3 text-slate-400">A carregar reservas...</p>
           </div>
         ) : !selectedBooking ? (
           eligibleBookings.length > 0 ? (
-            <div className="px-8 pb-8 space-y-3">
-              <p className="text-sm mb-3" style={{ color: '#64748b' }}>
+            <div className="px-7 md:px-8 pb-8 space-y-2.5">
+              <p className="text-sm mb-3 text-slate-500">
                 Seleciona o serviço concluído que queres avaliar:
               </p>
               {eligibleBookings.map((booking) => (
@@ -181,15 +196,15 @@ export default function LeaveReviewDialog({
                     <PawPrint className="w-5 h-5" style={{ color: '#0d9483' }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate" style={{ color: '#1e293b' }}>
+                    <p className="font-semibold text-sm truncate text-slate-900">
                       {booking.dog_name || booking.dogs?.[0]?.dog_name || "Cão"}
                     </p>
-                    <p className="text-xs flex items-center gap-1.5 mt-0.5" style={{ color: '#94a3b8' }}>
+                    <p className="text-xs flex items-center gap-1.5 mt-0.5 text-slate-400">
                       <Calendar className="w-3 h-3" />
                       {formatBookingLabel(booking)}
                     </p>
                   </div>
-                  <CheckCircle className="w-5 h-5 text-slate-200 group-hover:text-teal-500 transition-colors" />
+                  <Star className="w-5 h-5 text-slate-200 group-hover:text-teal-500 transition-colors" />
                 </button>
               ))}
             </div>
@@ -200,23 +215,21 @@ export default function LeaveReviewDialog({
               >
                 <Calendar className="w-8 h-8" style={{ color: '#0d9483', opacity: 0.5 }} />
               </div>
-              <p className="text-sm font-medium" style={{ color: '#475569' }}>
+              <p className="text-sm font-medium text-slate-600">
                 Não tens serviços concluídos com este profissional para avaliar.
               </p>
-              <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>
+              <p className="text-xs mt-1 text-slate-400">
                 Completa um serviço primeiro para poderes deixar a tua avaliação.
               </p>
             </div>
           )
         ) : (
-          <div className="px-8 pb-8">
-            <ReviewForm
-              booking={selectedBooking}
-              onSubmit={handleSubmit}
-              onCancel={() => setSelectedBooking(null)}
-              isProcessing={isProcessing}
-            />
-          </div>
+          <ReviewForm
+            booking={selectedBooking}
+            onSubmit={handleSubmit}
+            onCancel={() => setSelectedBooking(null)}
+            isProcessing={isProcessing}
+          />
         )}
       </DialogContent>
     </Dialog>

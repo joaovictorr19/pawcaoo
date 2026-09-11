@@ -466,6 +466,7 @@ export default function MyBookings() {
   const submitReviewMutation = useMutation({
     mutationFn: async (reviewData) => {
       const isClientReview = reviewTarget.type === 'client';
+      let tipCheckoutUrl = null;
       
       if (isClientReview) {
         // 1. Create Client Review
@@ -488,19 +489,21 @@ export default function MyBookings() {
         // 1. Create Professional Review
         await base44.entities.Review.create(reviewData);
         
-        // 2. Update Booking with Tip if present
+        // 2. Process tip via Stripe checkout if present
         if (reviewData.tip_amount && reviewData.tip_amount > 0) {
           const bookingId = reviewData.booking_id || reviewData.training_booking_id;
-          const entity = reviewData.training_booking_id ? base44.entities.TrainingBooking : base44.entities.Booking;
-          
-          // Fetch current booking to get total
-          const currentBooking = await entity.get(bookingId);
-          if (currentBooking) {
-            await entity.update(bookingId, {
+          const bookingType = reviewData.training_booking_id ? 'training' : 'walk';
+          try {
+            const tipResponse = await base44.functions.invoke('createTipCheckout', {
+              booking_id: bookingId,
               tip_amount: reviewData.tip_amount,
-              total_amount: (currentBooking.total_amount || 0) + reviewData.tip_amount
+              booking_type: bookingType
             });
-            toast.success(`Tip of €${reviewData.tip_amount} added!`);
+            if (tipResponse.data?.url) {
+              tipCheckoutUrl = tipResponse.data.url;
+            }
+          } catch (tipErr) {
+            console.error('Tip processing error:', tipErr);
           }
         }
 
@@ -586,10 +589,17 @@ export default function MyBookings() {
         console.error("Gamification Error:", gameErr);
         // Don't block the review flow if gamification fails
       }
+
+      return { tipCheckoutUrl };
     },
-    onSuccess: () => {
-      // toast.success("Review submitted successfully!");
+    onSuccess: (data) => {
       setReviewTarget(null);
+
+      // If a tip checkout URL was returned, redirect to Stripe to pay the tip
+      if (data?.tipCheckoutUrl) {
+        window.location.href = data.tipCheckoutUrl;
+        return;
+      }
       
       // Trigger Reward Modal
       setRewardData({
