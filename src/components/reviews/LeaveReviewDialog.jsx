@@ -33,6 +33,29 @@ export default function LeaveReviewDialog({
 
       const bookings = await base44.entities.Booking.filter(emailFilter, "-created_date", 20);
 
+      // Also fetch completed hotel stays with this professional (hotel profiles)
+      let hotelBookings = [];
+      if (!isTrainer && walkerProfile) {
+        try {
+          const hotelFilter = { hotel_email: professionalEmail, status: "completed", owner_email: currentUser.email };
+          hotelBookings = await base44.entities.HotelBooking.filter(hotelFilter, "-created_date", 20);
+          // Normalize hotel bookings to match the booking shape the UI expects
+          hotelBookings = hotelBookings.map(h => ({
+            ...h,
+            type: 'hotel',
+            walk_date: h.checkin_date,
+            walker_id: h.hotel_profile_id,
+            walker_name: h.hotel_name,
+            walker_email: h.hotel_email,
+            dog_name: h.dogs?.[0]?.dog_name || '—',
+          }));
+        } catch (e) {
+          console.error('Error fetching hotel bookings for review:', e);
+        }
+      }
+
+      const allBookings = [...bookings, ...hotelBookings];
+
       const reviewedBookingIds = new Set();
       const reviewFilter = isTrainer
         ? { trainer_id: trainerProfile?.id }
@@ -43,7 +66,7 @@ export default function LeaveReviewDialog({
         if (r.booking_id) reviewedBookingIds.add(r.booking_id);
       });
 
-      return bookings.filter((b) => !reviewedBookingIds.has(b.id));
+      return allBookings.filter((b) => !reviewedBookingIds.has(b.id));
     },
     enabled: !!open && !!currentUser?.email && !!professionalEmail,
   });
