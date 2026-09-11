@@ -406,4 +406,10 @@
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
   }
+
+  /* Seal active background — uses CSS variable to bypass global button[style*="background"] override */
+  .seal-active-bg {
+    background-color: var(--seal-color, #0d9483) !important;
+    color: #fff;
+  }
 }
