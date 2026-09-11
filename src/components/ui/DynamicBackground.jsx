@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { PawPrint, Bone } from "lucide-react";
@@ -108,8 +109,10 @@ export default function DynamicBackground() {
   });
 
   const isLoggedIn = !!user;
+  const location = useLocation();
+  const showAnimatedBg = !isLoggedIn || ["/", "/Home", "/Shop"].includes(location.pathname);
 
-  if (!isLoggedIn) {
+  if (showAnimatedBg) {
     const TEAL = "#00a699";
     const ORANGE = "#ff6633";
     const YELLOW = "#ffcc33";
