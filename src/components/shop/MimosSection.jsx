@@ -50,8 +50,9 @@ export default function MimosSection({ onOpenMimo }) {
       </p>
 
       <div className="flex items-center gap-1.5 mb-2">
-        <Package className="w-3.5 h-3.5 text-slate-500" />
-        <span className="text-sm font-bold text-slate-600">Mimos dos hotéis</span>
+        <Package className="w-3.5 h-3.5 text-teal-600" />
+        <span className="text-sm font-bold text-teal-700">Petiscos dos hotéis</span>
+        <span className="text-[10px] text-slate-400">— feitos e cobrados pelo hotel</span>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {paidMimos.map((mimo) => (
@@ -90,10 +91,14 @@ function MimoCard({ mimo, onOpen }) {
             Esgotado
           </span>
         ) : isFree ? (
-          <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center gap-0.5">
-            <Gift className="w-2.5 h-2.5" /> Grátis
+          <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[9px] font-bold flex items-center gap-0.5">
+            <Sparkles className="w-2.5 h-2.5" /> Oferta PawCão
           </span>
-        ) : null}
+        ) : (
+          <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center gap-0.5">
+            <Package className="w-2.5 h-2.5" /> Feito pelo hotel
+          </span>
+        )}
       </div>
       <div className="p-2.5">
         <p className="font-bold text-slate-900 text-xs leading-tight truncate">{mimo.product_name}</p>

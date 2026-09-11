@@ -69,7 +69,7 @@ export default function MimosHighlightBanner({ onOpenMimo }) {
                 onClick={() => onOpenMimo(mimo)}
                 className="group snap-start shrink-0 w-36 text-left active:scale-[0.97] transition-transform"
               >
-                <div className="relative w-full h-24 rounded-2xl overflow-hidden bg-white/50 shadow-sm">
+                <div className="relative w-full h-24 rounded-2xl overflow-hidden bg-white/70 ring-2 ring-amber-300/80 shadow-[0_4px_18px_rgba(251,191,36,0.35)]">
                   {mimo.image_url ? (
                     <img
                       src={mimo.image_url}
@@ -80,11 +80,11 @@ export default function MimosHighlightBanner({ onOpenMimo }) {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Gift className="w-6 h-6 text-teal-400" />
+                      <Gift className="w-6 h-6 text-amber-500" />
                     </div>
                   )}
-                  <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center gap-0.5">
-                    <Gift className="w-2.5 h-2.5" /> Grátis
+                  <span className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[9px] font-bold flex items-center gap-0.5 shadow-sm">
+                    <Sparkles className="w-2.5 h-2.5" /> Oferta PawCão
                   </span>
                 </div>
                 <p className="font-bold text-slate-900 text-xs leading-tight mt-1.5 truncate">
