@@ -32,7 +32,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
       if (!query || query.length < 2) return null;
 
       const [walkers, users, products, partners] = await Promise.all([
-        base44.entities.WalkerProfile.filter({ is_active: true }).catch(() => []),
+        base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }).catch(() => []),
         base44.entities.UserProfile.list().catch(() => []),
         base44.entities.PartnerProduct.filter({ is_available: true }).catch(() => []),
         base44.entities.Partnership.filter({ is_active: true }).catch(() => [])

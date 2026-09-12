@@ -305,7 +305,7 @@ export default function Home() {
     queryFn: async () => {
       try {
         const result = await base44.entities.WalkerProfile.filter(
-          { is_active: true },
+          { is_active: true, verification_status: 'verified' },
           '-created_date',
           50
         );

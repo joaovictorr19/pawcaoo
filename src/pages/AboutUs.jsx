@@ -54,8 +54,8 @@ export default function AboutUs() {
     queryKey: ["aboutUsStats"],
     queryFn: async () => {
       const [walkers, trainers, completedBookings, completedHotelBookings, reviews] = await Promise.all([
-        base44.entities.WalkerProfile.filter({ is_active: true }, undefined, 5000),
-        base44.entities.TrainerProfile.filter({ is_active: true }, undefined, 5000),
+        base44.entities.WalkerProfile.filter({ is_active: true, verification_status: 'verified' }, undefined, 5000),
+        base44.entities.TrainerProfile.filter({ is_active: true, verification_status: 'verified' }, undefined, 5000),
         base44.entities.Booking.filter({ status: "completed" }, undefined, 5000),
         base44.entities.HotelBooking.filter({ status: "completed" }, undefined, 5000),
         base44.entities.Review.list(undefined, 5000),
