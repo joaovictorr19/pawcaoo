@@ -85,7 +85,8 @@ export default function ProfessionalReviewsSection({
         {canReview && (
           <Button
             onClick={() => setReviewDialogOpen(true)}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-full font-bold shadow-sm"
+            variant="ghost"
+            className="bg-teal-50/80 backdrop-blur-md border border-teal-600/25 text-teal-700 hover:bg-teal-100/80 hover:border-teal-600/40 hover:text-teal-800 rounded-full font-bold shadow-lg shadow-teal-900/5"
           >
             <MessageSquare className="w-4 h-4 mr-1.5" />
             {language === "pt" ? "Deixar Avaliação" : "Leave a Review"}
