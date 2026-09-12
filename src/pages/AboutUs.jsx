@@ -53,24 +53,29 @@ export default function AboutUs() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["aboutUsStats"],
     queryFn: async () => {
-      const [walkers, trainers, completedBookings, reviews] = await Promise.all([
+      const [walkers, trainers, completedBookings, completedHotelBookings, reviews] = await Promise.all([
         base44.entities.WalkerProfile.filter({ is_active: true }, undefined, 5000),
         base44.entities.TrainerProfile.filter({ is_active: true }, undefined, 5000),
         base44.entities.Booking.filter({ status: "completed" }, undefined, 5000),
+        base44.entities.HotelBooking.filter({ status: "completed" }, undefined, 5000),
         base44.entities.Review.list(undefined, 5000),
       ]);
 
       const totalProfessionals = walkers.length + trainers.length;
       const totalWalks = completedBookings.length;
+      const totalHotelServices = completedHotelBookings.length;
+      const totalReviews = reviews.length;
       const avgRating =
         reviews.length > 0
           ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
           : "0.0";
 
       return {
-        happyDogs: totalWalks,
+        happyDogs: totalWalks + totalHotelServices,
         totalProfessionals,
         totalWalks,
+        totalHotelServices,
+        totalReviews,
         avgRating,
       };
     },
@@ -104,7 +109,8 @@ export default function AboutUs() {
         happyDogs: "Cães Felizes",
         professionals: "Profissionais",
         walks: "Passeios",
-        rating: "Avaliação",
+        services: "Banho & Outros",
+        reviews: "Avaliações",
       },
     },
     es: {
@@ -133,7 +139,8 @@ export default function AboutUs() {
         happyDogs: "Perros Felices",
         professionals: "Profesionales",
         walks: "Paseos",
-        rating: "Calificación",
+        services: "Baño y Otros",
+        reviews: "Reseñas",
       },
     },
     en: {
@@ -162,7 +169,8 @@ export default function AboutUs() {
         happyDogs: "Happy Dogs",
         professionals: "Professionals",
         walks: "Walks",
-        rating: "Rating",
+        services: "Bath & More",
+        reviews: "Reviews",
       },
     },
   };
@@ -218,18 +226,18 @@ export default function AboutUs() {
 
   const statCards = [
     {
-      icon: Dog,
-      label: tr.statLabels.happyDogs,
-      value: stats?.happyDogs ?? 0,
-      suffix: "",
-      gradient: "from-teal-500 to-emerald-600",
-    },
-    {
       icon: Users,
       label: tr.statLabels.professionals,
       value: stats?.totalProfessionals ?? 0,
       suffix: "",
       gradient: "from-slate-600 to-slate-800",
+    },
+    {
+      icon: Dog,
+      label: tr.statLabels.happyDogs,
+      value: stats?.happyDogs ?? 0,
+      suffix: "",
+      gradient: "from-teal-500 to-emerald-600",
     },
     {
       icon: PawPrint,
@@ -239,10 +247,18 @@ export default function AboutUs() {
       gradient: "from-rose-500 to-pink-600",
     },
     {
+      icon: Sparkles,
+      label: tr.statLabels.services,
+      value: stats?.totalHotelServices ?? 0,
+      suffix: "",
+      gradient: "from-violet-500 to-purple-600",
+    },
+    {
       icon: Star,
-      label: tr.statLabels.rating,
-      value: stats?.avgRating ?? "0.0",
-      suffix: "/5",
+      label: tr.statLabels.reviews,
+      value: stats?.totalReviews ?? 0,
+      suffix: "",
+      subtext: `${stats?.avgRating ?? "0.0"}/5 ★`,
       gradient: "from-amber-500 to-orange-600",
     },
   ];
@@ -328,7 +344,7 @@ export default function AboutUs() {
             <p className="text-sm md:text-base text-slate-500 font-light">{tr.statsSubtitle}</p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
             {statCards.map((stat, idx) => (
               <div
                 key={idx}
@@ -349,6 +365,11 @@ export default function AboutUs() {
                   <p className="text-xs md:text-sm font-semibold text-white/80 uppercase tracking-wide">
                     {stat.label}
                   </p>
+                  {stat.subtext && (
+                    <p className="text-[10px] md:text-xs font-bold text-white/60 mt-0.5">
+                      {stat.subtext}
+                    </p>
+                  )}
                 </div>
                 {/* Decorative paw */}
                 <PawPrint className="absolute -bottom-3 -right-3 w-16 h-16 text-white/10 rotate-12" />
@@ -484,4 +505,4 @@ export default function AboutUs() {
       </section>
     </div>
   );
-} 
+}
