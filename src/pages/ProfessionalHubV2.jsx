@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 
 import { ProfessionalTabBar } from "../components/professional-hub/ProfessionalTabBar";
 const AgendaCalendar = React.lazy(() => import("../components/professional-hub/AgendaCalendar").then(m => ({ default: m.AgendaCalendar })));
@@ -193,10 +194,10 @@ export default function ProfessionalHubV2() {
   }, [location.key, location.pathname, location.search, activeTab]);
   const [incomingRequest, setIncomingRequest] = useState(null);
 
-  // 1. Fonte Única de Dados
+  // 1. Fonte Única de Dados — usa getCurrentUser para respeitar impersonação
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, Moon, X, CalendarDays, Clock, Dog, User, Che
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import GroupWalksManager from "@/components/professional-hub/GroupWalksManager";
 
 export default function ProfessionalCalendar() {
@@ -24,7 +25,7 @@ export default function ProfessionalCalendar() {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
     staleTime: 10 * 60 * 1000,
   });
 

@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { getCurrentUser } from "@/utils/getCurrentUser";
 import WalkerWallet from "@/components/wallet/WalkerWallet";
 
 export default function WalkerWalletPage() {
@@ -10,7 +11,7 @@ export default function WalkerWalletPage() {
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => getCurrentUser(),
   });
 
   if (isLoading) {

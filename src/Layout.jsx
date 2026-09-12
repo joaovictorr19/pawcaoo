@@ -296,6 +296,7 @@ function LayoutContent({ children, currentPageName }) {
   
   React.useEffect(() => {
     const awardWelcomeBadge = async () => {
+      // Bloquear durante impersonação — updateMe modificaria o perfil do admin
       if (!authUser?.email || welcomeBadgeAwardedRef.current || authUser?.isImpersonating) return;
 
       const badges = authUser.achievements_badges || [];
@@ -337,6 +338,7 @@ function LayoutContent({ children, currentPageName }) {
   
   React.useEffect(() => {
     const setupProfiles = async () => {
+      // Bloquear mutações durante impersonação — updateMe atualizaria o registo do admin (dono do token)
       if (!authUser?.email || profileSetupRef.current.initialized || authUser?.isImpersonating) return;
       
       profileSetupRef.current.initialized = true;
