@@ -63,7 +63,6 @@ export const PAGES = {
     "AdminDashboard": page(() => import('./pages/AdminDashboard')),
     "AdminDebug": page(() => import('./pages/AdminDebug')),
     "AdminFinanceDashboard": page(() => import('./pages/AdminFinanceDashboard')),
-    "AdminProfessionalApprovals": page(() => import('./pages/AdminProfessionalApprovals')),
     "AffiliateDashboard": page(() => import('./pages/AffiliateDashboard')),
     "AnimalProfile": page(() => import('./pages/AnimalProfile')),
     "ApiDocs": page(() => import('./pages/ApiDocs')),

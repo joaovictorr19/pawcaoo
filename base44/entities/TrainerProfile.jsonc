@@ -512,6 +512,10 @@
       "default": "requires_documents",
       "description": "Verification status"
     },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Motivo da rejeicao da candidatura (preenchido quando verification_status=rejected)"
+    },
     "total_earnings": {
       "type": "number",
       "description": "Total earnings",

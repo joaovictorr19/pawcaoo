@@ -284,7 +284,7 @@ export async function submitProfessionalProfile(user, form, isEditing, queryClie
               message,
               type: "system",
               icon: "✏️",
-              link: "/AdminProfessionalApprovals",
+              link: "/AdminDashboard?tab=approvals",
               related_id: existingProfile.id,
             });
           } catch (err) {

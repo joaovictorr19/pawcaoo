@@ -26,6 +26,19 @@ export function formatWhatsAppLink(number) {
   return `https://wa.me/${cleaned}`;
 }
 
+// Determina se um perfil esta com candidatura pendente (pending, requires_documents, ou vazio).
+// type: 'walker' | 'hotel' | 'shop' | 'trainer' | 'shelter'
+export function isPendingApplication(profile, type) {
+  if (!profile) return false;
+  const status = profile.verification_status;
+  const isPending = status === 'pending' || status === 'requires_documents' || !status;
+  if (!isPending) return false;
+  if (type === 'walker') return !['hotel', 'shop'].includes(profile.professional_type);
+  if (type === 'hotel') return profile.professional_type === 'hotel';
+  if (type === 'shop') return profile.professional_type === 'shop';
+  return true; // trainer, shelter
+}
+
 // Extrai contactos normalizados de qualquer tipo de perfil pendente.
 export function getContactInfo(item, type) {
   const phone = item.phone || item.contact_phone || item.whatsapp_number || "";

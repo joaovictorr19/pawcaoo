@@ -457,6 +457,10 @@
       ],
       "default": "requires_documents"
     },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Motivo da rejeicao da candidatura (preenchido quando verification_status=rejected)"
+    },
     "total_earnings": {
       "type": "number",
       "default": 0

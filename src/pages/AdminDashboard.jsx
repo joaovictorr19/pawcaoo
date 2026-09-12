@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { getCurrentUser } from "@/utils/getCurrentUser";
+import { isPendingApplication } from "@/lib/verificationUrgency";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -145,7 +147,7 @@ export default function AdminDashboard() {
     queryKey: ['currentUser'],
     queryFn: async () => {
       try {
-        return await base44.auth.me();
+        return await getCurrentUser();
       } catch (error) {
         console.error("Error fetching user:", error);
         return null;
@@ -191,10 +193,10 @@ export default function AdminDashboard() {
           verifiedTrainers: allTrainers?.filter(t => t.verification_status === 'verified')?.length || 0,
           pendingBookings: (pendingBookings?.length || 0) + (pendingHotelBookings?.length || 0),
           completedBookings: (completedBookings?.length || 0) + (completedHotelBookings?.length || 0),
-          pendingWalkers: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type !== 'hotel' && w.professional_type !== 'shop')?.length || 0,
-          pendingHotels: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'hotel')?.length || 0,
-          pendingTrainers: allTrainers?.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents' || !t.verification_status)?.length || 0,
-          pendingShops: allWalkers?.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents' || !w.verification_status) && w.professional_type === 'shop')?.length || 0
+          pendingWalkers: allWalkers?.filter(w => isPendingApplication(w, 'walker'))?.length || 0,
+          pendingHotels: allWalkers?.filter(w => isPendingApplication(w, 'hotel'))?.length || 0,
+          pendingTrainers: allTrainers?.filter(t => isPendingApplication(t, 'trainer'))?.length || 0,
+          pendingShops: allWalkers?.filter(w => isPendingApplication(w, 'shop'))?.length || 0
         };
       } catch (error) {
         console.error("Error fetching admin stats:", error);
@@ -425,11 +427,11 @@ export default function AdminDashboard() {
     refetchOnWindowFocus: false,
   });
 
-  const walkerApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents') && w.professional_type !== 'hotel' && w.professional_type !== 'shop');
-  const shopApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents') && w.professional_type === 'shop');
-  const hotelApplications = allWalkers.filter(w => (w.verification_status === 'pending' || w.verification_status === 'requires_documents') && w.professional_type === 'hotel');
-  const trainerApplications = allTrainers.filter(t => t.verification_status === 'pending' || t.verification_status === 'requires_documents');
-  const shelterApplications = allShelters.filter(s => s.verification_status === 'pending' || s.verification_status === 'requires_documents');
+  const walkerApplications = allWalkers.filter(w => isPendingApplication(w, 'walker'));
+  const shopApplications = allWalkers.filter(w => isPendingApplication(w, 'shop'));
+  const hotelApplications = allWalkers.filter(w => isPendingApplication(w, 'hotel'));
+  const trainerApplications = allTrainers.filter(t => isPendingApplication(t, 'trainer'));
+  const shelterApplications = allShelters.filter(s => isPendingApplication(s, 'shelter'));
   const activeWalkers = allWalkers.filter(w => w.verification_status === 'verified' && w.is_active === true && ['walker', 'trainer', 'both'].includes(w.professional_type));
   const activeHotels = allWalkers.filter(w => w.verification_status === 'verified' && w.is_active === true && w.professional_type === 'hotel');
   const pendingApprovalServices = allPartnerServices.filter(s => s.moderation_status === 'pending');
@@ -634,11 +636,24 @@ export default function AdminDashboard() {
     } else if (type === 'shelter') {
       await base44.entities.ShelterProfile.update(item.id, { verification_status: 'approved', is_verified: true });
     }
+    // Notificar profissional da aprovação
+    try {
+      await base44.entities.Notification.create({
+        recipient_email: item.created_by,
+        title: '🎉 Perfil Aprovado!',
+        message: 'O teu perfil foi aprovado pela equipa PawCão! Já podes começar a receber pedidos.',
+        type: 'system',
+        icon: '✅',
+        link: '/ProfessionalHubV2',
+      });
+    } catch (e) {
+      console.warn('Erro ao notificar profissional da aprovação:', e);
+    }
   };
 
   // Lógica de rejeição partilhada (individual + em massa).
   const applyReject = async (type, item, reason) => {
-    const data = { verification_status: 'rejected', rejection_reason: reason, is_verified: false };
+    const data = { verification_status: 'rejected', rejection_reason: reason, is_verified: false, is_active: false };
     if (type === 'walker' || type === 'shop' || type === 'hotel') {
       await base44.entities.WalkerProfile.update(item.id, data);
       await syncUserVerification(item.created_by, 'rejected', null);
@@ -647,6 +662,19 @@ export default function AdminDashboard() {
       await syncUserVerification(item.created_by, 'rejected', null);
     } else if (type === 'shelter') {
       await base44.entities.ShelterProfile.update(item.id, data);
+    }
+    // Notificar profissional da rejeição
+    try {
+      await base44.entities.Notification.create({
+        recipient_email: item.created_by,
+        title: '❌ Candidatura Rejeitada',
+        message: `A tua candidatura foi rejeitada. ${reason ? 'Motivo: ' + reason : 'Contacta o suporte para mais informações.'}`,
+        type: 'system',
+        icon: '❌',
+        link: '/BecomeProfessional',
+      });
+    } catch (e) {
+      console.warn('Erro ao notificar profissional da rejeição:', e);
     }
   };
 
