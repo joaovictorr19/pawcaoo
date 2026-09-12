@@ -116,7 +116,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
             key={i}
             type="button"
             onClick={() => onChange(i + 1)}
-            className="transition-transform hover:scale-110"
+            className="transition-transform hover:scale-110 active:scale-95"
           >
             <Star
               className={`w-5 h-5 ${i < value ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
@@ -134,21 +134,16 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-      className="p-7 md:p-8 rounded-[1.75rem]"
-      style={{
-        background: 'rgba(255, 255, 255, 0.92)',
-        backdropFilter: 'blur(28px)',
-        WebkitBackdropFilter: 'blur(28px)',
-      }}
+      className="p-7 md:p-8 bg-white"
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(13, 148, 131, 0.08)' }}>
-          <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
+        <div className="w-11 h-11 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center flex-shrink-0">
+          <Star className="w-5 h-5 fill-teal-500 text-teal-500" />
         </div>
         <div>
           <h3 className="text-xl font-heading font-bold text-slate-900 leading-tight">
-            {isClientReview ? `Avaliar ${targetName}` : `Avaliar ${targetName}`}
+            Avaliar {targetName}
           </h3>
           <p className="text-xs text-slate-400 font-medium mt-0.5">
             {isClientReview ? 'Avaliação de cliente' : `Avaliação de ${targetType}`}
@@ -158,14 +153,14 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Overall Rating */}
-        <div className="rounded-[1.25rem] p-5" style={{ background: 'rgba(13, 148, 131, 0.03)', border: '1px solid rgba(13, 148, 131, 0.08)' }}>
+        <div className="rounded-2xl p-5 bg-teal-50 border border-teal-100">
           <StarRating
             value={formData.rating}
             onChange={(rating) => setFormData({ ...formData, rating })}
             label="Avaliação geral"
           />
           {formData.rating > 0 && (
-            <p className="text-sm font-semibold mt-3" style={{ color: '#0d9483' }}>
+            <p className="text-sm font-semibold mt-3 text-teal-700">
               {formData.rating === 5 ? "Excecional" : formData.rating >= 4 ? "Muito bom" : formData.rating === 3 ? "Bom" : "Pode melhorar"}
             </p>
           )}
@@ -180,7 +175,7 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
             onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
             placeholder={`Partilha a tua experiência com este ${targetType}...`}
             rows={4}
-            className="resize-none rounded-2xl border-slate-200 bg-white/60 text-sm"
+            className="resize-none rounded-2xl border-slate-200 bg-white text-sm focus:border-teal-400 focus:ring-teal-100"
           />
         </div>
 
@@ -237,12 +232,11 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
                   key={amount}
                   type="button"
                   onClick={() => setFormData({ ...formData, tip_amount: amount })}
-                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all active:scale-95 ${
+                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all active:scale-95 border ${
                     formData.tip_amount === amount
-                      ? 'text-white shadow-md'
-                      : 'bg-white/60 text-slate-600 border border-slate-200 hover:border-teal-300 hover:text-teal-700'
+                      ? 'bg-teal-600 text-white border-teal-600 shadow-md'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300 hover:text-teal-700'
                   }`}
-                  style={formData.tip_amount === amount ? { background: '#0d9483', borderColor: '#0d9483' } : {}}
                 >
                   {amount === 0 ? 'Sem gorjeta' : `€${amount}`}
                 </button>
@@ -262,15 +256,14 @@ export default function ReviewForm({ booking, onSubmit, onCancel, isProcessing }
             type="button"
             variant="outline"
             onClick={onCancel}
-            className="flex-1 rounded-2xl h-12 font-semibold"
+            className="flex-1 rounded-2xl h-12 font-semibold border-slate-200 text-slate-600 hover:bg-slate-50"
           >
             Cancelar
           </Button>
           <Button
             type="submit"
             disabled={isProcessing}
-            className="flex-1 rounded-2xl h-12 font-bold text-white shadow-lg transition-all active:scale-95"
-            style={{ background: 'linear-gradient(135deg, #0d9483, #14b8a6)' }}
+            className="flex-1 rounded-2xl h-12 font-bold text-white shadow-lg transition-all active:scale-95 bg-gradient-to-br from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600"
           >
             {isProcessing ? "A enviar..." : "Enviar avaliação"}
           </Button>

@@ -7,6 +7,15 @@ import { format } from "date-fns";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { toast } from "sonner";
 
+const SERVICE_TYPE_LABELS = {
+  walk: "Passeio",
+  training: "Treino",
+  hotel: "Hotel",
+  boarding: "Estadia",
+  daycare: "Creche",
+  grooming: "Banho & Tosquia",
+};
+
 export default function LeaveReviewDialog({
   open,
   onClose,
@@ -33,13 +42,11 @@ export default function LeaveReviewDialog({
 
       const bookings = await base44.entities.Booking.filter(emailFilter, "-created_date", 20);
 
-      // Also fetch completed hotel stays with this professional (hotel profiles)
       let hotelBookings = [];
       if (!isTrainer && walkerProfile) {
         try {
           const hotelFilter = { hotel_email: professionalEmail, status: "completed", owner_email: currentUser.email };
           hotelBookings = await base44.entities.HotelBooking.filter(hotelFilter, "-created_date", 20);
-          // Normalize hotel bookings to match the booking shape the UI expects
           hotelBookings = hotelBookings.map(h => ({
             ...h,
             type: 'hotel',
@@ -82,10 +89,8 @@ export default function LeaveReviewDialog({
     mutationFn: async (reviewData) => {
       let tipCheckoutUrl = null;
 
-      // 1. Create the review
       await base44.entities.Review.create(reviewData);
 
-      // 2. Update professional profile rating
       const isTrainerReview = !!reviewData.trainer_id;
       const profileEntity = isTrainerReview ? base44.entities.TrainerProfile : base44.entities.WalkerProfile;
       const profileId = isTrainerReview ? reviewData.trainer_id : reviewData.walker_id;
@@ -107,7 +112,6 @@ export default function LeaveReviewDialog({
         console.error("Error updating profile rating:", e);
       }
 
-      // 3. Mark booking as reviewed
       if (reviewData.booking_id) {
         try {
           await base44.entities.Booking.update(reviewData.booking_id, {
@@ -118,7 +122,6 @@ export default function LeaveReviewDialog({
         }
       }
 
-      // 4. Process tip via Stripe if present
       if (reviewData.tip_amount && reviewData.tip_amount > 0) {
         const bookingId = reviewData.booking_id || reviewData.training_booking_id;
         const bookingType = reviewData.training_booking_id ? 'training' : 'walk';
@@ -142,6 +145,7 @@ export default function LeaveReviewDialog({
       toast.success("Avaliação enviada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["professionalReviews"] });
       queryClient.invalidateQueries({ queryKey: ["eligibleBookingsForReview"] });
+      queryClient.invalidateQueries({ queryKey: ["eligibleReviewCount"] });
       onClose();
 
       if (data?.tipCheckoutUrl) {
@@ -165,67 +169,57 @@ export default function LeaveReviewDialog({
     return `${dogName} · ${date ? format(new Date(date), "dd/MM/yyyy") : "—"}`;
   };
 
+  const getServiceLabel = (booking) => {
+    if (booking.type === 'hotel') return SERVICE_TYPE_LABELS[booking.service_type] || "Hotel";
+    if (booking.trainer_id || booking.trainer_name) return "Treino";
+    return "Passeio";
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[1.75rem] border-0 p-0 gap-0"
-        style={{
-          background: 'rgba(255, 255, 255, 0.92)',
-          backdropFilter: 'blur(28px)',
-          WebkitBackdropFilter: 'blur(28px)',
-          border: '1px solid rgba(255, 255, 255, 0.6)',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
-        }}
-      >
-        <DialogHeader className="px-7 md:px-8 pt-7 md:pt-8 pb-2">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-[1.75rem] border border-slate-200 p-0 gap-0 bg-white shadow-xl">
+        <DialogHeader className="px-7 md:px-8 pt-7 md:pt-8 pb-3 border-b border-slate-100">
           <DialogTitle className="flex items-center gap-2.5 text-xl font-heading font-bold text-slate-900">
-            <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
+            <div className="w-8 h-8 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center">
+              <Star className="w-4 h-4 fill-teal-500 text-teal-500" />
+            </div>
             Avaliar {professionalName}
           </DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-16 px-8">
-            <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#0d9483' }} />
+            <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
             <p className="text-sm mt-3 text-slate-400">A carregar reservas...</p>
           </div>
         ) : !selectedBooking ? (
           eligibleBookings.length > 0 ? (
-            <div className="px-7 md:px-8 pb-8 space-y-2.5">
-              <p className="text-sm mb-3 text-slate-500">
+            <div className="px-7 md:px-8 py-6 space-y-2.5">
+              <p className="text-sm mb-3 text-slate-500 font-medium">
                 Seleciona o serviço concluído que queres avaliar:
               </p>
               {eligibleBookings.map((booking) => (
                 <button
                   key={booking.id}
                   onClick={() => setSelectedBooking(booking)}
-                  className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-transparent transition-all text-left hover:shadow-md group"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.6)',
-                    borderColor: 'rgba(226, 232, 240, 0.8)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#0d9483';
-                    e.currentTarget.style.background = 'rgba(13, 148, 131, 0.04)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)';
-                  }}
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-teal-400 hover:bg-teal-50/50 transition-all text-left group"
                 >
-                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors group-hover:bg-teal-50"
-                    style={{ background: 'rgba(13, 148, 131, 0.08)' }}
-                  >
-                    <PawPrint className="w-5 h-5" style={{ color: '#0d9483' }} />
+                  <div className="w-11 h-11 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
+                    <PawPrint className="w-5 h-5 text-teal-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate text-slate-900">
                       {booking.dog_name || booking.dogs?.[0]?.dog_name || "Cão"}
                     </p>
-                    <p className="text-xs flex items-center gap-1.5 mt-0.5 text-slate-400">
-                      <Calendar className="w-3 h-3" />
-                      {formatBookingLabel(booking)}
-                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-slate-400 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatBookingLabel(booking)}
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full">
+                        {getServiceLabel(booking)}
+                      </span>
+                    </div>
                   </div>
                   <Star className="w-5 h-5 text-slate-200 group-hover:text-teal-500 transition-colors" />
                 </button>
@@ -233,12 +227,10 @@ export default function LeaveReviewDialog({
             </div>
           ) : (
             <div className="text-center py-16 px-8">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-3xl flex items-center justify-center"
-                style={{ background: 'rgba(13, 148, 131, 0.06)' }}
-              >
-                <Calendar className="w-8 h-8" style={{ color: '#0d9483', opacity: 0.5 }} />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-3xl bg-teal-50 border border-teal-100 flex items-center justify-center">
+                <Calendar className="w-8 h-8 text-teal-400" />
               </div>
-              <p className="text-sm font-medium text-slate-600">
+              <p className="text-sm font-semibold text-slate-600">
                 Não tens serviços concluídos com este profissional para avaliar.
               </p>
               <p className="text-xs mt-1 text-slate-400">
