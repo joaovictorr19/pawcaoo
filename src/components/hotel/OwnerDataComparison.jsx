@@ -131,10 +131,24 @@ export default function OwnerDataComparison({ guestProfileId, dogName, onClose, 
 
           {!hasUpdates ? (
             <div className="py-8 text-center">
-              <Check className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-              <p className="text-sm text-slate-600">
-                Os dados do dono estão atualizados. Não há alterações desde a última sincronização.
-              </p>
+              {result?.no_matching_profile ? (
+                <>
+                  <AlertCircle className="w-12 h-12 text-amber-400 mx-auto mb-3" />
+                  <p className="text-sm text-slate-600">
+                    Não foi encontrado um perfil de cão correspondente ao dono.
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-2">
+                    O dono pode ter renomeado ou eliminado o perfil. A verificação automática de alterações não é possível — verifique manualmente os dados do dono.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Check className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+                  <p className="text-sm text-slate-600">
+                    Os dados do dono estão atualizados. Não há alterações desde a última sincronização.
+                  </p>
+                </>
+              )}
               {result?.owner_snapshot_date && (
                 <p className="text-[10px] text-slate-400 mt-2">
                   Última sincronização: {new Date(result.owner_snapshot_date).toLocaleString("pt-PT")}

@@ -63,9 +63,14 @@ export const FIELD_LABELS = {
   service_photos: "Fotos por serviço"
 };
 
-// Normaliza nome de cão para comparação (ignora maiúsculas e espaços extra)
+// Normaliza nome de cão para comparação (ignora maiúsculas, acentos e espaços extra)
 function normalizeDogName(v) {
-  return (v === null || v === undefined) ? "" : String(v).trim().toLowerCase();
+  if (v === null || v === undefined) return "";
+  return String(v)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // remove diacríticos/acentos
 }
 
 // Encontra o DogProfile correspondente pelo nome do cão

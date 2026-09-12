@@ -36,11 +36,13 @@ Deno.serve(async (req) => {
       // comparar — não marcar tudo como "alterado para vazio" (falso positivo).
       const changes = dogProfile ? diffSnapshots(storedSnapshot, createOwnerSnapshot(dogProfile)) : [];
       const hasUpdates = changes.length > 0;
+      const noMatchingProfile = !dogProfile;
 
       results.push({
         dog_name: dog.dog_name,
         has_owner_updates: hasUpdates,
         changes,
+        no_matching_profile: noMatchingProfile,
         owner_snapshot_date: dog.owner_snapshot_date || null,
       });
 

@@ -204,6 +204,13 @@ function BookingCard({ booking, onUpdate, hideFinance = false }) {
                 {fmtDate(booking.checkin_date)}
                 {booking.checkout_date && ` → ${fmtDate(booking.checkout_date)}`}
               </span>
+              {(booking.checkin_time || booking.checkout_time) && (
+                <span className="flex items-center gap-0.5 text-slate-500">
+                  <Clock className="w-2.5 h-2.5" />
+                  {booking.checkin_time || "—"}
+                  {booking.checkout_time && ` → ${booking.checkout_time}`}
+                </span>
+              )}
               <span className="flex items-center gap-0.5">
                 <Dog className="w-2.5 h-2.5" />
                 {booking.total_dogs || 1} cão{(booking.total_dogs || 1) > 1 ? "es" : ""}
