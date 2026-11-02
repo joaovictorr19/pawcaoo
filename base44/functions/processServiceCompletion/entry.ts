@@ -3,6 +3,10 @@ import Stripe from 'npm:stripe@14.21.0';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
 
+// Limite de tentativas de confirmação por serviço — impede força bruta ao código de 6 dígitos.
+const MAX_CODE_ATTEMPTS = 5;
+const CODE_LOCK_MINUTES = 15;
+
 const ENTITY_CONFIG = {
   walk: {
     entityName: 'Booking',
@@ -154,9 +158,51 @@ Deno.serve(async (req) => {
     // to release payment — prevents unilateral payout without client confirmation.
     if (isProfessional && !isAdmin) {
       const expectedToken = service.dropoff_token || service.completion_code;
-      const providedToken = body.dropoff_token || body.completion_code;
-      if (!expectedToken || !providedToken || providedToken !== expectedToken) {
+      const providedToken = String(body.dropoff_token || body.completion_code || '').trim();
+
+      // SECURITY: limitar tentativas no servidor. O código tem 6 dígitos (10^6 combinações),
+      // por isso sem limite um profissional poderia adivinhá-lo e libertar o pagamento.
+      // O contador vive numa entidade só acessível por admin/service-role, de modo a que o
+      // profissional não o possa repor através de campos que ele próprio edita.
+      const attemptEntity = base44.asServiceRole.entities.CompletionCodeAttempt;
+      const attemptRows = await attemptEntity.filter({ service_id: service.id });
+      const attemptRow = attemptRows[0] || null;
+      const now = Date.now();
+
+      if (attemptRow?.locked_until && new Date(attemptRow.locked_until).getTime() > now) {
+        return Response.json(
+          { error: `Demasiadas tentativas de confirmação. Tente novamente mais tarde.` },
+          { status: 429 }
+        );
+      }
+
+      const expected = expectedToken ? String(expectedToken) : '';
+      const codeMatches = expected.length > 0 && providedToken === expected;
+
+      if (!codeMatches) {
+        const attempts = (attemptRow?.attempts || 0) + 1;
+        const reachedLimit = attempts >= MAX_CODE_ATTEMPTS;
+        const attemptData = {
+          service_id: service.id,
+          service_kind: kind,
+          attempts: reachedLimit ? 0 : attempts,
+          locked_until: reachedLimit
+            ? new Date(now + CODE_LOCK_MINUTES * 60 * 1000).toISOString()
+            : (attemptRow?.locked_until || null),
+          last_attempt: new Date(now).toISOString()
+        };
+        if (attemptRow) {
+          await attemptEntity.update(attemptRow.id, attemptData);
+        } else {
+          await attemptEntity.create(attemptData);
+        }
+
         return Response.json({ error: 'Client confirmation required (dropoff_token)' }, { status: 403 });
+      }
+
+      // Confirmação válida — limpar o contador de tentativas.
+      if (attemptRow) {
+        await attemptEntity.delete(attemptRow.id);
       }
     }
 

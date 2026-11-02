@@ -24,6 +24,7 @@ import { useLocalization } from "@/components/LocalizationContext";
 import { useLanguage } from "@/components/LanguageContext";
 import { t } from "@/components/translations";
 import WalletPaymentOption from "@/components/wallet/WalletPaymentOption";
+import { generateCompletionCode } from "@/lib/secureCode";
 
 export default function BookingForm({ walker, professional, onClose, initialDate, selectedServiceType }) {
   const navigate = useNavigate();
@@ -280,7 +281,8 @@ export default function BookingForm({ walker, professional, onClose, initialDate
         throw new Error('Profissional inválido - falta ID ou email');
       }
 
-      const completionCode = Math.floor(100000 + Math.random() * 900000).toString();
+      // Código gerado com CSPRNG — nunca Math.random (previsível).
+      const completionCode = generateCompletionCode();
       const bookingPayload = {
         ...bookingData,
         walker_email: pro.created_by,

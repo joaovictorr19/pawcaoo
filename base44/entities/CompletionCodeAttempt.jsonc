@@ -1,0 +1,59 @@
+{
+  "name": "CompletionCodeAttempt",
+  "type": "object",
+  "properties": {
+    "service_id": {
+      "type": "string",
+      "description": "ID da reserva/servico cujo codigo de confirmacao esta a ser validado"
+    },
+    "service_kind": {
+      "type": "string",
+      "enum": [
+        "walk",
+        "training"
+      ],
+      "default": "walk",
+      "description": "Tipo de servico associado ao codigo"
+    },
+    "attempts": {
+      "type": "number",
+      "default": 0,
+      "description": "Tentativas falhadas desde o ultimo bloqueio"
+    },
+    "locked_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fim do bloqueio temporario por excesso de tentativas"
+    },
+    "last_attempt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da ultima tentativa falhada"
+    }
+  },
+  "required": [
+    "service_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
