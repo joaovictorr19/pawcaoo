@@ -17,7 +17,7 @@ import { AdminQuickVerify } from "./AdminQuickVerify";
 import { AdminUserCard } from "./AdminUserCard";
 import { AdminUserDrawer } from "./AdminUserDrawer";
 import { base44 } from "@/api/base44Client";
-import { dedupeUsers, deriveDisplayName, normalizeEmail } from "@/utils/adminUserList";
+import { dedupeUsers, deriveDisplayName, isDerivedName } from "@/utils/adminUserList";
 
 export default function AdminUserTable({
   users = [],
@@ -303,7 +303,7 @@ export default function AdminUserTable({
                         <TableCell className="font-medium text-xs text-slate-800 break-all" title={user.email}>{user.email}</TableCell>
                         <TableCell className="text-xs text-slate-600 break-all">
                           <div className="flex flex-col gap-1">
-                            <span>{user.full_name || 'N/A'}</span>
+                            <span className={isDerivedName(user) ? "text-slate-400 italic" : ""}>{deriveDisplayName(user)}</span>
                             <div className="flex gap-1">
                               <ShieldAlert className={"w-3.5 h-3.5 " + (profilesByEmail[user.email]?.is_verified ? 'text-blue-500' : 'text-slate-300')} />
                               <Award className={"w-3.5 h-3.5 " + (profilesByEmail[user.email]?.trainer_verified ? 'text-purple-500' : 'text-slate-300')} />

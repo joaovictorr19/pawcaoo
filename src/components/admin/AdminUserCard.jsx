@@ -2,9 +2,11 @@ import React from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ChevronRight, ShieldCheck, Award, UserCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { deriveDisplayName } from "@/utils/adminUserList";
 
 export function AdminUserCard({ user, onClick, profilesByEmail = {} }) {
   const prof = profilesByEmail[user.email];
+  const displayName = deriveDisplayName(user);
   return (
     <div
       onClick={() => onClick(user)}
@@ -14,12 +16,12 @@ export function AdminUserCard({ user, onClick, profilesByEmail = {} }) {
         <div className="relative shrink-0">
           <Avatar className="w-12 h-12 rounded-2xl ring-2 ring-white/60">
             <AvatarImage src={user.photo_url || user.profile_photo_url} />
-            <AvatarFallback className="bg-teal-100 text-teal-700 font-black">{user.full_name?.[0] || 'U'}</AvatarFallback>
+            <AvatarFallback className="bg-teal-100 text-teal-700 font-black">{displayName[0] || 'U'}</AvatarFallback>
           </Avatar>
           <div className={"absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white " + (user.pawgo_status?.is_online ? 'bg-green-500' : 'bg-slate-300')} />
         </div>
         <div className="min-w-0 flex-1">
-          <h4 className="font-bold text-slate-900 text-sm leading-none mb-1.5 truncate">{user.full_name || 'Sem Nome'}</h4>
+          <h4 className="font-bold text-slate-900 text-sm leading-none mb-1.5 truncate">{displayName}</h4>
           <p className="text-[10px] text-slate-400 truncate mb-1.5">{user.email}</p>
           <div className="flex items-center gap-1.5">
             <ShieldCheck className={"w-3.5 h-3.5 " + (prof?.is_verified ? 'text-blue-500' : 'text-slate-200')} />

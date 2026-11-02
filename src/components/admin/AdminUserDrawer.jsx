@@ -7,6 +7,7 @@ import { base44 } from "@/api/base44Client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createPageUrl } from "@/utils";
 import { ensureProfileSlug } from "@/utils/profileSlug";
+import { deriveDisplayName } from "@/utils/adminUserList";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
@@ -332,10 +333,10 @@ export function AdminUserDrawer({ user, isOpen, onClose, onApprove, onBan, onUpd
             <div className="flex items-center gap-4 mb-8">
               <Avatar className="w-16 h-16 rounded-3xl border-4 border-slate-50 shadow-sm">
                 <AvatarImage src={user.photo_url || user.profile_photo_url} />
-                <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">{user.full_name?.[0] || 'U'}</AvatarFallback>
+                <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">{deriveDisplayName(user)[0] || 'U'}</AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="text-xl font-black text-slate-900 leading-tight">{user.full_name || 'Sem Nome'}</h3>
+                <h3 className="text-xl font-black text-slate-900 leading-tight">{deriveDisplayName(user)}</h3>
                 <p className="text-xs text-slate-400 font-medium">{user.email}</p>
                 <div className="text-[10px] font-bold text-orange-500 mt-1">{user.gamification_xp || 0} XP</div>
               </div>
