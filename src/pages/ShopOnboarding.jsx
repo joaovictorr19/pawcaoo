@@ -158,10 +158,11 @@ export default function ShopOnboarding() {
         tax_id_france: form.tax_id_france || "",
         id_document_url: form.id_document_url || "",
         proof_of_address_url: form.proof_of_address_url || "",
-        is_active: false,
-        is_online: false,
-        is_verified: false,
-        verification_status: "pending",
+        // Uma loja já aprovada mantém-se ativa ao editar os dados.
+        // Só uma loja nova, pendente ou rejeitada volta para análise.
+        ...(existingProfile?.verification_status === "verified"
+          ? { is_active: true, is_verified: true, verification_status: "verified" }
+          : { is_active: false, is_online: false, is_verified: false, verification_status: "pending" }),
       };
 
       if (existingProfile) {
@@ -170,9 +171,10 @@ export default function ShopOnboarding() {
         await base44.entities.WalkerProfile.create(profileData);
       }
 
+      // O role 'shop' é atribuído pela equipa PawCão na aprovação do perfil.
+      // Aqui guardamos apenas account_type, que já identifica a loja no painel e na navegação.
       await base44.auth.updateMe({
         account_type: "shop",
-        role: "shop",
         city: form.location,
       });
 

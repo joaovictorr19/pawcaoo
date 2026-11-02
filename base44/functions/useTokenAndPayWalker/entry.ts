@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
     const newEscrow = wallet.escrow_balance - tokenValue;
     const newPendingPayments = (wallet.pending_walker_payments || 0) + tokenValue;
 
-    await base44.entities.UserWallet.update(wallet.id, {
+    await base44.asServiceRole.entities.UserWallet.update(wallet.id, {
       service_tokens: newTokens,
       escrow_balance: newEscrow,
       pending_walker_payments: newPendingPayments,
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
     });
 
     // === 6. REGISTAR TRANSAÇÕES ===
-    await base44.entities.WalletTransaction.create({
+    await base44.asServiceRole.entities.WalletTransaction.create({
       user_email: user.email,
       transaction_type: 'token_used',
       amount: tokenValue,
@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
 
     // Se houve surcharge, registar pagamento adicional
     if (surcharge > 0) {
-      await base44.entities.WalletTransaction.create({
+      await base44.asServiceRole.entities.WalletTransaction.create({
         user_email: user.email,
         transaction_type: 'surcharge_paid',
         amount: surcharge,

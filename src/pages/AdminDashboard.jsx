@@ -641,10 +641,12 @@ export default function AdminDashboard() {
       await base44.entities.Notification.create({
         recipient_email: item.created_by,
         title: '🎉 Perfil Aprovado!',
-        message: 'O teu perfil foi aprovado pela equipa PawCão! Já podes começar a receber pedidos.',
+        message: type === 'shop'
+          ? 'A tua loja foi aprovada pela equipa PawCão! Os teus produtos já podem aparecer na Loja.'
+          : 'O teu perfil foi aprovado pela equipa PawCão! Já podes começar a receber pedidos.',
         type: 'system',
         icon: '✅',
-        link: '/ProfessionalHubV2',
+        link: type === 'shop' ? '/StoreDashboard' : '/ProfessionalHubV2',
       });
     } catch (e) {
       console.warn('Erro ao notificar profissional da aprovação:', e);

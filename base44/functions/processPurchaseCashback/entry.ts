@@ -41,12 +41,12 @@ Deno.serve(async (req) => {
 
     if (wallets.length > 0) {
       wallet = wallets[0];
-      await base44.entities.UserWallet.update(wallet.id, {
+      await base44.asServiceRole.entities.UserWallet.update(wallet.id, {
         cashback_balance: (wallet.cashback_balance || 0) + cashbackEarned,
         total_points: (wallet.total_points || 0) + pointsEarned
       });
     } else {
-      wallet = await base44.entities.UserWallet.create({
+      wallet = await base44.asServiceRole.entities.UserWallet.create({
         user_email: user.email,
         cashback_balance: cashbackEarned,
         total_points: pointsEarned,
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
 
     // Record cashback transaction
     if (cashbackEarned > 0) {
-      await base44.entities.WalletTransaction.create({
+      await base44.asServiceRole.entities.WalletTransaction.create({
         user_email: user.email,
         transaction_type: 'cashback_earned',
         amount: cashbackEarned,
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
 
     // Record points transaction
     if (pointsEarned > 0) {
-      await base44.entities.WalletTransaction.create({
+      await base44.asServiceRole.entities.WalletTransaction.create({
         user_email: user.email,
         transaction_type: 'points_earned',
         amount: 0,

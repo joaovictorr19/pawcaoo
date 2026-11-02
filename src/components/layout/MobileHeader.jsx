@@ -39,7 +39,7 @@ export default function MobileHeader() {
   const authed = !!user;
   const isAdmin = user?.role === 'admin';
   const isHotel = user?.role === 'hotel' || user?.role === 'hotel_admin';
-  const isShop = user?.role === 'shop';
+  const isShop = user?.role === 'shop' || user?.account_type === 'shop';
 
   useEffect(() => {
     const handler = (e) => {

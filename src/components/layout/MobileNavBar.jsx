@@ -41,7 +41,7 @@ export default function MobileNavBar({ user, hasHotelPartnership = false, unread
   // When impersonating, role is forced to 'admin' for RLS — use originalRole for UI
   const effectiveRole = user?.isImpersonating ? (user?.originalRole || 'user') : (user?.role || 'user');
   const isHotel = effectiveRole === 'hotel' || effectiveRole === 'hotel_admin';
-  const isShop = effectiveRole === 'shop';
+  const isShop = effectiveRole === 'shop' || user?.account_type === 'shop';
   const storePath = "/StoreDashboard";
 
   // Localized labels with safe fallbacks
