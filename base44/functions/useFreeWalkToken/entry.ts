@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
       console.log(`Transfer created: ${transfer.id} - €${walkerReceives} to walker`);
 
       // 6. Atualizar contador de passeios usados
-      await base44.entities.OwnerSubscription.update(subscription.id, {
+      await base44.asServiceRole.entities.OwnerSubscription.update(subscription.id, {
         free_walks_used_this_month: freeWalksUsed + 1,
         total_savings: (subscription.total_savings || 0) + amountToPay
       });

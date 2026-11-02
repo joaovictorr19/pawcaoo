@@ -523,15 +523,57 @@
     },
     "id_document_url": {
       "type": "string",
-      "description": "URL of ID document for verification"
+      "description": "URL of ID document for verification",
+      "rls": {
+        "read": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      }
     },
     "proof_of_address_url": {
       "type": "string",
-      "description": "URL of proof of address"
+      "description": "URL of proof of address",
+      "rls": {
+        "read": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      }
     },
     "stripe_account_id": {
       "type": "string",
-      "description": "Stripe Connect account ID"
+      "description": "Stripe Connect account ID",
+      "rls": {
+        "read": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      }
     },
     "stripe_charges_enabled": {
       "type": "boolean",

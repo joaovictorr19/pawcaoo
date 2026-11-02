@@ -1,0 +1,79 @@
+{
+  "name": "ExternalPublisher",
+  "type": "object",
+  "properties": {
+    "publisher_name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "website_url": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "default": "news"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "api_key": {
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "connected_user_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "total_posts": {
+      "type": "number",
+      "default": 0
+    },
+    "followers_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "publisher_name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

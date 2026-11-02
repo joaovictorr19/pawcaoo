@@ -1,0 +1,159 @@
+{
+  "name": "OwnerSubscription",
+  "type": "object",
+  "properties": {
+    "owner_email": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "plan_type": {
+      "type": "string",
+      "enum": [
+        "free",
+        "basic",
+        "premium",
+        "vip"
+      ],
+      "default": "free"
+    },
+    "billing_cycle": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "annual"
+      ],
+      "default": "monthly"
+    },
+    "monthly_price": {
+      "type": "number",
+      "default": 0
+    },
+    "annual_price": {
+      "type": "number",
+      "default": 0
+    },
+    "booking_discount_percentage": {
+      "type": "number",
+      "default": 0
+    },
+    "cashback_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "free_walks_per_month": {
+      "type": "number",
+      "default": 0
+    },
+    "free_walks_used_this_month": {
+      "type": "number",
+      "default": 0
+    },
+    "points_multiplier": {
+      "type": "number",
+      "default": 1
+    },
+    "free_cancellations": {
+      "type": "number",
+      "default": 0
+    },
+    "priority_booking": {
+      "type": "boolean",
+      "default": false
+    },
+    "free_insurance": {
+      "type": "boolean",
+      "default": false
+    },
+    "priority_support": {
+      "type": "boolean",
+      "default": false
+    },
+    "exclusive_walkers": {
+      "type": "boolean",
+      "default": false
+    },
+    "total_savings": {
+      "type": "number",
+      "default": 0
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_billing_date": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "auto_renew": {
+      "type": "boolean",
+      "default": true
+    },
+    "stripe_subscription_id": {
+      "type": "string"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "rls": {
+        "read": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "required": [
+    "owner_email",
+    "plan_type"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.plan_type": "free"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
