@@ -5,7 +5,7 @@ import { isPendingApplication } from "@/lib/verificationUrgency";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import AdminModuleNavigation from "@/components/admin/AdminModuleNavigation";
 import AdminStatCard from "@/components/admin/AdminStatCard";
 import {
@@ -52,7 +52,7 @@ import AdminProfileModeration from "../components/admin/AdminProfileModeration";
 import AdminFinancePanel from "../components/admin/AdminFinancePanel";
 import AdminMimosManager from "../components/admin/AdminMimosManager";
 import AdminSealsManager from "../components/admin/AdminSealsManager";
-import ProductManagement from "@/components/admin/ProductManagement";
+import AdminShopModule from "@/components/admin/AdminShopModule";
 import ImpersonateDialog from "../components/admin/ImpersonateDialog";
 import BackButton from "@/components/ui/BackButton";
 import "@/components/admin/admin-dashboard.css";
@@ -1195,7 +1195,7 @@ export default function AdminDashboard() {
           <TabsContent value="loja">
             {activeTab === 'loja' && (
               <div className="mt-6">
-                <ProductManagement products={allPartnerProducts} isLoading={loadingProducts} />
+                <AdminShopModule products={allPartnerProducts} isLoading={loadingProducts} />
               </div>
             )}
           </TabsContent>

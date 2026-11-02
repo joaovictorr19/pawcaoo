@@ -1,0 +1,131 @@
+{
+  "name": "Promotion",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titulo da promocao"
+    },
+    "description": {
+      "type": "string",
+      "description": "Condicoes e detalhes da promocao"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "product",
+        "hotel_service"
+      ],
+      "default": "product",
+      "description": "product=produto da loja, hotel_service=servico de hotel/servico pontual"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "ID do PartnerProduct quando scope=product"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "partner_id": {
+      "type": "string",
+      "description": "ID do WalkerProfile do parceiro/hotel"
+    },
+    "partner_name": {
+      "type": "string",
+      "description": "Nome do parceiro ou hotel que oferece a promocao"
+    },
+    "service_name": {
+      "type": "string",
+      "description": "Servico abrangido quando scope=hotel_service (ex: Banho e tosquia)"
+    },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "percentage",
+        "fixed"
+      ],
+      "default": "none",
+      "description": "none=sem desconto, percentage=% , fixed=valor em euros"
+    },
+    "discount_value": {
+      "type": "number",
+      "default": 0
+    },
+    "free_extra": {
+      "type": "string",
+      "description": "Servico extra gratuito (ex: Recolha gratis, Banho de oferta)"
+    },
+    "max_participants": {
+      "type": "number",
+      "default": 0,
+      "description": "Limite de participantes (0 = ilimitado)"
+    },
+    "participants_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Participantes que ja aderiram"
+    },
+    "claimed_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "sold_out",
+        "expired"
+      ],
+      "default": "active"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "is_highlighted": {
+      "type": "boolean",
+      "default": true,
+      "description": "Destacar na loja"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
