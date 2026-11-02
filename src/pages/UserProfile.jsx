@@ -190,7 +190,9 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
     retryDelay: 1000,
   });
 
-  const profileEmail = profileUser?.user_email || profileUser?.email;
+  // Email conhecido antes de o UserProfile terminar (vindo do cartão/slug) permite
+  // carregar perfil profissional, selos e avaliações em paralelo, sem esperas em série.
+  const profileEmail = profileUser?.user_email || profileUser?.email || targetEmail || (isSelfView ? currentUser?.email : null);
   const isOwnProfile = currentUser?.id === profileUser?.user_id || currentUser?.email === profileEmail;
   const trackedProfileViewRef = useRef(null);
 

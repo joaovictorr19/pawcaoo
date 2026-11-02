@@ -2,17 +2,16 @@ import { Navigate, useParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { slugify } from "@/utils/profileSlug";
+import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 import UserProfile from "./UserProfile";
 
 /**
  * ShortProfile — Rota curta /:slug que resolve o nome e renderiza o perfil
  * diretamente, mantendo o URL limpo (ex: pawcao.pt/hotel-canino-lisboa).
  *
- * Ordem de resolução:
- * 1. ProfileSlug entity (slug → entity_email/type)
- * 2. UserProfile.filter({ username: slug })
- * 3. WalkerProfile — busca por hotel_name/walker_name slugificado (lazy backfill)
- * 4. TrainerProfile
+ * Ordem de resolução (passos independentes correm em paralelo para abrir mais rápido):
+ * 1 + 2. ProfileSlug entity e UserProfile por username
+ * 3 + 4. WalkerProfile e TrainerProfile — busca por nome slugificado (lazy backfill)
  * 5. PartnerCompany → redirect to /PartnerDetails
  */
 export default function ShortProfile() {
@@ -23,6 +22,7 @@ export default function ShortProfile() {
 
   useEffect(() => {
     let cancelled = false;
+
     async function resolve() {
       if (!rawSlug) { setNotFound(true); return; }
       setResolved(null);
@@ -42,78 +42,76 @@ export default function ShortProfile() {
       }
 
       const slug = rawSlug.toLowerCase();
+      const baseSlug = slug.replace(/-\d+$/, '');
 
-      try {
-        // 1) Tentar ProfileSlug entity
-        try {
-          const slugs = await base44.entities.ProfileSlug.filter({ slug });
-          if (slugs?.length > 0) {
-            const s = slugs[0];
-            if (s.entity_email) { setResolved({ email: s.entity_email, type: s.entity_type }); return; }
-            if (s.entity_id) { setResolved({ id: s.entity_id, type: s.entity_type }); return; }
-          }
-        } catch (e) {}
+      // 1) e 2) em paralelo — são os acessos mais rápidos e mais frequentes
+      const [slugRes, userRes] = await Promise.allSettled([
+        base44.entities.ProfileSlug.filter({ slug }),
+        base44.entities.UserProfile.filter({ username: slug }),
+      ]);
+      if (cancelled) return;
 
-        // 2) Tentar UserProfile por username
-        try {
-          const users = await base44.entities.UserProfile.filter({ username: slug });
-          if (users?.length > 0 && users[0].user_email) {
-            ensureSlug('user', users[0].user_email, users[0].full_name || slug, slug);
-            setResolved({ email: users[0].user_email });
-            return;
-          }
-        } catch (e) {}
-
-        // 3) Tentar WalkerProfile — buscar por nome slugificado
-        try {
-          const walkers = await base44.entities.WalkerProfile.list(undefined, 200);
-          const baseSlug = slug.replace(/-\d+$/, '');
-          const matches = walkers.filter(w => {
-            const name = w.hotel_details?.hotel_name || w.walker_name;
-            const s = slugify(name);
-            return s === slug || s === baseSlug;
-          });
-          // Priorizar hotéis se houver múltiplos matches (evita hotel → Dog Walker)
-          const match = matches.find(w => w.professional_type === 'hotel') || matches[0];
-          if (match && match.created_by) {
-            const type = match.professional_type === 'hotel' ? 'hotel' : 'walker';
-            ensureSlug(type, match.created_by, match.hotel_details?.hotel_name || match.walker_name, slug);
-            setResolved({ email: match.created_by, type });
-            return;
-          }
-        } catch (e) {}
-
-        // 4) Tentar TrainerProfile
-        try {
-          const trainers = await base44.entities.TrainerProfile.list(undefined, 200);
-          const baseSlug = slug.replace(/-\d+$/, '');
-          const match = trainers.find(t => {
-            const s = slugify(t.trainer_name);
-            return s === slug || s === baseSlug;
-          });
-          if (match && match.created_by) {
-            ensureSlug('trainer', match.created_by, match.trainer_name, slug);
-            setResolved({ email: match.created_by, type: 'trainer' });
-            return;
-          }
-        } catch (e) {}
-
-        // 5) Tentar PartnerCompany
-        try {
-          const companies = await base44.entities.PartnerCompany.list(undefined, 200);
-          const match = companies.find(c => slugify(c.company_name) === slug);
-          if (match && match.id) {
-            ensureSlug('company', match.company_email, match.company_name, slug);
-            setResolved({ partnerId: match.id });
-            return;
-          }
-        } catch (e) {}
-
-        if (!cancelled) setNotFound(true);
-      } catch (e) {
-        if (!cancelled) setNotFound(true);
+      if (slugRes.status === 'fulfilled' && slugRes.value?.length > 0) {
+        const s = slugRes.value[0];
+        if (s.entity_email) { setResolved({ email: s.entity_email, type: s.entity_type }); return; }
+        if (s.entity_id) { setResolved({ id: s.entity_id, type: s.entity_type }); return; }
       }
+
+      if (userRes.status === 'fulfilled' && userRes.value?.length > 0 && userRes.value[0].user_email) {
+        ensureSlug('user', userRes.value[0].user_email, userRes.value[0].full_name || slug, slug);
+        setResolved({ email: userRes.value[0].user_email });
+        return;
+      }
+
+      // 3) e 4) em paralelo — perfis profissionais
+      const [walkersRes, trainersRes] = await Promise.allSettled([
+        base44.entities.WalkerProfile.list(undefined, 200),
+        base44.entities.TrainerProfile.list(undefined, 200),
+      ]);
+      if (cancelled) return;
+
+      if (walkersRes.status === 'fulfilled' && walkersRes.value?.length > 0) {
+        const matches = walkersRes.value.filter(w => {
+          const name = w.hotel_details?.hotel_name || w.walker_name;
+          const s = slugify(name);
+          return s === slug || s === baseSlug;
+        });
+        // Priorizar hotéis se houver múltiplos matches (evita hotel → Dog Walker)
+        const match = matches.find(w => w.professional_type === 'hotel') || matches[0];
+        if (match?.created_by) {
+          const type = match.professional_type === 'hotel' ? 'hotel' : 'walker';
+          ensureSlug(type, match.created_by, match.hotel_details?.hotel_name || match.walker_name, slug);
+          setResolved({ email: match.created_by, type });
+          return;
+        }
+      }
+
+      if (trainersRes.status === 'fulfilled' && trainersRes.value?.length > 0) {
+        const match = trainersRes.value.find(t => {
+          const s = slugify(t.trainer_name);
+          return s === slug || s === baseSlug;
+        });
+        if (match?.created_by) {
+          ensureSlug('trainer', match.created_by, match.trainer_name, slug);
+          setResolved({ email: match.created_by, type: 'trainer' });
+          return;
+        }
+      }
+
+      // 5) PartnerCompany — só agora, quando nada acima correspondeu
+      try {
+        const companies = await base44.entities.PartnerCompany.list(undefined, 200);
+        const match = companies.find(c => slugify(c.company_name) === slug);
+        if (match?.id) {
+          ensureSlug('company', match.company_email, match.company_name, slug);
+          setResolved({ partnerId: match.id });
+          return;
+        }
+      } catch (e) {}
+
+      if (!cancelled) setNotFound(true);
     }
+
     resolve();
     return () => { cancelled = true; };
   }, [rawSlug]);
@@ -139,7 +137,6 @@ export default function ShortProfile() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
         <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-12 text-center">
-          <div className="text-5xl mb-4">🔍</div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Perfil não encontrado</h2>
           <p className="text-slate-500 mb-6">O perfil que procura não existe ou foi removido.</p>
           <a href="/" className="inline-block px-6 py-3 rounded-full bg-teal-600 text-white font-bold hover:bg-teal-700 transition-colors">
@@ -150,9 +147,6 @@ export default function ShortProfile() {
     );
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="w-8 h-8 border-3 border-slate-200 border-t-teal-500 rounded-full animate-spin" />
-    </div>
-  );
+  // Esqueleto com a estrutura do perfil — aparece de imediato em vez de um spinner
+  return <ProfileSkeleton />;
 }

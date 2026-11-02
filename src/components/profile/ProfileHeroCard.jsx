@@ -111,6 +111,9 @@ export default function ProfileHeroCard({
     : profileUser?.gamification_level;
 
   const coverUrl = displayCoverUrl;
+  // Fade suave da capa: entra a partir de um shimmer em vez de aparecer de repente
+  const [coverLoaded, setCoverLoaded] = React.useState(false);
+  React.useEffect(() => { setCoverLoaded(false); }, [coverUrl]);
   const coverFocusX = walkerProfile?.cover_focus_x ?? trainerProfile?.cover_focus_x ?? 50;
   const coverFocusY = walkerProfile?.cover_focus_y ?? trainerProfile?.cover_focus_y ?? 0;
 
@@ -197,13 +200,21 @@ export default function ProfileHeroCard({
       {/* Cover banner inside the card */}
       <div className="relative aspect-[16/9] md:aspect-[3/2] w-full overflow-hidden">
         {coverUrl ? (
-          <img
-            src={coverUrl}
-            className="w-full h-full object-cover"
-            style={{ objectPosition: `${coverFocusX}% ${coverFocusY}%` }}
-            alt="Capa"
-            loading="lazy"
-          />
+          <>
+            {!coverLoaded && (
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-200/70 to-slate-100 bg-[length:200%_100%] animate-shimmer" />
+            )}
+            <img
+              src={coverUrl}
+              className={`w-full h-full object-cover transition-opacity duration-500 ${coverLoaded ? "opacity-100" : "opacity-0"}`}
+              style={{ objectPosition: `${coverFocusX}% ${coverFocusY}%` }}
+              alt="Capa"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+              onLoad={() => setCoverLoaded(true)}
+            />
+          </>
         ) : (
           <div className={`w-full h-full ${isHotel ? "bg-gradient-to-br from-purple-200 via-purple-300 to-purple-400" : "bg-gradient-to-br from-teal-200 via-teal-300 to-teal-400"}`} />
         )}
