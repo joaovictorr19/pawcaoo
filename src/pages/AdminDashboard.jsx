@@ -27,9 +27,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
-import ProfileEditRequests from "../components/admin/ProfileEditRequests";
-import AdminVerificationQueue from "../components/admin/AdminVerificationQueue";
-import HotelBookingStatusPanel from "../components/admin/HotelBookingStatusPanel";
+import AdminApprovalsModule from "../components/admin/AdminApprovalsModule";
 import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
 
@@ -38,7 +36,6 @@ import ClientDetails from "../components/admin/ClientDetails";
 import BroadcastManager from "../components/admin/BroadcastManager";
 import SubscriptionsManager from "../components/admin/SubscriptionsManager";
 import ApplicationDetailsModal from "../components/admin/ApplicationDetailsModal";
-import RejectionModal from "../components/admin/RejectionModal";
 import ExternalPublishersManager from "../components/admin/ExternalPublishersManager";
 import AdminAccountEditor from "../components/admin/AdminAccountEditor.jsx";
 import AdminInteractiveCalendar from "../components/admin/AdminInteractiveCalendar";
@@ -922,7 +919,7 @@ export default function AdminDashboard() {
               <h2 className="text-lg font-extrabold text-slate-950">Módulos</h2>
               <p className="text-sm text-slate-600">Selecione uma área para gerir</p>
             </div>
-            <AdminModuleNavigation approvalCount={walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length} shopPendingCount={pendingProductsCount} />
+            <AdminModuleNavigation approvalCount={walkerApplications.length + shopApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length} shopPendingCount={pendingProductsCount} />
           </section>
 
           <TabsContent value="overview">
@@ -968,71 +965,27 @@ export default function AdminDashboard() {
 
           <TabsContent value="approvals">
             {activeTab === 'approvals' && (
-              <div className="mt-6 space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-gradient-to-br from-[#1D8A82] to-[#2DB0A6] rounded-2xl p-5 shadow-lg">
-                    <p className="text-white/80 text-sm font-bold">Verificações Pendentes</p>
-                    <p className="text-white text-4xl font-extrabold mt-1">{walkerApplications.length + hotelApplications.length + trainerApplications.length + shelterApplications.length}</p>
-                    <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold">Dog Walkers, Hotéis, Treinadores, Abrigos</span>
-                  </div>
-                  <div className="bg-gradient-to-br from-[#1D8A82] to-[#2DB0A6] rounded-2xl p-5 shadow-lg">
-                    <p className="text-white/80 text-sm font-bold">Edições de Perfil</p>
-                    <p className="text-white text-4xl font-extrabold mt-1">{pendingEditRequestsCount}</p>
-                    <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold">Aguardam aprovação</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#1D8A82]" />
-                      <h3 className="text-sm font-extrabold text-slate-900">Fila de Verificação</h3>
-                    </div>
-                    <div className="p-4">
-                      <AdminVerificationQueue
-                        walkers={walkerApplications}
-                        shops={shopApplications}
-                        hotels={hotelApplications}
-                        trainers={trainerApplications}
-                        shelters={shelterApplications}
-                        onApprove={handleApproveApplication}
-                        onReject={handleRejectApplication}
-                        onViewDetails={handleViewApplicationDetails}
-                        onRefresh={handleRefreshApplications}
-                        onBulkApprove={handleBulkApprove}
-                        onBulkReject={handleBulkReject}
-                        isBulkApproving={isBulkApproving}
-                      />
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#1D8A82]" />
-                      <h3 className="text-sm font-extrabold text-slate-900">Edições de Perfil Pendentes</h3>
-                    </div>
-                    <div className="p-4">
-                      <ProfileEditRequests />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-[#1D8A82]" />
-                    <h3 className="text-sm font-extrabold text-slate-900">Hotéis Ativos — Reservas Aceites/Recusadas</h3>
-                  </div>
-                  <div className="p-4">
-                    <HotelBookingStatusPanel hotels={allWalkers} hotelBookings={allHotelBookings} />
-                  </div>
-                </div>
-
-                <RejectionModal
-                  isOpen={rejectionTargets.length > 0}
-                  onClose={() => setRejectionTargets([])}
-                  onConfirm={confirmRejection}
-                  isLoading={isRejecting}
-                  targetCount={rejectionTargets.length}
-                  targetLabel={rejectionTargets.length === 1 ? (rejectionTargets[0]?.item?.walker_name || rejectionTargets[0]?.item?.trainer_name || rejectionTargets[0]?.item?.shelter_name || rejectionTargets[0]?.item?.hotel_details?.hotel_name) : undefined}
+              <div className="mt-6">
+                <AdminApprovalsModule
+                  walkers={walkerApplications}
+                  shops={shopApplications}
+                  hotels={hotelApplications}
+                  trainers={trainerApplications}
+                  shelters={shelterApplications}
+                  pendingEditRequestsCount={pendingEditRequestsCount}
+                  allHotels={allWalkers}
+                  hotelBookings={allHotelBookings}
+                  onApprove={handleApproveApplication}
+                  onReject={handleRejectApplication}
+                  onViewDetails={handleViewApplicationDetails}
+                  onRefresh={handleRefreshApplications}
+                  onBulkApprove={handleBulkApprove}
+                  onBulkReject={handleBulkReject}
+                  isBulkApproving={isBulkApproving}
+                  rejectionTargets={rejectionTargets}
+                  onCloseRejection={() => setRejectionTargets([])}
+                  onConfirmRejection={confirmRejection}
+                  isRejecting={isRejecting}
                 />
               </div>
             )}
@@ -1163,9 +1116,6 @@ export default function AdminDashboard() {
                     setShowImpersonateDialog(true);
                   }}
                 />
-                <div className="mt-6">
-                  <ProfileEditRequests />
-                </div>
               </>
             )}
           </TabsContent>
