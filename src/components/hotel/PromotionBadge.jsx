@@ -8,10 +8,16 @@ export default function PromotionBadge({ promotion, className = "" }) {
 
   const discount = discountLabel(promotion);
   const pickup = freePickupState(promotion);
+  const hasFreeTransport = pickup && !pickup.exhausted;
 
   const parts = [];
-  if (discount) parts.push(discount);
-  if (pickup && !pickup.exhausted) parts.push("Recolha grátis");
+  if (hasFreeTransport) {
+    // Transporte grátis não é uma percentagem de desconto — o preço do serviço e a
+    // comissão mantêm-se iguais, apenas o transporte de ida e volta fica isento.
+    parts.push("Transporte grátis ida e volta");
+  } else if (discount) {
+    parts.push(discount);
+  }
   if (parts.length === 0) parts.push(promotion.free_extra || "Promoção");
 
   return (
