@@ -10,6 +10,7 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
+import OAuthConsent from './pages/OAuthConsent.jsx'
 import ShortProfile from './pages/ShortProfile.jsx'
 import QRProfileTest from './pages/QRProfileTest.jsx'
 import CountryLandingPage from './pages/CountryLandingPage.jsx'
@@ -226,6 +227,8 @@ const AuthenticatedApp = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            {/* Consentimento MCP — fora de qualquer guarda de autenticação */}
+            <Route path="/oauth/consent" element={<OAuthConsent />} />
             {Object.entries(Pages).map(([path, Page]) => {
               try {
                 return <Route key={path} path={`/${path}`} element={<Page />} />;

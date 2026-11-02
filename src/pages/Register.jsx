@@ -8,6 +8,7 @@ import { base44 } from "@/api/base44Client";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { useLanguage } from "@/components/LanguageContext";
 import { ta } from "@/components/authTranslations";
+import { safeReturnTo } from "@/lib/authReturnTo";
 
 export default function Register() {
   const { language } = useLanguage();
@@ -52,9 +53,7 @@ export default function Register() {
         }
       }
       toast.success(ta('accountVerified', language));
-      const params = new URLSearchParams(window.location.search);
-      const from = params.get('from') || '/ProfessionalTypeSelect';
-      setTimeout(() => { window.location.href = from; }, 800);
+      setTimeout(() => { window.location.href = getDestUrl(); }, 800);
     } catch (error) {
       toast.error(error.message || ta('invalidCode', language));
     } finally {
@@ -71,8 +70,10 @@ export default function Register() {
     }
   };
 
+  // ?returnTo= (ex.: consentimento MCP) tem prioridade sobre o fluxo interno ?from=
   const getDestUrl = () => {
     const params = new URLSearchParams(window.location.search);
+    if (params.get('returnTo')) return safeReturnTo();
     return params.get('from') || '/ProfessionalTypeSelect';
   };
 
@@ -205,7 +206,14 @@ export default function Register() {
 
           <p className="text-center text-sm text-slate-500">
             {ta('haveAccount', language)}{" "}
-            <Link to={getDestUrl() === '/ProfessionalTypeSelect' ? '/login' : `/login?from=${encodeURIComponent(getDestUrl())}`} className="text-orange-600 hover:text-orange-700 font-medium">
+            <Link to={(() => {
+              const p = new URLSearchParams(window.location.search);
+              const q = new URLSearchParams();
+              if (p.get('from')) q.set('from', p.get('from'));
+              if (p.get('returnTo')) q.set('returnTo', p.get('returnTo'));
+              const qs = q.toString();
+              return qs ? `/login?${qs}` : '/login';
+            })()} className="text-orange-600 hover:text-orange-700 font-medium">
               {ta('signIn', language)}
             </Link>
           </p>

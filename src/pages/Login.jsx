@@ -8,6 +8,7 @@ import { base44 } from "@/api/base44Client";
 import PawCaoLogo from "@/components/PawCaoLogo";
 import { useLanguage } from "@/components/LanguageContext";
 import { ta } from "@/components/authTranslations";
+import { safeReturnTo } from "@/lib/authReturnTo";
 
 export default function Login() {
   const { language } = useLanguage();
@@ -15,14 +16,20 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Destino após entrar: ?returnTo= (ex.: aprovação no consentimento MCP) manda,
+  // senão o ?from= interno da app. safeReturnTo bloqueia redirecionamentos externos.
+  const getDest = () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('returnTo')) return safeReturnTo();
+    return params.get('from') || '/';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
-      const params = new URLSearchParams(window.location.search);
-      const dest = params.get('from') || '/';
-      window.location.href = dest;
+      window.location.href = getDest();
     } catch (error) {
       toast.error(error.message || ta('invalidLogin', language));
     } finally {
@@ -31,15 +38,11 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    const params = new URLSearchParams(window.location.search);
-    const dest = params.get('from') || '/';
-    base44.auth.loginWithProvider("google", dest);
+    base44.auth.loginWithProvider("google", getDest());
   };
 
   const handleAppleLogin = () => {
-    const params = new URLSearchParams(window.location.search);
-    const dest = params.get('from') || '/';
-    base44.auth.loginWithProvider("apple", dest);
+    base44.auth.loginWithProvider("apple", getDest());
   };
 
   return (
@@ -118,7 +121,14 @@ export default function Login() {
 
           <p className="text-center text-sm text-slate-500">
             {ta('noAccount', language)}{" "}
-            <Link to={(() => { const f = new URLSearchParams(window.location.search).get('from'); return f ? `/register?from=${encodeURIComponent(f)}` : '/register'; })()} className="text-orange-600 hover:text-orange-700 font-medium">
+            <Link to={(() => {
+              const p = new URLSearchParams(window.location.search);
+              const q = new URLSearchParams();
+              if (p.get('from')) q.set('from', p.get('from'));
+              if (p.get('returnTo')) q.set('returnTo', p.get('returnTo'));
+              const qs = q.toString();
+              return qs ? `/register?${qs}` : '/register';
+            })()} className="text-orange-600 hover:text-orange-700 font-medium">
               {ta('createAccount', language)}
             </Link>
           </p>
