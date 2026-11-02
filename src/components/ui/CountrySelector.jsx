@@ -18,6 +18,7 @@ const countryFlags = {
   GB: '🇬🇧',
   DE: '🇩🇪',
   IT: '🇮🇹',
+  BR: '🇧🇷',
   US: '🇺🇸'
 };
 

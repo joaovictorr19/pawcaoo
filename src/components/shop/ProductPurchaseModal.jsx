@@ -11,6 +11,9 @@ import {
   Minus, Plus, Truck, MapPin, Hotel, Wallet, CreditCard, Loader2, Package, AlertCircle
 } from "lucide-react";
 import PickupInfoBlock from "./PickupInfoBlock";
+import ShopPrice from "./ShopPrice";
+import { useLocalization } from "@/components/LocalizationContext";
+import { formatMoney, CHARGE_CURRENCY } from "@/lib/currency";
 
 const DELIVERY = {
   shipping: { label: "Entrega ao domicílio", icon: Truck, hint: "Vai ser entregue na sua morada" },
@@ -19,6 +22,7 @@ const DELIVERY = {
 };
 
 export default function ProductPurchaseModal({ product, onClose }) {
+  const { country, convertCurrency } = useLocalization();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [quantity, setQuantity] = useState(1);
@@ -85,11 +89,26 @@ export default function ProductPurchaseModal({ product, onClose }) {
 
   const delivery = DELIVERY[product.delivery_method] || DELIVERY.pickup;
   const maxQty = Math.max(1, product.stock_quantity || 1);
-  const total = Math.round((product.price_euro || 0) * quantity * 100) / 100;
+
+  // Preço base (definido pelo parceiro) → apresentação na moeda da localização
+  // → valor efetivamente cobrado (EUR). Sem taxa disponível, não se cobra nada.
+  const baseTotal = Math.round((product.price_euro || 0) * quantity * 100) / 100;
+  const baseCurrency = product.price_currency || "EUR";
+  const displayCurrency = country?.currency || "EUR";
+  const displayTotal = convertCurrency(baseTotal, baseCurrency, displayCurrency);
+  const chargeTotal = convertCurrency(baseTotal, baseCurrency, CHARGE_CURRENCY);
+  const total = chargeTotal ?? baseTotal;
+  const rateMissing = chargeTotal === null;
+  const crossMarket = baseCurrency !== displayCurrency;
+  const showEstimate = !rateMissing && displayCurrency !== CHARGE_CURRENCY && displayTotal !== null;
 
   const handleBuy = async () => {
     if (!user) {
       navigate(`/login?from=${encodeURIComponent("/Shop")}`);
+      return;
+    }
+    if (rateMissing) {
+      toast.error("Câmbio indisponível neste momento. Tenta novamente mais tarde.");
       return;
     }
     if (product.delivery_method === "shipping" && !shippingAddress) {
@@ -151,7 +170,10 @@ export default function ProductPurchaseModal({ product, onClose }) {
               <p className="font-bold text-slate-900 text-sm leading-tight truncate">{product.product_name}</p>
               <p className="text-xs text-slate-500">{product.partner_name}</p>
             </div>
-            <p className="font-bold text-slate-900 text-sm whitespace-nowrap">€{(product.price_euro || 0).toFixed(2)}<span className="text-xs text-slate-400 font-normal"> / un.</span></p>
+            <div className="text-right whitespace-nowrap">
+              <ShopPrice product={product} size="sm" />
+              <span className="text-xs text-slate-400 font-normal"> / un.</span>
+            </div>
           </div>
 
           {/* Quantidade — row with hairline */}
@@ -245,6 +267,11 @@ export default function ProductPurchaseModal({ product, onClose }) {
                 )}
               </div>
             )}
+            {product.delivery_method === "shipping" && crossMarket && (
+              <p className="text-[11px] text-amber-700 bg-amber-50 rounded-lg px-2.5 py-2 mt-2 leading-snug">
+                O custo de envio internacional não está incluído neste total. O envio é combinado com o parceiro depois da compra.
+              </p>
+            )}
           </div>
 
           {/* Pagamento — borderless with hairline */}
@@ -293,18 +320,28 @@ export default function ProductPurchaseModal({ product, onClose }) {
 
         {/* Sticky bottom action bar */}
         <div className="shrink-0 px-5 pb-5 pt-2 bg-white border-t border-slate-100">
+          {showEstimate && (
+            <p className="text-[11px] text-slate-500 text-center pb-2">
+              ≈ {formatMoney(displayTotal, displayCurrency)} (estimativa) · cobrança em {CHARGE_CURRENCY}
+            </p>
+          )}
+          {rateMissing && (
+            <p className="text-[11px] text-amber-700 text-center pb-2">
+              Câmbio indisponível — não é possível calcular o valor da compra agora
+            </p>
+          )}
           {!user ? (
             <button
               onClick={() => navigate(`/login?from=${encodeURIComponent("/Shop")}`)}
               className="w-full h-12 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-base font-bold flex items-center justify-between px-5 shadow-lg transition-all active:scale-[0.98]"
             >
               <span className="text-sm font-medium opacity-90">Entrar para comprar</span>
-              <span>€{total.toFixed(2)}</span>
+              <span>{formatMoney(total, CHARGE_CURRENCY)}</span>
             </button>
           ) : (
             <button
               onClick={handleBuy}
-              disabled={processing || (product.stock_quantity || 0) < 1}
+              disabled={processing || rateMissing || (product.stock_quantity || 0) < 1}
               className="w-full h-12 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-base font-bold flex items-center justify-between px-5 shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {processing ? (
@@ -317,7 +354,7 @@ export default function ProductPurchaseModal({ product, onClose }) {
                   <span className="text-sm font-medium opacity-90">Total</span>
                   <span className="flex items-center gap-2">
                     {useWallet && walletBalance >= total ? <Wallet className="w-4 h-4" /> : <CreditCard className="w-4 h-4" />}
-                    Pagar €{total.toFixed(2)}
+                    Pagar {formatMoney(total, CHARGE_CURRENCY)}
                   </span>
                 </>
               )}

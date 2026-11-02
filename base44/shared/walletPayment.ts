@@ -20,10 +20,12 @@ export async function applyWalletPayment(
   base44: any,
   userEmail: string,
   amountToPay: number,
-  opts: { description?: string; relatedBookingId?: string } = {}
+  opts: { description?: string; relatedBookingId?: string; currency?: string } = {}
 ): Promise<{ walletUsed: number; remainingAmount: number; walletTxId: string | null }> {
-  const { description = 'Pagamento com carteira', relatedBookingId } = opts;
+  const { description = 'Pagamento com carteira', relatedBookingId, currency = 'EUR' } = opts;
   const safeAmount = Math.round((amountToPay || 0) * 100) / 100;
+  // Saldos separados por moeda: um saldo em BRL nunca paga uma compra em EUR (e vice-versa)
+  const balanceField = currency === 'BRL' ? 'cashback_balance_brl' : 'cashback_balance';
 
   if (!userEmail || safeAmount <= 0) {
     return { walletUsed: 0, remainingAmount: safeAmount, walletTxId: null };
@@ -32,18 +34,19 @@ export async function applyWalletPayment(
   try {
     const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: userEmail });
     const wallet = wallets[0];
-    if (!wallet || (wallet.cashback_balance || 0) <= 0) {
+    const balance = Number(wallet?.[balanceField]) || 0;
+    if (!wallet || balance <= 0) {
       return { walletUsed: 0, remainingAmount: safeAmount, walletTxId: null };
     }
 
-    const walletUsed = Math.round(Math.min(wallet.cashback_balance, safeAmount) * 100) / 100;
+    const walletUsed = Math.round(Math.min(balance, safeAmount) * 100) / 100;
     if (walletUsed <= 0) {
       return { walletUsed: 0, remainingAmount: safeAmount, walletTxId: null };
     }
 
-    const newBalance = Math.round(((wallet.cashback_balance || 0) - walletUsed) * 100) / 100;
+    const newBalance = Math.round((balance - walletUsed) * 100) / 100;
     await base44.asServiceRole.entities.UserWallet.update(wallet.id, {
-      cashback_balance: newBalance,
+      [balanceField]: newBalance,
     });
 
     let walletTxId: string | null = null;

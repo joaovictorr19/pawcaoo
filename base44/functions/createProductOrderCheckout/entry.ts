@@ -4,6 +4,7 @@ import { secrets } from 'base44:runtime';
 import { applyWalletPayment } from '../../shared/walletPayment.ts';
 import { fulfillProductOrderPaid } from '../../shared/productOrderFulfillment.ts';
 import { safeRedirectUrl } from '../../shared/safeRedirect.ts';
+import { convertToCharge } from '../../shared/currency.ts';
 
 export default async function (req) {
   try {
@@ -45,11 +46,22 @@ export default async function (req) {
     // Mimo grátis da PawCão (price=0, is_pawcao_mimo) — sem pagamento, confirma de imediato
     const isPawcaoGift = product.is_pawcao_mimo === true && (product.price_euro || 0) === 0;
 
-    const subtotal = Math.round((product.price_euro || 0) * qty * 100) / 100;
+    // Preço base definido pelo parceiro (EUR ou BRL) e valor efetivamente cobrado (EUR)
+    const baseCurrency = product.price_currency || 'EUR';
+    const baseSubtotal = Math.round((product.price_euro || 0) * qty * 100) / 100;
     // Permitir subtotal=0 apenas para mimos grátis da PawCão
-    if (subtotal <= 0 && !isPawcaoGift) {
+    if (baseSubtotal <= 0 && !isPawcaoGift) {
       return Response.json({ error: 'Valor inválido' }, { status: 400 });
     }
+
+    const charge = await convertToCharge(baseSubtotal, baseCurrency);
+    if (!charge) {
+      return Response.json(
+        { error: 'Câmbio indisponível para esta moeda. Tenta novamente mais tarde.' },
+        { status: 503 },
+      );
+    }
+    const subtotal = charge.amount;
 
     const deliveryMethod = product.delivery_method || 'pickup';
     if (
@@ -237,12 +249,17 @@ export default async function (req) {
           product_image: product.image_url || '',
           quantity: qty,
           unit_price: product.price_euro,
-          total_price: subtotal,
+          total_price: baseSubtotal,
+          currency: baseCurrency,
         },
       ],
       subtotal,
       shipping_fee: 0,
       total_amount: subtotal,
+      currency: charge.currency,
+      base_currency: baseCurrency,
+      base_amount: baseSubtotal,
+      conversion_rate: charge.rate,
       status: 'pending',
       payment_status: 'pending',
       partner_id: product.partner_id || '',
@@ -315,7 +332,7 @@ export default async function (req) {
       line_items: [
         {
           price_data: {
-            currency: 'eur',
+            currency: charge.currency.toLowerCase(),
             product_data: {
               name: product.product_name,
               description: String(qty) + 'x na Loja de Parceiros PawCão — ' + (product.partner_name || 'Parceiro'),

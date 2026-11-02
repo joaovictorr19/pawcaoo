@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { Flame, Package, Truck, MapPin, Hotel, ChevronRight } from "lucide-react";
+import ShopPrice from "@/components/shop/ShopPrice";
 
 const DELIVERY = {
   shipping: { label: "Entrega", icon: Truck },
@@ -175,9 +176,7 @@ export default function FeaturedProducts({ onOpenProduct }) {
                   {product.partner_name}
                 </p>
                 <div className="flex items-center justify-between gap-1.5 mt-2 pt-2 border-t border-slate-100">
-                  <span className="text-sm font-black text-teal-700 leading-none">
-                    €{(product.price_euro || 0).toFixed(2)}
-                  </span>
+                  <ShopPrice product={product} size="sm" />
                   <span className="flex items-center gap-1 text-[9px] font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-full px-1.5 py-0.5">
                     <delivery.icon className="w-3 h-3 text-teal-600" />
                     {delivery.label}

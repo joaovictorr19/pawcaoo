@@ -7,6 +7,7 @@ import {
   Truck, MapPin, Hotel, PackageOpen, Loader2,
 } from "lucide-react";
 import PartnerProductForm from "@/components/shop/PartnerProductForm";
+import { formatMoney } from "@/lib/currency";
 
 const DELIVERY = {
   shipping: { label: "Entrega", icon: Truck },
@@ -227,7 +228,7 @@ export default function PartnerStorePanel({ user, professionalProfile, variant =
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-bold truncate ${S.title}`}>{p.product_name}</p>
                     <p className={`text-xs ${S.sub}`}>
-                      €{(p.price_euro || 0).toFixed(2)} · {p.stock_quantity} em stock ·{" "}
+                      {formatMoney(p.price_euro || 0, p.price_currency)} · {p.stock_quantity} em stock ·{" "}
                       <delivery.icon className={`inline w-3 h-3 ${variant === "light" ? "text-teal-600" : "text-teal-400"}`} />{" "}
                       {delivery.label}
                     </p>

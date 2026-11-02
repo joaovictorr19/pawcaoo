@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { Upload, Trash2, Loader2, Gift } from "lucide-react";
+import { getCurrency, PRODUCT_CURRENCIES } from "@/lib/currency";
 
 const CATEGORIES = [
   { id: "food", label: "Alimentação" },
@@ -32,6 +33,7 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
     category: product?.category || "food",
     product_type: product?.product_type || "product",
     price_euro: product?.price_euro ?? 0,
+    price_currency: product?.price_currency || "EUR",
     stock_quantity: product?.stock_quantity ?? 1,
     delivery_method: product?.delivery_method || "pickup",
     partner_location: product?.partner_location || partner.partner_location || "",
@@ -241,7 +243,9 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
           {/* Preço / stock */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className={`text-sm font-semibold ${S.label}`}>Preço (€) *</Label>
+              <Label className={`text-sm font-semibold ${S.label}`}>
+                Preço ({getCurrency(form.price_currency).symbol}) *
+              </Label>
               <Input
                 type="number"
                 min="0"
@@ -250,6 +254,22 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
                 onChange={(e) => set("price_euro", Number(e.target.value))}
                 className={`mt-1.5 ${S.input}`}
               />
+              <div className="flex gap-1.5 mt-1.5">
+                {PRODUCT_CURRENCIES.map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => set("price_currency", code)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${
+                      form.price_currency === code
+                        ? "bg-teal-600 text-white border-teal-600"
+                        : "bg-white/60 text-slate-500 border-slate-200"
+                    }`}
+                  >
+                    {getCurrency(code).symbol} {code}
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <Label className={`text-sm font-semibold ${S.label}`}>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Minus, Plus, Check, Loader2, Package } from "lucide-react";
+import { formatMoney } from "@/lib/currency";
 
 export default function StockProductRow({ product, threshold, onSave, isSaving }) {
   const current = Math.max(0, Number(product.stock_quantity) || 0);
@@ -46,7 +47,7 @@ export default function StockProductRow({ product, threshold, onSave, isSaving }
             )}
             {!!product.price_euro && (
               <span className="text-[11px] font-semibold text-slate-500">
-                {Number(product.price_euro).toFixed(2).replace(".", ",")}€
+                {formatMoney(product.price_euro, product.price_currency)}
               </span>
             )}
           </div>

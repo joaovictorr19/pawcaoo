@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatMoney } from "@/lib/currency";
 import {
   Select,
   SelectContent,
@@ -410,7 +411,7 @@ export default function ProductManagement({ products, isLoading }) {
                             {isPending ? '⏳' : isApproved ? '✅' : '❌'} {product.moderation_status}
                           </Badge>
                           
-                          <Badge variant="outline" className="font-bold">€{product.price_euro}</Badge>
+                          <Badge variant="outline" className="font-bold">{formatMoney(product.price_euro, product.price_currency)}</Badge>
                           
                           {product.points_cost > 0 && (
                             <Badge className="bg-purple-500">{product.points_cost} pts</Badge>

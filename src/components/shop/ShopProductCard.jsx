@@ -1,5 +1,6 @@
 import React from "react";
 import { Package, Truck, MapPin, Hotel, Store, ShoppingBag } from "lucide-react";
+import ShopPrice from "@/components/shop/ShopPrice";
 
 const DELIVERY = {
   shipping: { label: "Entrega", icon: Truck },
@@ -101,9 +102,7 @@ export default function ShopProductCard({ product, moreCount = 0, onOpen, onOpen
 
         {/* Preço */}
         <div className="flex items-baseline gap-1.5 mt-1.5 sm:mt-2">
-          <span className="text-lg sm:text-xl font-black text-teal-700 leading-none">
-            €{(product.price_euro || 0).toFixed(2)}
-          </span>
+          <ShopPrice product={product} size="md" />
           {product.product_type === "service" && (
             <span className="text-[10px] font-semibold text-slate-400">por serviço</span>
           )}

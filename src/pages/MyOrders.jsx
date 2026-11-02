@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/utils/getCurrentUser";
 import { createPageUrl } from "@/utils";
 import { Package, ShoppingBag, Truck, MapPin, Hotel, PackageOpen, Loader2, Copy, Check } from "lucide-react";
 import OrderStatusTimeline from "@/components/orders/OrderStatusTimeline";
+import { formatMoney } from "@/lib/currency";
 
 const STATUS = {
   pending: { label: "Aguarda pagamento", cls: "bg-amber-50 text-amber-700 border-amber-200" },
@@ -119,10 +120,10 @@ export default function MyOrders() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-800 truncate">{item.product_name}</p>
                         <p className="text-xs text-slate-500">
-                          {item.quantity}x · €{(item.unit_price || 0).toFixed(2)}
+                          {item.quantity}x · {formatMoney(item.unit_price || 0, item.currency || order.currency)}
                         </p>
                       </div>
-                      <p className="text-sm font-bold text-slate-900">€{(item.total_price || 0).toFixed(2)}</p>
+                      <p className="text-sm font-bold text-slate-900">{formatMoney(item.total_price || 0, item.currency || order.currency)}</p>
                     </div>
                   ))}
                 </div>
@@ -137,11 +138,11 @@ export default function MyOrders() {
                   <div className="text-right">
                     {order.wallet_used > 0 && (
                       <p className="text-[11px] text-teal-600 font-semibold">
-                        Saldo PawCão aplicado: €{order.wallet_used.toFixed(2)}
+                        Saldo PawCão aplicado: {formatMoney(order.wallet_used, order.currency)}
                       </p>
                     )}
                     <p className="text-base font-black text-teal-700">
-                      Total: €{(order.total_amount || 0).toFixed(2)}
+                      Total: {formatMoney(order.total_amount || 0, order.currency)}
                     </p>
                   </div>
                 </div>

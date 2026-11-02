@@ -70,6 +70,17 @@ const COUNTRY_CONFIG = {
     dateFormat: 'dd/MM/yyyy',
     distanceUnit: 'km'
   },
+  BR: {
+    code: 'BR',
+    name: 'Brasil',
+    currency: 'BRL',
+    currencySymbol: 'R$',
+    defaultLanguage: 'pt',
+    timezone: 'America/Sao_Paulo',
+    phonePrefix: '+55',
+    dateFormat: 'dd/MM/yyyy',
+    distanceUnit: 'km'
+  },
   US: {
     code: 'US',
     name: 'United States',
@@ -100,8 +111,8 @@ function getCachedRates() {
     if (!cached) return null;
     const { rates, timestamp } = JSON.parse(cached);
     if (Date.now() - timestamp > RATES_CACHE_TTL) return null;
-    // Only keep known currencies (filters out stale BRL from older cache)
-    const ALLOWED = { EUR: 1, GBP: 1, USD: 1 };
+    // Only keep known currencies (filters out currencies no longer supported)
+    const ALLOWED = { EUR: 1, GBP: 1, USD: 1, BRL: 1 };
     const cleaned = {};
     for (const k of Object.keys(rates)) {
       if (ALLOWED[k]) cleaned[k] = rates[k];
@@ -129,8 +140,8 @@ async function fetchExchangeRates() {
     if (cached) return cached;
 
     try {
-      // ECB publishes daily EUR-based rates (free, no API key)
-      const res = await fetch('https://api.exchangerate.host/latest?base=EUR&symbols=GBP,USD', {
+      // Taxas diárias com base no EUR (gratuito, sem chave de API)
+      const res = await fetch('https://open.er-api.com/v6/latest/EUR', {
         signal: AbortSignal.timeout(5000)
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -166,6 +177,7 @@ export const useLocalization = () => {
       userLocation: null,
       setCountry: () => {},
       formatCurrency: (amount) => `€${amount?.toFixed(2) || '0.00'}`,
+      convertCurrency: (amount) => Number(amount) || 0,
       formatDate: (date) => date,
       formatTime: (time) => time,
       convertToLocalTime: (date) => date,
@@ -181,6 +193,18 @@ export const LocalizationProvider = ({ children }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [locationError, setLocationError] = useState(null);
+  // Taxas em estado para que os preços se atualizem quando o câmbio chega
+  const [exchangeRates, setExchangeRates] = useState(() => getCachedRates() || FALLBACK_EXCHANGE_RATES);
+
+  useEffect(() => {
+    let active = true;
+    fetchExchangeRates().then((rates) => {
+      if (!active) return;
+      EXCHANGE_RATES = rates;
+      setExchangeRates(rates);
+    });
+    return () => { active = false; };
+  }, []);
 
   // Detect user's country from browser/IP on mount
   useEffect(() => {
@@ -194,10 +218,9 @@ export const LocalizationProvider = ({ children }) => {
         setIsLoading(false);
         return;
       }
-      // Clear stale preference for removed countries (e.g. BR)
+      // Clear stale preference for countries that are no longer supported
       if (savedCountry && !COUNTRY_CONFIG[savedCountry]) {
         localStorage.removeItem('pawcao_country');
-        // Also clear stale exchange rates that may include removed currencies (BRL)
         localStorage.removeItem('pawcao_exchange_rates');
       }
 
@@ -277,23 +300,32 @@ export const LocalizationProvider = ({ children }) => {
     }
   };
 
-  // Format currency based on country
-  const formatCurrency = (amount, fromCurrency = 'EUR') => {
-    if (amount === null || amount === undefined) return `${country.currencySymbol}0.00`;
-    
-    // Convert if different currency
-    let convertedAmount = amount;
-    if (fromCurrency !== country.currency) {
-      const rateFrom = EXCHANGE_RATES[fromCurrency] || 1;
-      const rateTo = EXCHANGE_RATES[country.currency] || 1;
-      convertedAmount = (amount / rateFrom) * rateTo;
-    }
-    
-    return new Intl.NumberFormat(country.defaultLanguage, {
+  // Convert an amount between currencies. Returns null when the rate is unknown
+  // (never fabricates a converted value).
+  const convertCurrency = (amount, fromCurrency = 'EUR', toCurrency = country.currency) => {
+    const value = Number(amount) || 0;
+    if (!fromCurrency || fromCurrency === toCurrency) return value;
+    const rateFrom = exchangeRates[fromCurrency];
+    const rateTo = exchangeRates[toCurrency];
+    if (!rateFrom || !rateTo) return null;
+    return (value / rateFrom) * rateTo;
+  };
+
+  const formatInCurrency = (value, currency) => {
+    const locale = currency === 'BRL' ? 'pt-BR' : country.defaultLanguage;
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency: country.currency,
+      currency,
       minimumFractionDigits: 2
-    }).format(convertedAmount);
+    }).format(Number(value) || 0);
+  };
+
+  // Format currency based on country. Without an exchange rate for the target
+  // currency, the amount is shown in its own currency instead of a wrong value.
+  const formatCurrency = (amount, fromCurrency = 'EUR') => {
+    const convertedAmount = convertCurrency(amount, fromCurrency, country.currency);
+    if (convertedAmount === null) return formatInCurrency(amount, fromCurrency);
+    return formatInCurrency(convertedAmount, country.currency);
   };
 
   // Format date based on country
@@ -369,6 +401,7 @@ export const LocalizationProvider = ({ children }) => {
     userLocation,
     setCountry,
     formatCurrency,
+    convertCurrency,
     formatDate,
     formatTime,
     convertToLocalTime,

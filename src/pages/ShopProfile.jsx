@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
+import ShopPrice from "@/components/shop/ShopPrice";
 import PageLoader from "@/components/ui/PageLoader";
 import {
   Store, MapPin, BadgeCheck, Clock, ChevronLeft, Package, PackageOpen,
@@ -219,9 +220,7 @@ export default function ShopProfile() {
                       {product.description || "\u00A0"}
                     </p>
                     <div className="flex items-center justify-between gap-2 mt-auto pt-2.5 border-t border-slate-100">
-                      <span className="text-lg font-black text-teal-700 leading-none">
-                        €{(product.price_euro || 0).toFixed(2)}
-                      </span>
+                      <ShopPrice product={product} size="md" />
                       <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-full px-2.5 py-1">
                         <delivery.icon className="w-3.5 h-3.5 text-teal-600" />
                         {delivery.label}

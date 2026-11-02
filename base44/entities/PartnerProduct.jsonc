@@ -58,7 +58,16 @@
     },
     "price_euro": {
       "type": "number",
-      "description": "Price in euros"
+      "description": "Pre\u00e7o base do produto, na moeda indicada em price_currency"
+    },
+    "price_currency": {
+      "type": "string",
+      "enum": [
+        "EUR",
+        "BRL"
+      ],
+      "default": "EUR",
+      "description": "Moeda do pre\u00e7o base (EUR na Europa, BRL para parceiros no Brasil)"
     },
     "points_cost": {
       "type": "number",

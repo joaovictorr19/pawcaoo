@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatMoney } from "@/lib/currency";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import PartnerReviewForm from "../components/reviews/PartnerReviewForm";
@@ -427,7 +428,7 @@ export default function PartnerDetails() {
                         <div className="mb-4">
                           {product.price_euro > 0 && (
                             <div className="text-2xl font-bold text-green-600">
-                              €{product.price_euro.toFixed(2)}
+                              {formatMoney(product.price_euro, product.price_currency)}
                             </div>
                           )}
                           {product.is_redeemable_with_points && product.points_cost > 0 && (
