@@ -3,11 +3,15 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const event = body?.event || {};
 
-    // Called from entity automation: event = { type, entity_name, entity_id }, data = booking record
-    const booking = body.data;
-    if (!booking) return Response.json({ ok: true, message: "No booking data" });
+    // SECURITY: reler a reserva da base de dados — o corpo do pedido não é fonte de
+    // verdade, senão um chamador anónimo escolheria o hotel (hotel_email) a notificar.
+    if (!event?.entity_id) return Response.json({ ok: true, message: "No entity_id" });
+
+    const booking = await base44.asServiceRole.entities.HotelBooking.get(event.entity_id).catch(() => null);
+    if (!booking) return Response.json({ ok: true, message: "Booking not found" });
 
     // Skip cancelled/rejected bookings
     if (["cancelled", "rejected"].includes(booking.status)) {

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
+import { generateSecureCode } from "@/lib/secureCode";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -75,7 +76,7 @@ export default function DogConnectRewards() {
         reward_name: reward.reward_name,
         reward_type: reward.reward_type,
         points_spent: reward.points_cost,
-        redemption_code: `DC${Date.now()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        redemption_code: `DC${generateSecureCode(10)}`,
         reward_data: reward.reward_data,
         discount_code: reward.discount_code,
         partner_name: reward.partner_name,

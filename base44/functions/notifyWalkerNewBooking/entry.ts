@@ -5,20 +5,19 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     const body = await req.json().catch(() => ({}));
-
-    let booking = body?.data || null;
     const event = body?.event || {};
 
-    if ((!booking || body?.payload_too_large) && event?.entity_id) {
-      try {
-        booking = await base44.asServiceRole.entities.get('Booking', event.entity_id);
-      } catch (e) {
-        console.error('Failed to fetch booking by id:', e?.message || e);
-      }
+    // SECURITY: a reserva é sempre relida da base de dados. O corpo do pedido nunca
+    // é fonte de verdade — caso contrário um chamador anónimo poderia escolher o
+    // destinatário (walker_email/trainer_email) e o conteúdo do email.
+    if (!event?.entity_id) {
+      return Response.json({ success: false, message: 'Missing entity_id' }, { status: 400 });
     }
 
+    const booking = await base44.asServiceRole.entities.Booking.get(event.entity_id).catch(() => null);
+
     if (!booking) {
-      return Response.json({ success: false, message: 'No booking data' }, { status: 400 });
+      return Response.json({ success: false, message: 'Booking not found' }, { status: 404 });
     }
 
     const recipient = booking.walker_email || booking.trainer_email;

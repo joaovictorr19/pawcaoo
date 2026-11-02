@@ -12,3 +12,14 @@ export function generateCompletionCode() {
   } while (value >= LIMIT);
   return String(100000 + (value % RANGE));
 }
+
+// Código alfanumérico (cupões de resgate, referências) com entropia criptográfica.
+// Alfabeto com 32 caracteres e 256 valores possíveis por byte → sem enviesamento.
+export function generateSecureCode(length = 10) {
+  const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  let code = '';
+  for (let i = 0; i < length; i++) code += ALPHABET[bytes[i] % ALPHABET.length];
+  return code;
+}
