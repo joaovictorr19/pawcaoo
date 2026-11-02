@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { getServiceIcon } from '@/components/professionals/ServiceIconPicker';
 import HotelPortfolioGallery from '@/components/hotel/HotelPortfolioGallery';
+import PromotionBadge from '@/components/hotel/PromotionBadge';
+import usePartnerPromotions from '@/hooks/usePartnerPromotions';
 
 const SERVICE_TYPE_CONFIG = {
   boarding: { label: 'Alojamento', icon: BedDouble, accent: 'bg-indigo-50 text-indigo-600', ring: 'ring-indigo-100' },
@@ -90,6 +92,9 @@ const CapacityBar = ({ available, total }) => {
 };
 
 export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick }) {
+  // Promoções ativas do hotel, indexadas pelo nome do serviço
+  const promotionsByService = usePartnerPromotions(hotel?.id);
+
   const activeServices = useMemo(
     () => hotel?.hotel_details?.services?.filter((s) => s.is_active !== false) || [],
     [hotel?.hotel_details?.services]
@@ -128,6 +133,7 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
           const available = service.capacity_available ?? service.capacity_total ?? 0;
           const total = service.capacity_total ?? 0;
           const isSoldOut = available <= 0 || total <= 0;
+          const promotion = promotionsByService[(service.service_name || '').trim().toLowerCase()];
 
           return (
             <motion.div
@@ -147,11 +153,21 @@ export default function HotelProfileDisplay({ hotel, currentUser, onBookingClick
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-[15px] text-slate-900 leading-tight">{service.service_name}</h4>
-                  <p className="text-[11px] text-slate-400 font-medium mt-0.5 uppercase tracking-wide">
-                    {config.label}
-                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wide">
+                      {config.label}
+                    </p>
+                    {promotion && <PromotionBadge promotion={promotion} />}
+                  </div>
                 </div>
               </div>
+
+              {/* Detalhe da promoção */}
+              {promotion && (promotion.free_extra || promotion.description) && (
+                <p className="text-[11px] font-semibold text-teal-700 -mt-2">
+                  {promotion.free_extra || promotion.description}
+                </p>
+              )}
 
               {/* Description */}
               {service.description && (
