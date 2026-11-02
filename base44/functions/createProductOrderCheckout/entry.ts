@@ -5,6 +5,7 @@ import { applyWalletPayment } from '../../shared/walletPayment.ts';
 import { fulfillProductOrderPaid } from '../../shared/productOrderFulfillment.ts';
 import { safeRedirectUrl } from '../../shared/safeRedirect.ts';
 import { convertToCharge } from '../../shared/currency.ts';
+import { findProductPromotion, promotionDiscount } from '../../shared/promotions.ts';
 
 export default async function (req) {
   try {
@@ -54,7 +55,13 @@ export default async function (req) {
       return Response.json({ error: 'Valor inválido' }, { status: 400 });
     }
 
-    const charge = await convertToCharge(baseSubtotal, baseCurrency);
+    // Promoção do produto — o desconto é calculado e validado no servidor.
+    // A participação só é contabilizada depois do pagamento confirmado.
+    const productPromo = await findProductPromotion(base44, product.id);
+    const promoDiscountBase = promotionDiscount(baseSubtotal, productPromo);
+    const netBaseSubtotal = Math.round((baseSubtotal - promoDiscountBase) * 100) / 100;
+
+    const charge = await convertToCharge(netBaseSubtotal, baseCurrency);
     if (!charge) {
       return Response.json(
         { error: 'Câmbio indisponível para esta moeda. Tenta novamente mais tarde.' },
@@ -62,6 +69,9 @@ export default async function (req) {
       );
     }
     const subtotal = charge.amount;
+    // Desconto aplicado, na moeda cobrada
+    const grossSubtotal = Math.round(baseSubtotal * charge.rate * 100) / 100;
+    const discountAmount = Math.round(Math.max(0, grossSubtotal - subtotal) * 100) / 100;
 
     const deliveryMethod = product.delivery_method || 'pickup';
     if (
@@ -254,6 +264,8 @@ export default async function (req) {
         },
       ],
       subtotal,
+      discount_amount: discountAmount,
+      coupon_code: productPromo?.title || undefined,
       shipping_fee: 0,
       total_amount: subtotal,
       currency: charge.currency,
@@ -314,7 +326,10 @@ export default async function (req) {
 
     // Pagamento coberto na totalidade pela carteira — confirmar de imediato
     if (remaining <= 0) {
-      await fulfillProductOrderPaid(base44, order.id, { paymentMethod: 'wallet' });
+      await fulfillProductOrderPaid(base44, order.id, {
+        paymentMethod: 'wallet',
+        promotionId: productPromo?.id || '',
+      });
       return Response.json({
         success: true,
         paid: true,
@@ -353,6 +368,7 @@ export default async function (req) {
         wallet_used: String(walletUsed),
         commission_amount: String(commissionAmount),
         partner_net_amount: String(partnerNet),
+        promotion_id: productPromo?.id || '',
       },
     });
 

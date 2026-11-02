@@ -11,6 +11,8 @@ import { createPageUrl } from '@/utils';
 import { getEffectiveCommissionRate, getCommissionBearer } from '@/utils/commission';
 import HotelRangeCalendar from '@/components/hotel/HotelRangeCalendar';
 import WalletPaymentOption from '@/components/wallet/WalletPaymentOption';
+import usePartnerPromotions from '@/hooks/usePartnerPromotions';
+import { freePickupState, promoDiscountAmount } from '@/lib/promotions';
 
 export default function HotelBookingModal({ isOpen, onClose, hotel, selectedService, currentUser, initialDate, initialCheckout }) {
   const navigate = useNavigate();
@@ -76,9 +78,15 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
     enabled: !!currentUser?.email,
   });
 
+  const promotionsByService = usePartnerPromotions(hotel?.id);
+
   const selectedDogs = myDogs.filter(d => selectedDogIds.includes(d.id));
 
   if (!hotel || !selectedService) return null;
+
+  // Promoção do serviço — o desconto é recalculado no servidor ao finalizar
+  const servicePromo = promotionsByService[(selectedService.service_name || '').trim().toLowerCase()] || null;
+  const promoFreeTransport = !!servicePromo?.free_pickup && !freePickupState(servicePromo)?.exhausted;
 
   const checkinPolicy = hotel?.hotel_details?.checkin_policy_type || 'all_days';
   const hotelAddress = hotel?.hotel_details?.full_address || hotel?.location || '';
@@ -91,7 +99,7 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const serviceHasTransport = selectedService.transport_enabled === true;
   const transportPrice = serviceHasTransport ? (selectedService.transport_price || 0) : 0;
   const transportMultiplier = transportType === 'round_trip' ? 2 : 1;
-  const transportFee = (transportRequested && serviceHasTransport) ? Math.round(transportPrice * transportMultiplier * selectedDogs.length * 100) / 100 : 0;
+  const transportFee = (transportRequested && serviceHasTransport && !promoFreeTransport) ? Math.round(transportPrice * transportMultiplier * selectedDogs.length * 100) / 100 : 0;
   const isTraining = selectedService.service_type === 'training';
   const isDropin = selectedService.service_type === 'dropin';
   const needsCareInfo = ['boarding', 'daycare'].includes(selectedService.service_type);
@@ -103,16 +111,18 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
   const commissionRate = getEffectiveCommissionRate(hotel);
   const commissionBorneBy = getCommissionBearer(hotel);
   const baseAmount = Math.round(servicePrice * pricingUnits * selectedDogs.length * 100) / 100;
-  const platformFee = Math.round(baseAmount * (commissionRate / 100) * 100) / 100;
+  const promoDiscount = promoDiscountAmount(baseAmount, servicePromo);
+  const netBaseAmount = Math.round((baseAmount - promoDiscount) * 100) / 100;
+  const platformFee = Math.round(netBaseAmount * (commissionRate / 100) * 100) / 100;
   let totalAmount, hotelReceives;
   if (commissionBorneBy === 'client') {
     // Commission added on top — client pays base + fee, hotel receives full base
-    totalAmount = Math.round((baseAmount + platformFee + transportFee) * 100) / 100;
-    hotelReceives = baseAmount + transportFee;
+    totalAmount = Math.round((netBaseAmount + platformFee + transportFee) * 100) / 100;
+    hotelReceives = netBaseAmount + transportFee;
   } else {
     // Commission included — client pays base, hotel receives base - fee
-    totalAmount = Math.round((baseAmount + transportFee) * 100) / 100;
-    hotelReceives = Math.round((baseAmount - platformFee + transportFee) * 100) / 100;
+    totalAmount = Math.round((netBaseAmount + transportFee) * 100) / 100;
+    hotelReceives = Math.round((netBaseAmount - platformFee + transportFee) * 100) / 100;
   }
 
   const handleCreateBooking = async () => {
@@ -995,14 +1005,31 @@ export default function HotelBookingModal({ isOpen, onClose, hotel, selectedServ
                         <span className="text-slate-500">
                           {servicePrice}€ {isOvernight ? `× ${totalNights} ${totalNights === 1 ? 'noite' : 'noites'}` : isWalk ? `/ ${walkDuration} min` : isAppointment ? '/ sessão' : '/ dia'} × {selectedDogs.length} {selectedDogs.length === 1 ? 'animal' : 'animais'}
                         </span>
-                        <span className="font-bold text-slate-700">{baseAmount}€</span>
+                        <span className={`font-bold ${promoDiscount > 0 ? "text-slate-400 line-through" : "text-slate-700"}`}>{baseAmount}€</span>
                       </div>
+                      {servicePromo && promoDiscount > 0 && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-teal-700 font-semibold flex items-center gap-1 truncate pr-2">
+                            <Sparkles className="w-3 h-3 shrink-0" />
+                            {servicePromo.title || "Promoção"}
+                          </span>
+                          <span className="font-bold text-teal-700 shrink-0">−{promoDiscount}€</span>
+                        </div>
+                      )}
                       {transportFee > 0 && (
                         <div className="flex justify-between text-xs">
                           <span className="text-slate-500 flex items-center gap-1">
                             <Truck className="w-3 h-3" /> Transporte ({transportType === 'round_trip' ? 'ida e volta' : transportType === 'pickup_only' ? 'só recolha' : 'só entrega'}){selectedDogs.length > 1 ? ` × ${selectedDogs.length} animais` : ''}
                           </span>
                           <span className="font-bold text-slate-700">+{transportFee}€</span>
+                        </div>
+                      )}
+                      {promoFreeTransport && transportRequested && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-teal-700 font-semibold flex items-center gap-1">
+                            <Truck className="w-3 h-3" /> Transporte grátis (promoção)
+                          </span>
+                          <span className="font-bold text-teal-700">0€</span>
                         </div>
                       )}
                       {commissionBorneBy === 'client' && (

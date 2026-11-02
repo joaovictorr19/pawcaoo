@@ -7,12 +7,14 @@
  *  - createProductOrderCheckout (pagamento total com carteira PawCão)
  *  - stripeWebhook (checkout.session.completed com metadata.type = 'product_order')
  */
+import { countPromotionUse } from './promotions.ts';
+
 export async function fulfillProductOrderPaid(
   base44,
   orderId,
   opts = {}
 ) {
-  const { stripePaymentIntentId = '', paymentMethod = 'stripe' } = opts;
+  const { stripePaymentIntentId = '', paymentMethod = 'stripe', promotionId = '' } = opts;
   try {
     const orders = await base44.asServiceRole.entities.ProductOrder.filter({ id: orderId });
     const order = orders[0];
@@ -48,6 +50,17 @@ export async function fulfillProductOrderPaid(
     };
     if (stripePaymentIntentId) updates.stripe_payment_intent_id = stripePaymentIntentId;
     await base44.asServiceRole.entities.ProductOrder.update(order.id, updates);
+
+    // 2b. Promoção — a participação só conta agora que o pagamento foi confirmado.
+    // Idempotente por encomenda: nunca conta duas vezes a mesma compra.
+    if (promotionId) {
+      await countPromotionUse(base44, promotionId, {
+        userEmail: order.customer_email,
+        orderId: order.id,
+        discountAmount: order.discount_amount || 0,
+        currency: order.currency || 'EUR',
+      });
+    }
 
     const net = Math.round((order.partner_net_amount || 0) * 100) / 100;
     const itemsSummary = (order.items || []).map((i) => `${i.quantity}x ${i.product_name}`).join(', ');

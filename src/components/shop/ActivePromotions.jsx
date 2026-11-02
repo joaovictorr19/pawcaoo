@@ -1,9 +1,7 @@
-import React, { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { Sparkles, Ticket, Check, Megaphone, Truck } from "lucide-react";
+import { Sparkles, Megaphone, Truck } from "lucide-react";
 import {
   discountLabel,
   freePickupState,
@@ -12,11 +10,7 @@ import {
   vacanciesLeft,
 } from "@/lib/promotions";
 
-export default function ActivePromotions({ user }) {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [claimedIds, setClaimedIds] = useState([]);
-
+export default function ActivePromotions() {
   const { data: promotions = [], isLoading } = useQuery({
     queryKey: ["shopPromotions"],
     queryFn: () =>
@@ -36,44 +30,7 @@ export default function ActivePromotions({ user }) {
     [promotions]
   );
 
-  const claimMutation = useMutation({
-    mutationFn: async (promotionId) => {
-      const res = await base44.functions.invoke("claimPromotion", { promotion_id: promotionId });
-      return res.data;
-    },
-    onSuccess: (data, promotionId) => {
-      if (data?.error) {
-        toast.error(data.error);
-        return;
-      }
-      setClaimedIds((prev) => [...prev, promotionId]);
-      queryClient.invalidateQueries({ queryKey: ["shopPromotions"] });
-      const pickupNote = data?.free_pickup
-        ? data.free_pickup_granted
-          ? " Recolha gratuita garantida."
-          : " Recolha ao preço normal: o limite de recolhas gratuitas já foi atingido."
-        : "";
-      toast.success(
-        (data?.already_claimed
-          ? "Já tinhas aderido a esta promoção"
-          : "Promoção reservada. Fala com o parceiro ao reservar.") + pickupNote
-      );
-    },
-    onError: (error) => {
-      const message = error?.response?.data?.error || "Não foi possível aderir agora";
-      toast.error(message);
-    },
-  });
-
   if (isLoading || active.length === 0) return null;
-
-  const handleClaim = (promo) => {
-    if (!user) {
-      navigate(`/login?from=${encodeURIComponent("/Shop")}`);
-      return;
-    }
-    claimMutation.mutate(promo.id);
-  };
 
   return (
     <div className="mb-6">
@@ -86,7 +43,6 @@ export default function ActivePromotions({ user }) {
           const discount = discountLabel(promo);
           const left = vacanciesLeft(promo);
           const pickup = freePickupState(promo);
-          const claimed = claimedIds.includes(promo.id);
           const soldOut = left === 0;
           return (
             <div
@@ -148,27 +104,27 @@ export default function ActivePromotions({ user }) {
                 <p className="text-[11px] text-slate-600 mt-2 line-clamp-2">{promo.description}</p>
               )}
 
-              <button
-                onClick={() => handleClaim(promo)}
-                disabled={soldOut || claimed || claimMutation.isPending}
-                className={`mt-3 w-full h-9 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors ${
-                  claimed
-                    ? "bg-teal-100 text-teal-800"
-                    : soldOut
-                    ? "bg-slate-100 text-slate-400"
-                    : "bg-teal-600 text-white hover:bg-teal-700"
+              <div
+                className={`mt-3 w-full rounded-xl px-2.5 py-2 text-center border ${
+                  soldOut
+                    ? "bg-slate-50 border-slate-200"
+                    : "bg-teal-600 border-teal-600"
                 }`}
               >
-                {claimed ? (
-                  <>
-                    <Check className="w-3.5 h-3.5" /> Reservada
-                  </>
-                ) : (
-                  <>
-                    <Ticket className="w-3.5 h-3.5" /> {soldOut ? "Esgotada" : "Aderir"}
-                  </>
-                )}
-              </button>
+                <p
+                  className={`text-[11px] font-bold flex items-center justify-center gap-1.5 ${
+                    soldOut ? "text-slate-400" : "text-white"
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {soldOut ? "Vagas esgotadas" : "Desconto aplicado ao finalizar"}
+                </p>
+                <p className={`text-[10px] mt-0.5 leading-snug ${soldOut ? "text-slate-400" : "text-teal-50"}`}>
+                  {soldOut
+                    ? "Esta promoção já atingiu o limite de participantes."
+                    : "Só conta como participação quando a compra ou reserva é confirmada."}
+                </p>
+              </div>
             </div>
           );
         })}

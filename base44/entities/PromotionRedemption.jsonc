@@ -1,0 +1,81 @@
+{
+  "name": "PromotionRedemption",
+  "type": "object",
+  "properties": {
+    "promotion_id": {
+      "type": "string",
+      "description": "ID da promo\u00e7\u00e3o utilizada"
+    },
+    "promotion_title": {
+      "type": "string",
+      "description": "T\u00edtulo da promo\u00e7\u00e3o no momento da utiliza\u00e7\u00e3o"
+    },
+    "promotion_scope": {
+      "type": "string",
+      "enum": [
+        "product",
+        "hotel_service"
+      ],
+      "description": "\u00c2mbito da promo\u00e7\u00e3o utilizada"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Cliente que beneficiou da promo\u00e7\u00e3o"
+    },
+    "order_id": {
+      "type": "string",
+      "description": "Encomenda da Loja associada (promo\u00e7\u00f5es de produto)"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "Reserva associada (promo\u00e7\u00f5es de servi\u00e7o/hotel)"
+    },
+    "discount_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor do desconto aplicado (na moeda cobrada)"
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "counted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Quando a participa\u00e7\u00e3o foi confirmada (ap\u00f3s pagamento)"
+    }
+  },
+  "required": [
+    "promotion_id",
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

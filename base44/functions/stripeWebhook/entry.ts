@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import Stripe from 'npm:stripe';
 import { buildClientConfirmationEmail, buildHotelConfirmationEmail } from '../../shared/hotelEmailTemplate.ts';
 import { fulfillProductOrderPaid } from '../../shared/productOrderFulfillment.ts';
+import { countPromotionUse } from '../../shared/promotions.ts';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
     apiVersion: '2023-10-16',
@@ -510,6 +511,7 @@ async function handleCheckoutCompleted(base44, session) {
                 await fulfillProductOrderPaid(base44, orderId, {
                     stripePaymentIntentId: session.payment_intent || '',
                     paymentMethod: parseFloat(session.metadata?.wallet_used) > 0 ? 'mixed' : 'stripe',
+                    promotionId: session.metadata?.promotion_id || '',
                 });
             } catch (e) {
                 console.error('Error processing product order payment:', e?.message || e);
@@ -568,6 +570,18 @@ async function handleCheckoutCompleted(base44, session) {
                         stripe_payment_intent_id: session.payment_intent || '',
                     });
                     console.log('✅ HotelBooking payment confirmed (awaiting hotel acceptance):', hotelBookingId);
+
+                    // ── Promoção do serviço: participação contabilizada só agora ──
+                    // Idempotente por reserva — nunca conta duas vezes.
+                    const hotelPromotionId = session.metadata?.promotion_id || '';
+                    if (hotelPromotionId) {
+                        await countPromotionUse(base44, hotelPromotionId, {
+                            userEmail: hb.owner_email || '',
+                            bookingId: hotelBookingId,
+                            discountAmount: parseFloat(session.metadata?.promotion_discount || '0') || 0,
+                            currency: 'EUR',
+                        });
+                    }
 
                     // ── Vagas já foram reservadas na criação da reserva pendente (createHotelCheckout) ──
                     // Não decrementar novamente aqui para evitar dupla contagem.

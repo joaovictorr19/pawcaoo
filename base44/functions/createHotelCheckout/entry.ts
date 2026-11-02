@@ -2,6 +2,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.38';
 import Stripe from 'npm:stripe@14.14.0';
 import { resolveOrigin, getEffectiveCommissionRate, calcGroomingTotal } from '../../shared/hotelPricing.ts';
 import { applyWalletPayment } from '../../shared/walletPayment.ts';
+import {
+  findServicePromotion,
+  promotionDiscount,
+  freePickupAvailable,
+  countPromotionUse,
+} from '../../shared/promotions.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -114,6 +120,9 @@ Deno.serve(async (req) => {
       serverBaseAmount = serverPricePerUnit * serverNights * serverDogs;
     }
 
+    // Valor do serviço antes de extras — base para o desconto da promoção
+    const serverServiceBase = serverBaseAmount;
+
     // Add pickup fee if applicable
     const serverPickupFee = (pickup_fee && pickup_fee > 0) ? Number(pickup_fee) : 0;
     if (serverPickupFee > 0) {
@@ -134,6 +143,15 @@ Deno.serve(async (req) => {
     if (serverTransportFee > 0) {
       serverBaseAmount += serverTransportFee;
     }
+
+    // ── Promoção do serviço (fonte de verdade no servidor) ──
+    // Transporte gratuito e desconto só se aplicam com a promoção ativa e com
+    // utilizações disponíveis. A participação só é contabilizada após o pagamento.
+    const promoService = (hotelDetails.services || []).find(s => s.service_type === service_type);
+    const servicePromo = await findServicePromotion(base44, hotel_profile_id, promoService?.service_name || '');
+    const promoFreeTransport = freePickupAvailable(servicePromo) && transport_requested === true;
+    const promoDiscount = promotionDiscount(serverServiceBase, servicePromo);
+    const chargedTransportFee = promoFreeTransport ? 0 : serverTransportFee;
 
     // ── SECURITY: Recompute add_ons total from server-side hotel profile pricing ──
     // Never trust client-supplied total_price or price_per_unit for add-ons.
@@ -167,7 +185,9 @@ Deno.serve(async (req) => {
 
     // Determine who bears the commission: "hotel" (deducted from hotel) or "client" (added on top)
     const commissionBorneBy = hotelProfile.commission_borne_by || 'hotel';
-    const baseAmount = serverBaseAmount + serverAddOnsTotal;
+    const baseAmount = Math.round(
+      (serverBaseAmount - (serverTransportFee - chargedTransportFee) - promoDiscount + serverAddOnsTotal) * 100
+    ) / 100;
     const serverPlatformFee = Math.round(baseAmount * PLATFORM_FEE_RATE * 100) / 100;
     let serverTotalAmount, serverServiceAmount;
     if (commissionBorneBy === 'client') {
@@ -255,7 +275,7 @@ Deno.serve(async (req) => {
       service_duration_minutes: service_duration_minutes || undefined,
       transport_requested: transport_requested || false,
       transport_type: transport_requested ? safeTransportType : undefined,
-      transport_price: serverTransportFee > 0 ? serverTransportFee : undefined,
+      transport_price: chargedTransportFee > 0 ? chargedTransportFee : undefined,
       transport_coverage_areas: transport_coverage_areas || undefined,
       transport_status: transport_requested ? 'pending' : undefined,
       checkin_date,
@@ -334,6 +354,15 @@ Deno.serve(async (req) => {
           payment_status: 'paid',
           payment_expires_at: undefined,
         });
+        // Promoção do serviço — participação contabilizada só agora (idempotente)
+        if (servicePromo?.id) {
+          await countPromotionUse(base44, servicePromo.id, {
+            userEmail: user.email,
+            bookingId: newBooking.id,
+            discountAmount: promoDiscount,
+            currency: 'EUR',
+          });
+        }
         if (hotel_email && safeServiceAmount > 0) {
           try {
             const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: hotel_email });
@@ -393,6 +422,8 @@ Deno.serve(async (req) => {
         platform_fee: safePlatformFee.toString(),
         service_amount: safeServiceAmount.toString(),
         wallet_used: walletUsed.toString(),
+        promotion_id: servicePromo?.id || '',
+        promotion_discount: promoDiscount.toString(),
       },
       payment_intent_data: {
         capture_method: 'automatic',

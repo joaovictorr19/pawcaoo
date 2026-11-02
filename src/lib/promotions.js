@@ -52,6 +52,25 @@ export function freePickupState(promo) {
   return { unlimited: false, used, limit, left, exhausted: left === 0 };
 }
 
+export function hasPromotionBenefit(promo) {
+  if (!promo) return false;
+  return promo.discount_type !== "none" || !!promo.free_extra || promo.free_pickup === true;
+}
+
+// Desconto em dinheiro de uma promoção sobre um valor (percentagem ou valor fixo)
+export function promoDiscountAmount(amount, promo) {
+  const value = Math.max(0, Number(amount) || 0);
+  if (!promo || value <= 0) return 0;
+  let discount = 0;
+  if (promo.discount_type === "percentage") {
+    const pct = Math.min(100, Math.max(0, Number(promo.discount_value) || 0));
+    discount = value * (pct / 100);
+  } else if (promo.discount_type === "fixed") {
+    discount = Math.max(0, Number(promo.discount_value) || 0);
+  }
+  return Math.min(value, Math.round(discount * 100) / 100);
+}
+
 export function promoScopeLabel(promo) {
   if (promo?.scope === "hotel_service") return promo.service_name || "Serviço de hotel";
   return promo?.product_name || "Produto";

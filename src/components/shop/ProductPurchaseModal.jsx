@@ -14,6 +14,7 @@ import PickupInfoBlock from "./PickupInfoBlock";
 import ShopPrice from "./ShopPrice";
 import { useLocalization } from "@/components/LocalizationContext";
 import { formatMoney, CHARGE_CURRENCY } from "@/lib/currency";
+import { getPromotionStatus, hasPromotionBenefit, promoDiscountAmount } from "@/lib/promotions";
 
 const DELIVERY = {
   shipping: { label: "Entrega ao domicílio", icon: Truck, hint: "Vai ser entregue na sua morada" },
@@ -85,6 +86,22 @@ export default function ProductPurchaseModal({ product, onClose }) {
     refetchOnWindowFocus: false,
   });
 
+  // Promoção aplicável — mostrada aqui e recalculada no servidor ao finalizar.
+  // Adere-se no checkout: não há clique que consuma vagas.
+  const { data: productPromo = null } = useQuery({
+    queryKey: ["productPromotion", product?.id],
+    queryFn: async () => {
+      const promos = await base44.entities.Promotion.filter(
+        { product_id: product.id, scope: "product" },
+        "-created_date",
+        10
+      );
+      return promos.find((p) => hasPromotionBenefit(p) && getPromotionStatus(p) === "active") || null;
+    },
+    enabled: !!product?.id,
+    staleTime: 60 * 1000,
+  });
+
   if (!product) return null;
 
   const delivery = DELIVERY[product.delivery_method] || DELIVERY.pickup;
@@ -93,10 +110,12 @@ export default function ProductPurchaseModal({ product, onClose }) {
   // Preço base (definido pelo parceiro) → apresentação na moeda da localização
   // → valor efetivamente cobrado (EUR). Sem taxa disponível, não se cobra nada.
   const baseTotal = Math.round((product.price_euro || 0) * quantity * 100) / 100;
+  const promoDiscountBase = promoDiscountAmount(baseTotal, productPromo);
+  const netBaseTotal = Math.max(0, Math.round((baseTotal - promoDiscountBase) * 100) / 100);
   const baseCurrency = product.price_currency || "EUR";
   const displayCurrency = country?.currency || "EUR";
-  const displayTotal = convertCurrency(baseTotal, baseCurrency, displayCurrency);
-  const chargeTotal = convertCurrency(baseTotal, baseCurrency, CHARGE_CURRENCY);
+  const displayTotal = convertCurrency(netBaseTotal, baseCurrency, displayCurrency);
+  const chargeTotal = convertCurrency(netBaseTotal, baseCurrency, CHARGE_CURRENCY);
   const total = chargeTotal ?? baseTotal;
   const rateMissing = chargeTotal === null;
   const crossMarket = baseCurrency !== displayCurrency;
@@ -320,6 +339,17 @@ export default function ProductPurchaseModal({ product, onClose }) {
 
         {/* Sticky bottom action bar */}
         <div className="shrink-0 px-5 pb-5 pt-2 bg-white border-t border-slate-100">
+          {productPromo && promoDiscountBase > 0 && (
+            <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-teal-700 pb-1.5">
+              <span className="truncate">{productPromo.title}</span>
+              <span className="shrink-0">
+                −{formatMoney(
+                  convertCurrency(promoDiscountBase, baseCurrency, displayCurrency) ?? promoDiscountBase,
+                  displayCurrency
+                )}
+              </span>
+            </div>
+          )}
           {showEstimate && (
             <p className="text-[11px] text-slate-500 text-center pb-2">
               ≈ {formatMoney(displayTotal, displayCurrency)} (estimativa) · cobrança em {CHARGE_CURRENCY}
