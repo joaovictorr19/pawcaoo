@@ -20,7 +20,21 @@
     },
     "reviewer_email": {
       "type": "string",
-      "description": "Reviewer's email"
+      "description": "Reviewer's email",
+      "rls": {
+        "read": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      }
     },
     "reviewer_name": {
       "type": "string",

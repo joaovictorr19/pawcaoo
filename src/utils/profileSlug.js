@@ -43,8 +43,9 @@ export async function ensureProfileSlug(name, email, entityType = 'walker') {
 
     // Se já existe e pertence a este email, reutilizar
     if (existing?.length > 0) {
-      const mine = existing.find(s => s.entity_email === email);
-      if (mine) {
+      // O email do slug é privado — confirmar a pertença por filtro no servidor
+      const mine = await base44.entities.ProfileSlug.filter({ slug: baseSlug, entity_email: email });
+      if (mine?.length > 0) {
         return `/${baseSlug}`;
       }
     } else {
@@ -80,7 +81,8 @@ export async function ensureProfileSlug(name, email, entityType = 'walker') {
       }
 
       // Se já existe mas pertence a este email, reutilizar
-      if (check.find(s => s.entity_email === email)) {
+      const mineCandidate = await base44.entities.ProfileSlug.filter({ slug: candidate, entity_email: email });
+      if (mineCandidate?.length > 0) {
         return `/${candidate}`;
       }
 

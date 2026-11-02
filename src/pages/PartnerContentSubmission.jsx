@@ -57,10 +57,9 @@ export default function PartnerContentSubmission() {
     queryKey: ['myPublishers', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const allPublishers = await base44.entities.ExternalPublisher.list();
-      return allPublishers.filter(p => 
-        p.connected_user_emails?.includes(user.email)
-      );
+      // A lista de utilizadores ligados é privada: o servidor devolve só os meus publishers
+      const response = await base44.functions.invoke('listMyPublishers', {});
+      return response.data?.publishers || [];
     },
     enabled: !!user?.email
   });

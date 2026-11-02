@@ -4,7 +4,21 @@
   "properties": {
     "professional_email": {
       "type": "string",
-      "description": "Professional's email"
+      "description": "Professional's email",
+      "rls": {
+        "read": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      }
     },
     "professional_name": {
       "type": "string",

@@ -55,6 +55,14 @@ export default function ShortProfile() {
         const s = slugRes.value[0];
         if (s.entity_email) { setResolved({ email: s.entity_email, type: s.entity_type }); return; }
         if (s.entity_id) { setResolved({ id: s.entity_id, type: s.entity_type }); return; }
+        // O email associado ao slug é privado — o servidor resolve o destino
+        try {
+          const res = await base44.functions.invoke('resolveProfileSlug', { slug });
+          const target = res?.data || {};
+          if (cancelled) return;
+          if (target.partner_id) { setResolved({ partnerId: target.partner_id }); return; }
+          if (target.profile_id) { setResolved({ id: target.profile_id, type: target.type }); return; }
+        } catch (e) { /* segue para a resolução por nome */ }
       }
 
       if (userRes.status === 'fulfilled' && userRes.value?.length > 0 && userRes.value[0].user_email) {

@@ -86,10 +86,12 @@ export default function PublicLinkSection({ professionalProfile, userEmail }) {
       try {
         const existing = await base44.entities.ProfileSlug.filter({ slug: cleaned });
         if (existing?.length > 0) {
-          const mine = existing.find(s => s.entity_email === email);
+          // O email do slug é privado — a pertença é confirmada por filtro no servidor
+          const mineRows = await base44.entities.ProfileSlug.filter({ slug: cleaned, entity_email: email });
+          const isMine = mineRows?.length > 0;
           setAvailability({
-            status: mine ? "available" : "taken",
-            message: mine ? "É o seu link atual" : "Já em uso por outro profissional",
+            status: isMine ? "available" : "taken",
+            message: isMine ? "É o seu link atual" : "Já em uso por outro profissional",
           });
         } else {
           setAvailability({ status: "available", message: "Disponível!" });
@@ -150,8 +152,8 @@ export default function PublicLinkSection({ professionalProfile, userEmail }) {
         });
       } catch (e) {
         // Se já existe (corrida), verificar se é dele
-        const existing = await base44.entities.ProfileSlug.filter({ slug: newSlug });
-        if (!existing?.find(s => s.entity_email === email)) {
+        const mineRows = await base44.entities.ProfileSlug.filter({ slug: newSlug, entity_email: email });
+        if (!mineRows?.length) {
           throw e;
         }
       }

@@ -23,7 +23,21 @@
     },
     "entity_email": {
       "type": "string",
-      "description": "Email do utilizador/profissional"
+      "description": "Email do utilizador/profissional",
+      "rls": {
+        "read": {
+          "$or": [
+            {
+              "created_by_id": "{{user.id}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        }
+      }
     },
     "display_name": {
       "type": "string",

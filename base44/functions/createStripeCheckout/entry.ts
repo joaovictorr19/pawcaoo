@@ -1,5 +1,6 @@
 import Stripe from 'npm:stripe';
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { safeRedirectUrl } from '../../shared/safeRedirect.ts';
 
 const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
 
@@ -69,6 +70,11 @@ Deno.serve(async (req) => {
     if (!bookingId) {
       return Response.json({ error: 'Missing bookingId' }, { status: 400 });
     }
+
+    // Nunca confiar nas URLs de retorno do cliente — só a própria origem é aceite
+    const origin = req.headers.get('origin') || 'https://pawcao.base44.app';
+    const safeSuccessUrl = safeRedirectUrl(successUrl, `${origin}/CheckoutSuccess`, origin);
+    const safeCancelUrl = safeRedirectUrl(cancelUrl, `${origin}/MyBookings`, origin);
 
     // Fetch the booking from the database (user-scoped) to verify ownership.
     // Never trust bookingData sent from the client — it can be forged.
@@ -141,8 +147,8 @@ Deno.serve(async (req) => {
       ],
       mode: 'payment',
       locale: 'pt',
-      success_url: successUrl,
-      cancel_url: cancelUrl,
+      success_url: safeSuccessUrl,
+      cancel_url: safeCancelUrl,
       customer_email: user.email,
       metadata: {
         booking_id: bookingId,
