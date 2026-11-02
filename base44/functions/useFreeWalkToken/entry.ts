@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.5.0';
+import { resolveVerifiedProfessional } from '../../shared/payoutRecipient.ts';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 
@@ -57,10 +58,28 @@ Deno.serve(async (req) => {
     // SECURITY: Derive walker_email and service_amount from the booking record,
     // never from user-supplied input, to prevent payment diversion.
     const walker_email = booking.walker_email;
-    const service_amount = booking.service_amount;
+    let service_amount = booking.service_amount;
 
     if (!walker_email || !service_amount) {
       return Response.json({ error: 'Booking is missing walker or service amount' }, { status: 400 });
+    }
+
+    // SECURITY: se já existe um registo Payment para a reserva, é ele a fonte de verdade.
+    const relatedPayments = await base44.asServiceRole.entities.Payment.filter({ booking_id });
+    const verifiedPayment = relatedPayments[0];
+    if (verifiedPayment) {
+      if (verifiedPayment.recipient_email && verifiedPayment.recipient_email !== walker_email) {
+        return Response.json({ error: 'Booking professional does not match the registered payment' }, { status: 409 });
+      }
+      if (verifiedPayment.service_amount > 0) {
+        service_amount = verifiedPayment.service_amount;
+      }
+    }
+
+    // SECURITY: destinatário validado no servidor (não pode ser o próprio cliente).
+    const payoutCheck = await resolveVerifiedProfessional(base44, booking, walker_email);
+    if (payoutCheck.error) {
+      return Response.json({ error: payoutCheck.error }, { status: 403 });
     }
 
     // 1. Verificar subscrição do utilizador
@@ -98,18 +117,14 @@ Deno.serve(async (req) => {
     const extraCharge = service_amount > maxFreeWalkValue ? service_amount - maxFreeWalkValue : 0;
 
     // 4. Buscar perfil do walker para obter Stripe Account
-    const walkerProfiles = await base44.asServiceRole.entities.WalkerProfile.filter({
-      created_by: walker_email
-    });
+    const walkerProfile = payoutCheck.profile;
 
-    if (!walkerProfiles.length || !walkerProfiles[0].stripe_account_id) {
+    if (!walkerProfile.stripe_account_id) {
       return Response.json({ 
         error: 'Walker does not have Stripe Connect configured',
         canUseFreeWalk: false 
       }, { status: 400 });
     }
-
-    const walkerProfile = walkerProfiles[0];
 
     // 5. Criar transferência para o walker (a empresa paga)
     // A empresa retém a comissão normal mesmo nos passeios grátis

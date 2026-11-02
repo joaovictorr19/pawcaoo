@@ -48,9 +48,14 @@ async function getRelatedPayment(base44, kind, serviceId) {
   return payments[0] || null;
 }
 
-async function resolveProfessionalProfile(base44, kind, service) {
+async function resolveProfessionalProfile(base44, kind, service, emailOverride) {
   const config = ENTITY_CONFIG[kind];
   const profileEntity = base44.asServiceRole.entities[config.profileEntity];
+
+  if (emailOverride) {
+    const byVerifiedEmail = await profileEntity.filter({ created_by: emailOverride });
+    if (byVerifiedEmail[0]) return byVerifiedEmail[0];
+  }
 
   if (service[config.professionalIdField]) {
     const byId = await profileEntity.filter({ id: service[config.professionalIdField] });
@@ -71,7 +76,7 @@ async function markServiceCompleted(base44, kind, service, updates) {
 }
 
 async function createPayoutRecord(base44, service, payment, serviceAmount, platformFee, transferId, status, notes) {
-  const professionalEmail = service.walker_email || service.trainer_email || payment?.recipient_email;
+  const professionalEmail = payment?.recipient_email || service.walker_email || service.trainer_email;
   const professionalName = service.walker_name || service.trainer_name || payment?.recipient_name || 'Profissional';
   const clientEmail = service.owner_email || service.created_by || payment?.payer_email;
 
@@ -183,14 +188,25 @@ Deno.serve(async (req) => {
       completionUpdates.actual_delivery_distance = body.actualDistance;
     }
 
-    await markServiceCompleted(base44, kind, service, completionUpdates);
-
     const payment = await getRelatedPayment(base44, kind, service.id);
-    const serviceAmount = Number(service.service_amount || payment?.service_amount || 0);
-    const platformFee = Number(service.platform_fee || payment?.platform_fee || 0);
+
+    // SECURITY: o valor a transferir e o destinatário vêm do registo Payment criado no
+    // checkout verificado — nunca de campos da reserva que o cliente pode editar depois de pagar.
+    const verifiedProfessionalEmail = payment?.recipient_email || professionalEmail;
+    if (payment?.recipient_email && professionalEmail && payment.recipient_email !== professionalEmail) {
+      return Response.json({ error: 'Dados da reserva não coincidem com o pagamento registado' }, { status: 409 });
+    }
+    const serviceAmount = Number(payment?.service_amount || 0);
+    const platformFee = Number(payment?.platform_fee || 0);
+
+    await markServiceCompleted(base44, kind, service, completionUpdates);
 
     if (!payment) {
       return Response.json({ success: true, service_completed: true, payout_processed: false, reason: 'payment_not_found' });
+    }
+
+    if (!(serviceAmount > 0)) {
+      return Response.json({ error: 'Pagamento registado sem valor a libertar' }, { status: 409 });
     }
 
     if (payment.status === 'released') {
@@ -201,7 +217,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, service_completed: true, payout_processed: true, alreadyReleased: true });
     }
 
-    const profile = await resolveProfessionalProfile(base44, kind, service);
+    const profile = await resolveProfessionalProfile(base44, kind, service, verifiedProfessionalEmail);
     const stripeAccountId = profile?.stripe_account_id || null;
 
     let transferId = null;
@@ -217,7 +233,7 @@ Deno.serve(async (req) => {
         metadata: {
           service_id: service.id,
           service_kind: kind,
-          professional_email: professionalEmail || '',
+          professional_email: verifiedProfessionalEmail || '',
           owner_email: service[config.ownerEmailField] || service.created_by || ''
         }
       });
@@ -261,13 +277,13 @@ Deno.serve(async (req) => {
     });
 
     // ── Credit walker's UserWallet so the professional sees their balance ──
-    if (professionalEmail) {
+    if (verifiedProfessionalEmail) {
       try {
-        const proWallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: professionalEmail });
+        const proWallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: verifiedProfessionalEmail });
         let proWallet = proWallets[0];
         if (!proWallet) {
           proWallet = await base44.asServiceRole.entities.UserWallet.create({
-            user_email: professionalEmail,
+            user_email: verifiedProfessionalEmail,
             cashback_balance: 0, service_tokens: 0, total_points: 0,
             available_balance: 0, pending_balance: 0, total_earnings: 0
           });
@@ -308,9 +324,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (professionalEmail) {
+    if (verifiedProfessionalEmail) {
       await base44.asServiceRole.entities.Notification.create({
-        recipient_email: professionalEmail,
+        recipient_email: verifiedProfessionalEmail,
         title: transferId ? '✅ Pagamento enviado' : '⚠️ Pagamento pendente',
         message: transferId
           ? `€${serviceAmount.toFixed(2)} foram transferidos para a sua conta Stripe.`

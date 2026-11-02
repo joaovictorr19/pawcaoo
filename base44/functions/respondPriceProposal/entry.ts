@@ -30,6 +30,19 @@ export default async function(req) {
       return Response.json({ error: 'Esta reserva não aguarda resposta sua' }, { status: 400 });
     }
 
+    // ── SECURITY: os valores cobrados/reembolsados vêm do registo de proposta escrito
+    // pelo servidor (submitPriceProposal), nunca de campos da reserva editáveis pelo cliente. ──
+    const proposals = await base44.asServiceRole.entities.HotelPriceProposal.filter({ booking_id });
+    const proposal = proposals
+      .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))[0];
+
+    if (!proposal || !(Number(proposal.total_amount) > 0)) {
+      return Response.json({ error: 'Proposta de preço não encontrada' }, { status: 404 });
+    }
+    const proposedTotal = Number(proposal.total_amount);
+    const proposedServiceAmount = Number(proposal.service_amount) || 0;
+    const proposedPlatformFee = Number(proposal.platform_fee) || 0;
+
     // ── REJECT: cancel booking and restore capacity ──
     if (action === 'reject') {
       await base44.asServiceRole.entities.HotelBooking.update(booking_id, {
@@ -81,14 +94,32 @@ export default async function(req) {
 
     const origin = resolveOrigin(req);
 
-    const newTotalAmount = booking.total_amount || booking.proposed_amount || 0;
-    if (newTotalAmount <= 0) {
-      return Response.json({ error: 'Valor da reserva inválido' }, { status: 400 });
-    }
+    const newTotalAmount = proposedTotal;
 
     // ── Determine amount already paid (booking já pago → cobrar só a diferença) ──
+    // SECURITY: o valor já pago é confirmado no Stripe, não lido de campos editáveis pelo cliente.
     const isAlreadyPaid = booking.payment_status === 'paid';
-    const alreadyPaidAmount = isAlreadyPaid ? (booking.original_amount || booking.total_amount || 0) : 0;
+    let alreadyPaidAmount = 0;
+    if (isAlreadyPaid) {
+      const paymentIntentId = booking.stripe_payment_intent_id;
+      if (!paymentIntentId) {
+        return Response.json({ error: 'Pagamento da reserva não encontrado' }, { status: 409 });
+      }
+      let paymentIntent;
+      try {
+        paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      } catch (e) {
+        return Response.json({ error: 'Não foi possível verificar o pagamento da reserva' }, { status: 409 });
+      }
+      const linkedBooking = paymentIntent?.metadata?.hotel_booking_id;
+      if (linkedBooking && linkedBooking !== booking_id) {
+        return Response.json({ error: 'Pagamento não corresponde a esta reserva' }, { status: 403 });
+      }
+      alreadyPaidAmount = Math.round(paymentIntent.amount_received || 0) / 100;
+      if (!(alreadyPaidAmount > 0)) {
+        return Response.json({ error: 'Pagamento da reserva não confirmado' }, { status: 409 });
+      }
+    }
     const difference = Math.round((newTotalAmount - alreadyPaidAmount) * 100) / 100;
 
     const SERVICE_LABELS = {
@@ -111,8 +142,8 @@ export default async function(req) {
         if (hotel) {
           const transportFee = booking.transport_price || 0;
           const origSplit = computeHotelPayoutSplit(hotel, alreadyPaidAmount, transportFee);
-          additionalServiceAmount = Math.max(0, Math.round(((booking.service_amount || 0) - origSplit.serviceAmount) * 100) / 100);
-          additionalPlatformFee = Math.max(0, Math.round(((booking.platform_fee || 0) - origSplit.platformFee) * 100) / 100);
+          additionalServiceAmount = Math.max(0, Math.round((proposedServiceAmount - origSplit.serviceAmount) * 100) / 100);
+          additionalPlatformFee = Math.max(0, Math.round((proposedPlatformFee - origSplit.platformFee) * 100) / 100);
         }
       } catch (e) {
         console.error('Error computing payout deltas:', e.message);
@@ -120,7 +151,13 @@ export default async function(req) {
     }
 
     // Mark as accepted (só define payment_expires_at se ainda não foi pago)
-    const acceptUpdate = { price_proposal_status: 'accepted' };
+    // Os valores gravados vêm da proposta verificada, substituindo qualquer alteração do cliente.
+    const acceptUpdate = {
+      price_proposal_status: 'accepted',
+      total_amount: newTotalAmount,
+      service_amount: proposedServiceAmount,
+      platform_fee: proposedPlatformFee,
+    };
     if (!isAlreadyPaid) {
       acceptUpdate.payment_expires_at = new Date(Date.now() + 5 * 60 * 1000).toISOString();
     }
@@ -197,8 +234,8 @@ export default async function(req) {
         await base44.asServiceRole.entities.HotelBooking.update(booking_id, confirmUpdate);
       } catch (e) { console.error('Confirm (full wallet) error:', e.message); }
 
-      const hotelCredit = isAdjustment ? additionalServiceAmount : (booking.service_amount || 0);
-      const feeRecord = isAdjustment ? additionalPlatformFee : (booking.platform_fee || 0);
+      const hotelCredit = isAdjustment ? additionalServiceAmount : proposedServiceAmount;
+      const feeRecord = isAdjustment ? additionalPlatformFee : proposedPlatformFee;
       if (booking.hotel_email && hotelCredit > 0) {
         try {
           const wallets = await base44.asServiceRole.entities.UserWallet.filter({ user_email: booking.hotel_email });
@@ -269,8 +306,8 @@ export default async function(req) {
         owner_email: user.email,
         service_type: booking.service_type,
         total_amount: newTotalAmount.toString(),
-        platform_fee: (booking.platform_fee || 0).toString(),
-        service_amount: (booking.service_amount || 0).toString(),
+        platform_fee: proposedPlatformFee.toString(),
+        service_amount: proposedServiceAmount.toString(),
         already_paid: alreadyPaidAmount.toString(),
         adjustment_amount: isAdjustment ? difference.toString() : '0',
         additional_service_amount: additionalServiceAmount.toString(),

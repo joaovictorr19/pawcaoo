@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import Stripe from 'npm:stripe@14.21.0';
+import { resolveVerifiedProfessional } from '../../shared/payoutRecipient.ts';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 const TOKEN_VALUE = 12; // €12 per token - value transferred to walker
@@ -72,11 +73,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Could not determine walker for this booking' }, { status: 400 });
     }
 
-    const walkerProfiles = await base44.asServiceRole.entities.WalkerProfile.filter({
-      created_by: resolvedWalkerEmail
-    });
+    // SECURITY: o token só pode sair do escrow se o saldo o cobrir
+    if ((wallet.escrow_balance || 0) < TOKEN_VALUE) {
+      return Response.json({ error: 'Escrow balance insufficient for this token' }, { status: 400 });
+    }
 
-    const walkerProfile = walkerProfiles[0];
+    // SECURITY: destinatário validado no servidor (não pode ser o cliente nem um
+    // perfil criado depois da reserva, usado para desviar o pagamento).
+    const payoutCheck = await resolveVerifiedProfessional(base44, bookingRecord, resolvedWalkerEmail);
+    if (payoutCheck.error) {
+      return Response.json({ error: payoutCheck.error }, { status: 403 });
+    }
+    const walkerProfile = payoutCheck.profile;
     let stripeTransferId = null;
     let payoutStatus = 'completed';
 

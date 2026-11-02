@@ -1,0 +1,89 @@
+{
+  "name": "HotelPriceProposal",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "Reserva de hotel associada"
+    },
+    "hotel_profile_id": {
+      "type": "string"
+    },
+    "hotel_email": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "service_type": {
+      "type": "string"
+    },
+    "original_amount": {
+      "type": "number"
+    },
+    "proposed_amount": {
+      "type": "number"
+    },
+    "total_amount": {
+      "type": "number"
+    },
+    "service_amount": {
+      "type": "number"
+    },
+    "platform_fee": {
+      "type": "number"
+    },
+    "transport_fee": {
+      "type": "number",
+      "default": 0
+    },
+    "justification": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "awaiting_client",
+        "accepted",
+        "rejected",
+        "no_adjustment"
+      ],
+      "default": "awaiting_client"
+    }
+  },
+  "required": [
+    "booking_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "data.hotel_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

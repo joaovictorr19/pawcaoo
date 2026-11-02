@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import Stripe from 'npm:stripe@14.21.0';
+import { resolveVerifiedProfessional } from '../../shared/payoutRecipient.ts';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"));
 
@@ -74,6 +75,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Reserva não tem passeador associado' }, { status: 400 });
     }
 
+    // SECURITY: o destinatário do pagamento é validado no servidor
+    const payoutCheck = await resolveVerifiedProfessional(base44, booking, walker_email);
+    if (payoutCheck.error) {
+      return Response.json({ error: payoutCheck.error }, { status: 403 });
+    }
+
     // === 1. VALIDAR WALLET E TOKENS ===
     const wallets = await base44.entities.UserWallet.filter({ user_email: user.email });
     
@@ -133,6 +140,11 @@ Deno.serve(async (req) => {
       : TOKEN_VALUE;
 
     // === 4. ABATER TOKEN E MOVER ESCROW ===
+    // SECURITY: nunca mover um valor para pagamentos pendentes sem cobertura em escrow
+    if ((wallet.escrow_balance || 0) < tokenValue) {
+      return Response.json({ error: 'Saldo em escrow insuficiente para usar este token' }, { status: 400 });
+    }
+
     const newTokens = wallet.service_tokens - 1;
     const newEscrow = wallet.escrow_balance - tokenValue;
     const newPendingPayments = (wallet.pending_walker_payments || 0) + tokenValue;

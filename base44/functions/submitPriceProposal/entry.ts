@@ -71,6 +71,30 @@ export default async function(req) {
 
     await base44.asServiceRole.entities.HotelBooking.update(booking_id, updateData);
 
+    // ── Guardar a proposta num registo que só o servidor pode escrever, para que o
+    // cliente não possa alterar os valores antes de a aceitar (ver respondPriceProposal). ──
+    const proposalPayload = {
+      booking_id,
+      hotel_profile_id: booking.hotel_profile_id || '',
+      hotel_email: booking.hotel_email || '',
+      owner_email: booking.owner_email || '',
+      service_type: booking.service_type,
+      original_amount: originalAmount || 0,
+      proposed_amount: proposedAmount,
+      total_amount: newTotalAmount,
+      service_amount: newServiceAmount,
+      platform_fee: platformFee,
+      transport_fee: transportFee,
+      justification: justification || '',
+      status: action === 'no_adjustment' ? 'no_adjustment' : 'awaiting_client',
+    };
+    const existingProposals = await base44.asServiceRole.entities.HotelPriceProposal.filter({ booking_id });
+    if (existingProposals[0]) {
+      await base44.asServiceRole.entities.HotelPriceProposal.update(existingProposals[0].id, proposalPayload);
+    } else {
+      await base44.asServiceRole.entities.HotelPriceProposal.create(proposalPayload);
+    }
+
     // Notify the client about the price proposal
     if (action !== 'no_adjustment') {
       const origin = resolveOrigin(req);
