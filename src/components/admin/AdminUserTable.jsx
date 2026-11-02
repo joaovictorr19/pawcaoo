@@ -17,6 +17,7 @@ import { AdminQuickVerify } from "./AdminQuickVerify";
 import { AdminUserCard } from "./AdminUserCard";
 import { AdminUserDrawer } from "./AdminUserDrawer";
 import { base44 } from "@/api/base44Client";
+import { dedupeUsers, deriveDisplayName, normalizeEmail } from "@/utils/adminUserList";
 
 export default function AdminUserTable({
   users = [],
@@ -101,9 +102,12 @@ export default function AdminUserTable({
     setIsDrawerOpen(true);
   };
 
+  // Uma linha por conta distinta (e-mail como chave estável)
+  const normalizedUsers = useMemo(() => dedupeUsers(users), [users]);
+
   const stats = useMemo(() => {
     let pending = 0, active = 0, professionals = 0;
-    (Array.isArray(users) ? users : []).forEach(u => {
+    normalizedUsers.forEach(u => {
       const prof = profilesByEmail[u.email];
       const hasActiveWalker = Array.isArray(walkers) && walkers.some(w => w.created_by === u.email && w.verification_status === 'verified');
       const hasActiveTrainer = Array.isArray(trainers) && trainers.some(t => t.created_by === u.email && t.verification_status === 'verified');
@@ -120,19 +124,19 @@ export default function AdminUserTable({
       if (isActive) active++; else pending++;
     });
     return { pending, active, professionals, reports: 0 };
-  }, [users, profilesByEmail, walkers, trainers]);
+  }, [normalizedUsers, profilesByEmail, walkers, trainers]);
 
   const filteredUsers = useMemo(() => {
-    if (!Array.isArray(users) || users.length === 0) return [];
+    if (normalizedUsers.length === 0) return [];
     const { searchTerm, filters } = userSearchState;
     const searchLower = searchTerm?.toLowerCase().trim() || "";
     if (!searchLower && (!filters || Object.keys(filters).length === 0) && quickFilter === 'all') {
-      return users;
+      return normalizedUsers;
     }
-    return users.filter(u => {
+    return normalizedUsers.filter(u => {
       if (searchLower) {
         const email = u.email?.toLowerCase() || "";
-        const name = u.full_name?.toLowerCase() || "";
+        const name = deriveDisplayName(u).toLowerCase();
         if (!email.includes(searchLower) && !name.includes(searchLower)) {
           return false;
         }
@@ -173,7 +177,7 @@ export default function AdminUserTable({
       }
       return true;
     });
-  }, [users, userSearchState, profilesByEmail, quickFilter, walkers, trainers]);
+  }, [normalizedUsers, userSearchState, profilesByEmail, quickFilter, walkers, trainers]);
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const paginatedUsers = useMemo(() => {
@@ -199,7 +203,7 @@ export default function AdminUserTable({
             <div>
               <h2 className="text-xl md:text-2xl font-black text-slate-900">{t('accountManagement', language)}</h2>
               <p className="text-sm text-slate-500 mt-0.5">
-                {filteredUsers.length} {language === 'pt' ? 'de' : 'of'} {users.length} {language === 'pt' ? 'contas' : 'accounts'}
+                {filteredUsers.length} {language === 'pt' ? 'de' : 'of'} {normalizedUsers.length} {language === 'pt' ? 'contas' : 'accounts'}
               </p>
             </div>
             <Button variant="outline" onClick={handleSync} disabled={isSyncing} size="sm"
@@ -211,7 +215,7 @@ export default function AdminUserTable({
           {/* Quick Filters */}
           <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
             <Button size="sm" className={pillCls(quickFilter === 'all', 'bg-slate-800')} onClick={() => setQuickFilter('all')}>
-              Todos ({users.length})
+              Todos ({normalizedUsers.length})
             </Button>
             <Button size="sm" className={pillCls(quickFilter === 'professionals', 'bg-teal-600')} onClick={() => setQuickFilter('professionals')}>
               Profissionais ({stats.professionals})
@@ -235,7 +239,7 @@ export default function AdminUserTable({
 
       {/* Content */}
       <div className="p-0">
-        {isLoading && users.length === 0 ? (
+        {isLoading && normalizedUsers.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
             <Loader2 className="w-10 h-10 animate-spin mx-auto mb-3 text-teal-500" />
             <p>{t('loading', language)}</p>
@@ -248,7 +252,7 @@ export default function AdminUserTable({
               <div className="grid grid-cols-2 gap-3 mb-2">
                 <div className="glass-admin-section rounded-2xl p-4 flex flex-col justify-center">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total</p>
-                  <p className="text-2xl font-black text-slate-900">{users.length}</p>
+                  <p className="text-2xl font-black text-slate-900">{normalizedUsers.length}</p>
                 </div>
                 <div className="rounded-2xl p-4 flex flex-col justify-center bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/20">
                   <p className="text-[9px] font-black opacity-90 uppercase tracking-widest mb-0.5">Pendentes</p>
@@ -258,7 +262,7 @@ export default function AdminUserTable({
 
               {paginatedUsers.length === 0 ? (
                 <div className="text-center py-12 text-slate-500 glass-admin-section rounded-2xl">
-                  <p className="text-sm font-medium">{filteredUsers.length === 0 && users.length > 0 ? 'Nenhum utilizador encontrado' : 'A carregar...'}</p>
+                  <p className="text-sm font-medium">{filteredUsers.length === 0 && normalizedUsers.length > 0 ? 'Nenhum utilizador encontrado' : 'A carregar...'}</p>
                 </div>
               ) : (
                 paginatedUsers.map(user => (
@@ -287,7 +291,7 @@ export default function AdminUserTable({
                   {paginatedUsers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={9} className="h-32 text-center text-slate-500">
-                        {filteredUsers.length === 0 && users.length > 0
+                        {filteredUsers.length === 0 && normalizedUsers.length > 0
                           ? (language === 'pt' ? 'Nenhum utilizador encontrado com os filtros aplicados' : 'No users found with applied filters')
                           : (language === 'pt' ? 'A carregar utilizadores...' : 'Loading users...')}
                       </TableCell>
