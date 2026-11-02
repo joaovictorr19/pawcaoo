@@ -42,6 +42,16 @@ export function discountLabel(promo) {
   return null;
 }
 
+// Recolha gratuita — estado do limite de utilizações gratuitas
+export function freePickupState(promo) {
+  if (!promo?.free_pickup) return null;
+  const limit = promo.free_pickup_limit || 0;
+  const used = promo.free_pickup_used || 0;
+  if (limit <= 0) return { unlimited: true, used, limit: 0, left: null, exhausted: false };
+  const left = Math.max(0, limit - used);
+  return { unlimited: false, used, limit, left, exhausted: left === 0 };
+}
+
 export function promoScopeLabel(promo) {
   if (promo?.scope === "hotel_service") return promo.service_name || "Serviço de hotel";
   return promo?.product_name || "Produto";

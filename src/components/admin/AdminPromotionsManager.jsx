@@ -8,6 +8,7 @@ import {
   PROMO_STATUS_LABEL,
   PROMO_STATUS_STYLE,
   discountLabel,
+  freePickupState,
   getPromotionStatus,
   promoScopeLabel,
   vacanciesLeft,
@@ -123,6 +124,7 @@ export default function AdminPromotionsManager({ products = [] }) {
             const left = vacanciesLeft(promo);
             const max = promo.max_participants || 0;
             const discount = discountLabel(promo);
+            const pickup = freePickupState(promo);
             return (
               <div key={promo.id} className="rounded-2xl border border-slate-200 bg-white p-3.5">
                 <div className="flex items-start justify-between gap-2">
@@ -157,7 +159,32 @@ export default function AdminPromotionsManager({ products = [] }) {
                       Hotel
                     </span>
                   )}
+                  {pickup && (
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        pickup.exhausted
+                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                          : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      }`}
+                    >
+                      {pickup.exhausted
+                        ? "Recolha grátis esgotada"
+                        : pickup.unlimited
+                        ? "Recolha grátis sem limite"
+                        : `Recolha grátis ${pickup.used}/${pickup.limit}`}
+                    </span>
+                  )}
                 </div>
+
+                {pickup && (
+                  <p className="text-[10px] font-semibold text-slate-500 mt-2">
+                    {pickup.exhausted
+                      ? "Limite atingido — a recolha volta a ser cobrada ao preço normal."
+                      : pickup.unlimited
+                      ? "Recolha não cobrada em todas as adesões."
+                      : `${pickup.left} recolhas gratuitas restantes. Depois volta ao preço normal.`}
+                  </p>
+                )}
 
                 {max > 0 && (
                   <div className="mt-2.5">

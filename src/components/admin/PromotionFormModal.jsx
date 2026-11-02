@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { ImagePlus, Loader2, Truck } from "lucide-react";
 import { todayISO } from "@/lib/promotions";
 
 const EMPTY = {
@@ -18,6 +18,9 @@ const EMPTY = {
   discount_type: "percentage",
   discount_value: 10,
   free_extra: "",
+  free_pickup: false,
+  free_pickup_limit: 10,
+  free_pickup_used: 0,
   max_participants: 10,
   start_date: todayISO(),
   end_date: "",
@@ -74,10 +77,18 @@ export default function PromotionFormModal({ open, onClose, promotion, products 
         ...data,
         discount_value: Number(data.discount_value) || 0,
         max_participants: Number(data.max_participants) || 0,
+        free_pickup: !!data.free_pickup,
+        free_pickup_limit: Number(data.free_pickup_limit) || 0,
         end_date: data.end_date || null,
       };
       if (promotion?.id) return base44.entities.Promotion.update(promotion.id, payload);
-      return base44.entities.Promotion.create({ ...payload, participants_count: 0, claimed_emails: [] });
+      return base44.entities.Promotion.create({
+        ...payload,
+        participants_count: 0,
+        claimed_emails: [],
+        free_pickup_used: 0,
+        free_pickup_emails: [],
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminPromotions"] });
@@ -276,6 +287,58 @@ export default function PromotionFormModal({ open, onClose, promotion, products 
                 placeholder="Ex: Recolha grátis ao domicílio"
               />
             </div>
+          </Section>
+
+          <Section title="Recolha gratuita">
+            <button
+              onClick={() => set({ free_pickup: !form.free_pickup })}
+              className={`w-full h-12 rounded-xl border px-3.5 flex items-center justify-between transition-colors ${
+                form.free_pickup
+                  ? "bg-teal-50 border-teal-500"
+                  : "bg-white border-slate-200 hover:border-teal-300"
+              }`}
+            >
+              <span className="flex items-center gap-2 text-[12px] font-bold text-slate-700">
+                <Truck className={`w-4 h-4 ${form.free_pickup ? "text-teal-700" : "text-slate-400"}`} />
+                Não cobrar a recolha
+              </span>
+              <span
+                className={`w-10 h-6 rounded-full p-0.5 transition-colors shrink-0 ${
+                  form.free_pickup ? "bg-teal-600" : "bg-slate-300"
+                }`}
+              >
+                <span
+                  className={`block w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    form.free_pickup ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </span>
+            </button>
+
+            {form.free_pickup && (
+              <>
+                <div>
+                  <label className={labelCls}>Recolhas gratuitas incluídas</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className={fieldCls}
+                    value={form.free_pickup_limit}
+                    onChange={(e) => set({ free_pickup_limit: e.target.value })}
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">0 = recolha gratuita sem limite</p>
+                </div>
+                <p className="text-[11px] text-teal-900 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2 leading-snug">
+                  As primeiras {Number(form.free_pickup_limit) || 0} recolhas não são cobradas. Assim que
+                  esse limite for atingido, a recolha volta a ser cobrada ao preço normal do parceiro.
+                </p>
+                {promotion && (
+                  <p className="text-[10px] text-slate-500 font-semibold">
+                    Já usadas: {promotion.free_pickup_used || 0} de {Number(form.free_pickup_limit) || 0}
+                  </p>
+                )}
+              </>
+            )}
           </Section>
 
           <Section title="Limite e validade">

@@ -56,6 +56,36 @@
       "type": "string",
       "description": "Servico extra gratuito (ex: Recolha gratis, Banho de oferta)"
     },
+    "free_pickup": {
+      "type": "boolean",
+      "default": false,
+      "description": "Recolha nao cobrada enquanto existirem utilizacoes gratuitas disponiveis"
+    },
+    "free_pickup_limit": {
+      "type": "number",
+      "default": 10,
+      "description": "Numero de recolhas gratuitas permitidas (0 = sem limite)"
+    },
+    "free_pickup_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Recolhas gratuitas ja atribuidas"
+    },
+    "free_pickup_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Emails que ja receberam a recolha gratuita",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
     "max_participants": {
       "type": "number",
       "default": 0,

@@ -3,9 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Sparkles, Ticket, Check, Megaphone } from "lucide-react";
+import { Sparkles, Ticket, Check, Megaphone, Truck } from "lucide-react";
 import {
   discountLabel,
+  freePickupState,
   getPromotionStatus,
   promoScopeLabel,
   vacanciesLeft,
@@ -47,7 +48,16 @@ export default function ActivePromotions({ user }) {
       }
       setClaimedIds((prev) => [...prev, promotionId]);
       queryClient.invalidateQueries({ queryKey: ["shopPromotions"] });
-      toast.success(data?.already_claimed ? "Já tinhas aderido a esta promoção" : "Promoção reservada. Fala com o parceiro ao reservar.");
+      const pickupNote = data?.free_pickup
+        ? data.free_pickup_granted
+          ? " Recolha gratuita garantida."
+          : " Recolha ao preço normal: o limite de recolhas gratuitas já foi atingido."
+        : "";
+      toast.success(
+        (data?.already_claimed
+          ? "Já tinhas aderido a esta promoção"
+          : "Promoção reservada. Fala com o parceiro ao reservar.") + pickupNote
+      );
     },
     onError: (error) => {
       const message = error?.response?.data?.error || "Não foi possível aderir agora";
@@ -75,6 +85,7 @@ export default function ActivePromotions({ user }) {
         {active.map((promo) => {
           const discount = discountLabel(promo);
           const left = vacanciesLeft(promo);
+          const pickup = freePickupState(promo);
           const claimed = claimedIds.includes(promo.id);
           const soldOut = left === 0;
           return (
@@ -102,6 +113,22 @@ export default function ActivePromotions({ user }) {
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-teal-800 border border-teal-200 flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
                     {promo.free_extra}
+                  </span>
+                )}
+                {pickup && (
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                      pickup.exhausted
+                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : "bg-white text-emerald-700 border-emerald-200"
+                    }`}
+                  >
+                    <Truck className="w-3 h-3" />
+                    {pickup.exhausted
+                      ? "Recolha grátis esgotada"
+                      : pickup.unlimited
+                      ? "Recolha grátis"
+                      : `Recolha grátis · ${pickup.left} restantes`}
                   </span>
                 )}
                 {left !== null && (
