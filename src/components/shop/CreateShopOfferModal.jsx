@@ -136,7 +136,7 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="gap-0 p-0 max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-3xl">
+      <DialogContent className="gap-0 p-0 max-w-md max-h-[90vh] flex flex-col overflow-hidden bg-white rounded-3xl sm:rounded-3xl">
         <DialogHeader className="p-5 pb-3 border-b border-slate-100">
           <DialogTitle className="flex items-center gap-2 font-heading text-lg font-extrabold text-slate-900">
             <Flame className="w-5 h-5 text-orange-500" />
@@ -147,7 +147,7 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
           </p>
         </DialogHeader>
 
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 flex-1 overflow-y-auto">
           {/* Seleção de serviço existente */}
           {services.length > 0 && (
             <div>
@@ -303,7 +303,7 @@ export default function CreateShopOfferModal({ open, onClose, professionalProfil
           </div>
         </div>
 
-        <div className="p-5 pt-3 border-t border-slate-100 sticky bottom-0 bg-white">
+        <div className="p-5 pt-3 border-t border-slate-100 shrink-0 bg-white">
           <Button
             onClick={handleSubmit}
             disabled={submitting}

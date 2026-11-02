@@ -48,7 +48,7 @@ export default function PickupLookup({ open, onClose, partnerEmail }) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-md max-h-[90vh] flex flex-col overflow-hidden p-0 rounded-3xl">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-md max-h-[90vh] flex flex-col overflow-hidden p-0 rounded-3xl sm:rounded-3xl">
         <DialogHeader className="p-5 pb-3 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-lg font-heading font-bold text-slate-900">
             <MapPin className="w-5 h-5 text-teal-600" /> Procurar Recolha

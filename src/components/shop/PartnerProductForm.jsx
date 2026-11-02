@@ -131,7 +131,7 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={`max-w-lg max-h-[92vh] overflow-y-auto p-0 rounded-3xl ${S.dialog}`}>
+      <DialogContent className={`max-w-lg max-h-[92vh] flex flex-col overflow-hidden p-0 rounded-3xl sm:rounded-3xl ${S.dialog}`}>
         <DialogHeader className="px-5 pt-5 pb-3">
           <DialogTitle className={`text-lg font-bold ${S.title}`}>
             {isEdit ? "Editar Produto" : "Novo Produto / Serviço"}
@@ -145,7 +145,7 @@ export default function PartnerProductForm({ open, onClose, product, partner, va
           </p>
         </DialogHeader>
 
-        <div className="px-5 pb-5 space-y-4">
+        <div className="px-5 pb-5 space-y-4 flex-1 overflow-y-auto">
           {/* Foto */}
           <div>
             <Label className={`text-sm font-semibold ${S.label}`}>Foto</Label>

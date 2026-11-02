@@ -164,7 +164,7 @@ export default function MimoRedeemModal({ mimo, onClose }) {
 
   return (
     <Dialog open={!!mimo} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md max-h-[92vh] overflow-y-auto p-0 rounded-3xl">
+      <DialogContent className="max-w-md max-h-[92vh] flex flex-col overflow-hidden p-0 rounded-3xl sm:rounded-3xl">
         <DialogHeader className="p-5 pb-3">
           <DialogTitle className="flex items-center gap-2 text-lg font-heading font-bold text-slate-900">
             <Gift className="w-5 h-5 text-teal-600" />
@@ -172,7 +172,7 @@ export default function MimoRedeemModal({ mimo, onClose }) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-5 pb-4">
+        <div className="px-5 pb-4 flex-1 overflow-y-auto">
           {/* Resumo do mimo */}
           <div className="flex gap-3 items-center bg-slate-100 rounded-xl p-2.5 mb-4">
             <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0 relative">
@@ -290,7 +290,7 @@ export default function MimoRedeemModal({ mimo, onClose }) {
 
         {/* Sticky action bar */}
         {user && bookings.length > 0 && (
-          <div className="sticky bottom-0 px-5 pb-5 pt-2 bg-white border-t border-slate-100">
+          <div className="shrink-0 px-5 pb-5 pt-2 bg-white border-t border-slate-100">
             <button
               onClick={handleConfirm}
               disabled={processing || !selectedBooking}
