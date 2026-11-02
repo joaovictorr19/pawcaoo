@@ -5,8 +5,9 @@ import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Search, Truck, MapPin, Hotel, Package, PackageOpen, Sparkles, ArrowRight, Store, RefreshCw } from "lucide-react";
+import { Search, Package, PackageOpen, Sparkles, ArrowRight, RefreshCw } from "lucide-react";
 import ProductPurchaseModal from "@/components/shop/ProductPurchaseModal";
+import ShopProductCard from "@/components/shop/ShopProductCard";
 import FeaturedProducts from "@/components/shop/FeaturedProducts";
 import ShopOffersCarousel from "@/components/shop/ShopOffersCarousel";
 import MimosSection from "@/components/shop/MimosSection";
@@ -23,12 +24,6 @@ const CATEGORIES = [
   { id: "training", label: "Treino" },
   { id: "other", label: "Outros" },
 ];
-
-const DELIVERY = {
-  shipping: { label: "Entrega", icon: Truck },
-  pickup: { label: "Recolha", icon: MapPin },
-  with_stay: { label: "Com estadia", icon: Hotel },
-};
 
 export default function Shop() {
   const navigate = useNavigate();
@@ -88,8 +83,7 @@ export default function Shop() {
     return map;
   }, [products]);
 
-  const handleOpenShop = (e, partnerId) => {
-    e.stopPropagation();
+  const handleOpenShop = (partnerId) => {
     if (partnerId) navigate(`/loja/${partnerId}`);
   };
 
@@ -193,20 +187,31 @@ export default function Shop() {
           ) : (
             <span />
           )}
-          <button
-            onClick={() => {
-              refetch();
-              queryClient.invalidateQueries({ queryKey: ["featuredProducts"] });
-              queryClient.invalidateQueries({ queryKey: ["featuredOrders"] });
-              queryClient.invalidateQueries({ queryKey: ["shopOffers"] });
-            }}
-            disabled={isFetching}
-            title="Atualizar loja"
-            className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-slate-500 bg-white border border-slate-200 hover:border-teal-300 hover:text-teal-700 transition-all active:scale-95 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
-            {isFetching ? "A atualizar..." : "Atualizar"}
-          </button>
+          <div className="flex items-center gap-2">
+            {user && (
+              <a
+                href={createPageUrl("MyOrders")}
+                className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-teal-700 bg-teal-50 border border-teal-100 hover:bg-teal-100 transition-all active:scale-95"
+              >
+                <Package className="w-3.5 h-3.5" />
+                Encomendas
+              </a>
+            )}
+            <button
+              onClick={() => {
+                refetch();
+                queryClient.invalidateQueries({ queryKey: ["featuredProducts"] });
+                queryClient.invalidateQueries({ queryKey: ["featuredOrders"] });
+                queryClient.invalidateQueries({ queryKey: ["shopOffers"] });
+              }}
+              disabled={isFetching}
+              title="Atualizar loja"
+              className="flex items-center gap-1.5 px-3 h-8 rounded-full text-[11px] font-bold text-slate-500 bg-white border border-slate-200 hover:border-teal-300 hover:text-teal-700 transition-all active:scale-95 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
+              {isFetching ? "A atualizar..." : "Atualizar"}
+            </button>
+          </div>
         </div>
 
         {/* Lista de produtos */}
@@ -234,80 +239,15 @@ export default function Shop() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {filtered.map((product) => {
-              const delivery = DELIVERY[product.delivery_method] || DELIVERY.pickup;
-              const soldOut = (product.stock_quantity || 0) < 1;
-              return (
-                <button
-                  key={product.id}
-                  onClick={() => handleOpenProduct(product)}
-                  className="group text-left bg-white rounded-3xl border border-slate-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(13,148,131,0.12)] hover:ring-1 hover:ring-teal-500/20 transition-all overflow-hidden active:scale-[0.98] flex sm:flex-col"
-                >
-                  {/* Imagem — compacta à esquerda no telemóvel, em cima no desktop */}
-                  <div className="w-28 min-h-[112px] self-stretch sm:w-full sm:h-56 shrink-0 relative overflow-hidden bg-slate-100 rounded-2xl sm:rounded-none p-2 sm:p-0">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Package className="w-8 h-8 text-slate-300" />
-                    </div>
-                    {product.image_url && (
-                      <img
-                        src={product.image_url}
-                        alt={product.product_name}
-                        loading="lazy"
-                        decoding="async"
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        className="relative w-full h-full object-contain sm:object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    )}
-                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none hidden sm:block" />
-                    {soldOut ? (
-                      <span className="absolute top-2 right-2 px-2.5 py-1 rounded-full bg-slate-900/80 text-white text-[10px] font-bold">
-                        Esgotado
-                      </span>
-                    ) : product.product_type === "service" ? (
-                      <span className="absolute top-2 left-2 px-2.5 py-1 rounded-full bg-teal-600 text-white text-[10px] font-bold">
-                        Serviço
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {/* Conteúdo */}
-                  <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col">
-                    <div className="flex items-center gap-1 flex-wrap">
-                      <button
-                        onClick={(e) => handleOpenShop(e, product.partner_id)}
-                        className="flex items-center gap-1 text-[11px] font-bold text-teal-700 hover:text-teal-900 hover:underline transition-colors"
-                      >
-                        <Store className="w-3 h-3 shrink-0" />
-                        <span className="truncate max-w-[140px]">{product.partner_name || "Parceiro PawCão"}</span>
-                      </button>
-                      {(partnerProductCount[product.partner_id] || 0) > 1 && (
-                        <button
-                          onClick={(e) => handleOpenShop(e, product.partner_id)}
-                          className="text-[10px] font-semibold text-slate-400 hover:text-teal-700 transition-colors"
-                        >
-                          +{partnerProductCount[product.partner_id] - 1} produtos →
-                        </button>
-                      )}
-                    </div>
-                    <p className="font-bold text-slate-900 text-sm leading-snug mt-1">
-                      {product.product_name}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2 hidden sm:block">
-                      {product.description || "\u00A0"}
-                    </p>
-                    <div className="flex items-center justify-between gap-2 mt-auto pt-2.5 border-t border-slate-100">
-                      <span className="text-xl font-black text-teal-700 leading-none">
-                        €{(product.price_euro || 0).toFixed(2)}
-                      </span>
-                      <span className="flex items-center gap-1.5 text-[12px] font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded-full px-3 py-1">
-                        <delivery.icon className="w-4 h-4 text-teal-600" />
-                        {delivery.label}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+            {filtered.map((product) => (
+              <ShopProductCard
+                key={product.id}
+                product={product}
+                moreCount={Math.max(0, (partnerProductCount[product.partner_id] || 0) - 1)}
+                onOpen={handleOpenProduct}
+                onOpenShop={handleOpenShop}
+              />
+            ))}
           </div>
         )}
 

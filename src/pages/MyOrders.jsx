@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { getCurrentUser } from "@/utils/getCurrentUser";
 import { createPageUrl } from "@/utils";
-import { Package, ShoppingBag, Truck, MapPin, Hotel, PackageOpen, Loader2 } from "lucide-react";
+import { Package, ShoppingBag, Truck, MapPin, Hotel, PackageOpen, Loader2, Copy, Check } from "lucide-react";
+import OrderStatusTimeline from "@/components/orders/OrderStatusTimeline";
 
 const STATUS = {
   pending: { label: "Aguarda pagamento", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  paid: { label: "Pago", cls: "bg-teal-50 text-teal-700 border-teal-200" },
   processing: { label: "Em preparação", cls: "bg-sky-50 text-sky-700 border-sky-200" },
   shipped: { label: "Enviado", cls: "bg-indigo-50 text-indigo-700 border-indigo-200" },
   delivered: { label: "Entregue", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -20,6 +22,18 @@ const DELIVERY = {
 };
 
 export default function MyOrders() {
+  const [copiedCode, setCopiedCode] = useState(null);
+
+  const copyCode = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch (e) {
+      console.warn("Não foi possível copiar o código:", e);
+    }
+  };
+
   const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ["ordersCurrentUser"],
     queryFn: () => getCurrentUser(),
@@ -113,6 +127,8 @@ export default function MyOrders() {
                   ))}
                 </div>
 
+                <OrderStatusTimeline status={order.status} deliveryMethod={order.delivery_method} />
+
                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-xs text-slate-500">
                     <delivery.icon className="w-3.5 h-3.5 text-teal-600" />
@@ -135,6 +151,48 @@ export default function MyOrders() {
                     Entrega em: {order.shipping_address.street}, {order.shipping_address.postal_code}{" "}
                     {order.shipping_address.city}
                   </p>
+                )}
+
+                {order.delivery_method === "shipping" && order.tracking_number && (
+                  <p className="mt-2 text-[11px] font-semibold text-slate-500">
+                    Rastreio:{" "}
+                    <span className="font-mono text-slate-800">{order.tracking_number}</span>
+                  </p>
+                )}
+
+                {order.pickup_code && order.delivery_method !== "shipping" && (
+                  <div className="mt-3 rounded-2xl bg-teal-50 border border-teal-100 px-3.5 py-2.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-teal-700">
+                          {order.delivery_method === "with_stay" ? "Código do mimo" : "Código de recolha"}
+                        </p>
+                        <p className="font-mono font-black text-lg text-teal-900 leading-tight">
+                          {order.pickup_code}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => copyCode(order.pickup_code)}
+                        className="flex items-center gap-1.5 px-3 h-9 rounded-full bg-white border border-teal-200 text-[11px] font-bold text-teal-700 hover:bg-teal-100 transition-all active:scale-95 shrink-0"
+                      >
+                        {copiedCode === order.pickup_code ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" /> Copiado
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" /> Copiar
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    {order.pickup_address && (
+                      <p className="mt-1.5 text-[11px] text-teal-800/80">{order.pickup_address}</p>
+                    )}
+                    {order.pickup_notes && (
+                      <p className="mt-0.5 text-[11px] text-teal-800/70">{order.pickup_notes}</p>
+                    )}
+                  </div>
                 )}
               </div>
             );
