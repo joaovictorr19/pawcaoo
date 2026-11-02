@@ -65,31 +65,27 @@ export default function NotificationArea({ isOpen, onClose }) {
     initialData: [],
   });
 
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    queryClient.invalidateQueries({ queryKey: ['unreadNotifications'] });
+  };
+
   const markRead = useMutation({
     mutationFn: (id) => base44.entities.Notification.update(id, { is_read: true }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['notifications']);
-      queryClient.invalidateQueries(['unreadNotifications']);
-    },
+    onSuccess: refresh,
   });
 
   const markAllRead = useMutation({
-    mutationFn: async () => {
-      const unread = notifications.filter(n => !n.is_read);
-      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['notifications']);
-      queryClient.invalidateQueries(['unreadNotifications']);
-    },
+    mutationFn: () => base44.entities.Notification.updateMany(
+      { recipient_email: user.email, is_read: false },
+      { $set: { is_read: true } }
+    ),
+    onSuccess: refresh,
   });
 
   const deleteNotif = useMutation({
     mutationFn: (id) => base44.entities.Notification.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['notifications']);
-      queryClient.invalidateQueries(['unreadNotifications']);
-    },
+    onSuccess: refresh,
   });
 
   const handleClick = (n) => {
