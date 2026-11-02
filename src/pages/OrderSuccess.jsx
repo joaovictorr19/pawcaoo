@@ -8,6 +8,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import PickupInfoBlock from "@/components/shop/PickupInfoBlock";
+import { GADS_SEND_TO, trackConversionOnce } from "@/lib/googleAds";
 
 export default function OrderSuccess() {
   const navigate = useNavigate();
@@ -20,7 +21,15 @@ export default function OrderSuccess() {
     queryFn: async () => {
       if (!orderId) return null;
       const orders = await base44.entities.ProductOrder.filter({ id: orderId });
-      return orders[0] || null;
+      const found = orders[0] || null;
+      if (found && found.payment_status === 'paid') {
+        trackConversionOnce(`gads_purchase_${found.id}`, GADS_SEND_TO.purchase, {
+          value: found.total_amount || 0,
+          currency: found.currency || 'EUR',
+          transaction_id: found.id,
+        });
+      }
+      return found;
     },
     enabled: !!orderId,
     staleTime: 60 * 1000,

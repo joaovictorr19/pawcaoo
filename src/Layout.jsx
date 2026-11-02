@@ -63,6 +63,39 @@ import InstallPrompt from "@/components/ui/InstallPrompt";
 
 import "./globals.css";
 
+// Google Ads gtag bootstrap — module scope so window.gtag exists before any
+// page effect fires a conversion (e.g. returning from Stripe checkout).
+if (typeof document !== 'undefined' && !window.__gads_loaded) {
+    window.__gads_loaded = true;
+    window.dataLayer = window.dataLayer || [];
+    const inIframe = (() => { try { return window.self !== window.top; } catch { return true; } })();
+    window.gtag = function gtag() {
+        window.dataLayer.push(arguments);
+        if (inIframe) {
+            try {
+                const args = Array.prototype.slice.call(arguments);
+                const cmd = args[0];
+                window.parent.postMessage({
+                    type: 'base44_gtag_event',
+                    event: {
+                        source: 'gtag',
+                        timestamp: new Date().toLocaleTimeString(),
+                        command: cmd,
+                        params: args.slice(1),
+                        type: cmd === 'event' ? (args[1] || 'event') : cmd,
+                    },
+                }, '*');
+            } catch (_e) { /* relay must not break gtag */ }
+        }
+    };
+    const s = document.createElement('script');
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18551959554';
+    s.async = true;
+    document.head.appendChild(s);
+    window.gtag('js', new Date());
+    window.gtag('config', 'AW-18551959554', { send_page_view: false });
+}
+
 
 
 
@@ -133,6 +166,33 @@ function LayoutContent({ children, currentPageName }) {
 
   if (authUser) lastAuthUserRef.current = authUser;
   const stableUser = authUser || lastAuthUserRef.current;
+
+  // Google Ads — SIGNUP: dispara no primeiro render autenticado de uma conta nova
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !authUser || !authUser.id) return;
+    // conta nova, não um login de regresso: created_date dentro da janela de 24h
+    const createdDate = String(authUser.created_date || '');
+    const createdDateUtc = /(?:Z|[+-]\d{2}:?\d{2})$/.test(createdDate)
+      ? createdDate
+      : createdDate + 'Z';
+    const createdAtMs = Date.parse(createdDateUtc);
+    const isNewSignup = Number.isFinite(createdAtMs) &&
+      Date.now() - createdAtMs < 24 * 60 * 60 * 1000;
+    const key = '_aw_signup_fired_AW-18551959554/jl-0COGw0bAdEILgoY5F_' + authUser.id;
+    if (!isNewSignup || localStorage.getItem(key)) return;
+    // o gtag pode ainda não existir, por isso tentamos de novo em vez de desistir
+    let tries = 0;
+    const fire = () => {
+      if (!window.gtag) { if (tries++ < 20) setTimeout(fire, 250); return; }
+      if (localStorage.getItem(key)) return;
+      localStorage.setItem(key, '1');
+      window.gtag('event', 'conversion', {
+        send_to: 'AW-18551959554/jl-0COGw0bAdEILgoY5F',
+        transaction_id: authUser.id,
+      });
+    };
+    fire();
+  }, [authUser]);
 
   const { data: notifications } = useQuery({
     queryKey: ['unreadNotifications'],

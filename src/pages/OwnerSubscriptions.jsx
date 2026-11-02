@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { GADS_SEND_TO, trackConversion } from "@/lib/googleAds";
 
 export default function OwnerSubscriptions() {
   const queryClient = useQueryClient();
@@ -19,6 +20,22 @@ export default function OwnerSubscriptions() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('success') === 'true') {
+      // Google Ads — SUBSCRIBE_PAID (subscrição paga iniciada)
+      let pending = null;
+      try {
+        pending = JSON.parse(sessionStorage.getItem('gads_pending_subscription') || 'null');
+      } catch (err) {
+        pending = null;
+      }
+      trackConversion(GADS_SEND_TO.subscribe, {
+        currency: 'EUR',
+        ...(pending?.value ? { value: pending.value } : {}),
+      });
+      try {
+        sessionStorage.removeItem('gads_pending_subscription');
+      } catch (err) {
+        // ignore
+      }
       toast.success("✅ Pagamento processado! A sua subscrição será ativada em breve.");
       window.history.replaceState({}, '', window.location.pathname);
     } else if (params.get('canceled') === 'true') {
@@ -71,6 +88,9 @@ export default function OwnerSubscriptions() {
         });
 
         if (response?.data?.url) {
+          sessionStorage.setItem('gads_pending_subscription', JSON.stringify({
+            value: billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice,
+          }));
           window.location.href = response.data.url;
           return null;
         } else if (response?.data?.success) {
@@ -128,6 +148,7 @@ export default function OwnerSubscriptions() {
       });
 
       if (response?.data?.url) {
+        sessionStorage.setItem('gads_pending_subscription', JSON.stringify({ value: price }));
         window.location.href = response.data.url;
         return null;
       } else {

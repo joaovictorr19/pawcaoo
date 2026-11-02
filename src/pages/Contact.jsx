@@ -27,6 +27,7 @@ import { useLanguage } from "@/components/LanguageContext";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { useMutation } from "@tanstack/react-query";
+import { GADS_SEND_TO, trackConversion } from "@/lib/googleAds";
 
 export default function Contact() {
   const { language } = useLanguage();
@@ -182,6 +183,8 @@ ${data.message}`,
       });
     },
     onSuccess: () => {
+      // Google Ads — CONTACT
+      trackConversion(GADS_SEND_TO.contact);
       toast.success(t.success);
       setFormData({
         name: "",

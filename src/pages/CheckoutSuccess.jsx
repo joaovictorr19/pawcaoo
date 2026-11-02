@@ -9,6 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
 import ServiceQRCodes from "@/components/booking/ServiceQRCodes";
+import { GADS_SEND_TO, trackConversionOnce } from "@/lib/googleAds";
 
 /**
  * Checkout Success Page
@@ -59,6 +60,11 @@ export default function CheckoutSuccess() {
       return response?.data;
     },
     onSuccess: (data) => {
+      // Google Ads — PURCHASE (inscrição paga em passeio de grupo)
+      trackConversionOnce(`gads_purchase_${sessionId}`, GADS_SEND_TO.purchase, {
+        currency: 'EUR',
+        transaction_id: sessionId,
+      });
       setSessionDetails({
         isGroupWalk: true,
         id: sessionId,
@@ -147,6 +153,12 @@ export default function CheckoutSuccess() {
     },
     onSuccess: (data) => {
       if (data) {
+        // Google Ads — PURCHASE (reserva paga)
+        trackConversionOnce(`gads_purchase_${bookingId}`, GADS_SEND_TO.purchase, {
+          value: data.isHotel ? (data.amount_total || 0) / 100 : (data.total_amount || 0),
+          currency: 'EUR',
+          transaction_id: bookingId,
+        });
         if (data.isHotel) {
           setSessionDetails(data);
         } else {
