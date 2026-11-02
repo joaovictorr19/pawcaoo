@@ -42,28 +42,50 @@ export default function ServiceOfferingsEditor({ professionalProfile }) {
     onError: () => toast.error('Erro ao atualizar serviços.')
   });
 
+  // Vagas consumidas num serviço de grupo (nunca trata 0 como ausente)
+  const groupCapacity = (service) => {
+    const total = Number(service?.capacity_total) || 0;
+    const available = service?.capacity_available != null ? Number(service.capacity_available) : total;
+    return { total, occupied: Math.max(0, total - available) };
+  };
+
   const handleAddService = () => {
     if (!formData.service_name || !formData.price) {
       toast.error('Nome e preço são obrigatórios');
       return;
     }
     const isGroup = formData.is_group_walk || formData.service_name.toLowerCase().includes('grupo');
-    const newService = {
+    const base = {
       service_name: formData.service_name,
       description: formData.description || '',
       duration_options: durationInput ? [durationInput] : [],
       price: parseFloat(formData.price),
-      service_type: isGroup ? 'group_walk' : 'standard',
+      service_type: isGroup ? 'group_walk' : 'other',
       icon: formData.icon || '',
       is_group_walk: isGroup,
-      ...(isGroup && {
-        capacity_total: parseInt(formData.capacity_total) || 5,
-        capacity_available: parseInt(formData.capacity_total) || 5,
-      }),
     };
-    const updatedServices = editingIndex !== null
-      ? services.map((s, i) => i === editingIndex ? newService : s)
-      : [...services, newService];
+
+    let updatedServices;
+    if (editingIndex !== null) {
+      // Preserva todos os campos existentes que o formulário não edita
+      updatedServices = services.map((s, i) => {
+        if (i !== editingIndex) return s;
+        const updated = { ...s, ...base };
+        if (isGroup) {
+          const { occupied } = groupCapacity(s);
+          const newTotal = parseInt(formData.capacity_total) || s.capacity_total || 5;
+          updated.capacity_total = newTotal;
+          updated.capacity_available = Math.max(0, newTotal - occupied);
+        }
+        return updated;
+      });
+    } else {
+      const newTotal = parseInt(formData.capacity_total) || 5;
+      updatedServices = [...services, {
+        ...base,
+        ...(isGroup && { capacity_total: newTotal, capacity_available: newTotal }),
+      }];
+    }
     updateServicesMutation.mutate(updatedServices);
   };
 

@@ -13,7 +13,6 @@ import {
 import CardPhotoAdjuster from "@/components/ui/CardPhotoAdjuster";
 import CertificationsEditor from "@/components/profile/CertificationsEditor";
 import SaveConfirmation from "@/components/ui/SaveConfirmation";
-import PortfolioSection from "@/components/professional-hub/PortfolioSection";
 import PublicLinkSection from "@/components/professional-hub/PublicLinkSection";
 
 export default function ProfessionalSettings({ professionalProfile, user, onSave }) {
@@ -140,24 +139,36 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
       });
 
       if (needsApproval) {
-        await base44.entities.ProfileEditRequest.create({
-          profile_id: professionalProfile.id,
-          profile_type: isWalker ? "walker" : "trainer",
-          professional_name: origName,
-          professional_email: professionalProfile.created_by,
-          requested_changes: {
-            [nameKey]: form.name,
-            location: form.location,
-            phone: form.phone,
-          },
-          original_data: {
-            [nameKey]: origName,
-            location: origLocation,
-            phone: origPhone,
-          },
-          status: "pending",
-        });
-        toast.success("Nome, localização e contacto enviados para aprovação. Restantes dados guardados.");
+        // Evita pedidos de aprovação duplicados enquanto um está pendente
+        const existing = await base44.entities.ProfileEditRequest.filter(
+          { profile_id: professionalProfile.id, status: "pending" },
+          "-created_date",
+          5
+        );
+        const pendingList = Array.isArray(existing) ? existing : (existing?.items || []);
+
+        if (pendingList.length > 0) {
+          toast.info("Já existe um pedido de alteração pendente. Aguarda a análise do admin.");
+        } else {
+          await base44.entities.ProfileEditRequest.create({
+            profile_id: professionalProfile.id,
+            profile_type: isWalker ? "walker" : "trainer",
+            professional_name: origName,
+            professional_email: professionalProfile.created_by,
+            requested_changes: {
+              [nameKey]: form.name,
+              location: form.location,
+              phone: form.phone,
+            },
+            original_data: {
+              [nameKey]: origName,
+              location: origLocation,
+              phone: origPhone,
+            },
+            status: "pending",
+          });
+          toast.success("Nome, localização e contacto enviados para aprovação. Restantes dados guardados.");
+        }
       } else {
         toast.success("Perfil atualizado");
       }
@@ -375,11 +386,6 @@ export default function ProfessionalSettings({ professionalProfile, user, onSave
                 }
               }}
             />
-          </div>
-
-          {/* Portfólio */}
-          <div className="border-t border-slate-100 pt-4">
-            <PortfolioSection professionalProfile={professionalProfile} hideCertifications />
           </div>
 
           {/* Save Button */}

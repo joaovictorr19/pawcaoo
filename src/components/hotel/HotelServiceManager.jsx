@@ -173,30 +173,34 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       if (editingServiceId) {
       // Editar serviço existente
       const groomingPricingEdit = formData.service_type === 'grooming' ? buildGroomingPricing() : {};
-      updatedServices = updatedServices.map(s =>
-        s.service_id === editingServiceId
-          ? {
-              ...s,
-              service_name: formData.service_name,
-              service_type: formData.service_type,
-              description: formData.description,
-              price_per_day: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || parseFloat(formData.price_30min) || 0) : parseFloat(formData.price_per_day),
-              price_30min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_30min) || 0) : undefined,
-              price_60min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || 0) : undefined,
-              capacity_total: parseInt(formData.capacity_total),
-              capacity_available: Math.min(parseInt(formData.capacity_total), s.capacity_available || parseInt(formData.capacity_total)),
-              accepted_dog_sizes: formData.accepted_dog_sizes,
-              icon: formData.icon || '',
-              transport_enabled: formData.transport_enabled || false,
-              transport_price: formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
-              transport_coverage_areas: formData.transport_enabled ? formData.transport_coverage_areas : undefined,
-              ...(formData.service_type === 'grooming' ? {
-                size_prices: groomingPricingEdit.size_prices,
-                breed_prices: groomingPricingEdit.breed_prices,
-              } : {}),
-            }
-          : s
-      );
+      updatedServices = updatedServices.map(s => {
+        if (s.service_id !== editingServiceId) return s;
+        // Vagas ocupadas continuam contabilizadas — zero disponível é um valor válido
+        const newTotal = parseInt(formData.capacity_total);
+        const prevTotal = Number(s.capacity_total) || newTotal;
+        const prevAvailable = s.capacity_available != null ? Number(s.capacity_available) : prevTotal;
+        const occupied = Math.max(0, prevTotal - prevAvailable);
+        return {
+          ...s,
+          service_name: formData.service_name,
+          service_type: formData.service_type,
+          description: formData.description,
+          price_per_day: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || parseFloat(formData.price_30min) || 0) : parseFloat(formData.price_per_day),
+          price_30min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_30min) || 0) : undefined,
+          price_60min: formData.service_type === 'walk_with_partner' ? (parseFloat(formData.price_60min) || 0) : undefined,
+          capacity_total: newTotal,
+          capacity_available: Math.max(0, newTotal - occupied),
+          accepted_dog_sizes: formData.accepted_dog_sizes,
+          icon: formData.icon || '',
+          transport_enabled: formData.transport_enabled || false,
+          transport_price: formData.transport_enabled ? (parseFloat(formData.transport_price) || 0) : undefined,
+          transport_coverage_areas: formData.transport_enabled ? formData.transport_coverage_areas : undefined,
+          ...(formData.service_type === 'grooming' ? {
+            size_prices: groomingPricingEdit.size_prices,
+            breed_prices: groomingPricingEdit.breed_prices,
+          } : {}),
+        };
+      });
       } else {
         // Criar novo serviço
         const groomingPricing = formData.service_type === 'grooming' ? buildGroomingPricing() : {};
@@ -587,7 +591,7 @@ export default function HotelServiceManager({ hotelProfile, onServiceUpdate }) {
       </AnimatePresence>
 
       {/* Lista de serviços */}
-      {services.length === 0 ? (
+      {services.length === 0 && !isAddingService ? (
         <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
           <p className="text-slate-500 font-medium">Nenhum serviço criado ainda</p>
           <p className="text-slate-400 text-sm mt-1">Clique em "Novo Serviço" para começar</p>

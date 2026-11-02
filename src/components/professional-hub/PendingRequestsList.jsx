@@ -32,6 +32,11 @@ export default function PendingRequestsList({ user, professionalProfile }) {
   });
 
   const handleAccept = async (booking) => {
+    if (booking.status !== 'pending') {
+      toast.info("Este pedido já foi processado.");
+      queryClient.invalidateQueries(['pendingBookingsPro']);
+      return;
+    }
     setProcessing(booking.id);
     try {
       const professionalPhone = professionalProfile?.whatsapp_number || professionalProfile?.phone || user?.phone || '';
@@ -46,26 +51,31 @@ export default function PendingRequestsList({ user, professionalProfile }) {
       const timeStr = booking.walk_time || '';
       const locationStr = booking.pickup_address || booking.location || '';
 
-      if (ownerEmail) {
-        await base44.integrations.Core.SendEmail({
-          from_name: 'PawCão',
-          to: ownerEmail,
-          subject: 'Reserva aceite — contactos disponíveis | PawCão',
-          body: [
-            'Olá,',
-            'A sua reserva foi aceite pelo profissional.',
-            '',
-            'Estado da reserva: ACEITE',
-            '',
-            `- Profissional: ${professionalName}`,
-            dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
-            locationStr ? `- Local: ${locationStr}` : null,
-            professionalPhone ? `- Contacto: ${professionalPhone}` : null,
-            '',
-            'Obrigado,',
-            'Equipa PawCão'
-          ].filter(Boolean).join('\n')
-        });
+      // A reserva já está confirmada — uma falha de email não deve ser apresentada como erro
+      try {
+        if (ownerEmail) {
+          await base44.integrations.Core.SendEmail({
+            from_name: 'PawCão',
+            to: ownerEmail,
+            subject: 'Reserva aceite — contactos disponíveis | PawCão',
+            body: [
+              'Olá,',
+              'A sua reserva foi aceite pelo profissional.',
+              '',
+              'Estado da reserva: ACEITE',
+              '',
+              `- Profissional: ${professionalName}`,
+              dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
+              locationStr ? `- Local: ${locationStr}` : null,
+              professionalPhone ? `- Contacto: ${professionalPhone}` : null,
+              '',
+              'Obrigado,',
+              'Equipa PawCão'
+            ].filter(Boolean).join('\n')
+          });
+        }
+      } catch (emailError) {
+        console.error('Falha ao enviar email de reserva aceite:', emailError);
       }
 
       queryClient.invalidateQueries(['pendingBookingsPro']);
@@ -81,6 +91,11 @@ export default function PendingRequestsList({ user, professionalProfile }) {
   };
 
   const handleDecline = async (booking) => {
+    if (booking.status !== 'pending') {
+      toast.info("Este pedido já foi processado.");
+      queryClient.invalidateQueries(['pendingBookingsPro']);
+      return;
+    }
     setProcessing(booking.id);
     try {
       await base44.entities.Booking.update(booking.id, { status: 'rejected' });

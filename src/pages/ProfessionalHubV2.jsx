@@ -352,57 +352,62 @@ export default function ProfessionalHubV2() {
       const timeStr = req.walk_time || '';
       const locationStr = req.pickup_address || req.pickup_location || req.location || '';
 
-      if (ownerEmail) {
-        await base44.integrations.Core.SendEmail({
-          from_name: 'PawCão',
-          to: ownerEmail,
-          subject: 'Reserva aceite — contactos disponíveis | PawCão',
-          body: [
-            'Olá,',
-            'A sua reserva foi aceite pelo profissional.',
-            '',
-            'Estado da reserva: ACEITE',
-            '',
-            'Resumo',
-            `- Profissional: ${professionalName}`,
-            dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
-            locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
-            '',
-            'Contacto do profissional',
-            professionalPhone ? `- WhatsApp / telefone: ${professionalPhone}` : null,
-            professionalEmail ? `- Email: ${professionalEmail}` : null,
-            '',
-            'Obrigado,',
-            'Equipa PawCão'
-          ].filter(Boolean).join('\n')
-        });
-      }
+      // A reserva já está confirmada — uma falha de email não deve ser apresentada como erro
+      try {
+        if (ownerEmail) {
+          await base44.integrations.Core.SendEmail({
+            from_name: 'PawCão',
+            to: ownerEmail,
+            subject: 'Reserva aceite — contactos disponíveis | PawCão',
+            body: [
+              'Olá,',
+              'A sua reserva foi aceite pelo profissional.',
+              '',
+              'Estado da reserva: ACEITE',
+              '',
+              'Resumo',
+              `- Profissional: ${professionalName}`,
+              dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
+              locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
+              '',
+              'Contacto do profissional',
+              professionalPhone ? `- WhatsApp / telefone: ${professionalPhone}` : null,
+              professionalEmail ? `- Email: ${professionalEmail}` : null,
+              '',
+              'Obrigado,',
+              'Equipa PawCão'
+            ].filter(Boolean).join('\n')
+          });
+        }
 
-      if (professionalEmail) {
-        await base44.integrations.Core.SendEmail({
-          from_name: 'PawCão',
-          to: professionalEmail,
-          subject: 'Reserva aceite com sucesso — contactos do cliente | PawCão',
-          body: [
-            'Olá,',
-            'Confirmamos que aceitou esta reserva com sucesso.',
-            '',
-            'Estado da reserva: ACEITE',
-            '',
-            'Resumo',
-            `- Cliente: ${req.owner_name || 'Cliente'}`,
-            `- Animal: ${req.dog_name || 'Pet'}`,
-            dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
-            locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
-            '',
-            'Contacto do cliente',
-            ownerPhone ? `- WhatsApp / telefone: ${ownerPhone}` : null,
-            ownerEmail ? `- Email: ${ownerEmail}` : null,
-            '',
-            'Obrigado,',
-            'Equipa PawCão'
-          ].filter(Boolean).join('\n')
-        });
+        if (professionalEmail) {
+          await base44.integrations.Core.SendEmail({
+            from_name: 'PawCão',
+            to: professionalEmail,
+            subject: 'Reserva aceite com sucesso — contactos do cliente | PawCão',
+            body: [
+              'Olá,',
+              'Confirmamos que aceitou esta reserva com sucesso.',
+              '',
+              'Estado da reserva: ACEITE',
+              '',
+              'Resumo',
+              `- Cliente: ${req.owner_name || 'Cliente'}`,
+              `- Animal: ${req.dog_name || 'Pet'}`,
+              dateStr || timeStr ? `- Data e hora: ${[dateStr, timeStr].filter(Boolean).join(' às ')}` : null,
+              locationStr ? `- Local de recolha/encontro: ${locationStr}` : null,
+              '',
+              'Contacto do cliente',
+              ownerPhone ? `- WhatsApp / telefone: ${ownerPhone}` : null,
+              ownerEmail ? `- Email: ${ownerEmail}` : null,
+              '',
+              'Obrigado,',
+              'Equipa PawCão'
+            ].filter(Boolean).join('\n')
+          });
+        }
+      } catch (emailError) {
+        console.error('Falha ao enviar emails de reserva aceite:', emailError);
       }
 
       queryClient.invalidateQueries(['incomingRequests']);
