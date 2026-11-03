@@ -134,14 +134,22 @@ export default function ShopOffersCarousel() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-50 text-orange-700 text-[11px] font-bold">
+                  <span
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold ${
+                      current.slots_available <= 3
+                        ? "bg-rose-600 text-white shadow-[0_2px_10px_rgba(225,29,72,0.3)]"
+                        : "bg-orange-50 text-orange-700"
+                    }`}
+                  >
                     <Users className="w-3 h-3" />
-                    {current.slots_available}/{current.slots_total}
+                    {current.slots_available <= 3
+                      ? `Últimas ${current.slots_available} vagas`
+                      : `${current.slots_available}/${current.slots_total} vagas`}
                   </span>
                   {remaining && (
-                    <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900 text-white text-[11px] font-bold tabular-nums">
+                    <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[11px] font-bold tabular-nums shadow-[0_2px_10px_rgba(249,115,22,0.3)]">
                       <Clock className="w-3 h-3" />
-                      {remaining}
+                      Termina em {remaining}
                     </span>
                   )}
                 </div>

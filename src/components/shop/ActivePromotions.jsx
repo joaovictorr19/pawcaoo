@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Sparkles, Megaphone, Truck } from "lucide-react";
+import { Sparkles, Megaphone, Truck, Zap, Clock } from "lucide-react";
+import UrgencyCountdown from "@/components/promotions/UrgencyCountdown";
 import {
   discountLabel,
   freePickupState,
@@ -54,7 +55,7 @@ export default function ActivePromotions() {
                   {promo.partner_name || "Parceiro PawCão"}
                 </span>
                 {discount && (
-                  <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-teal-600 text-white shrink-0">
+                  <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 text-white shrink-0 shadow-sm">
                     {discount}
                   </span>
                 )}
@@ -65,6 +66,14 @@ export default function ActivePromotions() {
               <p className="text-[11px] text-slate-500 mt-0.5 truncate">{promoScopeLabel(promo)}</p>
 
               <div className="flex flex-wrap gap-1.5 mt-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.08em] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white flex items-center gap-1 shadow-[0_2px_10px_rgba(249,115,22,0.3)]">
+                  <Zap className="w-3 h-3" />
+                  Relâmpago
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-rose-700 border border-rose-200 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <UrgencyCountdown promotion={promo} />
+                </span>
                 {promo.free_extra && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-teal-800 border border-teal-200 flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
@@ -92,10 +101,12 @@ export default function ActivePromotions() {
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                       soldOut
                         ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : left <= 3
+                        ? "bg-rose-600 text-white border-rose-600"
                         : "bg-white text-slate-700 border-slate-200"
                     }`}
                   >
-                    {soldOut ? "Esgotada" : `${left} vagas restantes`}
+                    {soldOut ? "Esgotada" : left <= 3 ? `Últimas ${left} vagas` : `${left} vagas restantes`}
                   </span>
                 )}
               </div>

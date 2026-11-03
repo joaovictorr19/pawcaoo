@@ -33,6 +33,14 @@ export function vacanciesLeft(promo) {
   return Math.max(0, max - (promo.participants_count || 0));
 }
 
+// Fim real da promoção: end_date é uma data sem hora — conta até ao fim desse dia (hora local).
+export function promotionEndsAt(promo) {
+  if (!promo?.end_date) return null;
+  const [y, m, d] = String(promo.end_date).split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d, 23, 59, 59).getTime();
+}
+
 export function discountLabel(promo) {
   if (!promo) return null;
   if (promo.discount_type === "percentage" && promo.discount_value) return `-${promo.discount_value}%`;
