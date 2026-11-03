@@ -19,13 +19,13 @@ export default function PromotionBadge({ promotion, className = "" }) {
   const limitedLeft = pickup && !pickup.exhausted && !pickup.unlimited ? pickup.left : null;
 
   return (
-    <div className={`rounded-xl border border-teal-100 bg-teal-50/60 px-3 py-2.5 ${className}`}>
+    <div className={`rounded-xl border border-orange-200 bg-orange-50 px-3 py-2.5 ${className}`}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-teal-700">
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-orange-700">
           Promoção
         </span>
         {discount && (
-          <span className="rounded-md bg-teal-600 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
+          <span className="rounded-md bg-gradient-to-r from-orange-500 to-amber-500 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
             {discount}
           </span>
         )}
