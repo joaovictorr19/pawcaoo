@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Crown, Star, Zap, Trophy, Target, ShoppingBag, Moon, Footprints, Heart, Shield, Sparkles, ChevronLeft, ChevronRight, Wallet, PartyPopper, ArrowDown, ArrowUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import WeeklyDuelsPanel from "@/components/gamification/WeeklyDuelsPanel";
+import MonthlyReviewPodium from "@/components/gamification/MonthlyReviewPodium";
 import { createPageUrl } from "@/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -350,114 +351,6 @@ const MissionCard = ({ mission, isFlipped, onFlip }) => {
   );
 };
 
-// Componente do Pedestal
-const PodiumPedestal = ({ user, position, delay }) => {
-  const heights = { 1: 'h-24', 2: 'h-16', 3: 'h-12' };
-  const sizes = { 1: 'w-14 h-14', 2: 'w-12 h-12', 3: 'w-10 h-10' };
-  const glowColors = { 1: 'shadow-amber-500/60', 2: 'shadow-gray-400/50', 3: 'shadow-orange-700/50' };
-  const borderColors = { 1: 'border-amber-500', 2: 'border-gray-400', 3: 'border-orange-700' };
-  const bgColors = { 1: 'from-amber-900/50 to-amber-950/80', 2: 'from-gray-800/50 to-gray-900/80', 3: 'from-orange-900/50 to-orange-950/80' };
-
-  const funnyTitles = [
-    'O Destruidor de Brinquedos',
-    'Rei dos Passeios',
-    'Mestre das Guloseimas',
-    'Senhor das Patinhas',
-    'Guardião do Sofá'
-  ];
-
-  return (
-    <motion.div
-      className="flex flex-col items-center"
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay }}
-    >
-      {/* Coroa para 1º lugar */}
-      {position === 1 && (
-        <motion.div
-          animate={{ y: [0, -3, 0], rotate: [-3, 3, -3] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="mb-1"
-        >
-          <Crown className="w-6 h-6 text-amber-400 drop-shadow-lg" />
-        </motion.div>
-      )}
-
-      {/* Avatar */}
-      <motion.div
-        className={`relative ${sizes[position]} mb-4`}
-        whileHover={{ scale: 1.1 }}
-      >
-        <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${bgColors[position]} blur-xl`} />
-        <Avatar className={`${sizes[position]} border-4 ${borderColors[position]} shadow-2xl ${glowColors[position]} relative z-10`}>
-          <AvatarImage src={user?.profile_photo_url} />
-          <AvatarFallback className="bg-neutral-800 text-amber-500 text-xl font-bold">
-            {user?.full_name?.[0] || position}
-          </AvatarFallback>
-        </Avatar>
-        
-        {/* Aura animada */}
-        <motion.div
-          className={`absolute inset-0 rounded-full border-2 ${borderColors[position]} opacity-50`}
-          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-      </motion.div>
-
-      {/* Nome e Título */}
-      <h4 className="text-white font-bold text-xs mb-0.5 text-center max-w-[100px] leading-tight break-words">
-        {user?.full_name || `Jogador ${position}`}
-      </h4>
-      <p className="text-amber-500/70 text-[8px] uppercase tracking-wider text-center mb-1 max-w-[110px] leading-tight whitespace-normal">
-        {funnyTitles[position - 1]}
-      </p>
-
-      {/* XP */}
-      <Badge className="bg-black/50 border border-amber-500/30 text-amber-400 text-[10px] mb-2 px-2 py-0.5">
-        <Flame className="w-2.5 h-2.5 mr-1" />
-        {(user?.gamification_xp || 0).toLocaleString()}
-      </Badge>
-
-      {/* Pedestal */}
-      <motion.div
-        className={`${heights[position]} w-20 relative`}
-        initial={{ height: 0 }}
-        animate={{ height: position === 1 ? 96 : position === 2 ? 64 : 48 }}
-        transition={{ duration: 0.8, delay: delay + 0.3 }}
-      >
-        {/* Pedestal base */}
-        <div className={`absolute inset-0 bg-gradient-to-t ${bgColors[position]} rounded-t-lg border-x-2 border-t-2 ${borderColors[position]}`}>
-          {/* Linhas decorativas */}
-          <div className="absolute inset-x-2 top-2 bottom-2 border border-amber-500/20 rounded" />
-          
-          {/* Número da posição */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className={`text-2xl font-black ${
-              position === 1 ? 'text-amber-500' : 
-              position === 2 ? 'text-gray-400' : 
-              'text-orange-700'
-            } opacity-30`}>
-              {position}
-            </span>
-          </div>
-        </div>
-
-        {/* Efeito de néon na base */}
-        <motion.div
-          className={`absolute bottom-0 left-0 right-0 h-1 ${
-            position === 1 ? 'bg-amber-500' : 
-            position === 2 ? 'bg-gray-400' : 
-            'bg-orange-700'
-          }`}
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        />
-      </motion.div>
-    </motion.div>
-  );
-};
-
 export default function Gamification() {
   const { language } = useLanguage();
   const queryClient = useQueryClient();
@@ -524,7 +417,6 @@ export default function Gamification() {
       return (b.gamification_level || 1) - (a.gamification_level || 1);
     });
 
-  const topUsers = rankedUsers.slice(0, 10);
   const userRank = rankedUsers.findIndex(p => p.user_email === user?.email) + 1;
 
   const celebrateMutation = useMutation({
@@ -590,14 +482,6 @@ export default function Gamification() {
     setCarouselIndex((prev) => (prev - 1 + MISSIONS.length) % MISSIONS.length);
   };
 
-  const top3 = [0, 1, 2].map((index) => topUsers[index] || {
-    id: `placeholder-${index}`,
-    full_name: `Jogador ${index + 1}`,
-    gamification_xp: 0,
-    isPlaceholder: true,
-  });
-  const podiumOrder = [top3[1], top3[0], top3[2]];
-
   const paginatedUsers = showFullRanking 
     ? rankedUsers.slice((rankingPage - 1) * rankingPerPage, rankingPage * rankingPerPage)
     : rankedUsers.slice(3, 10);
@@ -650,21 +534,12 @@ export default function Gamification() {
           >
             O Legado dos Titãs
           </motion.h2>
-          <p className="text-center text-gray-600 text-xs mb-8">
-            Os guerreiros mais poderosos da Alcateia
+          <p className="text-center text-gray-600 text-xs mb-6">
+            Os profissionais com mais pontos em reviews este mês
           </p>
 
-          {/* Pódio */}
-          <div className="flex items-end justify-center gap-1 sm:gap-2 md:gap-4">
-            {/* 2º Lugar */}
-            <PodiumPedestal user={podiumOrder[0]} position={2} delay={0.2} />
-
-            {/* 1º Lugar */}
-            <PodiumPedestal user={podiumOrder[1]} position={1} delay={0} />
-
-            {/* 3º Lugar */}
-            <PodiumPedestal user={podiumOrder[2]} position={3} delay={0.4} />
-          </div>
+          {/* Pódio mensal por reviews */}
+          <MonthlyReviewPodium />
 
           {/* Indicador "Você está aqui" */}
           {userRank > 3 && (
@@ -708,7 +583,7 @@ export default function Gamification() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-amber-400 font-bold text-sm">
-                  {showFullRanking ? `${t('fullRanking', language)} (${rankedUsers.length} ${t('users', language)})` : 'Top 10'}
+                  {showFullRanking ? `${t('fullRanking', language)} (${rankedUsers.length} ${t('users', language)})` : 'Ranking de XP · Top 10'}
                 </h3>
                 <Button
                   variant="ghost"
