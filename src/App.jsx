@@ -4,15 +4,15 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { AnimatePresence, motion } from 'framer-motion'
 import Home from './pages/Home.jsx'
 import UserProfile from './pages/UserProfile.jsx'
-import AdminDashboard from './pages/AdminDashboard.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import OAuthConsent from './pages/OAuthConsent.jsx'
 import ShortProfile from './pages/ShortProfile.jsx'
-import QRProfileTest from './pages/QRProfileTest.jsx'
 import CountryLandingPage from './pages/CountryLandingPage.jsx'
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
+const QRProfileTest = lazy(() => import('./pages/QRProfileTest.jsx'));
 const ProfessionalHubV2 = lazy(() => import('./pages/ProfessionalHubV2').catch(e => {
   console.error('Error loading ProfessionalHubV2:', e);
   return { default: () => <div>Erro ao carregar página</div> };
@@ -225,7 +225,7 @@ const AuthenticatedApp = () => {
             <Route path="/" element={<Home />} />
             <Route path="/Home" element={<Home />} />
             <Route path="/UserProfile" element={<UserProfile />} />
-            <Route path="/AdminDashboard" element={<AdminDashboard />} />
+            <Route path="/AdminDashboard" element={<Suspense fallback={<PageLoader />}><AdminDashboard /></Suspense>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -260,7 +260,7 @@ const AuthenticatedApp = () => {
             <Route path="/StoreDashboard" element={<Suspense fallback={<PageLoader />}><StoreDashboard /></Suspense>} />
             <Route path="/loja/:profileId" element={<Suspense fallback={<PageLoader />}><ShopProfile /></Suspense>} />
 
-            <Route path="/QRProfileTest" element={<QRProfileTest />} />
+            <Route path="/QRProfileTest" element={<Suspense fallback={<PageLoader />}><QRProfileTest /></Suspense>} />
             <Route path="/portugal" element={<CountryLandingPage country="portugal" />} />
             <Route path="/espanha" element={<CountryLandingPage country="espanha" />} />
             <Route path="/franca" element={<CountryLandingPage country="franca" />} />
