@@ -11,6 +11,9 @@ import {
   Store, MapPin, Wallet, BadgeCheck, Clock, XCircle, Plus, ChevronLeft,
 } from "lucide-react";
 import PickupLookupButton from "@/components/shop/PickupLookupButton";
+import StoreAccountStatus from "@/components/shop/StoreAccountStatus";
+import { fetchMyAccount } from "@/lib/accountRegime";
+import { effectiveRegime, regimeMeta } from "@/lib/accountLabels";
 
 const VERIFICATION = {
   verified: {
@@ -60,6 +63,16 @@ export default function StoreDashboard() {
     retry: 1,
   });
 
+  const { data: account } = useQuery({
+    queryKey: ["myAccountRegime"],
+    queryFn: fetchMyAccount,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  });
+
+  const currentRegime = effectiveRegime(account);
+  const otherRegime = !!currentRegime && currentRegime !== "shop";
+
   if (loadingUser || loadingProfile) {
     return <PageLoader />;
   }
@@ -77,8 +90,24 @@ export default function StoreDashboard() {
           <p className="text-sm text-slate-500 mb-6">
             Cria a tua loja em 2 minutos e começa a vender ração, brinquedos e acessórios na Loja PawCão.
           </p>
+          {otherRegime && (
+            <p className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+              A tua conta já está registada como {regimeMeta(currentRegime)?.label || currentRegime}. Criar uma loja abre
+              uma segunda adesão e a equipa PawCão vai rever a conta.
+            </p>
+          )}
           <button
-            onClick={() => navigate("/ShopOnboarding")}
+            onClick={() => {
+              if (
+                otherRegime &&
+                !window.confirm(
+                  `A tua conta está registada como ${regimeMeta(currentRegime)?.label || currentRegime}. Continuar cria também uma loja e a equipa vai rever a conta. Queres continuar?`
+                )
+              ) {
+                return;
+              }
+              navigate("/ShopOnboarding");
+            }}
             className="w-full h-12 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-lg shadow-teal-600/30"
           >
             Criar a minha loja 🛍️
@@ -143,6 +172,9 @@ export default function StoreDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Estado canónico da conta (regime · país · verificação) */}
+      <StoreAccountStatus />
 
       {/* Estados de verificação */}
       {shopProfile.verification_status === "rejected" && (
