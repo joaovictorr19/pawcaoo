@@ -162,8 +162,6 @@ export default function PartnerDashboard() {
         a.created_by === user.email
       );
       
-      mine.forEach(a => {
-      });
       
       return mine;
     },
