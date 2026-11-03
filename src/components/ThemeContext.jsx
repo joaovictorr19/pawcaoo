@@ -39,8 +39,8 @@ export const ThemeProvider = ({ children }) => {
       return profiles[0] || null;
     },
     enabled: !!user?.email,
-    staleTime: 5 * 1000,
-    refetchInterval: 10 * 1000,
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
   });
 
   const xp = userProfile?.gamification_xp ?? user?.gamification_xp ?? 0;
