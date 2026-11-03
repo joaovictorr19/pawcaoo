@@ -140,7 +140,7 @@ export default function ActivePromotions() {
                 <span className={`text-[10px] leading-tight ${soldOut ? "text-slate-400" : "text-slate-500"}`}>
                   {soldOut ? "Limite de participantes atingido" : "Aplicado automaticamente no pagamento"}
                 </span>
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-teal-600 px-3 py-1.5 text-[11px] font-bold leading-none text-white">
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1.5 text-[11px] font-bold leading-none text-white shadow-[0_2px_10px_rgba(249,115,22,0.35)]">
                   {soldOut ? "Ver serviço" : "Reservar"}
                   <ArrowRight className="h-3 w-3" />
                 </span>
