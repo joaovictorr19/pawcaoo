@@ -89,9 +89,9 @@ export default function UnauthenticatedHero({ onEntrar, onEncontrar, onRegistar,
 
       {/* Content grid: dog left, glass cards right */}
       <div className="relative z-10 px-4 md:px-6 pt-8 md:pt-12 pb-10 md:pb-16 max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-center">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-stretch">
           {/* Left: dog image in transparent glass frame + collar */}
-          <motion.div variants={itemVariants} className="relative">
+          <motion.div variants={itemVariants} className="relative flex">
             {/* Soft glow behind */}
             <div className="absolute inset-0 rounded-[2.5rem] blur-3xl opacity-25" style={{ background: `radial-gradient(circle at 50% 40%, ${TEAL}, transparent 70%)` }} />
 

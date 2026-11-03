@@ -20,7 +20,7 @@ export default function PolaroidCarousel() {
 
   return (
     <div
-      className="relative aspect-[4/3] md:aspect-[5/4] w-full max-w-md mx-auto rounded-xl md:rounded-2xl bg-white p-3 md:p-4 pb-10 md:pb-12"
+      className="relative h-full w-full max-w-md mx-auto aspect-[4/3] md:aspect-auto rounded-xl md:rounded-2xl bg-white p-3 md:p-4 pb-10 md:pb-12"
       style={{
         boxShadow: "0 8px 30px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)",
         border: "1px solid rgba(255,255,255,0.6)",
