@@ -1,46 +1,44 @@
-/* Janela de regras do pódio — um único cartão escuro, hierarquia simples e cores alinhadas */
+/* Janela de regras do pódio — cartão escuro, sem estilos claros padrão */
 
 .podium-rules-dialog {
   background: #101716 !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid #212b2a !important;
   border-radius: 24px !important;
   color: #e7eae9 !important;
   max-height: 85vh;
   overflow-y: auto;
   overscroll-behavior: contain;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55) !important;
 }
 
 .podium-rules-dialog > div {
   background: transparent !important;
 }
 
-/* Fecho — discreto, no canto, sem competir com o conteúdo */
-.podium-rules-dialog > button {
-  top: 0.85rem !important;
-  right: 0.85rem !important;
-  height: 1.9rem !important;
-  width: 1.9rem !important;
+/* Fecho próprio — escuro, discreto, no canto */
+.podium-rules-x {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.9rem;
+  width: 1.9rem;
   min-height: 0 !important;
   min-width: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
   padding: 0 !important;
-  background: rgba(255, 255, 255, 0.06) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #98a2a0 !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #98a2a0;
+  box-shadow: none;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.podium-rules-dialog > button:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #e7eae9 !important;
-}
-
-.podium-rules-dialog > button svg {
-  stroke: currentColor;
+.podium-rules-x:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e7eae9;
 }
 
 /* Cabeçalho */
