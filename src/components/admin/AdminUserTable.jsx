@@ -15,14 +15,17 @@ import { t } from "@/components/translations";
 import UserSearchAdvanced from "@/components/search/UserSearchAdvanced";
 import { AdminQuickVerify } from "./AdminQuickVerify";
 import { AdminUserCard } from "./AdminUserCard";
+import AccountBadges from "./accounts/AccountBadges";
+import AccountFiltersBar from "./accounts/AccountFiltersBar";
 import { AdminUserDrawer } from "./AdminUserDrawer";
 import { base44 } from "@/api/base44Client";
-import { dedupeUsers, deriveDisplayName, isDerivedName } from "@/utils/adminUserList";
+import { dedupeUsers, deriveDisplayName, isDerivedName, normalizeEmail } from "@/utils/adminUserList";
 
 export default function AdminUserTable({
   users = [],
   walkers = [],
   trainers = [],
+  accountMap = {},
   isLoading = false,
   onEdit,
   onDelete,
@@ -37,6 +40,7 @@ export default function AdminUserTable({
   const { language } = useLanguage();
   const [userSearchState, setUserSearchState] = useState({ searchTerm: "", filters: {} });
   const [quickFilter, setQuickFilter] = useState('all');
+  const [accountFilters, setAccountFilters] = useState({ regime: 'all', country: 'all', status: 'all' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -126,11 +130,31 @@ export default function AdminUserTable({
     return { pending, active, professionals, reports: 0 };
   }, [normalizedUsers, profilesByEmail, walkers, trainers]);
 
+  // Contagens por regime, país e estado a partir do registo canónico de contas
+  const accountCounts = useMemo(() => {
+    const regimes = {};
+    const countries = {};
+    const statuses = {};
+    let synced = 0, unsynced = 0, missingCountry = 0;
+    normalizedUsers.forEach(u => {
+      const acc = accountMap[normalizeEmail(u.email)];
+      if (!acc) { unsynced++; return; }
+      synced++;
+      if (acc.regime) regimes[acc.regime] = (regimes[acc.regime] || 0) + 1;
+      if (acc.country) countries[acc.country] = (countries[acc.country] || 0) + 1;
+      else missingCountry++;
+      if (acc.status) statuses[acc.status] = (statuses[acc.status] || 0) + 1;
+    });
+    return { regimes, countries, statuses, synced, unsynced, missingCountry };
+  }, [normalizedUsers, accountMap]);
+
   const filteredUsers = useMemo(() => {
     if (normalizedUsers.length === 0) return [];
     const { searchTerm, filters } = userSearchState;
     const searchLower = searchTerm?.toLowerCase().trim() || "";
-    if (!searchLower && (!filters || Object.keys(filters).length === 0) && quickFilter === 'all') {
+    const noAccountFilter =
+      accountFilters.regime === 'all' && accountFilters.country === 'all' && accountFilters.status === 'all';
+    if (!searchLower && (!filters || Object.keys(filters).length === 0) && quickFilter === 'all' && noAccountFilter) {
       return normalizedUsers;
     }
     return normalizedUsers.filter(u => {
@@ -152,6 +176,18 @@ export default function AdminUserTable({
       );
       const isActive = hasActiveWalker || hasActiveTrainer || u?.professional_profile?.verification_status === 'verified';
       const prof = profilesByEmail[u.email];
+      const account = accountMap[normalizeEmail(u.email)];
+      if (accountFilters.regime !== 'all') {
+        if (accountFilters.regime === 'undefined') {
+          if (account) return false;
+        } else if (account?.regime !== accountFilters.regime) return false;
+      }
+      if (accountFilters.country !== 'all') {
+        if (accountFilters.country === 'undefined') {
+          if (account?.country) return false;
+        } else if (account?.country !== accountFilters.country) return false;
+      }
+      if (accountFilters.status !== 'all' && account?.status !== accountFilters.status) return false;
       if (quickFilter === 'professionals') return isProfessional;
       if (quickFilter === 'pending') return isProfessional && !isActive;
       if (quickFilter === 'active') return isProfessional && isActive;
@@ -177,7 +213,7 @@ export default function AdminUserTable({
       }
       return true;
     });
-  }, [normalizedUsers, userSearchState, profilesByEmail, quickFilter, walkers, trainers]);
+  }, [normalizedUsers, userSearchState, profilesByEmail, quickFilter, walkers, trainers, accountMap, accountFilters]);
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const paginatedUsers = useMemo(() => {
@@ -187,6 +223,7 @@ export default function AdminUserTable({
 
   useEffect(() => { setCurrentPage(1); }, [userSearchState.searchTerm, JSON.stringify(userSearchState.filters)]);
   useEffect(() => { setCurrentPage(1); }, [quickFilter]);
+  useEffect(() => { setCurrentPage(1); }, [JSON.stringify(accountFilters)]);
 
   const handleSearch = (newState) => { setUserSearchState(newState); };
 
@@ -231,6 +268,12 @@ export default function AdminUserTable({
             </Button>
           </div>
 
+          <AccountFiltersBar
+            filters={accountFilters}
+            onChange={setAccountFilters}
+            counts={accountCounts}
+          />
+
           <div className="w-full">
             <UserSearchAdvanced onSearch={handleSearch} usersSource={users} />
           </div>
@@ -266,7 +309,7 @@ export default function AdminUserTable({
                 </div>
               ) : (
                 paginatedUsers.map(user => (
-                  <AdminUserCard key={user.id} user={user} onClick={handleOpenAction} profilesByEmail={profilesByEmail} />
+                  <AdminUserCard key={user.id} user={user} onClick={handleOpenAction} profilesByEmail={profilesByEmail} account={accountMap[normalizeEmail(user.email)]} />
                 ))
               )}
             </div>
@@ -280,7 +323,7 @@ export default function AdminUserTable({
                     <TableHead className="text-slate-700 font-bold text-xs whitespace-nowrap w-[280px]">{t('email', language)}</TableHead>
                     <TableHead className="text-slate-700 font-bold text-xs whitespace-nowrap w-[200px]">{t('fullName', language)}</TableHead>
                     <TableHead className="text-slate-700 font-bold text-xs whitespace-nowrap">XP</TableHead>
-                    <TableHead className="text-slate-700 font-bold text-xs whitespace-nowrap">{t('accountType', language)}</TableHead>
+                    <TableHead className="text-slate-700 font-bold text-xs whitespace-nowrap">Regime / País</TableHead>
                     <TableHead className="text-slate-700 font-bold text-xs whitespace-nowrap">Comissão</TableHead>
                     <TableHead className="text-slate-700 font-bold text-xs whitespace-nowrap">{t('status', language)}</TableHead>
                     <TableHead className="text-slate-700 font-bold text-xs whitespace-nowrap">Data</TableHead>
@@ -317,16 +360,20 @@ export default function AdminUserTable({
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {(() => {
-                            const hasWalker = walkers.some(w => w.created_by === user.email);
-                            const hasTrainer = trainers.some(t => t.created_by === user.email);
-                            let label = 'Cliente';
-                            if (hasWalker && hasTrainer) label = 'Prof. Misto';
-                            else if (hasWalker) label = 'Profissional';
-                            else if (hasTrainer) label = 'Treinador';
-                            const color = (hasWalker || hasTrainer) ? 'bg-teal-600' : 'bg-blue-600';
-                            return <Badge className={"text-white text-[10px] h-5 whitespace-nowrap " + color}>{label}</Badge>;
-                          })()}
+                          {accountMap[normalizeEmail(user.email)] ? (
+                            <AccountBadges account={accountMap[normalizeEmail(user.email)]} />
+                          ) : (
+                            (() => {
+                              const hasWalker = walkers.some(w => w.created_by === user.email);
+                              const hasTrainer = trainers.some(t => t.created_by === user.email);
+                              let label = 'Cliente';
+                              if (hasWalker && hasTrainer) label = 'Prof. Misto';
+                              else if (hasWalker) label = 'Profissional';
+                              else if (hasTrainer) label = 'Treinador';
+                              const color = (hasWalker || hasTrainer) ? 'bg-teal-600' : 'bg-blue-600';
+                              return <Badge className={"text-white text-[10px] h-5 whitespace-nowrap " + color}>{label}</Badge>;
+                            })()
+                          )}
                         </TableCell>
                         <TableCell>
                           {(() => {

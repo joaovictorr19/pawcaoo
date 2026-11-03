@@ -3,8 +3,9 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ChevronRight, ShieldCheck, Award, UserCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { deriveDisplayName } from "@/utils/adminUserList";
+import AccountBadges from "./accounts/AccountBadges";
 
-export function AdminUserCard({ user, onClick, profilesByEmail = {} }) {
+export function AdminUserCard({ user, onClick, profilesByEmail = {}, account = null }) {
   const prof = profilesByEmail[user.email];
   const displayName = deriveDisplayName(user);
   return (
@@ -23,6 +24,11 @@ export function AdminUserCard({ user, onClick, profilesByEmail = {} }) {
         <div className="min-w-0 flex-1">
           <h4 className="font-bold text-slate-900 text-sm leading-none mb-1.5 truncate">{displayName}</h4>
           <p className="text-[10px] text-slate-400 truncate mb-1.5">{user.email}</p>
+          {account && (
+            <div className="mb-1.5">
+              <AccountBadges account={account} />
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
             <ShieldCheck className={"w-3.5 h-3.5 " + (prof?.is_verified ? 'text-blue-500' : 'text-slate-200')} />
             <Award className={"w-3.5 h-3.5 " + (prof?.trainer_verified ? 'text-purple-500' : 'text-slate-200')} />

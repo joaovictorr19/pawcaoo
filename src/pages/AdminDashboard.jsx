@@ -30,6 +30,7 @@ import AdminOverviewDashboard from "@/components/admin/AdminOverviewDashboard";
 import AdminApprovalsModule from "../components/admin/AdminApprovalsModule";
 import AdminDebug from "./AdminDebug";
 import AdminUserTable from "../components/admin/AdminUserTable";
+import AccountsSyncCard from "@/components/admin/accounts/AccountsSyncCard";
 
 import ClientDetails from "../components/admin/ClientDetails";
 
@@ -226,6 +227,32 @@ export default function AdminDashboard() {
     staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  const { data: accountRegistry = [], refetch: refetchAccountRegistry } = useQuery({
+    queryKey: ['accountRegistry'],
+    queryFn: async () => {
+      try {
+        const rows = await base44.entities.AccountRegistry.list('-last_synced_date', 5000);
+        return Array.isArray(rows) ? rows : [];
+      } catch (e) {
+        console.error('AccountRegistry fetch error:', e);
+        return [];
+      }
+    },
+    enabled: isAdmin && activeTab === 'users',
+    initialData: [],
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const accountMap = useMemo(() => {
+    const map = {};
+    (Array.isArray(accountRegistry) ? accountRegistry : []).forEach((account) => {
+      const key = String(account?.user_email || '').trim().toLowerCase();
+      if (key) map[key] = account;
+    });
+    return map;
+  }, [accountRegistry]);
 
   const { data: allWalkers = [] } = useQuery({
     queryKey: ['allWalkersAdmin'],
@@ -994,10 +1021,12 @@ export default function AdminDashboard() {
           <TabsContent value="users">
             {activeTab === 'users' && (
               <>
+                <AccountsSyncCard onSynced={() => refetchAccountRegistry()} />
                 <AdminUserTable
                   users={allUsers}
                   walkers={allWalkers}
                   trainers={allTrainers}
+                  accountMap={accountMap}
                   isLoading={loadingAllUsers}
                   onEdit={handleEditUser}
                   onDelete={handleDeleteUser}
