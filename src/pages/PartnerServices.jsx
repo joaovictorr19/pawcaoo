@@ -30,8 +30,6 @@ export default function PartnerServices() {
     queryKey: ['partnerServices'],
     queryFn: async () => {
       const all = await base44.entities.PartnerService.list('-created_date');
-      
-      
 
       // Se for empresa: mostrar TODOS os seus serviços (aprovados, pendentes, rejeitados)
       if (isCompany && user?.email) {
