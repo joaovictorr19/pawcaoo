@@ -7,6 +7,7 @@ import { createPageUrl } from "@/utils";
 import { ArrowLeft, Loader2, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { emptyServicePhotos } from "@/components/animal/servicePhotoConfig";
+import { goToAuth } from "@/lib/bookingAuth";
 
 import PhotoSection from "@/components/animal/edit/PhotoSection";
 import IdentitySection from "@/components/animal/edit/IdentitySection";
@@ -38,10 +39,16 @@ export default function EditAnimalProfile() {
     enabled: !isNewAnimal,
   });
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: loadingUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => getCurrentUser(),
   });
+
+  // Perfil do animal exige sessão — sem login vai para entrar/criar conta
+  // e regressa a esta página depois de autenticado.
+  useEffect(() => {
+    if (!loadingUser && !user?.email) goToAuth();
+  }, [loadingUser, user?.email]);
 
   const [formData, setFormData] = useState(() => ({
     dog_name: "",

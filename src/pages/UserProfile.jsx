@@ -16,6 +16,7 @@ import ProfileManagementSection from "@/components/profile/ProfileManagementSect
 import ProfessionalProfileSEO from "@/components/profile/ProfessionalProfileSEO";
 import GroupWalkEventsSection from "@/components/groupwalk/GroupWalkEventsSection";
 import { pickPrimaryWalkerProfile } from "@/utils/primaryProfile";
+import { goToAuth } from "@/lib/bookingAuth";
 
 const BadgeSelectionModal = lazy(() => import("@/components/gamification/BadgeSelectionModal"));
 const AnimalManagerModal = lazy(() => import("../components/profile/AnimalManagerModal"));
@@ -74,6 +75,15 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
       base44.auth.redirectToLogin();
     }
   }, [isSelfView, currentUser, authLoading]);
+
+  // Reservar exige sessão: sem login vai para entrar/criar conta e só depois
+  // volta a este perfil para escolher o animal e concluir a reserva.
+  const canStartBooking = () => {
+    if (authLoading) return false;
+    if (currentUser?.email) return true;
+    goToAuth();
+    return false;
+  };
 
   const { data: profileUser, isPending: loadingUser } = useQuery({
     queryKey: ['profileUser', targetId, targetEmail, targetUsername, isSelfView, currentUser?.id],
@@ -447,9 +457,16 @@ export default function UserProfile({ fixedEmail, fixedId, fixedType }) {
       isOwnProfile={isOwnProfile}
       isHotel={walkerProfile?.professional_type === 'hotel'}
       onBack={() => navigate('/')}
-      onServiceClick={(service) => setBookingModal({ isOpen: true, selectedDate: null, selectedService: service })}
-      onHotelBookingClick={(service) => setHotelBookingModal({ isOpen: true, selectedService: service, selectedDate: null })}
+      onServiceClick={(service) => {
+        if (!canStartBooking()) return;
+        setBookingModal({ isOpen: true, selectedDate: null, selectedService: service });
+      }}
+      onHotelBookingClick={(service) => {
+        if (!canStartBooking()) return;
+        setHotelBookingModal({ isOpen: true, selectedService: service, selectedDate: null });
+      }}
       onHotelDateSelect={(checkin, checkout) => {
+        if (!canStartBooking()) return;
         const firstService = walkerProfile?.hotel_details?.services?.find(s => s.is_active !== false);
         setHotelBookingModal({ isOpen: true, selectedService: firstService || null, selectedDate: checkin || null, selectedCheckout: checkout || null });
       }}
